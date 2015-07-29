@@ -1,7 +1,0 @@
-syntax = "proto2";
-package com.talentica.msg;
-
-
-message MessageDemo{
-    required string name = 1;
-}

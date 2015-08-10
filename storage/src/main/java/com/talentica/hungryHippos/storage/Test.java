@@ -1,4 +1,4 @@
-package com.talentica.hungryhippos;
+package com.talentica.hungryHippos.storage;
 
 import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.linear.*;

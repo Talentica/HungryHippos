@@ -15,27 +15,7 @@ public class BalasAlgorithm {
 
     public IPProblem standardize(IPProblem problem){
 
-        RealVector sourceCoeffs = problem.getObjectiveFunction().getCoefficients();
-        double [] resultC = new double[sourceCoeffs.getDimension()];
-        Transformation<Integer, Integer> [] targetTranformations = new Transformation[sourceCoeffs.getDimension()];
 
-        Transformation<Integer, Integer> identityTransformation = (Integer x) -> x;
-        Transformation<Integer, Integer> inverseTransformation = (Integer x) -> 1-x;
-        double targetConstant = problem.getObjectiveFunction().getConstantTerm();
-
-        for(int i=0;i<sourceCoeffs.getDimension();i++){
-            double coeff = sourceCoeffs.getEntry(i);
-            if(coeff>=0){
-                resultC[i] = coeff;
-                targetTranformations[i] = problem.getVarTransformationSet().transformations[i].compose(identityTransformation);
-            }else{
-                resultC[i] = -coeff;
-                targetTranformations[i] = problem.getVarTransformationSet().transformations[i].compose(inverseTransformation);
-                targetConstant+=coeff;
-
-
-            }
-        }
         return null;
 
     }

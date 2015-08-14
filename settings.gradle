@@ -2,4 +2,5 @@ rootProject.name = 'hungry-hippos'
 include 'storage'
 include 'consumer'
 include 'utility'
+include 'sharding'
 

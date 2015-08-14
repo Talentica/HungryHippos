@@ -7,7 +7,7 @@ public class KeyValueFrequency implements Comparable<KeyValueFrequency>{
     private Object keyValue;
     private long frequency;
 
-    public KeyValueFrequency(long frequency, Object keyValue) {
+    public KeyValueFrequency(Object keyValue, long frequency) {
         this.frequency = frequency;
         this.keyValue = keyValue;
     }

@@ -59,7 +59,7 @@ public class Node {
         return result;
     }
 
-    public void fillUpBy(Long value) throws NodeOverflowException{
+    public void fillUpBy(long value) throws NodeOverflowException{
         if(value>remainingCapacity){
             throw new NodeOverflowException("Node "+nodeId+" ran out of capacity");
         }else{
@@ -67,5 +67,12 @@ public class Node {
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "Node{" +
+                "nodeCapacity=" + nodeCapacity +
+                ", nodeId=" + nodeId +
+                ", remainingCapacity=" + remainingCapacity +
+                '}';
+    }
 }

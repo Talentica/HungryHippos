@@ -60,4 +60,12 @@ public class KeyValueFrequency implements Comparable<KeyValueFrequency>{
             return 1;
         }
     }
+
+    @Override
+    public String toString() {
+        return "KeyValueFrequency{" +
+                "frequency=" + frequency +
+                ", keyValue=" + keyValue +
+                '}';
+    }
 }

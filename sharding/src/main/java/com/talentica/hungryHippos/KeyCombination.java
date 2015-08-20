@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,6 +24,58 @@ public class KeyCombination {
                 that.keyValueCombination != null);
 
     }
+
+    public boolean checkMatchAnd(KeyCombination rhs){
+        for(String k:rhs.keyValueCombination.keySet()){
+            Object thatValue = rhs.keyValueCombination.get(k);
+            if(!keyValueCombination.containsKey(k)) {
+                continue;
+            }else{
+                Object thisValue = keyValueCombination.get(k);
+                if(thisValue==null){
+                    continue;
+                }else{
+                    if(thisValue.equals(thatValue)){
+                        continue;
+                    }else{
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean checkMatchOr(KeyCombination rhs){
+        for(String k:rhs.keyValueCombination.keySet()){
+            Object thatValue = rhs.keyValueCombination.get(k);
+            if(!keyValueCombination.containsKey(k)) {
+                continue;
+            }else{
+                Object thisValue = keyValueCombination.get(k);
+                if(thisValue==null){
+                    continue;
+                }else{
+                    if(thisValue.equals(thatValue)){
+                        return true;
+                    }else{
+                        continue;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean checkMatchOr(List<KeyCombination> rhs){
+        for(KeyCombination k:rhs){
+            if(this.checkMatchOr(k)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public int hashCode() {

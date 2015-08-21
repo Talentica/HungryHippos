@@ -90,4 +90,11 @@ public class KeyCombination {
     public void setKeyValueCombination(Map<String, Object> keyValueCombination) {
         this.keyValueCombination = keyValueCombination;
     }
+
+    @Override
+    public String toString() {
+        return "KeyCombination{" +
+                "keyValueCombination=" + keyValueCombination +
+                '}';
+    }
 }

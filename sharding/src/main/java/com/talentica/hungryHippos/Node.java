@@ -45,17 +45,13 @@ public class Node {
 
         Node node = (Node) o;
 
-        if (nodeId != node.nodeId) return false;
-        if (nodeCapacity != node.nodeCapacity) return false;
-        return remainingCapacity == node.remainingCapacity;
+        return (nodeId != node.nodeId);
 
     }
 
     @Override
     public int hashCode() {
         int result = nodeId;
-        result = 31 * result + (int) (nodeCapacity ^ (nodeCapacity >>> 32));
-        result = 31 * result + (int) (remainingCapacity ^ (remainingCapacity >>> 32));
         return result;
     }
 

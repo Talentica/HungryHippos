@@ -12,6 +12,8 @@ public class Sharding {
     PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
     private Map<KeyCombination, Long> keyCombinationFrequencyMap = new HashMap<>();
     private Map<Node, List<KeyCombination>> nodeToKeyMap = new HashMap<>();
+    private List<KeyCombination> intersections = new LinkedList<>();
+
 
     public Sharding(int numNodes) {
         for(int i=0;i<numNodes;i++){
@@ -55,7 +57,7 @@ public class Sharding {
     }
 
 
-    private void shardSingleKey(String keyName) throws NodeOverflowException {
+    private void shardSingleKey(String keyName, boolean isLastKey) throws NodeOverflowException {
         List<KeyValueFrequency> keyValueFrequencies = keyValueFrequencyMap.get(keyName);
         Map<Object, Node> keyValueNodeNumber =  new HashMap<>();
         keyValueNodeNumberMap.put(keyName, keyValueNodeNumber);
@@ -70,13 +72,18 @@ public class Sharding {
             }
             long currentSize = sumForKeyCombinationUnion(currentKeys);
 
-            List<KeyCombination> wouldBeList = new ArrayList<>();
-            wouldBeList.addAll(currentKeys);
             Map<String, Object> wouldBeMap = new HashMap<>();
             wouldBeMap.put(keyName, kvf.getKeyValue());
-            wouldBeList.add(new KeyCombination(wouldBeMap));
-            long wouldBeSize = sumForKeyCombinationUnion(wouldBeList);
+            currentKeys.add(new KeyCombination(wouldBeMap));
+            long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
 
+            if(isLastKey){
+                Map<String, Object> intersectMap = new HashMap<>();
+                for(KeyCombination kc:currentKeys){
+                    intersectMap.putAll(kc.getKeyValueCombination());
+                }
+                intersections.add(new KeyCombination(intersectMap));
+            }
             mostEmptyNode.fillUpBy(wouldBeSize - currentSize);
 
             fillupQueue.offer(mostEmptyNode);
@@ -87,8 +94,16 @@ public class Sharding {
     }
 
     public void shardAllKeys() throws NodeOverflowException {
+        int i=0;
         for(String key:keyValueFrequencyMap.keySet()){
-            shardSingleKey(key);
+            if(i>=keyValueFrequencyMap.keySet().size()-1){
+                shardSingleKey(key,true);
+            }else{
+
+                shardSingleKey(key,false);
+            }
+
+            i++;
         }
     }
 
@@ -227,6 +242,7 @@ public class Sharding {
         System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
         System.out.println(sharding.keyValueNodeNumberMap);
+        System.out.println(sharding.intersections);
 
     }
 

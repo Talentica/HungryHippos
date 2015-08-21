@@ -78,6 +78,7 @@ public class Sharding {
             long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
 
             if(isLastKey){
+                //this is not all. we have to rethink
                 Map<String, Object> intersectMap = new HashMap<>();
                 for(KeyCombination kc:currentKeys){
                     intersectMap.putAll(kc.getKeyValueCombination());

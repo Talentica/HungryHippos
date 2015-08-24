@@ -85,7 +85,7 @@ public class Sharding {
 
     }
 
-    private void makeShardingTable(KeyCombination source, List<String> keyNames){
+    private void makeShardingTable(KeyCombination source, List<String> keyNames) throws NodeOverflowException {
         String keyName;
         if(keyNames.size()>=1){
             keyName = keyNames.get(0);
@@ -108,6 +108,7 @@ public class Sharding {
                 Node mostEmptyNode = fillupQueue.poll();
                 if(!nodesForKeyCombination.contains(mostEmptyNode)){
                     nodesForKeyCombination.add(mostEmptyNode);
+                    mostEmptyNode.fillUpBy(keyCombinationFrequencyMap.get(source));
                     numberOfIntersectionStorage--;
                 }
                 nodesToPutBack.add(mostEmptyNode);

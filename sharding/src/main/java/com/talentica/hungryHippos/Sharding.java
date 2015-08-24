@@ -12,8 +12,7 @@ public class Sharding {
     PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
     private Map<KeyCombination, Long> keyCombinationFrequencyMap = new HashMap<>();
     private Map<Node, List<KeyCombination>> nodeToKeyMap = new HashMap<>();
-    private List<KeyCombination> intersections = new LinkedList<>();
-
+    private Map<KeyCombination, Set<Node>> keyCombinationNodeMap = new HashMap<>();
 
     public Sharding(int numNodes) {
         for(int i=0;i<numNodes;i++){
@@ -57,7 +56,7 @@ public class Sharding {
     }
 
 
-    private void shardSingleKey(String keyName, boolean isLastKey) throws NodeOverflowException {
+    private void shardSingleKey(String keyName) throws NodeOverflowException {
         List<KeyValueFrequency> keyValueFrequencies = keyValueFrequencyMap.get(keyName);
         Map<Object, Node> keyValueNodeNumber =  new HashMap<>();
         keyValueNodeNumberMap.put(keyName, keyValueNodeNumber);
@@ -77,35 +76,70 @@ public class Sharding {
             currentKeys.add(new KeyCombination(wouldBeMap));
             long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
 
-            if(isLastKey){
-                //this is not all. we have to rethink
-                Map<String, Object> intersectMap = new HashMap<>();
-                for(KeyCombination kc:currentKeys){
-                    intersectMap.putAll(kc.getKeyValueCombination());
-                }
-                intersections.add(new KeyCombination(intersectMap));
-            }
+
             mostEmptyNode.fillUpBy(wouldBeSize - currentSize);
 
             fillupQueue.offer(mostEmptyNode);
             keyValueNodeNumber.put(kvf.getKeyValue(), mostEmptyNode);
-
         }
 
     }
 
-    public void shardAllKeys() throws NodeOverflowException {
-        int i=0;
-        for(String key:keyValueFrequencyMap.keySet()){
-            if(i>=keyValueFrequencyMap.keySet().size()-1){
-                shardSingleKey(key,true);
-            }else{
-
-                shardSingleKey(key,false);
-            }
-
-            i++;
+    private void makeShardingTable(KeyCombination source, List<String> keyNames){
+        String keyName;
+        if(keyNames.size()>=1){
+            keyName = keyNames.get(0);
+        }else{
+            keyName = null;
         }
+        if(keyName==null){
+            //exit case
+            //lets check which nodes it goes.
+            Set<Node> nodesForKeyCombination = new HashSet<>();
+            for(Map.Entry<String,Object> kv:source.getKeyValueCombination().entrySet()){
+                Node n = keyValueNodeNumberMap.get(kv.getKey()).get(kv.getValue());
+                if(n!=null){
+                    nodesForKeyCombination.add(n);
+                }
+            }
+            int numberOfIntersectionStorage = source.getKeyValueCombination().size() - nodesForKeyCombination.size();
+            Set<Node> nodesToPutBack = new HashSet<>();
+            while(numberOfIntersectionStorage>0){
+                Node mostEmptyNode = fillupQueue.poll();
+                if(!nodesForKeyCombination.contains(mostEmptyNode)){
+                    nodesForKeyCombination.add(mostEmptyNode);
+                    numberOfIntersectionStorage--;
+                }
+                nodesToPutBack.add(mostEmptyNode);
+            }
+            nodesToPutBack.forEach(n -> fillupQueue.offer(n));
+            keyCombinationNodeMap.put(source, nodesForKeyCombination);
+
+        }else{
+            List<String> restOfKeyNames = new LinkedList<>();
+            restOfKeyNames.addAll(keyNames);
+            restOfKeyNames.remove(keyName);
+            List<KeyValueFrequency> kvfs = keyValueFrequencyMap.get(keyName);
+
+            for(KeyValueFrequency keyValueFrequency:kvfs){
+                Object value = keyValueFrequency.getKeyValue();
+                Map<String,Object> nextSourceMap = new HashMap<>();
+                nextSourceMap.putAll(source.getKeyValueCombination());
+                KeyCombination nextSource = new KeyCombination(nextSourceMap);
+                nextSource.getKeyValueCombination().put(keyName, value);
+                makeShardingTable(nextSource, restOfKeyNames);
+            }
+        }
+    }
+
+    public void shardAllKeys() throws NodeOverflowException {
+
+        for(String key:keyValueFrequencyMap.keySet()){
+            shardSingleKey(key);
+        }
+        List<String> keyNameList = new ArrayList<>();
+        keyNameList.addAll(keyValueFrequencyMap.keySet());
+        makeShardingTable(new KeyCombination(new HashMap<String, Object>()), keyNameList);
     }
 
     //This method needs to be generalized
@@ -243,7 +277,9 @@ public class Sharding {
         System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
         System.out.println(sharding.keyValueNodeNumberMap);
-        System.out.println(sharding.intersections);
+        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
+            System.out.println(kn.getKey() +" :: "+kn.getValue());
+        }
 
     }
 

@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos;
+package com.talentica.hungryHippos.sharding;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos;
+package com.talentica.hungryHippos.sharding;
 
 /**
  * Created by debasishc on 14/8/15.

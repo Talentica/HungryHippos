@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DataGenerator {
 
-    public static long entryCount = 1_000_000;
+    public static long entryCount = 100_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {
@@ -60,16 +60,22 @@ public class DataGenerator {
         return retList;
     }
 
+    private static double skewRandom(){
+        double start = Math.random();
+        return start*start;
+    }
+
     public static void main(String [] args) throws FileNotFoundException {
         PrintWriter out = new PrintWriter(new File("sampledata.txt"));
+        long start = System.currentTimeMillis();
         System.out.println(generateAllCombinations(3,allNumbers));
         for(int i=0;i<entryCount;i++){
-            int i1 = (int)(key1ValueSet.length*Math.random());
-            int i2 = (int)(key2ValueSet.length*Math.random());
-            int i3 = (int)(key3ValueSet.length*Math.random());
-            int i4 = (int)(key4ValueSet.length*Math.random());
-            int i5 = (int)(key5ValueSet.length*Math.random());
-            int i6 = (int)(key6ValueSet.length*Math.random());
+            int i1 = (int)(key1ValueSet.length*skewRandom());
+            int i2 = (int)(key2ValueSet.length*skewRandom());
+            int i3 = (int)(key3ValueSet.length*skewRandom());
+            int i4 = (int)(key4ValueSet.length*skewRandom());
+            int i5 = (int)(key5ValueSet.length*skewRandom());
+            int i6 = (int)(key6ValueSet.length*skewRandom());
 
             String key1 = key1ValueSet[i1];
             String key2 = key2ValueSet[i2];
@@ -83,9 +89,11 @@ public class DataGenerator {
 
             out.println(key1+","+key2+","+key3
                     +","+key4+","+key5+","+key6+","+key7+","+key8);
-
         }
+        long end = System.currentTimeMillis();
         out.flush();
         out.close();
+        System.out.println("Time taken in ms: "+(end-start));
+
     }
 }

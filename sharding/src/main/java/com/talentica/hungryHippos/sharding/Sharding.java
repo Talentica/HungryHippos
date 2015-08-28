@@ -278,9 +278,9 @@ public class Sharding {
         System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
         System.out.println(sharding.keyValueNodeNumberMap);
-        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
-            System.out.println(kn.getKey() +" :: "+kn.getValue());
-        }
+//        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
+//            System.out.println(kn.getKey() +" :: "+kn.getValue());
+//        }
 
     }
 

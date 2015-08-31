@@ -14,5 +14,7 @@ public interface DataStore {
      * A moving stream.
      * @return
      */
-    public Iterable<Object[]> getStoredRows(int keyId);
+    public StoreAccess getStoreAccess(int keyId);
+
+    public void sync();
 }

@@ -3,4 +3,5 @@ include 'storage'
 include 'consumer'
 include 'utility'
 include 'sharding'
+include 'node'
 

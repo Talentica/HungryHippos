@@ -1,8 +1,10 @@
 package com.talentica.hungryHippos.storage;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
+
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,11 +16,14 @@ public class FileStoreAccess implements StoreAccess{
     private int keyId;
     private int numFiles;
     private String base;
+    private DataDescription dataDescription;
 
-    public FileStoreAccess(String base, int keyId, int numFiles) {
+    public FileStoreAccess(String base, int keyId, int numFiles,
+                           DataDescription dataDescription) {
         this.keyId = keyId;
         this.numFiles = numFiles;
         this.base = base;
+        this.dataDescription = dataDescription;
     }
 
     @Override
@@ -38,17 +43,17 @@ public class FileStoreAccess implements StoreAccess{
 
     private void processRows(int fileId){
         try {
-            ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream(base + fileId));
+            DataInputStream in
+                    = new DataInputStream(new FileInputStream(base + fileId));
+            byte[] buf = new byte[dataDescription.getSize()];
+            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
             while(true){
-                Object[] row = (Object[])in.readObject();
+                in.readFully(buf);
                 for(RowProcessor p: rowProcessors){
-                    p.processRow(row);
+                    p.processRow(byteBuffer);
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

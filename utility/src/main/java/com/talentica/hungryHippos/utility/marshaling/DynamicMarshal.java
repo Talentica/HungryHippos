@@ -44,4 +44,36 @@ public class DynamicMarshal {
         }
         return null;
     }
+
+    public void writeValue(int index, Object object, ByteBuffer dest){
+        DataLocator locator = dataDescription.locateField(index);
+        switch (locator.getDataType()){
+            case BYTE:
+                dest.put(locator.getOffset(), (Byte)object);
+            case CHAR:
+                dest.putChar(locator.getOffset(), (Character) object);
+            case SHORT:
+                dest.putShort(locator.getOffset(), (Short) object);
+            case INT:
+                dest.putInt(locator.getOffset(), (Integer) object);
+            case LONG:
+                dest.putLong(locator.getOffset(), (Long) object);
+            case FLOAT:
+                dest.putFloat(locator.getOffset(), (Float) object);
+            case DOUBLE:
+                dest.putDouble(locator.getOffset(), (Double) object);
+            case STRING:
+                byte[] content = object.toString().getBytes();
+                int offset = locator.getOffset();
+                int size = locator.getSize();
+
+                int j=0;
+                int i=offset;
+                for(;i<offset+size-1 && j<content.length;i++,j++){
+                    dest.put(i,content[j]);
+                }
+                dest.put(i,(byte)0);
+        }
+
+    }
 }

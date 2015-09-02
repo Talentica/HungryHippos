@@ -35,8 +35,10 @@ public class Test {
         dataDescription.addFieldType(DataLocator.DataType.BYTE,0);
         dataDescription.addFieldType(DataLocator.DataType.INT,0);
         dataDescription.addFieldType(DataLocator.DataType.INT,0);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,10);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,10);
 
-        byte[] buf = new byte[10];
+        byte[] buf = new byte[dataDescription.getSize()];
         buf[0]=5;
         buf[1]=5;
         buf[2]=0;
@@ -47,13 +49,34 @@ public class Test {
         buf[7]=0;
         buf[8]=2;
         buf[9]=0;
+        buf[10]='a';
+        buf[11]='s';
+        buf[12]='d';
+        buf[13]=0;
+        buf[14]=0;
+        buf[15]=0;
+        buf[20]='a';
+        buf[21]=0;
+        buf[22]=0;
 
         DynamicMarshal marshal = new DynamicMarshal(dataDescription);
-        System.out.println(marshal.readValue(0, ByteBuffer.wrap(buf)));
-        System.out.println(marshal.readValue(1, ByteBuffer.wrap(buf)));
-        System.out.println(marshal.readValue(2, ByteBuffer.wrap(buf)));
-        System.out.println(marshal.readValue(3, ByteBuffer.wrap(buf)));
-
+//        System.out.println(marshal.readValue(0, ByteBuffer.wrap(buf)));
+//        System.out.println(marshal.readValue(1, ByteBuffer.wrap(buf)));
+//        System.out.println(marshal.readValue(2, ByteBuffer.wrap(buf)));
+//        System.out.println(marshal.readValue(3, ByteBuffer.wrap(buf)));
+//        System.out.println(marshal.readValue(4, ByteBuffer.wrap(buf)));
+//        System.out.println(marshal.readValue(5, ByteBuffer.wrap(buf)));
+        long start = System.currentTimeMillis();
+        for(int i=0;i<10_000_000;i++) {
+            marshal.readValue(0, ByteBuffer.wrap(buf));
+            marshal.readValue(1, ByteBuffer.wrap(buf));
+            marshal.readValue(2, ByteBuffer.wrap(buf));
+            marshal.readValue(3, ByteBuffer.wrap(buf));
+            marshal.readValue(4, ByteBuffer.wrap(buf));
+            marshal.readValue(5, ByteBuffer.wrap(buf));
+        }
+        long end = System.currentTimeMillis();
+        System.out.println(end-start);
 
     }
 }

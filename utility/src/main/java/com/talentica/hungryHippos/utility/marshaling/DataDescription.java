@@ -6,4 +6,5 @@ package com.talentica.hungryHippos.utility.marshaling;
 public interface DataDescription {
     public DataLocator locateField(int index);
     public int getSize();
+    public String[] keyOrder();
 }

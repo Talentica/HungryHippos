@@ -1,9 +1,11 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.io.Serializable;
+
 /**
  * Created by debasishc on 14/8/15.
  */
-public class Node {
+public class Node implements Serializable{
     private int nodeId;
     private long nodeCapacity;
     private long remainingCapacity;
@@ -45,7 +47,7 @@ public class Node {
 
         Node node = (Node) o;
 
-        return (nodeId != node.nodeId);
+        return (nodeId == node.nodeId);
 
     }
 

@@ -8,9 +8,16 @@ import java.util.Map;
  */
 public class FieldTypeArrayDataDescription implements DataDescription{
 
-    Map<Integer, DataLocator> dataLocatorMap = new HashMap<>();
-    int nextIndex=0;
-    int nextOffset=0;
+    private Map<Integer, DataLocator> dataLocatorMap = new HashMap<>();
+    private int nextIndex=0;
+    private int nextOffset=0;
+
+    public void setKeyOrder(String[] keyOrder) {
+        this.keyOrder = keyOrder;
+    }
+
+    private String[] keyOrder;
+
     @Override
     public DataLocator locateField(int index) {
         return dataLocatorMap.get(index);
@@ -19,6 +26,11 @@ public class FieldTypeArrayDataDescription implements DataDescription{
     @Override
     public int getSize() {
         return nextOffset;
+    }
+
+    @Override
+    public String[] keyOrder() {
+        return keyOrder;
     }
 
     public void addFieldType(DataLocator.DataType dataType, int size){

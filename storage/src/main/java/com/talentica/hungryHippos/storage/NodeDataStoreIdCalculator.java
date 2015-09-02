@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.storage;
 
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 
@@ -21,33 +22,35 @@ public class NodeDataStoreIdCalculator {
     private final DynamicMarshal dynamicMarshal;
 
     public NodeDataStoreIdCalculator(
-            Map<String, Map<Object, Node>> keyValueNodeNumberMap, Node thisNode,
-            String [] keyOrder, DynamicMarshal marshal) {
+            Map<String, Map<Object, Node>> keyValueNodeNumberMap, int thisNode, DataDescription dataDescription) {
         this.keyValueNodeNumberMap = keyValueNodeNumberMap;
-        this.thisNode = thisNode;
+        this.thisNode = new Node(0, thisNode);
         numberOfDimensions = keyValueNodeNumberMap.size();
-        keys =keyOrder;
+        keys =dataDescription.keyOrder();
         keyWiseAcceptingValues = new Set[numberOfDimensions];
-        this.dynamicMarshal = marshal;
+        this.dynamicMarshal = new DynamicMarshal(dataDescription);
         for(int i=0;i<keys.length;i++){
             String key=keys[i];
             Set<Object> objs = new HashSet<>();
             for(Map.Entry<Object,Node> e: keyValueNodeNumberMap.get(key).entrySet()){
-                if(e.getValue().equals(thisNode)){
+                if(e.getValue().getNodeId()==thisNode){
                     objs.add(e.getKey());
                 }
             }
             keyWiseAcceptingValues[i]=objs;
+            System.out.println(keyWiseAcceptingValues[i]);
         }
+
     }
 
     public int storeId(ByteBuffer row){
         int fileId=0;
         for(int i=0;i<keys.length;i++){
+            fileId<<=1;
             if(keyWiseAcceptingValues[i].contains(dynamicMarshal.readValue(i,row))){
                 fileId++;
             }
-            fileId<<=1;
+
         }
         return fileId;
     }

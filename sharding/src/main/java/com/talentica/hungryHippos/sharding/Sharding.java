@@ -213,6 +213,22 @@ public class Sharding {
         System.out.println(this.keyValueFrequencyMap);
     }
 
+    public void dumpKeyValueNodeNumberMap(String file) throws IOException{
+
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(keyValueNodeNumberMap);
+            out.flush();
+        }
+    }
+
+    public void dumpKeyKeyCombinationNodeMap(String file) throws IOException{
+
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(keyCombinationNodeMap);
+            out.flush();
+        }
+    }
+
     public static void main(String [] args) throws Exception {
         /*Sharding sharding = new Sharding(6);
         List<KeyValueFrequency> keyValueFrequencies = new ArrayList<>();
@@ -281,7 +297,10 @@ public class Sharding {
 //        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
 //            System.out.println(kn.getKey() +" :: "+kn.getValue());
 //        }
-
+        sharding.dumpKeyKeyCombinationNodeMap("keyCombinationNodeMap");
+        sharding.dumpKeyValueNodeNumberMap("keyValueNodeNumberMap");
     }
+
+
 
 }

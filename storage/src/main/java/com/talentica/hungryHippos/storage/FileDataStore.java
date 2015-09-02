@@ -29,10 +29,10 @@ public class FileDataStore implements DataStore{
     }
 
     @Override
-    public void storeRow(byte[] row) {
-        int storeId = nodeDataStoreIdCalculator.storeId(ByteBuffer.wrap(row));
+    public void storeRow(ByteBuffer row, byte[] raw) {
+        int storeId = nodeDataStoreIdCalculator.storeId(row);
         try {
-            os[storeId].write(row);
+            os[storeId].write(raw);
         } catch (IOException e) {
             e.printStackTrace();
         }

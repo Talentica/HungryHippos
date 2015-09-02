@@ -1,12 +1,14 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.awt.*;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by debasishc on 14/8/15.
  */
-public class KeyCombination {
+public class KeyCombination implements Serializable{
     private Map<String,Object> keyValueCombination;
 
     public KeyCombination(Map<String, Object> keyValueCombination) {
@@ -20,8 +22,7 @@ public class KeyCombination {
 
         KeyCombination that = (KeyCombination) o;
 
-        return !(keyValueCombination != null ? !keyValueCombination.equals(that.keyValueCombination) :
-                that.keyValueCombination != null);
+        return keyValueCombination.equals(that.keyValueCombination);
 
     }
 

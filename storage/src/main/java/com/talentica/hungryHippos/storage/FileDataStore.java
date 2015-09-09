@@ -18,13 +18,20 @@ public class FileDataStore implements DataStore{
     public FileDataStore(int numDimensions,
                          NodeDataStoreIdCalculator nodeDataStoreIdCalculator,
                          DataDescription dataDescription) throws IOException {
+        this(numDimensions,nodeDataStoreIdCalculator,dataDescription, false);
+    }
+
+    public FileDataStore(int numDimensions,
+                         NodeDataStoreIdCalculator nodeDataStoreIdCalculator,
+                         DataDescription dataDescription, boolean readOnly) throws IOException {
         this.numFiles = 1<<numDimensions;
         this.nodeDataStoreIdCalculator = nodeDataStoreIdCalculator;
         this.dataDescription = dataDescription;
         os = new OutputStream[numFiles];
-
-        for(int i=0;i<numFiles;i++){
-            os[i] = new BufferedOutputStream(new FileOutputStream(baseName+i));
+        if(!readOnly) {
+            for (int i = 0; i < numFiles; i++) {
+                os[i] = new BufferedOutputStream(new FileOutputStream(baseName + i));
+            }
         }
     }
 

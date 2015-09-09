@@ -1,5 +1,8 @@
+package com.talentica.hungryHippos.accumulator;
+
+import com.talentica.hungryHippos.accumulator.TestRowProcessor;
+import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.storage.StoreAccess;
@@ -41,18 +44,13 @@ public class DataReader {
         }
 
 
-
-        byte[] buf = new byte[dataDescription.getSize()];
-        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-        DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-
-
         NodeDataStoreIdCalculator nodeDataStoreIdCalculator
                 = new NodeDataStoreIdCalculator(keyValueNodeNumberMap,1,dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
-        StoreAccess storeAccess = dataStore.getStoreAccess(0);
-        storeAccess.addRowProcessor(new TestRowProcessor(dataDescription, dynamicMarshal));
-        storeAccess.processRows();
+
+        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, "keyValueNodeNumberMap");
+        jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
+        jobRunner.run();
 
     }
 }

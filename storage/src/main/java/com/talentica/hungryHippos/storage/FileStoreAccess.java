@@ -54,7 +54,7 @@ public class FileStoreAccess implements StoreAccess{
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 }

@@ -1,3 +1,5 @@
+package com.talentica.hungryHippos.accumulator;
+
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
@@ -22,5 +24,10 @@ public class TestRowProcessor implements RowProcessor {
     @Override
     public void processRow(ByteBuffer row) {
         System.out.println(dynamicMarshal.readValue(0, row));
+    }
+
+    @Override
+    public void finishUp() {
+
     }
 }

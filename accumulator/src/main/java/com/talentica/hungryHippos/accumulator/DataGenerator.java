@@ -1,3 +1,5 @@
+package com.talentica.hungryHippos.accumulator;
+
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;

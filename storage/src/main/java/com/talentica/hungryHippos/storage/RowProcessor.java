@@ -7,4 +7,5 @@ import java.nio.ByteBuffer;
  */
 public interface RowProcessor {
     void processRow(ByteBuffer row);
+    void finishUp();
 }

@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class DataGenerator {
 
-    public static long entryCount = 1_000_000;
+    public static long entryCount = 10_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {
@@ -84,6 +84,7 @@ public class DataGenerator {
         dataDescription.addFieldType(DataLocator.DataType.STRING,4);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
+        dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
 
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         byte[] buf = new byte[dataDescription.getSize()];
@@ -137,11 +138,12 @@ public class DataGenerator {
                 dynamicMarshal.writeValue(5,key6,byteBuffer);
                 dynamicMarshal.writeValue(6,key7,byteBuffer);
                 dynamicMarshal.writeValue(7,key8,byteBuffer);
+                dynamicMarshal.writeValue(8,"xyz",byteBuffer);
                 out.write(buf);
 
-                System.out.println("Wrote "+Arrays.toString(buf));
+                //System.out.println("Wrote "+Arrays.toString(buf));
             }else{
-                System.out.println(keyCombination + "  " +keyCombinationNodeMap.get(keyCombination));
+                //System.out.println(keyCombination + "  " +keyCombinationNodeMap.get(keyCombination));
             }
 
 

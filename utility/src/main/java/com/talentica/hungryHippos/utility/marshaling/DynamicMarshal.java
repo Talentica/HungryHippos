@@ -50,18 +50,25 @@ public class DynamicMarshal {
         switch (locator.getDataType()){
             case BYTE:
                 dest.put(locator.getOffset(), (Byte)object);
+                break;
             case CHAR:
                 dest.putChar(locator.getOffset(), (Character) object);
+                break;
             case SHORT:
                 dest.putShort(locator.getOffset(), (Short) object);
+                break;
             case INT:
                 dest.putInt(locator.getOffset(), (Integer) object);
+                break;
             case LONG:
                 dest.putLong(locator.getOffset(), (Long) object);
+                break;
             case FLOAT:
                 dest.putFloat(locator.getOffset(), (Float) object);
+                break;
             case DOUBLE:
                 dest.putDouble(locator.getOffset(), (Double) object);
+                break;
             case STRING:
                 byte[] content = object.toString().getBytes();
                 int offset = locator.getOffset();

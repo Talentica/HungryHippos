@@ -32,6 +32,7 @@ public class DataReader {
         dataDescription.addFieldType(DataLocator.DataType.STRING,4);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
+        dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
 
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
 
@@ -50,6 +51,8 @@ public class DataReader {
 
         JobRunner jobRunner = new JobRunner(dataDescription, dataStore, "keyValueNodeNumberMap");
         jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
+        jobRunner.addJob(new TestJob(new int[]{0,1}, 1, 6));
+        jobRunner.addJob(new TestJob(new int[]{0}, 1, 6));
         jobRunner.run();
 
     }

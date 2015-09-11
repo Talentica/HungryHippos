@@ -59,7 +59,7 @@ public class Node implements Serializable{
 
     public void fillUpBy(long value) throws NodeOverflowException{
         if(value>remainingCapacity){
-            throw new NodeOverflowException("Node "+nodeId+" ran out of capacity");
+            //throw new NodeOverflowException("Node "+nodeId+" ran out of capacity");
         }else{
             remainingCapacity-=value;
         }

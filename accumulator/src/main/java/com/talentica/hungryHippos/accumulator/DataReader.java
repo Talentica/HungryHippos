@@ -46,13 +46,13 @@ public class DataReader {
 
 
         NodeDataStoreIdCalculator nodeDataStoreIdCalculator
-                = new NodeDataStoreIdCalculator(keyValueNodeNumberMap,1,dataDescription);
+                = new NodeDataStoreIdCalculator(keyValueNodeNumberMap,6,dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
 
         JobRunner jobRunner = new JobRunner(dataDescription, dataStore, "keyValueNodeNumberMap");
-        jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
-        jobRunner.addJob(new TestJob(new int[]{0,1}, 1, 6));
-        jobRunner.addJob(new TestJob(new int[]{0}, 1, 6));
+        //jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
+        //jobRunner.addJob(new TestJob(new int[]{0,1}, 1, 6));
+        jobRunner.addJob(new TestJob(new int[]{0}, 0, 6));
         jobRunner.run();
 
     }

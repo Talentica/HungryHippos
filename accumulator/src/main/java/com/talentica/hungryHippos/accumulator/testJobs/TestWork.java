@@ -23,6 +23,16 @@ public class TestWork implements Work {
     @Override
     public void processRow(ExecutionContext executionContext) {
         double v =  (Double)executionContext.getValue(valueIndex);
+        System.out.println(executionContext.getValue(0));
+        System.out.println(executionContext.getValue(1));
+        System.out.println(executionContext.getValue(2));
+        System.out.println(executionContext.getValue(3));
+        System.out.println(executionContext.getValue(4));
+        System.out.println(executionContext.getValue(5));
+        System.out.println(executionContext.getValue(6));
+        System.out.println(executionContext.getValue(7));
+        System.out.println(executionContext.getValue(8));
+
         value+=v;
 
     }

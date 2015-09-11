@@ -48,7 +48,7 @@ public class NodeDataStoreIdCalculator {
         for(int i=keys.length-1;i>=0;i--){
             fileId<<=1;
             if(keyWiseAcceptingValues[i].contains(dynamicMarshal.readValue(i,row))){
-                fileId++;
+                fileId|=1;
             }
 
         }

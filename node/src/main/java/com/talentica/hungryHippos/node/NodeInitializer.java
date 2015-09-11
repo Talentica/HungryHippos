@@ -92,6 +92,6 @@ public class NodeInitializer {
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
 
         NodeInitializer initializer = new NodeInitializer("keyValueNodeNumberMap", dataDescription);
-        initializer.startServer(8080, 1);
+        initializer.startServer(8080, 6);
     }
 }

@@ -6,20 +6,16 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
- * Created by debasishc on 20/8/15.
+ * Created by debasishc on 11/9/15.
  */
-public class DataGenerator {
+public class PredictableDataGenerator {
 
-    public static long entryCount = 10_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {
@@ -73,7 +69,34 @@ public class DataGenerator {
         return start*start;
     }
 
-    public static void main(String [] args) throws Exception {
+    public static void main(String [] args) throws Exception{
+        Socket socket = new Socket("localhost",8080);
+        //PrintWriter out = new PrintWriter(new File("sampledata.txt"));
+
+        OutputStream out = socket.getOutputStream();
+
+        FileInputStream in = new FileInputStream("predictableData");
+
+        byte[] buffer = new byte[1024];
+        int totalData=0;
+        while(true){
+            int read = in.read(buffer);
+
+            if(read<0){
+                break;
+            }
+            totalData+=read;
+            out.write(buffer,0,read);
+        }
+
+        out.flush();
+        out.close();
+        System.out.println("Total data sent: "+totalData);
+    }
+
+    public static void main() throws Exception {
+
+        BufferedReader i = new BufferedReader(new InputStreamReader(System.in));
 
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         dataDescription.addFieldType(DataLocator.DataType.STRING,2);
@@ -102,20 +125,20 @@ public class DataGenerator {
         }
         Socket socket = new Socket("localhost",8080);
         //PrintWriter out = new PrintWriter(new File("sampledata.txt"));
-        OutputStream out =socket.getOutputStream();
+
+        OutputStream out = new FileOutputStream("predictableData"); //socket.getOutputStream();
         long start = System.currentTimeMillis();
         System.out.println(generateAllCombinations(3,allNumbers));
-        for(int i=0;i<entryCount;i++){
-            int i1 = (int)(key1ValueSet.length*skewRandom());
-            int i2 = (int)(key2ValueSet.length*skewRandom());
-            int i3 = (int)(key3ValueSet.length*skewRandom());
+        int count=0;
+        for(KeyCombination kc:keyCombinationNodeMap.keySet()){
+
             int i4 = (int)(key4ValueSet.length*skewRandom());
             int i5 = (int)(key5ValueSet.length*skewRandom());
             int i6 = (int)(key6ValueSet.length*skewRandom());
 
-            String key1 = key1ValueSet[i1];
-            String key2 = key2ValueSet[i2];
-            String key3 = key3ValueSet[i3];
+            String key1 = (String)kc.getKeyValueCombination().get("key1");
+            String key2 = (String)kc.getKeyValueCombination().get("key2");
+            String key3 = (String)kc.getKeyValueCombination().get("key3");
             String key4 = key4ValueSet[i4];
             String key5 = key5ValueSet[i5];
             String key6 = key6ValueSet[i6];
@@ -126,11 +149,13 @@ public class DataGenerator {
             keyValueMap.put("key1", key1);
             keyValueMap.put("key2", key2);
             keyValueMap.put("key3", key2);
-            
-            KeyCombination keyCombination = new KeyCombination(keyValueMap);
-            Node targetNode = new Node(0,6);
-            if(keyCombinationNodeMap.get(keyCombination).contains(targetNode)){
 
+            KeyCombination keyCombination = kc;//new KeyCombination(keyValueMap);
+            Node targetNode = new Node(0,6);
+
+            if(keyCombinationNodeMap.get(keyCombination).contains(targetNode)){
+                System.out.println(kc);
+                count++;
                 dynamicMarshal.writeValue(0,key1,byteBuffer);
                 dynamicMarshal.writeValue(1,key2,byteBuffer);
                 dynamicMarshal.writeValue(2,key3,byteBuffer);
@@ -139,8 +164,9 @@ public class DataGenerator {
                 dynamicMarshal.writeValue(5,key6,byteBuffer);
                 dynamicMarshal.writeValue(6,key7,byteBuffer);
                 dynamicMarshal.writeValue(7,key8,byteBuffer);
-                dynamicMarshal.writeValue(8,"xyz",byteBuffer);
+                dynamicMarshal.writeValue(8, "xyz", byteBuffer);
                 out.write(buf);
+                //i.readLine();
 
                 //System.out.println("Wrote "+Arrays.toString(buf));
             }else{
@@ -153,7 +179,8 @@ public class DataGenerator {
         long end = System.currentTimeMillis();
         out.flush();
         out.close();
-        System.out.println("Time taken in ms: "+(end-start));
+        System.out.println("Time taken in ms: " + (end - start));
+        System.out.println("Total number of rows sent: "+count);
 
     }
 }

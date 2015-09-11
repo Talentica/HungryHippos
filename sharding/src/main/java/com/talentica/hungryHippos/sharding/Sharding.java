@@ -288,7 +288,7 @@ public class Sharding {
         sum = sharding.sumForKeyCombinationUnion(searchList);
         System.out.println(sum);*/
 
-        Sharding sharding = new Sharding(20);
+        Sharding sharding = new Sharding(10);
         sharding.populateFrequencyFromData(new BufferedReader(new FileReader("sampledata.txt")));
         System.out.println(sharding.keyCombinationFrequencyMap.size());
         System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());

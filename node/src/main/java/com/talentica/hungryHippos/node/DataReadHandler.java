@@ -53,7 +53,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         byteBuf.writeBytes(msgB); // (2)
         msgB.release();
        // System.out.println(byteBuf.readableBytes());
-        if (byteBuf.readableBytes() >= dataDescription.getSize()) {
+        while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
             totalCount++;

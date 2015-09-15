@@ -18,8 +18,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
     private DataStore dataStore;
     private ByteBuf byteBuf;
 
-    private static int totalCount=0;
-
     public DataReadHandler(DataDescription dataDescription, DataStore dataStore) {
         this.dataDescription = dataDescription;
         this.buf = new byte[dataDescription.getSize()];
@@ -39,12 +37,10 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
-            totalCount++;
         }
         dataStore.sync();
         byteBuf.release(); // (1)
         byteBuf = null;
-        System.out.println(totalCount);
     }
 
     @Override
@@ -56,7 +52,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
-            totalCount++;
         }
 
     }

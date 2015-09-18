@@ -17,7 +17,7 @@ import java.util.*;
 public class DataGenerator {
 
 
-    public static long entryCount = 10_000_000;
+    public static long entryCount = 1_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {

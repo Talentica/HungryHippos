@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.accumulator;
 
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -11,6 +12,16 @@ public class ExecutionContextImpl implements ExecutionContext{
     private ByteBuffer data;
     private final DynamicMarshal dynamicMarshal;
     private ValueSet keys;
+
+    private static PrintStream out;
+
+    static{
+        try{
+            out = new PrintStream("outputFile");
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
 
     public ExecutionContextImpl(DynamicMarshal dynamicMarshal) {
         this.dynamicMarshal = dynamicMarshal;
@@ -33,7 +44,7 @@ public class ExecutionContextImpl implements ExecutionContext{
 
     @Override
     public void saveValue(Object value) {
-        //System.out.println(keys.toString() + " ==> " + value);
+        out.println(keys.toString() + " ==> " + value);
     }
 
     @Override

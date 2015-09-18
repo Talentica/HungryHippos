@@ -118,7 +118,7 @@ public class DataGenerator {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream("keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            System.out.println(keyCombinationNodeMap);
+            //System.out.println(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -127,12 +127,13 @@ public class DataGenerator {
 
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
+            System.out.println(server);
             Socket socket = new Socket(server,8080);
             targets[i] =socket.getOutputStream();
         }
 
         long start = System.currentTimeMillis();
-        System.out.println(generateAllCombinations(3,allNumbers));
+
         for(int i=0;i<entryCount;i++){
             int i1 = (int)(key1ValueSet.length*skewRandom());
             int i2 = (int)(key2ValueSet.length*skewRandom());

@@ -14,9 +14,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.Map;
 
 /**
@@ -26,6 +24,7 @@ public class NodeInitializer {
 
     private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
+    private static String nodeIdFile = "nodeId";
 
     public NodeInitializer(String keyValueNodeNumberMapFile, DataDescription dataDescription) throws IOException {
         this.dataDescription = dataDescription;
@@ -36,6 +35,11 @@ public class NodeInitializer {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+    public static int readNodeId() throws Exception{
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(nodeIdFile)));
+        String line = in.readLine();
+        return Integer.parseInt(line);
     }
     public void startServer(int port, int hostID) throws Exception {
 
@@ -92,6 +96,6 @@ public class NodeInitializer {
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
 
         NodeInitializer initializer = new NodeInitializer("keyValueNodeNumberMap", dataDescription);
-        initializer.startServer(8080, 6);
+        initializer.startServer(8080, readNodeId());
     }
 }

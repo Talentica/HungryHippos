@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 public class ExecutionContextImpl implements ExecutionContext{
     private ByteBuffer data;
     private final DynamicMarshal dynamicMarshal;
+    private ValueSet keys;
 
     public ExecutionContextImpl(DynamicMarshal dynamicMarshal) {
         this.dynamicMarshal = dynamicMarshal;
@@ -32,6 +33,16 @@ public class ExecutionContextImpl implements ExecutionContext{
 
     @Override
     public void saveValue(Object value) {
-        System.out.println(value);
+        System.out.println(keys.toString() + " ==> " + value);
+    }
+
+    @Override
+    public void setKeys(ValueSet valueSet) {
+        this.keys = valueSet;
+    }
+
+    @Override
+    public ValueSet getKeys() {
+        return keys;
     }
 }

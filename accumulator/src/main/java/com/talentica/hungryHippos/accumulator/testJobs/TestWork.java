@@ -2,6 +2,9 @@ package com.talentica.hungryHippos.accumulator.testJobs;
 
 import com.talentica.hungryHippos.accumulator.ExecutionContext;
 import com.talentica.hungryHippos.accumulator.Work;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import java.util.Arrays;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -12,6 +15,7 @@ public class TestWork implements Work {
     private int valueIndex;
 
     double value = 0;
+    DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
 
     public TestWork(int[] dimensions, int primaryDimension, int valueIndex) {
         this.dimensions = dimensions;
@@ -23,22 +27,13 @@ public class TestWork implements Work {
     @Override
     public void processRow(ExecutionContext executionContext) {
         double v =  (Double)executionContext.getValue(valueIndex);
-        System.out.println(executionContext.getValue(0));
-        System.out.println(executionContext.getValue(1));
-        System.out.println(executionContext.getValue(2));
-        System.out.println(executionContext.getValue(3));
-        System.out.println(executionContext.getValue(4));
-        System.out.println(executionContext.getValue(5));
-        System.out.println(executionContext.getValue(6));
-        System.out.println(executionContext.getValue(7));
-        System.out.println(executionContext.getValue(8));
-
-        value+=v;
+        descriptiveStatistics.addValue(v);
 
     }
 
     @Override
     public void calculate(ExecutionContext executionContext) {
-        executionContext.saveValue(value);
+        //System.out.print(Arrays.toString(dimensions)+" :: " + valueIndex + " :: ");
+        executionContext.saveValue(descriptiveStatistics.getPercentile(50));
     }
 }

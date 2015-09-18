@@ -6,10 +6,7 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -18,6 +15,7 @@ import java.util.*;
  * Created by debasishc on 20/8/15.
  */
 public class DataGenerator {
+
 
     public static long entryCount = 10_000_000;
     public final static char [] allChars;
@@ -73,7 +71,31 @@ public class DataGenerator {
         return start*start;
     }
 
+
+
+    private static String serverConfigFile = "serverConfigFile";
+
+    private static String[] loadServers() throws Exception{
+        ArrayList<String> servers = new ArrayList<>();
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(new FileInputStream(serverConfigFile)));
+        while(true){
+            String line = in.readLine();
+            if(line==null){
+                break;
+            }
+            servers.add(line);
+        }
+        return servers.toArray(new String[servers.size()]);
+    }
+
+
     public static void main(String [] args) throws Exception {
+
+
+        String [] servers = loadServers();
+
+
 
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         dataDescription.addFieldType(DataLocator.DataType.STRING,2);
@@ -100,9 +122,15 @@ public class DataGenerator {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        Socket socket = new Socket("localhost",8080);
-        //PrintWriter out = new PrintWriter(new File("sampledata.txt"));
-        OutputStream out =socket.getOutputStream();
+
+        OutputStream[] targets = new OutputStream[servers.length];
+
+        for(int i=0;i<targets.length;i++){
+            String server = servers[i];
+            Socket socket = new Socket(server,8080);
+            targets[i] =socket.getOutputStream();
+        }
+
         long start = System.currentTimeMillis();
         System.out.println(generateAllCombinations(3,allNumbers));
         for(int i=0;i<entryCount;i++){
@@ -119,8 +147,8 @@ public class DataGenerator {
             String key4 = key4ValueSet[i4];
             String key5 = key5ValueSet[i5];
             String key6 = key6ValueSet[i6];
-            double key7 = Math.random();
-            double key8 = Math.random();
+            double key7 = Math.random() * key2.charAt(0);
+            double key8 = Math.random() * key1.charAt(0);
 
             Map<String,Object> keyValueMap = new HashMap<>();
             keyValueMap.put("key1", key1);
@@ -128,31 +156,28 @@ public class DataGenerator {
             keyValueMap.put("key3", key2);
             
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
-            Node targetNode = new Node(0,6);
-            if(keyCombinationNodeMap.get(keyCombination).contains(targetNode)){
-
-                dynamicMarshal.writeValue(0,key1,byteBuffer);
-                dynamicMarshal.writeValue(1,key2,byteBuffer);
-                dynamicMarshal.writeValue(2,key3,byteBuffer);
-                dynamicMarshal.writeValue(3,key4,byteBuffer);
-                dynamicMarshal.writeValue(4,key5,byteBuffer);
-                dynamicMarshal.writeValue(5,key6,byteBuffer);
-                dynamicMarshal.writeValue(6,key7,byteBuffer);
-                dynamicMarshal.writeValue(7,key8,byteBuffer);
-                dynamicMarshal.writeValue(8,"xyz",byteBuffer);
-                out.write(buf);
-
-                //System.out.println("Wrote "+Arrays.toString(buf));
-            }else{
-                //System.out.println(keyCombination + "  " +keyCombinationNodeMap.get(keyCombination));
+            dynamicMarshal.writeValue(0,key1,byteBuffer);
+            dynamicMarshal.writeValue(1,key2,byteBuffer);
+            dynamicMarshal.writeValue(2,key3,byteBuffer);
+            dynamicMarshal.writeValue(3,key4,byteBuffer);
+            dynamicMarshal.writeValue(4,key5,byteBuffer);
+            dynamicMarshal.writeValue(5,key6,byteBuffer);
+            dynamicMarshal.writeValue(6,key7,byteBuffer);
+            dynamicMarshal.writeValue(7,key8,byteBuffer);
+            dynamicMarshal.writeValue(8,"xyz",byteBuffer);
+            for (Node node : keyCombinationNodeMap.get(keyCombination)) {
+                targets[node.getNodeId()].write(buf);
             }
 
 
 
         }
         long end = System.currentTimeMillis();
-        out.flush();
-        out.close();
+        for(int j=0;j<targets.length;j++){
+            targets[j].flush();
+            targets[j].close();
+        }
+
         System.out.println("Time taken in ms: "+(end-start));
 
     }

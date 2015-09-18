@@ -56,6 +56,7 @@ public class DataRowProcessor implements RowProcessor {
     @Override
     public void finishUp() {
         for(Map.Entry<ValueSet,Work> e:valueSetWorkMap.entrySet()){
+            executionContext.setKeys(e.getKey());
             e.getValue().calculate(executionContext);
         }
     }

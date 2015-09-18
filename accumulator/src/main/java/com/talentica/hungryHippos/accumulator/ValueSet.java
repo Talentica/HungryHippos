@@ -36,4 +36,11 @@ public class ValueSet {
     public ValueSet(Object[] values) {
         this.values = values;
     }
+
+    @Override
+    public String toString() {
+        return "ValueSet{" +
+                "values=" + Arrays.toString(values) +
+                '}';
+    }
 }

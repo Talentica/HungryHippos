@@ -9,4 +9,6 @@ public interface ExecutionContext {
     ByteBuffer getData();
     Object getValue(int index);
     void saveValue(Object value);
+    void setKeys(ValueSet valueSet);
+    ValueSet getKeys();
 }

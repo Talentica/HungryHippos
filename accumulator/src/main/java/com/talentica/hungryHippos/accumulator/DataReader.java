@@ -40,7 +40,7 @@ public class DataReader {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream("keyValueNodeNumberMap"))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
-            System.out.println(keyValueNodeNumberMap);
+           // System.out.println(keyValueNodeNumberMap);
         } catch (Exception e) {
             e.printStackTrace();
         }

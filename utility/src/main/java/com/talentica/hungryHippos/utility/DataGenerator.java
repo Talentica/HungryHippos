@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DataGenerator {
 
-    public static long entryCount = 1_000_000;
+    public static long entryCount = 5_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {
@@ -87,8 +87,9 @@ public class DataGenerator {
             double key8 = Math.random();
 
 
+
             out.println(key1+","+key2+","+key3
-                    +","+key4+","+key5+","+key6+","+key7+","+key8);
+                    +","+key4+","+key5+","+key6+","+key7+","+key8+",xyz");
         }
         long end = System.currentTimeMillis();
         out.flush();

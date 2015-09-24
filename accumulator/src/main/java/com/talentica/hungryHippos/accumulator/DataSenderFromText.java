@@ -81,7 +81,7 @@ public class DataSenderFromText {
         BufferedReader input = new BufferedReader(new FileReader(args[0]));
 
         while(true){
-            String line = input.readLine();
+            String line = "m,o,e,2,0,06,0.8006470604182313,0.20449733911704882";//input.readLine();
             if(line==null){
                 break;
             }
@@ -104,17 +104,17 @@ public class DataSenderFromText {
             keyValueMap.put("key3", key2);
 
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
-//            dynamicMarshal.writeValue(0,key1,byteBuffer);
-//            dynamicMarshal.writeValue(1,key2,byteBuffer);
-//            dynamicMarshal.writeValue(2,key3,byteBuffer);
-//            dynamicMarshal.writeValue(3,key4,byteBuffer);
-//            dynamicMarshal.writeValue(4,key5,byteBuffer);
-//            dynamicMarshal.writeValue(5,key6,byteBuffer);
-//            dynamicMarshal.writeValue(6,key7,byteBuffer);
-//            dynamicMarshal.writeValue(7,key8,byteBuffer);
-//            dynamicMarshal.writeValue(8,"xyz",byteBuffer);
+            dynamicMarshal.writeValue(0,key1,byteBuffer);
+            dynamicMarshal.writeValue(1,key2,byteBuffer);
+            dynamicMarshal.writeValue(2,key3,byteBuffer);
+            dynamicMarshal.writeValue(3,key4,byteBuffer);
+            dynamicMarshal.writeValue(4,key5,byteBuffer);
+            dynamicMarshal.writeValue(5,key6,byteBuffer);
+            dynamicMarshal.writeValue(6,key7,byteBuffer);
+            dynamicMarshal.writeValue(7,key8,byteBuffer);
+            dynamicMarshal.writeValue(8,"xyz",byteBuffer);
             for (Node node : keyCombinationNodeMap.get(keyCombination)) {
-               // targets[node.getNodeId()].write(buf);
+                targets[node.getNodeId()].write(buf);
             }
 
 

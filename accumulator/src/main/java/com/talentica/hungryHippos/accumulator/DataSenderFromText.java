@@ -79,24 +79,25 @@ public class DataSenderFromText {
 
 
         FileReader input = new FileReader(args[0]);
+        input.setNumFields(9);
+        input.setMaxsize(25);
 
         while(true){
-            String line = input.readLine();
-            if(line.equals("")){
+            char[][] parts = input.readCommaSeparated();
+            if(parts == null){
                 break;
             }
 
-            String [] parts = line.split(",");
 
 
-            String key1 = parts[0];
-            String key2 = parts[1];
-            String key3 = parts[2];
-            String key4 = parts[3];
-            String key5 = parts[4];;
-            String key6 = parts[5];;
-            double key7 = Double.parseDouble(parts[6]);
-            double key8 = Double.parseDouble(parts[7]);
+            char[] key1 = parts[0];
+            char[] key2 = parts[1];
+            char[] key3 = parts[2];
+            char[] key4 = parts[3];
+            char[] key5 = parts[4];;
+            char[] key6 = parts[5];;
+            double key7 = Double.parseDouble(new String(parts[6]));
+            double key8 = Double.parseDouble(new String(parts[7]));
 
             Map<String,Object> keyValueMap = new HashMap<>();
             keyValueMap.put("key1", key1);
@@ -104,14 +105,14 @@ public class DataSenderFromText {
             keyValueMap.put("key3", key2);
 
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
-            dynamicMarshal.writeValue(0,key1,byteBuffer);
-            dynamicMarshal.writeValue(1,key2,byteBuffer);
-            dynamicMarshal.writeValue(2,key3,byteBuffer);
-            dynamicMarshal.writeValue(3,key4,byteBuffer);
-            dynamicMarshal.writeValue(4,key5,byteBuffer);
-            dynamicMarshal.writeValue(5,key6,byteBuffer);
-            dynamicMarshal.writeValue(6,key7,byteBuffer);
-            dynamicMarshal.writeValue(7,key8,byteBuffer);
+            dynamicMarshal.writeValueString(0, key1, byteBuffer);
+            dynamicMarshal.writeValueString(1, key2, byteBuffer);
+            dynamicMarshal.writeValueString(2, key3, byteBuffer);
+            dynamicMarshal.writeValueString(3, key4, byteBuffer);
+            dynamicMarshal.writeValueString(4, key5, byteBuffer);
+            dynamicMarshal.writeValueString(5, key6, byteBuffer);
+            dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
+            dynamicMarshal.writeValueDouble(7,key8, byteBuffer);
             dynamicMarshal.writeValue(8,"xyz",byteBuffer);
             for (Node node : keyCombinationNodeMap.get(keyCombination)) {
                 targets[node.getNodeId()].write(buf);

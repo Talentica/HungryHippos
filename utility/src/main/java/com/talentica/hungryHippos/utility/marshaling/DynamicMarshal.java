@@ -45,11 +45,11 @@ public class DynamicMarshal {
         return null;
     }
 
-    public void writeValue(int index, Object object, ByteBuffer dest){
+    public void writeValue(int index, Object object, ByteBuffer dest) {
         DataLocator locator = dataDescription.locateField(index);
-        switch (locator.getDataType()){
+        switch (locator.getDataType()) {
             case BYTE:
-                dest.put(locator.getOffset(), (Byte)object);
+                dest.put(locator.getOffset(), (Byte) object);
                 break;
             case CHAR:
                 dest.putChar(locator.getOffset(), (Character) object);
@@ -74,13 +74,46 @@ public class DynamicMarshal {
                 int offset = locator.getOffset();
                 int size = locator.getSize();
 
+                int j = 0;
+                int i = offset;
+                for (; i < offset + size - 1 && j < content.length; i++, j++) {
+                    dest.put(i, content[j]);
+                }
+                dest.put(i, (byte) 0);
+        }
+    }
+
+    public void writeValueString(int index, char[] input, ByteBuffer dest){
+        DataLocator locator = dataDescription.locateField(index);
+        switch (locator.getDataType()){
+
+            case STRING:
+
+                int offset = locator.getOffset();
+                int size = locator.getSize();
+
                 int j=0;
                 int i=offset;
-                for(;i<offset+size-1 && j<content.length;i++,j++){
-                    dest.put(i,content[j]);
+                for(;i<offset+size-1 && j<input.length;i++,j++){
+                    dest.put(i,(byte)input[j]);
                 }
                 dest.put(i,(byte)0);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid data format");
         }
 
+    }
+
+    public void writeValueDouble(int index, double object, ByteBuffer dest) {
+        DataLocator locator = dataDescription.locateField(index);
+        switch (locator.getDataType()) {
+
+            case DOUBLE:
+                dest.putDouble(locator.getOffset(), object);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid data format");
+        }
     }
 }

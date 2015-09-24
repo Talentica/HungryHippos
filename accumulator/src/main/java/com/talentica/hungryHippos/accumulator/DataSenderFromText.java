@@ -114,17 +114,18 @@ public class DataSenderFromText {
             dynamicMarshal.writeValue(7,key8,byteBuffer);
             dynamicMarshal.writeValue(8,"xyz",byteBuffer);
             for (Node node : keyCombinationNodeMap.get(keyCombination)) {
-                targets[node.getNodeId()].write(buf);
+                //targets[node.getNodeId()].write(buf);
             }
 
 
 
         }
-        long end = System.currentTimeMillis();
+
         for(int j=0;j<targets.length;j++){
             targets[j].flush();
             targets[j].close();
         }
+        long end = System.currentTimeMillis();
 
         System.out.println("Time taken in ms: "+(end-start));
 

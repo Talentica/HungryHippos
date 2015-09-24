@@ -89,7 +89,6 @@ public class DataSenderFromText {
             }
 
 
-
             char[] key1 = parts[0];
             char[] key2 = parts[1];
             char[] key3 = parts[2];
@@ -100,9 +99,9 @@ public class DataSenderFromText {
             double key8 = Double.parseDouble(new String(parts[7]));
 
             Map<String,Object> keyValueMap = new HashMap<>();
-            keyValueMap.put("key1", key1);
-            keyValueMap.put("key2", key2);
-            keyValueMap.put("key3", key2);
+            keyValueMap.put("key1", new String(key1));
+            keyValueMap.put("key2", new String(key2));
+            keyValueMap.put("key3", new String(key2));
 
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);

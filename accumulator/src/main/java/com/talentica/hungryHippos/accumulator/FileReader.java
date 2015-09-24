@@ -112,7 +112,7 @@ public class FileReader {
             if(val == null){
                 break;
             }
-            //System.out.println(Arrays.toString(charToString(val)));
+            System.out.println(Arrays.toString(charToString(val)));
             num++;
 
         }

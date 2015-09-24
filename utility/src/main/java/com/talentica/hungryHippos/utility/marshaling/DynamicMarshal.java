@@ -88,13 +88,12 @@ public class DynamicMarshal {
         switch (locator.getDataType()){
 
             case STRING:
-
                 int offset = locator.getOffset();
                 int size = locator.getSize();
 
                 int j=0;
                 int i=offset;
-                for(;i<offset+size-1 && j<input.length;i++,j++){
+                for(;i<offset+size-1 && j<input.length && input[i]!='\0' ;i++,j++){
                     dest.put(i,(byte)input[j]);
                 }
                 dest.put(i,(byte)0);

@@ -73,7 +73,7 @@ public class DataSenderFromText {
             String server = servers[i];
             System.out.println(server);
             Socket socket = new Socket(server,8080);
-            targets[i] = new BufferedOutputStream(socket.getOutputStream(),67108864);
+            targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
 
 

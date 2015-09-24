@@ -13,7 +13,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
                 'Implementation-Version': 1.0,
-                'Main-Class': 'com.talentica.consumers.http.ProtobugMessageGenerator'
+                'Main-Class': 'com.talentica.hungryHippos.hadoopTest.Runner'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

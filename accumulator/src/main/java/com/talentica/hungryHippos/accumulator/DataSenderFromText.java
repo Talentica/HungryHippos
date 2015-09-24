@@ -78,11 +78,11 @@ public class DataSenderFromText {
 
 
 
-        BufferedReader input = new BufferedReader(new FileReader(args[0]),8388608);
+        FileReader input = new FileReader(args[0]);
 
         while(true){
             String line = input.readLine();
-            if(line==null){
+            if(line.equals("")){
                 break;
             }
 

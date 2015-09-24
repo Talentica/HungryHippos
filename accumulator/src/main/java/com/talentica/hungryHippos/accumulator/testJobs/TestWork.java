@@ -35,5 +35,6 @@ public class TestWork implements Work {
     public void calculate(ExecutionContext executionContext) {
         //System.out.print(Arrays.toString(dimensions)+" :: " + valueIndex + " :: ");
         executionContext.saveValue(descriptiveStatistics.getPercentile(50));
+        descriptiveStatistics.clear();
     }
 }

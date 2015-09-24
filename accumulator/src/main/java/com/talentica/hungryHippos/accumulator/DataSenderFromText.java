@@ -78,10 +78,10 @@ public class DataSenderFromText {
 
 
 
-        BufferedReader input = new BufferedReader(new FileReader(args[0]));
+        BufferedReader input = new BufferedReader(new FileReader(args[0]),8388608);
 
         while(true){
-            String line = "m,o,e,2,0,06,0.8006470604182313,0.20449733911704882";//input.readLine();
+            String line = input.readLine();
             if(line==null){
                 break;
             }

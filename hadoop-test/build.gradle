@@ -16,7 +16,7 @@ task fatJar(type: Jar) {
                 'Main-Class': 'com.talentica.hungryHippos.hadoopTest.Runner'
     }
     baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compile.filter {!it.name.contains("hadoop")}.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 

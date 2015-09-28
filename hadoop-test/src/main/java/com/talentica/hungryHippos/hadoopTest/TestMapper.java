@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.hadoopTest;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 

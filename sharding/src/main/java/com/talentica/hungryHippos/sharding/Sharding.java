@@ -294,18 +294,19 @@ public class Sharding {
         Sharding sharding = new Sharding(10);
         com.talentica.hungryHippos.utility.marshaling.FileReader fileReader
                 = new com.talentica.hungryHippos.utility.marshaling.FileReader("sampledata.txt");
-        fileReader.setNumFields(8);
+        fileReader.setNumFields(9);
         fileReader.setMaxsize(25);
         sharding.populateFrequencyFromData(fileReader);
    //     System.out.println(sharding.keyCombinationFrequencyMap.size());
   //      System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
-        System.out.println(sharding.keyValueNodeNumberMap);
+        System.out.println(sharding.keyCombinationNodeMap.size());
 //        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
 //            System.out.println(kn.getKey() +" :: "+kn.getValue());
 //        }
         sharding.dumpKeyKeyCombinationNodeMap("keyCombinationNodeMap");
         sharding.dumpKeyValueNodeNumberMap("keyValueNodeNumberMap");
+
     }
 
 

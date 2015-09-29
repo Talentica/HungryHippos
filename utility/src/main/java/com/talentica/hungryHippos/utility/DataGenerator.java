@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DataGenerator {
 
-    public static long entryCount = 5_000_000;
+    public static long entryCount = 1_000_000;
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {

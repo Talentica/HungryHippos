@@ -83,6 +83,9 @@ public class DataSenderFromText {
         input.setNumFields(9);
         input.setMaxsize(25);
 
+        long timeForEncoding = 0;
+        long timeForLookup = 0;
+
         while(true){
             MutableCharArrayString[] parts = input.readCommaSeparated();
             if(parts == null){
@@ -98,11 +101,14 @@ public class DataSenderFromText {
             MutableCharArrayString key6 = parts[5];;
             double key7 = Double.parseDouble(parts[6].toString());
             double key8 = Double.parseDouble(parts[7].toString());
+            MutableCharArrayString key9 = parts[8];
 
             Map<String,Object> keyValueMap = new HashMap<>();
             keyValueMap.put("key1", key1);
             keyValueMap.put("key2", key2);
             keyValueMap.put("key3", key3);
+
+            //long startEncoding = System.currentTimeMillis();
 
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);
@@ -112,9 +118,18 @@ public class DataSenderFromText {
             dynamicMarshal.writeValueString(4, key5, byteBuffer);
             dynamicMarshal.writeValueString(5, key6, byteBuffer);
             dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
-            dynamicMarshal.writeValueDouble(7,key8, byteBuffer);
-            dynamicMarshal.writeValue(8,"xyz",byteBuffer);
-            for (Node node : keyCombinationNodeMap.get(keyCombination)) {
+            dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
+            dynamicMarshal.writeValueString(8, key9,byteBuffer);
+            //long endEncoding = System.currentTimeMillis();
+            //timeForEncoding+=endEncoding-startEncoding;
+
+
+            Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
+
+            //long endLookp =System.currentTimeMillis();
+
+            //timeForLookup += endLookp - endEncoding;
+            for (Node node : nodes) {
                 targets[node.getNodeId()].write(buf);
             }
 
@@ -129,6 +144,8 @@ public class DataSenderFromText {
         long end = System.currentTimeMillis();
 
         System.out.println("Time taken in ms: "+(end-start));
+        System.out.println("Time taken in encoding: "+(timeForEncoding));
+        System.out.println("Time taken in lookup: "+(timeForLookup));
 
     }
 }

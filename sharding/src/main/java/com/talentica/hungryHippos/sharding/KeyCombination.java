@@ -80,7 +80,7 @@ public class KeyCombination implements Serializable{
 
     @Override
     public int hashCode() {
-        return keyValueCombination != null ? keyValueCombination.hashCode() : 0;
+        return keyValueCombination != null ? keyValueCombination.toString().hashCode() : 0;
     }
 
     public Map<String, Object> getKeyValueCombination() {

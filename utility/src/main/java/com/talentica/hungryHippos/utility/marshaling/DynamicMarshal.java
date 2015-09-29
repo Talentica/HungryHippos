@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.utility.marshaling;
 
+import java.lang.invoke.MutableCallSite;
 import java.nio.ByteBuffer;
 
 /**
@@ -30,19 +31,24 @@ public class DynamicMarshal {
             case DOUBLE:
                 return source.getDouble(locator.getOffset());
             case STRING:
-                StringBuilder sb = new StringBuilder();
-                int offset = locator.getOffset();
-                int size = locator.getSize();
-                for(int i=offset;i<offset+size;i++){
-                    byte ch = source.get(i);
-                    if(ch==0){
-                        break;
-                    }
-                    sb.append((char)ch);
-                }
-                return sb.toString();
+                return readValueString(index, source);
         }
         return null;
+    }
+
+    public MutableCharArrayString readValueString(int index, ByteBuffer source){
+        DataLocator locator = dataDescription.locateField(index);
+        MutableCharArrayString sb = new MutableCharArrayString(locator.getSize());
+        int offset = locator.getOffset();
+        int size = locator.getSize();
+        for(int i=offset;i<offset+size;i++){
+            byte ch = source.get(i);
+            if(ch==0){
+                break;
+            }
+            sb.addCharacter((char)ch);
+        }
+        return sb;
     }
 
     public void writeValue(int index, Object object, ByteBuffer dest) {
@@ -83,7 +89,7 @@ public class DynamicMarshal {
         }
     }
 
-    public void writeValueString(int index, char[] input, ByteBuffer dest){
+    public void writeValueString(int index, MutableCharArrayString input, ByteBuffer dest){
         DataLocator locator = dataDescription.locateField(index);
         switch (locator.getDataType()){
 
@@ -93,8 +99,8 @@ public class DynamicMarshal {
 
                 int j=0;
                 int i=offset;
-                for(;i<offset+size-1 && j<input.length && input[i]!='\0' ;i++,j++){
-                    dest.put(i,(byte)input[j]);
+                for(;i<offset+size-1 && j<input.length() ;i++,j++){
+                    dest.put(i,(byte)input.charAt(j));
                 }
                 dest.put(i,(byte)0);
                 break;
@@ -103,6 +109,7 @@ public class DynamicMarshal {
         }
 
     }
+
 
     public void writeValueDouble(int index, double object, ByteBuffer dest) {
         DataLocator locator = dataDescription.locateField(index);

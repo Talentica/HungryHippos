@@ -1,6 +1,9 @@
 package com.talentica.hungryHippos.sharding;
 
+import com.talentica.hungryHippos.utility.marshaling.*;
+
 import java.io.*;
+import java.io.FileReader;
 import java.util.*;
 
 /**
@@ -144,22 +147,22 @@ public class Sharding {
     }
 
     //This method needs to be generalized
-    public void populateFrequencyFromData(BufferedReader data) throws IOException {
+    public void populateFrequencyFromData(com.talentica.hungryHippos.utility.marshaling.FileReader data) throws IOException {
         String [] keyNames = {"key1","key2","key3"};
-        Map<String,Map<String,Long>> keyValueFrequencyMap = new HashMap<>();
+        Map<String,Map<Object,Long>> keyValueFrequencyMap = new HashMap<>();
         while(true){
-            String line = data.readLine();
-            if(line==null){
+            MutableCharArrayString[] parts = data.readCommaSeparated();
+            if(parts==null){
                 break;
             }
-            String [] parts = line.split(",");
-            String [] keys = new String[3];
+
+            MutableCharArrayString [] keys = new MutableCharArrayString[3];
 
 
 
-            keys[0] = parts[0];
-            keys[1] = parts[1];
-            keys[2] = parts[2];
+            keys[0] = parts[0].clone();
+            keys[1] = parts[1].clone();
+            keys[2] = parts[2].clone();
 //            int key4 = Integer.parseInt(parts[3]);
 //            int key5 = Integer.parseInt(parts[4]);
 //            int key6 = Integer.parseInt(parts[5]);
@@ -185,7 +188,7 @@ public class Sharding {
 
 
             for(int i=0;i<keyNames.length;i++){
-                Map<String,Long> frequencyPerValue = keyValueFrequencyMap.get(keyNames[i]);
+                Map<Object,Long> frequencyPerValue = keyValueFrequencyMap.get(keyNames[i]);
                 if(frequencyPerValue==null){
                     frequencyPerValue = new HashMap<>();
                     keyValueFrequencyMap.put(keyNames[i],frequencyPerValue);
@@ -203,10 +206,10 @@ public class Sharding {
 
         }
         for(int i=0;i<keyNames.length;i++) {
-            Map<String, Long> frequencyPerValue = keyValueFrequencyMap.get(keyNames[i]);
+            Map<Object, Long> frequencyPerValue = keyValueFrequencyMap.get(keyNames[i]);
             List<KeyValueFrequency> freqList = new ArrayList<>();
             this.keyValueFrequencyMap.put(keyNames[i],freqList);
-            for(Map.Entry<String,Long> fv: frequencyPerValue.entrySet()){
+            for(Map.Entry<Object,Long> fv: frequencyPerValue.entrySet()){
                 freqList.add(new KeyValueFrequency(fv.getKey(),fv.getValue()));
             }
         }
@@ -289,9 +292,13 @@ public class Sharding {
         System.out.println(sum);*/
 
         Sharding sharding = new Sharding(10);
-        sharding.populateFrequencyFromData(new BufferedReader(new FileReader("sampledata.txt")));
-        System.out.println(sharding.keyCombinationFrequencyMap.size());
-        System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
+        com.talentica.hungryHippos.utility.marshaling.FileReader fileReader
+                = new com.talentica.hungryHippos.utility.marshaling.FileReader("sampledata.txt");
+        fileReader.setNumFields(8);
+        fileReader.setMaxsize(25);
+        sharding.populateFrequencyFromData(fileReader);
+   //     System.out.println(sharding.keyCombinationFrequencyMap.size());
+  //      System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
         System.out.println(sharding.keyValueNodeNumberMap);
 //        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){

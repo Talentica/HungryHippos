@@ -1,10 +1,8 @@
 package com.talentica.hungryHippos.accumulator;
 
 import com.talentica.hungryHippos.sharding.KeyCombination;
+import com.talentica.hungryHippos.utility.marshaling.*;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 import java.io.*;
 import java.net.Socket;
@@ -78,30 +76,31 @@ public class DataSenderFromText {
 
 
 
-        FileReader input = new FileReader(args[0]);
+        com.talentica.hungryHippos.utility.marshaling.FileReader
+                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(args[0]);
         input.setNumFields(9);
         input.setMaxsize(25);
 
         while(true){
-            char[][] parts = input.readCommaSeparated();
+            MutableCharArrayString[] parts = input.readCommaSeparated();
             if(parts == null){
                 break;
             }
 
 
-            char[] key1 = parts[0];
-            char[] key2 = parts[1];
-            char[] key3 = parts[2];
-            char[] key4 = parts[3];
-            char[] key5 = parts[4];;
-            char[] key6 = parts[5];;
-            double key7 = Double.parseDouble(new String(parts[6]));
-            double key8 = Double.parseDouble(new String(parts[7]));
+            MutableCharArrayString key1 = parts[0];
+            MutableCharArrayString key2 = parts[1];
+            MutableCharArrayString key3 = parts[2];
+            MutableCharArrayString key4 = parts[3];
+            MutableCharArrayString key5 = parts[4];;
+            MutableCharArrayString key6 = parts[5];;
+            double key7 = Double.parseDouble(parts[6].toString());
+            double key8 = Double.parseDouble(parts[7].toString());
 
             Map<String,Object> keyValueMap = new HashMap<>();
-            keyValueMap.put("key1", new String(key1));
-            keyValueMap.put("key2", new String(key2));
-            keyValueMap.put("key3", new String(key2));
+            keyValueMap.put("key1", key1);
+            keyValueMap.put("key2", key2);
+            keyValueMap.put("key3", key3);
 
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);

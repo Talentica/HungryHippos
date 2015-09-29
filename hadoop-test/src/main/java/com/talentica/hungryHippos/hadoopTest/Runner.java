@@ -15,6 +15,7 @@ public class Runner {
     public static void main(String [] args) throws Exception{
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "metric");
+        job.setNumReduceTasks(10);
         job.setJarByClass(Runner.class);
         job.setMapperClass(TestMapper.class);
         //job.setCombinerClass(TestReducer.class);

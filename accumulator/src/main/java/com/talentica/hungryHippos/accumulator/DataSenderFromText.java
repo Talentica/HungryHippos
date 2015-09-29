@@ -32,6 +32,8 @@ public class DataSenderFromText {
         return servers.toArray(new String[servers.size()]);
     }
 
+
+
     public static void main(String [] args) throws Exception {
         long start = System.currentTimeMillis();
 

@@ -34,7 +34,7 @@ public class TestWork implements Work {
     @Override
     public void calculate(ExecutionContext executionContext) {
         //System.out.print(Arrays.toString(dimensions)+" :: " + valueIndex + " :: ");
-        executionContext.saveValue(descriptiveStatistics.getPercentile(50));
+        executionContext.saveValue(valueIndex +" : "+descriptiveStatistics.getPercentile(50));
         descriptiveStatistics.clear();
     }
 }

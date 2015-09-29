@@ -20,11 +20,11 @@ public class TestMapper extends Mapper<Object, Text, Text, Text>{
             Text valueText = new Text(value1+","+value2);
             context.write(keyText,valueText);
             for(int j=i+1;j<5;j++){
-                keyText = new Text((keyID++)+"|"+parts[i]);
+                keyText = new Text((keyID++)+"|"+parts[i]+"-"+parts[j]);
                 valueText = new Text(value1+","+value2);
                 context.write(keyText,valueText);
                 for(int k=j+1;k<5;k++){
-                    keyText = new Text((keyID++)+"|"+parts[i]);
+                    keyText = new Text((keyID++)+"|"+parts[i]+"-"+parts[j]+"-"+parts[k]);
                     valueText = new Text(value1+","+value2);
                     context.write(keyText,valueText);
                 }

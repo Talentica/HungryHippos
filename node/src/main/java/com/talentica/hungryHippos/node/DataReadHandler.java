@@ -27,7 +27,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        byteBuf = ctx.alloc().buffer(dataDescription.getSize()*1000); // (1)
+        byteBuf = ctx.alloc().buffer(dataDescription.getSize()*2); // (1)
         //totalCount=0;
     }
 
@@ -46,14 +46,20 @@ public class DataReadHandler extends ChannelHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) { // (2)
         ByteBuf msgB = (ByteBuf) msg;
-        byteBuf.writeBytes(msgB); // (2)
 
-       // System.out.println(byteBuf.readableBytes());
+        //first empty the existing buffer.
         while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
         }
-
+       //Now process the new data.
+        while (msgB.readableBytes() >= dataDescription.getSize()) {
+            byteBuf.writeBytes(msgB, dataDescription.getSize()); // (2)
+            byteBuf.readBytes(buf);
+            dataStore.storeRow(byteBuffer, buf);
+        }
+        //store whatever part row is remaining for next cycle
+        byteBuf.writeBytes(msgB); // (2)
         msgB.release();
 
     }

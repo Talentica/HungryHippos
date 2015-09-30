@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DataGenerator {
 
-    public static long entryCount = 1_000_000;
+
     public final static char [] allChars;
     public final static char[] allNumbers;
     static {
@@ -66,6 +66,7 @@ public class DataGenerator {
     }
 
     public static void main(String [] args) throws FileNotFoundException {
+        long entryCount = Long.parseLong(args[0]);
         PrintWriter out = new PrintWriter(new File("sampledata.txt"));
         long start = System.currentTimeMillis();
         System.out.println(generateAllCombinations(3,allNumbers));

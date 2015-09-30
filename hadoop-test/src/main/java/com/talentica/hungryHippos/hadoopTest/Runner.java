@@ -18,7 +18,7 @@ public class Runner {
         job.setNumReduceTasks(10);
         job.setJarByClass(Runner.class);
         job.setMapperClass(TestMapper.class);
-        //job.setCombinerClass(TestReducer.class);
+        job.setCombinerClass(TestCombiner.class);
         job.setReducerClass(TestReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);

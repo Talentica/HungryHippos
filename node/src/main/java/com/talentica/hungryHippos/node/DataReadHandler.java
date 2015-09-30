@@ -46,15 +46,16 @@ public class DataReadHandler extends ChannelHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) { // (2)
         ByteBuf msgB = (ByteBuf) msg;
-//        byteBuf.po
-//        byteBuf.writeBytes(msgB); // (2)
- //       msgB.release();
+        byteBuf.writeBytes(msgB); // (2)
+
        // System.out.println(byteBuf.readableBytes());
-        while (msgB.readableBytes() >= dataDescription.getSize()) {
-            msgB.readBytes(buf);
+        while (byteBuf.readableBytes() >= dataDescription.getSize()) {
+            byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
         }
+
         msgB.release();
+
     }
 
     @Override

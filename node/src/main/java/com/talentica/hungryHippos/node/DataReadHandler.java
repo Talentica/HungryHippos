@@ -27,7 +27,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        byteBuf = ctx.alloc().buffer(dataDescription.getSize()*10); // (1)
+        byteBuf = ctx.alloc().buffer(dataDescription.getSize()*1000); // (1)
         //totalCount=0;
     }
 

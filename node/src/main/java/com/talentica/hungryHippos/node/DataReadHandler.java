@@ -60,11 +60,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         byteBuf.clear();
         byteBuf.writeBytes(buf,0,remainingBytes);
 
-        //store whatever part row is remaining for next cycle
-        byteBuf.writeBytes(msgB); // (2)
-
-
-
     }
 
     @Override

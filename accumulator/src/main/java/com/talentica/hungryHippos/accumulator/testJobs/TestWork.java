@@ -15,7 +15,7 @@ public class TestWork implements Work {
     private int valueIndex;
 
     double value = 0;
-    DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
+    //DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
 
     public TestWork(int[] dimensions, int primaryDimension, int valueIndex) {
         this.dimensions = dimensions;
@@ -27,14 +27,15 @@ public class TestWork implements Work {
     @Override
     public void processRow(ExecutionContext executionContext) {
         double v =  (Double)executionContext.getValue(valueIndex);
-        descriptiveStatistics.addValue(v);
+        //descriptiveStatistics.addValue(v);
+        value+=v;
 
     }
 
     @Override
     public void calculate(ExecutionContext executionContext) {
         //System.out.print(Arrays.toString(dimensions)+" :: " + valueIndex + " :: ");
-        executionContext.saveValue(valueIndex +" : "+descriptiveStatistics.getPercentile(50));
-        descriptiveStatistics.clear();
+        executionContext.saveValue(valueIndex +" : "+value);
+        //descriptiveStatistics.clear();
     }
 }

@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.accumulator;
 
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -8,6 +10,7 @@ import java.nio.ByteBuffer;
 public interface ExecutionContext {
     ByteBuffer getData();
     Object getValue(int index);
+    MutableCharArrayString getString(int index);
     void saveValue(Object value);
     void setKeys(ValueSet valueSet);
     ValueSet getKeys();

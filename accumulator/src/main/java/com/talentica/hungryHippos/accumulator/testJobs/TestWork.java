@@ -10,9 +10,9 @@ import java.util.Arrays;
  * Created by debasishc on 9/9/15.
  */
 public class TestWork implements Work {
-    private int[] dimensions;
-    private int primaryDimension;
-    private int valueIndex;
+    protected int[] dimensions;
+    protected int primaryDimension;
+    protected int valueIndex;
 
     double value = 0;
     //DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();

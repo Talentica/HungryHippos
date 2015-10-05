@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.accumulator;
 
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
@@ -40,6 +41,11 @@ public class ExecutionContextImpl implements ExecutionContext{
     @Override
     public Object getValue(int index) {
         return dynamicMarshal.readValue(index, data);
+    }
+
+    @Override
+    public MutableCharArrayString getString(int index) {
+            return dynamicMarshal.readValueString(index, data);
     }
 
     @Override

@@ -7,9 +7,9 @@ import com.talentica.hungryHippos.accumulator.Work;
  * Created by debasishc on 9/9/15.
  */
 public class TestJob implements Job{
-    private int [] dimensions;
-    private int primaryDimension;
-    private int valueIndex;
+    protected int [] dimensions;
+    protected int primaryDimension;
+    protected int valueIndex;
 
     public TestJob(int[] dimensions, int primaryDimension, int valueIndex) {
         this.dimensions = dimensions;

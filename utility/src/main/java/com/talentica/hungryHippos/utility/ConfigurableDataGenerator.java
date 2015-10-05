@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -25,7 +26,6 @@ public class ConfigurableDataGenerator {
             allNumbers[i]=(char)('0'+i);
         }
     }
-
 
     private static List<String> generateAllCombinations(int numChars, char[] sourceChars){
 
@@ -65,9 +65,10 @@ public class ConfigurableDataGenerator {
     public static void main(String [] args) throws FileNotFoundException {
 
         if(args.length<3){
-            System.out.println("Usage java com.talentica.hungryHippos.utility.ConfigurableDataGenerator [numberOfRows] [filename] [column_desc]*");
-            System.out.println("column_desc := (C|N)':'[number_of_characters");
-
+            System.out.println("Usage java com.talentica.hungryHippos.utility.ConfigurableDataGenerator " +
+                    "[numberOfRows] [filename] [column_desc]*");
+            System.out.println("column_desc := (C|N)':'[number_of_characters]");
+            System.exit(0);
         }
         long entryCount = Long.parseLong(args[0]);
         String filename = args[1];

@@ -96,7 +96,6 @@ public class ConfigurableDataGenerator {
 
         PrintWriter out = new PrintWriter(new File(filename));
         long start = System.currentTimeMillis();
-        System.out.println(generateAllCombinations(3,allNumbers));
         for(int i=0;i<entryCount;i++){
             for(int j=0;j<configs.length;j++){
                 int toSelct = (int)(skewRandom() * configs[j].valueSet.length);

@@ -32,7 +32,7 @@ public class TestCombinerUniqueCount extends Reducer<Text, Text, Text, Text> {
         firstPartString.deleteCharAt(firstPartString.length()-1);
 
         StringBuilder secondPartString = new StringBuilder();
-        for(String v: firstHashSet){
+        for(String v: secondHashSet){
             secondPartString.append(v).append("|");
         }
         secondPartString.deleteCharAt(secondPartString.length()-1);

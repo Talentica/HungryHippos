@@ -45,15 +45,15 @@ public class DataSenderFromTextUniqueCount {
 
 
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,4);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,6);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,6);
+        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
 
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         byte[] buf = new byte[dataDescription.getSize()];

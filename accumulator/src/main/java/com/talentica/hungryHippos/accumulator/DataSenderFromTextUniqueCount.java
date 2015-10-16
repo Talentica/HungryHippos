@@ -100,10 +100,10 @@ public class DataSenderFromTextUniqueCount {
             MutableCharArrayString key2 = parts[1];
             MutableCharArrayString key3 = parts[2];
             MutableCharArrayString key4 = parts[3];
-            MutableCharArrayString key5 = parts[4];;
-            MutableCharArrayString key6 = parts[5];;
-            double key7 = Double.parseDouble(parts[6].toString());
-            double key8 = Double.parseDouble(parts[7].toString());
+            MutableCharArrayString key5 = parts[4];
+            MutableCharArrayString key6 = parts[5];
+            MutableCharArrayString key7 = parts[6];
+            MutableCharArrayString key8 = parts[7];;
             MutableCharArrayString key9 = parts[8];
 
             Map<String,Object> keyValueMap = new HashMap<>();
@@ -120,8 +120,8 @@ public class DataSenderFromTextUniqueCount {
             dynamicMarshal.writeValueString(3, key4, byteBuffer);
             dynamicMarshal.writeValueString(4, key5, byteBuffer);
             dynamicMarshal.writeValueString(5, key6, byteBuffer);
-            dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
-            dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
+            dynamicMarshal.writeValueString(6, key7, byteBuffer);
+            dynamicMarshal.writeValueString(7, key8, byteBuffer);
             dynamicMarshal.writeValueString(8, key9,byteBuffer);
             //long endEncoding = System.currentTimeMillis();
             //timeForEncoding+=endEncoding-startEncoding;

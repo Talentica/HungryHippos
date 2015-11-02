@@ -73,14 +73,13 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
     @Override
     public int hashCode() {
-        if (array == null)
-            return 0;
-
-        int result = 1;
-        for (int i = 0; i < stringLength; i++) {
-            char element = array[i];
-            result = 31 * result + element;
+        int h = 0;
+        int off = 0;
+        char val[] = array;
+        int len = stringLength;
+        for (int i = 0; i < len; i++) {
+            h = 31*h + val[off++];
         }
-        return result;
+        return h;
     }
 }

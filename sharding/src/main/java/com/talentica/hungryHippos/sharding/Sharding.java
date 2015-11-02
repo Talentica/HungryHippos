@@ -139,6 +139,7 @@ public class Sharding {
     public void shardAllKeys() throws NodeOverflowException {
 
         for(String key:keyValueFrequencyMap.keySet()){
+            System.out.println("Sharding on key: "+key);
             shardSingleKey(key);
         }
         List<String> keyNameList = new ArrayList<>();
@@ -293,7 +294,7 @@ public class Sharding {
 
         Sharding sharding = new Sharding(10);
         com.talentica.hungryHippos.utility.marshaling.FileReader fileReader
-                = new com.talentica.hungryHippos.utility.marshaling.FileReader("sampledata.txt");
+                = new com.talentica.hungryHippos.utility.marshaling.FileReader("test.txt");
         fileReader.setNumFields(9);
         fileReader.setMaxsize(25);
         sharding.populateFrequencyFromData(fileReader);

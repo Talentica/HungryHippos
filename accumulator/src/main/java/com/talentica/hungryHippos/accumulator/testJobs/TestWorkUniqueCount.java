@@ -21,7 +21,7 @@ public class TestWorkUniqueCount extends TestWork{
     @Override
     public void processRow(ExecutionContext executionContext) {
         MutableCharArrayString v =  executionContext.getString(valueIndex);
-        uniqueValues.add(v);
+        uniqueValues.add(v.clone());
 
     }
 

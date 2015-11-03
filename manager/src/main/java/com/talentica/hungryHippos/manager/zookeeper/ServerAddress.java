@@ -3,12 +3,16 @@
  */
 package com.talentica.hungryHippos.manager.zookeeper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author PooshanS
  *
  */
 public class ServerAddress {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAddress.class);
     String ip;
     String hostname;
 

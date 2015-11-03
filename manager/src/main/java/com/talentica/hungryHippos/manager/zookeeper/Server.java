@@ -3,6 +3,9 @@
  */
 package com.talentica.hungryHippos.manager.zookeeper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * @author PooshanS
@@ -10,6 +13,7 @@ package com.talentica.hungryHippos.manager.zookeeper;
  */
 public class Server{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 	public enum ServerStatus{
 		ACTIVE,INACTIVE;
 	};

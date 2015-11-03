@@ -18,6 +18,8 @@ import java.net.UnknownHostException;
 
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ServerHeartbeat class
@@ -36,6 +38,8 @@ public class ServerHeartbeat {
 	DataOutputStream  oos = null;
 	DataInputStream  ois = null;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerHeartbeat.class.getName());
+	
 	public ServerHeartbeat(String serverIP, int port) {
 		this.serverIP = serverIP;
 		this.port = port;
@@ -73,18 +77,12 @@ public class ServerHeartbeat {
         InputStreamReader isr = null;
         BufferedReader br = null;
         
-		//byte[] reqBytes = new byte[4];
 		try {
 			socket = new Socket(serverIP, port);
 			os = socket.getOutputStream();
 			osw = new OutputStreamWriter(os);
 			bw = new BufferedWriter(osw);
 	        
-	        
-		//	ByteBuffer req = ByteBuffer.wrap(reqBytes);
-		//	req.putInt(ByteBuffer.wrap("test".getBytes()).getInt());
-					
-			
             String msg = "Test";
 			System.out.println("Sending request to Socket Server");
             bw.write(msg);

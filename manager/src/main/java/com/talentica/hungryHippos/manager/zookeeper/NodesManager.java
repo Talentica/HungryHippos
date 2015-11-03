@@ -23,6 +23,8 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Maps;
@@ -49,7 +51,8 @@ public class NodesManager implements Watcher {
     private List<Server> servers;
     private Map<String,Server> serverNameMap;
     private Properties prop;
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
+    private static final int DEFAULT_NODES = 3;
     public RegistrationListener getRegistrationListener() {
 		return registrationListener;
 	}
@@ -86,13 +89,13 @@ public class NodesManager implements Watcher {
 	}
 
 	public void connectZookeeper() {
-		System.out.println("\n\tNode Manager started, connecting to ZK hosts: "
+		LOGGER.info("Node Manager started, connecting to ZK hosts: "
 				+ zkConfiguration.getHosts());
 		try {
 			connect(zkConfiguration.getHosts());
-			System.out.printf("\n\tConnected - Session ID: " + zk.getSessionId());
+			LOGGER.info("Connected - Session ID: " + zk.getSessionId());
 		} catch (Exception e) {
-			System.out.printf("Could not connect to Zookeper instance", e);
+			LOGGER.info("Could not connect to Zookeper instance" + e);
 		}
 	}
 	 
@@ -118,19 +121,19 @@ public class NodesManager implements Watcher {
 	        bootstrap();
 		try {
 			List<String> serverNames = getMonitoredServers();			
-			System.out.printf("\n\tStarting Node Manager.. \n\tAlready the server/servers {%s} running!",serverNames);
+			LOGGER.info("Starting Node Manager.. Already the server/servers {} running!",serverNames);
 			for (String name : serverNames) {
 				Server server = getServerInfo(name);
 				if (server != null)
 					registrationListener.register(server);
 			}
 		}catch(KeeperException non){
-	        	System.out.println("No node exists!!");
+	        	LOGGER.info("No node exists!!");
 	        }
 		 createServerNodes();
 		 if(registrationListener != null){
-	        System.out.printf(String.format("\n\tNodes Manager Started successfully.. \n\tNOW ,There are currently %d " +
-	                "servers: %s", registrationListener.getRegisteredServers().size(), registrationListener.getRegisteredServers().toString()));
+	        LOGGER.info("Nodes Manager Started successfully.. NOW ,There are currently %d " +
+	                "servers: {}", registrationListener.getRegisteredServers().size(), registrationListener.getRegisteredServers().toString());
 		 }
 		 getSignal.await();
 	    }
@@ -141,10 +144,10 @@ public class NodesManager implements Watcher {
 	     * @throws Exception
 	     */
 	public void bootstrap(){
+		createServersMap();
 		createNode(PathUtil.SLASH+zkConfiguration.getNameSpace());
 		createNode(zkConfiguration.getAlertsPath());
 		createNode(zkConfiguration.getBasePath());
-		createServers();
 	}
 	    /**
 	     * Create the node on zookeeper
@@ -162,17 +165,17 @@ public class NodesManager implements Watcher {
 	                                createNode(path);
 	                                break;
 	                            case OK:
-	                                System.out.println("\n\tServer Monitoring Path [" + path + "] is created");
+	                                LOGGER.info("Server Monitoring Path [" + path + "] is created");
 	                                getSignal.countDown();
-	                                System.out.println(Thread.currentThread().getName());
+	                                LOGGER.info(Thread.currentThread().getName());
 	                                break;
 	                            case NODEEXISTS:
-	                            	System.out.println("\n\tServer Monitoring Path [" + path + "] already exists");
+	                            	LOGGER.info("Server Monitoring Path [" + path + "] already exists");
 	                            	getSignal.countDown();
-	                            	System.out.println(Thread.currentThread().getName());
+	                            	LOGGER.info(Thread.currentThread().getName());
 	                                break;
 	                            default:
-	                            	System.out.println("\n\tUnexpected result while trying to create node " +
+	                            	LOGGER.info("Unexpected result while trying to create node " +
 	                                        node + ": " + KeeperException.create(KeeperException.Code
 	                                        .get(rc), path));
 	                        }
@@ -194,60 +197,60 @@ public class NodesManager implements Watcher {
 	    @Override
 	    public synchronized void process(WatchedEvent watchedEvent) {
 		if (!watchedEvent.getType().name().equalsIgnoreCase("none")) {
-			System.out.println(String.format(
-					"\n\t\n\tNodeManager watched event [%s] for %s",
-					watchedEvent.getType(), watchedEvent.getPath()));
+			LOGGER.info(
+					"NodeManager watched event [{}] for {}",
+					watchedEvent.getType(), watchedEvent.getPath());
 		}
 	        switch (watchedEvent.getType()) {
 	            case None:
 	                if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
-	                	System.out.println("\n\tZooKeeper client connected to server");
+	                	LOGGER.info("ZooKeeper client connected to server");
 	                    connectedSignal.countDown();
 	                }
 	                break;
 	            case NodeChildrenChanged:
 	                try {
-	                	    System.out.println(Thread.currentThread().getName());
+	                	    LOGGER.info(Thread.currentThread().getName());
 	                		List<String> servers = zk.getChildren(zkConfiguration.getBasePath(), this);
 	                		Collections.sort(servers);
-		                    System.out.printf(String.format("\n\tServer modified. Watched servers NOW: %s",
-		                            servers.toString()));
+		                    LOGGER.info("Server modified. Watched servers NOW: {}",
+		                            servers.toString());
 		                    Map<String, Set<Server>> diffs = computeDiff(servers);
-		                    System.out.println(String.format("\n\tRemoved Servers: %s", diffs.get(REMOVED)));
-		                    System.out.println(String.format("\n\tAdded servers: %s", diffs.get(ADDED)));
+		                    LOGGER.info("Removed Servers: {}", diffs.get(REMOVED));
+		                    LOGGER.info("Added servers: {}", diffs.get(ADDED));
 		                    	 processDiffs(diffs);
 		                    	
 	                    
 	                } catch (KeeperException | InterruptedException e) {
-	                	System.out.printf(String.format("\n\tThere was an error retrieving the list of " +
-	                            "servers [%s]", e.getLocalizedMessage()), e);
+	                	LOGGER.info("There was an error retrieving the list of " +
+	                            "servers [{}]", e.getLocalizedMessage(), e);
 	                }
 	                break;
 	            case NodeDataChanged:
-	            	System.out.println(Thread.currentThread().getName());
-	            	System.out.println(String.format("\n\tA node changed: %s [%s]", watchedEvent.getPath(),
-	                        watchedEvent.getState()));
+	            	LOGGER.info(Thread.currentThread().getName());
+	            	LOGGER.info("A node changed: {} {}", watchedEvent.getPath(),
+	                        watchedEvent.getState());
 	                try {
 	                    Server server = getServerInfo(watchedEvent.getPath());
 	                    registrationListener.updateServer(server);
 	                    zk.exists(watchedEvent.getPath(), this);
 	                } catch (KeeperException | InterruptedException ex) {
-	                	System.out.printf(String.format("\n\tThere was an error while updating the data " +
-	                            "associated with node %s: %s", watchedEvent.getPath(),
-	                            ex.getLocalizedMessage()));
+	                	LOGGER.info("There was an error while updating the data " +
+	                            "associated with node {}: {}", watchedEvent.getPath(),
+	                            ex.getLocalizedMessage());
 	                }
 	                break;
 	            case NodeDeleted:
-	            	System.out.println(Thread.currentThread().getName());
-	            	System.out.printf("\n\tA node is deleted: %s ",watchedEvent.getPath());
+	            	LOGGER.info(Thread.currentThread().getName());
+	            	LOGGER.info("A node is deleted: {} ",watchedEvent.getPath());
 	            	break;
 	            case NodeCreated:
-	            	System.out.println(Thread.currentThread().getName());
-	            	System.out.printf("\n\t A node is created: %s",watchedEvent.getPath());
+	            	LOGGER.info(Thread.currentThread().getName());
+	            	LOGGER.info(" A node is created: {}",watchedEvent.getPath());
 	            	break;
 	            default:
-	            	System.out.printf(String.format("\n\tNot an expected event: %s; for %s",
-	                        watchedEvent.getType(), watchedEvent.getPath()));
+	            	LOGGER.info("Not an expected event: {}; for {}",
+	                        watchedEvent.getType(), watchedEvent.getPath());
 	        }
 	    }
 
@@ -258,13 +261,13 @@ public class NodesManager implements Watcher {
 	     */
 	    private synchronized void processDiffs(Map<String, Set<Server>> diffs) {
 	    	 for (Server server : diffs.get(REMOVED)) {
-		        	System.out.println("\n\tReporting eviction to listener: " +
+		        	LOGGER.info("Reporting eviction to listener: " +
 		                    server.getServerAddress().getHostname());
 		        	evictionListener.deregister(server);
 		            silence(server, false);
 		        }
 	        for (Server server : diffs.get(ADDED)) {
-	        	System.out.println("\n\tReporting addition to listener: " +
+	        	LOGGER.info("Reporting addition to listener: " +
 	                    server.getServerAddress().getHostname());
 	            registrationListener.register(server);
 	            removeSilence(server);
@@ -301,13 +304,13 @@ public class NodesManager implements Watcher {
 	        Set<Server> evictedServers = Sets.newHashSet();
 	        for (Server server : knownServers) {
 	            if (!latestServersNames.remove(server.getName())) {
-	            	System.out.println("\n\tServer " + server.getName() + " has been removed");
+	            	LOGGER.info("Server " + server.getName() + " has been removed");
 	                evictedServers.add(server);
 	            }
 	        }
 	        Set<Server> newlyAddedServers = Sets.newHashSet();
 	        for (String name : latestServersNames) {
-	        	System.out.println("\n\tServer " + name + " has joined the monitored pool");
+	        	LOGGER.info("Server " + name + " has joined the monitored pool");
 	            newlyAddedServers.add(getServerInfo(name));
 	        }
 	        Map<String, Set<Server>> diffs = Maps.newHashMapWithExpectedSize(2);
@@ -338,8 +341,8 @@ public class NodesManager implements Watcher {
 			if(server == null){
 				return null;
 			}
-			System.out.printf(String.format("\n\tServer: %s -- Payload: %s", server.getName(),
-			        server.getData()));
+			LOGGER.info("Server: {} -- Payload: {}", server.getName(),
+			        server.getData());
 			return server;
 	    }
 
@@ -371,9 +374,10 @@ public class NodesManager implements Watcher {
 	                    "loss or, more worryingly, because we've lost all connectivity to the ZK " +
 	                    "ensemble.");
 	        } catch (KeeperException | InterruptedException e) {
-	            String msg = String.format("Caught an exception while trying to silence %s (%s)",
+	            String msg = String.format("Caught an exception while trying to silence {} ({})",
 	                    server, e.getLocalizedMessage());
-	            System.out.println(msg);
+	            LOGGER.info("Caught an exception while trying to silence {} ({})",
+	                    server, e.getLocalizedMessage());
 	            return Status.createErrorStatus(msg);
 	        }
 	        return Status.createStatus("Server " + server.getName() + " silenced");
@@ -389,24 +393,23 @@ public class NodesManager implements Watcher {
 	                    silence(svr, false);
 	                    break;
 	                case NODEEXISTS:
-	                	System.out.println("\n\tTrying to silence an already silenced server [" + name + "]");
+	                	LOGGER.info("Trying to silence an already silenced server [" + name + "]");
 	                    break;
 	                case OK:
-	                	System.out.println(String.format("\n\tServer %s silenced (%s)", svr.getName(),
-	                            svr.getServerAddress().getHostname()));	                   
+	                	LOGGER.info("Server {} silenced ({})", svr.getName(),
+	                            svr.getServerAddress().getHostname());	                   
 	                    	try {
 	                    		  if(getMonitoredServers() != null){
-	                    			System.out.printf(String.format(
-	                    						"\n\tSTATUS :: NOW, There are currently %d "
-	                    						+ "servers: %s", getMonitoredServers().size(), getMonitoredServers().toString()));	   
+	                    			LOGGER.info("STATUS :: NOW, There are currently {} "
+	                    						+ "servers: {}", getMonitoredServers().size(), getMonitoredServers().toString());	   
 	                    		  }
 	                    		} catch (Exception e) {
-	                    			System.out.println("Unable to get the monitored servers");
+	                    			LOGGER.info("Unable to get the monitored servers");
 	                    		}
 	                    break;
 	                default:
-	                	System.out.println(String.format("\n\t[%s] Unexpected result for silencing %s (%s)",
-	                            KeeperException.Code.get(rc), svr.getName(), path));
+	                	LOGGER.info("[{}] Unexpected result for silencing {} ({})",
+	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
 	            }
 	        }
 	    };
@@ -425,13 +428,13 @@ public class NodesManager implements Watcher {
 	            }
 	            path = buildMonitorPathForServer(server);
 	            if (zk.exists(path, this) != null) {
-	            	System.out.println("\n\tRemoved silence for node: " + server.getName());
+	            	LOGGER.info("Removed silence for node: " + server.getName());
 	            }
 	        } catch (KeeperException | InterruptedException kex) {
-	        	System.out.println(String.format("\n\tException encountered ('%s') while pruning the %s " +
-	                    "branch, upon registration of %s - this is probably safe to ignore, " +
+	        	LOGGER.info("Exception encountered ('{}') while pruning the {} " +
+	                    "branch, upon registration of {} - this is probably safe to ignore, " +
 	                    "unless other unexplained errors start to crop up",
-	                    kex.getLocalizedMessage(), path, server.getName()));
+	                    new Object[]{kex.getLocalizedMessage(), path, server.getName()});
 	        }
 	    }
 
@@ -444,12 +447,12 @@ public class NodesManager implements Watcher {
 	                    removeSilence(svr);
 	                    break;
 	                case OK:
-	                	System.out.printf(String.format("\n\tServer %s re-enabled (%s)", svr.getName(),
-	                            svr.getServerAddress().getHostname()));
+	                	LOGGER.info("Server {} re-enabled ({})", svr.getName(),
+	                            svr.getServerAddress().getHostname());
 	                    break;
 	                default:
-	                	System.out.printf(String.format("\n\t[%s] Unexpected result for silencing %s (%s)",
-	                            KeeperException.Code.get(rc), svr.getName(), path));
+	                	LOGGER.info("[{}] Unexpected result for silencing {} ({})",
+	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
 	            }
 	        }
 	    };
@@ -502,17 +505,16 @@ public class NodesManager implements Watcher {
 		 * @throws Exception
 		 */
 		public void deleteAllNodes(String groupName) throws  Exception{ 
-			System.out.println();
 			try{
 	    	ZKUtil.deleteRecursive(zk, groupName);
-	    	System.out.println("\n\tAll nodes are deleted");
+	    	LOGGER.info("All nodes are deleted");
 	    	connectedSignal.await();
 			}catch(InterruptedException | KeeperException e){
-	    	System.out.println("\tUnable to delete the node Exception :: "+ e.getMessage());
+	    	LOGGER.info("\tUnable to delete the node Exception :: "+ e.getMessage());
 	    	}
 	    }
 		
-		private void createServers() {
+		private void createServersMap() {
 			String serverIPs = prop.getProperty("node.server.ips");
 			List<String> checkUnique = new ArrayList<String>();
 			String IP = null;
@@ -535,14 +537,13 @@ public class NodesManager implements Watcher {
 				this.servers.add(server);
 				checkUnique.add(IP);
 				serverNameMap.put(server.getServerAddress().getHostname(), server);
-				System.out.println("\tSERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
+				LOGGER.info("\tSERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
 				}
-			  
+			 getSignal = new CountDownLatch(this.servers.size()+DEFAULT_NODES);// additional 3 is added because of namesapce,alert and basepath node is also created
 			}
 		}
 		
 		private void createServerNodes() throws JsonProcessingException{			
-			 getSignal = new CountDownLatch(this.servers.size());
 			for(Server server : this.servers){
 				String nodePath = buildMonitorPathForServer(server);
 				createNode(nodePath);
@@ -559,8 +560,8 @@ public class NodesManager implements Watcher {
 				 zk.delete(path, stat.getVersion(), deleteCallback, server);				 
 				}
 			} catch (KeeperException | InterruptedException e) {
-				System.out.println("\n\tUnable to delete node :: " + server.getName() + " Exception is :: "+ e.getMessage());
-				System.out.println("\n\t PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+				LOGGER.info("Unable to delete node :: " + server.getName() + " Exception is :: "+ e.getMessage());
+				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
 			}
 			
 		}
@@ -572,15 +573,15 @@ public class NodesManager implements Watcher {
 	            switch (KeeperException.Code.get(rc)) {
 	                case CONNECTIONLOSS:
 	                	deleteNode(svr);
-	                	System.out.println("\n\tZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+	                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
 	                    break;
 	                case OK:
-	                	System.out.printf(String.format("\n\tNode %s is  (%s)", svr.getName(),
-	                            svr.getServerAddress().getHostname()));
+	                	LOGGER.info("Node {} is  ({})", svr.getName(),
+	                            svr.getServerAddress().getHostname());
 	                    break;
 	                default:
-	                	System.out.printf(String.format("\n\t[%s] Unexpected result for deleting %s (%s)",
-	                            KeeperException.Code.get(rc), svr.getName(), path));
+	                	LOGGER.info("[{}] Unexpected result for deleting {} ({})",
+	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
 	            }
 	        }
 	    };
@@ -597,17 +598,17 @@ public class NodesManager implements Watcher {
 	            Server svr = (Server) ctx;
 	            switch (KeeperException.Code.get(rc)) {
 	                case CONNECTIONLOSS:
-	                	System.out.println("\n\tZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+	                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
 	                	checkZookeeperConnection(svr);
 	                    break;
 	                case OK:
-	                	System.out.println("ZOOKEEPER SERVER IS RUNNING...");
-	                	System.out.printf(String.format("\n\tNode %s is  (%s)", svr.getName(),
-	                            svr.getServerAddress().getHostname()));
+	                	LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
+	                	LOGGER.info("Node {} is  ({})", svr.getName(),
+	                            svr.getServerAddress().getHostname());
 	                    break;
 	                default:
-	                	System.out.printf(String.format("\n\t[%s] Unexpected result for STATUS %s (%s)",
-	                            KeeperException.Code.get(rc), svr.getName(), path));
+	                	LOGGER.info("[{}] Unexpected result for STATUS {} ({})",
+	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
 	            }
 	        }
 	    };

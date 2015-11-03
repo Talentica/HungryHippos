@@ -3,13 +3,16 @@
  */
 package com.talentica.hungryHippos.manager.zookeeper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author PooshanS
  *
  */
 public class Status {
 	
-
+private static final Logger LOGGER = LoggerFactory.getLogger(Status.class);
     public enum Code {
         SUCCESS,
         FAILURE

@@ -10,21 +10,26 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.manager.zookeeper.Property;
 /**
  * @author PooshanS
  *
  */
 public class ServerPing {
-	private static final Logger LOGGER = Logger.getLogger(ServerPing.class
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPing.class
 			.getName());
 
 	public static void main(String[] args) throws IOException,
 			InterruptedException, ExecutionException {
-		if (args.length == 2) {
+		if (args.length == 3) {
 			String IP = args[0];
 			Integer PORT = Integer.valueOf(args[1]);
+			Property.CONFIG_PATH = args[2];
+			new Property().getProperties();
 			while (true) {
 				go(IP, PORT);
 			}
@@ -61,7 +66,6 @@ public class ServerPing {
 				String message = new String(buffer.array()).trim();
 				LOGGER.info(message);
 				buffer.clear();
-				//buffer.compact();
 				buffer = ByteBuffer.wrap((message).getBytes());
 				Future<Integer> ret = clientChannel.write(buffer);
 				while (!ret.isDone()) {

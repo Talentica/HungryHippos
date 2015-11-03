@@ -3,6 +3,9 @@ package com.talentica.hungryHippos.manager;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.manager.util.PathUtil;
 import com.talentica.hungryHippos.manager.zookeeper.Property;
 import com.talentica.hungryHippos.manager.zookeeper.Server;
@@ -12,9 +15,10 @@ public class JobManager	{
 
 	Set<Server> regServer = null;
 	static String configPath;
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
 	public static void main(String[] args) throws Exception {
 		if(args.length == 0){
-			System.out.println("Please provide config file as argument");
+			LOGGER.info("Please provide config file as argument");
 			return;
 		}
 		Property.CONFIG_PATH = args[0];
@@ -23,7 +27,7 @@ public class JobManager	{
 		heartBeat.deleteAllNodes(PathUtil.SLASH+root);
 		heartBeat.init().startup();
 		List<Server> regServer = heartBeat.getMonitoredServers();
-		System.out.println("\n\t\t********STARTING TO PING THE SERVER********");
+		LOGGER.info("\n\t\t********STARTING TO PING THE SERVER********");
 		while (true) {
 			for (Server server : regServer) {
 				heartBeat.startPinging(server);

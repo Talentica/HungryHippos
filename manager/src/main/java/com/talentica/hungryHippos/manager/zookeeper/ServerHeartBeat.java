@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.manager.zookeeper.Server.ServerStatus;
 
@@ -28,6 +30,7 @@ public class ServerHeartBeat {
 	private NodesManager nodesManager;
 	private InetSocketAddress hostAddress;
 	private String token;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerHeartBeat.class);
 	public void startPinging(Server server){
 		
 		try {
@@ -42,22 +45,17 @@ public class ServerHeartBeat {
 			connected.get();
 
 			Future<Integer> result = client.write(buffer);
-			System.out
-					.printf("\n\tTOKEN SENT TO SERVER IP : {%s} and NAME : {%s}\n\t",
-							server.getServerAddress().getIp(), server.getName());
+			LOGGER.info("TOKEN SENT TO SERVER IP : {} and NAME : {}",
+							new Object[]{server.getServerAddress().getIp(), server.getName()});
 			while (!result.isDone()) {
 			}
-			System.out.println("TOKEN :: "+new String(buffer.array()).trim());
+			LOGGER.info("TOKEN :: "+new String(buffer.array()).trim());
 			buffer.clear();
-			System.out.println("\n\tTOKEN RECIEVED!!");
+			LOGGER.info("TOKEN RECIEVED!!");
 			if (server.getServerStatus() == ServerStatus.ACTIVE || server.getServerStatus() == null) {
 				nodesManager.checkZookeeperConnection(server);
 				server.setServerStatus(ServerStatus.ACTIVE);
-				System.out
-						.println("\nSERVER ::  ["
-								+ server.getServerAddress().getIp()
-								+ "] IS RUNNING, STATUS :: "
-								+ server.getServerStatus());
+				LOGGER.info("SERVER ::  ["+ server.getServerAddress().getIp()	+ "] IS RUNNING, STATUS :: "+server.getServerStatus());
 			} else if(server.getServerStatus() == ServerStatus.INACTIVE){
 				server.setServerStatus(ServerStatus.ACTIVE);
 				nodesManager.createNode(nodesManager
@@ -80,7 +78,7 @@ public class ServerHeartBeat {
 				try {
 					client.close();
 				} catch (IOException e) {
-					System.out.println("Unable to close client");
+					LOGGER.info("Unable to close client");
 				}
 			}
 		}
@@ -89,7 +87,7 @@ public class ServerHeartBeat {
     
 	public void deleteServerNode(Server server,Exception ex){
 		server.setServerStatus(ServerStatus.INACTIVE);
-		System.out.println("\nSERVER is NOT running... IP :: ["
+		LOGGER.info("\nSERVER is NOT running... IP :: ["
 				+ server.getServerAddress().getIp() + "] STATUS :: "
 				+ server.getServerStatus());
 		nodesManager.deleteNode(server);

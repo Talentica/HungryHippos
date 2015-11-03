@@ -3,7 +3,9 @@ package com.talentica.hungryHippos.server;
 /**
  * 
  */
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -22,21 +24,21 @@ import com.talentica.hungryHippos.manager.zookeeper.Property;
 public class ServerPing {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPing.class
 			.getName());
-
+	private static final String LINUX_IP_COMMAND = "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'";
 	public static void main(String[] args) throws IOException,
 			InterruptedException, ExecutionException {
-		if (args.length == 3) {
-			String IP = args[0];
-			Integer PORT = Integer.valueOf(args[1]);
-			Property.CONFIG_PATH = args[2];
+		if (args.length != 2) {
+			LOGGER.info("Please provide argument PORT and config.properties");
+		} else {
+			String IP = new ServerPing().getLocalIP(LINUX_IP_COMMAND);
+			LOGGER.info("IP :: " + IP);
+			Integer PORT = Integer.valueOf(args[0]);
+			Property.CONFIG_PATH = args[1];
 			new Property().getProperties();
 			while (true) {
 				go(IP, PORT);
 			}
-		} else {
-			LOGGER.info("Please provide argument IP AND PORT");
 		}
-
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -74,5 +76,28 @@ public class ServerPing {
 			clientChannel.close();
 		}
 		serverChannel.close();
+	}
+	
+	private String getLocalIP(String command) {
+		System.out.println(command.toString());
+		StringBuffer output = new StringBuffer();
+
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+			p.waitFor();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                        String line = "";			
+			while ((line = reader.readLine())!= null) {
+				output.append(line + "\n");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return output.toString();
+
 	}
 }

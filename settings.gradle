@@ -6,4 +6,5 @@ include 'sharding'
 include 'node'
 include 'accumulator'
 include 'hadoop-test'
+include 'manager'
 

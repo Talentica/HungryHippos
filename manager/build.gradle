@@ -25,3 +25,8 @@ dependencies {
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'	
 	compile 'org.glassfish.extras:bean-validator:4.0.0.Alpha3'
 }
+sourceSets {
+    main {
+       output.resourcesDir = "build/classes/main"
+     }
+  }

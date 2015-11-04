@@ -16,12 +16,11 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class Property{	
-	private Properties prop = null;
-	public static InputStream CONFIG_PATH;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Property.class.getName());
+	private static Properties prop = null;
+	public static InputStream CONFIG_PATH;
 	public Properties getProperties() {
 		if (prop == null) {
-			InputStream in = null;
 			try {
 				prop = new Properties();
 				prop.load(CONFIG_PATH);

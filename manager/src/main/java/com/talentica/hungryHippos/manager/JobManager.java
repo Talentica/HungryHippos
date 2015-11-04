@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.manager;
 
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -21,9 +22,9 @@ public class JobManager	{
 			LOGGER.info("Please provide config file as argument");
 			return;
 		}
-		Property.CONFIG_PATH = args[0];
-		String root = new Property().getProperties().getProperty("namespace.path");
+		Property.CONFIG_PATH = new FileInputStream(new String(args[0]));
 		ServerHeartBeat heartBeat = new ServerHeartBeat();
+		String root = new Property().getProperties().getProperty("namespace.path");
 		heartBeat.deleteAllNodes(PathUtil.SLASH+root);
 		heartBeat.init().startup();
 		List<Server> regServer = heartBeat.getMonitoredServers();

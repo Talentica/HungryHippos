@@ -24,7 +24,6 @@ import com.talentica.hungryHippos.manager.zookeeper.Server.ServerStatus;
  *
  */
 public class ServerHeartBeat {
-
 	private ByteBuffer buffer;
 	private AsynchronousSocketChannel client;
 	private NodesManager nodesManager;
@@ -32,7 +31,6 @@ public class ServerHeartBeat {
 	private String token;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerHeartBeat.class);
 	public void startPinging(Server server){
-		
 		try {
 			client = AsynchronousSocketChannel.open();
 			token = UUID.randomUUID().toString(); // generate token
@@ -40,10 +38,8 @@ public class ServerHeartBeat {
 			buffer = ByteBuffer.wrap(bytes);
 			hostAddress = new InetSocketAddress(server.getServerAddress()
 					.getIp(), server.getPort());
-			
 			Future<Void> connected = client.connect(hostAddress);
 			connected.get();
-
 			Future<Integer> result = client.write(buffer);
 			LOGGER.info("TOKEN SENT TO SERVER IP : {} and NAME : {}",
 							new Object[]{server.getServerAddress().getIp(), server.getName()});
@@ -61,7 +57,6 @@ public class ServerHeartBeat {
 				nodesManager.createNode(nodesManager
 						.buildMonitorPathForServer(server));
 			 }
-			
 		} catch (AsynchronousCloseException  ex) {
 			deleteServerNode(server,ex);
 		} catch (IOException e) {
@@ -82,12 +77,10 @@ public class ServerHeartBeat {
 				}
 			}
 		}
-	
 	}
-    
 	public void deleteServerNode(Server server,Exception ex){
 		server.setServerStatus(ServerStatus.INACTIVE);
-		LOGGER.info("\nSERVER is NOT running... IP :: ["
+		LOGGER.warn("\nSERVER is NOT running... IP :: ["
 				+ server.getServerAddress().getIp() + "] STATUS :: "
 				+ server.getServerStatus());
 		nodesManager.deleteNode(server);

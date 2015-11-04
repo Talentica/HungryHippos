@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.manager.zookeeper.Property;
+
 /**
  * @author PooshanS
  *
@@ -24,16 +26,18 @@ import com.talentica.hungryHippos.manager.zookeeper.Property;
 public class ServerPing {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPing.class
 			.getName());
+	private static final String LOG_PROP_FILE = "log4j.properties";
 	private static final String LINUX_IP_COMMAND = "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'";
 	public static void main(String[] args) throws IOException,
-			InterruptedException, ExecutionException {
-		if (args.length != 2) {
+			InterruptedException, ExecutionException{
+		ClassLoader loader = ServerPing.class.getClassLoader();
+		if (args.length != 1) {
 			LOGGER.info("Please provide argument PORT and config.properties");
 		} else {
 			String IP = new ServerPing().getLocalIP(LINUX_IP_COMMAND);
 			LOGGER.info("IP :: " + IP);
 			Integer PORT = Integer.valueOf(args[0]);
-			Property.CONFIG_PATH = args[1];
+			Property.CONFIG_PATH = loader.getResourceAsStream(LOG_PROP_FILE);
 			new Property().getProperties();
 			while (true) {
 				go(IP, PORT);
@@ -87,7 +91,6 @@ public class ServerPing {
 			p = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
 			p.waitFor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
                         String line = "";			
 			while ((line = reader.readLine())!= null) {
 				output.append(line + "\n");

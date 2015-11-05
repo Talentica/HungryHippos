@@ -26,7 +26,7 @@ public class ServerPing {
 	private static final String LOG_PROP_FILE = "log4j.properties";
 	private static ClassLoader loader = ServerPing.class.getClassLoader();
 	static{
-		   Property.CONFIG_PATH = loader.getResourceAsStream(LOG_PROP_FILE);
+		   Property.CONFIG_FILE = loader.getResourceAsStream(LOG_PROP_FILE);
 	   }
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPing.class
 			.getName());
@@ -41,7 +41,7 @@ public class ServerPing {
 			String IP = new ServerPing().getLocalIP(LINUX_IP_COMMAND);
 			LOGGER.info("IP :: " + IP);
 			Integer PORT = Integer.valueOf(args[0]);
-			new Property().getProperties();
+			Property.getProperties();
 			while (true) {
 				go(IP, PORT);
 			}

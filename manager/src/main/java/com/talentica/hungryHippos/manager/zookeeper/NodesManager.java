@@ -75,7 +75,7 @@ public class NodesManager implements Watcher {
 		evictionListener = (EvictionListener) registrationListener;
 		servers = new ArrayList<Server>();
 		serverNameMap = new HashMap<String, Server>();
-		prop = new Property().getProperties();
+		prop = Property.getProperties();
 		namespacePath = prop.getProperty("namespace.path");
 		String hosts = prop.getProperty("zookeeper.server.ips");
 		String basePath = prop.getProperty("zookeeper.base_path");
@@ -585,7 +585,6 @@ public class NodesManager implements Watcher {
 	            }
 	        }
 	    };
-		
 		
 		public synchronized void checkZookeeperConnection(Server server){
 			String path = buildMonitorPathForServer(server);

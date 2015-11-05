@@ -18,13 +18,14 @@ public class JobManager	{
 	static String configPath;
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
 	public static void main(String[] args) throws Exception {
-		if(args.length == 0){
-			LOGGER.info("Please provide config file as argument");
-			return;
+		if (args.length == 0) {
+			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
+
+		} else if (args.length == 1) {
+			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
 		}
-		Property.CONFIG_PATH = new FileInputStream(new String(args[0]));
 		ServerHeartBeat heartBeat = new ServerHeartBeat();
-		String root = new Property().getProperties().getProperty("namespace.path");
+		String root = Property.getProperties().getProperty("namespace.path");
 		heartBeat.deleteAllNodes(PathUtil.SLASH+root);
 		heartBeat.init().startup();
 		List<Server> regServer = heartBeat.getMonitoredServers();

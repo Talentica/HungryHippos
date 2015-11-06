@@ -25,7 +25,8 @@ public class JobManager	{
 			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
 		}
 		ServerHeartBeat heartBeat = new ServerHeartBeat();
-		String root = Property.getProperties().getProperty("namespace.path");
+		String root = Property.getProperties().getProperty("zookeeper.namespace_path");
+		String tickTime = Property.getProperties().getProperty("tick.time");
 		heartBeat.deleteAllNodes(PathUtil.SLASH+root);
 		heartBeat.init().startup();
 		List<Server> regServer = heartBeat.getMonitoredServers();
@@ -33,7 +34,7 @@ public class JobManager	{
 		while (true) {
 			for (Server server : regServer) {
 				heartBeat.startPinging(server);
-				Thread.sleep(5000);
+				Thread.sleep(Long.valueOf(tickTime));
 			}
 		}
 	}

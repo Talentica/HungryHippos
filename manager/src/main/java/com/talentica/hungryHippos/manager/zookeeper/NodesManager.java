@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.talentica.hungryHippos.manager.util.PathEnum;
 import com.talentica.hungryHippos.manager.util.PathUtil;
 
 /**
@@ -47,12 +48,12 @@ public class NodesManager implements Watcher {
     private EvictionListener evictionListener;
     private RegistrationListener registrationListener;
     private ZookeeperConfiguration zkConfiguration;
-    private String namespacePath;
     private List<Server> servers;
     private Map<String,Server> serverNameMap;
     private Properties prop;
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
     private static final int DEFAULT_NODES = 3;
+    private Map<String,String> pathMap;
     public RegistrationListener getRegistrationListener() {
 		return registrationListener;
 	}
@@ -75,24 +76,24 @@ public class NodesManager implements Watcher {
 		evictionListener = (EvictionListener) registrationListener;
 		servers = new ArrayList<Server>();
 		serverNameMap = new HashMap<String, Server>();
+		pathMap = new HashMap<String,String>();
 		prop = Property.getProperties();
-		namespacePath = prop.getProperty("namespace.path");
-		String hosts = prop.getProperty("zookeeper.server.ips");
-		String basePath = prop.getProperty("zookeeper.base_path");
-		String alertPath = prop.getProperty("zookeeper.alerts_path");
+		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
+		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
+		pathMap.put(PathEnum.HOSTPATH.name(), prop.getProperty("zookeeper.server.ips"));
+		pathMap.put(PathEnum.ALERTPATH.name(),prop.getProperty("zookeeper.alerts_path"));
+		pathMap.put(PathEnum.CONFIGPATH.name(),prop.getProperty("zookeeper.config_path"));
 		Integer sessionTimeOut = Integer.valueOf(prop
 				.getProperty("zookeeper.session_timeout"));
-		String confPath = prop.getProperty("zookeeper.config_path");
-		zkConfiguration = new ZookeeperConfiguration(hosts, basePath,
-				alertPath, sessionTimeOut, confPath,namespacePath);
+		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
 		connectZookeeper();
 	}
 
 	public void connectZookeeper() {
 		LOGGER.info("Node Manager started, connecting to ZK hosts: "
-				+ zkConfiguration.getHosts());
+				+ zkConfiguration.getPathMap().get(PathEnum.HOSTPATH.name()));
 		try {
-			connect(zkConfiguration.getHosts());
+			connect(zkConfiguration.getPathMap().get(PathEnum.HOSTPATH.name()));
 			LOGGER.info("Connected - Session ID: " + zk.getSessionId());
 		} catch (Exception e) {
 			LOGGER.info("Could not connect to Zookeper instance" + e);
@@ -145,9 +146,9 @@ public class NodesManager implements Watcher {
 	     */
 	public void bootstrap(){
 		createServersMap();
-		createNode(PathUtil.SLASH+zkConfiguration.getNameSpace());
-		createNode(zkConfiguration.getAlertsPath());
-		createNode(zkConfiguration.getBasePath());
+		createNode(PathUtil.SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
+		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()));
+		createNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()));
 	}
 	    /**
 	     * Create the node on zookeeper
@@ -211,7 +212,7 @@ public class NodesManager implements Watcher {
 	            case NodeChildrenChanged:
 	                try {
 	                	    LOGGER.info(Thread.currentThread().getName());
-	                		List<String> servers = zk.getChildren(zkConfiguration.getBasePath(), this);
+	                		List<String> servers = zk.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), this);
 	                		Collections.sort(servers);
 		                    LOGGER.info("Server modified. Watched servers NOW: {}",
 		                            servers.toString());
@@ -283,7 +284,7 @@ public class NodesManager implements Watcher {
 	     * @throws InterruptedException
 	     */
 	    public List<String> getMonitoredServers() throws KeeperException, InterruptedException {
-	    	List<String> serverList = zk.getChildren(zkConfiguration.getBasePath(), this);
+	    	List<String> serverList = zk.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), this);
 	    	Collections.sort(serverList);
 	        return serverList;
 	    }
@@ -471,7 +472,7 @@ public class NodesManager implements Watcher {
 	     * @return
 	     */
 	    protected String buildAlertPathForServer(String serverHostname) {
-	    	return zkConfiguration.getAlertsPath() + PathUtil.SLASH + serverHostname;
+	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.SLASH + serverHostname;
 	    }
 
 	    /**
@@ -487,13 +488,13 @@ public class NodesManager implements Watcher {
 	     * @return
 	     */
 	protected String buildMonitorPathForServer(String serverHostname) {
-		if (serverHostname.startsWith(zkConfiguration.getBasePath())) {
+		if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()))) {
 			return serverHostname;
-		} else if (serverHostname.startsWith(zkConfiguration.getAlertsPath())) {
+		} else if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()))) {
 			serverHostname = serverHostname.substring(serverHostname
 					.lastIndexOf(File.separatorChar) + 1);
 		}
-		return zkConfiguration.getBasePath() + PathUtil.SLASH + serverHostname;
+		return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.SLASH + serverHostname;
 	}
 	    
 		/**
@@ -618,4 +619,5 @@ public class NodesManager implements Watcher {
 	        String strDate = sdfDate.format(now);
 	        return strDate;
 	    }
+	    
 }

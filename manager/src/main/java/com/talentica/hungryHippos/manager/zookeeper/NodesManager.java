@@ -3,7 +3,16 @@
  */
 package com.talentica.hungryHippos.manager.zookeeper;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +24,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -29,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.sun.xml.internal.ws.developer.SerializationFeature;
 import com.talentica.hungryHippos.manager.util.PathEnum;
 import com.talentica.hungryHippos.manager.util.PathUtil;
 
@@ -52,7 +63,7 @@ public class NodesManager implements Watcher {
     private Map<String,Server> serverNameMap;
     private Properties prop;
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
-    private static final int DEFAULT_NODES = 3;
+    private static final int DEFAULT_NODES = 4;
     private Map<String,String> pathMap;
     public RegistrationListener getRegistrationListener() {
 		return registrationListener;
@@ -141,29 +152,37 @@ public class NodesManager implements Watcher {
 
 	    /**
 	     * Bootstrap
+	     * @throws IOException 
 	     * 
 	     * @throws Exception
 	     */
-	public void bootstrap(){
+	public void bootstrap() throws IOException{
 		createServersMap();
 		createNode(PathUtil.SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
 		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()));
 		createNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()));
+		createNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()));
 	}
 	    /**
 	     * Create the node on zookeeper
-	     * 
+	     * Second parameter is optional and once needed, it required to be passed as array index 0
 	     * @param node
+	     * @param data
+	     * @throws IOException 
 	     */
-	    protected void createNode(final String node) {
+	    protected void createNode(final String node,Object ...data) throws IOException {
 	    	
-	        zk.create(node, node.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
+	        zk.create(node, data.length != 0 ? serialize(data[0]):node.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
 	                new AsyncCallback.StringCallback() {
 	                    @Override
 	                    public void processResult(int rc, String path, Object ctx, String name) {
 	                        switch (KeeperException.Code.get(rc)) {
 	                            case CONNECTIONLOSS:
-	                                createNode(path);
+								try {
+									createNode(path);
+								} catch (IOException e) {
+									LOGGER.warn("Unable to redirect to create node");
+								}
 	                                break;
 	                            case OK:
 	                                LOGGER.info("Server Monitoring Path [" + path + "] is created");
@@ -460,8 +479,10 @@ public class NodesManager implements Watcher {
 
 	   
 	    /**
+	     * Build path for Alert
+	     * 
 	     * @param server
-	     * @return
+	     * @return String
 	     */
 	    protected String buildAlertPathForServer(Server server) {
 	        return buildAlertPathForServer(server.getServerAddress().getHostname());
@@ -469,15 +490,17 @@ public class NodesManager implements Watcher {
 	    
 	    /**
 	     * @param serverHostname
-	     * @return
+	     * @return string
 	     */
 	    protected String buildAlertPathForServer(String serverHostname) {
 	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.SLASH + serverHostname;
 	    }
 
 	    /**
+	     * Build path for Server
+	     * 
 	     * @param server
-	     * @return
+	     * @return String
 	     */
 	    public String buildMonitorPathForServer(Server server) {
 	        return buildMonitorPathForServer(server.getServerAddress().getHostname());
@@ -487,7 +510,7 @@ public class NodesManager implements Watcher {
 	     * @param serverHostname
 	     * @return
 	     */
-	protected String buildMonitorPathForServer(String serverHostname) {
+	    protected String buildMonitorPathForServer(String serverHostname) {
 		if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()))) {
 			return serverHostname;
 		} else if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()))) {
@@ -495,7 +518,12 @@ public class NodesManager implements Watcher {
 					.lastIndexOf(File.separatorChar) + 1);
 		}
 		return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.SLASH + serverHostname;
-	}
+		}
+	    
+	    protected String buildConfigPath(String fileName){
+	    	return zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.SLASH + fileName;
+	    }
+	
 	    
 		/**
 		 * Delete all the nodes of zookeeper recursively
@@ -515,6 +543,10 @@ public class NodesManager implements Watcher {
 	    	}
 	    }
 		
+		/**
+		 * Create the servers map which all need to be run on nodes
+		 * 
+		 */
 		private void createServersMap() {
 			String serverIPs = prop.getProperty("node.server.ips");
 			List<String> checkUnique = new ArrayList<String>();
@@ -544,7 +576,12 @@ public class NodesManager implements Watcher {
 			}
 		}
 		
-		private void createServerNodes() throws JsonProcessingException{			
+		/**
+		 * Create nodes on zookeeper server for each servers/nodes of application
+		 * 
+		 * @throws IOException
+		 */
+		private void createServerNodes() throws IOException{			
 			for(Server server : this.servers){
 				String nodePath = buildMonitorPathForServer(server);
 				createNode(nodePath);
@@ -552,6 +589,11 @@ public class NodesManager implements Watcher {
 			
 		}
 		
+		/**
+		 * Delete particular node/server
+		 * 
+		 * @param server
+		 */
 		public synchronized void deleteNode(Server server){
 			 String path = buildMonitorPathForServer(server);
 			 Stat stat = null;
@@ -613,6 +655,11 @@ public class NodesManager implements Watcher {
 	        }
 	    };
 	    
+	    /**
+	     * Get current timestamp in format yyyy-MM-dd_HH:mm:ss
+	     * 
+	     * @return
+	     */
 	    public static String getCurrentTimeStamp() {
 	        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 	        Date now = new Date();
@@ -620,4 +667,57 @@ public class NodesManager implements Watcher {
 	        return strDate;
 	    }
 	    
+	/**
+	 * To serialize the object
+	 * 
+	 * @param obj
+	 * @return byte[]
+	 * @throws IOException
+	 */
+	public static byte[] serialize(Object obj) throws IOException {
+		return SerializationUtils.serialize((Serializable) obj);
+	}
+
+	/**
+	 * To deserialize the byte[]
+	 * 
+	 * @param obj
+	 * @return Object
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static Object deserialize(byte[] obj) throws IOException,
+			ClassNotFoundException {
+	    	return SerializationUtils.deserialize(obj);
+	}
+	    
+	/**
+	 * Save the file on ZNode of zookeeper
+	 * 
+	 * @param file
+	 * @throws IOException
+	 */
+	public void saveConfigFileToZNode(ConfigFile file) throws IOException {
+		createNode(buildConfigPath(file.getFileName()),
+				file);
+	}
+	
+	/**
+	 * This will return the object which will later be type casted to ConfigFile 
+	 * 
+	 * @param fileName
+	 * @return object
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 */
+	public Object getConfigFileFromZNode(String fileName) throws KeeperException, InterruptedException, ClassNotFoundException, IOException{
+		 Stat stat = null;
+				stat = zk.exists(buildConfigPath(fileName), this);
+				if(stat != null){
+					return deserialize(zk.getData(buildConfigPath(fileName), this,stat));
+				 }
+		return null;
+	}
 }

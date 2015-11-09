@@ -20,7 +20,8 @@ public class Property{
 	private static Properties prop = null;
 	public  static InputStream CONFIG_FILE;
 	private static ClassLoader loader = Property.class.getClassLoader();
-	private static final String LOG_PROP_FILE = "log4j.properties";
+	public static final String LOG_PROP_FILE = "log4j.properties";
+	public static final String CONF_PROP_FILE = "config.properties";
 	public static Properties getProperties() {
 		if (prop == null) {
 			try {
@@ -28,7 +29,7 @@ public class Property{
 				if(CONFIG_FILE != null){
 				 prop.load(CONFIG_FILE) ;
 				 }else{
-					 CONFIG_FILE = loader.getResourceAsStream("config.properties");
+					 CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
 					prop.load(CONFIG_FILE) ;
 				}
 				PropertyConfigurator.configure(prop);

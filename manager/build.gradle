@@ -24,6 +24,7 @@ dependencies {
 	compile 'org.eclipse.jetty.websocket:websocket-client:9.3.4.v20151007'
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'	
 	compile 'org.glassfish.extras:bean-validator:4.0.0.Alpha3'
+	compile 'commons-lang:commons-lang:2.6'
 }
 sourceSets {
     main {

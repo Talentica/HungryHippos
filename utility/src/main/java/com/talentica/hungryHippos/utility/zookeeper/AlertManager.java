@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.zookeeper;
+package com.talentica.hungryHippos.utility.zookeeper;
 
 import java.util.Collections;
 import java.util.Map;

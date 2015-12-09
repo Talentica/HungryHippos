@@ -1,21 +1,31 @@
 package com.talentica.hungryHippos.node;
 
 
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.storage.DataStore;
-import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.util.Map;
+
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
+import com.talentica.hungryHippos.utility.marshaling.DataLocator;
+import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -26,10 +36,11 @@ public class NodeInitializer {
     private DataDescription dataDescription;
     private static String nodeIdFile = "nodeId";
 
-    public NodeInitializer(String keyValueNodeNumberMapFile, DataDescription dataDescription) throws IOException {
+    @SuppressWarnings("unchecked")
+	public NodeInitializer(String keyValueNodeNumberMapFile, DataDescription dataDescription) throws IOException {
         this.dataDescription = dataDescription;
         try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream(keyValueNodeNumberMapFile))){
+                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+keyValueNodeNumberMapFile))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
             System.out.println(keyValueNodeNumberMap);
         } catch (ClassNotFoundException e) {
@@ -37,7 +48,7 @@ public class NodeInitializer {
         }
     }
     public static int readNodeId() throws Exception{
-        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(nodeIdFile)));
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+nodeIdFile)));
         String line = in.readLine();
         return Integer.parseInt(line);
     }
@@ -96,6 +107,6 @@ public class NodeInitializer {
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
 
         NodeInitializer initializer = new NodeInitializer("keyValueNodeNumberMap", dataDescription);
-        initializer.startServer(8080, readNodeId());
+        initializer.startServer(2323, readNodeId());
     }
 }

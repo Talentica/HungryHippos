@@ -1,33 +1,46 @@
 package com.talentica.hungryHippos.accumulator;
 
-import com.talentica.hungryHippos.sharding.KeyCombination;
-import com.talentica.hungryHippos.utility.marshaling.*;
-import com.talentica.hungryHippos.sharding.Node;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.sharding.KeyCombination;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.ZKNodeName;
+import com.talentica.hungryHippos.utility.marshaling.DataLocator;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
+import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
+import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
  * Created by debasishc on 24/9/15.
  */
 public class DataSenderFromText {
-    private static String serverConfigFile = "serverConfigFile";
-
-    private static String[] loadServers() throws Exception{
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataSenderFromText.class.getName());
+	private static String inputFile =  "sampledata.txt";
+	
+	
+    private static String[] loadServers(NodesManager nodesManager) throws Exception{
+    	LOGGER.info("Load the server form the configuration file");
         ArrayList<String> servers = new ArrayList<>();
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(new FileInputStream(serverConfigFile)));
-        while(true){
-            String line = in.readLine();
-            if(line==null){
-                break;
-            }
-            servers.add(line);
+        Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
+        ZKNodeFile serverConfig =  (obj == null) ? null : (ZKNodeFile)obj ;
+        Properties prop =  serverConfig.getFileData();
+        for(Object server : prop.keySet()){
+        	servers.add(prop.getProperty((String)server));
         }
         return servers.toArray(new String[servers.size()]);
     }
@@ -35,9 +48,15 @@ public class DataSenderFromText {
 
 
     public static void main(String [] args) throws Exception {
+    	//publishDataToNodes();    	
+    }
+    
+    @SuppressWarnings("unchecked")
+	public static void publishDataToNodes(NodesManager nodesManager) throws Exception{
+    	
         long start = System.currentTimeMillis();
 
-        String [] servers = loadServers();
+        String [] servers = loadServers(nodesManager);
 
 
 
@@ -59,27 +78,22 @@ public class DataSenderFromText {
 
 
         Map<KeyCombination, Set<Node>> keyCombinationNodeMap = null;
-        try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream("keyCombinationNodeMap"))){
-            keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            //System.out.println(keyCombinationNodeMap);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
+        ZKNodeFile mapfile = ZKUtils.ZKNodeFile(nodesManager, ZKNodeName.keyCombinationNodeMap);
+        keyCombinationNodeMap = (mapfile==null) ? null : (Map<KeyCombination, Set<Node>>)mapfile.getObj();
+       
         OutputStream[] targets = new OutputStream[servers.length];
 
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
             System.out.println(server);
-            Socket socket = new Socket(server,8080);
+            Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
 
 
 
         com.talentica.hungryHippos.utility.marshaling.FileReader
-                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(args[0]);
+                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(inputFile);
         input.setNumFields(9);
         input.setMaxsize(25);
 
@@ -127,9 +141,10 @@ public class DataSenderFromText {
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
 
             //long endLookp =System.currentTimeMillis();
-
+            //System.out.println("Size of array :: " + targets.length);
             //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
+            	//System.out.println("Node Id :: " + node.getNodeId());
                 targets[node.getNodeId()].write(buf);
             }
 
@@ -147,5 +162,6 @@ public class DataSenderFromText {
         System.out.println("Time taken in encoding: "+(timeForEncoding));
         System.out.println("Time taken in lookup: "+(timeForLookup));
 
+    
     }
 }

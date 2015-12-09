@@ -1,12 +1,15 @@
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -44,7 +47,7 @@ public class FileStoreAccess implements StoreAccess{
     private void processRows(int fileId){
         try {
             DataInputStream in
-                    = new DataInputStream(new FileInputStream(base + fileId));
+                    = new DataInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+base + fileId));
             byte[] buf = new byte[dataDescription.getSize()];
             ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
             while(true){

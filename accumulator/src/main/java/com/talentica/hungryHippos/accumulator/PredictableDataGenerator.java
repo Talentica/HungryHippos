@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.accumulator;
 
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
@@ -75,7 +76,7 @@ public class PredictableDataGenerator {
 
         OutputStream out = socket.getOutputStream();
 
-        FileInputStream in = new FileInputStream("predictableData");
+        FileInputStream in = new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"predictableData");
 
         byte[] buffer = new byte[1024];
         int totalData=0;
@@ -117,7 +118,7 @@ public class PredictableDataGenerator {
 
         Map<KeyCombination, Set<Node>> keyCombinationNodeMap = null;
         try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream("keyCombinationNodeMap"))){
+                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
             System.out.println(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {
@@ -126,7 +127,7 @@ public class PredictableDataGenerator {
         Socket socket = new Socket("localhost",8080);
         //PrintWriter out = new PrintWriter(new File("sampledata.txt"));
 
-        OutputStream out = new FileOutputStream("predictableData"); //socket.getOutputStream();
+        OutputStream out = new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"predictableData"); //socket.getOutputStream();
         long start = System.currentTimeMillis();
         System.out.println(generateAllCombinations(3,allNumbers));
         int count=0;

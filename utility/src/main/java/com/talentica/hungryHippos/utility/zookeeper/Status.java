@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.zookeeper;
+package com.talentica.hungryHippos.utility.zookeeper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

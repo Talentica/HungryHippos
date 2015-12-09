@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.zookeeper;
+package com.talentica.hungryHippos.utility.zookeeper;
 
 import java.util.Map;
 
@@ -18,12 +18,10 @@ public class ZookeeperConfiguration {
     Map<String,String> pathMap;
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConfiguration.class);
 
+   
     /**
-     * @param hosts
-     * @param basePath
-     * @param alertsPath
+     * @param pathMap
      * @param sessionTimeout
-     * @param configPath
      */
     public ZookeeperConfiguration(Map<String,String> pathMap,Integer sessionTimeout){
     	this.pathMap = pathMap;

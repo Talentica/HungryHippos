@@ -1,10 +1,22 @@
 package com.talentica.hungryHippos.sharding;
 
-import com.talentica.hungryHippos.utility.marshaling.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 
-import java.io.*;
-import java.io.FileReader;
-import java.util.*;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 
 /**
  * Created by debasishc on 14/8/15.
@@ -16,6 +28,10 @@ public class Sharding {
     private Map<KeyCombination, Long> keyCombinationFrequencyMap = new HashMap<>();
     private Map<Node, List<KeyCombination>> nodeToKeyMap = new HashMap<>();
     private Map<KeyCombination, Set<Node>> keyCombinationNodeMap = new HashMap<>();
+    private final static String inputFile = Property.getProperties().getProperty("input.file");
+    private final static String keyValueNodeNumberMapFile = "keyValueNodeNumberMap";
+    private final static String keyCombinationNodeMapFile = "keyCombinationNodeMap";
+    private final static int noOfNodes = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 
     public Sharding(int numNodes) {
         for(int i=0;i<numNodes;i++){
@@ -219,7 +235,7 @@ public class Sharding {
 
     public void dumpKeyValueNodeNumberMap(String file) throws IOException{
 
-        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+file))) {
             out.writeObject(keyValueNodeNumberMap);
             out.flush();
         }
@@ -227,7 +243,7 @@ public class Sharding {
 
     public void dumpKeyKeyCombinationNodeMap(String file) throws IOException{
 
-        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+        try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+file))) {
             out.writeObject(keyCombinationNodeMap);
             out.flush();
         }
@@ -292,22 +308,29 @@ public class Sharding {
         sum = sharding.sumForKeyCombinationUnion(searchList);
         System.out.println(sum);*/
 
-        Sharding sharding = new Sharding(10);
-        com.talentica.hungryHippos.utility.marshaling.FileReader fileReader
-                = new com.talentica.hungryHippos.utility.marshaling.FileReader("test.txt");
+    	//doSharding();
+
+    }
+    
+    public static void doSharding(){
+    	
+    	Sharding sharding = new Sharding(noOfNodes);
+        com.talentica.hungryHippos.utility.marshaling.FileReader fileReader;
+		try {
+			fileReader = new com.talentica.hungryHippos.utility.marshaling.FileReader(inputFile);
+		 
         fileReader.setNumFields(9);
         fileReader.setMaxsize(25);
         sharding.populateFrequencyFromData(fileReader);
-   //     System.out.println(sharding.keyCombinationFrequencyMap.size());
-  //      System.out.println(sharding.keyCombinationFrequencyMap.entrySet().iterator().next().getValue());
         sharding.shardAllKeys();
         System.out.println(sharding.keyCombinationNodeMap.size());
-//        for(Map.Entry<KeyCombination,Set<Node>> kn:sharding.keyCombinationNodeMap.entrySet()){
-//            System.out.println(kn.getKey() +" :: "+kn.getValue());
-//        }
-        sharding.dumpKeyKeyCombinationNodeMap("keyCombinationNodeMap");
-        sharding.dumpKeyValueNodeNumberMap("keyValueNodeNumberMap");
-
+        sharding.dumpKeyKeyCombinationNodeMap(keyCombinationNodeMapFile);
+        sharding.dumpKeyValueNodeNumberMap(keyValueNodeNumberMapFile);
+		}
+        catch (IOException | NodeOverflowException e) {
+			e.printStackTrace();
+		}
+    	
     }
 
 

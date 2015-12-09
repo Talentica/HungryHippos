@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.utility;
 
-import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.optim.linear.LinearConstraintSet;
 import org.apache.commons.math3.optim.linear.LinearObjectiveFunction;
 

@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.sharding;
 
-import java.awt.*;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +8,11 @@ import java.util.Map;
  * Created by debasishc on 14/8/15.
  */
 public class KeyCombination implements Serializable{
-    private Map<String,Object> keyValueCombination;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3581984005135868712L;
+	private Map<String,Object> keyValueCombination;
 
     public KeyCombination(Map<String, Object> keyValueCombination) {
         this.keyValueCombination = keyValueCombination;

@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.accumulator;
 
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
@@ -78,7 +79,7 @@ public class DataGenerator {
     private static String[] loadServers() throws Exception{
         ArrayList<String> servers = new ArrayList<>();
         BufferedReader in = new BufferedReader(
-                new InputStreamReader(new FileInputStream(serverConfigFile)));
+                new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+serverConfigFile)));
         while(true){
             String line = in.readLine();
             if(line==null){
@@ -116,7 +117,7 @@ public class DataGenerator {
 
         Map<KeyCombination, Set<Node>> keyCombinationNodeMap = null;
         try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream("keyCombinationNodeMap"))){
+                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
             //System.out.println(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {

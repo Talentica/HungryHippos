@@ -70,7 +70,7 @@ allprojects {
     compile 'net.openhft:chronicle:3.4.3'
     compile 'com.datastax.cassandra:cassandra-driver-core:2.1.6'
     compile 'com.google.protobuf:protobuf-java:2.6.1'
-
+	compile project (':utility')
 
 
     // Testing

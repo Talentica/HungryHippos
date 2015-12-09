@@ -1,19 +1,16 @@
 package com.talentica.hungryHippos.accumulator;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -22,14 +19,14 @@ public class JobRunner {
     List<Job> jobs= new LinkedList<>();
     private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
-    private String keyValueNodeMapFileName;
+   // private Map<String,Map<Object, Node>> keyValueNodeMapFileName;
     private DataStore dataStore;
 
 
-    public JobRunner(DataDescription dataDescription, DataStore dataStore, String keyValueNodeMapFileName) {
+    public JobRunner(DataDescription dataDescription, DataStore dataStore, Map<String,Map<Object, Node>> keyValueNodeNumberMap) {
         this.dataDescription = dataDescription;
         this.dataStore = dataStore;
-        this.keyValueNodeMapFileName = keyValueNodeMapFileName;
+        this.keyValueNodeNumberMap = keyValueNodeNumberMap;
     }
 
     private Map<Integer,List<Job>> primaryDimJobsMap = new HashMap<>();
@@ -47,9 +44,9 @@ public class JobRunner {
     }
 
     public void run(){
-        try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream(keyValueNodeMapFileName))){
-            keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
+       /* try(ObjectInputStream in
+                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+keyValueNodeNumberMap))){*/
+           // keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
             System.out.println(keyValueNodeNumberMap);
 
             DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -67,9 +64,9 @@ public class JobRunner {
             rowProcessors.forEach(RowProcessor::finishUp);
 
 
-        } catch (Exception e) {
+        /*} catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
 }

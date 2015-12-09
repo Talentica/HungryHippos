@@ -1,14 +1,23 @@
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 
 /**
  * Created by debasishc on 31/8/15.
  */
 public class FileDataStore implements DataStore{
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileDataStore.class);
     private final int numFiles ;
     private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
     private OutputStream[] os;
@@ -30,7 +39,7 @@ public class FileDataStore implements DataStore{
         os = new OutputStream[numFiles];
         if(!readOnly) {
             for (int i = 0; i < numFiles; i++) {
-                os[i] = new BufferedOutputStream(new FileOutputStream(baseName + i));
+                os[i] = new BufferedOutputStream(new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+baseName + i));
             }
         }
     }
@@ -56,9 +65,20 @@ public class FileDataStore implements DataStore{
         for(int i=0;i<numFiles;i++){
             try {
                 os[i].flush();
+                LOGGER.info("\n\tData flushed for file# :: data_"+ i);
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally{
+            	try {
+            		LOGGER.info("\n\tConnection closed for file# :: data_"+ i);
+    				if(os[i] != null) os[i].close();
+    			} catch (IOException e) {
+    				LOGGER.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+    			}
             }
         }
     }
+
+	
+    
 }

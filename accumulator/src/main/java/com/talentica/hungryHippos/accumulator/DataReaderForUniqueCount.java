@@ -1,17 +1,18 @@
 package com.talentica.hungryHippos.accumulator;
 
-import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.util.Map;
+
 import com.talentica.hungryHippos.accumulator.testJobs.TestJobUniqueCount;
 import com.talentica.hungryHippos.node.NodeInitializer;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
+import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
-
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.util.Map;
 
 /**
  * Created by debasishc on 12/10/15.
@@ -35,7 +36,7 @@ public class DataReaderForUniqueCount {
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
 
         try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream("keyValueNodeNumberMap"))){
+                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyValueNodeNumberMap"))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
             // System.out.println(keyValueNodeNumberMap);
         } catch (Exception e) {
@@ -47,7 +48,7 @@ public class DataReaderForUniqueCount {
                 = new NodeDataStoreIdCalculator(keyValueNodeNumberMap, NodeInitializer.readNodeId(),dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
 
-        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, "keyValueNodeNumberMap");
+        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, keyValueNodeNumberMap);
         //jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
         //jobRunner.addJob(new TestJob(new int[]{0,1}, 1, 6));
         //jobRunner.addJob(new TestJob(new int[]{0}, 0, 6));

@@ -1,17 +1,23 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.storage.DataStore;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 import java.nio.ByteBuffer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 
 /**
  * Created by debasishc on 1/9/15.
  */
 public class DataReadHandler extends ChannelHandlerAdapter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataReadHandler.class);
     private DataDescription dataDescription;
     private byte[] buf;
     private ByteBuffer byteBuffer;
@@ -27,13 +33,13 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
+    	LOGGER.info("\n\t In handlerAdded method :: "+ctx.name());
         byteBuf = ctx.alloc().buffer(dataDescription.getSize()*20); // (1)
-        //totalCount=0;
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) {
-
+    	LOGGER.info("\n\t In handlerRemoved method :: "+ctx.name());
         while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
@@ -41,10 +47,13 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         dataStore.sync();
         byteBuf.release(); // (1)
         byteBuf = null;
+        ctx.channel().close();
+        ctx.channel().parent().close();
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) { // (2)
+    public void channelRead(ChannelHandlerContext ctx, Object msg) { 
+    	LOGGER.info("\n\t In channelRead method :: "+ ctx.name());// (2)
         ByteBuf msgB = (ByteBuf) msg;
         byteBuf.writeBytes(msgB); // (2)
         msgB.release();
@@ -59,13 +68,18 @@ public class DataReadHandler extends ChannelHandlerAdapter {
         byteBuf.readBytes(buf, 0, remainingBytes);
         byteBuf.clear();
         byteBuf.writeBytes(buf,0,remainingBytes);
-
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) { // (4)
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    	LOGGER.info("\n\t In exceptionCaught method");// (4)
         // Close the connection when an exception is raised.
         cause.printStackTrace();
         ctx.close();
     }
+    @Override
+    public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
+        ctx.close(promise);
+    }
+	
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.zookeeper;
+package com.talentica.hungryHippos.utility.zookeeper;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,7 +17,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.manager.zookeeper.Server.ServerStatus;
+import com.talentica.hungryHippos.utility.zookeeper.Server.ServerStatus;
+import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
  * @author PooshanS
@@ -26,7 +27,7 @@ import com.talentica.hungryHippos.manager.zookeeper.Server.ServerStatus;
 public class ServerHeartBeat {
 	private ByteBuffer buffer;
 	private AsynchronousSocketChannel client;
-	private NodesManager nodesManager;
+	private static NodesManager nodesManager;
 	private InetSocketAddress hostAddress;
 	private String token;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerHeartBeat.class);
@@ -86,7 +87,7 @@ public class ServerHeartBeat {
 		nodesManager.deleteNode(server);
 	}
 
-	public NodesManager init() throws Exception {
+	public static NodesManager init() throws Exception {
 		if (nodesManager == null) {
 			nodesManager = new NodesManager();			
 		}

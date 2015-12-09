@@ -1,89 +1,99 @@
 package com.talentica.hungryHippos.accumulator;
 
-import com.talentica.hungryHippos.sharding.KeyCombination;
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
-/**
- * Created by debasishc on 12/10/15.
- */
-public class DataSenderFromTextUniqueCount {
-    private static String serverConfigFile = "serverConfigFile";
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private static String[] loadServers() throws Exception{
-        ArrayList<String> servers = new ArrayList<>();        
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+serverConfigFile)));
-        while(true){
-            String line = in.readLine();
-            if(line==null){
-                break;
-            }
-            servers.add(line);
+import com.talentica.hungryHippos.sharding.KeyCombination;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.ZKNodeName;
+import com.talentica.hungryHippos.utility.marshaling.DataLocator;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
+import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
+
+/**
+ * Created by debasishc on 24/9/15.
+ */
+public class DataProvider {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
+	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
+	private static List<Socket> socketList;
+    private static String[] loadServers(NodesManager nodesManager) throws Exception{
+    	LOGGER.info("Load the server form the configuration file");
+        ArrayList<String> servers = new ArrayList<>();
+        Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
+        ZKNodeFile serverConfig =  (obj == null) ? null : (ZKNodeFile)obj ;
+        Properties prop =  serverConfig.getFileData();
+        for(Object server : prop.keySet()){
+        	servers.add(prop.getProperty((String)server));
         }
+        LOGGER.info("There are {} servers",servers.size());
         return servers.toArray(new String[servers.size()]);
     }
 
 
-
     public static void main(String [] args) throws Exception {
+    	//publishDataToNodes();    	
+    }
+    
+    @SuppressWarnings("unchecked")
+	public static void publishDataToNodes(NodesManager nodesManager) throws Exception{
+    	
         long start = System.currentTimeMillis();
 
-        String [] servers = loadServers();
-
-
-
+        String [] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,6);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,6);
-        dataDescription.addFieldType(DataLocator.DataType.STRING,2);
-
+        CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         byte[] buf = new byte[dataDescription.getSize()];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 
-
-        Map<KeyCombination, Set<Node>> keyCombinationNodeMap = null;
-        try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
-            keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            //System.out.println(keyCombinationNodeMap);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+		try (ObjectInputStream inKeyCombinationNodeMap = new ObjectInputStream(
+				new FileInputStream(
+						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+								+ PathUtil.FORWARD_SLASH
+								+ ZKNodeName.keyCombinationNodeMap))) {
+			keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) inKeyCombinationNodeMap
+					.readObject();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
         OutputStream[] targets = new OutputStream[servers.length];
-
+        LOGGER.info("***CREATE SOCKET CONNECTIONS***");
+        socketList = new ArrayList<Socket>();
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
             System.out.println(server);
-            Socket socket = new Socket(server,8080);
+            Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
+            socketList.add(socket);
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
 
 
 
         com.talentica.hungryHippos.utility.marshaling.FileReader
-                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(args[0]);
+                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(Property.getProperties().getProperty("input.file"));
         input.setNumFields(9);
         input.setMaxsize(25);
 
@@ -101,10 +111,10 @@ public class DataSenderFromTextUniqueCount {
             MutableCharArrayString key2 = parts[1];
             MutableCharArrayString key3 = parts[2];
             MutableCharArrayString key4 = parts[3];
-            MutableCharArrayString key5 = parts[4];
-            MutableCharArrayString key6 = parts[5];
-            MutableCharArrayString key7 = parts[6];
-            MutableCharArrayString key8 = parts[7];;
+            MutableCharArrayString key5 = parts[4];;
+            MutableCharArrayString key6 = parts[5];;
+            double key7 = Double.parseDouble(parts[6].toString());
+            double key8 = Double.parseDouble(parts[7].toString());
             MutableCharArrayString key9 = parts[8];
 
             Map<String,Object> keyValueMap = new HashMap<>();
@@ -121,9 +131,9 @@ public class DataSenderFromTextUniqueCount {
             dynamicMarshal.writeValueString(3, key4, byteBuffer);
             dynamicMarshal.writeValueString(4, key5, byteBuffer);
             dynamicMarshal.writeValueString(5, key6, byteBuffer);
-            dynamicMarshal.writeValueString(6, key7, byteBuffer);
-            dynamicMarshal.writeValueString(7, key8, byteBuffer);
-            dynamicMarshal.writeValueString(8, key9,byteBuffer);
+            dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
+            dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
+            dynamicMarshal.writeValueString(8, key9, byteBuffer);
             //long endEncoding = System.currentTimeMillis();
             //timeForEncoding+=endEncoding-startEncoding;
 
@@ -131,13 +141,12 @@ public class DataSenderFromTextUniqueCount {
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
 
             //long endLookp =System.currentTimeMillis();
-
+            //System.out.println("Size of array :: " + targets.length);
             //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
+            	//System.out.println("Node Id :: " + node.getNodeId());
                 targets[node.getNodeId()].write(buf);
             }
-
-
 
         }
 
@@ -145,12 +154,15 @@ public class DataSenderFromTextUniqueCount {
             targets[j].flush();
             targets[j].close();
         }
+        /*for(Socket socket : socketList){
+        	socket.shutdownOutput();
+        }*/
         long end = System.currentTimeMillis();
 
         System.out.println("Time taken in ms: "+(end-start));
         System.out.println("Time taken in encoding: "+(timeForEncoding));
         System.out.println("Time taken in lookup: "+(timeForLookup));
 
+    
     }
 }
-

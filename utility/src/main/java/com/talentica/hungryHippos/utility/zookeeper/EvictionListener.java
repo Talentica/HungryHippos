@@ -1,7 +1,8 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.zookeeper;
+package com.talentica.hungryHippos.utility.zookeeper;
+
 
 /**
  * @author PooshanS

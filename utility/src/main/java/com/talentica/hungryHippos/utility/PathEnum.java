@@ -1,9 +1,11 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.manager.util;
+package com.talentica.hungryHippos.utility;
 
 /**
+ * This enum is used only on the start of the application.
+ * Do not modify unless required on start of the application
  * @author PooshanS
  *
  */

@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.manager.server;
+package com.talentica.hungryHippos.manager.node;
 
 /**
  * 
@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.manager.zookeeper.Property;
+import com.talentica.hungryHippos.utility.Property;
 
 /**
  * @author PooshanS

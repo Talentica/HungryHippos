@@ -6,7 +6,11 @@ import java.io.Serializable;
  * Created by debasishc on 14/8/15.
  */
 public class Node implements Serializable{
-    private int nodeId;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6827244296973600470L;
+	private int nodeId;
     private long nodeCapacity;
     private long remainingCapacity;
 

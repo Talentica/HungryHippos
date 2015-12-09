@@ -1,8 +1,10 @@
 package com.talentica.hungryHippos.accumulator;
 
+import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
@@ -18,7 +20,7 @@ public class ExecutionContextImpl implements ExecutionContext{
 
     static{
         try{
-            out = new PrintStream("outputFile");
+            out = new PrintStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"outputFile");
         }catch(Exception ex){
             ex.printStackTrace();
         }

@@ -1,10 +1,12 @@
 package com.talentica.hungryHippos.utility.marshaling;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+
+import com.talentica.hungryHippos.utility.PathUtil;
 
 
 /**
@@ -16,8 +18,9 @@ public class FileReader {
     FileChannel channel;
     int readCount = 0;
 
-    public FileReader(String filename) throws FileNotFoundException {
-        channel = new FileInputStream(filename).getChannel();
+    @SuppressWarnings("resource")
+	public FileReader(String filename) throws IOException {
+        channel = new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+filename).getChannel();
         buf.clear();
     }
 

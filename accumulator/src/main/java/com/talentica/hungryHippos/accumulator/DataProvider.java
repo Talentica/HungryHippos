@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 public class DataProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
-	private static List<Socket> socketList;
     private static String[] loadServers(NodesManager nodesManager) throws Exception{
     	LOGGER.info("Load the server form the configuration file");
         ArrayList<String> servers = new ArrayList<>();
@@ -55,7 +55,7 @@ public class DataProvider {
     	//publishDataToNodes();    	
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "resource" })
 	public static void publishDataToNodes(NodesManager nodesManager) throws Exception{
     	
         long start = System.currentTimeMillis();
@@ -81,13 +81,19 @@ public class DataProvider {
 
         OutputStream[] targets = new OutputStream[servers.length];
         LOGGER.info("***CREATE SOCKET CONNECTIONS***");
-        socketList = new ArrayList<Socket>();
+        int k = 0;
         for(int i=0;i<targets.length;i++){
-            String server = servers[i];
-            System.out.println(server);
+        	i = i-k;
+        	k = 0; 
+        	String server = servers[i];
+        	try{           
             Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
-            socketList.add(socket);
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
+        	}catch(ConnectException cex){
+        		LOGGER.warn("\n\t Connection could not get established. Please start the node {}",server.split(":")[0].trim());
+        		k = 1;
+        		Thread.sleep(5000);;
+        	}
         }
 
 
@@ -105,8 +111,6 @@ public class DataProvider {
             if(parts == null){
                 break;
             }
-
-
             MutableCharArrayString key1 = parts[0];
             MutableCharArrayString key2 = parts[1];
             MutableCharArrayString key3 = parts[2];
@@ -144,7 +148,6 @@ public class DataProvider {
             //System.out.println("Size of array :: " + targets.length);
             //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
-            	//System.out.println("Node Id :: " + node.getNodeId());
                 targets[node.getNodeId()].write(buf);
             }
 
@@ -154,9 +157,7 @@ public class DataProvider {
             targets[j].flush();
             targets[j].close();
         }
-        /*for(Socket socket : socketList){
-        	socket.shutdownOutput();
-        }*/
+       
         long end = System.currentTimeMillis();
 
         System.out.println("Time taken in ms: "+(end-start));

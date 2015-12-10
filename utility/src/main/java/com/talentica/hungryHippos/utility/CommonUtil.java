@@ -26,18 +26,18 @@ public class CommonUtil {
 	 * @param dataDescription
 	 */
 	public static void setDataDescription(FieldTypeArrayDataDescription dataDescription){
-	        String[] type_size;
-	        String type;
+	        String[] datatype_size;
+	        String datatype;
 	        int size;
 	        if(datatypes == null || datatypes.length == 0){
 	        	LOGGER.warn("\n\t No data type is specified in the configuration file");
 	        	return;
 	        }
 	        for(int index=0 ; index<datatypes.length ; index++){
-	        	type_size = datatypes[index].split("-");
-	        	type = type_size[0];
-	        	size = Integer.valueOf(type_size[1]);
-	        	switch(type){
+	        	datatype_size = datatypes[index].split("-");
+	        	datatype = datatype_size[0];
+	        	size = Integer.valueOf(datatype_size[1]);
+	        	switch(datatype){
 	        		case "STRING":
 	        			dataDescription.addFieldType(DataLocator.DataType.STRING,size);
 	        			break;
@@ -63,7 +63,7 @@ public class CommonUtil {
 	        			dataDescription.addFieldType(DataLocator.DataType.BYTE,size);
 	        			break;
 	        		default:
-	        			LOGGER.info("\n\t {} datatype is undefined",type);
+	        			LOGGER.info("\n\t {} datatype is undefined",datatype);
 	        	}
 	        	
 	        }

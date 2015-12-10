@@ -29,8 +29,10 @@ public class Property{
 			try {
 				prop = new Properties();
 				if(CONFIG_FILE != null){
+					LOGGER.info("\n\tExternal configuration properties file is loaded");
 				 prop.load(CONFIG_FILE) ;
 				 }else{
+					 LOGGER.info("\n\tInternal configuration properties file is loaded");
 					 CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
 					prop.load(CONFIG_FILE) ;
 				}

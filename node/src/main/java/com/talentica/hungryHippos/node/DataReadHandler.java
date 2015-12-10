@@ -33,13 +33,11 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-    	LOGGER.info("\n\t In handlerAdded method :: "+ctx.name());
         byteBuf = ctx.alloc().buffer(dataDescription.getSize()*20); // (1)
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) {
-    	LOGGER.info("\n\t In handlerRemoved method :: "+ctx.name());
         while (byteBuf.readableBytes() >= dataDescription.getSize()) {
             byteBuf.readBytes(buf);
             dataStore.storeRow(byteBuffer, buf);
@@ -53,7 +51,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) { 
-    	LOGGER.info("\n\t In channelRead method :: "+ ctx.name());// (2)
         ByteBuf msgB = (ByteBuf) msg;
         byteBuf.writeBytes(msgB); // (2)
         msgB.release();

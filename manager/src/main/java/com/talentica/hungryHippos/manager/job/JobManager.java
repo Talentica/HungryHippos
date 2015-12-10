@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public class JobManager {
 	private static Map<String, Map<Object, Node>> keyValueNodeNumberMap;
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "resource" })
 	public static void main(String[] args) throws Exception {
 		if (args.length == 0) {
 			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
@@ -66,10 +67,8 @@ public class JobManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		/*Send respective data across the nodes*/
-		LOGGER.info("\n\tPublish the data across the nodes");
-		DataProvider.publishDataToNodes(nodesManager);
+			LOGGER.info("\n\tPublish the data across the nodes");
+			DataProvider.publishDataToNodes(nodesManager);
 		
 		List<Server> regServer = heartBeat.getMonitoredServers();
 		LOGGER.info("\n\t\t********STARTING TO PING THE SERVER********");

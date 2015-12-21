@@ -19,9 +19,8 @@ public class JobRunner {
     List<Job> jobs= new LinkedList<>();
     private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
-   // private Map<String,Map<Object, Node>> keyValueNodeMapFileName;
     private DataStore dataStore;
-
+    private Map<Integer,Integer> jobIdRowCount = new HashMap<>();
 
     public JobRunner(DataDescription dataDescription, DataStore dataStore, Map<String,Map<Object, Node>> keyValueNodeNumberMap) {
         this.dataDescription = dataDescription;
@@ -44,11 +43,7 @@ public class JobRunner {
     }
 
     public void run(){
-       /* try(ObjectInputStream in
-                    = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+keyValueNodeNumberMap))){*/
-           // keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
             System.out.println(keyValueNodeNumberMap);
-
             DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
             List<RowProcessor> rowProcessors = new LinkedList<>();
             for(Integer primDim: primaryDimJobsMap.keySet()){
@@ -60,13 +55,32 @@ public class JobRunner {
                 }
                 storeAccess.processRows();
             }
-
             rowProcessors.forEach(RowProcessor::finishUp);
-
-
-        /*} catch (Exception e) {
-            e.printStackTrace();
-        }*/
     }
+    
+    public Map<Integer,Integer> getRowCountByJobId(){
+    	DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
+        List<RowProcessor> rowProcessors = new LinkedList<>();
+        for(Integer primDim: primaryDimJobsMap.keySet()){
+            StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
+            for(Job job:primaryDimJobsMap.get(primDim)) {
+                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,job);
+                storeAccess.addRowProcessor(rowProcessor);
+                rowProcessors.add(rowProcessor);
+            }
+            storeAccess.processRowCount();
+            for(RowProcessor processor : rowProcessors){
+            	processor.finishRowCount();
+            	jobIdRowCount.putAll(processor.getTotalRowCountByJobId());
+            }
+            rowProcessors.clear();
+        }
+        return jobIdRowCount;
+    }
+    
+    public List<Job> getJobs(){
+    	return jobs;
+    }
+    
 
 }

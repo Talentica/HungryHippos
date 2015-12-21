@@ -60,4 +60,39 @@ public class FileStoreAccess implements StoreAccess{
             //e.printStackTrace();
         }
     }
+    
+    @Override
+	public void processRowCount(){
+        int keyIdBit = 1 << keyId;
+        for(int i=0;i<numFiles;i++){
+            if((keyIdBit & i) > 0){
+            	processRowCount(i);
+            }
+        }
+        
+        
+        
+		
+	}
+    
+	private void processRowCount(int fileId) {
+		try {
+	        DataInputStream in
+	                = new DataInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+base + fileId));
+	        byte[] buf = new byte[dataDescription.getSize()];
+	        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+	        while(true){
+	            in.readFully(buf);
+	            for(RowProcessor p: rowProcessors){
+	                p.rowCount(byteBuffer);
+	            }
+	        }
+	    } catch (IOException e) {
+	        //e.printStackTrace();
+	    }
+		
+	}
+	
+	
+
 }

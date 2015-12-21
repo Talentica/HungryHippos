@@ -7,7 +7,7 @@ import com.talentica.hungryHippos.accumulator.Work;
  */
 public class TestJobUniqueCount extends TestJob {
     public TestJobUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
-        super(dimensions,primaryDimension,valueIndex);
+        super(dimensions,primaryDimension,valueIndex,0);// zero added . need to be removed
     }
 
     @Override

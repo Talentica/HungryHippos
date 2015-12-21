@@ -2,9 +2,6 @@ package com.talentica.hungryHippos.accumulator.testJobs;
 
 import com.talentica.hungryHippos.accumulator.ExecutionContext;
 import com.talentica.hungryHippos.accumulator.Work;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
-import java.util.Arrays;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -13,7 +10,7 @@ public class TestWork implements Work {
     protected int[] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
-
+    public int countLine = 0;
     double value = 0;
     //DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
 
@@ -38,4 +35,10 @@ public class TestWork implements Work {
         executionContext.saveValue(valueIndex +" : "+value);
         //descriptiveStatistics.clear();
     }
+
+
+	@Override
+	public int countRow() {
+		return ++countLine;	
+	}
 }

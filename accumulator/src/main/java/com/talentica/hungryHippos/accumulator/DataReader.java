@@ -51,17 +51,18 @@ public class DataReader {
         JobRunner jobRunner = new JobRunner(dataDescription, dataStore, keyValueNodeNumberMap);
         
         int numMetrix = 0;
+        int jobId = 0;
         for(int i=0;i<3;i++){
-            jobRunner.addJob(new TestJob(new int[]{i}, i, 6));
-            jobRunner.addJob(new TestJob(new int[]{i}, i, 7));
+            jobRunner.addJob(new TestJob(new int[]{i}, i, 6,jobId++));
+            jobRunner.addJob(new TestJob(new int[]{i}, i, 7,jobId++));
             numMetrix+=2;
             for(int j=i+1;j<5;j++){
-                jobRunner.addJob(new TestJob(new int[]{i,j}, i, 6));
-                jobRunner.addJob(new TestJob(new int[]{i,j}, j, 7));
+                jobRunner.addJob(new TestJob(new int[]{i,j}, i, 6,jobId++));
+                jobRunner.addJob(new TestJob(new int[]{i,j}, j, 7,jobId++));
                 numMetrix+=2;
                 for(int k=j+1;k<5;k++){
-                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, i, 6));
-                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, j, 7));
+                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, i, 6,jobId++));
+                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, j, 7,jobId++));
                     numMetrix+=2;
                 }
             }

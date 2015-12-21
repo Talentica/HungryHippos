@@ -6,4 +6,5 @@ package com.talentica.hungryHippos.accumulator;
 public interface Work {
     void processRow(ExecutionContext executionContext);
     void calculate(ExecutionContext executionContext);
+    int countRow();
 }

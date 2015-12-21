@@ -63,6 +63,7 @@ public class NodesManager implements Watcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
     private static final int DEFAULT_NODES = PathEnum.values().length-1;// subtracting -1 because HOSTPATH is separately created. Refer bootstrap() method. 
     private Map<String,String> pathMap;
+    private static final String NODE_NAME_PRIFIX = "_node"; 
     public RegistrationListener getRegistrationListener() {
 		return registrationListener;
 	}
@@ -118,6 +119,7 @@ public class NodesManager implements Watcher {
 	private void connect(String hosts) throws Exception {
 		zk = new org.apache.zookeeper.ZooKeeper(hosts,
 				zkConfiguration.getSessionTimeout(), this);
+		ZKUtils.zk = zk;
 		connectedSignal.await();
 	}
 	 
@@ -306,6 +308,10 @@ public class NodesManager implements Watcher {
 	        return serverList;
 	    }
 
+	    public List<String> getChildren(String parentNode) throws KeeperException, InterruptedException{
+	    	List<String> children = zk.getChildren(parentNode, this);
+	    	return children;
+	    }
 	    
 	    /**
 	     * To compute difference
@@ -365,16 +371,10 @@ public class NodesManager implements Watcher {
 	    }
 
 	 
+	   
 	    /**
-	     * By adding a node with the server's hostname in the `alerts subtree`,
-	     * we are effectively preventing any alerts to be triggered on this server.
-	     * <p>This is useful when processing an alert, and wanting to avoid that more than one
-	     * monitor triggers the alerting plugins; or it could be set (via an API call) to silence a
-	     * "flaky" or "experimental" server that keeps triggering alerts.
-	     * 
-	     * @param server the server that will be 'silenced'
-	     * @param persistent whether the silence should survive this server's session
-	     * 		  failure/termination
+	     * @param server
+	     * @param persistent
 	     * @return
 	     */
 	    synchronized public Status silence(Server server, boolean persistent) {
@@ -512,8 +512,7 @@ public class NodesManager implements Watcher {
 		if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()))) {
 			return serverHostname;
 		} else if (serverHostname.startsWith(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()))) {
-			serverHostname = serverHostname.substring(serverHostname
-					.lastIndexOf(File.separatorChar) + 1);
+			serverHostname = serverHostname.substring(serverHostname.lastIndexOf(File.separatorChar) + 1);
 		}
 		return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.FORWARD_SLASH + serverHostname;
 		}
@@ -521,8 +520,19 @@ public class NodesManager implements Watcher {
 	    protected String buildConfigPath(String fileName){
 	    	return zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.FORWARD_SLASH + fileName;
 	    }
-	
 	    
+	public String buildPathChieldNode(String parentNode,String chieldNode) {
+		return zkConfiguration.getPathMap().get(parentNode)
+				+ PathUtil.FORWARD_SLASH + chieldNode;
+	}
+	
+	public byte[] getNodeData(String pathNode) throws KeeperException, InterruptedException{
+		 Stat stat = zk.exists(pathNode, this);
+		 if(stat != null){
+			 return zk.getData(pathNode, false, stat);
+		 }
+		 return null;
+	}
 		/**
 		 * Delete all the nodes of zookeeper recursively
 		 * 
@@ -546,7 +556,6 @@ public class NodesManager implements Watcher {
 		 * 
 		 */
 		private void createServersMap() {
-			//String serverIPs = prop.getProperty("node.server.ips");
 			List<String> checkUnique = new ArrayList<String>();
 			Properties property = Property.loadServerProperties();
 			int nodeIndex = 1;
@@ -554,16 +563,13 @@ public class NodesManager implements Watcher {
 			String srv = property.getProperty((String)key);
 			String IP = null;
 			String PORT = null;
-			//String[] servers = server.split(":");
 			
-			//for (String str : servers) {
 				IP = srv.split(":")[0];
 				PORT = srv.split(":")[1];
 				
 			if (!checkUnique.contains(IP)) {
 				Server server = new Server();
-				server.setServerAddress(new ServerAddress(
-						"_node" + nodeIndex++, IP));
+				server.setServerAddress(new ServerAddress(NODE_NAME_PRIFIX + nodeIndex++, IP));
 				server.setPort(Integer.valueOf(PORT));
 				server.setData(new Date().getTime());
 				server.setServerType("simpleserver");
@@ -686,4 +692,37 @@ public class NodesManager implements Watcher {
 				 }
 		return null;
 	}
+	
+	public synchronized void deleteNode(String nodePath){
+		 Stat stat = null;
+		try {
+			stat = zk.exists(nodePath, this);
+			if(stat != null){
+			 zk.delete(nodePath, stat.getVersion(), deleteCallback, nodePath);				 
+			}
+		} catch (KeeperException | InterruptedException e) {
+			LOGGER.info("Unable to delete node :: " + nodePath + " Exception is :: "+ e.getMessage());
+			LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+		}
+		
+	}
+	
+	AsyncCallback.VoidCallback deleteNodeCallback = new AsyncCallback.VoidCallback() {
+       @Override
+       public void processResult(int rc, String path, Object ctx) {
+           String node = (String) ctx;
+           switch (KeeperException.Code.get(rc)) {
+               case CONNECTIONLOSS:
+               	deleteNode(node);
+               	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+                   break;
+               case OK:
+               	LOGGER.info("Node {} is  ({})", node,path);
+                   break;
+               default:
+               	LOGGER.info("[{}] Unexpected result for deleting {} ({})",
+                           new Object[]{KeeperException.Code.get(rc), node, path});
+           }
+       }
+   };
 }

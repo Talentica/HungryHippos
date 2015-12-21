@@ -69,4 +69,20 @@ public class CommonUtil {
 	        }
 		
 	}
+	
+	public enum ZKJobNodeEnum{
+		
+		PUSH_JOB_NOTIFICATION("PUSH_JOB"),PULL_JOB_NOTIFICATION("PULL_JOB");
+		
+		private String jobNode;
+		
+		private ZKJobNodeEnum(String jobNode){
+			this.jobNode = jobNode;
+		}
+		
+		public String getZKJobNode(){
+			return this.jobNode;
+		}
+		
+	}
 }

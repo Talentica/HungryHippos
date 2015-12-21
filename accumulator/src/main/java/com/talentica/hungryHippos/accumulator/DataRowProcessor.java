@@ -1,14 +1,12 @@
 package com.talentica.hungryHippos.accumulator;
 
-import com.talentica.hungryHippos.storage.RowProcessor;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.talentica.hungryHippos.storage.RowProcessor;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -18,9 +16,9 @@ public class DataRowProcessor implements RowProcessor {
     private HashMap<ValueSet,Work> valueSetWorkMap = new HashMap<>();
     private Job job;
     private int[] keys;
-
     //reused context
     private ExecutionContextImpl executionContext;
+    private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();
 
     //reused valueset
     private ValueSet valueSet;
@@ -61,5 +59,42 @@ public class DataRowProcessor implements RowProcessor {
         }
     }
 
+	@Override
+	public void rowCount(ByteBuffer row) {
+        for(int i=0;i<keys.length;i++){
+            Object v = dynamicMarshal.readValue(keys[i],row);
+            values[i] = v;
+        }
+        Work work = valueSetWorkMap.get(valueSet);
+        if(work==null){
+            ValueSet valueSet = new ValueSet(Arrays.copyOf(values,values.length));
+            work = job.createNewWork();
+            valueSetWorkMap.put(valueSet,work);
+        }
+        work.countRow();
+	}
+
+	@Override
+	public void finishRowCount() {
+		int totalRows = 0;
+		for(Map.Entry<ValueSet,Work> e:valueSetWorkMap.entrySet()){
+            totalRows = totalRows + (e.getValue().countRow() - 1);
+            Integer oldRows = jobIdRowCountMap.get(job.getJobId());
+            if(oldRows == null){
+            	jobIdRowCountMap.put(job.getJobId(), totalRows);
+            }else{
+            	jobIdRowCountMap.put(job.getJobId(), (totalRows+oldRows));
+            }
+        }
+	}
+
+	@Override
+	public Map<Integer,Integer> getTotalRowCountByJobId() {
+		return jobIdRowCountMap;
+	}
+
+	public Job getJob(){
+		return job;
+	}
 
 }

@@ -7,4 +7,8 @@ public interface Job {
     Work createNewWork();
     int[] getDimensions();
     int getPrimaryDimension();
+    int getJobId();
+    void putDataSize(long dataSize);
+    long getDataSize();
+    void status(String status);
 }

@@ -6,6 +6,7 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -30,4 +31,22 @@ public class TestRowProcessor implements RowProcessor {
     public void finishUp() {
 
     }
+
+	@Override
+	public void rowCount(ByteBuffer row) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void finishRowCount() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Map<Integer,Integer> getTotalRowCountByJobId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

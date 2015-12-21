@@ -6,5 +6,6 @@ package com.talentica.hungryHippos.storage;
 public interface StoreAccess {
     void addRowProcessor(RowProcessor rowProcessor);
     void processRows();
+    void processRowCount();
 
 }

@@ -158,7 +158,7 @@ public class NodeStarter {
 	private static NodeStarter getNodeInitializer(NodesManager nodesManager) throws Exception{
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
-        dataDescription.setKeyOrder(new String[]{"key1","key2","key0"});
+        dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         return new NodeStarter(ZKNodeName.keyValueNodeNumberMap, dataDescription,nodesManager);
     }
 	

@@ -32,5 +32,7 @@ public interface JobPool {
 	Queue<Job> getQueue();
 	
 	Job pollJob();
+	
+	Job peekJob();
 
 }

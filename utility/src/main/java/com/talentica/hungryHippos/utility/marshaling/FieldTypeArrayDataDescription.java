@@ -1,14 +1,19 @@
 package com.talentica.hungryHippos.utility.marshaling;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by debasishc on 1/9/15.
  */
-public class FieldTypeArrayDataDescription implements DataDescription{
+public class FieldTypeArrayDataDescription implements DataDescription,Serializable{
 
-    private Map<Integer, DataLocator> dataLocatorMap = new HashMap<>();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1551866958938738882L;
+	private Map<Integer, DataLocator> dataLocatorMap = new HashMap<>();
     private int nextIndex=0;
     private int nextOffset=0;
 

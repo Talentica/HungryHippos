@@ -41,7 +41,7 @@ public class DataProcesser {
 
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         NodesManager nodesManager = new NodesManager();
-        ZKNodeFile zkNodeFile = ZKUtils.getZKNodeFile(nodesManager, ZKNodeName.keyValueNodeNumberMap);
+        ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(ZKNodeName.keyValueNodeNumberMap);
         keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) zkNodeFile.getObj();
 
         NodeDataStoreIdCalculator nodeDataStoreIdCalculator
@@ -72,7 +72,7 @@ public class DataProcesser {
              }
          }
          System.out.println(numMetrix);
-         jobRunner.run();
+         //jobRunner.run();
     }
     
 }

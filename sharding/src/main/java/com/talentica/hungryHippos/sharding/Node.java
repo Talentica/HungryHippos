@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by debasishc on 14/8/15.
  */
-public class Node implements Serializable{
+public class Node implements Serializable,Comparable<Node>{
     /**
 	 * 
 	 */
@@ -77,4 +77,13 @@ public class Node implements Serializable{
                 ", remainingCapacity=" + remainingCapacity +
                 '}';
     }
+
+	@Override
+	public int compareTo(Node o) {
+		int ret = 0;
+		if(this.nodeId < o.nodeId) ret = -1;
+		else if(this.nodeId > o.nodeId) ret = 1;
+		else if(this.nodeId == o.nodeId) ret = 0;
+		return ret;
+	}
 }

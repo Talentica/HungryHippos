@@ -1,18 +1,27 @@
 package com.talentica.hungryHippos.accumulator.testJobs;
 
+import java.io.Serializable;
+import java.util.Comparator;
+
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.Work;
 
 /**
  * Created by debasishc on 9/9/15.
  */
-public class TestJob implements Job{
-    protected int [] dimensions;
+public class TestJob implements Job,Serializable,Comparator<TestJob>{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4111336293020419218L;
+	protected int [] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
     protected int jobId;
     protected long dataSize;
     protected String status;
+    private int rowCount = 0;
+    public TestJob(){}
     public TestJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
         this.dimensions = dimensions;
         this.primaryDimension = primaryDimension;
@@ -42,7 +51,7 @@ public class TestJob implements Job{
 	}
 
 	@Override
-	public void putDataSize(long dataSize) {
+	public void addDataSize(long dataSize) {
 		this.dataSize = dataSize;
 	}
 
@@ -55,4 +64,18 @@ public class TestJob implements Job{
 	public void status(String status) {
 		this.status = status;
 	}
+
+
+	@Override
+	public int incrRowCount() {
+		return ++rowCount ;
+	}
+
+
+	@Override
+	public int compare(TestJob o1, TestJob o2) {
+		return (int) (o1.dataSize - o2.dataSize);
+	}
+	
+	
 }

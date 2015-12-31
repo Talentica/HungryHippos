@@ -1,12 +1,17 @@
 package com.talentica.hungryHippos.utility.marshaling;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 /**
  * Created by debasishc on 1/9/15.
  */
-public class DynamicMarshal {
-    private DataDescription dataDescription;
+public class DynamicMarshal implements Serializable{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5800537222182360030L;
+	private DataDescription dataDescription;
 
     public DynamicMarshal(DataDescription dataDescription) {
         this.dataDescription = dataDescription;

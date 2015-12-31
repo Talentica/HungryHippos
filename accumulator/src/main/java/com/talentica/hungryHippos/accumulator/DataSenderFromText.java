@@ -78,7 +78,7 @@ public class DataSenderFromText {
 
 
         Map<KeyCombination, Set<Node>> keyCombinationNodeMap = null;
-        ZKNodeFile mapfile = ZKUtils.getZKNodeFile(nodesManager, ZKNodeName.keyCombinationNodeMap);
+        ZKNodeFile mapfile = ZKUtils.getConfigZKNodeFile(ZKNodeName.keyCombinationNodeMap);
         keyCombinationNodeMap = (mapfile==null) ? null : (Map<KeyCombination, Set<Node>>)mapfile.getObj();
        
         OutputStream[] targets = new OutputStream[servers.length];

@@ -31,12 +31,12 @@ public class JobPoolExecutor implements JobPool{
 	}
 	
 	@Override
-	public synchronized void addJob(Job job) {
+	public void addJob(Job job) {
 		jobPriorityQueue.add(job);		
 	}
 
 	@Override
-	public synchronized void removeJob(Job job) {
+	public void removeJob(Job job) {
 		jobPriorityQueue.remove(job);
 		
 	}
@@ -54,18 +54,18 @@ public class JobPoolExecutor implements JobPool{
 	}
 
 	@Override
-	public synchronized void scheduleJob() {
+	public void scheduleJob() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public synchronized boolean isEmpty() {
+	public boolean isEmpty() {
 		return jobPriorityQueue.isEmpty();
 	}
 
 	@Override
-	public synchronized int size() {
+	public int size() {
 		return jobPriorityQueue.size();
 	}
 	
@@ -84,6 +84,11 @@ public class JobPoolExecutor implements JobPool{
 	@Override
 	public Job pollJob() {
 		return jobPriorityQueue.poll();
+	}
+
+	@Override
+	public Job peekJob() {
+		return jobPriorityQueue.peek();
 	}
 
 }

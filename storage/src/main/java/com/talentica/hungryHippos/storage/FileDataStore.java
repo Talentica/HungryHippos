@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
@@ -16,7 +17,11 @@ import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 /**
  * Created by debasishc on 31/8/15.
  */
-public class FileDataStore implements DataStore{
+public class FileDataStore implements DataStore,Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7726551156576482829L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileDataStore.class);
     private final int numFiles ;
     private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
@@ -65,12 +70,10 @@ public class FileDataStore implements DataStore{
         for(int i=0;i<numFiles;i++){
             try {
                 os[i].flush();
-                LOGGER.info("\n\tData flushed for file# :: data_"+ i);
             } catch (IOException e) {
                 e.printStackTrace();
             }finally{
             	try {
-            		LOGGER.info("\n\tConnection closed for file# :: data_"+ i);
     				if(os[i] != null) os[i].close();
     			} catch (IOException e) {
     				LOGGER.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());

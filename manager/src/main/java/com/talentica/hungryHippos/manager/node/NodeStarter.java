@@ -17,7 +17,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -25,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.JobRunner;
-import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
 import com.talentica.hungryHippos.node.DataReadHandler;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -38,6 +39,7 @@ import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.memory.MemoryCalculator;
+import com.talentica.hungryHippos.utility.zookeeper.LeafBean;
 import com.talentica.hungryHippos.utility.zookeeper.ServerHeartBeat;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
@@ -58,7 +60,7 @@ public class NodeStarter {
     @SuppressWarnings("unchecked")
 	public NodeStarter(String keyValueNodeNumberMapFile, DataDescription dataDescription, NodesManager nodesManager) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
     	NodeStarter.dataDescription = dataDescription;
-    	ZKNodeFile zkNodeFile = ZKUtils.getZKNodeFile(nodesManager, keyValueNodeNumberMapFile);
+    	ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(keyValueNodeNumberMapFile);
         NodeStarter.keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) zkNodeFile.getObj();
     }
     @SuppressWarnings("resource")
@@ -108,7 +110,7 @@ public class NodeStarter {
 			LOGGER.info("\n\tUnable to start the nodeManager");
 			return;
 		}
-		ZKNodeFile serverConfig = ZKUtils.getZKNodeFile(nodesManager,Property.SERVER_CONF_FILE);
+		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 		int nodeId = 0;
 		try {
 			nodeId = readNodeId();
@@ -119,35 +121,17 @@ public class NodeStarter {
 		server = serverConfig.getFileData().getProperty("server." + nodeId);
 		int PORT = Integer.valueOf(server.split(":")[1]);
 		try {
+			
 			LOGGER.info("\n\tStart Node initialize");
 			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
+			JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
+			Map<Integer,Long> jobIdRowCountMap = jobRunner.getRowCountByJobId();
 			
+			//addDataSizeJob(jobRunner,jobIdRowCountMap);
 			
-			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-					keyValueNodeNumberMap, NodeStarter.readNodeId(),
-					dataDescription);
-			int totalDimensions = Integer.valueOf(Property.getProperties()
-					.getProperty("total.dimensions"));
-			
-			
-			FileDataStore dataStore = new FileDataStore(totalDimensions,
-					nodeDataStoreIdCalculator, dataDescription, true);
-			LOGGER.info("\n\tStart the job runner");
-			
-			
-			JobRunner jobRunner = new JobRunner(dataDescription, dataStore,
-					keyValueNodeNumberMap);
+			putJobStatisticsZknode(jobIdRowCountMap);
 			
 			runJobMatrix(jobRunner);
-			
-			
-			Map<Integer,Long> jobIdMemoMap = new MemoryCalculator(jobRunner.getRowCountByJobId()).getJobMemoryAlloc();
-			System.out.println("Total Memory(BYTE) of the job wise :: "+jobIdMemoMap);
-			
-			putJobDataSize(jobRunner,jobIdMemoMap);
-			
-			putJobStatisticsZknode(jobIdMemoMap);
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -162,39 +146,32 @@ public class NodeStarter {
         return new NodeStarter(ZKNodeName.keyValueNodeNumberMap, dataDescription,nodesManager);
     }
 	
-	private static void runJobMatrix(JobRunner jobRunner){
+	private static void runJobMatrix(JobRunner jobRunner) throws Exception{
     	LOGGER.info("\n\t Start the job runner matrix");
-   	 int numMetrix = 0;
-   	 int jobId = 0;
-        for(int i=0;i<3;i++){
-            jobRunner.addJob(new TestJob(new int[]{i}, i, 6,jobId++));
-            jobRunner.addJob(new TestJob(new int[]{i}, i, 7,jobId++));
-            numMetrix+=2;
-            for(int j=i+1;j<5;j++){
-                jobRunner.addJob(new TestJob(new int[]{i,j}, i, 6,jobId++));
-                jobRunner.addJob(new TestJob(new int[]{i,j}, j, 7,jobId++));
-                numMetrix+=2;
-                for(int k=j+1;k<5;k++){
-                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, i, 6,jobId++));
-                    jobRunner.addJob(new TestJob(new int[]{i,j,k}, j, 7,jobId++));
-                    numMetrix+=2;
-                }
-            }
-        }
-        System.out.println(numMetrix);
-       jobRunner.run();
+			//singnal = new CountDownLatch(1);
+			Set<Job> jobs = getJobsFromZKNode();
+			jobRunner.clearJobList();
+			for (Job job : jobs) {
+				jobRunner.addJob(job);
+			}
+			jobRunner.run();
+			//singnal.await();
+			/*for (Job job : jobs){
+				notifyZKNode(job);
+			}*/
+			
    }
 	
-	private static void putJobDataSize(JobRunner jobRunner,Map<Integer,Long> jobIdMemoMap){
+	/*private static void addDataSizeJob(JobRunner jobRunner,Map<Integer,Long> jobIdRowCountMap){
 		for(Job job : jobRunner.getJobs()){
-			Long memory = jobIdMemoMap.get(job.getJobId());
-			if(memory == null || memory == 0l){
+			Long rowCount = jobIdRowCountMap.get(job.getJobId());
+			if(rowCount == null || rowCount == 0l){
 				continue;
 			}
-			job.putDataSize(memory);
+			job.addDataSize(rowCount);
 		}
 		
-	}
+	}*/
 	
 	private static void putJobStatisticsZknode(Map<Integer,Long> jobIdMemoMap) throws Exception{
 		ZKNodeFile jobIdMemoMapZkfile = new ZKNodeFile(
@@ -202,5 +179,49 @@ public class NodeStarter {
 				jobIdMemoMap);
 		nodesManager.saveConfigFileToZNode(jobIdMemoMapZkfile);
 	}
+	
+	private static Set<Job> getJobsFromZKNode() throws Exception{
+		
+		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
+		boolean isExists = nodesManager.isPathExists(buildStartPath);
+		while(!isExists){
+			isExists = nodesManager.isPathExists(buildStartPath);
+		}
+		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+		LOGGER.info(" Build Path is {}",buildPath);
+		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null);
+		while(jobBeans.isEmpty()){
+			jobBeans = ZKUtils.searchTree(buildPath, null);
+		}
+		LOGGER.info("No. of jobs found {}",jobBeans.size());
+		Set<Job> jobs = new HashSet<>();
+		for(LeafBean leaf : jobBeans){
+			Job job = (Job)leaf.getValue();
+			LOGGER.info("JOB ID :: {}",job.getJobId());
+			jobs.add(job);
+		}
+		return jobs;
+	}
+	
+	/*private static void notifyZKNode(Job job) throws InterruptedException, KeeperException, Exception{
+		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + "_job"+job.getJobId();
+		nodesManager.createNode(buildPath,null,job);
+	}*/
+	
+	private static JobRunner getJobRunnerFromZKnode(int nodeId) throws InterruptedException{
+		ZKNodeFile zkNodeFile = null;
+		while(zkNodeFile == null){
+			zkNodeFile = ZKUtils.getConfigZKNodeFile("_node"+nodeId);
+			Thread.sleep(5000);
+		}
+		return (JobRunner)zkNodeFile.getObj();
+	}
+	
+	/*private static void addJobs(JobRunner jobRunner,int nodeId) throws InterruptedException{
+		JobRunner jobRunnerFromNode = getJobRunnerFromZKnode(nodeId);
+		for(Job job : jobRunnerFromNode.getJobs()){
+			jobRunner.addJob(job);
+		}
+	}*/
 
 }

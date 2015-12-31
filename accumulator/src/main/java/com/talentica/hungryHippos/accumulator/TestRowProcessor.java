@@ -32,7 +32,7 @@ public class TestRowProcessor implements RowProcessor {
 
     }
 
-	@Override
+	/*@Override
 	public void rowCount(ByteBuffer row) {
 		// TODO Auto-generated method stub
 		
@@ -48,5 +48,23 @@ public class TestRowProcessor implements RowProcessor {
 	public Map<Integer,Integer> getTotalRowCountByJobId() {
 		// TODO Auto-generated method stub
 		return null;
+	}*/
+
+	@Override
+	public void incrRowCount() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Object getJob() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long totalRowCount() {
+		// TODO Auto-generated method stub
+		return 0l;
 	}
 }

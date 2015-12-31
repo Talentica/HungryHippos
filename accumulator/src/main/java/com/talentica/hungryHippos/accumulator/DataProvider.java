@@ -90,7 +90,7 @@ public class DataProvider {
         	}catch(ConnectException cex){
         		LOGGER.warn("\n\t Connection could not get established. Please start the node {}",server.split(":")[0].trim());
         		k = 1;
-        		Thread.sleep(5000);;
+        		Thread.sleep(5000);
         	}
         }
 

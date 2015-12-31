@@ -68,7 +68,7 @@ public class DataReader {
             }
         }
         System.out.println(numMetrix);
-        jobRunner.run();
+        //jobRunner.run();
 
     }
 }

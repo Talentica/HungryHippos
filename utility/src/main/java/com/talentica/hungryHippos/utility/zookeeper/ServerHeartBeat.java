@@ -56,7 +56,7 @@ public class ServerHeartBeat {
 			} else if(server.getServerStatus() == ServerStatus.INACTIVE){
 				server.setServerStatus(ServerStatus.ACTIVE);
 				nodesManager.createNode(nodesManager
-						.buildMonitorPathForServer(server));
+						.buildMonitorPathForServer(server),null);
 			 }
 		} catch (AsynchronousCloseException  ex) {
 			deleteServerNode(server,ex);

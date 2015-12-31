@@ -16,16 +16,20 @@ public class DataRowProcessor implements RowProcessor {
     private HashMap<ValueSet,Work> valueSetWorkMap = new HashMap<>();
     private Job job;
     private int[] keys;
+    private long rowCount = 0;
     //reused context
     private ExecutionContextImpl executionContext;
-    private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();
+    //private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();
 
     //reused valueset
     private ValueSet valueSet;
 
     //reused array
     private Object[] values;
-
+    
+    public DataRowProcessor(Job job){
+    	this.job = job;
+    }
     public DataRowProcessor(DynamicMarshal dynamicMarshal, Job job) {
         this.dynamicMarshal = dynamicMarshal;
         this.job = job;
@@ -59,7 +63,7 @@ public class DataRowProcessor implements RowProcessor {
         }
     }
 
-	@Override
+	/*@Override
 	public void rowCount(ByteBuffer row) {
         for(int i=0;i<keys.length;i++){
             Object v = dynamicMarshal.readValue(keys[i],row);
@@ -72,9 +76,9 @@ public class DataRowProcessor implements RowProcessor {
             valueSetWorkMap.put(valueSet,work);
         }
         work.countRow();
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public void finishRowCount() {
 		int totalRows = 0;
 		for(Map.Entry<ValueSet,Work> e:valueSetWorkMap.entrySet()){
@@ -86,15 +90,26 @@ public class DataRowProcessor implements RowProcessor {
             	jobIdRowCountMap.put(job.getJobId(), (totalRows+oldRows));
             }
         }
+	}*/
+
+	/*@Override
+	public Map<Integer,Integer> getTotalRowCountByJobId() {
+		return jobIdRowCountMap;
+	}*/
+
+	@Override
+	public Object getJob(){
+		return this.job;
 	}
 
 	@Override
-	public Map<Integer,Integer> getTotalRowCountByJobId() {
-		return jobIdRowCountMap;
+	public void incrRowCount() {
+		this.rowCount = this.job.incrRowCount();
 	}
 
-	public Job getJob(){
-		return job;
+	@Override
+	public Long totalRowCount() {
+		return this.rowCount;
 	}
 
 }

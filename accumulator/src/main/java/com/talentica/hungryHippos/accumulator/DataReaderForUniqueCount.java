@@ -69,7 +69,7 @@ public class DataReaderForUniqueCount {
             }
         }
         System.out.println(numMetrix);
-        jobRunner.run();
+        //jobRunner.run();
 
     }
 }

@@ -3,9 +3,11 @@
  */
 package com.talentica.hungryHippos.utility.zookeeper;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
+import org.apache.commons.lang.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +19,18 @@ public class LeafBean implements Comparable<LeafBean>{
 	private final static Logger logger = LoggerFactory.getLogger(LeafBean.class);
     private String path;
     private String name;
-    private byte[] value;
+    private Object value;
     private String strValue;
 
-    public LeafBean(String path, String name, byte[] value) {
+    public LeafBean(String path, String name, byte[] value) throws ClassNotFoundException, IOException {
         super();
         this.path = path;
         this.name = name;
-        this.value = value;
+		try {
+			this.value = ZKUtils.deserialize(value);
+		}catch(SerializationException ex){
+        	//System.out.println("Unable to serialize");
+        }
     }
 
     public String getPath() {
@@ -43,17 +49,17 @@ public class LeafBean implements Comparable<LeafBean>{
         this.name = name;
     }
 
-    public byte[] getValue() {
+    public Object getValue() {
         return value;
     }
 
-    public void setValue(byte[] value) {
+    public void setValue(Object value) {
         this.value = value;
     }
 
-    public String getStrValue() {
+    public String getStrValue() throws IOException {
         try {
-            return new String(this.value, "UTF-8");
+            return new String(ZKUtils.serialize(this.value), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             logger.error(Arrays.toString(ex.getStackTrace()));
         }

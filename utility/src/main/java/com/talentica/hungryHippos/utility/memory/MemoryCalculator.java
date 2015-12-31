@@ -16,22 +16,22 @@ import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescripti
 public class MemoryCalculator implements Memory{
 	
 	private Map<Integer,Long> jobIdMemoMap = new HashMap<>();
-	private Map<Integer,Integer> jobIdRowCountMap;
+	private Map<Integer,Long> jobIdRowCountMap;
 	private FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 	
-	public MemoryCalculator(Map<Integer,Integer> jobIdRowCountMap){
+	public MemoryCalculator(Map<Integer,Long> jobIdRowCountMap){
 		this.jobIdRowCountMap = jobIdRowCountMap;
 	}
 	
 	@Override
 	public Map<Integer, Long> getJobMemoryAlloc() {
-		for(Map.Entry<Integer, Integer> e : jobIdRowCountMap.entrySet()){
+		for(Map.Entry<Integer, Long> e : jobIdRowCountMap.entrySet()){
 			jobIdMemoMap.put(e.getKey(), getObjectSize(e.getValue()));
 		}
 		return jobIdMemoMap;
 	}
 
-	private long getObjectSize(int rowCount) {
+	private long getObjectSize(Long rowCount) {
 		CommonUtil.setDataDescription(dataDescription);
 		return (rowCount * dataDescription.getSize());
 	}

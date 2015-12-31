@@ -5,6 +5,8 @@ import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 
+
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,8 +15,12 @@ import java.util.Set;
 /**
  * Created by debasishc on 26/8/15.
  */
-public class NodeDataStoreIdCalculator {
-    private final Map<String,Map<Object, Node>> keyValueNodeNumberMap;
+public class NodeDataStoreIdCalculator implements Serializable{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4962284637100465382L;
+	private final Map<String,Map<Object, Node>> keyValueNodeNumberMap;
     private final Node thisNode;
     private final int numberOfDimensions;
     private final Set<Object>[] keyWiseAcceptingValues;

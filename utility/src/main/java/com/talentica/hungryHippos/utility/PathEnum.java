@@ -10,7 +10,7 @@ package com.talentica.hungryHippos.utility;
  *
  */
 public enum PathEnum {
- NAMESPACE("NAMESPACE"),BASEPATH("BASEPATH"),HOSTPATH("HOSTPATH"),ALERTPATH("ALERTPATH"),CONFIGPATH("CONFIGPATH");
+ NAMESPACE("NAMESPACE"),BASEPATH("BASEPATH"),ZKIPTPATH("HOSTPATH"),ALERTPATH("ALERTPATH"),CONFIGPATH("CONFIGPATH");
  
  private String pathName;
  private PathEnum(String pathName){

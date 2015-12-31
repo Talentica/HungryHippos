@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
@@ -35,10 +36,10 @@ public class ZKUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZKUtils.class.getName());
 	private static final String ZK_ROOT_NODE = "/rootnode";
 	public static ZooKeeper zk;
+	public static NodesManager nodesManager;
 	
-	public static ZKNodeFile getZKNodeFile(NodesManager nodesManager,
+	public static ZKNodeFile getConfigZKNodeFile(
 			String fileName) {
-		LOGGER.info("\n\tGetting value from node");
 		Object obj = null;
 		ZKNodeFile zkFile = null;
 		try {
@@ -60,7 +61,6 @@ public class ZKUtils {
 	 * @throws IOException
 	 */
 	public static byte[] serialize(Object obj) throws IOException {
-		LOGGER.info("\n\tSerialize the the object");
 		return SerializationUtils.serialize((Serializable) obj);
 	}
 
@@ -74,7 +74,6 @@ public class ZKUtils {
 	 */
 	public static Object deserialize(byte[] obj) throws IOException,
 			ClassNotFoundException {
-		LOGGER.info("\n\tDeserialize the the object");
 	    	return SerializationUtils.deserialize(obj);
 	}
 	
@@ -90,14 +89,13 @@ public class ZKUtils {
         return strDate;
     }
     
-    public static Set<LeafBean> searchTree(String searchString, String authRole) throws InterruptedException, KeeperException {
+    public static Set<LeafBean> searchTree(String searchString, String authRole) throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
         /*Export all nodes and then search.*/
         Set<LeafBean> searchResult = new TreeSet<>();
         Set<LeafBean> leaves = new TreeSet<>();
         exportTreeInternal(leaves, ZK_ROOT_NODE, authRole);
         for (LeafBean leaf : leaves) {
-        	String leafValue = externalizeNodeValue(leaf.getValue());
-            if (leaf.getPath().contains(searchString) || leaf.getName().contains(searchString) || leafValue.contains(searchString)) {
+            if (leaf.getPath().contains(searchString) || leaf.getName().contains(searchString)) {
                 searchResult.add(leaf);
             }
         }
@@ -105,7 +103,7 @@ public class ZKUtils {
 
     }
     
-    private static void exportTreeInternal(Set<LeafBean> entries, String path, String authRole) throws InterruptedException, KeeperException {
+    private static void exportTreeInternal(Set<LeafBean> entries, String path, String authRole) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
         
         entries.addAll(listLeaves(path, authRole)); //List leaves
         
@@ -115,7 +113,7 @@ public class ZKUtils {
         }
     }
 
-    public static List<LeafBean> listLeaves(String path, String authRole) throws InterruptedException, KeeperException {
+    public static List<LeafBean> listLeaves(String path, String authRole) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
         List<LeafBean> leaves = new ArrayList<>();
 
         List<String> children = zk.getChildren(path, false);
@@ -165,12 +163,13 @@ public class ZKUtils {
     }
     
 	public static LeafBean getNodeValue(String path, String childPath,
-			String child, String authRole) {
+			String child, String authRole) throws ClassNotFoundException, IOException {
 		try {
-			LOGGER.trace("Lookup: path=" + path + ",childPath=" + childPath
-					+ ",child=" + child + ",authRole=" + authRole);
-			byte[] dataBytes = zk.getData(childPath, false, new Stat());
-
+			byte[] dataBytes = null;
+			 Stat stat = zk.exists(childPath, nodesManager);
+			 if(stat != null){
+				 dataBytes =  zk.getData(childPath, false, stat);
+			 }
 			return (new LeafBean(path, child, dataBytes));
 		} catch (KeeperException | InterruptedException ex) {
 			LOGGER.error(ex.getMessage());
@@ -179,9 +178,14 @@ public class ZKUtils {
 
 	}
 	 
-	 public static String externalizeNodeValue(byte[] value) {
-	        return value == null ? "" : new String(value).replaceAll("\\n", "\\\\n").replaceAll("\\r", "");
-	        // We might want to BASE64 encode it
+	 public static Object externalizeNodeValue(byte[] value) throws ClassNotFoundException, IOException {
+		    if(value == null)
+		    return null;
+		 	return ZKUtils.deserialize(value);
 	    }
-    
+	 
+	 public static String buildNodePath(int nodeId){
+			return Property.getProperties().getProperty("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node"+nodeId);
+		}
+	 
 }

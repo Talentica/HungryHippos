@@ -28,11 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.zookeeper.AlertManager;
 import com.talentica.hungryHippos.utility.zookeeper.EvictionListener;
+import com.talentica.hungryHippos.utility.zookeeper.LeafBean;
 import com.talentica.hungryHippos.utility.zookeeper.RegistrationListener;
 import com.talentica.hungryHippos.utility.zookeeper.Server;
 import com.talentica.hungryHippos.utility.zookeeper.ServerAddress;
@@ -90,7 +92,7 @@ public class NodesManager implements Watcher {
 		prop = Property.getProperties();
 		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
 		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
-		pathMap.put(PathEnum.HOSTPATH.name(), prop.getProperty("zookeeper.server.ips"));
+		pathMap.put(PathEnum.ZKIPTPATH.name(), prop.getProperty("zookeeper.server.ips"));
 		pathMap.put(PathEnum.ALERTPATH.name(),prop.getProperty("zookeeper.alerts_path"));
 		pathMap.put(PathEnum.CONFIGPATH.name(),prop.getProperty("zookeeper.config_path"));
 		Integer sessionTimeOut = Integer.valueOf(prop
@@ -101,9 +103,9 @@ public class NodesManager implements Watcher {
 
 	public void connectZookeeper() {
 		LOGGER.info("Node Manager started, connecting to ZK hosts: "
-				+ zkConfiguration.getPathMap().get(PathEnum.HOSTPATH.name()));
+				+ zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
 		try {
-			connect(zkConfiguration.getPathMap().get(PathEnum.HOSTPATH.name()));
+			connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
 			LOGGER.info("Connected - Session ID: " + zk.getSessionId());
 		} catch (Exception e) {
 			LOGGER.info("Could not connect to Zookeper instance" + e);
@@ -120,6 +122,7 @@ public class NodesManager implements Watcher {
 		zk = new org.apache.zookeeper.ZooKeeper(hosts,
 				zkConfiguration.getSessionTimeout(), this);
 		ZKUtils.zk = zk;
+		ZKUtils.nodesManager = this;
 		connectedSignal.await();
 	}
 	 
@@ -143,6 +146,7 @@ public class NodesManager implements Watcher {
 	        	LOGGER.info("No node exists!!");
 	        }
 		 createServerNodes();
+		 createNotificationNode();
 		 if(registrationListener != null){
 	        LOGGER.info("Nodes Manager Started successfully.. NOW ,There are currently %d " +
 	                "servers: {}", registrationListener.getRegisteredServers().size(), registrationListener.getRegisteredServers().toString());
@@ -158,10 +162,10 @@ public class NodesManager implements Watcher {
 	     */
 	public void bootstrap() throws IOException{
 		createServersMap();
-		createNode(PathUtil.FORWARD_SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
-		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()));
-		createNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()));
-		createNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()));
+		createNode(PathUtil.FORWARD_SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),null);
+		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()),null);
+		createNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()),null);
+		createNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()),null);
 	}
 	    /**
 	     * Create the node on zookeeper
@@ -170,8 +174,7 @@ public class NodesManager implements Watcher {
 	     * @param data
 	     * @throws IOException 
 	     */
-	    public void createNode(final String node,Object ...data) throws IOException {
-	    	
+	    public void createNode(final String node,CountDownLatch signal ,Object ...data) throws IOException {
 	        zk.create(node, (data!=null && data.length != 0) ? ZKUtils.serialize(data[0]):node.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
 	                new AsyncCallback.StringCallback() {
 	                    @Override
@@ -179,20 +182,26 @@ public class NodesManager implements Watcher {
 	                        switch (KeeperException.Code.get(rc)) {
 	                            case CONNECTIONLOSS:
 								try {
-									createNode(path,data);
+									createNode(path,signal,data);
 								} catch (IOException e) {
 									LOGGER.warn("Unable to redirect to create node");
 								}
 	                                break;
 	                            case OK:
 	                                LOGGER.info("Server Monitoring Path [" + path + "] is created");
-	                                getSignal.countDown();
-	                                LOGGER.info(Thread.currentThread().getName());
+	                                if(path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name()) && path.contains("_job")){
+	                                	LOGGER.info("DELETE THE PULL/PUSH NODES");
+	                                	deleteNode(path);
+	                                	String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+	                                	String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+	                                	deleteNode(path.replace(oldString, newString));
+	                                }
+	                                if(signal != null ) signal.countDown();
+	                                if(getSignal != null) getSignal.countDown();
 	                                break;
 	                            case NODEEXISTS:
 	                            	LOGGER.info("Server Monitoring Path [" + path + "] already exists");
-	                            	getSignal.countDown();
-	                            	LOGGER.info(Thread.currentThread().getName());
+	                            	if(getSignal != null) getSignal.countDown();
 	                                break;
 	                            default:
 	                            	LOGGER.info("Unexpected result while trying to create node " +
@@ -230,7 +239,7 @@ public class NodesManager implements Watcher {
 	                break;
 	            case NodeChildrenChanged:
 	                try {
-	                	    LOGGER.info(Thread.currentThread().getName());
+	                	    //LOGGER.info(Thread.currentThread().getName());
 	                		List<String> servers = zk.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), this);
 	                		Collections.sort(servers);
 		                    LOGGER.info("Server modified. Watched servers NOW: {}",
@@ -247,7 +256,7 @@ public class NodesManager implements Watcher {
 	                }
 	                break;
 	            case NodeDataChanged:
-	            	LOGGER.info(Thread.currentThread().getName());
+	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info("A node changed: {} {}", watchedEvent.getPath(),
 	                        watchedEvent.getState());
 	                try {
@@ -261,11 +270,11 @@ public class NodesManager implements Watcher {
 	                }
 	                break;
 	            case NodeDeleted:
-	            	LOGGER.info(Thread.currentThread().getName());
+	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info("A node is deleted: {} ",watchedEvent.getPath());
 	            	break;
 	            case NodeCreated:
-	            	LOGGER.info(Thread.currentThread().getName());
+	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info(" A node is created: {}",watchedEvent.getPath());
 	            	break;
 	            default:
@@ -521,9 +530,18 @@ public class NodesManager implements Watcher {
 	    	return zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.FORWARD_SLASH + fileName;
 	    }
 	    
-	public String buildPathChieldNode(String parentNode,String chieldNode) {
-		return zkConfiguration.getPathMap().get(parentNode)
-				+ PathUtil.FORWARD_SLASH + chieldNode;
+	public String buildPathNode(String parentNode) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
+		Set<LeafBean> beans = ZKUtils.searchTree(parentNode, null);
+		String path = "";
+		for(LeafBean bean : beans){
+			if(bean.getName().equalsIgnoreCase(parentNode)){
+				path = bean.getPath() + PathUtil.FORWARD_SLASH+ parentNode + PathUtil.FORWARD_SLASH;
+				break;
+			}else if(bean.getPath().contains(PathUtil.FORWARD_SLASH)){
+				path = bean.getPath() + PathUtil.FORWARD_SLASH;
+			}
+		}
+		return path;
 	}
 	
 	public byte[] getNodeData(String pathNode) throws KeeperException, InterruptedException{
@@ -558,7 +576,7 @@ public class NodesManager implements Watcher {
 		private void createServersMap() {
 			List<String> checkUnique = new ArrayList<String>();
 			Properties property = Property.loadServerProperties();
-			int nodeIndex = 1;
+			int nodeIndex = 0;
 			for(Object key : property.keySet()){
 			String srv = property.getProperty((String)key);
 			String IP = null;
@@ -592,7 +610,7 @@ public class NodesManager implements Watcher {
 		private void createServerNodes() throws IOException{			
 			for(Server server : this.servers){
 				String nodePath = buildMonitorPathForServer(server);
-				createNode(nodePath);
+				createNode(nodePath,null);
 			}
 			
 		}
@@ -670,7 +688,7 @@ public class NodesManager implements Watcher {
 	 * @throws IOException
 	 */
 	public void saveConfigFileToZNode(ZKNodeFile file) throws IOException {
-		createNode(buildConfigPath(file.getFileName()),
+		createNode(buildConfigPath(file.getFileName()),null,
 				file);
 	}
 	
@@ -693,12 +711,22 @@ public class NodesManager implements Watcher {
 		return null;
 	}
 	
+	public Object getObjectFromZKNode(String nodePath) throws KeeperException, InterruptedException, ClassNotFoundException, IOException{
+		Stat stat = null;
+		stat = zk.exists(nodePath, this);
+		if(stat != null){
+			return ZKUtils.deserialize(zk.getData(nodePath, this,stat));
+		 }
+		return null;
+	}
+	
 	public synchronized void deleteNode(String nodePath){
 		 Stat stat = null;
 		try {
 			stat = zk.exists(nodePath, this);
 			if(stat != null){
-			 zk.delete(nodePath, stat.getVersion(), deleteCallback, nodePath);				 
+			 zk.delete(nodePath, stat.getVersion(), deleteNodeCallback, nodePath);
+			 LOGGER.info("Node {} is deleted successfully",nodePath);
 			}
 		} catch (KeeperException | InterruptedException e) {
 			LOGGER.info("Unable to delete node :: " + nodePath + " Exception is :: "+ e.getMessage());
@@ -725,4 +753,34 @@ public class NodesManager implements Watcher {
            }
        }
    };
+   
+	private boolean createNotificationNode() {
+		boolean flag = false;
+		try {
+			for (int nodeId = 0; nodeId < this.servers.size(); nodeId++) {
+				String pushNotification = pathMap.get(PathEnum.BASEPATH.name())
+						+ PathUtil.FORWARD_SLASH
+						+ (NODE_NAME_PRIFIX + nodeId)
+						+ PathUtil.FORWARD_SLASH
+						+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+				createNode(pushNotification,null);
+				/*String pullNotification = pushNotification.replace(
+						CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name(),
+						CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name());
+				createNode(pullNotification,null);*/
+
+			}
+			flag = true;
+		} catch (IOException ex) {
+			flag = false;
+		}
+		return flag;
+	}
+	
+	public boolean isPathExists(String nodePath) throws KeeperException, InterruptedException{
+		Stat stat = null;
+		stat = zk.exists(nodePath, this);
+		if(stat == null) return false;
+		return true;
+	}
 }

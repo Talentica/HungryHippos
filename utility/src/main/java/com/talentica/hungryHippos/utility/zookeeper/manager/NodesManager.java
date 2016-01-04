@@ -234,8 +234,8 @@ public class NodesManager implements Watcher {
 	            case None:
 	                if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
 	                	LOGGER.info("ZooKeeper client connected to server");
-	                    connectedSignal.countDown();
 	                }
+	                connectedSignal.countDown();
 	                break;
 	            case NodeChildrenChanged:
 	                try {
@@ -777,10 +777,42 @@ public class NodesManager implements Watcher {
 		return flag;
 	}
 	
-	public boolean isPathExists(String nodePath) throws KeeperException, InterruptedException{
-		Stat stat = null;
-		stat = zk.exists(nodePath, this);
-		if(stat == null) return false;
-		return true;
+	public void isPathExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
+		//Stat stat = null;
+		//stat = zk.exists(nodePath, this);
+		if(signal == null) signal = new CountDownLatch(1);
+		zk.exists(nodePath, this,checkPathExistsCallback,nodePath);
+		//if(stat == null) return false;
+		signal.countDown();
+		//return true;
 	}
+	
+	AsyncCallback.StatCallback checkPathExistsCallback = new AsyncCallback.StatCallback() {
+        @Override
+        public void processResult(int rc, String path, Object ctx, Stat stat) {
+           // Server svr = (Server) ctx;
+            switch (KeeperException.Code.get(rc)) {
+                case CONNECTIONLOSS:
+                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+                	//checkZookeeperConnection(svr);
+                    break;
+                case OK:
+                	LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
+                	/*LOGGER.info("Node {} is  ({})", svr.getName(),
+                            svr.getServerAddress().getHostname());*/
+                    break;
+                case NONODE:
+				try {
+					isPathExists(path,null);
+				} catch (KeeperException | InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                default:
+                	/*LOGGER.info("[{}] Unexpected result for STATUS {} ({})",
+                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});*/
+            }
+        }
+    };
+    
 }

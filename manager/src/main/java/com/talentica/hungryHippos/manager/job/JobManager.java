@@ -145,7 +145,7 @@ public class JobManager {
 			JobRunner jobRunner = new JobRunner(dataDescription, dataStore,
 					keyValueNodeNumberMap);
 
-			createJobRunner(jobRunner, nodeId);
+			createJobRunner(jobRunner);
 
 			sendJobsConfiguration(jobRunner, nodeId);
 
@@ -154,7 +154,7 @@ public class JobManager {
 		}
 	}
 	
-	private static void createJobRunner(JobRunner jobRunner,int nodeId) throws IOException{
+	private static void createJobRunner(JobRunner jobRunner) throws IOException{
    	 int jobId = 0;
         for(int i=0;i<3;i++){
             jobRunner.addJob(new TestJob(new int[]{i}, i, 6,jobId++));

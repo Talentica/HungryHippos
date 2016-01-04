@@ -71,7 +71,7 @@ public class NodeJobsExecutor implements NodesJobsRunnable{
 				boolean flag = sendJobRunnableNotificationToNode(job,signal);
 				if(flag){
 					nodeJob.getJobPoolExecutor().removeJob(job);
-					LOGGER.info("Job with jobId {} removed from pool for NodeId {}",job.getJobId(),node.getNodeId());
+					//LOGGER.info("Job with jobId {} removed from pool for NodeId {}",job.getJobId(),node.getNodeId());
 				}
 		}
 		String buildPath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();

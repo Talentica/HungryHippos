@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -181,12 +182,14 @@ public class NodeStarter {
 	}
 	
 	private static Set<Job> getJobsFromZKNode() throws Exception{
-		
+		CountDownLatch signal = new CountDownLatch(1);
 		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
-		boolean isExists = nodesManager.isPathExists(buildStartPath);
-		while(!isExists){
+		//boolean isExists = nodesManager.isPathExists(buildStartPath,signal);
+		nodesManager.isPathExists(buildStartPath,signal);
+		signal.await();
+		/*while(!isExists){
 			isExists = nodesManager.isPathExists(buildStartPath);
-		}
+		}*/
 		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		LOGGER.info(" Build Path is {}",buildPath);
 		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null);
@@ -212,7 +215,6 @@ public class NodeStarter {
 		ZKNodeFile zkNodeFile = null;
 		while(zkNodeFile == null){
 			zkNodeFile = ZKUtils.getConfigZKNodeFile("_node"+nodeId);
-			Thread.sleep(5000);
 		}
 		return (JobRunner)zkNodeFile.getObj();
 	}

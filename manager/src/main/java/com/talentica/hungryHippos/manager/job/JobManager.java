@@ -55,7 +55,7 @@ public class JobManager {
 		LOGGER.info("\n\tDeleting All nodes on zookeeper");
 		(nodesManager = ServerHeartBeat.init()).startup();
 		
-		//heartBeat.deleteAllNodes("/rootnode");
+		// heartBeat.deleteAllNodes("/rootnode");
 		
 		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
 				Property.loadServerProperties());
@@ -82,8 +82,8 @@ public class JobManager {
 					keyValueNodeNumberMap);
 			nodesManager.saveConfigFileToZNode(saveKeyValueNodeNumberMap);
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while starting up job manager.", exception);
 		}
 			LOGGER.info("\n\tPublish the data across the nodes");
 			DataProvider.publishDataToNodes(nodesManager);

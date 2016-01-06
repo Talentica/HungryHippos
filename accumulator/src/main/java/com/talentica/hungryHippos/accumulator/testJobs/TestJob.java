@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.accumulator.testJobs;
 
 import java.io.Serializable;
-import java.util.Comparator;
 
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.Work;
@@ -9,7 +8,7 @@ import com.talentica.hungryHippos.accumulator.Work;
 /**
  * Created by debasishc on 9/9/15.
  */
-public class TestJob implements Job,Serializable,Comparator<TestJob>{
+public class TestJob implements Job,Serializable{
     /**
 	 * 
 	 */
@@ -70,12 +69,10 @@ public class TestJob implements Job,Serializable,Comparator<TestJob>{
 	public int incrRowCount() {
 		return ++rowCount ;
 	}
-
-
 	@Override
-	public int compare(TestJob o1, TestJob o2) {
-		return (int) (o1.dataSize - o2.dataSize);
+	public long getMemory(int rowCount) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
-	
-	
+
 }

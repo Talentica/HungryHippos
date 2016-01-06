@@ -13,9 +13,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -188,4 +191,191 @@ public class ZKUtils {
 			return Property.getProperties().getProperty("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node"+nodeId);
 		}
 	 
+	 /**
+		 * Delete all the nodes of zookeeper recursively
+		 * 
+		 * @param node
+		 * @throws InterruptedException
+		 * @throws KeeperException
+		 * @throws Exception
+		 */
+		public static void deleteRecursive(String node,CountDownLatch signal) throws  Exception{ 
+			try{
+	    	ZKUtil.deleteRecursive(zk, node);
+	    	if(signal != null)signal.countDown();
+	    	LOGGER.info("Nodes are deleted recursively");
+			}catch(InterruptedException | KeeperException e){
+	    	LOGGER.info("\tUnable to delete the node Exception :: "+ e.getMessage());
+	    	}
+	    }
+		
+	public static AsyncCallback.StatCallback checkPathExistsStatusAsync(CountDownLatch signal) {
+		AsyncCallback.StatCallback checkPathExistsCallback = new AsyncCallback.StatCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx, Stat stat) {
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+					break;
+				case OK:
+					LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
+					break;
+				case NONODE:
+					try {
+						nodesManager.isNodeExists(path, signal);
+					} catch (KeeperException | InterruptedException e) {
+						e.printStackTrace();
+					}
+					break;
+				case NODEEXISTS:
+					LOGGER.info("Node {} exists",path);
+					break;
+				default:
+					LOGGER.info("Unexpected result for path {} exists", path);
+				}
+			}
+		};
+		return checkPathExistsCallback;
+	}
+	
+	public static AsyncCallback.VoidCallback checkDeleteNodeStatusAsync() {
+		AsyncCallback.VoidCallback deleteNodeCallback = new AsyncCallback.VoidCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx) {
+				String node = (String) ctx;
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					nodesManager.deleteNode(node);
+					LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+					break;
+				case OK:
+					LOGGER.info("Node {} is  ({})", node, path);
+					break;
+				default:
+					LOGGER.info("[{}] Unexpected result for deleting {} ({})",
+							new Object[] { KeeperException.Code.get(rc), node,
+									path });
+				}
+			}
+		};
+		return deleteNodeCallback;
+	}
+		
+	public static AsyncCallback.StatCallback checkZKConnectionStatusAsync() {
+		AsyncCallback.StatCallback checkStatusCallback = new AsyncCallback.StatCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx, Stat stat) {
+				Server svr = (Server) ctx;
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+					nodesManager.checkZookeeperConnection(svr);
+					break;
+				case OK:
+					LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
+					LOGGER.info("Node {} is  ({})", svr.getName(), svr
+							.getServerAddress().getHostname());
+					break;
+				default:
+					LOGGER.info(
+							"[{}] Unexpected result for STATUS {} ({})",
+							new Object[] { KeeperException.Code.get(rc),
+									svr.getName(), path });
+				}
+			}
+		};
+		return checkStatusCallback;
+	}
+	
+	public static AsyncCallback.VoidCallback checkServerDeleteStatusAsync() {
+		AsyncCallback.VoidCallback deleteCallback = new AsyncCallback.VoidCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx) {
+				Server svr = (Server) ctx;
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					nodesManager.deleteNode(svr);
+					LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+					break;
+				case OK:
+					LOGGER.info("Node {} is  ({})", svr.getName(), svr
+							.getServerAddress().getHostname());
+					break;
+				default:
+					LOGGER.info(
+							"[{}] Unexpected result for deleting {} ({})",
+							new Object[] { KeeperException.Code.get(rc),
+									svr.getName(), path });
+				}
+			}
+		};
+		return deleteCallback;
+	}
+	
+	public static AsyncCallback.VoidCallback checkAlertRemoveStatusAsync() {
+		AsyncCallback.VoidCallback removeAlertCallback = new AsyncCallback.VoidCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx) {
+				Server svr = (Server) ctx;
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					nodesManager.removeAlert(svr);
+					break;
+				case OK:
+					LOGGER.info("Server {} re-enabled ({})", svr.getName(), svr
+							.getServerAddress().getHostname());
+					break;
+				default:
+					LOGGER.info(
+							"[{}] Unexpected result for alerting {} ({})",
+							new Object[] { KeeperException.Code.get(rc),
+									svr.getName(), path });
+				}
+			}
+		};
+		return removeAlertCallback;
+	}
+	
+	
+	public static AsyncCallback.StringCallback checkCreateAlertStatusAsync() {
+		AsyncCallback.StringCallback createAlertCallback = new AsyncCallback.StringCallback() {
+			@Override
+			public void processResult(int rc, String path, Object ctx,
+					String name) {
+
+				Server svr = (Server) ctx;
+				switch (KeeperException.Code.get(rc)) {
+				case CONNECTIONLOSS:
+					nodesManager.registerAlert(svr, false);
+					break;
+				case NODEEXISTS:
+					LOGGER.info("Trying to alert an already silenced server ["
+							+ name + "]");
+					break;
+				case OK:
+					LOGGER.info("Server {} silenced ({})", svr.getName(), svr
+							.getServerAddress().getHostname());
+					try {
+						if (nodesManager.getMonitoredServers() != null) {
+							LOGGER.info(
+									"STATUS :: NOW, There are currently {} "
+											+ "servers: {}", nodesManager
+											.getMonitoredServers().size(),
+									nodesManager.getMonitoredServers()
+											.toString());
+						}
+					} catch (Exception e) {
+						LOGGER.info("Unable to get the monitored servers");
+					}
+					break;
+				default:
+					LOGGER.info(
+							"[{}] Unexpected result for alerting {} ({})",
+							new Object[] { KeeperException.Code.get(rc),
+									svr.getName(), path });
+				}
+			}
+		};
+		return createAlertCallback;
+	}
 }

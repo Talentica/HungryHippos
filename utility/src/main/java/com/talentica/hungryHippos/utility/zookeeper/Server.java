@@ -35,6 +35,8 @@ public class Server{
     ServerStatus serverStatus;
     
     String currentDateTime;
+    
+    int id;
 
     @Override
     public boolean equals(Object o) {
@@ -160,6 +162,14 @@ public class Server{
         this.serverAddress = serverAddress;
         this.ttlSeconds = ttlSeconds;
     }
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	
 }

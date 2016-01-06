@@ -88,14 +88,14 @@ public class DataProvider {
             Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         	}catch(ConnectException cex){
-        		LOGGER.warn("\n\t Connection could not get established. Please start the node {}",server.split(":")[0].trim());
+        		LOGGER.warn("Connection could not get established. Please start the node {}",server.split(":")[0].trim());
         		k = 1;
-        		Thread.sleep(5000);
+        		Thread.sleep(2000);
         	}
         }
 
 
-
+        LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
         com.talentica.hungryHippos.utility.marshaling.FileReader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(Property.getProperties().getProperty("input.file"));
         input.setNumFields(9);

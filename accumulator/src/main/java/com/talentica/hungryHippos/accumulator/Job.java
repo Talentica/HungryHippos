@@ -12,4 +12,5 @@ public interface Job {
     long getDataSize();
     void status(String status);
     int incrRowCount();
+    long getMemory(int rowCount);
 }

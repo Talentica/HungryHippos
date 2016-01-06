@@ -94,11 +94,6 @@ public class ServerHeartBeat {
 		return nodesManager;
 	}
 
-	public void deleteAllNodes(String node) throws InterruptedException,
-			KeeperException, Exception {
-		init().deleteAllNodes(node);
-	}
-	
 	public List<Server> getMonitoredServers() throws InterruptedException{
 		return nodesManager.getServers();
 	}

@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.manager.job;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -16,17 +15,17 @@ import com.talentica.hungryHippos.accumulator.Job;
  * @author PooshanS
  *
  */
-public class JobPoolExecutor implements JobPool{
+public class JobPoolService implements JobPool{
 
 	private Queue<Job> jobPriorityQueue;
 	
 	private static int DEFAULT_POOL_SIZE_CAPACITY = 11;
 	
-	public JobPoolExecutor() {
+	public JobPoolService() {
 		jobPriorityQueue = new PriorityQueue<>(DEFAULT_POOL_SIZE_CAPACITY,sizeComparator);
 	}
 	
-	public JobPoolExecutor(int poolCapacity){
+	public JobPoolService(int poolCapacity){
 		jobPriorityQueue = new PriorityQueue<>(poolCapacity,sizeComparator);
 	}
 	
@@ -38,24 +37,6 @@ public class JobPoolExecutor implements JobPool{
 	@Override
 	public void removeJob(Job job) {
 		jobPriorityQueue.remove(job);
-		
-	}
-
-	@Override
-	public synchronized Job getJobById(Integer jobId) {
-		 Iterator<Job> jobItr = jobPriorityQueue.iterator();
-		 while(jobItr.hasNext()){
-			 Job job = jobItr.next();
-			 if(job.getJobId() == jobId){
-				 return job;
-			 }
-		 }
-		return null;
-	}
-
-	@Override
-	public void scheduleJob() {
-		// TODO Auto-generated method stub
 		
 	}
 

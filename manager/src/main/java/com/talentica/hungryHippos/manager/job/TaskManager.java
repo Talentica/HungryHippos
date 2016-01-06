@@ -9,17 +9,17 @@ import com.talentica.hungryHippos.sharding.Node;
  * @author PooshanS
  *
  */
-public class NodeJob {
+public class TaskManager {
 
 	private Node node;
 	
-	private JobPoolExecutor jobPoolExecutor;
+	private JobPoolService jobPoolService;
 	
 	private int poolCapacity;
 	
-	public NodeJob(int poolCapacity){
+	public TaskManager(int poolCapacity){
 		this.poolCapacity = poolCapacity;
-		jobPoolExecutor = new JobPoolExecutor(this.poolCapacity);
+		jobPoolService = new JobPoolService(this.poolCapacity);
 	}
 
 	public Node getNode() {
@@ -30,12 +30,12 @@ public class NodeJob {
 		this.node = node;
 	}
 
-	public JobPoolExecutor getJobPoolExecutor() {
-		return jobPoolExecutor;
+	public JobPoolService getJobPoolService() {
+		return jobPoolService;
 	}
 
-	public void setJobPoolExecutor(JobPoolExecutor jobPoolExecutor) {
-		this.jobPoolExecutor = jobPoolExecutor;
+	public void setJobPoolService(JobPoolService jobPoolService) {
+		this.jobPoolService = jobPoolService;
 	}
 	
 	
@@ -52,7 +52,7 @@ public class NodeJob {
 
 	@Override
 	public int hashCode() {
-		int result = NodeJob.class.hashCode() + node.getNodeId();
+		int result = TaskManager.class.hashCode() + node.getNodeId();
 		return result;
 	}
 	

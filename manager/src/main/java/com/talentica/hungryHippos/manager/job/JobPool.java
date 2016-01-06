@@ -21,10 +21,6 @@ public interface JobPool {
 	
 	void removeJob(Job job);
 	
-	Job getJobById(Integer jobId);
-	
-	void scheduleJob();
-	
 	boolean isEmpty();
 	
 	int size();

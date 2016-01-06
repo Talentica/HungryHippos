@@ -20,7 +20,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -66,6 +65,7 @@ public class NodesManager implements Watcher {
     private static final int DEFAULT_NODES = PathEnum.values().length-1;// subtracting -1 because HOSTPATH is separately created. Refer bootstrap() method. 
     private Map<String,String> pathMap;
     private static final String NODE_NAME_PRIFIX = "_node"; 
+    private String formatFlag;
     public RegistrationListener getRegistrationListener() {
 		return registrationListener;
 	}
@@ -90,6 +90,7 @@ public class NodesManager implements Watcher {
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
 		prop = Property.getProperties();
+		formatFlag = prop.getProperty("zookeeper.format");
 		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
 		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
 		pathMap.put(PathEnum.ZKIPTPATH.name(), prop.getProperty("zookeeper.server.ips"));
@@ -133,7 +134,14 @@ public class NodesManager implements Watcher {
 	     * @throws Exception
 	     */
 	    public  void startup() throws Exception {
-	        bootstrap();
+	    	
+	    	if(formatFlag.equals("Y")){
+	    		CountDownLatch signal = new CountDownLatch(1);
+	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);
+	    		signal.await();
+	    	}
+	    	
+	        defaultNodesOnStart();
 		try {
 			List<String> serverNames = getMonitoredServers();			
 			LOGGER.info("Starting Node Manager.. Already the server/servers {} running!",serverNames);
@@ -160,7 +168,7 @@ public class NodesManager implements Watcher {
 	     * 
 	     * @throws Exception
 	     */
-	public void bootstrap() throws IOException{
+	public void defaultNodesOnStart() throws IOException{
 		createServersMap();
 		createNode(PathUtil.FORWARD_SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),null);
 		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()),null);
@@ -239,7 +247,6 @@ public class NodesManager implements Watcher {
 	                break;
 	            case NodeChildrenChanged:
 	                try {
-	                	    //LOGGER.info(Thread.currentThread().getName());
 	                		List<String> servers = zk.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), this);
 	                		Collections.sort(servers);
 		                    LOGGER.info("Server modified. Watched servers NOW: {}",
@@ -248,7 +255,6 @@ public class NodesManager implements Watcher {
 		                    LOGGER.info("Removed Servers: {}", diffs.get(REMOVED));
 		                    LOGGER.info("Added servers: {}", diffs.get(ADDED));
 		                    	 processDiffs(diffs);
-		                    	
 	                    
 	                } catch (KeeperException | InterruptedException e) {
 	                	LOGGER.info("There was an error retrieving the list of " +
@@ -256,7 +262,6 @@ public class NodesManager implements Watcher {
 	                }
 	                break;
 	            case NodeDataChanged:
-	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info("A node changed: {} {}", watchedEvent.getPath(),
 	                        watchedEvent.getState());
 	                try {
@@ -270,11 +275,9 @@ public class NodesManager implements Watcher {
 	                }
 	                break;
 	            case NodeDeleted:
-	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info("A node is deleted: {} ",watchedEvent.getPath());
 	            	break;
 	            case NodeCreated:
-	            	//LOGGER.info(Thread.currentThread().getName());
 	            	LOGGER.info(" A node is created: {}",watchedEvent.getPath());
 	            	break;
 	            default:
@@ -293,13 +296,13 @@ public class NodesManager implements Watcher {
 		        	LOGGER.info("Reporting eviction to listener: " +
 		                    server.getServerAddress().getHostname());
 		        	evictionListener.deregister(server);
-		            silence(server, false);
+		            registerAlert(server, false);
 		        }
 	        for (Server server : diffs.get(ADDED)) {
 	        	LOGGER.info("Reporting addition to listener: " +
 	                    server.getServerAddress().getHostname());
 	            registrationListener.register(server);
-	            removeSilence(server);
+	            removeAlert(server);
 	        }
 	       
 	    }
@@ -368,8 +371,6 @@ public class NodesManager implements Watcher {
 	        if(data.length == 0){
 				return null;
 			}
-			//Server server = mapper.readValue(data, Server.class);
-	        
 			Server server = serverNameMap.get(name);
 			if(server == null){
 				return null;
@@ -386,14 +387,14 @@ public class NodesManager implements Watcher {
 	     * @param persistent
 	     * @return
 	     */
-	    synchronized public Status silence(Server server, boolean persistent) {
+	    synchronized public Status registerAlert(Server server, boolean persistent) {
 	        String path = buildAlertPathForServer(server);
 	        try {
 	            Stat stat = zk.exists(path, false);
 	            if (stat == null) {
 	                CreateMode createMode = persistent ? CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
 	                zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode,
-	                        createSilenceCallback, server);
+	                        ZKUtils.checkCreateAlertStatusAsync(), server);
 	            }
 	        } catch (KeeperException.SessionExpiredException ex) {
 	           
@@ -410,52 +411,21 @@ public class NodesManager implements Watcher {
 	        return Status.createStatus("Server " + server.getName() + " silenced");
 	    }
 
-	    AsyncCallback.StringCallback createSilenceCallback = new AsyncCallback.StringCallback() {
-	        @Override
-	        public void processResult(int rc, String path, Object ctx, String name) {
-	        	
-	            Server svr = (Server) ctx;
-	            switch (KeeperException.Code.get(rc)) {
-	                case CONNECTIONLOSS:
-	                    silence(svr, false);
-	                    break;
-	                case NODEEXISTS:
-	                	LOGGER.info("Trying to silence an already silenced server [" + name + "]");
-	                    break;
-	                case OK:
-	                	LOGGER.info("Server {} silenced ({})", svr.getName(),
-	                            svr.getServerAddress().getHostname());	                   
-	                    	try {
-	                    		  if(getMonitoredServers() != null){
-	                    			LOGGER.info("STATUS :: NOW, There are currently {} "
-	                    						+ "servers: {}", getMonitoredServers().size(), getMonitoredServers().toString());	   
-	                    		  }
-	                    		} catch (Exception e) {
-	                    			LOGGER.info("Unable to get the monitored servers");
-	                    		}
-	                    break;
-	                default:
-	                	LOGGER.info("[{}] Unexpected result for silencing {} ({})",
-	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
-	            }
-	        }
-	    };
-
 	    /**
 	     * Removes the silence for the server, for example, when the server re-starts after an
 	     * unexpected termination (that triggered an alert and a subsequent 'silence' to be set).
 	     * @param server
 	     */
-	    synchronized public void removeSilence(Server server) {
+	    synchronized public void removeAlert(Server server) {
 	        String path = buildAlertPathForServer(server);
 	        try {
 	            Stat stat = zk.exists(path, this);
 	            if (stat != null) {
-	                zk.delete(path, stat.getVersion(), removeSilenceCallback, server);	               
+	                zk.delete(path, stat.getVersion(), ZKUtils.checkAlertRemoveStatusAsync(), server);	               
 	            }
 	            path = buildMonitorPathForServer(server);
 	            if (zk.exists(path, this) != null) {
-	            	LOGGER.info("Removed silence for node: " + server.getName());
+	            	LOGGER.info("Removed alert for node: " + server.getName());
 	            }
 	        } catch (KeeperException | InterruptedException kex) {
 	        	LOGGER.info("Exception encountered ('{}') while pruning the {} " +
@@ -465,26 +435,6 @@ public class NodesManager implements Watcher {
 	        }
 	    }
 
-	    AsyncCallback.VoidCallback removeSilenceCallback = new AsyncCallback.VoidCallback() {
-	        @Override
-	        public void processResult(int rc, String path, Object ctx) {
-	            Server svr = (Server) ctx;
-	            switch (KeeperException.Code.get(rc)) {
-	                case CONNECTIONLOSS:
-	                    removeSilence(svr);
-	                    break;
-	                case OK:
-	                	LOGGER.info("Server {} re-enabled ({})", svr.getName(),
-	                            svr.getServerAddress().getHostname());
-	                    break;
-	                default:
-	                	LOGGER.info("[{}] Unexpected result for silencing {} ({})",
-	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
-	            }
-	        }
-	    };
-
-	   
 	    /**
 	     * Build path for Alert
 	     * 
@@ -551,23 +501,6 @@ public class NodesManager implements Watcher {
 		 }
 		 return null;
 	}
-		/**
-		 * Delete all the nodes of zookeeper recursively
-		 * 
-		 * @param groupName
-		 * @throws InterruptedException
-		 * @throws KeeperException
-		 * @throws Exception
-		 */
-		public void deleteAllNodes(String groupName) throws  Exception{ 
-			try{
-	    	ZKUtil.deleteRecursive(zk, groupName);
-	    	LOGGER.info("All nodes are deleted");
-	    	connectedSignal.await();
-			}catch(InterruptedException | KeeperException e){
-	    	LOGGER.info("\tUnable to delete the node Exception :: "+ e.getMessage());
-	    	}
-	    }
 		
 		/**
 		 * Create the servers map which all need to be run on nodes
@@ -587,15 +520,17 @@ public class NodesManager implements Watcher {
 				
 			if (!checkUnique.contains(IP)) {
 				Server server = new Server();
-				server.setServerAddress(new ServerAddress(NODE_NAME_PRIFIX + nodeIndex++, IP));
+				server.setServerAddress(new ServerAddress(NODE_NAME_PRIFIX + nodeIndex, IP));
 				server.setPort(Integer.valueOf(PORT));
 				server.setData(new Date().getTime());
 				server.setServerType("simpleserver");
 				server.setCurrentDateTime(ZKUtils.getCurrentTimeStamp());
 				server.setDescription("A simple server to test monitoring");
+				server.setId(nodeIndex);
 				this.servers.add(server);
 				checkUnique.add(IP);
 				serverNameMap.put(server.getServerAddress().getHostname(), server);
+				nodeIndex++;
 				LOGGER.info("\tSERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
 				}
 			 getSignal = new CountDownLatch(this.servers.size()+DEFAULT_NODES);// additional 3 is added because of namesapce,alert and basepath node is also created
@@ -626,61 +561,22 @@ public class NodesManager implements Watcher {
 			try {
 				stat = zk.exists(path, this);
 				if(stat != null){
-				 zk.delete(path, stat.getVersion(), deleteCallback, server);				 
+					ZKUtils.deleteRecursive(path, null);
 				}
 			} catch (KeeperException | InterruptedException e) {
 				LOGGER.info("Unable to delete node :: " + server.getName() + " Exception is :: "+ e.getMessage());
 				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+			} catch (Exception e) {
+				LOGGER.info("Unable to delete the node");
 			}
 			
 		}
 		
-		AsyncCallback.VoidCallback deleteCallback = new AsyncCallback.VoidCallback() {
-	        @Override
-	        public void processResult(int rc, String path, Object ctx) {
-	            Server svr = (Server) ctx;
-	            switch (KeeperException.Code.get(rc)) {
-	                case CONNECTIONLOSS:
-	                	deleteNode(svr);
-	                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
-	                    break;
-	                case OK:
-	                	LOGGER.info("Node {} is  ({})", svr.getName(),
-	                            svr.getServerAddress().getHostname());
-	                    break;
-	                default:
-	                	LOGGER.info("[{}] Unexpected result for deleting {} ({})",
-	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
-	            }
-	        }
-	    };
-		
 		public synchronized void checkZookeeperConnection(Server server){
 			String path = buildMonitorPathForServer(server);
-			zk.exists(path, this,checkStatusCallback,server);
+			zk.exists(path, this,ZKUtils.checkZKConnectionStatusAsync(),server);
 		}
 		
-		AsyncCallback.StatCallback checkStatusCallback = new AsyncCallback.StatCallback() {
-	        @Override
-	        public void processResult(int rc, String path, Object ctx, Stat stat) {
-	            Server svr = (Server) ctx;
-	            switch (KeeperException.Code.get(rc)) {
-	                case CONNECTIONLOSS:
-	                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
-	                	checkZookeeperConnection(svr);
-	                    break;
-	                case OK:
-	                	LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
-	                	LOGGER.info("Node {} is  ({})", svr.getName(),
-	                            svr.getServerAddress().getHostname());
-	                    break;
-	                default:
-	                	LOGGER.info("[{}] Unexpected result for STATUS {} ({})",
-	                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});
-	            }
-	        }
-	    };
-	    
 	/**
 	 * Save the file on ZNode of zookeeper
 	 * 
@@ -725,7 +621,7 @@ public class NodesManager implements Watcher {
 		try {
 			stat = zk.exists(nodePath, this);
 			if(stat != null){
-			 zk.delete(nodePath, stat.getVersion(), deleteNodeCallback, nodePath);
+			 zk.delete(nodePath, stat.getVersion(), ZKUtils.checkDeleteNodeStatusAsync(), nodePath);
 			 LOGGER.info("Node {} is deleted successfully",nodePath);
 			}
 		} catch (KeeperException | InterruptedException e) {
@@ -735,25 +631,6 @@ public class NodesManager implements Watcher {
 		
 	}
 	
-	AsyncCallback.VoidCallback deleteNodeCallback = new AsyncCallback.VoidCallback() {
-       @Override
-       public void processResult(int rc, String path, Object ctx) {
-           String node = (String) ctx;
-           switch (KeeperException.Code.get(rc)) {
-               case CONNECTIONLOSS:
-               	deleteNode(node);
-               	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
-                   break;
-               case OK:
-               	LOGGER.info("Node {} is  ({})", node,path);
-                   break;
-               default:
-               	LOGGER.info("[{}] Unexpected result for deleting {} ({})",
-                           new Object[]{KeeperException.Code.get(rc), node, path});
-           }
-       }
-   };
-   
 	private boolean createNotificationNode() {
 		boolean flag = false;
 		try {
@@ -764,11 +641,6 @@ public class NodesManager implements Watcher {
 						+ PathUtil.FORWARD_SLASH
 						+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 				createNode(pushNotification,null);
-				/*String pullNotification = pushNotification.replace(
-						CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name(),
-						CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name());
-				createNode(pullNotification,null);*/
-
 			}
 			flag = true;
 		} catch (IOException ex) {
@@ -777,42 +649,28 @@ public class NodesManager implements Watcher {
 		return flag;
 	}
 	
-	public void isPathExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
-		//Stat stat = null;
-		//stat = zk.exists(nodePath, this);
-		if(signal == null) signal = new CountDownLatch(1);
-		zk.exists(nodePath, this,checkPathExistsCallback,nodePath);
-		//if(stat == null) return false;
-		signal.countDown();
-		//return true;
+	/**
+	 * This method will check whether the path created yet or not. And keep of checking until created.
+	 * @param nodePath
+	 * @param signal
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public void isNodeExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
+		 Stat stat = null;
+			try {
+				stat = zk.exists(nodePath, this);
+				System.out.println("\n STAT = " + stat);
+				if(stat == null){
+					zk.exists(nodePath, this,ZKUtils.checkPathExistsStatusAsync(signal),nodePath);
+					System.out.println("\n STAT = " + stat);
+					}
+					if(signal != null) signal.countDown();
+			}
+			catch (KeeperException | InterruptedException e) {
+				LOGGER.info("Unable to delete node :: " + nodePath + " Exception is :: "+ e.getMessage());
+				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+			}
 	}
 	
-	AsyncCallback.StatCallback checkPathExistsCallback = new AsyncCallback.StatCallback() {
-        @Override
-        public void processResult(int rc, String path, Object ctx, Stat stat) {
-           // Server svr = (Server) ctx;
-            switch (KeeperException.Code.get(rc)) {
-                case CONNECTIONLOSS:
-                	LOGGER.info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
-                	//checkZookeeperConnection(svr);
-                    break;
-                case OK:
-                	LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
-                	/*LOGGER.info("Node {} is  ({})", svr.getName(),
-                            svr.getServerAddress().getHostname());*/
-                    break;
-                case NONODE:
-				try {
-					isPathExists(path,null);
-				} catch (KeeperException | InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                default:
-                	/*LOGGER.info("[{}] Unexpected result for STATUS {} ({})",
-                            new Object[]{KeeperException.Code.get(rc), svr.getName(), path});*/
-            }
-        }
-    };
-    
 }

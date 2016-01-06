@@ -72,7 +72,7 @@ public class CommonUtil {
 	
 	public enum ZKJobNodeEnum{
 		
-		PUSH_JOB_NOTIFICATION("PUSH_JOB"),PULL_JOB_NOTIFICATION("PULL_JOB"),START("START");
+		PUSH_JOB_NOTIFICATION("PUSH_JOB"),PULL_JOB_NOTIFICATION("PULL_JOB"),START("START"),FINISH("FINISH");
 		
 		private String jobNode;
 		

@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.accumulator.Job;
-import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
 import com.talentica.hungryHippos.utility.zookeeper.LeafBean;
 
 /**
@@ -27,9 +26,9 @@ public interface NodesJobsRunnable {
 	
 	void addJob(Job job);
 	
-	void addJob(List<TestJob> jobs);
+	void addJob(List<Job> jobs);
 	
-	NodeJob getNodeJob();
+	TaskManager getTaskManager();
 	
 	boolean sendJobRunnableNotificationToNode(Job job,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 	

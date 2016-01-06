@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.accumulator.DataProvider;
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.JobRunner;
 import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
+import com.talentica.hungryHippos.manager.node.NodeStarter;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.storage.FileDataStore;
@@ -50,13 +51,9 @@ public class JobManager {
 		} else if (args.length == 1) {
 			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
 		}
-		ServerHeartBeat heartBeat = new ServerHeartBeat();
-		String tickTime = Property.getProperties().getProperty("tick.time");
-		LOGGER.info("\n\tDeleting All nodes on zookeeper");
+		//ServerHeartBeat heartBeat = new ServerHeartBeat();
+		//String tickTime = Property.getProperties().getProperty("tick.time");
 		(nodesManager = ServerHeartBeat.init()).startup();
-		
-		//heartBeat.deleteAllNodes("/rootnode");
-		
 		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
 				Property.loadServerProperties());
 		
@@ -85,26 +82,31 @@ public class JobManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-			LOGGER.info("\n\tPublish the data across the nodes");
+			LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES");
 			DataProvider.publishDataToNodes(nodesManager);
-			LOGGER.info("\n\tPublish the data across the nodes DONE.");
+			LOGGER.info("\n\tDATA PUBLISHED SUCCESSFULLY!");
 			
-			LOGGER.info("\n\tSending JobRunner to nodes to calculate RowCount/JOB");
+			LOGGER.info("\n\tSENDING JOBRUNNER TO NODES TO CALCULATE ROWCOUNT/JOB");
 			createAndSendJobRunnerZKNode();
-			LOGGER.info("\n\tJobRunner Sent.");
+			LOGGER.info("\n\tJOB RUNNER SENT");
 			
 			LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
 			executeJobsOnNodes();
 			LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
+			
+			
 		
-		List<Server> regServer = heartBeat.getMonitoredServers();
-		LOGGER.info("\n\t\t********STARTING TO PING THE SERVER********");
-		while (true) {
+		//List<Server> regServer = heartBeat.getMonitoredServers();
+		
+		//LOGGER.info("\n\t\t********STARTING TO PING THE SERVER********");
+		/*while (true) {
 			for (Server server : regServer) {
+				String buildFinishPath =  ZKUtils.buildNodePath(server.getId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH.name();
+				nodesManager.isPathExists(buildFinishPath, null);
 				heartBeat.startPinging(server);
 				Thread.sleep(Long.valueOf(tickTime));
 			}
-		}
+		}*/
 
 	}
 	
@@ -131,11 +133,12 @@ public class JobManager {
 	
 	private static void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException{
 		boolean flag = false;
+		int totalNods = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
         
-		for (int nodeId = 0; nodeId < 10; nodeId++) {
+		for (int nodeId = 0; nodeId < totalNods; nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
 			int totalDimensions = Integer.valueOf(Property.getProperties()
@@ -205,7 +208,7 @@ public class JobManager {
 	private static Map<Integer, Long> getRowCountZKNode(int nodeId){
 		ZKNodeFile zkNodeFileId = null;
 		while(zkNodeFileId == null){
-			zkNodeFileId = ZKUtils.getConfigZKNodeFile(String.valueOf(nodeId));
+			zkNodeFileId = ZKUtils.getConfigZKNodeFile("_confnode"+String.valueOf(nodeId));
 		}
 		Object obj = zkNodeFileId.getObj();
 		Map<Integer, Long> jobIdMemoMap = (obj == null)? null : (Map<Integer, Long>) obj;

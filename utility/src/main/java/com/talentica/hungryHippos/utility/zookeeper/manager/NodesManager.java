@@ -402,18 +402,18 @@ public class NodesManager implements Watcher {
 	                    "loss or, more worryingly, because we've lost all connectivity to the ZK " +
 	                    "ensemble.");
 	        } catch (KeeperException | InterruptedException e) {
-	            String msg = String.format("Caught an exception while trying to silence {} ({})",
+	            String msg = String.format("Caught an exception while trying to alert {} ({})",
 	                    server, e.getLocalizedMessage());
-	            LOGGER.info("Caught an exception while trying to silence {} ({})",
+	            LOGGER.info("Caught an exception while trying to alert {} ({})",
 	                    server, e.getLocalizedMessage());
 	            return Status.createErrorStatus(msg);
 	        }
-	        return Status.createStatus("Server " + server.getName() + " silenced");
+	        return Status.createStatus("Server " + server.getName() + " alerted");
 	    }
 
 	    /**
-	     * Removes the silence for the server, for example, when the server re-starts after an
-	     * unexpected termination (that triggered an alert and a subsequent 'silence' to be set).
+	     * Removes the alert for the server, for example, when the server re-starts after an
+	     * unexpected termination (that triggered an alert and a subsequent 'alert' to be set).
 	     * @param server
 	     */
 	    synchronized public void removeAlert(Server server) {

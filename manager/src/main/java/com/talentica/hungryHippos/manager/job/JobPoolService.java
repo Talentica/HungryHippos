@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-import com.talentica.hungryHippos.accumulator.Job;
+import com.talentica.hungryHippos.accumulator.JobEntity;
 
 /**
  * JobPooling is used to schedule the job based on availability of the resources. Job is pooled according to the Job's memory requirement.
@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.accumulator.Job;
  */
 public class JobPoolService implements JobPool{
 
-	private Queue<Job> jobPriorityQueue;
+	private Queue<JobEntity> jobPriorityQueue;
 	
 	private static int DEFAULT_POOL_SIZE_CAPACITY = 11;
 	
@@ -30,13 +30,13 @@ public class JobPoolService implements JobPool{
 	}
 	
 	@Override
-	public void addJob(Job job) {
-		jobPriorityQueue.add(job);		
+	public void addJobEntity(JobEntity jobEntity) {
+		jobPriorityQueue.add(jobEntity);		
 	}
 
 	@Override
-	public void removeJob(Job job) {
-		jobPriorityQueue.remove(job);
+	public void removeJobEntity(JobEntity jobEntity) {
+		jobPriorityQueue.remove(jobEntity);
 		
 	}
 
@@ -50,25 +50,25 @@ public class JobPoolService implements JobPool{
 		return jobPriorityQueue.size();
 	}
 	
-	public static Comparator<Job> sizeComparator = new Comparator<Job>(){        
+	public static Comparator<JobEntity> sizeComparator = new Comparator<JobEntity>(){        
         @Override
-        public int compare(Job job1, Job job2) {
-            return (int) (job1.getDataSize() - job2.getDataSize());
+        public int compare(JobEntity jobEntity1, JobEntity jobEntity2) {
+            return (int) (jobEntity1.getRowCount() - jobEntity2.getRowCount());
         }
     };
 
 	@Override
-	public Queue<Job> getQueue() {
+	public Queue<JobEntity> getQueue() {
 		return jobPriorityQueue;
 	}
 
 	@Override
-	public Job pollJob() {
+	public JobEntity pollJobEntity() {
 		return jobPriorityQueue.poll();
 	}
 
 	@Override
-	public Job peekJob() {
+	public JobEntity peekJobEntity() {
 		return jobPriorityQueue.peek();
 	}
 

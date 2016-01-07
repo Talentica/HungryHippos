@@ -92,6 +92,17 @@ public class ZKUtils {
         return strDate;
     }
     
+    /**
+     * To search the particular node of the zookeeper.
+     * 
+     * @param searchString
+     * @param authRole
+     * @return Set<LeafBean>
+     * @throws InterruptedException
+     * @throws KeeperException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static Set<LeafBean> searchTree(String searchString, String authRole) throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
         /*Export all nodes and then search.*/
         Set<LeafBean> searchResult = new TreeSet<>();
@@ -165,6 +176,17 @@ public class ZKUtils {
 
     }
     
+	/**
+	 * To get the value of particluar node
+	 * 
+	 * @param path
+	 * @param childPath
+	 * @param child
+	 * @param authRole
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 */
 	public static LeafBean getNodeValue(String path, String childPath,
 			String child, String authRole) throws ClassNotFoundException, IOException {
 		try {
@@ -209,6 +231,11 @@ public class ZKUtils {
 	    	}
 	    }
 		
+	/**
+	 * Async call to check whether path exists or not in zookeeper node.
+	 * @param signal
+	 * @return
+	 */
 	public static AsyncCallback.StatCallback checkPathExistsStatusAsync(CountDownLatch signal) {
 		AsyncCallback.StatCallback checkPathExistsCallback = new AsyncCallback.StatCallback() {
 			@Override
@@ -238,6 +265,11 @@ public class ZKUtils {
 		return checkPathExistsCallback;
 	}
 	
+	/**
+	 * Check delete node status Async on zookeeper.
+	 * 
+	 * @return
+	 */
 	public static AsyncCallback.VoidCallback checkDeleteNodeStatusAsync() {
 		AsyncCallback.VoidCallback deleteNodeCallback = new AsyncCallback.VoidCallback() {
 			@Override
@@ -261,6 +293,10 @@ public class ZKUtils {
 		return deleteNodeCallback;
 	}
 		
+	/**
+	 * Check zookeeper connection Async on zookeeper
+	 * @return
+	 */
 	public static AsyncCallback.StatCallback checkZKConnectionStatusAsync() {
 		AsyncCallback.StatCallback checkStatusCallback = new AsyncCallback.StatCallback() {
 			@Override
@@ -287,6 +323,10 @@ public class ZKUtils {
 		return checkStatusCallback;
 	}
 	
+	/**
+	 * Check server delete status Async on zookeeper
+	 * @return
+	 */
 	public static AsyncCallback.VoidCallback checkServerDeleteStatusAsync() {
 		AsyncCallback.VoidCallback deleteCallback = new AsyncCallback.VoidCallback() {
 			@Override
@@ -312,6 +352,10 @@ public class ZKUtils {
 		return deleteCallback;
 	}
 	
+	/**
+	 * Check romove status of Alert Async on zookeeper
+	 * @return
+	 */
 	public static AsyncCallback.VoidCallback checkAlertRemoveStatusAsync() {
 		AsyncCallback.VoidCallback removeAlertCallback = new AsyncCallback.VoidCallback() {
 			@Override
@@ -337,6 +381,10 @@ public class ZKUtils {
 	}
 	
 	
+	/**
+	 * Check Alert create Async on zookeeper
+	 * @return
+	 */
 	public static AsyncCallback.StringCallback checkCreateAlertStatusAsync() {
 		AsyncCallback.StringCallback createAlertCallback = new AsyncCallback.StringCallback() {
 			@Override

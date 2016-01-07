@@ -28,7 +28,7 @@ public class JobRunner implements Serializable{
     private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
     private DataStore dataStore;
-    private Map<Integer,Long> jobIdRowCount = new HashMap<>();
+    private Map<Integer,JobEntity> jobIdJobEntityCount = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class.getName());
 
     public JobRunner(DataDescription dataDescription, DataStore dataStore, Map<String,Map<Object, Node>> keyValueNodeNumberMap) {
@@ -68,7 +68,7 @@ public class JobRunner implements Serializable{
             rowProcessors.forEach(RowProcessor::finishUp);
     }
     
-    public Map<Integer,Long> getRowCountByJobId(){
+    public Map<Integer, JobEntity> getJobIdJobEntityMap(){
         List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){
             StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
@@ -79,17 +79,15 @@ public class JobRunner implements Serializable{
             }
             storeAccess.processRowCount();
             for(RowProcessor processor : rowProcessors){
-            	/*processor.finishRowCount();
-            	jobIdRowCount.putAll(processor.getTotalRowCountByJobId());*/
             	Job job = ((Job)processor.getJob());
-            	long rowCount = processor.totalRowCount();
-            	if(rowCount == 0l) continue;
-            	jobIdRowCount.put(job.getJobId(),rowCount);
-            	LOGGER.info("Job Id {} and Row count {}",job.getJobId(),rowCount);
+            	JobEntity jobEntity = (JobEntity) processor.getJobEntity();
+            	if(jobEntity.getRowCount() == 0l) continue;
+            	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
+            	LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());
             }
             rowProcessors.clear();
         }
-        return jobIdRowCount;
+        return jobIdJobEntityCount;
     }
     
     public List<Job> getJobs(){

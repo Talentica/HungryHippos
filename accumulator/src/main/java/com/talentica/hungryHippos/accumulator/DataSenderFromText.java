@@ -21,6 +21,7 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
@@ -92,7 +93,7 @@ public class DataSenderFromText {
 
 
 
-        com.talentica.hungryHippos.utility.marshaling.FileReader
+        Reader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(inputFile);
         input.setNumFields(9);
         input.setMaxsize(25);
@@ -101,7 +102,7 @@ public class DataSenderFromText {
         long timeForLookup = 0;
 
         while(true){
-            MutableCharArrayString[] parts = input.readCommaSeparated();
+            MutableCharArrayString[] parts = input.read();
             if(parts == null){
                 break;
             }

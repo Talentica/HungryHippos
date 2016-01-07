@@ -12,7 +12,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
 /**
  * Created by debasishc on 22/6/15.
  */
-public class FileReader {
+public class FileReader implements Reader {
     //65536*8
     ByteBuffer buf= ByteBuffer.allocate(65536);
     FileChannel channel;
@@ -24,7 +24,17 @@ public class FileReader {
         buf.clear();
     }
 
-    public String readLine() throws IOException {
+	@SuppressWarnings("resource")
+	public FileReader(File file) throws IOException {
+		channel = new FileInputStream(file).getChannel();
+		buf.clear();
+	}
+
+    /* (non-Javadoc)
+	 * @see com.talentica.hungryHippos.utility.marshaling.Reader#readLine()
+	 */
+    @Override
+	public String readLine() throws IOException {
         StringBuilder sb = new StringBuilder();
         while(true){
             if(readCount<=0){
@@ -48,33 +58,43 @@ public class FileReader {
         return sb.toString();
     }
     private int numfields;
-    private int maxsize;
     private MutableCharArrayString[] buffer;
-    public void  setNumFields(int numFields){
+    /* (non-Javadoc)
+	 * @see com.talentica.hungryHippos.utility.marshaling.Reader#setNumFields(int)
+	 */
+    @Override
+	public void  setNumFields(int numFields){
         this.numfields = numFields;
         buffer = new MutableCharArrayString[numFields];
     }
-    public void setMaxsize(int maxsize){
-        this.maxsize = maxsize;
+    /* (non-Javadoc)
+	 * @see com.talentica.hungryHippos.utility.marshaling.Reader#setMaxsize(int)
+	 */
+    @Override
+	public void setMaxsize(int maxsize){
         for(int i=0;i<numfields;i++){
             buffer[i] = new MutableCharArrayString(maxsize);
         }
     }
-    public MutableCharArrayString[] readCommaSeparated() throws IOException {
-
-
+    /* (non-Javadoc)
+	 * @see com.talentica.hungryHippos.utility.marshaling.Reader#readCommaSeparated()
+	 */
+    @Override
+	public MutableCharArrayString[] read() throws IOException {
         for(MutableCharArrayString s:buffer){
             s.reset();
         }
-
+		boolean bufferContainsReadData = false;
         int fieldIndex=0;
         while(true){
 
             if(readCount<=0){
                 buf.clear();
                 readCount = channel.read(buf);
-                if(readCount<0){
-                    return null;
+				if (bufferContainsReadData) {
+					return buffer;
+				} else if (readCount < 0) {
+					return null;
                 }
                 buf.flip();
             }
@@ -86,21 +106,20 @@ public class FileReader {
                 break;
             }else{
                 buffer[fieldIndex].addCharacter((char)nextChar);
-
+				bufferContainsReadData = true;
             }
-
         }
         return buffer;
     }
 
     public static void main(String [] args) throws Exception{
         long startTime = System.currentTimeMillis();
-        FileReader reader = new FileReader("sampledata.txt");
+        Reader reader = new FileReader("sampledata.txt");
         reader.setNumFields(8);
         reader.setMaxsize(25);
         int num = 0;
         while(true){
-            MutableCharArrayString[] val = reader.readCommaSeparated();
+            MutableCharArrayString[] val = reader.read();
 
             if(val == null){
                 break;

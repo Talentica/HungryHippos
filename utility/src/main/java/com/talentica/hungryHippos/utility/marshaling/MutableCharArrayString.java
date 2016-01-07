@@ -7,7 +7,10 @@ import java.util.Arrays;
  * Created by debasishc on 29/9/15.
  */
 public class MutableCharArrayString implements CharSequence, Cloneable, Serializable {
-    char [] array;
+
+	private static final long serialVersionUID = -6085804645372631875L;
+
+	char[] array;
     int stringLength;
     public MutableCharArrayString(int length){
         array = new char[length];
@@ -52,24 +55,29 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
     }
 
 
-    public MutableCharArrayString clone(){
+    @Override
+	public MutableCharArrayString clone(){
         return subSequence(0, stringLength);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        MutableCharArrayString that = (MutableCharArrayString) o;
-
-        if (stringLength != that.stringLength) return false;
-        for (int i = 0; i < stringLength; i++) {
-            if(array[i]!=that.array[i]) return false;
-        }
-        return true;
-
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || !(o instanceof MutableCharArrayString)) {
+			return false;
+		}
+		MutableCharArrayString that = (MutableCharArrayString) o;
+		if (stringLength == that.stringLength) {
+			for (int i = 0; i < stringLength; i++) {
+				if (array[i] != that.array[i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 
     @Override
     public int hashCode() {

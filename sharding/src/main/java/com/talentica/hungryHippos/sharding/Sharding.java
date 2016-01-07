@@ -25,12 +25,11 @@ public class Sharding {
 
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<KeyValueFrequency>> keyValueFrequencyMap = new HashMap<>();
-	// Map<KeyValueFrequency(key1,value1,10),Node(1)>
+	// Map<Key1,Map<value1,Node(1)>
 	private Map<String, Map<Object, Node>> keyValueNodeNumberMap = new HashMap<>();
 	PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
 
-	// e.g. Map<KeyCombination({key1,value1},{key2, value2},{key3,
-	// value3}),count>
+	// e.g. Map<KeyCombination({key1,value1},{key2, value2},{key3,value3}),count>
 	private Map<KeyCombination, Long> keyCombinationFrequencyMap = new HashMap<>();
 	private Map<Node, List<KeyCombination>> nodeToKeyMap = new HashMap<>();
 	private Map<KeyCombination, Set<Node>> keyCombinationNodeMap = new HashMap<>();
@@ -45,28 +44,6 @@ public class Sharding {
 			fillupQueue.offer(node);
 			nodeToKeyMap.put(node, new ArrayList<KeyCombination>());
 		}
-	}
-
-	private long sumForKeyCombinationIntersection(KeyCombination keyCombination) {
-		long sum = 0;
-		for (Map.Entry<KeyCombination, Long> entry : keyCombinationFrequencyMap.entrySet()) {
-			KeyCombination keyCombination1 = entry.getKey();
-			if (keyCombination.checkMatchAnd(keyCombination1)) {
-				sum += entry.getValue();
-			}
-		}
-		return sum;
-	}
-
-	private long sumForKeyCombinationUnion(KeyCombination keyCombination) {
-		long sum = 0;
-		for (Map.Entry<KeyCombination, Long> entry : keyCombinationFrequencyMap.entrySet()) {
-			KeyCombination keyCombination1 = entry.getKey();
-			if (keyCombination.checkMatchOr(keyCombination1)) {
-				sum += entry.getValue();
-			}
-		}
-		return sum;
 	}
 
 	private long sumForKeyCombinationUnion(List<KeyCombination> keyCombination) {
@@ -167,7 +144,7 @@ public class Sharding {
 		makeShardingTable(new KeyCombination(new HashMap<String, Object>()), keyNameList);
 	}
 
-	// This method needs to be generalized
+	// TODO: This method needs to be generalized
 	Map<String, List<KeyValueFrequency>> populateFrequencyFromData(
 			com.talentica.hungryHippos.utility.marshaling.FileReader data) throws IOException {
 		String[] keyNames = { "key1", "key2", "key3" };
@@ -184,12 +161,6 @@ public class Sharding {
 			keys[0] = parts[0].clone();
 			keys[1] = parts[1].clone();
 			keys[2] = parts[2].clone();
-			// int key4 = Integer.parseInt(parts[3]);
-			// int key5 = Integer.parseInt(parts[4]);
-			// int key6 = Integer.parseInt(parts[5]);
-			//
-			// double value1 = Double.parseDouble(parts[6]);
-			// double value2 = Double.parseDouble(parts[7]);
 
 			Map<String, Object> keyCombinationMap = new HashMap<>();
 			for (int i = 0; i < keyNames.length; i++) {
@@ -233,7 +204,7 @@ public class Sharding {
 		return this.keyValueFrequencyMap;
 	}
 
-	public void dumpKeyValueNodeNumberMap(String file) throws IOException {
+	private void dumpKeyValueNodeNumberMap(String file) throws IOException {
 
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
@@ -242,79 +213,13 @@ public class Sharding {
 		}
 	}
 
-	public void dumpKeyKeyCombinationNodeMap(String file) throws IOException {
+	private void dumpKeyKeyCombinationNodeMap(String file) throws IOException {
 
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
 			out.writeObject(keyCombinationNodeMap);
 			out.flush();
 		}
-	}
-
-	public static void main(String[] args) throws Exception {
-		/*
-		 * Sharding sharding = new Sharding(6); List<KeyValueFrequency>
-		 * keyValueFrequencies = new ArrayList<>(); keyValueFrequencies.add(new
-		 * KeyValueFrequency(1,300L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(2,100L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(3,20L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(4,15L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(5,13L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(6,13L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(7,14L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(8, 15L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(9,7L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(10, 5L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(11,2L)); keyValueFrequencies.add(new
-		 * KeyValueFrequency(12, 1L));
-		 * 
-		 * 
-		 * sharding.keyValueFrequencyMap = new HashMap<>();
-		 * sharding.keyValueFrequencyMap.put("key", keyValueFrequencies);
-		 * sharding.shardSingleKey("key");
-		 * System.out.println(sharding.keyValueNodeNumberMap);
-		 * 
-		 * sharding.keyCombinationFrequencyMap = new HashMap<>();
-		 * HashMap<String, Object> k1Map = new HashMap<>(); k1Map.put("Country",
-		 * "US"); k1Map.put("Language", "English");
-		 * 
-		 * HashMap<String, Object> k2Map = new HashMap<>(); k2Map.put("Country",
-		 * "US"); k2Map.put("Language", "Hindi");
-		 * 
-		 * HashMap<String, Object> k3Map = new HashMap<>(); k3Map.put("Country",
-		 * "India"); k3Map.put("Language", "English");
-		 * 
-		 * HashMap<String, Object> k4Map = new HashMap<>(); k4Map.put("Country",
-		 * "India"); k4Map.put("Language", "Hindi");
-		 * 
-		 * sharding.keyCombinationFrequencyMap.put(new KeyCombination(k1Map),
-		 * 5L); sharding.keyCombinationFrequencyMap.put(new
-		 * KeyCombination(k2Map), 3L);
-		 * sharding.keyCombinationFrequencyMap.put(new KeyCombination(k3Map),
-		 * 8L); sharding.keyCombinationFrequencyMap.put(new
-		 * KeyCombination(k4Map), 1L);
-		 * 
-		 * HashMap<String, Object> searchKey = new HashMap<>();
-		 * searchKey.put("Language", "English"); searchKey.put("Country", "US");
-		 * 
-		 * HashMap<String, Object> searchKey2 = new HashMap<>();
-		 * searchKey2.put("Language", "Hindi");
-		 * 
-		 * long sum = sharding.sumForKeyCombinationIntersection(new
-		 * KeyCombination(searchKey)); System.out.println(sum);
-		 * 
-		 * sum = sharding.sumForKeyCombinationUnion(new
-		 * KeyCombination(searchKey)); System.out.println(sum);
-		 * 
-		 * List<KeyCombination> searchList = new ArrayList<>();
-		 * searchList.add(new KeyCombination(searchKey)); searchList.add(new
-		 * KeyCombination(searchKey2)); sum =
-		 * sharding.sumForKeyCombinationUnion(searchList);
-		 * System.out.println(sum);
-		 */
-
-		// doSharding();
-
 	}
 
 	public static void doSharding() {

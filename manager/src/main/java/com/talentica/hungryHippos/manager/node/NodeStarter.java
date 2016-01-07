@@ -31,8 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.accumulator.Job;
+import com.talentica.hungryHippos.accumulator.JobEntity;
 import com.talentica.hungryHippos.accumulator.JobRunner;
-import com.talentica.hungryHippos.accumulator.testJobs.JobSizeComparator;
+import com.talentica.hungryHippos.accumulator.testJobs.JobComparator;
 import com.talentica.hungryHippos.node.DataReadHandler;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -130,7 +131,7 @@ public class NodeStarter {
 			LOGGER.info("Start Node initialize");
 			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
 			JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
-			Map<Integer,Long> jobIdRowCountMap = jobRunner.getRowCountByJobId();
+			Map<Integer,JobEntity> jobIdRowCountMap = jobRunner.getJobIdJobEntityMap();
 			
 			putJobStatisticsZknode(jobIdRowCountMap);
 			
@@ -153,24 +154,24 @@ public class NodeStarter {
 	
 	private static void runJobMatrix(JobRunner jobRunner,CountDownLatch signal) throws Exception{
     	LOGGER.info("Start the job runner matrix");
-			List<Job> jobs = getJobsFromZKNode();
+			List<JobEntity> jobEntities = getJobsFromZKNode();
 			jobRunner.clearJobList();
-			for (Job job : jobs) {
-				LOGGER.info("JOB ID :: {}",job.getJobId());
-				jobRunner.addJob(job);
+			for (JobEntity jobEntity : jobEntities) {
+				LOGGER.info("JOB ID :: {}",jobEntity.getJob().getJobId());
+				jobRunner.addJob(jobEntity.getJob());
 			}
 			jobRunner.run();
 			signal.countDown();
    }
 	
-	private static void putJobStatisticsZknode(Map<Integer,Long> jobIdMemoMap) throws Exception{
+	private static void putJobStatisticsZknode(Map<Integer,JobEntity> jobIdRowCountMap) throws Exception{
 		ZKNodeFile jobIdMemoMapZkfile = new ZKNodeFile(
 				String.valueOf("_confnode"+NodeStarter.readNodeId()), null,
-				jobIdMemoMap);
+				jobIdRowCountMap);
 		nodesManager.saveConfigFileToZNode(jobIdMemoMapZkfile);
 	}
 	
-	private static List<Job> getJobsFromZKNode() throws Exception{
+	private static List<JobEntity> getJobsFromZKNode() throws Exception{
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
 		nodesManager.isNodeExists(buildStartPath,signal);
@@ -183,13 +184,13 @@ public class NodeStarter {
 		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null);
 			jobBeans = ZKUtils.searchTree(buildPath, null);
 		LOGGER.info("No. of jobs found {}",jobBeans.size());
-		List<Job> jobs = new ArrayList<>();
+		List<JobEntity> jobEntities = new ArrayList<>();
 		for(LeafBean leaf : jobBeans){
-			Job job = (Job)leaf.getValue();
-			jobs.add(job);
+			JobEntity jobEntity = (JobEntity)leaf.getValue();
+			jobEntities.add(jobEntity);
 		}
-		Collections.sort(jobs,new JobSizeComparator());
-		return jobs;
+		Collections.sort(jobEntities,new JobComparator());
+		return jobEntities;
 	}
 	
 	private static JobRunner getJobRunnerFromZKnode(int nodeId) throws InterruptedException{

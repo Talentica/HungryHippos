@@ -85,7 +85,6 @@ public class FileStoreAccess implements StoreAccess{
 	        while(true){
 	            in.readFully(buf);
 	            for(RowProcessor p: rowProcessors){
-	                //p.rowCount(byteBuffer);
 	            	p.incrRowCount();
 	            }
 	        }

@@ -15,6 +15,7 @@ public class DataRowProcessor implements RowProcessor {
     private DynamicMarshal dynamicMarshal;
     private HashMap<ValueSet,Work> valueSetWorkMap = new HashMap<>();
     private Job job;
+    private JobEntity jobEntity;
     private int[] keys;
     private long rowCount = 0;
     //reused context
@@ -29,6 +30,7 @@ public class DataRowProcessor implements RowProcessor {
     
     public DataRowProcessor(Job job){
     	this.job = job;
+    	this.jobEntity = new JobEntity(job);
     }
     public DataRowProcessor(DynamicMarshal dynamicMarshal, Job job) {
         this.dynamicMarshal = dynamicMarshal;
@@ -63,40 +65,10 @@ public class DataRowProcessor implements RowProcessor {
         }
     }
 
-	/*@Override
-	public void rowCount(ByteBuffer row) {
-        for(int i=0;i<keys.length;i++){
-            Object v = dynamicMarshal.readValue(keys[i],row);
-            values[i] = v;
-        }
-        Work work = valueSetWorkMap.get(valueSet);
-        if(work==null){
-            ValueSet valueSet = new ValueSet(Arrays.copyOf(values,values.length));
-            work = job.createNewWork();
-            valueSetWorkMap.put(valueSet,work);
-        }
-        work.countRow();
-	}*/
-
-	/*@Override
-	public void finishRowCount() {
-		int totalRows = 0;
-		for(Map.Entry<ValueSet,Work> e:valueSetWorkMap.entrySet()){
-            totalRows = totalRows + (e.getValue().countRow() - 1);
-            Integer oldRows = jobIdRowCountMap.get(job.getJobId());
-            if(oldRows == null){
-            	jobIdRowCountMap.put(job.getJobId(), totalRows);
-            }else{
-            	jobIdRowCountMap.put(job.getJobId(), (totalRows+oldRows));
-            }
-        }
-	}*/
-
-	/*@Override
-	public Map<Integer,Integer> getTotalRowCountByJobId() {
-		return jobIdRowCountMap;
-	}*/
-
+    public void addjobEntity(JobEntity jobEntity){
+    	this.jobEntity = jobEntity;
+    }
+    
 	@Override
 	public Object getJob(){
 		return this.job;
@@ -104,12 +76,12 @@ public class DataRowProcessor implements RowProcessor {
 
 	@Override
 	public void incrRowCount() {
-		this.rowCount = this.job.incrRowCount();
+		this.jobEntity.increRowCount();
 	}
 
 	@Override
-	public Long totalRowCount() {
-		return this.rowCount;
+	public Object getJobEntity() {
+		return this.jobEntity;
 	}
 
 }

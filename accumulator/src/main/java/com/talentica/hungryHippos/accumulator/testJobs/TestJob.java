@@ -48,27 +48,27 @@ public class TestJob implements Job,Serializable{
 	public int getJobId() {
 		return jobId;
 	}
-
 	@Override
+	public void status(String status) {
+		this.status = status;
+	}
+	/*@Override
 	public void addDataSize(long dataSize) {
 		this.dataSize = dataSize;
 	}
-
 	@Override
 	public long getDataSize() {
 		return this.dataSize;
 	}
-
 	@Override
 	public void status(String status) {
 		this.status = status;
 	}
 
-
 	@Override
 	public int incrRowCount() {
 		return ++rowCount ;
-	}
+	}*/
 	@Override
 	public long getMemory(int rowCount) {
 		// TODO Auto-generated method stub

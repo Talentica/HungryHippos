@@ -62,9 +62,15 @@ public class TestRowProcessor implements RowProcessor {
 		return null;
 	}
 
+//	@Override
+//	public Long totalRowCount() {
+//		// TODO Auto-generated method stub
+//		return 0l;
+//	}
+
 	@Override
-	public Long totalRowCount() {
+	public Object getJobEntity() {
 		// TODO Auto-generated method stub
-		return 0l;
+		return null;
 	}
 }

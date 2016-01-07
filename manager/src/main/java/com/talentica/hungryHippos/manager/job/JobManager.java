@@ -19,7 +19,6 @@ import com.talentica.hungryHippos.accumulator.DataProvider;
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.JobRunner;
 import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
-import com.talentica.hungryHippos.manager.node.NodeStarter;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.storage.FileDataStore;
@@ -29,6 +28,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.zookeeper.Server;
 import com.talentica.hungryHippos.utility.zookeeper.ServerHeartBeat;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
@@ -41,8 +41,9 @@ public class JobManager {
 	static String configPath;
 	static NodesManager nodesManager;
 	private static Map<String, Map<Object, Node>> keyValueNodeNumberMap;
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private static List<Job> jobList = new ArrayList<Job>();
+	private final static int noOfNodes = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
@@ -61,7 +62,7 @@ public class JobManager {
 
 		LOGGER.info("\n\tSHARDING STARTED.....");
 		
-		Sharding.doSharding();   // do the sharding
+		Sharding.doSharding(getReaderForSharding(), noOfNodes); // do the
 		
 		LOGGER.info("\n\t SHARDING DONE!!");
 		LOGGER.info("\n\tPutting the keyValueNodeNumberMap configuration on zookeeper node");
@@ -108,6 +109,15 @@ public class JobManager {
 			}
 		}*/
 
+	}
+
+	private static Reader getReaderForSharding() throws IOException {
+		final String inputFile = Property.getProperties().getProperty("input.file");
+		com.talentica.hungryHippos.utility.marshaling.FileReader fileReader = new com.talentica.hungryHippos.utility.marshaling.FileReader(
+				inputFile);
+		fileReader.setNumFields(9);
+		fileReader.setMaxsize(25);
+		return fileReader;
 	}
 	
 	private static void executeJobsOnNodes() throws IOException, InterruptedException, KeeperException, ClassNotFoundException{

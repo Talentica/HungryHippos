@@ -17,7 +17,6 @@ public class DataRowProcessor implements RowProcessor {
     private Job job;
     private JobEntity jobEntity;
     private int[] keys;
-    private long rowCount = 0;
     //reused context
     private ExecutionContextImpl executionContext;
     //private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();

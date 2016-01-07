@@ -25,6 +25,8 @@ import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
+ * Scheduling and Managing the Jobs across the nodes on ZK.
+ * 
  * @author PooshanS
  *
  */

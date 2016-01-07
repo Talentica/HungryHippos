@@ -68,6 +68,11 @@ public class JobRunner implements Serializable{
             rowProcessors.forEach(RowProcessor::finishUp);
     }
     
+    /**
+     * Counts the number of rows need to process for each jobs.
+     * 
+     * @return Map<Integer, JobEntity>
+     */
     public Map<Integer, JobEntity> getJobIdJobEntityMap(){
         List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){

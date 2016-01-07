@@ -10,7 +10,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.JobEntity;
 import com.talentica.hungryHippos.utility.zookeeper.LeafBean;
 

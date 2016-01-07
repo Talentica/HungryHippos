@@ -40,6 +40,13 @@ public class JobManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private List<Job> jobList = new ArrayList<Job>();
 	
+	
+	private Map<Integer,Map<Integer,JobEntity>> nodeJobIdRowCountMap = new HashMap<Integer, Map<Integer,JobEntity>>();
+	
+	public Map<Integer,Map<Integer,JobEntity>> getNodeJobIdRowCountMap(){
+		return this.nodeJobIdRowCountMap;
+	}
+	
 	public void addJobList(List<Job> jobList){
 		this.jobList = jobList;
 	}
@@ -68,6 +75,11 @@ public class JobManager {
 
 	}
 	
+	/**
+	 * To start the job manager.
+	 * 
+	 * @throws Exception
+	 */
 	public void start() throws Exception{
 		
 			LOGGER.info("START NODE MANAGER..");
@@ -194,6 +206,7 @@ public class JobManager {
 		}
 		Object obj = zkNodeFileId.getObj();
 		Map<Integer,JobEntity> jobIdJobEntityMap = (obj == null)? null : (Map<Integer,JobEntity>) obj;
+		this.nodeJobIdRowCountMap.put(nodeId, jobIdJobEntityMap);
 		return jobIdJobEntityMap;
 	}
 	

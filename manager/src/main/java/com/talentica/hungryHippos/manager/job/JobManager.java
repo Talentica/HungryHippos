@@ -79,8 +79,8 @@ public class JobManager {
 					keyValueNodeNumberMap);
 			nodesManager.saveConfigFileToZNode(saveKeyValueNodeNumberMap);
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while starting up job manager.", exception);
 		}
 			LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES");
 			DataProvider.publishDataToNodes(nodesManager);

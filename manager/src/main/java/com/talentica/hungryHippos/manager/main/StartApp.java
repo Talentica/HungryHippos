@@ -27,7 +27,7 @@ public class StartApp {
 	private static List<Job> jobList = new ArrayList<>();
 	public static void main(String[] args) throws Exception {
 		LOGGER.info("SHARDING STARTED.....");
-		Sharding.doSharding();   // do the sharding
+		Sharding.doSharding();  
 		LOGGER.info("SHARDING DONE!!");
 		
 		createJobs();

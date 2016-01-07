@@ -18,9 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +28,6 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.JobEntity;
 import com.talentica.hungryHippos.accumulator.JobRunner;
 import com.talentica.hungryHippos.accumulator.testJobs.JobComparator;
@@ -63,18 +60,23 @@ public class NodeStarter {
     private static String nodeIdFile = "nodeId";
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
     private static NodesManager nodesManager = null;
+    
     @SuppressWarnings("unchecked")
 	public NodeStarter(String keyValueNodeNumberMapFile, DataDescription dataDescription, NodesManager nodesManager) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
     	NodeStarter.dataDescription = dataDescription;
     	ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(keyValueNodeNumberMapFile);
         NodeStarter.keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) zkNodeFile.getObj();
     }
+    
+    
     @SuppressWarnings("resource")
 	public static int readNodeId() throws Exception{
         BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+nodeIdFile)));
         String line = in.readLine();
         return Integer.parseInt(line);
     }
+    
+    
     private void startServer(int port,int nodeId) throws Exception {
     	LOGGER.info("Start the node");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -135,10 +137,13 @@ public class NodeStarter {
 			
 			putJobStatisticsZknode(jobIdRowCountMap);
 			
-			runJobMatrix(jobRunner,signal);
-			signal.await();
-			String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH.name();
-			nodesManager.createNode(buildStartPath, null);
+			boolean flag = runJobMatrix(jobRunner, signal);
+			
+			if (flag) {
+				signal.await();
+				String buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId())	+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH.name();
+				nodesManager.createNode(buildStartPath, null);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -152,9 +157,13 @@ public class NodeStarter {
         return new NodeStarter(ZKNodeName.keyValueNodeNumberMap, dataDescription,nodesManager);
     }
 	
-	private static void runJobMatrix(JobRunner jobRunner,CountDownLatch signal) throws Exception{
+	private static boolean runJobMatrix(JobRunner jobRunner,CountDownLatch signal) throws Exception{
     	LOGGER.info("Start the job runner matrix");
 			List<JobEntity> jobEntities = getJobsFromZKNode();
+			if(jobEntities.isEmpty()){
+				LOGGER.info("There is no jobs to run. Exiting.");
+				return false;
+			}
 			jobRunner.clearJobList();
 			for (JobEntity jobEntity : jobEntities) {
 				LOGGER.info("JOB ID :: {}",jobEntity.getJob().getJobId());
@@ -162,6 +171,7 @@ public class NodeStarter {
 			}
 			jobRunner.run();
 			signal.countDown();
+			return true;
    }
 	
 	private static void putJobStatisticsZknode(Map<Integer,JobEntity> jobIdRowCountMap) throws Exception{
@@ -176,19 +186,25 @@ public class NodeStarter {
 		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
 		nodesManager.isNodeExists(buildStartPath,signal);
 		signal.await();
+		
 		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		LOGGER.info(" Build Path is {}",buildPath);
+		
 		signal = new CountDownLatch(1);
 		nodesManager.isNodeExists(buildStartPath,signal);
 		signal.await();
+		
 		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null);
 			jobBeans = ZKUtils.searchTree(buildPath, null);
 		LOGGER.info("No. of jobs found {}",jobBeans.size());
+		
+		
 		List<JobEntity> jobEntities = new ArrayList<>();
 		for(LeafBean leaf : jobBeans){
 			JobEntity jobEntity = (JobEntity)leaf.getValue();
 			jobEntities.add(jobEntity);
 		}
+		
 		Collections.sort(jobEntities,new JobComparator());
 		return jobEntities;
 	}

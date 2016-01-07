@@ -6,6 +6,9 @@ package com.talentica.hungryHippos.manager.job;
 import com.talentica.hungryHippos.sharding.Node;
 
 /**
+ * 
+ * It manages the the jobs for each nodes on the Priority Queue of Jobs.
+ * 
  * @author PooshanS
  *
  */

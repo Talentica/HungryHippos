@@ -9,9 +9,5 @@ public interface Job {
     int getPrimaryDimension();
     int getJobId();
     void status(String status);
-    /*void addDataSize(long dataSize);
-    long getDataSize();
-    void status(String status);
-    int incrRowCount();*/
     long getMemory(int rowCount);
 }

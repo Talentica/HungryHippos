@@ -19,7 +19,6 @@ public class TestJob implements Job,Serializable{
     protected int jobId;
     protected long dataSize;
     protected String status;
-    private int rowCount = 0;
     public TestJob(){}
     public TestJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
         this.dimensions = dimensions;
@@ -52,23 +51,7 @@ public class TestJob implements Job,Serializable{
 	public void status(String status) {
 		this.status = status;
 	}
-	/*@Override
-	public void addDataSize(long dataSize) {
-		this.dataSize = dataSize;
-	}
-	@Override
-	public long getDataSize() {
-		return this.dataSize;
-	}
-	@Override
-	public void status(String status) {
-		this.status = status;
-	}
-
-	@Override
-	public int incrRowCount() {
-		return ++rowCount ;
-	}*/
+	
 	@Override
 	public long getMemory(int rowCount) {
 		// TODO Auto-generated method stub

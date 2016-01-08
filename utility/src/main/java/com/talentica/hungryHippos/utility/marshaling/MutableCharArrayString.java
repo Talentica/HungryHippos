@@ -9,16 +9,16 @@ import java.util.Arrays;
 public class MutableCharArrayString implements CharSequence, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -6085804645372631875L;
+	private char[] array;
+	private int stringLength;
 
-	char[] array;
-    int stringLength;
     public MutableCharArrayString(int length){
         array = new char[length];
         stringLength = 0;
     }
     @Override
     public int length() {
-        return stringLength;
+		return stringLength;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
     @Override
     public String toString() {
-        return new String(Arrays.copyOf(array, stringLength));
+		return new String(Arrays.copyOf(array, stringLength));
     }
 
     public void addCharacter(char ch){
@@ -57,7 +57,7 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
     @Override
 	public MutableCharArrayString clone(){
-        return subSequence(0, stringLength);
+		return subSequence(0, stringLength);
     }
 
 	@Override

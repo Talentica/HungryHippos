@@ -11,5 +11,7 @@ public interface Reader {
 	void setMaxsize(int maxsize);
 
 	MutableCharArrayString[] read() throws IOException;
+	
+	void close() throws IOException;
 
 }

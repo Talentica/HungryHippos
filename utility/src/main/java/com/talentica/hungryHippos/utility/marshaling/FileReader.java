@@ -84,16 +84,12 @@ public class FileReader implements Reader {
         for(MutableCharArrayString s:buffer){
             s.reset();
         }
-		boolean bufferContainsReadData = false;
         int fieldIndex=0;
         while(true){
-
             if(readCount<=0){
                 buf.clear();
                 readCount = channel.read(buf);
-				if (bufferContainsReadData) {
-					return buffer;
-				} else if (readCount < 0) {
+				if (readCount < 0) {
 					return null;
                 }
                 buf.flip();
@@ -103,10 +99,14 @@ public class FileReader implements Reader {
             if(nextChar == ','){
                 fieldIndex++;
             }else if(nextChar=='\n') {
-                break;
+				// Ignore blank lines with no data.
+				if (fieldIndex == 0) {
+					return read();
+				} else {
+					break;
+				}
             }else{
                 buffer[fieldIndex].addCharacter((char)nextChar);
-				bufferContainsReadData = true;
             }
         }
         return buffer;
@@ -134,5 +134,12 @@ public class FileReader implements Reader {
         System.out.println(num);
 
     }
+
+	@Override
+	public void close() throws IOException {
+		if (channel != null && channel.isOpen()) {
+			channel.close();
+		}
+	}
 
 }

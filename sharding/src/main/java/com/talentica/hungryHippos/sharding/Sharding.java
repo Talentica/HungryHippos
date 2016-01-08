@@ -195,7 +195,11 @@ public class Sharding {
 				Node mostEmptyNode = fillupQueue.poll();
 				if (!nodesForKeyCombination.contains(mostEmptyNode)) {
 					nodesForKeyCombination.add(mostEmptyNode);
-					mostEmptyNode.fillUpBy(keyCombinationFrequencyMap.get(source));
+					Long value = keyCombinationFrequencyMap.get(source);
+					if (value == null) {
+						value = 0l;
+					}
+					mostEmptyNode.fillUpBy(value);
 					numberOfIntersectionStorage--;
 				}
 				nodesToPutBack.add(mostEmptyNode);

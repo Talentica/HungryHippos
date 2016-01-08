@@ -7,6 +7,7 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 import java.io.*;
 import java.net.Socket;
@@ -82,7 +83,7 @@ public class DataSenderFromTextUniqueCount {
 
 
 
-        com.talentica.hungryHippos.utility.marshaling.FileReader
+        Reader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(args[0]);
         input.setNumFields(9);
         input.setMaxsize(25);
@@ -91,7 +92,7 @@ public class DataSenderFromTextUniqueCount {
         long timeForLookup = 0;
 
         while(true){
-            MutableCharArrayString[] parts = input.readCommaSeparated();
+            MutableCharArrayString[] parts = input.read();
             if(parts == null){
                 break;
             }

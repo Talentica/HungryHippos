@@ -37,7 +37,7 @@ public class JobManager {
 	//static String configPath;
 	NodesManager nodesManager;
 	private Map<String, Map<Object, Node>> keyValueNodeNumberMap;
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private List<Job> jobList = new ArrayList<Job>();
 	
 	
@@ -108,10 +108,7 @@ public class JobManager {
 			LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
 			executeJobsOnNodes();
 			LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
-			
-		
 	}
-	
 	
 	/**
 	 * It will schedule the task manager for each NODES though ZK.

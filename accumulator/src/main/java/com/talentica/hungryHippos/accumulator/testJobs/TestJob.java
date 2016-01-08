@@ -53,9 +53,8 @@ public class TestJob implements Job,Serializable{
 	}
 	
 	@Override
-	public long getMemory(int rowCount) {
-		// TODO Auto-generated method stub
-		return 0;
+	public long getMemoryFootprint(int rowCount) {
+		return 10*rowCount;
 	}
 
 }

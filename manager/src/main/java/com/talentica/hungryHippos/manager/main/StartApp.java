@@ -34,13 +34,13 @@ public class StartApp {
 		LOGGER.info("SHARDING STARTED.....");
 		Sharding.doSharding(getInputReaderForSharding(), NO_OF_NODES); // do the
 		LOGGER.info("SHARDING DONE!!");
-		createJobs();
+		createJobMatrix();
 		JobManager jobManager = new JobManager();
 		jobManager.addJobList(jobList);
 		jobManager.start();
 	}
 	
-	private static void createJobs(){
+	private static void createJobMatrix(){
 		int jobId = 0;
 		for(int i=0;i<3;i++){
 			jobList.add(new TestJob(new int[]{i}, i, 6,jobId++));
@@ -64,5 +64,4 @@ public class StartApp {
 		fileReader.setMaxsize(25);
 		return fileReader;
 	}
-
 }

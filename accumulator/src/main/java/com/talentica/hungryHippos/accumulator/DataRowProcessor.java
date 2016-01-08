@@ -75,7 +75,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	@Override
 	public void incrRowCount() {
-		this.jobEntity.increRowCount();
+		this.jobEntity.incrRowCount();
 	}
 
 	@Override

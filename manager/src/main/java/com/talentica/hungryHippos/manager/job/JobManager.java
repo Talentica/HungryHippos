@@ -126,8 +126,11 @@ public class JobManager {
 			Map<Integer,JobEntity> jobIdJobEntityMap = getJobIdJobEntity(nodeId);
 			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId),nodesManager);
 			for (Integer jobIdKey : jobIdJobEntityMap.keySet()) {
-				JobEntity jobRowCount = jobIdJobEntityMap.get(jobIdKey);
-				nodeJobsService.addJobEntity(jobRowCount);
+				JobEntity jobEntity = jobIdJobEntityMap.get(jobIdKey);
+				nodeJobsService.addJobEntity(jobEntity);
+				int rowCount = jobEntity.getRowCount();
+				long memoryFootprint = jobEntity.getJob().getMemoryFootprint(rowCount);
+				LOGGER.info("NODE ID {}, JOB ID {} AND MEMORY FOOTPRINT {}",nodeId,jobEntity.getJob().getJobId(),memoryFootprint);
 			}
 			nodeJobsService.createNodeJobService();
 			nodeJobsService.scheduleTaskManager();

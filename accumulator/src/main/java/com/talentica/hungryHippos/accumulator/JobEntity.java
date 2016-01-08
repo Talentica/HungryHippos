@@ -17,7 +17,6 @@ public class JobEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private Job job;
 	private int rowCount = 0;
-	
 	public JobEntity(Job job){
 		this.job = job;
 	}
@@ -31,8 +30,7 @@ public class JobEntity implements Serializable {
 		return rowCount;
 	}
 	
-	public void increRowCount(){
+	public void incrRowCount(){
 		rowCount++;
 	}
-	
 }

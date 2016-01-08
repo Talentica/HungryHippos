@@ -9,5 +9,5 @@ public interface Job {
     int getPrimaryDimension();
     int getJobId();
     void status(String status);
-    long getMemory(int rowCount);
+    long getMemoryFootprint(int rowCount);
 }

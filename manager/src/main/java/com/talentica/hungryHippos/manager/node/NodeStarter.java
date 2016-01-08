@@ -49,7 +49,7 @@ import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
- * 
+ * NodeStarter will accept the sharded data and do various operations i.e row count per job and also execution of the aggregation of the data. 
  * 
  * Created by debasishc on 1/9/15.
  */
@@ -77,6 +77,13 @@ public class NodeStarter {
     }
     
     
+    /**
+     * It will open the port to accept the sharded data from client.
+     * 
+     * @param port
+     * @param nodeId
+     * @throws Exception
+     */
     private void startServer(int port,int nodeId) throws Exception {
     	LOGGER.info("Start the node");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -118,12 +125,14 @@ public class NodeStarter {
 			LOGGER.info("\n\tUnable to start the nodeManager");
 			return;
 		}
+		
 		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 		int nodeId = 0;
 		try {
 			nodeId = readNodeId();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.info("Unable to read the file for NODE ID. Exiting..");
+			return;
 		}
 		String server;
 		server = serverConfig.getFileData().getProperty("server." + nodeId);
@@ -150,6 +159,13 @@ public class NodeStarter {
 
 	}
 	
+	/**
+	 * Initialize the node.
+	 * 
+	 * @param nodesManager
+	 * @return
+	 * @throws Exception
+	 */
 	private static NodeStarter getNodeInitializer(NodesManager nodesManager) throws Exception{
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
@@ -157,30 +173,59 @@ public class NodeStarter {
         return new NodeStarter(ZKNodeName.keyValueNodeNumberMap, dataDescription,nodesManager);
     }
 	
+	
+	
+	/**
+	 * To run the jobs for aggregation or other operations.
+	 * 
+	 * @param jobRunner
+	 * @param signal
+	 * @return
+	 * @throws Exception
+	 */
 	private static boolean runJobMatrix(JobRunner jobRunner,CountDownLatch signal) throws Exception{
-    	LOGGER.info("Start the job runner matrix");
+    	LOGGER.info("STARTING JOB RUNNER MATRIX");
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			if(jobEntities.isEmpty()){
 				LOGGER.info("There is no jobs to run. Exiting.");
 				return false;
 			}
+			
 			jobRunner.clearJobList();
+			
 			for (JobEntity jobEntity : jobEntities) {
 				LOGGER.info("JOB ID :: {}",jobEntity.getJob().getJobId());
 				jobRunner.addJob(jobEntity.getJob());
 			}
+			
 			jobRunner.run();
 			signal.countDown();
 			return true;
    }
 	
-	private static void putJobStatisticsZknode(Map<Integer,JobEntity> jobIdRowCountMap) throws Exception{
-		ZKNodeFile jobIdMemoMapZkfile = new ZKNodeFile(
+	
+	
+	/**
+	 * To put the JOBs statistics i.e row count per job on, ZK NODE.
+	 * 
+	 * @param jobIdJobEntityMap
+	 * @throws Exception
+	 */
+	private static void putJobStatisticsZknode(Map<Integer,JobEntity> jobIdJobEntityMap) throws Exception{
+		ZKNodeFile jobIdJobEntityZkfile = new ZKNodeFile(
 				String.valueOf("_confnode"+NodeStarter.readNodeId()), null,
-				jobIdRowCountMap);
-		nodesManager.saveConfigFileToZNode(jobIdMemoMapZkfile);
+				jobIdJobEntityMap);
+		nodesManager.saveConfigFileToZNode(jobIdJobEntityZkfile);
 	}
 	
+	
+	
+	/**
+	 * To get the list of jobs from the ZK NODE for operation.
+	 * 
+	 * @return List<JobEntity>
+	 * @throws Exception
+	 */
 	private static List<JobEntity> getJobsFromZKNode() throws Exception{
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
@@ -209,6 +254,15 @@ public class NodeStarter {
 		return jobEntities;
 	}
 	
+	
+		
+	/**
+	 * Get the JobRunner instances from the ZK node to perform the various operations i.e row count and calculations.
+	 * 
+	 * @param nodeId
+	 * @return JobRunner
+	 * @throws InterruptedException
+	 */
 	private static JobRunner getJobRunnerFromZKnode(int nodeId) throws InterruptedException{
 		ZKNodeFile zkNodeFile = null;
 		while(zkNodeFile == null){

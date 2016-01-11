@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +31,15 @@ public class Property{
 			try {
 				prop = new Properties();
 				if(CONFIG_FILE != null){
-					LOGGER.info("\n\tExternal configuration properties file is loaded");
+					LOGGER.info("External configuration properties file is loaded");
 				 prop.load(CONFIG_FILE) ;
 				 }else{
-					 LOGGER.info("\n\tInternal configuration properties file is loaded");
+					 LOGGER.info("Internal configuration properties file is loaded");
 					 CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
 					prop.load(CONFIG_FILE) ;
 				}
 				PropertyConfigurator.configure(prop);
-				LOGGER.info("\n\t Property file is loaded!!");
+				LOGGER.info("Property file is loaded!!");
 				loadLoggerSetting(); //load logger file
 			} catch (IOException e) {
 				LOGGER.info("Unable to load the property file!!");
@@ -51,9 +53,9 @@ public class Property{
 		try {
 			prop.load(loader.getResourceAsStream(LOG_PROP_FILE));
 			PropertyConfigurator.configure(prop);
-			LOGGER.info("\n\tlog4j.properties file is loaded");
+			LOGGER.info("log4j.properties file is loaded");
 		} catch (IOException e) {
-			LOGGER.warn("\n\tUnable to load log4j.properties file");
+			LOGGER.warn("Unable to load log4j.properties file");
 		}
 	}
 	
@@ -63,9 +65,9 @@ public class Property{
 			try {
 				serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
 				PropertyConfigurator.configure(serverProp);
-				LOGGER.info("\n\tserverConfigFile.properties file is loaded");
+				LOGGER.info("serverConfigFile.properties file is loaded");
 			} catch (IOException e) {
-				LOGGER.warn("\n\tUnable to load serverConfigFile.properties file");
+				LOGGER.warn("Unable to load serverConfigFile.properties file");
 			}
 		}
 		return serverProp;

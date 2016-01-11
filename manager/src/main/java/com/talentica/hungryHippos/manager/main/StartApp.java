@@ -3,6 +3,7 @@
  */
 package com.talentica.hungryHippos.manager.main;
 
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
 import com.talentica.hungryHippos.manager.job.JobManager;
 import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.utility.Property;
 
 /**
  * @author PooshanS
@@ -27,7 +29,12 @@ public class StartApp {
 	private static List<Job> jobList = new ArrayList<>();
 	
 	public static void main(String[] args) throws Exception {
-		LOGGER.info("SHARDING STARTED.....");
+		if (args.length == 0) {
+			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
+		} else if (args.length == 1) {
+			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
+		}
+		//Sharding started
 		Sharding.doSharding();  
 		LOGGER.info("SHARDING DONE!!");
 		

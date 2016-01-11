@@ -1,16 +1,17 @@
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-
-
-
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.marshaling.DataDescription;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Created by debasishc on 26/8/15.
@@ -26,7 +27,7 @@ public class NodeDataStoreIdCalculator implements Serializable{
     private final Set<Object>[] keyWiseAcceptingValues;
     private final String[] keys;
     private final DynamicMarshal dynamicMarshal;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class.getName());
     public NodeDataStoreIdCalculator(
             Map<String, Map<Object, Node>> keyValueNodeNumberMap, int thisNode, DataDescription dataDescription) {
         this.keyValueNodeNumberMap = keyValueNodeNumberMap;
@@ -44,7 +45,7 @@ public class NodeDataStoreIdCalculator implements Serializable{
                 }
             }
             keyWiseAcceptingValues[i]=objs;
-            System.out.println(keyWiseAcceptingValues[i]);
+            LOGGER.info("keyWiseAcceptingValues :: "+keyWiseAcceptingValues[i]);
         }
 
     }

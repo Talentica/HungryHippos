@@ -663,7 +663,6 @@ public class NodesManager implements Watcher {
 				System.out.println("\n STAT = " + stat);
 				if(stat == null){
 					zk.exists(nodePath, this,ZKUtils.checkPathExistsStatusAsync(signal),nodePath);
-					System.out.println("\n STAT = " + stat);
 					}
 					if(signal != null) signal.countDown();
 			}

@@ -25,7 +25,7 @@ import com.talentica.hungryHippos.utility.marshaling.Reader;
  * Created by debasishc on 14/8/15.
  */
 public class Sharding {
-
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(Sharding.class);
 
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
@@ -52,6 +52,7 @@ public class Sharding {
 	}
 
 	public static void doSharding(Reader input, int noOfNodes) {
+		LOGGER.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(noOfNodes);
 		try {
 			sharding.populateFrequencyFromData(input);
@@ -162,7 +163,6 @@ public class Sharding {
 	}
 
 	public void shardAllKeys() throws NodeOverflowException {
-
 		for (String key : keyValueFrequencyMap.keySet()) {
 			System.out.println("Sharding on key: " + key);
 			shardSingleKey(key);
@@ -225,7 +225,7 @@ public class Sharding {
 	}
 
 	private void dumpKeyValueNodeNumberMap(String file) throws IOException {
-
+		LOGGER.info("Dumping keyValueNodeNumberMap");
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
 			out.writeObject(keyValueNodeNumberMap);
@@ -234,7 +234,7 @@ public class Sharding {
 	}
 
 	private void dumpKeyKeyCombinationNodeMap(String file) throws IOException {
-
+		LOGGER.info("Dumping keyCombinationNodeMap");
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
 			out.writeObject(keyCombinationNodeMap);

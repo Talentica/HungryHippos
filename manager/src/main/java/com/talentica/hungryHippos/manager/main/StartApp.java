@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.manager.main;
 
 import java.io.IOException;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +32,12 @@ public class StartApp {
 	private final static int NO_OF_NODES = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 
 	public static void main(String[] args) throws Exception {
-		LOGGER.info("SHARDING STARTED.....");
-		Sharding.doSharding(getInputReaderForSharding(), NO_OF_NODES); // do the
+		if (args.length == 0) {
+			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
+		} else if (args.length == 1) {
+			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
+		}
+		//Sharding started
 		LOGGER.info("SHARDING DONE!!");
 		createJobMatrix();
 		JobManager jobManager = new JobManager();

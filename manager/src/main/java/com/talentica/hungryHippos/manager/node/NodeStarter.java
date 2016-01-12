@@ -69,6 +69,11 @@ public class NodeStarter {
     }
     
     
+    /**
+     * Read the file nodeId which contains nodeId value.
+     * @return NodeId
+     * @throws Exception
+     */
     @SuppressWarnings("resource")
 	public static int readNodeId() throws Exception{
         BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+nodeIdFile)));
@@ -106,7 +111,7 @@ public class NodeStarter {
                     ch.pipeline().addLast(new DataReadHandler(dataDescription, dataStore));                    
                 }
             });
-            System.out.println("binding to port "+port);
+            LOGGER.info("binding to port "+port);
             ChannelFuture f = b.bind(port).sync();
             f.channel().closeFuture().sync();
             LOGGER.info("Wait until the connection is closed");

@@ -3,10 +3,12 @@ package com.talentica.hungryHippos.accumulator;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +36,8 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
  * Created by debasishc on 24/9/15.
  */
 public class DataProvider {
+	
+	private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE=10;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
     private static String[] loadServers(NodesManager nodesManager) throws Exception{
@@ -80,21 +84,12 @@ public class DataProvider {
 
         OutputStream[] targets = new OutputStream[servers.length];
         LOGGER.info("***CREATE SOCKET CONNECTIONS***");
-        int k = 0;
-        for(int i=0;i<targets.length;i++){
-        	i = i-k;
-        	k = 0; 
-        	String server = servers[i];
-        	try{           
-            Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
-            targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
-        	}catch(ConnectException cex){
-        		LOGGER.warn("Connection could not get established. Please start the node {}",server.split(":")[0].trim());
-        		k = 1;
-        		Thread.sleep(2000);
-        	}
-        }
-
+        
+		for (int i = 0; i < servers.length; i++) {
+			String server = servers[i];
+			Socket socket= connectToServer(server,NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+			targets[i] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
+		}
 
         LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
         Reader
@@ -165,4 +160,23 @@ public class DataProvider {
 
     
     }
+
+	static Socket connectToServer(String server,int numberOfAttempts)
+			throws UnknownHostException, IOException, InterruptedException {
+		int tryCount = 0;
+		while (true) {
+			try {
+				tryCount++;
+				Socket socket = new Socket(server.split(":")[0].trim(), Integer.valueOf(server.split(":")[1].trim()));
+				return socket;
+			} catch (ConnectException cex) {
+				if (tryCount >= numberOfAttempts) {
+					throw cex;
+				}
+				LOGGER.warn("Connection could not get established. Please start the node {}",
+						server.split(":")[0].trim());
+				Thread.sleep(5000);
+			}
+		}
+	}
 }

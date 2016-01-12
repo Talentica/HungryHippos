@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.accumulator.reader.utils;
+package com.talentica.hungryHippos.utility.reader;
 
 import java.io.File;
 import java.io.FileInputStream;

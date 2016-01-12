@@ -3,12 +3,9 @@ package com.talentica.hungryHippos.accumulator;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +26,7 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
+import com.talentica.hungryHippos.utility.server.ServerUtils;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
@@ -87,7 +85,7 @@ public class DataProvider {
         
 		for (int i = 0; i < servers.length; i++) {
 			String server = servers[i];
-			Socket socket= connectToServer(server,NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+			Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
 			targets[i] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
 		}
 
@@ -161,22 +159,5 @@ public class DataProvider {
     
     }
 
-	static Socket connectToServer(String server,int numberOfAttempts)
-			throws UnknownHostException, IOException, InterruptedException {
-		int tryCount = 0;
-		while (true) {
-			try {
-				tryCount++;
-				Socket socket = new Socket(server.split(":")[0].trim(), Integer.valueOf(server.split(":")[1].trim()));
-				return socket;
-			} catch (ConnectException cex) {
-				if (tryCount >= numberOfAttempts) {
-					throw cex;
-				}
-				LOGGER.warn("Connection could not get established. Please start the node {}",
-						server.split(":")[0].trim());
-				Thread.sleep(5000);
-			}
-		}
-	}
+
 }

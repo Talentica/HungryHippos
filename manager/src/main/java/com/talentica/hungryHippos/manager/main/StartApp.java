@@ -3,8 +3,8 @@
  */
 package com.talentica.hungryHippos.manager.main;
 
-import java.io.IOException;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +29,6 @@ public class StartApp {
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartApp.class.getName());
 	private static List<Job> jobList = new ArrayList<>();
-	private final static int NO_OF_NODES = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 
 	public static void main(String[] args) throws Exception {
 		if (args.length == 0) {
@@ -37,7 +36,9 @@ public class StartApp {
 		} else if (args.length == 1) {
 			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
 		}
-		//Sharding started
+		LOGGER.info("SHARDING STARTED");
+		Sharding.doSharding(getInputReaderForSharding());
+		
 		LOGGER.info("SHARDING DONE!!");
 		createJobMatrix();
 		JobManager jobManager = new JobManager();

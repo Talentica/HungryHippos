@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 
@@ -51,9 +52,9 @@ public class Sharding {
 		}
 	}
 
-	public static void doSharding(Reader input, int noOfNodes) {
+	public static void doSharding(Reader input) {
 		LOGGER.info("SHARDING STARTED");
-		Sharding sharding = new Sharding(noOfNodes);
+		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
 			sharding.shardAllKeys();

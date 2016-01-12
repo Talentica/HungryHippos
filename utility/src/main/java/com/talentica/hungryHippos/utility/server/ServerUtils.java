@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.manager.node;
+package com.talentica.hungryHippos.utility.server;
 
 /**
  * 
@@ -6,7 +6,10 @@ package com.talentica.hungryHippos.manager.node;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -22,13 +25,13 @@ import com.talentica.hungryHippos.utility.Property;
  * @author PooshanS
  *
  */
-public class ServerPing {
+public class ServerUtils {
 	private static final String LOG_PROP_FILE = "log4j.properties";
-	private static ClassLoader loader = ServerPing.class.getClassLoader();
+	private static ClassLoader loader = ServerUtils.class.getClassLoader();
 	static{
 		   Property.CONFIG_FILE = loader.getResourceAsStream(LOG_PROP_FILE);
 	   }
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPing.class
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerUtils.class
 			.getName());
 	private static final String LINUX_IP_COMMAND = "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'";
    	
@@ -38,7 +41,7 @@ public class ServerPing {
 		if (args.length != 1) {
 			LOGGER.info("Please provide argument PORT and config.properties");
 		} else {
-			String IP = new ServerPing().getLocalIP(LINUX_IP_COMMAND);
+			String IP = new ServerUtils().getLocalIP(LINUX_IP_COMMAND);
 			LOGGER.info("IP :: " + IP);
 			Integer PORT = Integer.valueOf(args[0]);
 			Property.getProperties();
@@ -105,5 +108,24 @@ public class ServerPing {
 
 		return output.toString();
 
+	}
+
+	public static Socket connectToServer(String server, int numberOfAttempts)
+			throws UnknownHostException, IOException, InterruptedException {
+		int tryCount = 0;
+		while (true) {
+			try {
+				tryCount++;
+				Socket socket = new Socket(server.split(":")[0].trim(), Integer.valueOf(server.split(":")[1].trim()));
+				return socket;
+			} catch (ConnectException cex) {
+				if (tryCount >= numberOfAttempts) {
+					throw cex;
+				}
+				LOGGER.warn("Connection could not get established. Please start the node {}",
+						server.split(":")[0].trim());
+				Thread.sleep(5000);
+			}
+		}
 	}
 }

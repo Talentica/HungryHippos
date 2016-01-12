@@ -40,7 +40,6 @@ public class JobManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private List<Job> jobList = new ArrayList<Job>();
 	
-	
 	private Map<Integer,Map<Integer,JobEntity>> nodeJobIdRowCountMap = new HashMap<Integer, Map<Integer,JobEntity>>();
 	
 	public Map<Integer,Map<Integer,JobEntity>> getNodeJobIdRowCountMap(){
@@ -149,12 +148,11 @@ public class JobManager {
 	 * @throws KeeperException
 	 */
 	private void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException{
-		int totalNods = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
+		
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-        
-		for (int nodeId = 0; nodeId < totalNods; nodeId++) {
+		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
 			int totalDimensions = Integer.valueOf(Property.getProperties()
@@ -170,8 +168,6 @@ public class JobManager {
 
 		}
 	}
-	
-	
 	
 	/**
 	 * Get NodeId and Node Map.

@@ -13,6 +13,7 @@ public class SerializedFileReader {
 		if (args.length != 2) {
 			System.out.println(
 					"Usage pattern: java -jar <jar name> <input file path> <readable output file path> e.g. java -jar Utility.jar ./serialized_data_0 ./readable_data_0");
+			System.exit(0);
 		}
 		File dataFile = new File(args[0]);
 		FileInputStream fileInputStream = new FileInputStream(dataFile);

@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.storage.util;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -40,8 +39,15 @@ public class NodeDataFileReader {
 		FileWriter fileWriter = new FileWriter(readableDataFile);
 		try {
 			DynamicMarshal dynamicMarshal = getDynamicMarshal();
+			int noOfBytesInOneDataSet = dataDescription.getSize();
+			long fileLength = dataFile.length();
+			long bytesRead = 0;
 			while (true) {
-				byte[] bytes = new byte[dataDescription.getSize()];
+				if (bytesRead >= fileLength) {
+					break;
+				}
+				byte[] bytes = new byte[noOfBytesInOneDataSet];
+				bytesRead = bytesRead + noOfBytesInOneDataSet;
 				dataInputStream.readFully(bytes);
 				ByteBuffer buffer = ByteBuffer.wrap(bytes);
 				for (int index = 0; index < 9; index++) {
@@ -53,13 +59,12 @@ public class NodeDataFileReader {
 				}
 				fileWriter.write("\n");
 			}
-		} catch (EOFException eofFileException) {
-			LOGGER.debug("Ignoring when end of file is reached.");
 		} finally {
 			fileWriter.flush();
 			fileWriter.close();
 			fileInputStream.close();
 		}
+		LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
 	}
 
 	private static DynamicMarshal getDynamicMarshal() {

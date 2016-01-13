@@ -10,7 +10,6 @@ ext {
 
 }
 
-apply plugin: 'com.google.protobuf'
 buildscript {
   repositories {
     maven { url "http://repo.spring.io/plugins-release" }
@@ -81,7 +80,6 @@ allprojects {
 
 
   }
-generatedFileDir = "src/main/java"
 
 
 

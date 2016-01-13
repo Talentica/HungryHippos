@@ -16,7 +16,7 @@ public class FileReader implements Reader {
     //65536*8
     ByteBuffer buf= ByteBuffer.allocate(65536);
     FileChannel channel;
-    int readCount = 0;
+	int readCount = -1;
 
     @SuppressWarnings("resource")
 	public FileReader(String filename) throws IOException {
@@ -88,8 +88,11 @@ public class FileReader implements Reader {
         while(true){
             if(readCount<=0){
                 buf.clear();
+				int reducedReadCount = readCount;
                 readCount = channel.read(buf);
-				if (readCount < 0) {
+				if (reducedReadCount == 0 && fieldIndex != 0) {
+					return buffer;
+				} else if (readCount < 0) {
 					return null;
                 }
                 buf.flip();

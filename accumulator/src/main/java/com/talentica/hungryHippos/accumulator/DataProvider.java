@@ -101,6 +101,7 @@ public class DataProvider {
         while(true){
             MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
             MutableCharArrayString key1 = parts[0];

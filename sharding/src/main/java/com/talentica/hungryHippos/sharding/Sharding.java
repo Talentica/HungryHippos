@@ -74,6 +74,7 @@ public class Sharding {
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {
+				data.close();
 				break;
 			}
 

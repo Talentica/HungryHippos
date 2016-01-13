@@ -122,6 +122,7 @@ public class FileReader implements Reader {
             MutableCharArrayString[] val = reader.read();
 
             if(val == null){
+				reader.close();
                 break;
             }
 

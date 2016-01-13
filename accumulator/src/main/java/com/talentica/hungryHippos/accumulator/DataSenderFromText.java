@@ -104,6 +104,7 @@ public class DataSenderFromText {
         while(true){
             MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
 

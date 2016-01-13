@@ -1,5 +1,19 @@
 package com.talentica.hungryHippos.accumulator;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -8,14 +22,6 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
-
-import java.io.*;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by debasishc on 12/10/15.
@@ -94,6 +100,7 @@ public class DataSenderFromTextUniqueCount {
         while(true){
             MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
 

@@ -36,7 +36,7 @@ public class FileReaderTest {
 			Assert.assertNotEquals(0, data[0].length());
 			numberOfLines++;
 		}
-		Assert.assertEquals(30, numberOfLines);
+		Assert.assertEquals(1000000, numberOfLines);
 	}
 
 	@Test

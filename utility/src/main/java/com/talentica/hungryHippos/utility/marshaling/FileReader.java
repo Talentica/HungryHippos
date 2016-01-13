@@ -90,7 +90,7 @@ public class FileReader implements Reader {
                 buf.clear();
 				int reducedReadCount = readCount;
                 readCount = channel.read(buf);
-				if (reducedReadCount == 0 && fieldIndex != 0) {
+				if (reducedReadCount == 0 && fieldIndex == numfields) {
 					return buffer;
 				} else if (readCount < 0) {
 					return null;

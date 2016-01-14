@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.SerializationUtils;
 
@@ -30,10 +33,38 @@ public class SerializedFileReader {
 		File readableDataFile = new File(args[1]);
 		FileWriter fileWriter = new FileWriter(readableDataFile);
 		if (deserializedObject != null) {
-			fileWriter.write(deserializedObject.toString().toString());
+			if (deserializedObject instanceof Map) {
+				fileWriter.write(getFormattedString((Map) deserializedObject, 1));
+			} else {
+				fileWriter.write(deserializedObject.toString());
+			}
 		}
 		fileWriter.flush();
 		fileWriter.close();
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static String getFormattedString(Map map, int startingFromDepth) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<Entry> iter = map.entrySet().iterator();
+		while (iter.hasNext()) {
+			Entry entry = iter.next();
+			sb.append("\n");
+			for (int i = 0; i < startingFromDepth; i++) {
+				sb.append("\t");
+			}
+			sb.append(entry.getKey());
+			if (entry.getValue() instanceof Map) {
+				startingFromDepth++;
+				String mapValueFormattedAsString = getFormattedString((Map) entry.getValue(), startingFromDepth);
+				startingFromDepth--;
+				sb.append(mapValueFormattedAsString);
+			} else {
+				sb.append("\t" + entry.getValue());
+			}
+		}
+		return sb.toString();
+
 	}
 
 }

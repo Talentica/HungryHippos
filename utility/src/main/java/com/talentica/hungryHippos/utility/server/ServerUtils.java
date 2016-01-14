@@ -88,26 +88,17 @@ public class ServerUtils {
 		serverChannel.close();
 	}
 	
-	private String getLocalIP(String command) {
-		System.out.println(command.toString());
+	private String getLocalIP(String command) throws IOException, InterruptedException {
+		LOGGER.info("Executing command: {}", command.toString());
 		StringBuffer output = new StringBuffer();
-
-		Process p;
-		try {
-			p = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
-			p.waitFor();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                        String line = "";			
-			while ((line = reader.readLine())!= null) {
-				output.append(line + "\n");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		Process p = Runtime.getRuntime().exec(new String[] { "sh", "-c", command });
+		p.waitFor();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line = "";
+		while ((line = reader.readLine()) != null) {
+			output.append(line + "\n");
 		}
-
 		return output.toString();
-
 	}
 
 	public static Socket connectToServer(String server, int numberOfAttempts)

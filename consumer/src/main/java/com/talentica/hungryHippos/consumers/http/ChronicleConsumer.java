@@ -1,11 +1,14 @@
 package com.talentica.hungryHippos.consumers.http;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.openhft.chronicle.Chronicle;
 import net.openhft.chronicle.ChronicleQueueBuilder;
 import net.openhft.chronicle.ExcerptTailer;
 import net.openhft.lang.model.DataValueClasses;
-
-import java.io.IOException;
 
 /**
  * Created by abhinavn on 10/6/15.
@@ -13,13 +16,16 @@ import java.io.IOException;
 public class ChronicleConsumer {
 
     final String path = "/tmp/direct-instance";
+    
+    private static final Logger LOGGER=LoggerFactory.getLogger(ChronicleConsumer.class);
+    
     static Chronicle chronicle = null;
 
     {
         try {
             chronicle = ChronicleQueueBuilder.vanilla(path).build();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Error occurred while initializing.",e);;
         }
     }
 
@@ -45,17 +51,13 @@ public class ChronicleConsumer {
 
 
     private void doWork() {
-        int i=0;
         while (tailer.nextIndex()) {
-            i++;
             final LongEventInterface j = DataValueClasses.newDirectReference(LongEventInterface.class);
             j.bytes(tailer, 0);
-            final String s = j.getOwner();
-//            System.out.println(i);
-           System.out.println(s);
+			j.getOwner();
             tailer.finish();
         }
-        System.out.println("DOne");
+        LOGGER.info("Done with work.");
     }
 
 

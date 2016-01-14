@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.accumulator.testJobs.TestJobUniqueCount;
 import com.talentica.hungryHippos.node.NodeInitializer;
 import com.talentica.hungryHippos.sharding.Node;
@@ -18,6 +21,9 @@ import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescripti
  * Created by debasishc on 12/10/15.
  */
 public class DataReaderForUniqueCount {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(DataReaderForUniqueCount.class);
+
     private static Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
 
 
@@ -38,20 +44,14 @@ public class DataReaderForUniqueCount {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyValueNodeNumberMap"))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
-            // System.out.println(keyValueNodeNumberMap);
         } catch (Exception e) {
-            e.printStackTrace();
+			LOGGER.error("Error occurred while reading keyValueNodeNumberMap file.", e);
         }
-
 
         NodeDataStoreIdCalculator nodeDataStoreIdCalculator
                 = new NodeDataStoreIdCalculator(keyValueNodeNumberMap, NodeInitializer.readNodeId(),dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
-
-        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, keyValueNodeNumberMap);
-        //jobRunner.addJob(new TestJob(new int[]{0,1}, 0, 6));
-        //jobRunner.addJob(new TestJob(new int[]{0,1}, 1, 6));
-        //jobRunner.addJob(new TestJob(new int[]{0}, 0, 6));
+        JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
         int numMetrix = 0;
         for(int i=0;i<3;i++){
             jobRunner.addJob(new TestJobUniqueCount(new int[]{i}, i, 6));

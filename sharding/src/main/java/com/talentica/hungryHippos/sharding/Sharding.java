@@ -74,6 +74,7 @@ public class Sharding {
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {
+				data.close();
 				break;
 			}
 
@@ -121,7 +122,6 @@ public class Sharding {
 				freqList.add(new KeyValueFrequency(fv.getKey(), fv.getValue()));
 			}
 		}
-		System.out.println(this.keyValueFrequencyMap);
 		return this.keyValueFrequencyMap;
 	}
 
@@ -165,7 +165,7 @@ public class Sharding {
 
 	public void shardAllKeys() throws NodeOverflowException {
 		for (String key : keyValueFrequencyMap.keySet()) {
-			System.out.println("Sharding on key: " + key);
+			LOGGER.info("Sharding on key: {}", key);
 			shardSingleKey(key);
 		}
 		List<String> keyNameList = new ArrayList<>();

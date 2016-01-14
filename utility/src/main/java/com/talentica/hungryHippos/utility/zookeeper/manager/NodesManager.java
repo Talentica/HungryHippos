@@ -656,20 +656,21 @@ public class NodesManager implements Watcher {
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	public void isNodeExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
-		 Stat stat = null;
-			try {
-				stat = zk.exists(nodePath, this);
-				System.out.println("\n STAT = " + stat);
-				if(stat == null){
-					zk.exists(nodePath, this,ZKUtils.checkPathExistsStatusAsync(signal),nodePath);
-					}
-					if(signal != null) signal.countDown();
+	public void isNodeExists(String nodePath, CountDownLatch signal) throws KeeperException, InterruptedException {
+		Stat stat = null;
+		try {
+			stat = zk.exists(nodePath, this);
+			LOGGER.info("STAT for node {}: {} ", new Object[] { nodePath, stat });
+			if (stat == null) {
+				zk.exists(nodePath, this, ZKUtils.checkPathExistsStatusAsync(signal), nodePath);
 			}
-			catch (KeeperException | InterruptedException e) {
-				LOGGER.info("Unable to delete node :: " + nodePath + " Exception is :: "+ e.getMessage());
-				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
-			}
+			if (signal != null)
+				signal.countDown();
+		} catch (KeeperException | InterruptedException e) {
+			LOGGER.error("Unable to delete node :: " + nodePath + " Exception is :: " + e.getMessage());
+			LOGGER.error(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+			throw e;
+		}
 	}
 	
 }

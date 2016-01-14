@@ -86,12 +86,9 @@ public class DataSenderFromText {
 
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
-            System.out.println(server);
             Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
-
-
 
         Reader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(inputFile);
@@ -107,7 +104,6 @@ public class DataSenderFromText {
 				input.close();
                 break;
             }
-
 
             MutableCharArrayString key1 = parts[0];
             MutableCharArrayString key2 = parts[1];
@@ -143,15 +139,12 @@ public class DataSenderFromText {
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
 
             //long endLookp =System.currentTimeMillis();
-            //System.out.println("Size of array :: " + targets.length);
+			// LOGGER.info("Size of array :: " + targets.length);
             //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
-            	//System.out.println("Node Id :: " + node.getNodeId());
+				// LOGGER.info("Node Id :: " + node.getNodeId());
                 targets[node.getNodeId()].write(buf);
             }
-
-
-
         }
 
         for(int j=0;j<targets.length;j++){
@@ -160,10 +153,8 @@ public class DataSenderFromText {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
-
-    
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
     }
 }

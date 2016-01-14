@@ -128,13 +128,10 @@ public class FileReader implements Reader {
 				reader.close();
                 break;
             }
-
-            //System.out.println(Arrays.toString(val));
             num++;
-
         }
         long endTime = System.currentTimeMillis();
-        System.out.println("Time Take: "+(endTime-startTime));
+		System.out.println("Time taken: " + (endTime - startTime));
         System.out.println(num);
 
     }

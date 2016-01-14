@@ -31,7 +31,6 @@ public class TestWork implements Work {
 
     @Override
     public void calculate(ExecutionContext executionContext) {
-        //System.out.print(Arrays.toString(dimensions)+" :: " + valueIndex + " :: ");
         executionContext.saveValue(valueIndex +" : "+value);
         //descriptiveStatistics.clear();
     }

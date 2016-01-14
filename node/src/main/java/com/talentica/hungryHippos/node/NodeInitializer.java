@@ -1,15 +1,6 @@
 package com.talentica.hungryHippos.node;
 
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -27,10 +21,21 @@ import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 /**
  * Created by debasishc on 1/9/15.
  */
 public class NodeInitializer {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(NodeInitializer.class);
 
     private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
@@ -42,9 +47,9 @@ public class NodeInitializer {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+keyValueNodeNumberMapFile))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
-            System.out.println(keyValueNodeNumberMap);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+			LOGGER.error("Error while reading keyValueNodeNumberMap object.", e);
+			;
         }
     }
     public static int readNodeId() throws Exception{
@@ -77,14 +82,8 @@ public class NodeInitializer {
                     ch.pipeline().addLast(new DataReadHandler(dataDescription, dataStore));
                 }
             });
-
-
-            System.out.println("binding to port "+port);
-            // Start the server.
+			LOGGER.info("Node listening on port {}", port);
             ChannelFuture f = b.bind(port).sync(); // (5)
-
-
-
             // Wait until the connection is closed.
             f.channel().closeFuture().sync();
         } finally {
@@ -103,9 +102,7 @@ public class NodeInitializer {
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
         dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-
         NodeInitializer initializer = new NodeInitializer("keyValueNodeNumberMap", dataDescription);
         initializer.startServer(2323, readNodeId());
     }

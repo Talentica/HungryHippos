@@ -16,11 +16,10 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class LeafBean implements Comparable<LeafBean>{
-	private final static Logger logger = LoggerFactory.getLogger(LeafBean.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(LeafBean.class);
     private String path;
     private String name;
     private Object value;
-    private String strValue;
 
     public LeafBean(String path, String name, byte[] value) throws ClassNotFoundException, IOException {
         super();
@@ -29,7 +28,7 @@ public class LeafBean implements Comparable<LeafBean>{
 		try {
 			this.value = ZKUtils.deserialize(value);
 		}catch(SerializationException ex){
-        	//System.out.println("Unable to serialize");
+			LOGGER.error("Unable to deserialize object with path:- {}", path);
         }
     }
 
@@ -61,13 +60,9 @@ public class LeafBean implements Comparable<LeafBean>{
         try {
             return new String(ZKUtils.serialize(this.value), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            logger.error(Arrays.toString(ex.getStackTrace()));
+            LOGGER.error(Arrays.toString(ex.getStackTrace()));
         }
         return null;
-    }
-
-    public void setStrValue(String strValue) {
-        this.strValue = strValue;
     }
 
     @Override

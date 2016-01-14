@@ -159,8 +159,7 @@ public class JobManager {
 					.getProperty("total.dimensions"));
 			FileDataStore dataStore = new FileDataStore(totalDimensions,
 					nodeDataStoreIdCalculator, dataDescription, true);
-			JobRunner jobRunner = new JobRunner(dataDescription, dataStore,
-					keyValueNodeNumberMap);
+			JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
 
 			putJobToRunner(jobRunner);
 

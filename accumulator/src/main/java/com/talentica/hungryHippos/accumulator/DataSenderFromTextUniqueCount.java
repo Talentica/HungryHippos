@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -27,6 +30,9 @@ import com.talentica.hungryHippos.utility.marshaling.Reader;
  * Created by debasishc on 12/10/15.
  */
 public class DataSenderFromTextUniqueCount {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataSenderFromTextUniqueCount.class);
+
     private static String serverConfigFile = "serverConfigFile";
 
     private static String[] loadServers() throws Exception{
@@ -73,7 +79,7 @@ public class DataSenderFromTextUniqueCount {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            //System.out.println(keyCombinationNodeMap);
+			// LOGGER.info(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -82,7 +88,7 @@ public class DataSenderFromTextUniqueCount {
 
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
-            System.out.println(server);
+			LOGGER.info(server);
             Socket socket = new Socket(server,8080);
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
@@ -155,9 +161,9 @@ public class DataSenderFromTextUniqueCount {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
 
     }
 }

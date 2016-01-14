@@ -9,7 +9,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
@@ -25,16 +24,14 @@ public class JobRunner implements Serializable{
 	 */
 	private static final long serialVersionUID = -4793614653018059851L;
 	List<Job> jobs= new LinkedList<>();
-    private Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
     private DataDescription dataDescription;
     private DataStore dataStore;
     private Map<Integer,JobEntity> jobIdJobEntityCount = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class.getName());
 
-    public JobRunner(DataDescription dataDescription, DataStore dataStore, Map<String,Map<Object, Node>> keyValueNodeNumberMap) {
+	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
         this.dataDescription = dataDescription;
         this.dataStore = dataStore;
-        this.keyValueNodeNumberMap = keyValueNodeNumberMap;
     }
 
     private Map<Integer,List<Job>> primaryDimJobsMap = new HashMap<>();
@@ -53,7 +50,6 @@ public class JobRunner implements Serializable{
     
 
     public void run(){
-            System.out.println(keyValueNodeNumberMap);
             DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
             List<RowProcessor> rowProcessors = new LinkedList<>();
             for(Integer primDim: primaryDimJobsMap.keySet()){

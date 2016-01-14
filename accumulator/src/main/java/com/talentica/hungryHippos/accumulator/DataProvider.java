@@ -119,8 +119,6 @@ public class DataProvider {
             keyValueMap.put("key2", key2);
             keyValueMap.put("key3", key3);
 
-            //long startEncoding = System.currentTimeMillis();
-
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);
             dynamicMarshal.writeValueString(1, key2, byteBuffer);
@@ -131,15 +129,7 @@ public class DataProvider {
             dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
             dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
             dynamicMarshal.writeValueString(8, key9, byteBuffer);
-            //long endEncoding = System.currentTimeMillis();
-            //timeForEncoding+=endEncoding-startEncoding;
-
-
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
-
-            //long endLookp =System.currentTimeMillis();
-            //System.out.println("Size of array :: " + targets.length);
-            //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
                 targets[node.getNodeId()].write(buf);
             }
@@ -153,11 +143,9 @@ public class DataProvider {
        
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
-
-    
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
     }
 
 

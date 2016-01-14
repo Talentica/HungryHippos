@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.accumulator.JobEntity;
 public class JobComparator implements Comparator<JobEntity>{
 	@Override
 	public int compare(JobEntity o1, JobEntity o2) {
-		return (int) (o1.getRowCount() - o2.getRowCount());
+		return (int) (o1.getJob().getJobId() - o2.getJob().getJobId());
 	}
 
 }

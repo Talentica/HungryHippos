@@ -19,6 +19,7 @@ public class TestJob implements Job,Serializable{
     protected int jobId;
     protected long dataSize;
     protected String status;
+    protected int workerId = 0;
     public TestJob(){}
     public TestJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
         this.dimensions = dimensions;
@@ -30,7 +31,7 @@ public class TestJob implements Job,Serializable{
 
     @Override
     public Work createNewWork() {
-        return new TestWork(dimensions,primaryDimension,valueIndex);
+        return new TestWork(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
     }
 
     @Override

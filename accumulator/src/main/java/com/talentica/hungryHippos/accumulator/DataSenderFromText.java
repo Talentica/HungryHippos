@@ -67,7 +67,7 @@ public class DataSenderFromText {
         dataDescription.addFieldType(DataLocator.DataType.STRING,4);
         dataDescription.addFieldType(DataLocator.DataType.STRING,4);
         dataDescription.addFieldType(DataLocator.DataType.STRING,4);
-        dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
+        dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0); 
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
         dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
 

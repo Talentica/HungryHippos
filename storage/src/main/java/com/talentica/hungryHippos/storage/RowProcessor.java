@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 public interface RowProcessor {
     void processRow(ByteBuffer row);
     void finishUp();
-    void incrRowCount();
     Object getJob();
     Object getJobEntity();
+    void processRowCount(ByteBuffer row);
 }

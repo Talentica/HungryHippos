@@ -12,9 +12,9 @@ import java.util.HashSet;
 public class TestWorkUniqueCount extends TestWork{
 
     HashSet<CharSequence> uniqueValues = new HashSet<>();
-
+    private static int workerId = 0;
     public TestWorkUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
-        super(dimensions,primaryDimension,valueIndex);
+        super(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
     }
 
 

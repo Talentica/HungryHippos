@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.accumulator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,12 +74,14 @@ public class JobRunner implements Serializable{
      * 
      * @return Map<Integer, JobEntity>
      */
-    public Map<Integer, JobEntity> getJobIdJobEntityMap(){
+    public List<JobEntity> getJobIdJobEntityMap(){
+    	 DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
+    	 List<JobEntity> jobEntities = new ArrayList<JobEntity>();
         List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){
             StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
             for(Job job:primaryDimJobsMap.get(primDim)) {
-                RowProcessor rowProcessor = new DataRowProcessor(job);
+                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,job);
                 storeAccess.addRowProcessor(rowProcessor);
                 rowProcessors.add(rowProcessor);
             }
@@ -86,13 +89,20 @@ public class JobRunner implements Serializable{
             for(RowProcessor processor : rowProcessors){
             	Job job = ((Job)processor.getJob());
             	JobEntity jobEntity = (JobEntity) processor.getJobEntity();
+            	if(jobEntity.getWorkerIdRowCountMap().size() == 0) continue;  // If no worker for job, just skip.
+            	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
+            	LOGGER.info("JOB ID {} AND TOTAL WORKERS {}",job.getJobId(),jobEntity.getWorkerIdRowCountMap().size());
+            	jobEntities.add(jobEntity);
+            	//LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());
+            	/*Job job = ((Job)processor.getJob());
+            	JobEntity jobEntity = (JobEntity) processor.getJobEntity();
             	if(jobEntity.getRowCount() == 0l) continue;
             	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
-            	LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());
+            	LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());*/
             }
             rowProcessors.clear();
         }
-        return jobIdJobEntityCount;
+        return jobEntities;
     }
     
     public List<Job> getJobs(){

@@ -37,7 +37,7 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
  */
 public class ZKUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZKUtils.class.getName());
-	private static final String ZK_ROOT_NODE = "/rootnode";
+	private static String ZK_ROOT_NODE = "/rootnode";
 	public static ZooKeeper zk;
 	public static NodesManager nodesManager;
 	
@@ -103,8 +103,10 @@ public class ZKUtils {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static Set<LeafBean> searchTree(String searchString, String authRole) throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
+    public static Set<LeafBean> searchTree(String searchString, String authRole,CountDownLatch signal) throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
+    	LOGGER.info("IN searchTree path {}",searchString);
         /*Export all nodes and then search.*/
+    	if(searchString.contains("/")) ZK_ROOT_NODE = searchString;
         Set<LeafBean> searchResult = new TreeSet<>();
         Set<LeafBean> leaves = new TreeSet<>();
         exportTreeInternal(leaves, ZK_ROOT_NODE, authRole);
@@ -113,6 +115,7 @@ public class ZKUtils {
                 searchResult.add(leaf);
             }
         }
+        if(signal != null) signal.countDown();
         return searchResult;
 
     }

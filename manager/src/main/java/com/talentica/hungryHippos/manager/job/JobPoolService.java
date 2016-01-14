@@ -53,7 +53,7 @@ public class JobPoolService implements JobPool{
 	public static Comparator<JobEntity> sizeComparator = new Comparator<JobEntity>(){        
         @Override
         public int compare(JobEntity jobEntity1, JobEntity jobEntity2) {
-            return (int) (jobEntity1.getRowCount() - jobEntity2.getRowCount());
+            return (int) (jobEntity1.getJob().getJobId() - jobEntity2.getJob().getJobId());
         }
     };
 

@@ -476,12 +476,14 @@ public class NodesManager implements Watcher {
 		return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.FORWARD_SLASH + serverHostname;
 		}
 	    
-	    protected String buildConfigPath(String fileName){
-	    	return zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.FORWARD_SLASH + fileName;
+	    public String buildConfigPath(String fileName){
+	    	String buildPath = zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.FORWARD_SLASH + fileName;
+	    	LOGGER.info("BUILD PATH IS {}",buildPath);
+	    	return buildPath;
 	    }
 	    
 	public String buildPathNode(String parentNode) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
-		Set<LeafBean> beans = ZKUtils.searchTree(parentNode, null);
+		Set<LeafBean> beans = ZKUtils.searchTree(parentNode, null,null);
 		String path = "";
 		for(LeafBean bean : beans){
 			if(bean.getName().equalsIgnoreCase(parentNode)){
@@ -583,8 +585,8 @@ public class NodesManager implements Watcher {
 	 * @param file
 	 * @throws IOException
 	 */
-	public void saveConfigFileToZNode(ZKNodeFile file) throws IOException {
-		createNode(buildConfigPath(file.getFileName()),null,
+	public void saveConfigFileToZNode(ZKNodeFile file , CountDownLatch signal) throws IOException {
+		createNode(buildConfigPath(file.getFileName()),signal,
 				file);
 	}
 	
@@ -660,14 +662,27 @@ public class NodesManager implements Watcher {
 		 Stat stat = null;
 			try {
 				stat = zk.exists(nodePath, this);
-				System.out.println("\n STAT = " + stat);
-				if(stat == null){
+				while(stat == null){
+					stat = zk.exists(nodePath, this);
+				}
+				if(signal != null) {
+					LOGGER.info("ZK PATH {} EXISTS",nodePath);
+					signal.countDown();
+					return;
+				}
+				/*if(stat == null){
 					zk.exists(nodePath, this,ZKUtils.checkPathExistsStatusAsync(signal),nodePath);
 					}
-					if(signal != null) signal.countDown();
+				   
+					if(signal != null) {
+						LOGGER.info("ZK PATH {} EXISTS",nodePath);
+						signal.countDown();
+						return;
+					}*/
+					
 			}
 			catch (KeeperException | InterruptedException e) {
-				LOGGER.info("Unable to delete node :: " + nodePath + " Exception is :: "+ e.getMessage());
+				LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: "+ e.getMessage());
 				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
 			}
 	}

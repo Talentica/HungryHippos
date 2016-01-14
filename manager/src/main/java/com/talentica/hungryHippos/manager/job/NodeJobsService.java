@@ -57,7 +57,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 		TaskManager taskManager = new TaskManager(this.poolCapacity);
 		taskManager.setNode(this.node);
 		for (JobEntity jobEntity : this.jobEntityList) {
-			LOGGER.info("JOB ID : {} And RowCount {}",jobEntity.getJob().getJobId(),jobEntity.getRowCount());
+			//LOGGER.info("JOB ID : {} And WORKER ID'S {}",jobEntity.getJob().getJobId(),jobEntity.getWorkerIdRowCountMap().keySet());
 			jobEntity.getJob().status(JobPool.status.POOLED.name());
 			taskManager.getJobPoolService().addJobEntity(jobEntity);
 		}
@@ -108,7 +108,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 	public Set<LeafBean> receiveJobSucceedNotificationFromNode() throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
 		Set<LeafBean> jobLeafs = new HashSet<>();
 		String buildpath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null);
+		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null,null);
 		for(LeafBean leaf : leafs){
 			if(leaf.getPath().contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())){
 				LeafBean jobBean = ZKUtils.getNodeValue(leaf.getPath(),leaf.getPath() + PathUtil.FORWARD_SLASH + leaf.getName(),leaf.getName(), null);

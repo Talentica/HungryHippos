@@ -50,11 +50,6 @@ public class TestRowProcessor implements RowProcessor {
 		return null;
 	}*/
 
-	@Override
-	public void incrRowCount() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public Object getJob() {
@@ -72,5 +67,11 @@ public class TestRowProcessor implements RowProcessor {
 	public Object getJobEntity() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void processRowCount(ByteBuffer row) {
+		// TODO Auto-generated method stub
+		
 	}
 }

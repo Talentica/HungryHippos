@@ -15,8 +15,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,9 +149,9 @@ public class NodeStarter {
 			LOGGER.info("Start Node initialize");
 			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
 			JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
-			Map<Integer,JobEntity> jobIdRowCountMap = jobRunner.getJobIdJobEntityMap();
-			
-			putJobStatisticsZknode(jobIdRowCountMap);
+			List<JobEntity> jobEntities = jobRunner.getJobIdJobEntityMap();
+			dumpJobEntityMap("jobEntities",jobEntities);
+			putJobStatisticsZknode(jobEntities);
 			
 			boolean flag = runJobMatrix(jobRunner, signal);
 			
@@ -216,11 +218,19 @@ public class NodeStarter {
 	 * @param jobIdJobEntityMap
 	 * @throws Exception
 	 */
-	private static void putJobStatisticsZknode(Map<Integer,JobEntity> jobIdJobEntityMap) throws Exception{
-		ZKNodeFile jobIdJobEntityZkfile = new ZKNodeFile(
-				String.valueOf("_confnode"+NodeStarter.readNodeId()), null,
-				jobIdJobEntityMap);
-		nodesManager.saveConfigFileToZNode(jobIdJobEntityZkfile);
+	private static void putJobStatisticsZknode(List<JobEntity> jobEntities)
+			throws Exception {
+		CountDownLatch signal = new CountDownLatch(jobEntities.size());
+		for (JobEntity jobEntity : jobEntities) {
+			ZKNodeFile jobEntitiesZkfile = new ZKNodeFile(
+					String.valueOf("_node" + NodeStarter.readNodeId()
+							+ PathUtil.FORWARD_SLASH + "_job"
+							+ jobEntity.getJob().getJobId()), null, jobEntity);
+			nodesManager.saveConfigFileToZNode(jobEntitiesZkfile, signal);
+		}
+		signal.await();
+		String buildConfigPath = nodesManager.buildConfigPath("_node" + NodeStarter.readNodeId());
+		nodesManager.createNode(String.valueOf(buildConfigPath + PathUtil.FORWARD_SLASH	+ "FINISH"),null);
 	}
 	
 	
@@ -244,8 +254,8 @@ public class NodeStarter {
 		nodesManager.isNodeExists(buildStartPath,signal);
 		signal.await();
 		
-		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null);
-			jobBeans = ZKUtils.searchTree(buildPath, null);
+		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null,null);
+			jobBeans = ZKUtils.searchTree(buildPath, null,null);
 		LOGGER.info("No. of jobs found {}",jobBeans.size());
 		
 		
@@ -274,6 +284,15 @@ public class NodeStarter {
 			zkNodeFile = ZKUtils.getConfigZKNodeFile("_node"+nodeId);
 		}
 		return (JobRunner)zkNodeFile.getObj();
+	}
+	
+	private static void dumpJobEntityMap(String file,List<JobEntity> jobEntities) throws IOException {
+		LOGGER.info("Dumping Map<Integer,JobEntity>");
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
+				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
+			out.writeObject(jobEntities);
+			out.flush();
+		}
 	}
 	
 }

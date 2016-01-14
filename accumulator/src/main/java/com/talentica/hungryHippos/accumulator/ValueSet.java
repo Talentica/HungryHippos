@@ -1,12 +1,17 @@
 package com.talentica.hungryHippos.accumulator;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * Created by debasishc on 9/9/15.
  */
-public class ValueSet {
-    private Object[] values;
+public class ValueSet implements Serializable{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Object[] values;
 
     @Override
     public boolean equals(Object o) {

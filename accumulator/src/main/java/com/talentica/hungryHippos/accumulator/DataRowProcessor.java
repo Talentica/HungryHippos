@@ -1,8 +1,10 @@
 package com.talentica.hungryHippos.accumulator;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -38,6 +40,7 @@ public class DataRowProcessor implements RowProcessor {
         this.values = new Object[keys.length];
         this.valueSet = new ValueSet(values);
         executionContext = new ExecutionContextImpl(dynamicMarshal);
+        this.jobEntity = new JobEntity(job);
     }
 
     @Override
@@ -74,13 +77,38 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	@Override
-	public void incrRowCount() {
-		this.jobEntity.incrRowCount();
-	}
-
-	@Override
 	public Object getJobEntity() {
+		for(ValueSet valueSet : valueSetWorkMap.keySet()){
+			if(valueSetWorkMap.get(valueSet).getRowCount() == 0){
+				valueSetWorkMap.remove(valueSet);
+			}
+			StringBuilder keyValues = new StringBuilder();
+			keyValues.append("_[");
+			for(Object value : valueSet.getValues()){
+				if(keyValues.length() > 2){
+					keyValues.append(",");
+				}
+				keyValues.append(value);
+			}
+			keyValues.append("]");
+			String workerId = valueSetWorkMap.get(valueSet).getWorkerId() + keyValues;
+			jobEntity.getWorkerIdRowCountMap().put(workerId, valueSetWorkMap.get(valueSet).getRowCount());
+		}
 		return this.jobEntity;
 	}
-
+	
+	@Override
+	public void processRowCount(ByteBuffer row) {
+        for(int i=0;i<keys.length;i++){
+            Object v = dynamicMarshal.readValue(keys[i],row);
+            values[i] = v;
+        }
+        Work work = valueSetWorkMap.get(valueSet);
+        if(work==null){
+            ValueSet valueSet = new ValueSet(Arrays.copyOf(values,values.length));
+            work = job.createNewWork();
+            valueSetWorkMap.put(valueSet,work);
+        }
+        work.incrCountRow();
+	}
 }

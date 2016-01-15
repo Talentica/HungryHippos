@@ -37,9 +37,8 @@ public class JobManager {
 	//static String configPath;
 	NodesManager nodesManager;
 	private Map<String, Map<Object, Node>> keyValueNodeNumberMap;
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private List<Job> jobList = new ArrayList<Job>();
-	
 	
 	private Map<Integer,Map<Integer,JobEntity>> nodeJobIdRowCountMap = new HashMap<Integer, Map<Integer,JobEntity>>();
 	
@@ -108,10 +107,7 @@ public class JobManager {
 			LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
 			executeJobsOnNodes();
 			LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
-			
-		
 	}
-	
 	
 	/**
 	 * It will schedule the task manager for each NODES though ZK.
@@ -152,20 +148,18 @@ public class JobManager {
 	 * @throws KeeperException
 	 */
 	private void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException{
-		int totalNods = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
+		
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-        
-		for (int nodeId = 0; nodeId < totalNods; nodeId++) {
+		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
 			int totalDimensions = Integer.valueOf(Property.getProperties()
 					.getProperty("total.dimensions"));
 			FileDataStore dataStore = new FileDataStore(totalDimensions,
 					nodeDataStoreIdCalculator, dataDescription, true);
-			JobRunner jobRunner = new JobRunner(dataDescription, dataStore,
-					keyValueNodeNumberMap);
+			JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
 
 			putJobToRunner(jobRunner);
 
@@ -173,8 +167,6 @@ public class JobManager {
 
 		}
 	}
-	
-	
 	
 	/**
 	 * Get NodeId and Node Map.

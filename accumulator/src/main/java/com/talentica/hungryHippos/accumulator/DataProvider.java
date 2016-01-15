@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -26,6 +25,8 @@ import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
+import com.talentica.hungryHippos.utility.server.ServerUtils;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
@@ -33,6 +34,8 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
  * Created by debasishc on 24/9/15.
  */
 public class DataProvider {
+	
+	private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE=10;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
     private static String[] loadServers(NodesManager nodesManager) throws Exception{
@@ -79,24 +82,15 @@ public class DataProvider {
 
         OutputStream[] targets = new OutputStream[servers.length];
         LOGGER.info("***CREATE SOCKET CONNECTIONS***");
-        int k = 0;
-        for(int i=0;i<targets.length;i++){
-        	i = i-k;
-        	k = 0; 
-        	String server = servers[i];
-        	try{           
-            Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
-            targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
-        	}catch(ConnectException cex){
-        		LOGGER.warn("Connection could not get established. Please start the node {}",server.split(":")[0].trim());
-        		k = 1;
-        		Thread.sleep(2000);
-        	}
-        }
-
+        
+		for (int i = 0; i < servers.length; i++) {
+			String server = servers[i];
+			Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+			targets[i] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
+		}
 
         LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
-        com.talentica.hungryHippos.utility.marshaling.FileReader
+        Reader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(Property.getProperties().getProperty("input.file"));
         input.setNumFields(9);
         input.setMaxsize(25);
@@ -105,8 +99,9 @@ public class DataProvider {
         long timeForLookup = 0;
 
         while(true){
-            MutableCharArrayString[] parts = input.readCommaSeparated();
+            MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
             MutableCharArrayString key1 = parts[0];
@@ -124,8 +119,6 @@ public class DataProvider {
             keyValueMap.put("key2", key2);
             keyValueMap.put("key3", key3);
 
-            //long startEncoding = System.currentTimeMillis();
-
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);
             dynamicMarshal.writeValueString(1, key2, byteBuffer);
@@ -136,15 +129,7 @@ public class DataProvider {
             dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
             dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
             dynamicMarshal.writeValueString(8, key9, byteBuffer);
-            //long endEncoding = System.currentTimeMillis();
-            //timeForEncoding+=endEncoding-startEncoding;
-
-
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
-
-            //long endLookp =System.currentTimeMillis();
-            //System.out.println("Size of array :: " + targets.length);
-            //timeForLookup += endLookp - endEncoding;
             for (Node node : nodes) {
                 targets[node.getNodeId()].write(buf);
             }
@@ -158,10 +143,10 @@ public class DataProvider {
        
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
-
-    
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
     }
+
+
 }

@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ public class Property{
 	public static final String LOG_PROP_FILE = PropertyEnum.LOG4J.getPropertyFileName();
 	public static final String CONF_PROP_FILE = PropertyEnum.CONFIG.getPropertyFileName();
 	public static final String SERVER_CONF_FILE = PropertyEnum.SERVER_CONFIG.getPropertyFileName();
+	public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
+
 	public static Properties getProperties() {
 		if (prop == null) {
 			try {
@@ -71,7 +74,17 @@ public class Property{
 			}
 		}
 		return serverProp;
+	}
 	
+	public static int getTotalNumberOfNodes(){
+		Properties serverProperties= Property.loadServerProperties();
+		int totalNumberOfNodes=0;
+		for (Object key:serverProperties.keySet()) {
+			if(StringUtils.startsWith(key.toString(),SERVER_CONFIGURATION_KEY_PREFIX)){
+				totalNumberOfNodes++;
+			}
+		}
+		return totalNumberOfNodes;
 	}
 
 }

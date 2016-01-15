@@ -2,6 +2,9 @@ package com.talentica.hungryHippos.manager.node;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.accumulator.JobRunner;
 import com.talentica.hungryHippos.accumulator.testJobs.TestJob;
 import com.talentica.hungryHippos.sharding.Node;
@@ -12,20 +15,16 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
-import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
 /**
  * Created by debasishc on 9/9/15.
  */
 public class DataProcesser {
-    private static Map<String,Map<Object, Node>> keyValueNodeNumberMap ;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataProcesser.class);
 
-	public static void main(String [] args) throws Exception {
-    	System.out.println("Start in main class");
-    	//runJobMatrix(readData());
-    	}
-    
+	private static Map<String, Map<Object, Node>> keyValueNodeNumberMap;
+
     @SuppressWarnings("unchecked")
 	public static JobRunner readData() throws Exception{
     	FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
@@ -38,22 +37,17 @@ public class DataProcesser {
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
         dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-        NodesManager nodesManager = new NodesManager();
         ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(ZKNodeName.keyValueNodeNumberMap);
         keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) zkNodeFile.getObj();
-
         NodeDataStoreIdCalculator nodeDataStoreIdCalculator
                 = new NodeDataStoreIdCalculator(keyValueNodeNumberMap, NodeStarter.readNodeId(),dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
-
-        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, keyValueNodeNumberMap);
+		JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
         return jobRunner;
     }
     
     public static void runJobMatrix(JobRunner jobRunner){
-    	
     	 int numMetrix = 0;
     	 int jobId = 0;
          for(int i=0;i<3;i++){
@@ -71,8 +65,7 @@ public class DataProcesser {
                  }
              }
          }
-         System.out.println(numMetrix);
-         //jobRunner.run();
+		LOGGER.info("Number of jobs in job matrix: {}", numMetrix);
     }
     
 }

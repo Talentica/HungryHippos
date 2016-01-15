@@ -478,7 +478,6 @@ public class NodesManager implements Watcher {
 	    
 	    public String buildConfigPath(String fileName){
 	    	String buildPath = zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()) + PathUtil.FORWARD_SLASH + fileName;
-	    	LOGGER.info("BUILD PATH IS {}",buildPath);
 	    	return buildPath;
 	    }
 	    
@@ -649,42 +648,6 @@ public class NodesManager implements Watcher {
 			flag = false;
 		}
 		return flag;
-	}
-	
-	/**
-	 * This method will check whether the path created yet or not. And keep of checking until created.
-	 * @param nodePath
-	 * @param signal
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	public void isNodeExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
-		 Stat stat = null;
-			try {
-				stat = zk.exists(nodePath, this);
-				while(stat == null){
-					stat = zk.exists(nodePath, this);
-				}
-				if(signal != null) {
-					LOGGER.info("ZK PATH {} EXISTS",nodePath);
-					signal.countDown();
-					return;
-				}
-				/*if(stat == null){
-					zk.exists(nodePath, this,ZKUtils.checkPathExistsStatusAsync(signal),nodePath);
-					}
-				   
-					if(signal != null) {
-						LOGGER.info("ZK PATH {} EXISTS",nodePath);
-						signal.countDown();
-						return;
-					}*/
-					
-			}
-			catch (KeeperException | InterruptedException e) {
-				LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: "+ e.getMessage());
-				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
-			}
 	}
 	
 }

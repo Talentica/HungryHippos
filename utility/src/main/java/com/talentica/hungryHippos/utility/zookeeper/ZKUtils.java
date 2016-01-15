@@ -252,7 +252,7 @@ public class ZKUtils {
 					break;
 				case NONODE:
 					try {
-						nodesManager.isNodeExists(path, signal);
+						ZKUtils.isNodeExists(path, signal);
 					} catch (KeeperException | InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -429,4 +429,31 @@ public class ZKUtils {
 		};
 		return createAlertCallback;
 	}
+	
+	/**
+	 * This method will check whether the path created yet or not. And keep of checking until created.
+	 * @param nodePath
+	 * @param signal
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public static void isNodeExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
+		 Stat stat = null;
+			try {
+				stat = zk.exists(nodePath, nodesManager);
+				while(stat == null){
+					stat = zk.exists(nodePath, nodesManager);
+				}
+				if(signal != null) {
+					LOGGER.info("ZK PATH {} EXISTS",nodePath);
+					signal.countDown();
+					return;
+				}
+			}
+			catch (KeeperException | InterruptedException e) {
+				LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: "+ e.getMessage());
+				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
+			}
+	}
+	
 }

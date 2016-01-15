@@ -148,9 +148,12 @@ public class NodeStarter {
 			CountDownLatch signal = new CountDownLatch(1);
 			LOGGER.info("Start Node initialize");
 			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
+			
 			JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
 			List<JobEntity> jobEntities = jobRunner.getJobIdJobEntityMap();
-			dumpJobEntityMap("jobEntities",jobEntities);
+			
+			CommonUtil.dumpFileOnDisk("jobEntities", jobEntities);
+			
 			putJobStatisticsZknode(jobEntities);
 			
 			boolean flag = runJobMatrix(jobRunner, signal);
@@ -244,14 +247,14 @@ public class NodeStarter {
 	private static List<JobEntity> getJobsFromZKNode() throws Exception{
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildStartPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START.name();
-		nodesManager.isNodeExists(buildStartPath,signal);
+		ZKUtils.isNodeExists(buildStartPath,signal);
 		signal.await();
 		
 		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		LOGGER.info(" Build Path is {}",buildPath);
 		
 		signal = new CountDownLatch(1);
-		nodesManager.isNodeExists(buildStartPath,signal);
+		ZKUtils.isNodeExists(buildStartPath,signal);
 		signal.await();
 		
 		Set<LeafBean> jobBeans = ZKUtils.searchTree(buildPath, null,null);
@@ -286,13 +289,13 @@ public class NodeStarter {
 		return (JobRunner)zkNodeFile.getObj();
 	}
 	
-	private static void dumpJobEntityMap(String file,List<JobEntity> jobEntities) throws IOException {
+	/*private static void dumpJobEntityMap(String fileName,List<JobEntity> jobEntities) throws IOException {
 		LOGGER.info("Dumping Map<Integer,JobEntity>");
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
-				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
+				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + fileName))) {
 			out.writeObject(jobEntities);
 			out.flush();
 		}
-	}
+	}*/
 	
 }

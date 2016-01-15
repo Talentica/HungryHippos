@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
@@ -65,8 +66,13 @@ public class Sharding {
 			sharding.populateFrequencyFromData(fileReader);
 			sharding.shardAllKeys();
 			System.out.println(sharding.keyCombinationNodeMap.size());
-			sharding.dumpKeyKeyCombinationNodeMap(keyCombinationNodeMapFile);
-			sharding.dumpKeyValueNodeNumberMap(keyValueNodeNumberMapFile);
+			
+			/*sharding.dumpKeyKeyCombinationNodeMap(keyCombinationNodeMapFile);
+			sharding.dumpKeyValueNodeNumberMap(keyValueNodeNumberMapFile);*/
+			
+			CommonUtil.dumpFileOnDisk("keyCombinationNodeMap", sharding.keyCombinationNodeMap);
+			CommonUtil.dumpFileOnDisk("keyValueNodeNumberMap", sharding.keyValueNodeNumberMap);
+			
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 		}
@@ -228,22 +234,22 @@ public class Sharding {
 		}
 	}
 
-	private void dumpKeyValueNodeNumberMap(String file) throws IOException {
+	/*private void dumpKeyValueNodeNumberMap(String file) throws IOException {
 		LOGGER.info("Dumping keyValueNodeNumberMap");
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
 			out.writeObject(keyValueNodeNumberMap);
 			out.flush();
 		}
-	}
+	}*/
 
-	private void dumpKeyKeyCombinationNodeMap(String file) throws IOException {
+	/*private void dumpKeyKeyCombinationNodeMap(String file) throws IOException {
 		LOGGER.info("Dumping keyCombinationNodeMap");
 		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + file))) {
 			out.writeObject(keyCombinationNodeMap);
 			out.flush();
 		}
-	}
+	}*/
 
 }

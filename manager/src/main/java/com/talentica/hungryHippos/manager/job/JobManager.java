@@ -214,14 +214,13 @@ public class JobManager {
 	private List<JobEntity> getJobIdJobEntity(int nodeId) throws KeeperException, InterruptedException, ClassNotFoundException, IOException{
 		CountDownLatch signal = new CountDownLatch(1);
 		String nodePath = String.valueOf(nodesManager.buildConfigPath("_node" + nodeId) + PathUtil.FORWARD_SLASH + "FINISH");		
-		nodesManager.isNodeExists(nodePath, signal);
+		ZKUtils.isNodeExists(nodePath, signal);
 		signal.await();
 		List<JobEntity> jobEntites = new ArrayList<JobEntity>();
 		for(Job job : jobList){
 			String jobPath = ("_node" + nodeId) + PathUtil.FORWARD_SLASH + ("_job" + job.getJobId());
 			ZKNodeFile zkNodeJob = ZKUtils.getConfigZKNodeFile(jobPath);
 			if(zkNodeJob != null && zkNodeJob.getObj() != null) {
-				LOGGER.info("JOB FOUND!");
 			 JobEntity jobEntity = (JobEntity) zkNodeJob.getObj();
 			 jobEntites.add(jobEntity);
 			}

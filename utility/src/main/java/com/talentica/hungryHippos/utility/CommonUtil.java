@@ -3,6 +3,11 @@
  */
 package com.talentica.hungryHippos.utility;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -84,5 +89,29 @@ public class CommonUtil {
 			return this.jobNode;
 		}
 		
+	}
+	
+	/**
+	 * To Dump the file on the Disk of system.
+	 * @param fileName
+	 * @param obj
+	 */
+	public static void dumpFileOnDisk(String fileName, Object obj) {
+		String filePath = null;
+		try {
+			filePath = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+					+ PathUtil.FORWARD_SLASH + fileName;
+		} catch (IOException e1) {
+			LOGGER.info("Unable to create path for File {}", fileName);
+			return;
+		}
+		LOGGER.info("Dumping File {} AND Path {}", fileName, filePath);
+		try (ObjectOutputStream out = new ObjectOutputStream(
+				new FileOutputStream(filePath))) {
+			out.writeObject(obj);
+			out.flush();
+		} catch (IOException e) {
+			LOGGER.info("There occured some problem to dump file {}", fileName);
+		}
 	}
 }

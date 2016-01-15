@@ -93,12 +93,6 @@ public class JobRunner implements Serializable{
             	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
             	LOGGER.info("JOB ID {} AND TOTAL WORKERS {}",job.getJobId(),jobEntity.getWorkerIdRowCountMap().size());
             	jobEntities.add(jobEntity);
-            	//LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());
-            	/*Job job = ((Job)processor.getJob());
-            	JobEntity jobEntity = (JobEntity) processor.getJobEntity();
-            	if(jobEntity.getRowCount() == 0l) continue;
-            	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
-            	LOGGER.info("Job Id {} and Row count {}",job.getJobId(),jobEntity.getRowCount());*/
             }
             rowProcessors.clear();
         }

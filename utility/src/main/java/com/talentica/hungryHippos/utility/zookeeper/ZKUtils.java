@@ -216,23 +216,25 @@ public class ZKUtils {
 			return Property.getProperties().getProperty("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node"+nodeId);
 		}
 	 
-	 /**
-		 * Delete all the nodes of zookeeper recursively
-		 * 
-		 * @param node
-		 * @throws InterruptedException
-		 * @throws KeeperException
-		 * @throws Exception
-		 */
-		public static void deleteRecursive(String node,CountDownLatch signal) throws  Exception{ 
-			try{
-	    	ZKUtil.deleteRecursive(zk, node);
-	    	if(signal != null)signal.countDown();
-	    	LOGGER.info("Nodes are deleted recursively");
-			}catch(InterruptedException | KeeperException e){
-	    	LOGGER.info("\tUnable to delete the node Exception :: "+ e.getMessage());
-	    	}
-	    }
+	/**
+	 * Delete all the nodes of zookeeper recursively
+	 * 
+	 * @param node
+	 * @throws InterruptedException
+	 * @throws KeeperException
+	 * @throws Exception
+	 */
+	public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
+		try {
+			ZKUtil.deleteRecursive(zk, node);
+			LOGGER.info("Nodes are deleted recursively");
+		} catch (InterruptedException | KeeperException e) {
+			LOGGER.info("\tUnable to delete the node Exception :: " + e.getMessage());
+		} finally {
+			if (signal != null)
+				signal.countDown();
+		}
+	}
 		
 	/**
 	 * Async call to check whether path exists or not in zookeeper node.

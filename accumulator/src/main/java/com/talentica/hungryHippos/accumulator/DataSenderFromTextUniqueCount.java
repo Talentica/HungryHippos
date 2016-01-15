@@ -1,14 +1,12 @@
 package com.talentica.hungryHippos.accumulator;
 
-import com.talentica.hungryHippos.sharding.KeyCombination;
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -16,10 +14,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.sharding.KeyCombination;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.marshaling.DataLocator;
+import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
+
 /**
  * Created by debasishc on 12/10/15.
  */
 public class DataSenderFromTextUniqueCount {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataSenderFromTextUniqueCount.class);
+
     private static String serverConfigFile = "serverConfigFile";
 
     private static String[] loadServers() throws Exception{
@@ -66,7 +79,7 @@ public class DataSenderFromTextUniqueCount {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            //System.out.println(keyCombinationNodeMap);
+			// LOGGER.info(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -75,14 +88,14 @@ public class DataSenderFromTextUniqueCount {
 
         for(int i=0;i<targets.length;i++){
             String server = servers[i];
-            System.out.println(server);
+			LOGGER.info(server);
             Socket socket = new Socket(server,8080);
             targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
         }
 
 
 
-        com.talentica.hungryHippos.utility.marshaling.FileReader
+        Reader
                 input = new com.talentica.hungryHippos.utility.marshaling.FileReader(args[0]);
         input.setNumFields(9);
         input.setMaxsize(25);
@@ -91,8 +104,9 @@ public class DataSenderFromTextUniqueCount {
         long timeForLookup = 0;
 
         while(true){
-            MutableCharArrayString[] parts = input.readCommaSeparated();
+            MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
 
@@ -147,9 +161,9 @@ public class DataSenderFromTextUniqueCount {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
 
     }
 }

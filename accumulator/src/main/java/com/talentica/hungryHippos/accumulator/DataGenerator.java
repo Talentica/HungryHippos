@@ -1,16 +1,25 @@
 package com.talentica.hungryHippos.accumulator;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.talentica.hungryHippos.sharding.KeyCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
-
-import java.io.*;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 /**
  * Created by debasishc on 20/8/15.
@@ -119,7 +128,6 @@ public class DataGenerator {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyCombinationNodeMap"))){
             keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) in.readObject();
-            //System.out.println(keyCombinationNodeMap);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

@@ -3,8 +3,6 @@
  */
 package com.talentica.hungryHippos.utility;
 
-import java.util.Properties;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,9 +13,9 @@ import org.junit.Test;
 public class PropertyTest{
 	
 	@Test
-	public void testGetProperties() {
-		Properties properties = Property.getProperties();
-		Assert.assertNotNull(properties);
+	public void testGetTotalNumberOfNodes() {
+		int totalNoOfNodes = Property.getTotalNumberOfNodes();
+		Assert.assertEquals(5, totalNoOfNodes);
 	}
 	
 }

@@ -99,7 +99,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 			nodesManager.createNode(buildPath,signal,jobEntity);
 			flag = true;
 		} catch (IOException e) {
-			System.out.println("Unable to create node");
+			LOGGER.info("Unable to create node");
 		}
 		return flag;
 	}

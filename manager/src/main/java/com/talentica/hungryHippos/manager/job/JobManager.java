@@ -39,7 +39,7 @@ public class JobManager {
 	//static String configPath;
 	NodesManager nodesManager;
 	private Map<String, Map<Object, Node>> keyValueNodeNumberMap;
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
 	private List<Job> jobList = new ArrayList<Job>();
 	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 	
@@ -92,6 +92,9 @@ public class JobManager {
 			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,Property.loadServerProperties());
 			nodesManager.saveConfigFileToZNode(serverConfigFile,null);
 			LOGGER.info("CONFIG FILE PUT TO ZK NODE SUCCESSFULLY!");
+			
+			ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE+"_FILE",Property.getProperties());
+			nodesManager.saveConfigFileToZNode(configNodeFile,null);
 			
 		    LOGGER.info("PUT keyValueNodeNumberMap TO ZK NODE");
 			setKeyValueNodeNumberMap();
@@ -155,20 +158,17 @@ public class JobManager {
 	 * @throws KeeperException
 	 */
 	private void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException{
-		int totalNods = Integer.valueOf(Property.getProperties().getProperty("total.nodes"));
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-        
-		for (int nodeId = 0; nodeId < totalNods; nodeId++) {
+		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
 			int totalDimensions = Integer.valueOf(Property.getProperties()
 					.getProperty("total.dimensions"));
 			FileDataStore dataStore = new FileDataStore(totalDimensions,
 					nodeDataStoreIdCalculator, dataDescription, true);
-			JobRunner jobRunner = new JobRunner(dataDescription, dataStore,
-					keyValueNodeNumberMap);
+			JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
 
 			putJobToRunner(jobRunner);
 
@@ -176,8 +176,6 @@ public class JobManager {
 
 		}
 	}
-	
-	
 	
 	/**
 	 * Get NodeId and Node Map.

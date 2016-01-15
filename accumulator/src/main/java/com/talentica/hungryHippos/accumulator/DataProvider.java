@@ -3,17 +3,15 @@ package com.talentica.hungryHippos.accumulator;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +25,8 @@ import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.marshaling.Reader;
+import com.talentica.hungryHippos.utility.server.ServerUtils;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
 
@@ -34,24 +34,21 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
  * Created by debasishc on 24/9/15.
  */
 public class DataProvider {
+	
+	private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE=10;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
-    private static Map<Integer,String> loadServers(NodesManager nodesManager) throws Exception{
+    private static String[] loadServers(NodesManager nodesManager) throws Exception{
     	LOGGER.info("Load the server form the configuration file");
-        //ArrayList<String> servers = new ArrayList<>();
-        Map<Integer,String> nodeIdServerMap = new ConcurrentHashMap<Integer,String>();
-        
+        ArrayList<String> servers = new ArrayList<>();
         Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
         ZKNodeFile serverConfig =  (obj == null) ? null : (ZKNodeFile)obj ;
         Properties prop =  serverConfig.getFileData();
         for(Object server : prop.keySet()){
-        	String serverName = (String) server;
-        	int nodeId = Integer.valueOf(serverName.split("\\.")[1]);
-        	nodeIdServerMap.put(nodeId, prop.getProperty(serverName));
+        	servers.add(prop.getProperty((String)server));
         }
-        LOGGER.info("There are {} servers",nodeIdServerMap.size());
-        //return servers.toArray(new String[servers.size()]);
-        return nodeIdServerMap;
+        LOGGER.info("There are {} servers",servers.size());
+        return servers.toArray(new String[servers.size()]);
     }
 
 
@@ -60,17 +57,11 @@ public class DataProvider {
     }
     
     @SuppressWarnings({ "unchecked", "resource" })
-	public static void publishDataToNodes(NodesManager nodesManager){
+	public static void publishDataToNodes(NodesManager nodesManager) throws Exception{
     	
         long start = System.currentTimeMillis();
 
-        Map<Integer, String> serversMap;
-		try {
-			serversMap = loadServers(nodesManager);
-		} catch (Exception e1) {
-			LOGGER.info("Unable to load servers");
-			return;
-		}
+        String [] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
@@ -89,69 +80,18 @@ public class DataProvider {
 			e.printStackTrace();
 		}
 
-        OutputStream[] targets = new OutputStream[serversMap.size()];
+        OutputStream[] targets = new OutputStream[servers.length];
         LOGGER.info("***CREATE SOCKET CONNECTIONS***");
-        CountDownLatch count = new CountDownLatch(serversMap.size());
-		while (count.getCount() != 0l) {
-			for (Integer nodeId : serversMap.keySet()) {
-				try {
-					String server = serversMap.get(nodeId);
-					Socket socket = new Socket(server.split(":")[0].trim(),
-							Integer.valueOf(server.split(":")[1].trim()));
-					targets[nodeId] = new BufferedOutputStream(
-							socket.getOutputStream(), 8388608);
-					if(count.getCount() != 0) count.countDown();
-					serversMap.remove(nodeId);
-				} catch (Exception cex) {
-					LOGGER.warn("Exception is {}",cex.getMessage());
-					LOGGER.warn(
-							"Connection could not get established. Please start the node {}",
-							serversMap.get(nodeId).split(":")[0].trim());
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						LOGGER.info("Unable to sleep the current thread");
-					}
-				}
-				LOGGER.info("Total count {}",count.getCount());
-			}
-		}
-        int k = 0;
-        /*for(int i=0;i<targets.length;i++){
-        	i = i-k;
-        	k = 0; 
-        	String server = servers.get(i);
-        	try{           
-            Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
-            targets[i] = new BufferedOutputStream(socket.getOutputStream(),8388608);
-        	}catch(ConnectException cex){
-        		LOGGER.warn("Connection could not get established. Please start the node {}",server.split(":")[0].trim());
-        		k = 1;
-        		Thread.sleep(2000);
-        	}
-        }*/
         
-        /*int index = 0;
-		for (String server : servers) {
-			try {
-				Socket socket = new Socket(server.split(":")[0].trim(),Integer.valueOf(server.split(":")[1].trim()));
-				targets[index] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
-				index++;
-				servers.remove(server);
-			} catch (ConnectException cex) {
-				LOGGER.warn("Connection could not get established. Please start the node {}",server.split(":")[0].trim());
-				Thread.sleep(2000);
-			}
-		}*/
-		LOGGER.info("Total servers {}",targets.length);
-        LOGGER.info("PUBLISH DATA ACROSS THE NODES STARTED...");
-        com.talentica.hungryHippos.utility.marshaling.FileReader input = null;
-		try {
-			input = new com.talentica.hungryHippos.utility.marshaling.FileReader(Property.getProperties().getProperty("input.file"));
-		} catch (IOException e) {
-			LOGGER.info("Unable to read file");
-			return;
+		for (int i = 0; i < servers.length; i++) {
+			String server = servers[i];
+			Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+			targets[i] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
 		}
+
+        LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
+        Reader
+                input = new com.talentica.hungryHippos.utility.marshaling.FileReader(Property.getProperties().getProperty("input.file"));
         input.setNumFields(9);
         input.setMaxsize(25);
 
@@ -159,14 +99,9 @@ public class DataProvider {
         long timeForLookup = 0;
 
         while(true){
-            MutableCharArrayString[] parts;
-			try {
-				parts = input.readCommaSeparated();
-			} catch (IOException e) {
-				LOGGER.info("Unable to read file");
-				continue;
-			}
+            MutableCharArrayString[] parts = input.read();
             if(parts == null){
+				input.close();
                 break;
             }
             MutableCharArrayString key1 = parts[0];
@@ -184,8 +119,6 @@ public class DataProvider {
             keyValueMap.put("key2", key2);
             keyValueMap.put("key3", key3);
 
-            //long startEncoding = System.currentTimeMillis();
-
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
             dynamicMarshal.writeValueString(0, key1, byteBuffer);
             dynamicMarshal.writeValueString(1, key2, byteBuffer);
@@ -196,44 +129,24 @@ public class DataProvider {
             dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
             dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
             dynamicMarshal.writeValueString(8, key9, byteBuffer);
-            //long endEncoding = System.currentTimeMillis();
-            //timeForEncoding+=endEncoding-startEncoding;
-
-
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
-
-            //long endLookp =System.currentTimeMillis();
-            //System.out.println("Size of array :: " + targets.length);
-            //timeForLookup += endLookp - endEncoding;
-            //LOGGER.info("TOTAL NODES {}",nodes.size());
             for (Node node : nodes) {
-            	//LOGGER.info("NODE ID {}",node.getNodeId());
-                try {
-					targets[node.getNodeId()].write(buf);
-				} catch (IOException e) {
-					LOGGER.info("Unable to write the file");
-				}
+                targets[node.getNodeId()].write(buf);
             }
 
         }
 
         for(int j=0;j<targets.length;j++){
-            try {
-				targets[j].flush();
-				targets[j].close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-           
+            targets[j].flush();
+            targets[j].close();
         }
        
         long end = System.currentTimeMillis();
 
-        System.out.println("Time taken in ms: "+(end-start));
-        System.out.println("Time taken in encoding: "+(timeForEncoding));
-        System.out.println("Time taken in lookup: "+(timeForLookup));
-
-    
+		LOGGER.info("Time taken in ms: " + (end - start));
+		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
+		LOGGER.info("Time taken in lookup: " + (timeForLookup));
     }
+
+
 }

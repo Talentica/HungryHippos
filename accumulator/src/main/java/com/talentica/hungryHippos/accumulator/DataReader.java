@@ -38,7 +38,6 @@ public class DataReader {
         try(ObjectInputStream in
                     = new ObjectInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+"keyValueNodeNumberMap"))){
             keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) in.readObject();
-           // System.out.println(keyValueNodeNumberMap);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -48,7 +47,7 @@ public class DataReader {
                 = new NodeDataStoreIdCalculator(keyValueNodeNumberMap, NodeInitializer.readNodeId(),dataDescription);
         FileDataStore dataStore = new FileDataStore(3, nodeDataStoreIdCalculator, dataDescription, true);
 
-        JobRunner jobRunner = new JobRunner(dataDescription, dataStore, keyValueNodeNumberMap);
+		JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
         
         int numMetrix = 0;
         int jobId = 0;
@@ -67,7 +66,6 @@ public class DataReader {
                 }
             }
         }
-        System.out.println(numMetrix);
         //jobRunner.run();
 
     }

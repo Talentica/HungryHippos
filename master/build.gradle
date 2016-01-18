@@ -38,12 +38,8 @@ task nodeJar(type: Jar) {
 
   
 dependencies {
-    compile project (':utility')
-    compile project (':node')
-    compile project (':sharding')
     compile project (':accumulator')
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.commons:commons-math3:3.5'
-	
 }
 

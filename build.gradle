@@ -12,3 +12,16 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
+
+buildscript {
+  repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
+    }
+  }
+  dependencies {
+    classpath 'net.researchgate:gradle-release:2.3.4'
+  }
+}
+
+apply plugin: 'net.researchgate.release'

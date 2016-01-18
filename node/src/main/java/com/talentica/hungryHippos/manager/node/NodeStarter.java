@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.accumulator.JobEntity;
 import com.talentica.hungryHippos.accumulator.JobRunner;
-import com.talentica.hungryHippos.accumulator.testJobs.JobComparator;
+import com.talentica.hungryHippos.accumulator.JobComparator;
 import com.talentica.hungryHippos.node.DataReadHandler;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;

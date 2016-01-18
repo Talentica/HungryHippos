@@ -21,6 +21,7 @@ public class TestJob implements Job,Serializable{
     protected String status;
     protected int workerId = 0;
     public TestJob(){}
+
     public TestJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
         this.dimensions = dimensions;
         this.primaryDimension = primaryDimension;

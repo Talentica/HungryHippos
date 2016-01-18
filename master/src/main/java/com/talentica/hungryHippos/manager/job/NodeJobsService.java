@@ -15,8 +15,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.accumulator.JobComparator;
 import com.talentica.hungryHippos.accumulator.JobEntity;
-import com.talentica.hungryHippos.accumulator.testJobs.JobComparator;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;

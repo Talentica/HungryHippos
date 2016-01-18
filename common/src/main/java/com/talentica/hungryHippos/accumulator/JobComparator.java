@@ -1,11 +1,9 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.accumulator.testJobs;
+package com.talentica.hungryHippos.accumulator;
 
 import java.util.Comparator;
-
-import com.talentica.hungryHippos.accumulator.JobEntity;
 
 /**
  * Job Size comparator is to compare the job based on the row counts i.e data size.

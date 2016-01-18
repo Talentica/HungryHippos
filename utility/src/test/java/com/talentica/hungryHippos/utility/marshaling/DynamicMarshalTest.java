@@ -104,7 +104,7 @@ public class DynamicMarshalTest {
 			noOfLines++;
 				}
 					
-			Assert.assertEquals(3,noOfLines);
+		Assert.assertEquals(999993, noOfLines);
 		}
 	
 	

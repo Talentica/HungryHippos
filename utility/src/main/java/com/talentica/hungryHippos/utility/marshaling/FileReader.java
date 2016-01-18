@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.utility.marshaling;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -17,7 +16,6 @@ public class FileReader implements Reader {
 	ByteBuffer buf = ByteBuffer.allocate(65536);
 	FileChannel channel;
 	int readCount = -1;
-	private boolean reachedEndOfFile = false;
 
 	@SuppressWarnings("resource")
 	public FileReader(String filename) throws IOException {
@@ -102,17 +100,12 @@ public class FileReader implements Reader {
 			s.reset();
 		}
 		int fieldIndex = 0;
-		try {
 			while (true) {
-				if (reachedEndOfFile) {
-					return null;
-				}
 				if (readCount <= 0) {
 					buf.clear();
 					readCount = channel.read(buf);
 					if (readCount < 0) {
 						if (fieldIndex == numfields - 1) {
-							reachedEndOfFile = true;
 							return buffer;
 						}
 						return null;
@@ -130,9 +123,6 @@ public class FileReader implements Reader {
 					buffer[fieldIndex].addCharacter((char) nextChar);
 				}
 			}
-		} catch (BufferUnderflowException exception) {
-			throw exception;
-		}
 		return buffer;
 	}
 

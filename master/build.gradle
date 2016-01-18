@@ -40,7 +40,6 @@ task nodeJar(type: Jar) {
 dependencies {
     compile project (':coordination')
     compile project (':common')
-    compile project (':client-api')
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.commons:commons-math3:3.5'
 }

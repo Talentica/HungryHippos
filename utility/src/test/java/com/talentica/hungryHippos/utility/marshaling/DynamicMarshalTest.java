@@ -47,7 +47,8 @@ public class DynamicMarshalTest {
 	public void testreadvalue() throws IOException {
 
 		//Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("testSampleInput_1.txt");
-		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("src/test/resources/testSampleInput.txt");
+		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader(
+				"src/test/resources/testSampleInputWithBlankLineAtEOF.txt");
 		Assert.assertNotNull(input);
 
 		

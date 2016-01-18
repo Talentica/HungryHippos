@@ -16,6 +16,8 @@ public class FileReaderTest {
 
 	private FileReader fileReaderBlankLineAtEofFile;
 
+	private FileReader fileReaderWithBlankLineAtEOF;
+
 	@Before
 	public void setUp() throws IOException {
 		fileReader = new FileReader(new File("src/test/resources/testSampleInputWithNoBlankLineAtEOF.txt"));
@@ -27,6 +29,11 @@ public class FileReaderTest {
 		fileReaderBlankLineAtEofFile = new FileReader(new File("src/test/resources/testSampleInputWithBlankLines.txt"));
 		fileReaderBlankLineAtEofFile.setNumFields(9);
 		fileReaderBlankLineAtEofFile.setMaxsize(25);
+		fileReaderWithBlankLineAtEOF = new FileReader(
+				new File("src/test/resources/testSampleInputWithBlankLineAtEOF.txt"));
+		fileReaderWithBlankLineAtEOF.setNumFields(9);
+		fileReaderWithBlankLineAtEOF.setMaxsize(25);
+
 	}
 
 	@Test
@@ -74,11 +81,27 @@ public class FileReaderTest {
 		Assert.assertEquals(4, numberOfLines);
 	}
 
+	@Test
+	public void testReadFromBigFile() throws IOException {
+		int numberOfLines = 0;
+		while (true) {
+			MutableCharArrayString[] data = fileReaderWithBlankLineAtEOF.read();
+			if (data == null) {
+				break;
+			}
+			Assert.assertNotEquals(0, data.length);
+			Assert.assertNotEquals(0, data[0].length());
+			numberOfLines++;
+		}
+		Assert.assertEquals(999993, numberOfLines);
+	}
+
 	@After
 	public void tearDown() throws IOException {
 		fileReader.close();
 		fileReaderBlankLinesFile.close();
 		fileReaderBlankLineAtEofFile.close();
+		fileReaderWithBlankLineAtEOF.close();
 	}
 
 }

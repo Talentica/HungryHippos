@@ -12,6 +12,13 @@ sourceSets {
      }
   }
 
-dependencies {	
+ext {
+  slf4jVersion = '1.7.10'
 }
 
+
+dependencies {
+	compile project (":utility")	
+	compile "org.slf4j:slf4j-api:$slf4jVersion"
+	compile "org.apache.zookeeper:zookeeper:3.4.6"
+}

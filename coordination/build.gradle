@@ -1,0 +1,24 @@
+group 'com.talentica.hungry-hippos'
+version '1.0-SNAPSHOT'
+apply plugin: 'java'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    main {
+       output.resourcesDir = "build/classes/main"
+     }
+  }
+
+ext {
+  slf4jVersion = '1.7.10'
+}
+
+
+dependencies {
+	compile project (":utility")	
+	compile "org.slf4j:slf4j-api:$slf4jVersion"
+	compile "org.apache.zookeeper:zookeeper:3.4.6"
+}

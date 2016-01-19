@@ -8,10 +8,9 @@ import com.talentica.hungryHippos.client.job.JobMatrix;
 
 public class TestJobMatrixImpl implements JobMatrix {
 
-	private List<Job> jobList = new ArrayList<>();
-
 	@Override
 	public List<Job> getListOfJobsToExecute() {
+		List<Job> jobList = new ArrayList<>();
 		int jobId = 0;
 		for (int i = 0; i < 3; i++) {
 			jobList.add(new TestJob(new int[] { i }, i, 6, jobId++));

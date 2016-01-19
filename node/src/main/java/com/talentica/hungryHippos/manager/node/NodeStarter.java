@@ -3,21 +3,11 @@
  */
 package com.talentica.hungryHippos.manager.node;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,9 +20,9 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.accumulator.JobComparator;
 import com.talentica.hungryHippos.accumulator.JobEntity;
 import com.talentica.hungryHippos.accumulator.JobRunner;
-import com.talentica.hungryHippos.accumulator.JobComparator;
 import com.talentica.hungryHippos.node.DataReadHandler;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -49,6 +39,15 @@ import com.talentica.hungryHippos.utility.zookeeper.ServerHeartBeat;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
 import com.talentica.hungryHippos.utility.zookeeper.ZKUtils;
 import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also execution of the aggregation of the data. 
@@ -133,7 +132,7 @@ public class NodeStarter {
 				LOGGER.info("File not found ",e);
 			}
 		}else{
-			LOGGER.info("Please provide the zookeeper configuration file");
+			System.out.println("Please provide the zookeeper configuration file");
 			return;
 		}
 		try {

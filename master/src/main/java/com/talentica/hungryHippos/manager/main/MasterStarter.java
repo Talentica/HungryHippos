@@ -25,7 +25,7 @@ public class MasterStarter {
 	/**
 	 * @param args
 	 */
-	private static final Logger LOGGER = LoggerFactory.getLogger(MasterStarter.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(MasterStarter.class);
 
 	public static void main(String[] args) throws Exception {
 		validateProgramArguments(args);
@@ -54,7 +54,7 @@ public class MasterStarter {
 
 	private static Object getJobMatrix(String[] args)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		Object jobMatrix = Class.forName(args[1]).newInstance();
+		Object jobMatrix = Class.forName(args[0]).newInstance();
 		return jobMatrix;
 	}
 

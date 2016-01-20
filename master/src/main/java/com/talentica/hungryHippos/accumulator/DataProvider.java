@@ -35,7 +35,9 @@ import com.talentica.hungryHippos.utility.zookeeper.manager.NodesManager;
  */
 public class DataProvider {
 	
-	private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE=10;
+	private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer
+			.valueOf(Property.getPropertyValue("no.of.attempts.to.connect.to.node").toString());
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<KeyCombination, Set<Node>> keyCombinationNodeMap;
     private static String[] loadServers(NodesManager nodesManager) throws Exception{

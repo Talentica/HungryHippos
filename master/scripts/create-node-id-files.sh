@@ -10,5 +10,4 @@ do
    echo "Creating HungryHippos nodeId for $node"
    sshpass -p $node_pwd ssh root@$node "cd hungryhippos;rm nodeId;echo $i >> nodeId"
    i=$(($i+$one))
-   echo $i
 done

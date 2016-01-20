@@ -14,28 +14,17 @@ sourceSets {
      }
   }
   
-task masterJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': 1.0,
-                'Main-Class': 'com.talentica.hungryHippos.manager.main.StartApp'
+jar {
+	archiveName='master.jar'
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
     }
-    archiveName = 'job-manager.jar'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
-
-task nodeJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': 1.0,
-                'Main-Class': 'com.talentica.hungryHippos.manager.node.NodeStarter'
+        attributes("Main-Class": "com.talentica.hungryHippos.manager.main.MasterStarter" )
     }
-    archiveName='node-starter.jar'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
-
   
 dependencies {
     compile project (':coordination')

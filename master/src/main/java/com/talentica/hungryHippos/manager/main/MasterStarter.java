@@ -14,6 +14,7 @@ import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.manager.job.JobManager;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 /**
@@ -29,6 +30,7 @@ public class MasterStarter {
 
 	public static void main(String[] args) throws Exception {
 		validateProgramArguments(args);
+		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 		overrideProperties(args);
 		LOGGER.info("SHARDING STARTED");
 		Sharding.doSharding(getInputReaderForSharding());

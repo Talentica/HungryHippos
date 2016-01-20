@@ -90,7 +90,7 @@ public class NodesManager implements Watcher {
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
 		prop = Property.getProperties();
-		formatFlag = prop.getProperty("zookeeper.format");
+		formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
 		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
 		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
 		pathMap.put(PathEnum.ZKIPTPATH.name(), prop.getProperty("zookeeper.server.ips"));

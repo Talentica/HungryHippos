@@ -31,6 +31,7 @@ import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
@@ -75,12 +76,18 @@ public class NodeStarter {
      * @return NodeId
      * @throws Exception
      */
-    @SuppressWarnings("resource")
-	public static int readNodeId() throws Exception{
-        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+nodeIdFile)));
-        String line = in.readLine();
-        return Integer.parseInt(line);
-    }
+	@SuppressWarnings("resource")
+	public static int readNodeId() throws IOException {
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(
+					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + nodeIdFile)));
+			String line = in.readLine();
+			return Integer.parseInt(line);
+		} catch (IOException exception) {
+			LOGGER.info("Unable to read the file for NODE ID. Exiting..");
+			throw exception;
+		}
+	}
     
     
     /**
@@ -124,7 +131,33 @@ public class NodeStarter {
         }
     }
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		validateArguments(args);
+		Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+		nodesManager = ServerHeartBeat.init();
+		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
+		int nodeId = readNodeId();
+		String server;
+		server = serverConfig.getFileData().getProperty("server." + nodeId);
+		int PORT = Integer.valueOf(server.split(":")[1]);
+		CountDownLatch signal = new CountDownLatch(1);
+		LOGGER.info("Start Node initialize");
+		getNodeInitializer(nodesManager).startServer(PORT, nodeId);
+		JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
+		List<JobEntity> jobEntities = jobRunner.getJobIdJobEntityMap();
+		CommonUtil.dumpFileOnDisk("jobEntities", jobEntities);
+		putJobStatisticsZknode(jobEntities);
+		boolean flag = runJobMatrix(jobRunner, signal);
+		if (flag) {
+			signal.await();
+			String buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH
+					+ CommonUtil.ZKJobNodeEnum.FINISH.name();
+			nodesManager.createNode(buildStartPath, null);
+		}
+	}
+
+
+	private static void validateArguments(String[] args) {
 		if (args.length == 1) {
 			try {
 				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
@@ -133,48 +166,8 @@ public class NodeStarter {
 			}
 		}else{
 			System.out.println("Please provide the zookeeper configuration file");
-			return;
+			System.exit(1);
 		}
-		try {
-			nodesManager = ServerHeartBeat.init();
-		} catch (Exception e1) {
-			LOGGER.info("\n\tUnable to start the nodeManager");
-			return;
-		}
-		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
-		int nodeId = 0;
-		try {
-			nodeId = readNodeId();
-		} catch (Exception e) {
-			LOGGER.info("Unable to read the file for NODE ID. Exiting..");
-			return;
-		}
-		String server;
-		server = serverConfig.getFileData().getProperty("server." + nodeId);
-		int PORT = Integer.valueOf(server.split(":")[1]);
-		try {
-			CountDownLatch signal = new CountDownLatch(1);
-			LOGGER.info("Start Node initialize");
-			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
-			
-			JobRunner jobRunner = getJobRunnerFromZKnode(nodeId);
-			List<JobEntity> jobEntities = jobRunner.getJobIdJobEntityMap();
-			
-			CommonUtil.dumpFileOnDisk("jobEntities", jobEntities);
-			
-			putJobStatisticsZknode(jobEntities);
-			
-			boolean flag = runJobMatrix(jobRunner, signal);
-			
-			if (flag) {
-				signal.await();
-				String buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId())	+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH.name();
-				nodesManager.createNode(buildStartPath, null);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 	
 	/**

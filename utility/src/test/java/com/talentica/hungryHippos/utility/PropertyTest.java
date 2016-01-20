@@ -6,6 +6,8 @@ package com.talentica.hungryHippos.utility;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
+
 /**
  * @author nitink
  *
@@ -13,9 +15,26 @@ import org.junit.Test;
 public class PropertyTest{
 	
 	@Test
-	public void testGetTotalNumberOfNodes() {
-		int totalNoOfNodes = Property.getTotalNumberOfNodes();
-		Assert.assertEquals(5, totalNoOfNodes);
+	public void testGetPropertyValueForMaster() {
+		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+		Object cleanupZookeeperNodesPropValue = Property.getPropertyValue("cleanup.zookeeper.nodes");
+		Assert.assertNotNull(cleanupZookeeperNodesPropValue);
+		Assert.assertEquals("Y", cleanupZookeeperNodesPropValue);
 	}
-	
+
+	@Test
+	public void testGetPropertyValueForNode() {
+		Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+		Object cleanupZookeeperNodesPropValue = Property.getPropertyValue("cleanup.zookeeper.nodes");
+		Assert.assertNotNull(cleanupZookeeperNodesPropValue);
+		Assert.assertEquals("N", cleanupZookeeperNodesPropValue);
+	}
+
+	@Test
+	public void testGetPropertyValueWithoutNamespace() {
+		Property.setNamespace(null);
+		Object zookeeperServerIps = Property.getPropertyValue("zookeeper.server.ips");
+		Assert.assertNotNull(zookeeperServerIps);
+	}
+
 }

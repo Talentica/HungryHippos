@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.resource.manager.domain;
 
+import java.util.Comparator;
+
 /**
  * Represents resource requirements to perform any work. e.g. To run a job, you
  * need certain resources - RAM, disk memory etc. It can be passed to
@@ -8,15 +10,18 @@ package com.talentica.hungryHippos.resource.manager.domain;
  * @author nitink
  *
  */
-public final class ResourceRequirement {
+public final class ResourceRequirement{
 
 	private Long diskSize;
 
 	private Long ram;
+	
+	private Integer resourceId;
 
-	public ResourceRequirement(long diskSizeNeeded, long ramNeeded) {
+	public ResourceRequirement(long diskSizeNeeded, long ramNeeded, int resourceId) {
 		this.diskSize = diskSizeNeeded;
 		this.ram = ramNeeded;
+		this.resourceId = resourceId;
 	}
 
 	/**
@@ -65,4 +70,23 @@ public final class ResourceRequirement {
 		return areEqual;
 	}
 
+	public void setDiskSize(Long diskSize) {
+		this.diskSize = diskSize;
+	}
+
+	public void setRam(Long ram) {
+		this.ram = ram;
+	}
+
+	public Integer getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(Integer resourceId) {
+		this.resourceId = resourceId;
+	}
+	
+	
+
+	
 }

@@ -5,8 +5,6 @@ import java.util.Map;
 
 import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
 
-import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
-
 /**
  * The resource manager manages available resources optimally by either
  * maximizing or minimizing resource usage and fulfills needs of resources.

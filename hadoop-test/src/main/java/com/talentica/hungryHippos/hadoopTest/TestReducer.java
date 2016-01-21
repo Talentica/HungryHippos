@@ -1,10 +1,9 @@
 package com.talentica.hungryHippos.hadoopTest;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import java.io.IOException;
+
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-
-import java.io.IOException;
 
 /**
  * Created by debasishc on 24/9/15.

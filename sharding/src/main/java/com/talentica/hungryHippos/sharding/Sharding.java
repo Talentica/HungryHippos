@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.sharding;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,15 +11,12 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 /**

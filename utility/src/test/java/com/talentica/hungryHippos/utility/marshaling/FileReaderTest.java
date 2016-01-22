@@ -8,6 +8,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+
 public class FileReaderTest {
 
 	private FileReader fileReader;

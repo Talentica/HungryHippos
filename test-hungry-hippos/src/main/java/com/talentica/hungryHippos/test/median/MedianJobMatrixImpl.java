@@ -3,7 +3,7 @@ package com.talentica.hungryHippos.test.median;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.talentica.hungryHippos.accumulator.Job;
+import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.test.sum.SumJob;
 

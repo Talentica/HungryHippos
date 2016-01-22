@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.test.unique;
 
-import com.talentica.hungryHippos.accumulator.Work;
+import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.test.sum.SumJob;
 
 /**

@@ -2,9 +2,9 @@ package com.talentica.hungryHippos.test.unique;
 
 import java.util.HashSet;
 
-import com.talentica.hungryHippos.accumulator.ExecutionContext;
+import com.talentica.hungryHippos.client.domain.ExecutionContext;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.test.sum.SumWork;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 
 /**
  * Created by debasishc on 5/10/15.

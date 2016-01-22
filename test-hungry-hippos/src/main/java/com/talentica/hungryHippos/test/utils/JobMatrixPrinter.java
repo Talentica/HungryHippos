@@ -2,7 +2,7 @@ package com.talentica.hungryHippos.test.utils;
 
 import java.util.List;
 
-import com.talentica.hungryHippos.accumulator.Job;
+import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 
 public class JobMatrixPrinter {

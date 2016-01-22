@@ -2,8 +2,8 @@ package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
 
-import com.talentica.hungryHippos.accumulator.Job;
-import com.talentica.hungryHippos.accumulator.Work;
+import com.talentica.hungryHippos.client.domain.Work;
+import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.test.sum.SumWork;
 
 /**

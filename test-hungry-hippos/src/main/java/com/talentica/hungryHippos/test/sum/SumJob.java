@@ -2,8 +2,8 @@ package com.talentica.hungryHippos.test.sum;
 
 import java.io.Serializable;
 
-import com.talentica.hungryHippos.accumulator.Job;
-import com.talentica.hungryHippos.accumulator.Work;
+import com.talentica.hungryHippos.client.domain.Work;
+import com.talentica.hungryHippos.client.job.Job;
 
 /**
  * Created by debasishc on 9/9/15.

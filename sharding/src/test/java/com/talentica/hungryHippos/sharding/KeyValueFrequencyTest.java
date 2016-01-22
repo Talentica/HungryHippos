@@ -3,7 +3,7 @@ package com.talentica.hungryHippos.sharding;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 public class KeyValueFrequencyTest{
 	

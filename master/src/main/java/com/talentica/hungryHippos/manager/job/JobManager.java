@@ -27,6 +27,7 @@ import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.ZKNodeName;
+import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.zookeeper.ServerHeartBeat;
 import com.talentica.hungryHippos.utility.zookeeper.ZKNodeFile;
@@ -85,7 +86,7 @@ public class JobManager {
 	public void start() throws Exception{
 		
 			LOGGER.info("START NODE MANAGER..");
-			(nodesManager = ServerHeartBeat.init()).startup();
+			(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.MASTER.name());
 			LOGGER.info("NODE MANAGER STARTED SUCCESSFULLY!");
 			
 			LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");

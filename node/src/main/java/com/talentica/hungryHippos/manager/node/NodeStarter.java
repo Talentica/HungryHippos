@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,7 @@ import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.ZKNodeName;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
@@ -63,11 +65,9 @@ public class NodeStarter {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
     private static NodesManager nodesManager = null;
     
-    @SuppressWarnings("unchecked")
-	public NodeStarter(String keyValueNodeNumberMapFile, DataDescription dataDescription, NodesManager nodesManager) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
+	public NodeStarter(DataDescription dataDescription) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
     	NodeStarter.dataDescription = dataDescription;
-    	ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(keyValueNodeNumberMapFile);
-        NodeStarter.keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) zkNodeFile.getObj();
+    	setKeyValueNodeNumberMap();
     }
     
     
@@ -134,7 +134,7 @@ public class NodeStarter {
 	public static void main(String[] args) throws Exception {
 		validateArguments(args);
 		Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
-		nodesManager = ServerHeartBeat.init();
+		(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.NODE.name());
 		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 		int nodeId = readNodeId();
 		String server;
@@ -181,7 +181,7 @@ public class NodeStarter {
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
         dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
-        return new NodeStarter(ZKNodeName.keyValueNodeNumberMap, dataDescription,nodesManager);
+        return new NodeStarter(dataDescription);
     }
 	
 	
@@ -290,13 +290,22 @@ public class NodeStarter {
 		return (JobRunner)zkNodeFile.getObj();
 	}
 	
-	/*private static void dumpJobEntityMap(String fileName,List<JobEntity> jobEntities) throws IOException {
-		LOGGER.info("Dumping Map<Integer,JobEntity>");
-		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
-				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + fileName))) {
-			out.writeObject(jobEntities);
-			out.flush();
+	
+	/**
+	 * Get the keyValueNodeNumberMap from local storage.
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	private static void setKeyValueNodeNumberMap(){
+		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
+				new FileInputStream(
+						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+								+ PathUtil.FORWARD_SLASH
+								+ ZKNodeName.keyValueNodeNumberMap))) {
+			NodeStarter.keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) inKeyValueNodeNumberMap.readObject();
+		} catch (IOException|ClassNotFoundException e) {
+			LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
 		}
-	}*/
+	}
 	
 }

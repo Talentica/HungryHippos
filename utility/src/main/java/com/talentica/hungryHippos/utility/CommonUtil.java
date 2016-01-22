@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.utility;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -113,5 +112,20 @@ public class CommonUtil {
 		} catch (IOException e) {
 			LOGGER.info("There occured some problem to dump file {}", fileName);
 		}
+	}
+	
+	public enum ZKNodeDeleteSignal{
+		MASTER("MASTER"),NODE("NODE");
+		
+		private String signal;
+		
+		private ZKNodeDeleteSignal(String signal){
+			this.signal = signal;
+		}
+		
+		public String getSignal(){
+			return this.signal;
+		}
+		
 	}
 }

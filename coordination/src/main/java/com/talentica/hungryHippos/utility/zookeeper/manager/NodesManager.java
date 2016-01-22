@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
@@ -90,7 +91,6 @@ public class NodesManager implements Watcher {
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
 		prop = Property.getProperties();
-		formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
 		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
 		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
 		pathMap.put(PathEnum.ZKIPTPATH.name(), prop.getProperty("zookeeper.server.ips"));
@@ -133,8 +133,12 @@ public class NodesManager implements Watcher {
 	     * 
 	     * @throws Exception
 	     */
-	    public  void startup() throws Exception {
-	    	
+	    public  void startup(String deleteSignal) throws Exception {
+	    	if(deleteSignal.equals(ZKNodeDeleteSignal.MASTER.name())){
+	    		formatFlag = Property.getPropertyValue("master.cleanup.zookeeper.nodes").toString();
+	    	}else if(deleteSignal.equals(ZKNodeDeleteSignal.NODE.name())){
+	    		formatFlag = Property.getPropertyValue("node.cleanup.zookeeper.nodes").toString();
+	    	}
 	    	if(formatFlag.equals("Y")){
 	    		CountDownLatch signal = new CountDownLatch(1);
 	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);

@@ -1,6 +1,8 @@
-package com.talentica.hungryHippos.accumulator.testJobs;
+package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.talentica.hungryHippos.accumulator.ExecutionContext;
 import com.talentica.hungryHippos.accumulator.Work;
@@ -8,7 +10,7 @@ import com.talentica.hungryHippos.accumulator.Work;
 /**
  * Created by debasishc on 9/9/15.
  */
-public class TestWork implements Work,Serializable {
+public class MedianWork implements Work,Serializable {
     /**
 	 * 
 	 */
@@ -19,10 +21,9 @@ public class TestWork implements Work,Serializable {
     protected String workerId;
     private int countLine = 0;
     
-    double value = 0;
-    //DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
+	DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
 
-    public TestWork(int[] dimensions, int primaryDimension, int valueIndex, String workerId) {
+    public MedianWork(int[] dimensions, int primaryDimension, int valueIndex, String workerId) {
         this.dimensions = dimensions;
         this.primaryDimension = primaryDimension;
         this.valueIndex = valueIndex;
@@ -32,16 +33,13 @@ public class TestWork implements Work,Serializable {
 
     @Override
     public void processRow(ExecutionContext executionContext) {
-        double v =  (Double)executionContext.getValue(valueIndex);
-        //descriptiveStatistics.addValue(v);
-        value+=v;
-
+		descriptiveStatistics.addValue((Double) executionContext.getValue(valueIndex));
     }
 
     @Override
     public void calculate(ExecutionContext executionContext) {
-        executionContext.saveValue(valueIndex +" : "+value);
-        //descriptiveStatistics.clear();
+		executionContext.saveValue(descriptiveStatistics.getPercentile(50));
+		descriptiveStatistics.clear();
     }
 
 

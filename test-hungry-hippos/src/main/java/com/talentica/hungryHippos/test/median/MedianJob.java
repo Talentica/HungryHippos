@@ -1,14 +1,15 @@
-package com.talentica.hungryHippos.accumulator.testJobs;
+package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
 
 import com.talentica.hungryHippos.accumulator.Job;
 import com.talentica.hungryHippos.accumulator.Work;
+import com.talentica.hungryHippos.test.sum.SumWork;
 
 /**
  * Created by debasishc on 9/9/15.
  */
-public class TestJob implements Job,Serializable{
+public class MedianJob implements Job,Serializable{
     /**
 	 * 
 	 */
@@ -20,9 +21,9 @@ public class TestJob implements Job,Serializable{
     protected long dataSize;
     protected String status;
     protected int workerId = 0;
-    public TestJob(){}
+    public MedianJob(){}
 
-    public TestJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
+    public MedianJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
         this.dimensions = dimensions;
         this.primaryDimension = primaryDimension;
         this.valueIndex = valueIndex;
@@ -32,7 +33,7 @@ public class TestJob implements Job,Serializable{
 
     @Override
     public Work createNewWork() {
-        return new TestWork(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
+        return new SumWork(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
     }
 
     @Override

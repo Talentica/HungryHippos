@@ -1,18 +1,19 @@
-package com.talentica.hungryHippos.accumulator.testJobs;
+package com.talentica.hungryHippos.test.unique;
 
 import com.talentica.hungryHippos.accumulator.Work;
+import com.talentica.hungryHippos.test.sum.SumJob;
 
 /**
  * Created by debasishc on 5/10/15.
  */
-public class TestJobUniqueCount extends TestJob {
+public class TestJobUniqueCount extends SumJob {
     public TestJobUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
         super(dimensions,primaryDimension,valueIndex,0);// zero added . need to be removed
     }
 
     @Override
     public Work createNewWork() {
-        return new TestWorkUniqueCount(dimensions,primaryDimension,valueIndex);
+        return new UniqueCountWork(dimensions,primaryDimension,valueIndex);
     }
 
 }

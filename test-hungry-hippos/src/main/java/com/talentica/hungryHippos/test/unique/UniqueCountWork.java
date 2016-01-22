@@ -1,19 +1,23 @@
-package com.talentica.hungryHippos.accumulator.testJobs;
-
-import com.talentica.hungryHippos.accumulator.ExecutionContext;
-import com.talentica.hungryHippos.accumulator.Work;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
+package com.talentica.hungryHippos.test.unique;
 
 import java.util.HashSet;
+
+import com.talentica.hungryHippos.accumulator.ExecutionContext;
+import com.talentica.hungryHippos.test.sum.SumWork;
+import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 
 /**
  * Created by debasishc on 5/10/15.
  */
-public class TestWorkUniqueCount extends TestWork{
+public class UniqueCountWork extends SumWork{
 
-    HashSet<CharSequence> uniqueValues = new HashSet<>();
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	HashSet<CharSequence> uniqueValues = new HashSet<>();
     private static int workerId = 0;
-    public TestWorkUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
+    public UniqueCountWork(int[] dimensions, int primaryDimension, int valueIndex) {
         super(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
     }
 

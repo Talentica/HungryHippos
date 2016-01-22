@@ -53,12 +53,7 @@ public class DataProvider {
         return servers.toArray(new String[servers.size()]);
     }
 
-
-    public static void main(String [] args) throws Exception {
-    	//publishDataToNodes();    	
-    }
-    
-    @SuppressWarnings({ "unchecked", "resource" })
+    @SuppressWarnings({ "unchecked"})
 	public static void publishDataToNodes(NodesManager nodesManager) throws Exception{
     	
         long start = System.currentTimeMillis();
@@ -66,7 +61,7 @@ public class DataProvider {
         String [] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
-        dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
+		dataDescription.setKeyOrder(Property.getKeyOrder());
         byte[] buf = new byte[dataDescription.getSize()];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -75,13 +70,13 @@ public class DataProvider {
 				new FileInputStream(
 						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
 								+ PathUtil.FORWARD_SLASH
-								+ ZKNodeName.keyCombinationNodeMap))) {
+						+ ZKNodeName.keyCombinationNodeMap))) {
 			keyCombinationNodeMap = (Map<KeyCombination, Set<Node>>) inKeyCombinationNodeMap
 					.readObject();
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while publishing data on nodes.", exception);
+			throw new RuntimeException(exception);
 		}
-
         OutputStream[] targets = new OutputStream[servers.length];
         LOGGER.info("***CREATE SOCKET CONNECTIONS***");
         
@@ -106,45 +101,44 @@ public class DataProvider {
 				input.close();
                 break;
             }
-            MutableCharArrayString key1 = parts[0];
-            MutableCharArrayString key2 = parts[1];
-            MutableCharArrayString key3 = parts[2];
-            MutableCharArrayString key4 = parts[3];
-            MutableCharArrayString key5 = parts[4];;
-            MutableCharArrayString key6 = parts[5];;
-            double key7 = Double.parseDouble(parts[6].toString());
-            double key8 = Double.parseDouble(parts[7].toString());
-            MutableCharArrayString key9 = parts[8];
+            MutableCharArrayString value1 = parts[0];
+            MutableCharArrayString value2 = parts[1];
+            MutableCharArrayString value3 = parts[2];
+            MutableCharArrayString value4 = parts[3];
+            MutableCharArrayString value5 = parts[4];;
+            MutableCharArrayString value6 = parts[5];;
+            double value7 = Double.parseDouble(parts[6].toString());
+            double value8 = Double.parseDouble(parts[7].toString());
+            MutableCharArrayString value9 = parts[8];
 
             Map<String,Object> keyValueMap = new HashMap<>();
-            keyValueMap.put("key1", key1);
-            keyValueMap.put("key2", key2);
-            keyValueMap.put("key3", key3);
 
+			String[] keyOrder = Property.getKeyOrder();
+
+			for (int i = 0; i < keyOrder.length; i++) {
+				keyValueMap.put(keyOrder[i], parts[i]);
+			}
             KeyCombination keyCombination = new KeyCombination(keyValueMap);
-            dynamicMarshal.writeValueString(0, key1, byteBuffer);
-            dynamicMarshal.writeValueString(1, key2, byteBuffer);
-            dynamicMarshal.writeValueString(2, key3, byteBuffer);
-            dynamicMarshal.writeValueString(3, key4, byteBuffer);
-            dynamicMarshal.writeValueString(4, key5, byteBuffer);
-            dynamicMarshal.writeValueString(5, key6, byteBuffer);
-            dynamicMarshal.writeValueDouble(6, key7, byteBuffer);
-            dynamicMarshal.writeValueDouble(7, key8, byteBuffer);
-            dynamicMarshal.writeValueString(8, key9, byteBuffer);
+            dynamicMarshal.writeValueString(0, value1, byteBuffer);
+            dynamicMarshal.writeValueString(1, value2, byteBuffer);
+            dynamicMarshal.writeValueString(2, value3, byteBuffer);
+            dynamicMarshal.writeValueString(3, value4, byteBuffer);
+            dynamicMarshal.writeValueString(4, value5, byteBuffer);
+            dynamicMarshal.writeValueString(5, value6, byteBuffer);
+            dynamicMarshal.writeValueDouble(6, value7, byteBuffer);
+            dynamicMarshal.writeValueDouble(7, value8, byteBuffer);
+            dynamicMarshal.writeValueString(8, value9, byteBuffer);
             Set<Node> nodes = keyCombinationNodeMap.get(keyCombination);
             for (Node node : nodes) {
                 targets[node.getNodeId()].write(buf);
             }
 
         }
-
         for(int j=0;j<targets.length;j++){
             targets[j].flush();
             targets[j].close();
         }
-       
         long end = System.currentTimeMillis();
-
 		LOGGER.info("Time taken in ms: " + (end - start));
 		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
 		LOGGER.info("Time taken in lookup: " + (timeForLookup));

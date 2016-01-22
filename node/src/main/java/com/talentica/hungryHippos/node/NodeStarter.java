@@ -160,12 +160,13 @@ public class NodeStarter {
 	}
 
 
-	private static void validateArguments(String[] args) {
+	private static void validateArguments(String[] args) throws FileNotFoundException {
 		if (args.length == 1) {
 			try {
 				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-			} catch (FileNotFoundException e) {
-				LOGGER.info("File not found ",e);
+			} catch (FileNotFoundException exception) {
+				LOGGER.info("File not found ", exception);
+				throw exception;
 			}
 		}else{
 			System.out.println("Please provide the zookeeper configuration file");
@@ -183,7 +184,7 @@ public class NodeStarter {
 	private static NodeStarter getNodeInitializer(NodesManager nodesManager) throws Exception{
         FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
-        dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
+		dataDescription.setKeyOrder(Property.getKeyOrder());
         return new NodeStarter(dataDescription);
     }
 	

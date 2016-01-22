@@ -28,10 +28,10 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.ZKNodeName;
-import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 public class JobManager {
@@ -52,30 +52,6 @@ public class JobManager {
 	
 	public void addJobList(List<Job> jobList){
 		this.jobList = jobList;
-	}
-	
-	public static void main(String[] args) throws Exception {
-		//please do not delete this comment. Need to use further.
-		
-		
-		/*if (args.length == 0) {
-			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
-		} else if (args.length == 1) {
-			Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-		}*/
-		
-		//List<Server> regServer = heartBeat.getMonitoredServers();
-		
-		//LOGGER.info("\n\t\t********STARTING TO PING THE SERVER********");
-		/*while (true) {
-			for (Server server : regServer) {
-				String buildFinishPath =  ZKUtils.buildNodePath(server.getId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH.name();
-				nodesManager.isPathExists(buildFinishPath, null);
-				heartBeat.startPinging(server);
-				Thread.sleep(Long.valueOf(tickTime));
-			}
-		}*/
-
 	}
 	
 	/**
@@ -161,7 +137,7 @@ public class JobManager {
 	private void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException{
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
         CommonUtil.setDataDescription(dataDescription);
-        dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
+		dataDescription.setKeyOrder(Property.getKeyOrder());
 		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
@@ -232,17 +208,20 @@ public class JobManager {
 	/**
 	 * Get the keyValueNodeNumberMap from local storage.
 	 * 
+	 * @throws Exception
+	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	private void setKeyValueNodeNumberMap(){
+	private void setKeyValueNodeNumberMap() throws Exception {
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
 				new FileInputStream(
 						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
 								+ PathUtil.FORWARD_SLASH
 								+ ZKNodeName.keyValueNodeNumberMap))) {
 			this.keyValueNodeNumberMap = (Map<String, Map<Object, Node>>) inKeyValueNodeNumberMap.readObject();
-		} catch (IOException|ClassNotFoundException e) {
+		} catch (IOException | ClassNotFoundException exception) {
 			LOGGER.info("Unable to read file");
+			throw exception;
 		}
 	}
 	

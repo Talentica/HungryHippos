@@ -31,7 +31,9 @@ public class Property {
 
 	public enum PROPERTIES_NAMESPACE {
 
-		MASTER("master"), NODE("node");
+		MASTER("master"), 
+		NODE("node"), 
+		COMMON("common");
 
 		private String namespace;
 
@@ -108,7 +110,11 @@ public class Property {
 		if (namespace != null) {
 			Object propertyValue = properties.get(namespace.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
-			return propertyValue;
+				return propertyValue;
+			}
+			propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON.getNamespace() + "." + propertyName);
+			if (propertyValue != null) {
+				return propertyValue;
 			}
 		}
 		return properties.get(propertyName);
@@ -116,6 +122,11 @@ public class Property {
 
 	public static final void setNamespace(PROPERTIES_NAMESPACE appNamespace) {
 		namespace = appNamespace;
+	}
+
+	public static String[] getKeyOrder(){
+		String keyOrderString = getPropertyValue("common.keyorder").toString();
+		return keyOrderString.split(",");
 	}
 
 }

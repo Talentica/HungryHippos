@@ -17,6 +17,7 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
@@ -102,7 +103,7 @@ public class NodeInitializer {
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE,0);
         dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
         dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-        dataDescription.setKeyOrder(new String[]{"key1","key2","key3"});
+		dataDescription.setKeyOrder(Property.getKeyOrder());
         NodeInitializer initializer = new NodeInitializer("keyValueNodeNumberMap", dataDescription);
         initializer.startServer(2323, readNodeId());
     }

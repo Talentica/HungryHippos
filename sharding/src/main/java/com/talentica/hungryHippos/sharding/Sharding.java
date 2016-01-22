@@ -55,11 +55,8 @@ public class Sharding {
 		try {
 			sharding.populateFrequencyFromData(input);
 			sharding.shardAllKeys();
-			System.out.println(sharding.keyCombinationNodeMap.size());
-			
 			CommonUtil.dumpFileOnDisk(Sharding.keyCombinationNodeMapFile, sharding.keyCombinationNodeMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyValueNodeNumberMapFile, sharding.keyValueNodeNumberMap);
-			
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);
@@ -68,7 +65,7 @@ public class Sharding {
 
 	// TODO: This method needs to be generalized
 	Map<String, List<KeyValueFrequency>> populateFrequencyFromData(Reader data) throws IOException {
-		String[] keys = { "key1", "key2", "key3" };
+		String[] keys = Property.getKeyOrder();
 		// Map<key1,Map<value1,count>>
 		Map<String, Map<Object, Long>> keyValueFrequencyMap = new HashMap<>();
 		while (true) {

@@ -1,2 +1,2 @@
 pwd:Ganesh11
-manager_node_ip:192.241.250.154
+manager_node_ip:localhost

@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.sharding;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,15 +11,12 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.marshaling.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 /**
@@ -61,11 +55,8 @@ public class Sharding {
 		try {
 			sharding.populateFrequencyFromData(input);
 			sharding.shardAllKeys();
-			System.out.println(sharding.keyCombinationNodeMap.size());
-			
 			CommonUtil.dumpFileOnDisk(Sharding.keyCombinationNodeMapFile, sharding.keyCombinationNodeMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyValueNodeNumberMapFile, sharding.keyValueNodeNumberMap);
-			
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);
@@ -74,7 +65,7 @@ public class Sharding {
 
 	// TODO: This method needs to be generalized
 	Map<String, List<KeyValueFrequency>> populateFrequencyFromData(Reader data) throws IOException {
-		String[] keys = { "key1", "key2", "key3" };
+		String[] keys = Property.getKeyOrder();
 		// Map<key1,Map<value1,count>>
 		Map<String, Map<Object, Long>> keyValueFrequencyMap = new HashMap<>();
 		while (true) {

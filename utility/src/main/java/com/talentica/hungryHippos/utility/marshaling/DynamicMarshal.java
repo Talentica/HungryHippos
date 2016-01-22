@@ -3,6 +3,8 @@ package com.talentica.hungryHippos.utility.marshaling;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+
 /**
  * Created by debasishc on 1/9/15.
  */

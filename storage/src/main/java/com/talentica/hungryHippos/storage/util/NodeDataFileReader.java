@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
@@ -78,7 +79,7 @@ public class NodeDataFileReader {
 		dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
 		dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
 		dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-		dataDescription.setKeyOrder(new String[] { "key1", "key2", "key3" });
+		dataDescription.setKeyOrder(Property.getKeyOrder());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

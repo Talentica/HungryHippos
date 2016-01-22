@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -75,7 +74,7 @@ public class ConfigurableDataGenerator {
 
         ColumnConfig[] configs = new ColumnConfig[args.length-2];
 
-        for(int i=0;i<args.length-2;i++){
+		for (int i = 0; i < args.length - 2; i++) {
             String [] parts = args[i+2].split(":");
             char[]  sourceChars = null;
             switch (parts[0]){

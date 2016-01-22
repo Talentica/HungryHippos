@@ -9,6 +9,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.utility.MapUtils;
+
 public class SerializedFileReaderTest {
 
 	private Map<String, Map<String, Map<String, String>>> companyToEmployees;
@@ -48,7 +50,7 @@ public class SerializedFileReaderTest {
 	@Test
 	public void testGetFormattedString() throws IOException {
 		org.junit.Assert.assertEquals(getExpectedFormattedStringOutput(),
-				SerializedFileReader.getFormattedString(companyToEmployees, 1));
+				MapUtils.getFormattedString(companyToEmployees));
 	}
 
 	private String getExpectedFormattedStringOutput() throws IOException {

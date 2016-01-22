@@ -37,4 +37,16 @@ public class PropertyTest{
 		Assert.assertNotNull(zookeeperServerIps);
 	}
 
+	@Test
+	public void testGetKeyOrder() {
+		Property.setNamespace(null);
+		String[] keyOrder= Property.getKeyOrder();
+		Assert.assertNotNull(keyOrder);
+		for(String key:keyOrder){
+			Assert.assertNotNull(key);
+			Assert.assertFalse("".equals(key.trim()));
+			Assert.assertFalse(key.contains(","));
+		}
+	}
+
 }

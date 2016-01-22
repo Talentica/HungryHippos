@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
-import com.talentica.hungryHippos.test.sum.SumWork;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -33,7 +32,7 @@ public class MedianJob implements Job,Serializable{
 
     @Override
     public Work createNewWork() {
-        return new SumWork(dimensions,primaryDimension,valueIndex,String.valueOf(workerId++));
+		return new MedianWork(dimensions, primaryDimension, valueIndex, String.valueOf(workerId++));
     }
 
     @Override

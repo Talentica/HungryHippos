@@ -138,8 +138,7 @@ public class JobManager {
 		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
 			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 					keyValueNodeNumberMap, nodeId, dataDescription);
-			int totalDimensions = Integer.valueOf(Property.getProperties()
-					.getProperty("total.dimensions"));
+			int totalDimensions = Property.getKeyOrder().length;
 			FileDataStore dataStore = new FileDataStore(totalDimensions,
 					nodeDataStoreIdCalculator, dataDescription, true);
 			JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
@@ -156,11 +155,7 @@ public class JobManager {
 	 * 
 	 * @return Map<Integer,Node>
 	 */
-	@SuppressWarnings("unchecked")
 	private Map<Integer,Node> getNodeIdNodesMap(){
-		Map<String, Map<Object, Node>> keyValueNodeNumberMap;
-		ZKNodeFile zkNodeFile = ZKUtils.getConfigZKNodeFile(ZKNodeName.keyValueNodeNumberMap);
-		keyValueNodeNumberMap = (zkNodeFile==null) ? null : (Map<String, Map<Object, Node>>)zkNodeFile.getObj();
 		Map<Integer,Node> nodeIdNodeMap = new HashMap<Integer, Node>();
 		for(String key : keyValueNodeNumberMap.keySet()){
 			Map<Object, Node> mapNode = keyValueNodeNumberMap.get(key);

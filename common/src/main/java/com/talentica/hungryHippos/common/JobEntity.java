@@ -44,7 +44,7 @@ public class JobEntity implements Serializable {
 	@Override
 	public String toString() {
 		if (job != null && workerIdRowCountMap != null) {
-			return "Job Id: " + job.getJobId() + "" + MapUtils.getFormattedString(workerIdRowCountMap);
+			return "Job Id: " + job.getJobId() + "" + MapUtils.getFormattedString(workerIdRowCountMap) + "\n";
 		}
 		return super.toString();
 	}

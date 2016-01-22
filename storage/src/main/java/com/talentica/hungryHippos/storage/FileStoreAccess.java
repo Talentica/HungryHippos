@@ -15,25 +15,24 @@ import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 /**
  * Created by debasishc on 31/8/15.
  */
-public class FileStoreAccess implements StoreAccess{
-    List<RowProcessor> rowProcessors = new LinkedList<>();
-    private int keyId;
-    private int numFiles;
-    private String base;
-    private DataDescription dataDescription;
+public class FileStoreAccess implements StoreAccess {
+	List<RowProcessor> rowProcessors = new LinkedList<>();
+	private int keyId;
+	private int numFiles;
+	private String base;
+	private DataDescription dataDescription;
 
-    public FileStoreAccess(String base, int keyId, int numFiles,
-                           DataDescription dataDescription) {
-        this.keyId = keyId;
-        this.numFiles = numFiles;
-        this.base = base;
-        this.dataDescription = dataDescription;
-    }
+	public FileStoreAccess(String base, int keyId, int numFiles, DataDescription dataDescription) {
+		this.keyId = keyId;
+		this.numFiles = numFiles;
+		this.base = base;
+		this.dataDescription = dataDescription;
+	}
 
-    @Override
-    public void addRowProcessor(RowProcessor rowProcessor) {
-        rowProcessors.add(rowProcessor);
-    }
+	@Override
+	public void addRowProcessor(RowProcessor rowProcessor) {
+		rowProcessors.add(rowProcessor);
+	}
 
 	@Override
 	public void processRows() {
@@ -57,6 +56,9 @@ public class FileStoreAccess implements StoreAccess{
 			byte[] buf = new byte[dataDescription.getSize()];
 			ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
 			while (true) {
+				if (in.available() <= 0) {
+					break;
+				}
 				in.readFully(buf);
 				for (RowProcessor p : rowProcessors) {
 					p.processRow(byteBuffer);
@@ -66,7 +68,7 @@ public class FileStoreAccess implements StoreAccess{
 			closeDatsInputStream(in);
 		}
 	}
-    
+
 	@Override
 	public void processRowCount() {
 		try {
@@ -80,16 +82,19 @@ public class FileStoreAccess implements StoreAccess{
 			throw new RuntimeException(e);
 		}
 	}
-    
+
 	private void processRowCount(int fileId) throws FileNotFoundException, IOException {
 		DataInputStream in = null;
 		try {
 			in = new DataInputStream(new FileInputStream(
 					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
 			byte[] buf = new byte[dataDescription.getSize()];
-			ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
 			while (true) {
+				if (in.available() <= 0) {
+					break;
+				}
 				in.readFully(buf);
+				ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
 				for (RowProcessor p : rowProcessors) {
 					p.processRowCount(byteBuffer);
 				}

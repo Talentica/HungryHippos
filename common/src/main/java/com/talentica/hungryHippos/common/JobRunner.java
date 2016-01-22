@@ -102,6 +102,7 @@ public class JobRunner implements Serializable{
     
     public void clearJobList(){
     	jobs.clear();
+		primaryDimJobsMap.clear();
     }
     
 

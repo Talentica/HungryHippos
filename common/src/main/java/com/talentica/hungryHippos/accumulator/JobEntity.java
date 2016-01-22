@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.talentica.hungryHippos.utility.MapUtils;
+
 /**
  * @author PooshanS
  *
@@ -38,6 +40,13 @@ public class JobEntity implements Serializable {
 		this.workerIdRowCountMap = workerIdRowCountMap;
 	}
 	
+	@Override
+	public String toString() {
+		if (job != null && workerIdRowCountMap != null) {
+			return "Job Id: " + job.getJobId() + "" + MapUtils.getFormattedString(workerIdRowCountMap);
+		}
+		return super.toString();
+	}
 	
 	
 }

@@ -28,16 +28,20 @@ public class MasterStarter {
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(MasterStarter.class);
 
-	public static void main(String[] args) throws Exception {
-		validateProgramArguments(args);
-		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
-		overrideProperties(args);
-		LOGGER.info("SHARDING STARTED");
-		Sharding.doSharding(getInputReaderForSharding());
-		LOGGER.info("SHARDING DONE!!");
-		JobManager jobManager = new JobManager();
-		jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
-		jobManager.start();
+	public static void main(String[] args) {
+		try {
+			validateProgramArguments(args);
+			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			overrideProperties(args);
+			LOGGER.info("SHARDING STARTED");
+			Sharding.doSharding(getInputReaderForSharding());
+			LOGGER.info("SHARDING DONE!!");
+			JobManager jobManager = new JobManager();
+			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
+			jobManager.start();
+		} catch (Exception exception) {
+			LOGGER.error("Error occured while executing master starter program.", exception);
+		}
 	}
 
 	private static void validateProgramArguments(String[] args)
@@ -62,12 +66,13 @@ public class MasterStarter {
 
 	private static void overrideProperties(String[] args) throws FileNotFoundException {
 		if (args.length == 1) {
-			LOGGER.info("You have not provided external config.properties file. Default config.properties file will be use internally");
+			LOGGER.info(
+					"You have not provided external config.properties file. Default config.properties file will be use internally");
 		} else if (args.length == 2) {
 			Property.CONFIG_FILE = new FileInputStream(new String(args[1]));
 		}
 	}
-	
+
 	private static Reader getInputReaderForSharding() throws IOException {
 		final String inputFile = Property.getProperties().getProperty("input.file");
 		com.talentica.hungryHippos.utility.marshaling.FileReader fileReader = new com.talentica.hungryHippos.utility.marshaling.FileReader(

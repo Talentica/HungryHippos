@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.storage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -34,66 +35,74 @@ public class FileStoreAccess implements StoreAccess{
         rowProcessors.add(rowProcessor);
     }
 
-    @Override
-    public void processRows() {
-        int keyIdBit = 1 << keyId;
-        for(int i=0;i<numFiles;i++){
-            if((keyIdBit & i) > 0){
-                processRows(i);
-            }
-        }
-    }
-
-    private void processRows(int fileId){
-        try {
-            DataInputStream in
-                    = new DataInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+base + fileId));
-            byte[] buf = new byte[dataDescription.getSize()];
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-            while(true){
-                in.readFully(buf);
-                for(RowProcessor p: rowProcessors){
-                    p.processRow(byteBuffer);
-                    
-                }
-            }
-        } catch (IOException e) {
-            //e.printStackTrace();
-        }
-    }
-    
-    @Override
-	public void processRowCount(){
-        int keyIdBit = 1 << keyId;
-        for(int i=0;i<numFiles;i++){
-            if((keyIdBit & i) > 0){
-            	processRowCount(i);
-            }
-        }
-        
-        
-        
-		
-	}
-    
-	private void processRowCount(int fileId) {
+	@Override
+	public void processRows() {
 		try {
-	        DataInputStream in
-	                = new DataInputStream(new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()+PathUtil.FORWARD_SLASH+base + fileId));
-	        byte[] buf = new byte[dataDescription.getSize()];
-	        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-	        while(true){
-	            in.readFully(buf);
-	            for(RowProcessor p: rowProcessors){
-	            	p.processRowCount(byteBuffer);
-	            }
-	        }
-	    } catch (IOException e) {
-	        //e.printStackTrace();
-	    }
-		
+			int keyIdBit = 1 << keyId;
+			for (int i = 0; i < numFiles; i++) {
+				if ((keyIdBit & i) > 0) {
+					processRows(i);
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
-	
-	
+
+	private void processRows(int fileId) throws IOException {
+		DataInputStream in = null;
+		try {
+			in = new DataInputStream(new FileInputStream(
+					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
+			byte[] buf = new byte[dataDescription.getSize()];
+			ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+			while (true) {
+				in.readFully(buf);
+				for (RowProcessor p : rowProcessors) {
+					p.processRow(byteBuffer);
+				}
+			}
+		} finally {
+			closeDatsInputStream(in);
+		}
+	}
+    
+	@Override
+	public void processRowCount() {
+		try {
+			int keyIdBit = 1 << keyId;
+			for (int i = 0; i < numFiles; i++) {
+				if ((keyIdBit & i) > 0) {
+					processRowCount(i);
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+    
+	private void processRowCount(int fileId) throws FileNotFoundException, IOException {
+		DataInputStream in = null;
+		try {
+			in = new DataInputStream(new FileInputStream(
+					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
+			byte[] buf = new byte[dataDescription.getSize()];
+			ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+			while (true) {
+				in.readFully(buf);
+				for (RowProcessor p : rowProcessors) {
+					p.processRowCount(byteBuffer);
+				}
+			}
+		} finally {
+			closeDatsInputStream(in);
+		}
+	}
+
+	private void closeDatsInputStream(DataInputStream in) throws IOException {
+		if (in != null) {
+			in.close();
+		}
+	}
 
 }

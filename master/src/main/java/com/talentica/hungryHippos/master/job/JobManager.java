@@ -75,9 +75,6 @@ public class JobManager {
 			
 		    LOGGER.info("PUT keyValueNodeNumberMap TO ZK NODE");
 			setKeyValueNodeNumberMap();
-			ZKNodeFile saveKeyValueNodeNumberMap = new ZKNodeFile(ZKNodeName.keyValueNodeNumberMap, null,keyValueNodeNumberMap);
-			nodesManager.saveConfigFileToZNode(saveKeyValueNodeNumberMap,null);
-			LOGGER.info("keyValueNodeNumberMap PUT TO ZK NODE SUCCESSFULLY!");
 			
 			LOGGER.info("PUBLISH DATA ACROSS THE NODES");
 			DataProvider.publishDataToNodes(nodesManager);

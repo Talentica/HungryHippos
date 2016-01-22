@@ -11,7 +11,7 @@ public class ResourceManagerImpl implements ResourceManager {
 	@Override
 	public Map<Integer, List<ResourceConsumer>> getIterationWiseResourceConsumersToAllocateResourcesTo(Long availableDiskSize,
 			Long availableRam, List<ResourceConsumer> resourceConsumers) {
-		return null;
+		return new TaskPartitions(resourceConsumers, availableRam).getIterationWiseResourceConsumers();
 	}
 
 }

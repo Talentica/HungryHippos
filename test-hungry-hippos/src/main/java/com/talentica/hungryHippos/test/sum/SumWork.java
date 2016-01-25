@@ -34,7 +34,7 @@ public class SumWork implements Work, Serializable {
 
 	@Override
 	public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(sum);
+		executionContext.saveValue(valueIndex, sum);
 	}
 
 	@Override

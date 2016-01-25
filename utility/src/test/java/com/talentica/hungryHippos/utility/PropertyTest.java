@@ -49,4 +49,20 @@ public class PropertyTest{
 		}
 	}
 
+	@Test
+	public void testGetKeyNamesFromIndexes() {
+		String[] keyNames = Property.getKeyNamesFromIndexes(new int[] { 1, 2 });
+		Assert.assertNotNull(keyNames);
+		Assert.assertEquals(2, keyNames.length);
+		Assert.assertEquals("key2", keyNames[0]);
+		Assert.assertEquals("key3", keyNames[1]);
+	}
+
+	@Test
+	public void testGetKeyNamesFromIndexesWithEmptyArray() {
+		String[] keyNames = Property.getKeyNamesFromIndexes(new int[] {});
+		Assert.assertNotNull(keyNames);
+		Assert.assertEquals(0, keyNames.length);
+	}
+
 }

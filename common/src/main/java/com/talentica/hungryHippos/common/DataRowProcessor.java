@@ -1,16 +1,15 @@
 package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.storage.RowProcessor;
+import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -41,7 +40,7 @@ public class DataRowProcessor implements RowProcessor {
         this.job = job;
         this.keys = job.getDimensions();
         this.values = new Object[keys.length];
-        this.valueSet = new ValueSet(values);
+		this.valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
         executionContext = new ExecutionContextImpl(dynamicMarshal);
         this.jobEntity = new JobEntity(job);
     }
@@ -54,7 +53,8 @@ public class DataRowProcessor implements RowProcessor {
         }
         Work work = valueSetWorkMap.get(valueSet);
         if(work==null){
-            ValueSet valueSet = new ValueSet(Arrays.copyOf(values,values.length));
+			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
+					Arrays.copyOf(values, values.length));
             work = job.createNewWork();
             valueSetWorkMap.put(valueSet,work);
         }
@@ -108,7 +108,8 @@ public class DataRowProcessor implements RowProcessor {
         }
         Work work = valueSetWorkMap.get(valueSet);
         if(work==null){
-            ValueSet valueSet = new ValueSet(Arrays.copyOf(values,values.length));
+			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
+					Arrays.copyOf(values, values.length));
             work = job.createNewWork();
             valueSetWorkMap.put(valueSet,work);
         }

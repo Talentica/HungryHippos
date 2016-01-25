@@ -9,7 +9,7 @@ public interface ExecutionContext {
     ByteBuffer getData();
     Object getValue(int index);
     MutableCharArrayString getString(int index);
-    void saveValue(Object value);
+	void saveValue(int calculationIndex, Object value);
     void setKeys(ValueSet valueSet);
     ValueSet getKeys();
 }

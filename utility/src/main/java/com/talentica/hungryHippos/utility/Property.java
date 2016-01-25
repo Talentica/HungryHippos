@@ -129,4 +129,13 @@ public class Property {
 		return keyOrderString.split(",");
 	}
 
+	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
+		String[] keyOrder = Property.getKeyOrder();
+		String[] keyNames = new String[keyIndexes.length];
+		for (int i = 0; i < keyIndexes.length; i++) {
+			keyNames[i] = keyOrder[keyIndexes[i]];
+		}
+		return keyNames;
+	}
+
 }

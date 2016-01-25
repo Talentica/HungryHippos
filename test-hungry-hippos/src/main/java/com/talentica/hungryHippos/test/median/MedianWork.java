@@ -38,7 +38,7 @@ public class MedianWork implements Work,Serializable {
 
     @Override
     public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(descriptiveStatistics.getPercentile(50));
+		executionContext.saveValue(valueIndex, descriptiveStatistics.getPercentile(50));
 		descriptiveStatistics.clear();
     }
 

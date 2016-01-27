@@ -127,6 +127,7 @@ public class Sharding {
 		Map<Object, Node> keyValueNodeNumber = new HashMap<>();
 		keyValueNodeNumberMap.put(keyName, keyValueNodeNumber);
 		Collections.sort(keyValueFrequencies);
+		System.out.println("keyValueFrequencies size is: " + keyValueFrequencies.size());
 		for (KeyValueFrequency kvf : keyValueFrequencies) {
 			Node mostEmptyNode = fillupQueue.poll();
 

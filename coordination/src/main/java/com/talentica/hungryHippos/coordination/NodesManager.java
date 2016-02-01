@@ -204,7 +204,7 @@ public class NodesManager implements Watcher {
 	                                	LOGGER.info("DELETE THE PULL/PUSH NODES");
 	                                	deleteNode(path);
 	                                	String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-	                                	String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+	                                	String newString = CommonUtil.ZKJobNodeEnum.PUSH_TASK_NOTIFICATION.name();
 	                                	deleteNode(path.replace(oldString, newString));
 	                                }
 	                                if(signal != null ) signal.countDown();
@@ -643,7 +643,7 @@ public class NodesManager implements Watcher {
 						+ PathUtil.FORWARD_SLASH
 						+ (NODE_NAME_PRIFIX + nodeId)
 						+ PathUtil.FORWARD_SLASH
-						+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+						+ CommonUtil.ZKJobNodeEnum.PUSH_TASK_NOTIFICATION.name();
 				createNode(pushNotification,null);
 			}
 			flag = true;

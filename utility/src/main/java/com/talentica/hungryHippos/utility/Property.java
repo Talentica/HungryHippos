@@ -128,7 +128,7 @@ public class Property {
 		String keyOrderString = getPropertyValue("common.keyorder").toString();
 		return keyOrderString.split(",");
 	}
-
+	
 	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
 		String[] keyOrder = Property.getKeyOrder();
 		String[] keyNames = new String[keyIndexes.length];
@@ -137,5 +137,4 @@ public class Property {
 		}
 		return keyNames;
 	}
-
 }

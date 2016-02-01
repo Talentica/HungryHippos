@@ -10,24 +10,23 @@ import com.talentica.hungryHippos.client.domain.Work;
 /**
  * Created by debasishc on 9/9/15.
  */
-public class MedianWork implements Work, Serializable {
-	/**
+public class MedianWork implements Work,Serializable {
+    /**
 	 * 
 	 */
 	private static final long serialVersionUID = -5931349264723731947L;
 	protected int[] dimensions;
-	protected int primaryDimension;
-	protected int valueIndex;
-	protected String workerId;
-	private int countLine = 0;
-	private List<Double> values = new ArrayList<>();
+    protected int primaryDimension;
+    protected int valueIndex;
+    protected String status;
 
-	public MedianWork(int[] dimensions, int primaryDimension, int valueIndex, String workerId) {
-		this.dimensions = dimensions;
-		this.primaryDimension = primaryDimension;
-		this.valueIndex = valueIndex;
-		this.workerId = workerId;
-	}
+    private List<Double> values = new ArrayList<>();
+
+    public MedianWork(int[] dimensions, int primaryDimension, int valueIndex) {
+        this.dimensions = dimensions;
+        this.primaryDimension = primaryDimension;
+        this.valueIndex = valueIndex;
+    }
 
 	@Override
 	public void processRow(ExecutionContext executionContext) {
@@ -39,19 +38,22 @@ public class MedianWork implements Work, Serializable {
 		executionContext.saveValue(valueIndex, MedianCalculator.calculate(values));
 	}
 
-	@Override
-	public void incrCountRow() {
-		countLine++;
+    @Override
+	public int[] getDimensions() {
+		return dimensions;
 	}
 
-	@Override
-	public int getRowCount() {
-		return countLine;
-	}
 
 	@Override
-	public String getWorkerId() {
-		return workerId;
+	public int getPrimaryDimension() {
+		return primaryDimension;
 	}
 
+
+	@Override
+	public void status(String status) {
+		this.status = status;
+	}
+	
+	
 }

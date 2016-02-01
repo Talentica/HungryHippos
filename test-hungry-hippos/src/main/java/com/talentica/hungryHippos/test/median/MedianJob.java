@@ -19,7 +19,6 @@ public class MedianJob implements Job,Serializable{
     protected int jobId;
     protected long dataSize;
     protected String status;
-    protected int workerId = 0;
     public MedianJob(){}
 
     public MedianJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
@@ -32,7 +31,7 @@ public class MedianJob implements Job,Serializable{
 
     @Override
     public Work createNewWork() {
-		return new MedianWork(dimensions, primaryDimension, valueIndex, String.valueOf(workerId++));
+		return new MedianWork(dimensions, primaryDimension, valueIndex);
     }
 
     @Override

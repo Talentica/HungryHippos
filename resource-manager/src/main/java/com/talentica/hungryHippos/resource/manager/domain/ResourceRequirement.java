@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.resource.manager.domain;
 
-import java.util.Comparator;
+import com.talentica.hungryHippos.resource.manager.services.ResourceManager;
 
 /**
  * Represents resource requirements to perform any work. e.g. To run a job, you

@@ -10,7 +10,8 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.talentica.hungryHippos.common.JobEntity;
+import com.talentica.hungryHippos.client.job.Job;
+import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 
 /**
@@ -24,13 +25,13 @@ public interface NodesJobsRunnable {
 	
 	void scheduleTaskManager() throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 	
-	void addJobEntity(JobEntity jobEntity);
+	public void addJob(Job job);
 	
-	void addJob(List<JobEntity> jobEntity);
+	void addJobs(List<Job> jobs);
 	
 	TaskManager getTaskManager();
 	
-	boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
+	boolean sendJobRunnableNotificationToNode(Job jobEntity,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 	
 	Set<LeafBean> receiveJobSucceedNotificationFromNode() throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 }

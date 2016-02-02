@@ -13,7 +13,17 @@ public class BucketsCalculatorTest {
 		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 		Property.setOrOverrideConfigurationProperty("common.keyorder",
 				"key1,key2,key3");
-		Assert.assertEquals(100, BucketsCalculator.calculateNumberOfBucketsNeeded());
+		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
+		Assert.assertEquals(100, numberOfBucketsNeeded);
+		Assert.assertTrue(numberOfBucketsNeeded <= 1000);
+	}
+
+	@Test
+	public void testCalculateNumberOfBucketsNeededIfBucketsCountIsExceeding() {
+		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+		Property.setOrOverrideConfigurationProperty("common.keyorder", "key1");
+		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
+		Assert.assertEquals(1000, numberOfBucketsNeeded);
 	}
 
 }

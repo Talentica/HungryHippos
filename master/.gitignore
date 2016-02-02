@@ -1,2 +1,6 @@
 /build/
 /sampledata.txt
+/Application.log
+/bucketToNodeNumberMap
+/bucketToNodeNumbersMap
+/keyToValueToBucketMap

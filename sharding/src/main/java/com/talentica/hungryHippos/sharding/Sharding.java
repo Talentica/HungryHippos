@@ -30,7 +30,6 @@ public class Sharding {
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
 	private Map<String, Map<MutableCharArrayString, Long>> keyValueFrequencyMap = new HashMap<>();
-	private Long sizeOfOneBucket;
 	// Map<Key1,Map<value1,Node(1)>
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 	PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
@@ -136,26 +135,33 @@ public class Sharding {
 		for (int i = 0; i < keys.length; i++) {
 			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
 			keyToValueToBucketMap.put(keys[i], valueToBucketMap);
-			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
-			long sizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
 			long frequencyOfAlreadyAddedValues = 0;
-			int bucketCount = totalNoOfBuckets;
-			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, sizeOfOneBucket);
-			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
-			buckets.add(bucket);
+			int bucketCount = 0;
+			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+			long idealAverageSizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
+			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
 			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
-			for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
-				Long frequency = keyValueFrequency.getFrequency();
-				if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {
-					bucket = new Bucket<>(bucketCount--, sizeOfOneBucket);
-					buckets.add(bucket);
-					frequencyOfAlreadyAddedValues = 0;
+			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
+			if (!sortedKeyValueFrequencies.isEmpty()) {
+				long sizeOfOneBucket = idealAverageSizeOfOneBucket;
+				long maximumFrequency = sortedKeyValueFrequencies.get(0).getFrequency();
+				if (idealAverageSizeOfOneBucket < maximumFrequency) {
+					sizeOfOneBucket = maximumFrequency;
 				}
-				frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
-				bucket.add(keyValueFrequency);
-				valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
+				buckets.add(bucket);
+				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
+					Long frequency = keyValueFrequency.getFrequency();
+					if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {
+						bucket = new Bucket<>(bucketCount++, sizeOfOneBucket);
+						buckets.add(bucket);
+						frequencyOfAlreadyAddedValues = 0;
+					}
+					frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
+					bucket.add(keyValueFrequency);
+					valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
+				}
+				this.keysToListOfBucketsMap.put(keys[i], buckets);
 			}
-			this.keysToListOfBucketsMap.put(keys[i], buckets);
 		}
 		System.out.println("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
 		return this.keysToListOfBucketsMap;
@@ -177,12 +183,11 @@ public class Sharding {
 	}
 
 	private long getSizeOfOnBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
-		if (sizeOfOneBucket == null) {
-			long totalofAllKeyValueFrequencies = 0;
-			for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
-				totalofAllKeyValueFrequencies = totalofAllKeyValueFrequencies
-						+ frequencyPerValue.get(mutableCharArrayString);
-			}
+		long sizeOfOneBucket = 0;
+		long totalofAllKeyValueFrequencies = 0;
+		for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
+			totalofAllKeyValueFrequencies = totalofAllKeyValueFrequencies
+					+ frequencyPerValue.get(mutableCharArrayString);
 			sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets - 1);
 		}
 		return sizeOfOneBucket;

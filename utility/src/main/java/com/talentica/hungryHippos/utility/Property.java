@@ -138,4 +138,8 @@ public class Property {
 		return keyNames;
 	}
 
+	public static void setOrOverrideConfigurationProperty(String key, String value) {
+		getProperties().setProperty(key, value);
+	}
+
 }

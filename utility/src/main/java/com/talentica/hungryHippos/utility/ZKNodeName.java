@@ -9,8 +9,6 @@ package com.talentica.hungryHippos.utility;
  */
 public interface ZKNodeName {
 	
-	String keyValueNodeNumberMap = "keyValueNodeNumberMap";
-	String keyCombinationNodeMap = "keyCombinationNodeMap";
 	String jobConfigFileName = "jobConfig";
 
 }

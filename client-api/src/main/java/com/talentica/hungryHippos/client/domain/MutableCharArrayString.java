@@ -90,4 +90,12 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
         }
         return h;
     }
+
+	public static MutableCharArrayString from(String value) {
+		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());
+		for (char character : value.toCharArray()) {
+			mutableCharArrayString.addCharacter(character);
+		}
+		return mutableCharArrayString;
+	}
 }

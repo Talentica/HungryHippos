@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 
@@ -23,29 +24,32 @@ import com.talentica.hungryHippos.utility.marshaling.Reader;
  * Created by debasishc on 14/8/15.
  */
 public class Sharding {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Sharding.class);
 
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
-	private Map<String, List<KeyValueFrequency>> keyValueFrequencyMap = new HashMap<>();
-
+	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
+	private Map<String, Map<MutableCharArrayString, Long>> keyValueFrequencyMap = new HashMap<>();
+	private Long sizeOfOneBucket;
 	// Map<Key1,Map<value1,Node(1)>
-	private Map<String, Map<Object, Node>> keyValueNodeNumberMap = new HashMap<>();
+	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 	PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
 
 	// e.g. Map<KeyCombination({key1,value1},{key2,value2},{key3,value3}),count>
-	private Map<KeyCombination, Long> keyCombinationFrequencyMap = new HashMap<>();
-	private Map<Node, List<KeyCombination>> nodeToKeyMap = new HashMap<>();
-	private Map<KeyCombination, Set<Node>> keyCombinationNodeMap = new HashMap<>();
-	private final static String keyValueNodeNumberMapFile = "keyValueNodeNumberMap";
-	private final static String keyCombinationNodeMapFile = "keyCombinationNodeMap";
+	private Map<BucketCombination, Long> bucketCombinationFrequencyMap = new HashMap<>();
+	private Map<Node, List<BucketCombination>> nodeToKeyMap = new HashMap<>();
+	private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
+	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
 
+	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
+	public final static String bucketCombinationToNodeNumbersMapFile = "bucketToNodeNumbersMap";
+	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
 
 	public Sharding(int numNodes) {
 		for (int i = 0; i < numNodes; i++) {
 			Node node = new Node(300000, i);
 			fillupQueue.offer(node);
-			nodeToKeyMap.put(node, new ArrayList<KeyCombination>());
+			nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
 		}
 	}
 
@@ -54,106 +58,164 @@ public class Sharding {
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
+			sharding.populateKeysToListOfBucketsMap();
+			sharding.updateBucketToNodeNumbersMap(input);
 			sharding.shardAllKeys();
-			CommonUtil.dumpFileOnDisk(Sharding.keyCombinationNodeMapFile, sharding.keyCombinationNodeMap);
-			CommonUtil.dumpFileOnDisk(Sharding.keyValueNodeNumberMapFile, sharding.keyValueNodeNumberMap);
+			CommonUtil.dumpFileOnDisk(Sharding.bucketCombinationToNodeNumbersMapFile,
+					sharding.bucketCombinationToNodeNumbersMap);
+			CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, sharding.bucketToNodeNumberMap);
+			CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, sharding.keyToValueToBucketMap);
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);
-		} 
+		}
 	}
 
-	// TODO: This method needs to be generalized
-	Map<String, List<KeyValueFrequency>> populateFrequencyFromData(Reader data) throws IOException {
+	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
+		data.reset();
 		String[] keys = Property.getKeyOrder();
 		// Map<key1,Map<value1,count>>
-		Map<String, Map<Object, Long>> keyValueFrequencyMap = new HashMap<>();
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {
 				data.close();
 				break;
 			}
-
 			MutableCharArrayString[] values = new MutableCharArrayString[3];
-
 			values[0] = parts[0].clone();
 			values[1] = parts[1].clone();
 			values[2] = parts[2].clone();
-
-			Map<String, Object> keyCombinationMap = new HashMap<>();
+			Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
 			for (int i = 0; i < keys.length; i++) {
-				keyCombinationMap.put(keys[i], values[i]);
+				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keys[i]).get(values[i]);
+				bucketCombinationMap.put(keys[i], bucket);
 			}
-
-			KeyCombination keyCombination = new KeyCombination(keyCombinationMap);
-
-			Long count = keyCombinationFrequencyMap.get(keyCombination);
+			BucketCombination keyCombination = new BucketCombination(bucketCombinationMap);
+			Long count = bucketCombinationFrequencyMap.get(keyCombination);
 			if (count == null) {
-				keyCombinationFrequencyMap.put(keyCombination, 1L);
+				bucketCombinationFrequencyMap.put(keyCombination, 1L);
 			} else {
-				keyCombinationFrequencyMap.put(keyCombination, count + 1);
+				bucketCombinationFrequencyMap.put(keyCombination, count + 1);
 			}
+		}
+	}
 
+	// TODO: This method needs to be generalized
+	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
+		String[] keys = Property.getKeyOrder();
+		// Map<key1,Map<value1,count>>
+		while (true) {
+			MutableCharArrayString[] parts = data.read();
+			if (parts == null) {
+				break;
+			}
+			MutableCharArrayString[] values = new MutableCharArrayString[3];
+			values[0] = parts[0].clone();
+			values[1] = parts[1].clone();
+			values[2] = parts[2].clone();
 			for (int i = 0; i < keys.length; i++) {
-				Map<Object, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
 				if (frequencyPerValue == null) {
 					frequencyPerValue = new HashMap<>();
 					keyValueFrequencyMap.put(keys[i], frequencyPerValue);
 				}
-
 				Long frequency = frequencyPerValue.get(values[i]);
-
 				if (frequency == null) {
 					frequency = 0L;
 				}
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
+		}
+		return keyValueFrequencyMap;
+	}
 
-		}
+	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
+		String[] keys = Property.getKeyOrder();
+		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
+		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
 		for (int i = 0; i < keys.length; i++) {
-			Map<Object, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
-			List<KeyValueFrequency> freqList = new ArrayList<>();
-			this.keyValueFrequencyMap.put(keys[i], freqList);
-			for (Map.Entry<Object, Long> fv : frequencyPerValue.entrySet()) {
-				freqList.add(new KeyValueFrequency(fv.getKey(), fv.getValue()));
+			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
+			keyToValueToBucketMap.put(keys[i], valueToBucketMap);
+			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+			long sizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
+			long frequencyOfAlreadyAddedValues = 0;
+			int bucketCount = totalNoOfBuckets;
+			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, sizeOfOneBucket);
+			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
+			buckets.add(bucket);
+			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
+			for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
+				Long frequency = keyValueFrequency.getFrequency();
+				if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {
+					bucket = new Bucket<>(bucketCount--, sizeOfOneBucket);
+					buckets.add(bucket);
+					frequencyOfAlreadyAddedValues = 0;
+				}
+				frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
+				bucket.add(keyValueFrequency);
+				valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
 			}
+			this.keysToListOfBucketsMap.put(keys[i], buckets);
 		}
-		return this.keyValueFrequencyMap;
+		System.out.println("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
+		return this.keysToListOfBucketsMap;
+	}
+
+	public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap() {
+		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
+		String[] keys = Property.getKeyOrder();
+		for (String key : keys) {
+			List<KeyValueFrequency> frequencies = new ArrayList<>();
+			Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
+			for (MutableCharArrayString keyValue : keyValueToFrequencyMap.keySet()) {
+				frequencies.add(new KeyValueFrequency(keyValue, keyValueToFrequencyMap.get(keyValue)));
+			}
+			Collections.sort(frequencies);
+			keyToListOfKeyValueFrequency.put(key, frequencies);
+		}
+		return keyToListOfKeyValueFrequency;
+	}
+
+	private long getSizeOfOnBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
+		if (sizeOfOneBucket == null) {
+			long totalofAllKeyValueFrequencies = 0;
+			for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
+				totalofAllKeyValueFrequencies = totalofAllKeyValueFrequencies
+						+ frequencyPerValue.get(mutableCharArrayString);
+			}
+			sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets - 1);
+		}
+		return sizeOfOneBucket;
 	}
 
 	private void shardSingleKey(String keyName) throws NodeOverflowException {
-		List<KeyValueFrequency> keyValueFrequencies = keyValueFrequencyMap.get(keyName);
-		Map<Object, Node> keyValueNodeNumber = new HashMap<>();
-		keyValueNodeNumberMap.put(keyName, keyValueNodeNumber);
-		Collections.sort(keyValueFrequencies);
-		System.out.println("keyValueFrequencies size is: " + keyValueFrequencies.size());
-		for (KeyValueFrequency kvf : keyValueFrequencies) {
+		List<Bucket<KeyValueFrequency>> buckets = keysToListOfBucketsMap.get(keyName);
+		Map<Bucket<KeyValueFrequency>, Node> bucketToNodeNumber = new HashMap<>();
+		bucketToNodeNumberMap.put(keyName, bucketToNodeNumber);
+		Collections.sort(buckets);
+		for (Bucket<KeyValueFrequency> bucket : buckets) {
 			Node mostEmptyNode = fillupQueue.poll();
-
-			List<KeyCombination> currentKeys = nodeToKeyMap.get(mostEmptyNode);
+			List<BucketCombination> currentKeys = nodeToKeyMap.get(mostEmptyNode);
 			if (currentKeys == null) {
 				currentKeys = new ArrayList<>();
 				nodeToKeyMap.put(mostEmptyNode, currentKeys);
 			}
 			long currentSize = sumForKeyCombinationUnion(currentKeys);
-
-			Map<String, Object> wouldBeMap = new HashMap<>();
-			wouldBeMap.put(keyName, kvf.getKeyValue());
-			currentKeys.add(new KeyCombination(wouldBeMap));
+			Map<String, Bucket<KeyValueFrequency>> wouldBeMap = new HashMap<>();
+			wouldBeMap.put(keyName, bucket);
+			currentKeys.add(new BucketCombination(wouldBeMap));
 			long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
-
 			mostEmptyNode.fillUpBy(wouldBeSize - currentSize);
-
 			fillupQueue.offer(mostEmptyNode);
-			keyValueNodeNumber.put(kvf.getKeyValue(), mostEmptyNode);
+			bucketToNodeNumber.put(bucket, mostEmptyNode);
 		}
+		System.out.println("bucketToNodeNumber:" + MapUtils.getFormattedString(bucketToNodeNumber));
 	}
 
-	private long sumForKeyCombinationUnion(List<KeyCombination> keyCombination) {
+	private long sumForKeyCombinationUnion(List<BucketCombination> keyCombination) {
 		long sum = 0;
-		for (Map.Entry<KeyCombination, Long> entry : keyCombinationFrequencyMap.entrySet()) {
-			KeyCombination keyCombination1 = entry.getKey();
+		for (Map.Entry<BucketCombination, Long> entry : bucketCombinationFrequencyMap.entrySet()) {
+			BucketCombination keyCombination1 = entry.getKey();
 			if (keyCombination1.checkMatchOr(keyCombination)) {
 				sum += entry.getValue();
 			}
@@ -162,16 +224,16 @@ public class Sharding {
 	}
 
 	public void shardAllKeys() throws NodeOverflowException {
-		for (String key : keyValueFrequencyMap.keySet()) {
+		for (String key : keysToListOfBucketsMap.keySet()) {
 			LOGGER.info("Sharding on key: {}", key);
 			shardSingleKey(key);
 		}
 		List<String> keyNameList = new ArrayList<>();
-		keyNameList.addAll(keyValueFrequencyMap.keySet());
-		makeShardingTable(new KeyCombination(new HashMap<String, Object>()), keyNameList);
+		keyNameList.addAll(keysToListOfBucketsMap.keySet());
+		makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()), keyNameList);
 	}
 
-	private void makeShardingTable(KeyCombination source, List<String> keyNames) throws NodeOverflowException {
+	private void makeShardingTable(BucketCombination source, List<String> keyNames) throws NodeOverflowException {
 		String keyName;
 		if (keyNames.size() >= 1) {
 			keyName = keyNames.get(0);
@@ -181,20 +243,20 @@ public class Sharding {
 		if (keyName == null) {
 			// exit case
 			// lets check which nodes it goes.
-			Set<Node> nodesForKeyCombination = new HashSet<>();
-			for (Map.Entry<String, Object> kv : source.getKeyValueCombination().entrySet()) {
-				Node n = keyValueNodeNumberMap.get(kv.getKey()).get(kv.getValue());
+			Set<Node> nodesForBucketCombination = new HashSet<>();
+			for (Map.Entry<String, Bucket<KeyValueFrequency>> buckets : source.getBucketsCombination().entrySet()) {
+				Node n = bucketToNodeNumberMap.get(buckets.getKey()).get(buckets.getValue());
 				if (n != null) {
-					nodesForKeyCombination.add(n);
+					nodesForBucketCombination.add(n);
 				}
 			}
-			int numberOfIntersectionStorage = source.getKeyValueCombination().size() - nodesForKeyCombination.size();
+			int numberOfIntersectionStorage = source.getBucketsCombination().size() - nodesForBucketCombination.size();
 			Set<Node> nodesToPutBack = new HashSet<>();
 			while (numberOfIntersectionStorage > 0) {
 				Node mostEmptyNode = fillupQueue.poll();
-				if (!nodesForKeyCombination.contains(mostEmptyNode)) {
-					nodesForKeyCombination.add(mostEmptyNode);
-					Long value = keyCombinationFrequencyMap.get(source);
+				if (!nodesForBucketCombination.contains(mostEmptyNode)) {
+					nodesForBucketCombination.add(mostEmptyNode);
+					Long value = bucketCombinationFrequencyMap.get(source);
 					if (value == null) {
 						value = 0l;
 					}
@@ -204,23 +266,19 @@ public class Sharding {
 				nodesToPutBack.add(mostEmptyNode);
 			}
 			nodesToPutBack.forEach(n -> fillupQueue.offer(n));
-			keyCombinationNodeMap.put(source, nodesForKeyCombination);
-
+			bucketCombinationToNodeNumbersMap.put(source, nodesForBucketCombination);
 		} else {
 			List<String> restOfKeyNames = new LinkedList<>();
 			restOfKeyNames.addAll(keyNames);
 			restOfKeyNames.remove(keyName);
-			List<KeyValueFrequency> kvfs = keyValueFrequencyMap.get(keyName);
-
-			for (KeyValueFrequency keyValueFrequency : kvfs) {
-				Object value = keyValueFrequency.getKeyValue();
-				Map<String, Object> nextSourceMap = new HashMap<>();
-				nextSourceMap.putAll(source.getKeyValueCombination());
-				KeyCombination nextSource = new KeyCombination(nextSourceMap);
-				nextSource.getKeyValueCombination().put(keyName, value);
+			List<Bucket<KeyValueFrequency>> buckets = keysToListOfBucketsMap.get(keyName);
+			for (Bucket<KeyValueFrequency> bucket : buckets) {
+				Map<String, Bucket<KeyValueFrequency>> nextSourceMap = new HashMap<>();
+				nextSourceMap.putAll(source.getBucketsCombination());
+				BucketCombination nextSource = new BucketCombination(nextSourceMap);
+				nextSource.getBucketsCombination().put(keyName, bucket);
 				makeShardingTable(nextSource, restOfKeyNames);
 			}
 		}
 	}
-
 }

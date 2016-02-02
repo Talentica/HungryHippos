@@ -155,4 +155,10 @@ public class FileReader implements Reader {
 		}
 	}
 
+	public void reset() throws IOException {
+		channel.position(0);
+		buf.clear();
+		readCount = -1;
+	}
+
 }

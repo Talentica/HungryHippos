@@ -16,4 +16,6 @@ public interface Reader {
 	
 	void close() throws IOException;
 
+	void reset() throws IOException;
+
 }

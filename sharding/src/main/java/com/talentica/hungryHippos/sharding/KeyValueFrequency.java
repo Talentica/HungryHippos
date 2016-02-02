@@ -1,16 +1,20 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.io.Serializable;
+
 /**
  * Created by debasishc on 14/8/15.
  */
-public class KeyValueFrequency implements Comparable<KeyValueFrequency>{
-    private Object keyValue;
+public class KeyValueFrequency implements Comparable<KeyValueFrequency>, Serializable {
+
+	private static final long serialVersionUID = 7621688881158875750L;
+	private Object keyValue;
     private long frequency;
 
-    public KeyValueFrequency(Object keyValue, long frequency) {
-        this.frequency = frequency;
-        this.keyValue = keyValue;
-    }
+	public KeyValueFrequency(Object keyValue, long frequency) {
+		this.frequency = frequency;
+		this.keyValue = keyValue;
+	}
 
     public long getFrequency() {
         return frequency;
@@ -36,7 +40,7 @@ public class KeyValueFrequency implements Comparable<KeyValueFrequency>{
         KeyValueFrequency that = (KeyValueFrequency) o;
 
         if (Double.compare(that.frequency, frequency) != 0) return false;
-        return keyValue.equals(that.keyValue);
+		return keyValue.equals(that.keyValue);
 
     }
 
@@ -68,4 +72,5 @@ public class KeyValueFrequency implements Comparable<KeyValueFrequency>{
                 ", keyValue=" + keyValue +
                 '}';
     }
+
 }

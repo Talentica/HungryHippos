@@ -90,7 +90,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 	@Override
 	public boolean sendJobRunnableNotificationToNode(Job job,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
-		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_TASK_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+job.getJobId());
+		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+job.getJobId());
 		try {
 			nodesManager.createNode(buildPath,signal,job);
 			flag = true;

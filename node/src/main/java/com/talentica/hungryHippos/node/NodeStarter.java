@@ -71,6 +71,7 @@ public class NodeStarter {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
     private static NodesManager nodesManager;
     private static ResourceManager resourceManager;
+    private static long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
     
     static {
     	try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
@@ -192,6 +193,12 @@ public class NodeStarter {
 	}
 
 
+	/**
+	 * To validate the argument command line.
+	 * 
+	 * @param args
+	 * @throws IOException
+	 */
 	private static void validateArguments(String[] args) throws IOException {
 		if (args.length == 1) {
 			try {
@@ -210,7 +217,7 @@ public class NodeStarter {
 	 * Initialize the node.
 	 * 
 	 * @param nodesManager
-	 * @return
+	 * @return NodeStarter
 	 * @throws Exception
 	 */
 	private static NodeStarter getNodeInitializer(NodesManager nodesManager) throws Exception{
@@ -227,7 +234,7 @@ public class NodeStarter {
 	 * 
 	 * @param jobRunner
 	 * @param signal
-	 * @return
+	 * @return boolean
 	 * @throws Exception
 	 */
 	private static boolean runJobMatrix(JobRunner jobRunner,List<TaskEntity> workEntities,CountDownLatch signal) throws Exception{
@@ -254,6 +261,14 @@ public class NodeStarter {
 			return true;
    }
 	
+	
+	
+	/**
+	 * Create the job runner.
+	 * 
+	 * @return JobRunner
+	 * @throws IOException
+	 */
 	private static JobRunner createJobRunner() throws IOException{
 			FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 	        CommonUtil.setDataDescription(dataDescription);
@@ -266,24 +281,61 @@ public class NodeStarter {
 				return new JobRunner(dataDescription, dataStore);
 	}
 	
+	
+	
+	/**
+	 * Wait for notification for the start row count.
+	 * 
+	 * @param signal
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
 	private static void waitForStartRowCountSignal(CountDownLatch signal) throws KeeperException, InterruptedException, IOException{
 			String buildStartPath = null;
 			buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
 			ZKUtils.waitForSignal(buildStartPath,signal);
 	}
 	
+	
+	
+	/**
+	 * Wait for notification for the start job notification.
+	 * 
+	 * @param signal
+	 * @throws IOException
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
 	private static void waitForStartJobMatrixSignal(CountDownLatch signal) throws IOException, KeeperException, InterruptedException{
 			String buildStartPath = null;
 			buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
 			ZKUtils.waitForSignal(buildStartPath,signal);
 	}
 	
+	
+	
+	/**
+	 * Push the finish notification for row count per task
+	 * 
+	 * @param signal
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private static void createZKFinishNodeForRowCount(CountDownLatch signal) throws IOException, InterruptedException{
 		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH_ROW_COUNT.name();
 		nodesManager.createNode(buildPath,signal);
 		signal.countDown();
 	}
 	
+	
+	
+	/**
+	 * Prioritize the execution of the task based on resource requirement per task
+	 * 
+	 * @param taskEntities
+	 * @return Map<Integer, List<ResourceConsumer>>
+	 */
 	private static Map<Integer, List<ResourceConsumer>> getTasksOnPriority(List<TaskEntity> taskEntities){
 		resourceManager = new ResourceManagerImpl();
 		ResourceConsumer resourceConsumer;
@@ -294,11 +346,22 @@ public class NodeStarter {
 			resourceConsumers.add(resourceConsumer);
 		}
 		Collections.sort(resourceConsumers,new ResourceConsumerComparator());
-		return resourceManager.getIterationWiseResourceConsumersToAllocateResourcesTo(0l, 196105*10l, resourceConsumers);
+		return resourceManager.getIterationWiseResourceConsumersToAllocateResourcesTo(0l, AVAILABLE_RAM, resourceConsumers);
 	}
 	
+	
+	
+	/**
+	 * Get the list of jobs from ZK Node.
+	 * 
+	 * @return List<Job>
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InterruptedException
+	 * @throws KeeperException
+	 */
 	private static List<Job> getJobsFromZKNode() throws IOException, ClassNotFoundException, InterruptedException, KeeperException{
-		String buildPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_TASK_NOTIFICATION.name();
+		String buildPath =  ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}",leafs.size());
 		List<Job> jobs = new ArrayList<Job>();

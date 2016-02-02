@@ -104,6 +104,11 @@ public class JobManager {
 		
 	}
 	
+	
+	
+	/**
+	 * Get finish jobs matrix signal.
+	 */
 	private void getFinishNodeJobsSignal(){
 		Map<Integer,Node> nodeIdNodeMap = getNodeIdNodesMap();
 		Iterator<Node> nodesItr = nodeIdNodeMap.values().iterator();
@@ -116,6 +121,8 @@ public class JobManager {
 			}
 		}
 	}
+	
+	
 	
 	/**
 	 * Get NodeId and Node Map.
@@ -132,6 +139,8 @@ public class JobManager {
 		}
 		return nodeIdNodeMap;
 	}
+	
+	
 	
 	/**
 	 * Get the keyValueNodeNumberMap from local storage.
@@ -154,6 +163,13 @@ public class JobManager {
 	}
 	
 	
+	/**
+	 * Wait for finish signal from node.
+	 * 
+	 * @param nodeId
+	 * @param finishNode
+	 * @return boolean
+	 */
 	private boolean getFinishSignal(Integer nodeId,String finishNode){
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
@@ -166,6 +182,16 @@ public class JobManager {
 		return true;
 	}
 	
+	
+	
+	/**
+	 * Push the jobs to ZK nodes for execution.
+	 * 
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws KeeperException
+	 */
 	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException{
 		Map<Integer,Node> nodeIdNodeMap = getNodeIdNodesMap();
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
@@ -177,6 +203,15 @@ public class JobManager {
 		}
 	}
 	
+	
+	
+	/**
+	 * Send the notification to nodes to start the jobs matrix executions.
+	 * 
+	 * @param nodeId
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private void sendJobMatrixRunSignalToNodes(Integer nodeId) throws IOException, InterruptedException{
 		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
 		nodesManager.createNode(buildPath,null);

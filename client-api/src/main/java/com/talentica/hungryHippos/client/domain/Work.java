@@ -4,9 +4,9 @@ package com.talentica.hungryHippos.client.domain;
  * Created by debasishc on 9/9/15.
  */
 public interface Work {
-	String getWorkerId();
+	int[] getDimensions();
+    int getPrimaryDimension();
     void processRow(ExecutionContext executionContext);
     void calculate(ExecutionContext executionContext);
-    void incrCountRow();
-    int getRowCount();
+    void status(String status);
 }

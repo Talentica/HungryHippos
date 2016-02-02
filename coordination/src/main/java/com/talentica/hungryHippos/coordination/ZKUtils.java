@@ -79,7 +79,7 @@ public class ZKUtils {
 	 */
 	public static Object deserialize(byte[] obj) throws IOException,
 			ClassNotFoundException {
-	    	return SerializationUtils.deserialize(obj);
+	    	return (obj==null) ? null : SerializationUtils.deserialize(obj);
 	}
 	
 	  /**
@@ -256,7 +256,7 @@ public class ZKUtils {
 					break;
 				case NONODE:
 					try {
-						ZKUtils.isNodeExists(path, signal);
+						ZKUtils.waitForSignal(path, signal);
 					} catch (KeeperException | InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -441,7 +441,7 @@ public class ZKUtils {
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	public static void isNodeExists(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
+	public static void waitForSignal(String nodePath,CountDownLatch signal) throws KeeperException, InterruptedException{
 		 Stat stat = null;
 			try {
 				stat = zk.exists(nodePath, nodesManager);
@@ -449,7 +449,7 @@ public class ZKUtils {
 					stat = zk.exists(nodePath, nodesManager);
 				}
 				if(signal != null) {
-					LOGGER.info("ZK PATH {} EXISTS",nodePath);
+					LOGGER.info("SIGNAL RECIEVED FOR NODE {}",nodePath);
 					signal.countDown();
 					return;
 				}

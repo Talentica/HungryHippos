@@ -26,9 +26,9 @@ public class JobRunner implements Serializable{
 	 */
 	private static final long serialVersionUID = -4793614653018059851L;
 	List<Job> jobs= new LinkedList<>();
+	List<TaskEntity> taskEntities= new ArrayList<TaskEntity>();
     private DataDescription dataDescription;
     private DataStore dataStore;
-    private Map<Integer,JobEntity> jobIdJobEntityCount = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class.getName());
 
 	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
@@ -37,7 +37,7 @@ public class JobRunner implements Serializable{
     }
 
     private Map<Integer,List<Job>> primaryDimJobsMap = new HashMap<>();
-
+    private Map<Integer,List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
 
     public void addJob(Job job){
         jobs.add(job);
@@ -50,59 +50,79 @@ public class JobRunner implements Serializable{
         primDimList.add(job);
     }  
     
-
-    public void run(){
-            DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-            List<RowProcessor> rowProcessors = new LinkedList<>();
-            for(Integer primDim: primaryDimJobsMap.keySet()){
-                StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
-                for(Job job:primaryDimJobsMap.get(primDim)) {
-                    RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,job);
-                    storeAccess.addRowProcessor(rowProcessor);
-                    rowProcessors.add(rowProcessor);
-                }
-                storeAccess.processRows();
-            }
-            rowProcessors.forEach(RowProcessor::finishUp);
+    public void addJobs(List<Job> jobs){
+    	for(Job job : jobs){
+    		addJob(job);
+    	}
     }
+    
+    public void addTask(TaskEntity taskEntity){
+    	taskEntities.add(taskEntity);
+    	Integer primDim = taskEntity.getWork().getPrimaryDimension();
+        List<TaskEntity> primDimList = primaryDimTasksMap.get(primDim);
+        if(primDimList == null){
+            primDimList = new LinkedList<>();
+            primaryDimTasksMap.put(primDim,primDimList);
+        }
+        primDimList.add(taskEntity);
+    }
+    
+    
+    public void run(){
+        DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
+        List<RowProcessor> rowProcessors = new LinkedList<>();
+        StoreAccess storeAccess = null;
+	        	for(Integer primDim: primaryDimTasksMap.keySet()){
+	        		storeAccess = dataStore.getStoreAccess(primDim);
+		        	for(TaskEntity task : primaryDimTasksMap.get(primDim)){
+		                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,task.getValueSet(),task.getWork());
+		                storeAccess.addRowProcessor(rowProcessor);
+		                rowProcessors.add(rowProcessor);
+		        	}
+	        		 storeAccess.processRows();
+	        	}
+        rowProcessors.forEach(RowProcessor::finishUp);
+}
     
     /**
      * Counts the number of rows need to process for each jobs.
      * 
      * @return Map<Integer, JobEntity>
      */
-    public List<JobEntity> getJobIdJobEntityMap(){
+    public void doRowCount(){
     	 DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-    	 List<JobEntity> jobEntities = new ArrayList<JobEntity>();
-        List<RowProcessor> rowProcessors = new LinkedList<>();
+    	 List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){
-            StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
+			StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
             for(Job job:primaryDimJobsMap.get(primDim)) {
                 RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,job);
                 storeAccess.addRowProcessor(rowProcessor);
                 rowProcessors.add(rowProcessor);
-            }
+               }
             storeAccess.processRowCount();
             for(RowProcessor processor : rowProcessors){
-            	Job job = ((Job)processor.getJob());
-            	JobEntity jobEntity = (JobEntity) processor.getJobEntity();
-            	if(jobEntity.getWorkerIdRowCountMap().size() == 0) continue;  // If no worker for job, just skip.
-            	jobIdJobEntityCount.put(job.getJobId(),jobEntity);
-            	LOGGER.info("JOB ID {} AND TOTAL WORKERS {}",job.getJobId(),jobEntity.getWorkerIdRowCountMap().size());
-            	jobEntities.add(jobEntity);
+            	DataRowProcessor dataRowProcessor = (DataRowProcessor)processor;
+            	for(TaskEntity taskEntity : dataRowProcessor.getWorkerValueSet().values()){
+            		taskEntities.add(taskEntity);
+            		LOGGER.info("JOB ID {} AND TASK ID {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",taskEntity.getJob().getJobId(),taskEntity.getTaskId(),taskEntity.getRowCount(),taskEntity.getJob().getMemoryFootprint(taskEntity.getRowCount()));
+            	}
             }
             rowProcessors.clear();
         }
-        return jobEntities;
+        
     }
     
-    public List<Job> getJobs(){
-    	return jobs;
-    }
     
-    public void clearJobList(){
+    
+    public List<TaskEntity> getWorkEntities() {
+		return taskEntities;
+	}
+
+	public void clear(){
     	jobs.clear();
 		primaryDimJobsMap.clear();
+		primaryDimTasksMap.clear();
+		taskEntities.clear();
     }
     
 

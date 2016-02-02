@@ -18,22 +18,17 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 public class DataRowProcessor implements RowProcessor {
     private DynamicMarshal dynamicMarshal;
     private HashMap<ValueSet,Work> valueSetWorkMap = new HashMap<>();
+    private HashMap<ValueSet,TaskEntity> valueSetTaskEntityMap = new HashMap<>();
     private Job job;
-    private JobEntity jobEntity;
     private int[] keys;
-    //reused context
     private ExecutionContextImpl executionContext;
-    //private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();
 
-    //reused valueset
     private ValueSet valueSet;
 
-    //reused array
     private Object[] values;
     
     public DataRowProcessor(Job job){
     	this.job = job;
-    	this.jobEntity = new JobEntity(job);
     }
     public DataRowProcessor(DynamicMarshal dynamicMarshal, Job job) {
         this.dynamicMarshal = dynamicMarshal;
@@ -42,7 +37,15 @@ public class DataRowProcessor implements RowProcessor {
         this.values = new Object[keys.length];
 		this.valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
         executionContext = new ExecutionContextImpl(dynamicMarshal);
-        this.jobEntity = new JobEntity(job);
+    }
+    
+    public DataRowProcessor(DynamicMarshal dynamicMarshal,ValueSet valueSet, Work work) {
+        this.dynamicMarshal = dynamicMarshal;
+        this.valueSetWorkMap.put(valueSet, work);
+        this.keys = work.getDimensions();
+        this.values = new Object[keys.length];
+		this.valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
+        executionContext = new ExecutionContextImpl(dynamicMarshal);
     }
 
     @Override
@@ -51,13 +54,10 @@ public class DataRowProcessor implements RowProcessor {
             Object v = dynamicMarshal.readValue(keys[i],row);
             values[i] = v;
         }
+        ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
+				Arrays.copyOf(values, values.length));
         Work work = valueSetWorkMap.get(valueSet);
-        if(work==null){
-			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
-					Arrays.copyOf(values, values.length));
-            work = job.createNewWork();
-            valueSetWorkMap.put(valueSet,work);
-        }
+        if(work == null) return;
         executionContext.setData(row);
         work.processRow(executionContext);
     }
@@ -70,49 +70,31 @@ public class DataRowProcessor implements RowProcessor {
         }
     }
 
-    public void addjobEntity(JobEntity jobEntity){
-    	this.jobEntity = jobEntity;
-    }
-    
 	@Override
-	public Object getJob(){
+	public Job getJob(){
 		return this.job;
 	}
 
-	@Override
-	public Object getJobEntity() {
-		for(ValueSet valueSet : valueSetWorkMap.keySet()){
-			if(valueSetWorkMap.get(valueSet).getRowCount() == 0){
-				valueSetWorkMap.remove(valueSet);
-			}
-			StringBuilder keyValues = new StringBuilder();
-			keyValues.append("_[");
-			for(Object value : valueSet.getValues()){
-				if(keyValues.length() > 2){
-					keyValues.append(",");
-				}
-				keyValues.append(value);
-			}
-			keyValues.append("]");
-			String workerId = valueSetWorkMap.get(valueSet).getWorkerId() + keyValues;
-			jobEntity.getWorkerIdRowCountMap().put(workerId, valueSetWorkMap.get(valueSet).getRowCount());
-		}
-		return this.jobEntity;
-	}
-	
 	@Override
 	public void processRowCount(ByteBuffer row) {
         for(int i=0;i<keys.length;i++){
             Object v = dynamicMarshal.readValue(keys[i],row);
             values[i] = v;
         }
-        Work work = valueSetWorkMap.get(valueSet);
-        if(work==null){
-			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
-					Arrays.copyOf(values, values.length));
-            work = job.createNewWork();
-            valueSetWorkMap.put(valueSet,work);
+        TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
+        if(taskEntity==null){
+			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),Arrays.copyOf(values, values.length));
+            Work work = job.createNewWork();
+            taskEntity = new TaskEntity();
+            taskEntity.setWork(work);
+            taskEntity.setJob(job);
+            taskEntity.setValueSet(valueSet);
+            valueSetTaskEntityMap.put(valueSet,taskEntity);
         }
-        work.incrCountRow();
+        taskEntity.incrRowCount();
+	}
+	
+	public HashMap<ValueSet,TaskEntity> getWorkerValueSet(){
+		return valueSetTaskEntityMap;
 	}
 }

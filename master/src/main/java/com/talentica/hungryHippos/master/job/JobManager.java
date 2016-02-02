@@ -7,9 +7,9 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.Job;
-import com.talentica.hungryHippos.common.JobEntity;
-import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
@@ -28,36 +26,22 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 public class JobManager {
 
-	// private Set<Server> regServer = null;
-	// static String configPath;
-	NodesManager nodesManager;
+	private NodesManager nodesManager;
 
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
-	private List<Job> jobList = new ArrayList<Job>();
-	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
-
-	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
-
-	private Map<Integer, Map<Integer, JobEntity>> nodeJobIdRowCountMap = new HashMap<Integer, Map<Integer, JobEntity>>();
-
-	public Map<Integer, Map<Integer, JobEntity>> getNodeJobIdRowCountMap() {
-		return this.nodeJobIdRowCountMap;
-	}
+	private List<Job> jobs = new ArrayList<Job>();
 
 	public void addJobList(List<Job> jobList) {
-		this.jobList = jobList;
+		this.jobs.addAll(jobList);
 	}
 
 	/**
@@ -80,31 +64,42 @@ public class JobManager {
 		nodesManager.saveConfigFileToZNode(configNodeFile, null);
 
 		LOGGER.info("PUT keyValueNodeNumberMap TO ZK NODE");
-		setKeyValueToBucketMap();
 		setBucketToNodeNumberMap();
 
 		LOGGER.info("PUBLISH DATA ACROSS THE NODES");
 		DataProvider.publishDataToNodes(nodesManager);
 		LOGGER.info("DATA PUBLISHED SUCCESSFULLY!");
 
-		LOGGER.info("SENDING JOBRUNNER TO NODES TO CALCULATE ROWCOUNT/JOB");
-		createAndSendJobRunnerZKNode();
-		LOGGER.info("JOB RUNNER SENT SUCESSFULLY!");
+			LOGGER.info("SEND TASKS TO NODES");
+			sendJobsToNodes();
+			LOGGER.info("TASKS SENT TO NODES SUCCESSFULLY");
 
 		LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
 		executeJobsOnNodes();
 		LOGGER.info("JOBS SENT TO NODES SUCCESSFULLY!");
 
-		LOGGER.info("\n\n\n\tMEMORY FOOTPRINT\n\n\n");
-		outMemoryFootprint();
+			LOGGER.info("GET FINISHED SIGNAL FROM NODES");
+			getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
+	}
 
+
+	private void setBucketToNodeNumberMap() throws Exception {
+		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+						+ Sharding.bucketToNodeNumberMapFile))) {
+			this.bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) inKeyValueNodeNumberMap
+					.readObject();
+		} catch (IOException | ClassNotFoundException exception) {
+			LOGGER.info("Unable to read file");
+			throw exception;
+		}
 	}
 
 	/**
 	 * It will schedule the task manager for each NODES though ZK.
 	 * 
-	 * @throws IOException
+	 * @throws IOException`
 	 * @throws InterruptedException
 	 * @throws KeeperException
 	 * @throws ClassNotFoundException
@@ -115,47 +110,36 @@ public class JobManager {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
 		LOGGER.info("No. of nodes :: " + nodeIdNodeMap.size());
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
-			List<JobEntity> jobEntities = getJobIdJobEntity(nodeId);
-			if (jobEntities == null || jobEntities.isEmpty())
+			if(!getFinishSignal(nodeId,CommonUtil.ZKJobNodeEnum.FINISH_ROW_COUNT.name())){
 				continue;
-			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId), nodesManager);
-			this.jobEntities.addAll(jobEntities);
-			for (JobEntity jobEntity : jobEntities) {
-				nodeJobsService.addJobEntity(jobEntity);
 			}
-			nodeJobsService.createNodeJobService();
-			nodeJobsService.scheduleTaskManager();
+			if(jobs == null || jobs.isEmpty()) continue;
+			sendJobMatrixRunSignalToNodes(nodeId);
 		}
 
 		LOGGER.info("Time taken(Sec) in node create ::" + (new Date().getTime() - startTime) / 1000);
 
 	}
 
+	
+	
 	/**
-	 * Send the JobRunner to ZK Nodes.
-	 * 
-	 * @throws IOException
-	 * @throws InterruptedException
-	 * @throws KeeperException
+	 * Get finish jobs matrix signal.
 	 */
-	private void createAndSendJobRunnerZKNode() throws IOException, InterruptedException, KeeperException {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
-		dataDescription.setKeyOrder(Property.getKeyOrder());
-		for (int nodeId = 0; nodeId < Property.getTotalNumberOfNodes(); nodeId++) {
-			NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(keyToValueToBucketMap,
-					nodeId, dataDescription);
-			int totalDimensions = Property.getKeyOrder().length;
-			FileDataStore dataStore = new FileDataStore(totalDimensions, nodeDataStoreIdCalculator, dataDescription,
-					true);
-			JobRunner jobRunner = new JobRunner(dataDescription, dataStore);
-
-			putJobToRunner(jobRunner);
-
-			sendJobsConfiguration(jobRunner, nodeId);
-
+	private void getFinishNodeJobsSignal(){
+		Map<Integer,Node> nodeIdNodeMap = getNodeIdNodesMap();
+		Iterator<Node> nodesItr = nodeIdNodeMap.values().iterator();
+		while(nodesItr.hasNext()){
+			Node node = nodesItr.next();
+			if(!getFinishSignal(node.getNodeId(),CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name())){
+				continue;
+			}else{
+				LOGGER.info("NODE ID {} FINISHED THE JOBS",node.getNodeId());
+			}
 		}
 	}
+	
+	
 
 	/**
 	 * Get NodeId and Node Map.
@@ -175,101 +159,56 @@ public class JobManager {
 	}
 
 	/**
-	 * Get JobIdJobEntity Map from ZK NODE which consist of the row counts for
-	 * each jobs from each NODES.
+	 * Wait for finish signal from node.
 	 * 
 	 * @param nodeId
-	 * @return Map<Integer,JobEntity>
-	 * @throws InterruptedException
-	 * @throws KeeperException
-	 * @throws IOException
-	 * @throws ClassNotFoundException
+	 * @param finishNode
+	 * @return boolean
 	 */
-	private List<JobEntity> getJobIdJobEntity(int nodeId)
-			throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
+	private boolean getFinishSignal(Integer nodeId,String finishNode){
 		CountDownLatch signal = new CountDownLatch(1);
-		String nodePath = String
-				.valueOf(nodesManager.buildConfigPath("_node" + nodeId) + PathUtil.FORWARD_SLASH + "FINISH");
-		ZKUtils.isNodeExists(nodePath, signal);
-		signal.await();
-		List<JobEntity> jobEntites = new ArrayList<JobEntity>();
-		for (Job job : jobList) {
-			String jobPath = ("_node" + nodeId) + PathUtil.FORWARD_SLASH + ("_job" + job.getJobId());
-			ZKNodeFile zkNodeJob = ZKUtils.getConfigZKNodeFile(jobPath);
-			if (zkNodeJob != null && zkNodeJob.getObj() != null) {
-				JobEntity jobEntity = (JobEntity) zkNodeJob.getObj();
-				jobEntites.add(jobEntity);
-			}
+		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
+		try {
+			ZKUtils.waitForSignal(buildPath, signal);
+			signal.await();
+		} catch (KeeperException | InterruptedException e) {
+			return false;
 		}
-		return jobEntites;
+		return true;
 	}
+	
+	
 
 	/**
-	 * Get the keyValueNodeNumberMap from local storage.
-	 * 
-	 * @throws Exception
-	 * 
-	 */
-	@SuppressWarnings("unchecked")
-	private void setKeyValueToBucketMap() throws Exception {
-		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
-						+ Sharding.keyToValueToBucketMapFile))) {
-			this.keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
-					.readObject();
-		} catch (IOException | ClassNotFoundException exception) {
-			LOGGER.info("Unable to read file");
-			throw exception;
-		}
-	}
-
-	private void setBucketToNodeNumberMap() throws Exception {
-		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
-						+ Sharding.bucketToNodeNumberMapFile))) {
-			this.bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) inKeyValueNodeNumberMap
-					.readObject();
-		} catch (IOException | ClassNotFoundException exception) {
-			LOGGER.info("Unable to read file");
-			throw exception;
-		}
-	}
-
-	/**
-	 * Populate the JobRunner with the list of jobs which will further be used
+	 * Push the jobs to ZK nodes for execution.
 	 * to run JobRunner on each nodes.
 	 * 
-	 * @param jobRunner
+	 * @throws ClassNotFoundException
 	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws KeeperException
 	 */
-	private void putJobToRunner(JobRunner jobRunner) throws IOException {
-		for (Job job : jobList) {
-			jobRunner.addJob(job);
+	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException{
+		Map<Integer,Node> nodeIdNodeMap = getNodeIdNodesMap();
+		for (Integer nodeId : nodeIdNodeMap.keySet()) {
+			if(jobs == null || jobs.isEmpty()) continue;
+			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId),nodesManager);
+			nodeJobsService.addJobs(jobs);
+			nodeJobsService.createNodeJobService();
+			nodeJobsService.scheduleTaskManager();
 		}
-
 	}
-
+	
 	/**
-	 * Send the JobRunner instances to the NODES through ZK Nodes.
+	 * Send the notification to nodes to start the jobs matrix executions.
 	 * 
-	 * @param jobRunner
 	 * @param nodeId
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	private void sendJobsConfiguration(JobRunner jobRunner, int nodeId) throws IOException {
-		ZKNodeFile jobConfigFile = new ZKNodeFile("_node" + nodeId, null, new Object[] { jobRunner });
-		nodesManager.saveConfigFileToZNode(jobConfigFile, null);
+	private void sendJobMatrixRunSignalToNodes(Integer nodeId) throws IOException, InterruptedException{
+		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
+		nodesManager.createNode(buildPath,null);
 	}
 
-	private void outMemoryFootprint() {
-		for (JobEntity jobEntity : this.jobEntities) {
-			LOGGER.info("Size of the JobEntity {}", jobEntities.size());
-			for (Entry<String, Integer> workerIdRowCount : jobEntity.getWorkerIdRowCountMap().entrySet()) {
-				long memoryFootprint = jobEntity.getJob().getMemoryFootprint(workerIdRowCount.getValue());
-				LOGGER.info("JOBID {} AND WORKER[ID_KEYVALUE] {} AND ROW COUNT {} AND MEMORY FOOTPRINT {}",
-						jobEntity.getJob().getJobId(), workerIdRowCount.getKey(), workerIdRowCount.getValue(),
-						memoryFootprint);
-			}
-		}
-	}
 }

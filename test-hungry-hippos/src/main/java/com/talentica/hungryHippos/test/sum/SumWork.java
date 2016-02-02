@@ -16,15 +16,13 @@ public class SumWork implements Work, Serializable {
 	protected int[] dimensions;
 	protected int primaryDimension;
 	protected int valueIndex;
-	protected String workerId;
-	private int countLine = 0;
+	protected String status;
 	private double sum;
 
-	public SumWork(int[] dimensions, int primaryDimension, int valueIndex, String workerId) {
+	public SumWork(int[] dimensions, int primaryDimension, int valueIndex) {
 		this.dimensions = dimensions;
 		this.primaryDimension = primaryDimension;
 		this.valueIndex = valueIndex;
-		this.workerId = workerId;
 	}
 
 	@Override
@@ -38,17 +36,17 @@ public class SumWork implements Work, Serializable {
 	}
 
 	@Override
-	public void incrCountRow() {
-		countLine++;
+	public int[] getDimensions() {
+		return dimensions;
 	}
 
 	@Override
-	public int getRowCount() {
-		return countLine;
+	public int getPrimaryDimension() {
+		return primaryDimension;
 	}
 
 	@Override
-	public String getWorkerId() {
-		return workerId;
+	public void status(String status) {
+		this.status = status;		
 	}
 }

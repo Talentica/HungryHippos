@@ -5,7 +5,7 @@ package com.talentica.hungryHippos.master.job;
 
 import java.util.Queue;
 
-import com.talentica.hungryHippos.common.JobEntity;
+import com.talentica.hungryHippos.client.job.Job;
 
 /**
  * @author PooshanS
@@ -17,18 +17,18 @@ public interface JobPool {
 		ACTIVE,INACTIVE,CANCEL,SUCCEEDED,STOPPED,ERROR,POOLED;
 	}
 	
-	void addJobEntity(JobEntity jobEntity);
+	void addJob(Job job);
 	
-	void removeJobEntity(JobEntity jobEntity);
+	void removeJob(Job job);
 	
 	boolean isEmpty();
 	
 	int size();
 	
-	Queue<JobEntity> getQueue();
+	Queue<Job> getQueue();
 	
-	JobEntity pollJobEntity();
+	Job pollJob();
 	
-	JobEntity peekJobEntity();
+	Job peekJob();
 
 }

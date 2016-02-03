@@ -139,15 +139,20 @@ public class Sharding {
 			int bucketCount = 0;
 			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
 			long idealAverageSizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
+			LOGGER.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
 			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
 			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
 			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
 			if (!sortedKeyValueFrequencies.isEmpty()) {
 				long sizeOfOneBucket = idealAverageSizeOfOneBucket;
-				long maximumFrequency = sortedKeyValueFrequencies.get(0).getFrequency();
+				KeyValueFrequency maxKeyValueFreq = sortedKeyValueFrequencies.get(0);
+				long maximumFrequency = maxKeyValueFreq.getFrequency();
 				if (idealAverageSizeOfOneBucket < maximumFrequency) {
 					sizeOfOneBucket = maximumFrequency;
+					LOGGER.info("Frequency of value {} exceeded ideal size of bucket: {}",
+							new Object[] { maxKeyValueFreq.getKeyValue(), maximumFrequency });
 				}
+				LOGGER.info("Actual bucket size for {}:{}", new Object[] { keys[i], sizeOfOneBucket });
 				buckets.add(bucket);
 				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
 					Long frequency = keyValueFrequency.getFrequency();
@@ -163,7 +168,7 @@ public class Sharding {
 				this.keysToListOfBucketsMap.put(keys[i], buckets);
 			}
 		}
-		System.out.println("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
+		LOGGER.info("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
 		return this.keysToListOfBucketsMap;
 	}
 
@@ -214,7 +219,6 @@ public class Sharding {
 			fillupQueue.offer(mostEmptyNode);
 			bucketToNodeNumber.put(bucket, mostEmptyNode);
 		}
-		System.out.println("bucketToNodeNumber:" + MapUtils.getFormattedString(bucketToNodeNumber));
 	}
 
 	private long sumForKeyCombinationUnion(List<BucketCombination> keyCombination) {
@@ -233,6 +237,7 @@ public class Sharding {
 			LOGGER.info("Sharding on key: {}", key);
 			shardSingleKey(key);
 		}
+		LOGGER.info("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
 		List<String> keyNameList = new ArrayList<>();
 		keyNameList.addAll(keysToListOfBucketsMap.keySet());
 		makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()), keyNameList);

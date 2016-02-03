@@ -72,7 +72,6 @@ public class NodeStarter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
 	private static NodesManager nodesManager;
 	private static ResourceManager resourceManager;
-	private static long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
 
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
@@ -332,6 +331,7 @@ public class NodeStarter {
 	 * @return Map<Integer, List<ResourceConsumer>>
 	 */
 	private static Map<Integer, List<ResourceConsumer>> getTasksOnPriority(List<TaskEntity> taskEntities) {
+		long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
 		resourceManager = new ResourceManagerImpl();
 		ResourceConsumer resourceConsumer;
 		List<ResourceConsumer> resourceConsumers = new ArrayList<ResourceConsumer>();

@@ -43,8 +43,8 @@ public class FileDataStore implements DataStore, Serializable {
 		os = new OutputStream[numFiles];
 		if (!readOnly) {
 			for (int i = 0; i < numFiles; i++) {
-				os[i] = new BufferedOutputStream(new FileOutputStream(
-new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
+				os[i] = new BufferedOutputStream(
+						new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
 								+ DATA_FILE_BASE_NAME + i));
 			}
 		}
@@ -58,11 +58,6 @@ new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public int getCount() {
-		return nodeDataStoreIdCalculator.getCount();
 	}
 
 	@Override

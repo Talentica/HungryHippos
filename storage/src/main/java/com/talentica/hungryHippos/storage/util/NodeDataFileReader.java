@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
@@ -28,58 +29,50 @@ public class NodeDataFileReader {
 	private static FieldTypeArrayDataDescription dataDescription;
 
 	public static void main(String[] args) throws IOException {
-		if (args.length != 2) {
+		if (args.length != 1) {
 			System.out.println(
-					"Usage pattern: java -jar <jar name> <input file path> <readable output file path> e.g. java -jar storage.jar ./data_0 ./data_0_readable");
+					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
-		File dataFile = new File(args[0]);
-		FileInputStream fileInputStream = new FileInputStream(dataFile);
-		DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-		File readableDataFile = new File(args[1]);
-		FileWriter fileWriter = new FileWriter(readableDataFile);
-		try {
-			DynamicMarshal dynamicMarshal = getDynamicMarshal();
-			int noOfBytesInOneDataSet = dataDescription.getSize();
-			long fileLength = dataFile.length();
-			long bytesRead = 0;
-			while (true) {
-				if (bytesRead >= fileLength) {
-					break;
-				}
-				byte[] bytes = new byte[noOfBytesInOneDataSet];
-				bytesRead = bytesRead + noOfBytesInOneDataSet;
-				dataInputStream.readFully(bytes);
-				ByteBuffer buffer = ByteBuffer.wrap(bytes);
-				for (int index = 0; index < 9; index++) {
-					Object readableData = dynamicMarshal.readValue(index, buffer);
-					if (index != 0) {
-						fileWriter.write(",");
+		int noOfKeys = Property.getKeyOrder().length;
+		for (int i = 0; i < 1 << noOfKeys; i++) {
+			String dataFileName = args[0] + FileDataStore.DATA_FILE_BASE_NAME + i;
+			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
+			DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+			File readableDataFile = new File(dataFileName + "_read");
+			FileWriter fileWriter = new FileWriter(readableDataFile);
+			try {
+				DynamicMarshal dynamicMarshal = getDynamicMarshal();
+				int noOfBytesInOneDataSet = dataDescription.getSize();
+				while (dataInputStream.available() > 0) {
+					byte[] bytes = new byte[noOfBytesInOneDataSet];
+					dataInputStream.readFully(bytes);
+					ByteBuffer buffer = ByteBuffer.wrap(bytes);
+					for (int index = 0; index < 9; index++) {
+						Object readableData = dynamicMarshal.readValue(index, buffer);
+						if (index != 0) {
+							fileWriter.write(",");
+						}
+						fileWriter.write(readableData.toString());
 					}
-					fileWriter.write(readableData.toString());
+					fileWriter.write("\n");
 				}
-				fileWriter.write("\n");
+			} finally {
+				fileWriter.flush();
+				fileWriter.close();
+				fileInputStream.close();
 			}
-		} finally {
-			fileWriter.flush();
-			fileWriter.close();
-			fileInputStream.close();
+			LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
 		}
-		LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
 	}
 
 	private static DynamicMarshal getDynamicMarshal() {
 		dataDescription = new FieldTypeArrayDataDescription();
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-		dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
-		dataDescription.addFieldType(DataLocator.DataType.DOUBLE, 0);
-		dataDescription.addFieldType(DataLocator.DataType.STRING, 4);
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		String[] datatypes = Property.getPropertyValue("column.datatype-size").toString().split(",");
+		for (String datatype : datatypes) {
+			dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
+					Integer.valueOf(datatype.split("-")[1]));
+		}
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

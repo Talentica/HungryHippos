@@ -28,7 +28,7 @@ public class FileDataStore implements DataStore, Serializable {
 	private OutputStream[] os;
 	private DataDescription dataDescription;
 
-	private String baseName = "data" + File.separator + "data_";
+	public static String DATA_FILE_BASE_NAME = "data" + File.separator + "data_";
 
 	public FileDataStore(int numDimensions, NodeDataStoreIdCalculator nodeDataStoreIdCalculator,
 			DataDescription dataDescription) throws IOException {
@@ -44,7 +44,8 @@ public class FileDataStore implements DataStore, Serializable {
 		if (!readOnly) {
 			for (int i = 0; i < numFiles; i++) {
 				os[i] = new BufferedOutputStream(new FileOutputStream(
-						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + baseName + i));
+new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
+								+ DATA_FILE_BASE_NAME + i));
 			}
 		}
 	}
@@ -60,8 +61,13 @@ public class FileDataStore implements DataStore, Serializable {
 	}
 
 	@Override
+	public int getCount() {
+		return nodeDataStoreIdCalculator.getCount();
+	}
+
+	@Override
 	public StoreAccess getStoreAccess(int keyId) {
-		return new FileStoreAccess(baseName, keyId, numFiles, dataDescription);
+		return new FileStoreAccess(DATA_FILE_BASE_NAME, keyId, numFiles, dataDescription);
 	}
 
 	@Override

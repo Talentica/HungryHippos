@@ -41,7 +41,7 @@ public class Sharding {
 	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
 
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
-	public final static String bucketCombinationToNodeNumbersMapFile = "bucketToNodeNumbersMap";
+	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
 
 	public Sharding(int numNodes) {
@@ -64,6 +64,7 @@ public class Sharding {
 					sharding.bucketCombinationToNodeNumbersMap);
 			CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, sharding.bucketToNodeNumberMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, sharding.keyToValueToBucketMap);
+			LOGGER.info("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);

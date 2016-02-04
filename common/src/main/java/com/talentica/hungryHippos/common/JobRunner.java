@@ -104,7 +104,9 @@ public class JobRunner implements Serializable{
             	DataRowProcessor dataRowProcessor = (DataRowProcessor)processor;
             	for(TaskEntity taskEntity : dataRowProcessor.getWorkerValueSet().values()){
             		taskEntities.add(taskEntity);
-            		LOGGER.info("JOB ID {} AND TASK ID {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",taskEntity.getJob().getJobId(),taskEntity.getTaskId(),taskEntity.getRowCount(),taskEntity.getJob().getMemoryFootprint(taskEntity.getRowCount()));
+					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+							taskEntity.getJob().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
+							taskEntity.getRowCount(), taskEntity.getJob().getMemoryFootprint(taskEntity.getRowCount()));
             	}
             }
             rowProcessors.clear();

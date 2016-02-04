@@ -37,6 +37,7 @@ import com.talentica.hungryHippos.resource.manager.services.ResourceManager;
 import com.talentica.hungryHippos.resource.manager.services.ResourceManagerImpl;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
+import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
@@ -75,6 +76,8 @@ public class NodeStarter {
 
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
+	private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
+
 	public NodeStarter(DataDescription dataDescription)
 			throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
 		NodeStarter.dataDescription = dataDescription;
@@ -88,6 +91,15 @@ public class NodeStarter {
 					.readObject();
 		} catch (IOException | ClassNotFoundException e) {
 			LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
+		}
+
+		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+						+ Sharding.bucketToNodeNumberMapFile))) {
+			bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
+					.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
 		}
 	}
 
@@ -124,7 +136,7 @@ public class NodeStarter {
 
 		try {
 			final NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-					keyToValueToBucketMap, nodeId, dataDescription);
+					keyToValueToBucketMap, bucketToNodeNumberMap, nodeId, dataDescription);
 			final DataStore dataStore = new FileDataStore(keyToValueToBucketMap.size(), nodeDataStoreIdCalculator,
 					dataDescription);
 			ServerBootstrap b = new ServerBootstrap();
@@ -273,7 +285,7 @@ public class NodeStarter {
 		CommonUtil.setDataDescription(dataDescription);
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-				NodeStarter.keyToValueToBucketMap, readNodeId(), dataDescription);
+				NodeStarter.keyToValueToBucketMap, bucketToNodeNumberMap, readNodeId(), dataDescription);
 		int totalDimensions = Property.getKeyOrder().length;
 		FileDataStore dataStore = new FileDataStore(totalDimensions, nodeDataStoreIdCalculator, dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);

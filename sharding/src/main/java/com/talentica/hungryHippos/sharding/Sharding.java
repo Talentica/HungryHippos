@@ -68,7 +68,6 @@ public class Sharding {
 			LOGGER.info("bucketCombinationToNodeNumbersMap: "
 					+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 		} catch (IOException | NodeOverflowException e) {
-			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);
 		}
 	}
@@ -160,7 +159,7 @@ public class Sharding {
 				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
 					Long frequency = keyValueFrequency.getFrequency();
 					if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {
-						bucket = new Bucket<>(bucketCount++, sizeOfOneBucket);
+						bucket = new Bucket<>(++bucketCount, sizeOfOneBucket);
 						buckets.add(bucket);
 						frequencyOfAlreadyAddedValues = 0;
 					}

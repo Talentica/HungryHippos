@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
@@ -17,6 +20,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 	private ByteBuffer data;
 	private final DynamicMarshal dynamicMarshal;
 	private ValueSet keys;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionContextImpl.class);
 
 	private static PrintStream out;
 
@@ -25,7 +29,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 			out = new PrintStream(
 					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + "outputFile");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			LOGGER.error("Exception occurred while getting print stream for outoutFile.", ex);
 		}
 	}
 

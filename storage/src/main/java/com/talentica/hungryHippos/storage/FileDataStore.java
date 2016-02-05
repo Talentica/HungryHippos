@@ -56,7 +56,7 @@ public class FileDataStore implements DataStore, Serializable {
 		try {
 			os[storeId].write(raw);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("Error occurred while writing data received to datastore.", e);
 		}
 	}
 
@@ -71,7 +71,7 @@ public class FileDataStore implements DataStore, Serializable {
 			try {
 				os[i].flush();
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error("Error occurred while flushing " + i + "th outputstream.", e);
 			} finally {
 				try {
 					if (os[i] != null)

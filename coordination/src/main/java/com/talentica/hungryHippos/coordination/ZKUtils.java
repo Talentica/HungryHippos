@@ -53,7 +53,7 @@ public class ZKUtils {
 			zkFile = (obj == null) ? null : (ZKNodeFile) obj;
 		} catch (ClassNotFoundException | KeeperException
 				| InterruptedException | IOException e) {
-			e.printStackTrace();
+			LOGGER.error("Error occurred while getting zk file.", e);
 		}
 		return zkFile;
 	}
@@ -258,7 +258,7 @@ public class ZKUtils {
 					try {
 						ZKUtils.waitForSignal(path, signal);
 					} catch (KeeperException | InterruptedException e) {
-						e.printStackTrace();
+						LOGGER.error("Error occurred in async callback.", e);
 					}
 					break;
 				case NODEEXISTS:

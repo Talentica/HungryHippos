@@ -294,21 +294,19 @@ public class NodesManager implements Watcher {
 	     * 
 	     * @param diffs
 	     */
-	    private synchronized void processDiffs(Map<String, Set<Server>> diffs) {
-	    	 for (Server server : diffs.get(REMOVED)) {
-		        	LOGGER.info("Reporting eviction to listener: " +
-		                    server.getServerAddress().getHostname());
-		        	evictionListener.deregister(server);
-		            registerAlert(server, false);
-		        }
-	        for (Server server : diffs.get(ADDED)) {
-	        	LOGGER.info("Reporting addition to listener: " +
-	                    server.getServerAddress().getHostname());
-	            registrationListener.register(server);
-	            removeAlert(server);
-	        }
-	       
-	    }
+		private synchronized void processDiffs(Map<String, Set<Server>> diffs) {
+			for (Server server : diffs.get(REMOVED)) {
+				LOGGER.info("Reporting eviction to listener: " + server.getServerAddress().getHostname());
+				evictionListener.deregister(server);
+				registerAlert(server, false);
+			}
+			for (Server server : diffs.get(ADDED)) {
+				LOGGER.info("Reporting addition to listener: " + server.getName());
+				registrationListener.register(server);
+				removeAlert(server);
+			}
+	
+		}
 
 	    /**
 	     * To get monitored server

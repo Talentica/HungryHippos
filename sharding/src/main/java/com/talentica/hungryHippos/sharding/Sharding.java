@@ -65,6 +65,8 @@ public class Sharding {
 			CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, sharding.bucketToNodeNumberMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, sharding.keyToValueToBucketMap);
 			LOGGER.info("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
+			LOGGER.info("bucketCombinationToNodeNumbersMap: "
+					+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 		} catch (IOException | NodeOverflowException e) {
 			e.printStackTrace();
 			LOGGER.error("Error occurred during sharding process.", e);

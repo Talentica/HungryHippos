@@ -1,0 +1,1 @@
+sh copy-file-to-all-nodes.sh ../../utility/src/main/resources/config.properties

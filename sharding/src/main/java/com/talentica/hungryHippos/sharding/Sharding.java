@@ -144,8 +144,9 @@ public class Sharding {
 			long idealAverageSizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
 			LOGGER.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
 			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
-			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
 			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
+			buckets.add(bucket);
+			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
 			if (!sortedKeyValueFrequencies.isEmpty()) {
 				long sizeOfOneBucket = idealAverageSizeOfOneBucket;
 				KeyValueFrequency maxKeyValueFreq = sortedKeyValueFrequencies.get(0);
@@ -156,7 +157,6 @@ public class Sharding {
 							new Object[] { maxKeyValueFreq.getKeyValue(), maximumFrequency });
 				}
 				LOGGER.info("Actual bucket size for {}:{}", new Object[] { keys[i], sizeOfOneBucket });
-				buckets.add(bucket);
 				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
 					Long frequency = keyValueFrequency.getFrequency();
 					if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {

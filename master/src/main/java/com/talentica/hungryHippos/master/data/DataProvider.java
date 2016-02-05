@@ -126,12 +126,12 @@ public class DataProvider {
 			double value8 = Double.parseDouble(parts[7].toString());
 			MutableCharArrayString value9 = parts[8];
 
-			Map<String, Bucket<KeyValueFrequency>> keyValueMap = new HashMap<>();
+			Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
 			String[] keyOrder = Property.getKeyOrder();
 
 			for (int i = 0; i < keyOrder.length; i++) {
 				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[i]);
-				keyValueMap.put(keyOrder[i], bucket);
+				keyToBucketMap.put(keyOrder[i], bucket);
 			}
 			dynamicMarshal.writeValueString(0, value1, byteBuffer);
 			dynamicMarshal.writeValueString(1, value2, byteBuffer);
@@ -142,7 +142,7 @@ public class DataProvider {
 			dynamicMarshal.writeValueDouble(6, value7, byteBuffer);
 			dynamicMarshal.writeValueDouble(7, value8, byteBuffer);
 			dynamicMarshal.writeValueString(8, value9, byteBuffer);
-			BucketCombination BucketCombination = new BucketCombination(keyValueMap);
+			BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
 			Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
 			for (Node node : nodes) {
 				targets[node.getNodeId()].write(buf);

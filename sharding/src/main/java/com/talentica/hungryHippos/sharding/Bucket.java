@@ -1,10 +1,7 @@
 package com.talentica.hungryHippos.sharding;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 
@@ -14,7 +11,7 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 
 	private long size = 0;
 
-	private List<T> objects = new ArrayList<>();
+	private long numberOfObjects = 0;
 
 	public Integer getId() {
 		return id;
@@ -26,23 +23,23 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 	}
 
 	public void add(T t) {
-		objects.add(t);
+		numberOfObjects++;
 	}
 
 	public void addAll(Collection<T> t) {
-		objects.addAll(t);
+		numberOfObjects = numberOfObjects + t.size();
 	}
 
 	public void remove(T t) {
-		objects.add(t);
+		numberOfObjects--;
 	}
 
 	public void removeAll(Collection<T> t) {
-		objects.removeAll(t);
+		numberOfObjects = numberOfObjects - t.size();
 	}
 
 	public void clear() {
-		objects.clear();
+		numberOfObjects = 0;
 	}
 
 	public long getSize() {
@@ -50,10 +47,7 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 	}
 
 	public Long getFilledSize() {
-		if (objects != null) {
-			return (long) objects.size();
-		}
-		return 0l;
+		return numberOfObjects;
 	}
 
 	@Override
@@ -82,10 +76,6 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 			return getFilledSize().compareTo(otherBucket.getFilledSize());
 		}
 		return 0;
-	}
-
-	public Iterator<T> iterator() {
-		return objects.iterator();
 	}
 
 	@Override

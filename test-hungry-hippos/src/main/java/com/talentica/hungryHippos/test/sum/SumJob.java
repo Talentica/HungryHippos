@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.test.sum;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
@@ -56,6 +57,15 @@ public class SumJob implements Job,Serializable{
 	@Override
 	public long getMemoryFootprint(int rowCount) {
 		return 10*rowCount;
+	}
+
+	@Override
+	public String toString() {
+		if (dimensions != null) {
+			return "\nSumJob{{primary dim:" + primaryDimension + ",dimensions" + Arrays.toString(dimensions)
+					+ ", valueIndex:" + valueIndex + "}}";
+		}
+		return super.toString();
 	}
 
 }

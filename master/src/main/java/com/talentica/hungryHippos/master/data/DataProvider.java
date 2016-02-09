@@ -148,7 +148,6 @@ public class DataProvider {
 			Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
 			for (Node node : nodes) {
 				targets[node.getNodeId()].write(buf);
-				LOGGER.info("Send row {} to node {}",Arrays.toString(parts),node);
 			}
 
 		}

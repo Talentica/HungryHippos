@@ -66,9 +66,6 @@ public class NodeDataStoreIdCalculator implements Serializable {
 					&& keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
 				fileId |= 1;
 			}
-			if ("j".equals(value.toString()) && i == 1) {
-				count++;
-			}
 		}
 		return fileId;
 	}

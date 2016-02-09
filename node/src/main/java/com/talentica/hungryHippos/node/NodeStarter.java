@@ -22,6 +22,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.TaskEntity;
@@ -73,7 +74,8 @@ public class NodeStarter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
 	private static NodesManager nodesManager;
 	private static ResourceManager resourceManager;
-
+	private static DataStore dataStore;
+	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
 	private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
@@ -135,10 +137,6 @@ public class NodeStarter {
 		EventLoopGroup bossGroup = new NioEventLoopGroup();
 
 		try {
-			final NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-					keyToValueToBucketMap, bucketToNodeNumberMap, nodeId, dataDescription);
-			final DataStore dataStore = new FileDataStore(keyToValueToBucketMap.size(), nodeDataStoreIdCalculator,
-					dataDescription);
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
@@ -249,6 +247,7 @@ public class NodeStarter {
 	 */
 	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities, CountDownLatch signal)
 			throws Exception {
+		Stopwatch timer = new Stopwatch().start();
 		LOGGER.info("STARTING JOB RUNNER MATRIX");
 		List<TaskEntity> taskEntities = new ArrayList<>();
 		taskEntities.addAll(workEntities);
@@ -270,6 +269,8 @@ public class NodeStarter {
 			jobRunner.run();
 			jobRunner.clear();
 		}
+		timer.stop();
+        LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms",(timer.elapsedMillis()));
 		signal.countDown();
 		return true;
 	}
@@ -284,10 +285,9 @@ public class NodeStarter {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 		CommonUtil.setDataDescription(dataDescription);
 		dataDescription.setKeyOrder(Property.getKeyOrder());
-		NodeDataStoreIdCalculator nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
+		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
 				NodeStarter.keyToValueToBucketMap, bucketToNodeNumberMap, readNodeId(), dataDescription);
-		int totalDimensions = Property.getKeyOrder().length;
-		FileDataStore dataStore = new FileDataStore(totalDimensions, nodeDataStoreIdCalculator, dataDescription, true);
+		dataStore = new FileDataStore(keyToValueToBucketMap.size(), nodeDataStoreIdCalculator, dataDescription);
 		return new JobRunner(dataDescription, dataStore);
 	}
 

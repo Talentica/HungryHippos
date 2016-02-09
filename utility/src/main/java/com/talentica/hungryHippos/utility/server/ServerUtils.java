@@ -28,6 +28,10 @@ import com.talentica.hungryHippos.utility.Property;
 public class ServerUtils {
 	private static final String LOG_PROP_FILE = "log4j.properties";
 	private static ClassLoader loader = ServerUtils.class.getClassLoader();
+	
+	public static final String PRIFIX_SERVER_NAME = "server";
+	public static final String DOT = ".";
+	
 	static{
 		   Property.CONFIG_FILE = loader.getResourceAsStream(LOG_PROP_FILE);
 	   }

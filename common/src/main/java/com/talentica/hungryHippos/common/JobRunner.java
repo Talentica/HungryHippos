@@ -10,6 +10,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -69,6 +70,8 @@ public class JobRunner implements Serializable{
     
     
     public void run(){
+    	LOGGER.info("START RUNNING THE ABOVE TASKS");
+    	Stopwatch timer = new Stopwatch().start();
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
         List<RowProcessor> rowProcessors = new LinkedList<>();
         StoreAccess storeAccess = null;
@@ -82,6 +85,8 @@ public class JobRunner implements Serializable{
 	        		 storeAccess.processRows();
 	        	}
         rowProcessors.forEach(RowProcessor::finishUp);
+        timer.stop();
+        LOGGER.info("TOTAL TIME TAKEN TO EXECUTE THE TASKS {} ms",(timer.elapsedMillis()));
 }
     
     /**
@@ -90,6 +95,8 @@ public class JobRunner implements Serializable{
      * @return Map<Integer, JobEntity>
      */
     public void doRowCount(){
+    	LOGGER.info("ROW COUNTS FOR ALL JOBS STARTED");
+    	Stopwatch timer = new Stopwatch().start();
     	 DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
     	 List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){
@@ -111,7 +118,8 @@ public class JobRunner implements Serializable{
             }
             rowProcessors.clear();
         }
-        
+        timer.stop();
+        LOGGER.info("TOTAL TIME TAKEN FOR ROW COUNTS OF ALL JOBS {} ms",(timer.elapsedMillis()));
     }
     
     

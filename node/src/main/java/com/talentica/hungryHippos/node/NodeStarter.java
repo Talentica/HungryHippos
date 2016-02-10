@@ -79,7 +79,9 @@ public class NodeStarter {
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
 	private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
-
+	
+	private static int nodeId;
+	
 	public NodeStarter(DataDescription dataDescription)
 			throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
 		NodeStarter.dataDescription = dataDescription;
@@ -102,6 +104,11 @@ public class NodeStarter {
 					.readObject();
 		} catch (IOException | ClassNotFoundException e) {
 			LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
+		}
+		try {
+			nodeId = readNodeId();
+		} catch (IOException e) {
+			LOGGER.info("Unable to read the nodeId file");
 		}
 	}
 
@@ -165,7 +172,7 @@ public class NodeStarter {
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.NODE.name());
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
-			int nodeId = readNodeId();
+			int nodeId = NodeStarter.nodeId;
 			String server;
 			server = serverConfig.getFileData().getProperty("server." + nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);
@@ -193,7 +200,7 @@ public class NodeStarter {
 			boolean flag = runJobMatrix(jobRunner, workEntities, signal);
 			if (flag) {
 				signal.await();
-				String buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH
+				String buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
 						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 				nodesManager.createNode(buildStartPath, null);
 			}
@@ -286,7 +293,7 @@ public class NodeStarter {
 		CommonUtil.setDataDescription(dataDescription);
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-				NodeStarter.keyToValueToBucketMap, bucketToNodeNumberMap, readNodeId(), dataDescription);
+				NodeStarter.keyToValueToBucketMap, bucketToNodeNumberMap, NodeStarter.nodeId, dataDescription);
 		dataStore = new FileDataStore(keyToValueToBucketMap.size(), nodeDataStoreIdCalculator, dataDescription);
 		return new JobRunner(dataDescription, dataStore);
 	}
@@ -302,7 +309,7 @@ public class NodeStarter {
 	private static void waitForStartRowCountSignal(CountDownLatch signal)
 			throws KeeperException, InterruptedException, IOException {
 		String buildStartPath = null;
-		buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH
+		buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
 		ZKUtils.waitForSignal(buildStartPath, signal);
 	}
@@ -317,7 +324,7 @@ public class NodeStarter {
 	 */
 	private static void waitForStartJobMatrixSignal(CountDownLatch signal) throws IOException, KeeperException, InterruptedException{
 			String buildStartPath = null;
-			buildStartPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
+			buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
 			ZKUtils.waitForSignal(buildStartPath,signal);
 	}
 
@@ -329,7 +336,7 @@ public class NodeStarter {
 	 * @throws InterruptedException
 	 */
 	private static void createZKFinishNodeForRowCount(CountDownLatch signal) throws IOException, InterruptedException {
-		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH
+		String buildPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.FINISH_ROW_COUNT.name();
 		nodesManager.createNode(buildPath, signal);
 		signal.countDown();
@@ -369,7 +376,7 @@ public class NodeStarter {
 	 */
 	private static List<Job> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
-		String buildPath = ZKUtils.buildNodePath(NodeStarter.readNodeId()) + PathUtil.FORWARD_SLASH
+		String buildPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());

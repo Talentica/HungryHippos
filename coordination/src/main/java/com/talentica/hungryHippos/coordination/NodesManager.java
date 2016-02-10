@@ -159,7 +159,7 @@ public class NodesManager implements Watcher {
 		 createServerNodes();
 		 createNotificationNode();
 		 if(registrationListener != null){
-	        LOGGER.info("Nodes Manager Started successfully.. NOW ,There are currently %d " +
+	        LOGGER.info("Nodes Manager Started successfully.. NOW ,There are currently {} " +
 	                "servers: {}", registrationListener.getRegisteredServers().size(), registrationListener.getRegisteredServers().toString());
 		 }
 		 getSignal.await();

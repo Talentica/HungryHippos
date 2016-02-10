@@ -24,6 +24,10 @@ public class SumJobMatrixImpl implements JobMatrix {
 				jobList.add(new SumJob(new int[] { i, j }, i, 6, jobId++));
 				jobList.add(new SumJob(new int[] { i, j }, i, 7, jobId++));
 				for (int k = j + 1; k < numberOfKeys; k++) {
+
+					jobList.add(new SumJob(new int[] { k }, k, 6, jobId++));
+					jobList.add(new SumJob(new int[] { k }, k, 7, jobId++));
+
 					jobList.add(new SumJob(new int[] { j, k }, j, 6, jobId++));
 					jobList.add(new SumJob(new int[] { j, k }, j, 7, jobId++));
 

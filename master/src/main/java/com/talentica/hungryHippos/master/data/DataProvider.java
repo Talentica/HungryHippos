@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -42,17 +43,20 @@ public class DataProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
-
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
-
+	
+	
+	
 	private static String[] loadServers(NodesManager nodesManager) throws Exception {
 		LOGGER.info("Load the server form the configuration file");
 		ArrayList<String> servers = new ArrayList<>();
 		Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
 		ZKNodeFile serverConfig = (obj == null) ? null : (ZKNodeFile) obj;
 		Properties prop = serverConfig.getFileData();
-		for (Object server : prop.keySet()) {
-			servers.add(prop.getProperty((String) server));
+		int size = prop.keySet().size();
+		for (int index = 0 ; index < size ; index++) {
+			System.out.println();
+			servers.add(prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT +index));
 		}
 		LOGGER.info("There are {} servers", servers.size());
 		return servers.toArray(new String[servers.size()]);
@@ -119,9 +123,7 @@ public class DataProvider {
 			MutableCharArrayString value3 = parts[2];
 			MutableCharArrayString value4 = parts[3];
 			MutableCharArrayString value5 = parts[4];
-			;
 			MutableCharArrayString value6 = parts[5];
-			;
 			double value7 = Double.parseDouble(parts[6].toString());
 			double value8 = Double.parseDouble(parts[7].toString());
 			MutableCharArrayString value9 = parts[8];

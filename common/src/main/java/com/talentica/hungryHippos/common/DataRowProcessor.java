@@ -55,11 +55,11 @@ public class DataRowProcessor implements RowProcessor {
 			values[i] = v;
 		}
 		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), Arrays.copyOf(values, values.length));
-		Work work = valueSetWorkMap.get(valueSet);
-		if (work == null)
-			return;
-		executionContext.setData(row);
-		work.processRow(executionContext);
+			if (valueSetWorkMap.containsKey(valueSet)){
+				Work work = valueSetWorkMap.get(valueSet);
+				executionContext.setData(row);
+				work.processRow(executionContext);
+			}
 	}
 
 	@Override

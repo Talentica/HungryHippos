@@ -30,7 +30,7 @@ public class LeafBean implements Comparable<LeafBean>{
 		try {
 			this.value = ZKUtils.deserialize(value);
 		}catch(SerializationException ex){
-			LOGGER.error("Unable to deserialize object with path:- {}", path);
+			LOGGER.error("Unable to deserialize object with path:- {} And ex", path,ex);
         }
     }
 

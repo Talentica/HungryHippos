@@ -15,3 +15,10 @@
 /initial-connect-to-162.243.56.199.sh
 /initial-connect-to-162.243.87.183.sh
 /initial-connect-to-162.243.97.194.sh
+/create-project-directory.sh~
+/create-required-project-directories-on-manager.sh~
+/install-java-on-a-node.sh~
+/install-java-on-all-nodes.sh~
+/node_ips_list.txt
+/nohup.out
+/setup-cloud-environment.sh~

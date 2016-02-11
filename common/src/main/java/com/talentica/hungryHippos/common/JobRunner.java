@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
+import com.talentica.hungryHippos.client.domain.ValueSet;
+import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -39,6 +41,8 @@ public class JobRunner implements Serializable{
 
     private Map<Integer,List<Job>> primaryDimJobsMap = new HashMap<>();
     private Map<Integer,List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
+    private Map<int[],RowProcessor> dimensionsRowProcessorMap = new HashMap<int[],RowProcessor>();
+    private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
 
     public void addJob(Job job){
         jobs.add(job);
@@ -70,7 +74,7 @@ public class JobRunner implements Serializable{
     
     
     public void run(){
-    	LOGGER.info("START RUNNING THE ABOVE TASKS");
+    	LOGGER.info("EXECUTION STARTED FOR ABOVE TASKS");
     	Stopwatch timer = new Stopwatch().start();
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
         List<RowProcessor> rowProcessors = new LinkedList<>();
@@ -78,15 +82,22 @@ public class JobRunner implements Serializable{
 	        	for(Integer primDim: primaryDimTasksMap.keySet()){
 	        		storeAccess = dataStore.getStoreAccess(primDim);
 		        	for(TaskEntity task : primaryDimTasksMap.get(primDim)){
-		                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,task.getValueSet(),task.getWork());
-		                storeAccess.addRowProcessor(rowProcessor);
-		                rowProcessors.add(rowProcessor);
+		        		RowProcessor rowProcessor = dimensionsRowProcessorMap.get(task.getWork().getDimensions());
+		        		if(rowProcessor == null){
+		        			valueSetWorkMap = new HashMap<>();
+		        			rowProcessor = new DataRowProcessor(dynamicMarshal,valueSetWorkMap,task.getWork().getDimensions());	
+		        			dimensionsRowProcessorMap.put(task.getWork().getDimensions(), rowProcessor);
+		        			storeAccess.addRowProcessor(rowProcessor);
+			                rowProcessors.add(rowProcessor);
+		        		}
+		        		DataRowProcessor dataRowProcessor = (DataRowProcessor)rowProcessor;
+		        		dataRowProcessor.getValueSetWorkMap().put(task.getValueSet(), task.getWork());
 		        	}
 	        		 storeAccess.processRows();
 	        	}
         rowProcessors.forEach(RowProcessor::finishUp);
         timer.stop();
-        LOGGER.info("TOTAL TIME TAKEN TO EXECUTE THE TASKS {} ms",(timer.elapsedMillis()));
+        LOGGER.info("TIME TAKEN TO EXECUTE ABOVE TASKS {} ms",(timer.elapsedMillis()));
 }
     
     /**
@@ -133,6 +144,8 @@ public class JobRunner implements Serializable{
 		primaryDimJobsMap.clear();
 		primaryDimTasksMap.clear();
 		taskEntities.clear();
+		dimensionsRowProcessorMap.clear();
+		valueSetWorkMap.clear();
     }
     
 

@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
@@ -22,6 +25,7 @@ public class DataRowProcessor implements RowProcessor {
 	private Job job;
 	private int[] keys;
 	private ExecutionContextImpl executionContext;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
 	private ValueSet valueSet;
 
@@ -40,10 +44,10 @@ public class DataRowProcessor implements RowProcessor {
 		executionContext = new ExecutionContextImpl(dynamicMarshal);
 	}
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, ValueSet valueSet, Work work) {
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, HashMap<ValueSet, Work> valueSetWorkMap,int[] dimensions) {
 		this.dynamicMarshal = dynamicMarshal;
-		this.valueSetWorkMap.put(valueSet, work);
-		this.keys = work.getDimensions();
+		this.valueSetWorkMap = valueSetWorkMap;
+		this.keys = dimensions;
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
 	}
 
@@ -55,10 +59,11 @@ public class DataRowProcessor implements RowProcessor {
 			values[i] = v;
 		}
 		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), Arrays.copyOf(values, values.length));
-			if (valueSetWorkMap.containsKey(valueSet)){
-				Work work = valueSetWorkMap.get(valueSet);
+		Work work = valueSetWorkMap.get(valueSet);
+			if (work != null){
 				executionContext.setData(row);
 				work.processRow(executionContext);
+				//LOGGER.info("PROCESSING FOR WORKER {}",Arrays.toString(values));
 			}
 	}
 
@@ -98,4 +103,9 @@ public class DataRowProcessor implements RowProcessor {
 	public HashMap<ValueSet, TaskEntity> getWorkerValueSet() {
 		return valueSetTaskEntityMap;
 	}
+
+	public HashMap<ValueSet, Work> getValueSetWorkMap() {
+		return valueSetWorkMap;
+	}
+
 }

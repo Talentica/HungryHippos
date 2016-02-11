@@ -71,11 +71,7 @@ public class Node implements Serializable,Comparable<Node>{
 
     @Override
     public String toString() {
-        return "Node{" +
-                "nodeCapacity=" + nodeCapacity +
-                ", nodeId=" + nodeId +
-                ", remainingCapacity=" + remainingCapacity +
-                '}';
+		return "Node{" + nodeId + "}";
     }
 
 	@Override

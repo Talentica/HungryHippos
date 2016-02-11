@@ -133,6 +133,7 @@ public class Sharding {
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
 		String[] keys = Property.getKeyOrder();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
+		LOGGER.info("Total no. of buckets: {}", totalNoOfBuckets);
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
 		for (int i = 0; i < keys.length; i++) {
 			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
@@ -147,19 +148,16 @@ public class Sharding {
 			buckets.add(bucket);
 			List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
 			if (!sortedKeyValueFrequencies.isEmpty()) {
-				long sizeOfOneBucket = idealAverageSizeOfOneBucket;
-				KeyValueFrequency maxKeyValueFreq = sortedKeyValueFrequencies.get(0);
-				long maximumFrequency = maxKeyValueFreq.getFrequency();
-				if (idealAverageSizeOfOneBucket < maximumFrequency) {
-					sizeOfOneBucket = maximumFrequency;
-					LOGGER.info("Frequency of value {} exceeded ideal size of bucket: {}",
-							new Object[] { maxKeyValueFreq.getKeyValue(), maximumFrequency });
-				}
-				LOGGER.info("Actual bucket size for {}:{}", new Object[] { keys[i], sizeOfOneBucket });
 				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
+					long sizeOfCurrentBucket = idealAverageSizeOfOneBucket;
 					Long frequency = keyValueFrequency.getFrequency();
-					if (frequencyOfAlreadyAddedValues + frequency > sizeOfOneBucket) {
-						bucket = new Bucket<>(++bucketCount, sizeOfOneBucket);
+					if (frequency>idealAverageSizeOfOneBucket) {
+						sizeOfCurrentBucket = frequency;
+						LOGGER.info("Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
+								new Object[] { keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket });
+					}
+					if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket) {
+						bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
 						buckets.add(bucket);
 						frequencyOfAlreadyAddedValues = 0;
 					}

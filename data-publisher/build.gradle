@@ -15,7 +15,7 @@ sourceSets {
   }
   
 jar {
-	archiveName='master.jar'
+	archiveName='data-publisher.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

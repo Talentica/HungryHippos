@@ -5,6 +5,6 @@ node_pwd=`cat ./node_pwd_file.txt|grep "pwd"|awk -F":" '{print $2}'`
 
 for node in `echo $manager_node_ip`
 do
-   echo "Starting HungryHippos node $node"
-   sshpass -p $node_pwd ssh root@$node "cd hungryhippos/manager;nohup java -cp master.jar:test-jobs.jar com.talentica.hungryHippos.master.MasterStarter $1 &"
+   echo "Start	ing HungryHippos node $node"
+   sshpass -p $node_pwd ssh root@$node "cd hungryhippos/manager;java -cp master.jar:test-jobs.jar com.talentica.hungryHippos.master.DataPublisherStarter $1 &"
 done

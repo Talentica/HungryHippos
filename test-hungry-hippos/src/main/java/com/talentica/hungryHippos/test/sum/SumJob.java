@@ -56,7 +56,7 @@ public class SumJob implements Job,Serializable{
 	
 	@Override
 	public long getMemoryFootprint(int rowCount) {
-		return 10*rowCount;
+		return 8;
 	}
 
 	@Override

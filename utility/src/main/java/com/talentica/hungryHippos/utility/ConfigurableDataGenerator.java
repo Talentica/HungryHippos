@@ -65,11 +65,14 @@ public class ConfigurableDataGenerator {
 
         if(args.length<3){
             System.out.println("Usage java com.talentica.hungryHippos.utility.ConfigurableDataGenerator " +
-                    "[numberOfRows] [filename] [column_desc]*");
+ "[fileSizeInMbs] [filename] [column_desc]*");
             System.out.println("column_desc := (C|N)':'[number_of_characters]");
             System.exit(0);
         }
-        long entryCount = Long.parseLong(args[0]);
+		long fileSizeInMbs = Long.parseLong(args[0]);
+
+		long filesizeInBytes = fileSizeInMbs * 1024 * 1024;
+
         String filename = args[1];
 
         ColumnConfig[] configs = new ColumnConfig[args.length-2];
@@ -89,19 +92,17 @@ public class ConfigurableDataGenerator {
             ColumnConfig config = new ColumnConfig(sourceChars,count);
             configs[i]=config;
         }
-
-
-
-
         PrintWriter out = new PrintWriter(new File(filename));
         long start = System.currentTimeMillis();
-        for(int i=0;i<entryCount;i++){
+		long sizeOfDataWrote = 0l;
+		while (sizeOfDataWrote < filesizeInBytes) {
             for(int j=0;j<configs.length;j++){
+				sizeOfDataWrote = sizeOfDataWrote + configs[j].count;
                 int toSelct = (int)(skewRandom() * configs[j].valueSet.length);
-
                 out.print(configs[j].valueSet[toSelct]);
                 if(j<configs.length-1){
                     out.print(",");
+					sizeOfDataWrote = sizeOfDataWrote + 1;
                 }
 
             }

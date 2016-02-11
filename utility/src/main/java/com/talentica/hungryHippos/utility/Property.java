@@ -130,12 +130,12 @@ public class Property {
 	}
 	
 	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
-		String[] keyOrder = Property.getKeyOrder();
-		String[] keyNames = new String[keyIndexes.length];
+		String[] keyColumnNames = Property.getPropertyValue("common.column.names").toString().split(",");
+		String[] result = new String[keyIndexes.length];
 		for (int i = 0; i < keyIndexes.length; i++) {
-			keyNames[i] = keyOrder[keyIndexes[i]];
+			result[i] = keyColumnNames[keyIndexes[i]];
 		}
-		return keyNames;
+		return result;
 	}
 	public static void setOrOverrideConfigurationProperty(String key, String value) {
 		getProperties().setProperty(key, value);

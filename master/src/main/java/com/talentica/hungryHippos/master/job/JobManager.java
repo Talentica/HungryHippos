@@ -70,20 +70,21 @@ public class JobManager {
 		DataProvider.publishDataToNodes(nodesManager);
 		LOGGER.info("DATA PUBLISHED SUCCESSFULLY!");
 
-			LOGGER.info("SEND TASKS TO NODES");
-			sendJobsToNodes();
-			LOGGER.info("TASKS SENT TO NODES SUCCESSFULLY");
+		LOGGER.info("SEND TASKS TO NODES");
+		sendJobsToNodes();
+		LOGGER.info("TASKS SENT TO NODES SUCCESSFULLY");
 
-		LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
+		/*LOGGER.info("\n\n\n\t*****SPAWNING THE JOBS ACROSS NODES****\n\n\n");
 		executeJobsOnNodes();
-		LOGGER.info("JOBS SENT TO NODES SUCCESSFULLY!");
+		LOGGER.info("JOBS SENT TO NODES SUCCESSFULLY!");*/
 
-			LOGGER.info("GET FINISHED SIGNAL FROM NODES");
-			getFinishNodeJobsSignal();
+		LOGGER.info("GET FINISHED SIGNAL FROM NODES");
+		getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private void setBucketToNodeNumberMap() throws Exception {
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
 				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
@@ -133,10 +134,11 @@ public class JobManager {
 			Node node = nodesItr.next();
 			if(!getFinishSignal(node.getNodeId(),CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name())){
 				continue;
-			}else{
+			}/*else{
 				LOGGER.info("NODE ID {} FINISHED THE JOBS",node.getNodeId());
-			}
+			}*/
 		}
+		LOGGER.info("ALL NODES FINISHED THE JOBS");
 	}
 	
 	

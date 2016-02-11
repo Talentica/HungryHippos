@@ -188,13 +188,13 @@ public class NodeStarter {
 			List<TaskEntity> workEntities = jobRunner.getWorkEntities();
 			LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
 			CommonUtil.dumpFileOnDisk("workEntities", workEntities);
-			signal = new CountDownLatch(1);
+			/*signal = new CountDownLatch(1);
 			createZKFinishNodeForRowCount(signal);
-			signal.await();
+			signal.await();*/
 
-			signal = new CountDownLatch(1);
+			/*signal = new CountDownLatch(1);
 			waitForStartJobMatrixSignal(signal);
-			signal.await();
+			signal.await();*/
 
 			signal = new CountDownLatch(1);
 			boolean flag = runJobMatrix(jobRunner, workEntities, signal);

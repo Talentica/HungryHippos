@@ -22,3 +22,12 @@
 /node_ips_list.txt
 /nohup.out
 /setup-cloud-environment.sh~
+/copy-shard-files-to-all-nodes.sh~
+/prepare-new-build.sh~
+/run-job-matrix.sh~
+/run-median-job-matrix.sh~
+/run-mixed-job-matrix.sh~
+/run-sum-job-matrix.sh~
+/run-sum-job.sh~
+/start-all-nodes.sh~
+/node_list.txt

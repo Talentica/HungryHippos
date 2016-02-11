@@ -8,12 +8,15 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
+import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
+import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
 public class DataPublisherStarter {
 
-	private static NodesManager nodesManager;
+	private NodesManager nodesManager;
 
 	/**
 	 * @param args
@@ -22,12 +25,20 @@ public class DataPublisherStarter {
 
 	public static void main(String[] args) {
 		try {
-
+			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
-			(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.MASTER.name());
-			DataProvider.publishDataToNodes(nodesManager);
+			(dataPublisherStarter.nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.MASTER.name());
+			LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
+			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
+			dataPublisherStarter.nodesManager.saveConfigFileToZNode(serverConfigFile, null);
+			LOGGER.info("CONFIG FILE PUT TO ZK NODE SUCCESSFULLY!");
+			ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
+			dataPublisherStarter.nodesManager.saveConfigFileToZNode(configNodeFile, null);
+			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
 		}
 	}
+
 }

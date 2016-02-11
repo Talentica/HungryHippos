@@ -21,7 +21,6 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
-import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -65,10 +64,6 @@ public class JobManager {
 
 		LOGGER.info("PUT keyValueNodeNumberMap TO ZK NODE");
 		setBucketToNodeNumberMap();
-
-		LOGGER.info("PUBLISH DATA ACROSS THE NODES");
-		DataProvider.publishDataToNodes(nodesManager);
-		LOGGER.info("DATA PUBLISHED SUCCESSFULLY!");
 
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();

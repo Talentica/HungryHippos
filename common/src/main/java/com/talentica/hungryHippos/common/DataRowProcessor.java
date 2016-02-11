@@ -63,7 +63,7 @@ public class DataRowProcessor implements RowProcessor {
 			if (work != null){
 				executionContext.setData(row);
 				work.processRow(executionContext);
-				//LOGGER.info("PROCESSING FOR WORKER {}",Arrays.toString(values));
+				LOGGER.info("PROCESSING FOR WORKER {}", Arrays.toString(values));
 			}
 	}
 

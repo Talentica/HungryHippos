@@ -44,11 +44,10 @@ public class DataReceiver {
 	public DataReceiver(DataDescription dataDescription) throws Exception {
 		nodesManager = ServerHeartBeat.init();
 		this.dataDescription = dataDescription;
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
-				dataDescription);
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
 				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
-
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
+				dataDescription);
 	}
 
 	/**
@@ -76,6 +75,7 @@ public class DataReceiver {
 			LOGGER.info("binding to port " + port);
 			ChannelFuture f = b.bind(port).sync();
 			f.channel().closeFuture().sync();
+			LOGGER.info("Node ready to receive data");
 			LOGGER.info("Wait until the connection is closed");
 		} finally {
 			workerGroup.shutdownGracefully();
@@ -96,7 +96,6 @@ public class DataReceiver {
 			int PORT = Integer.valueOf(server.split(":")[1]);
 			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);
-			LOGGER.info("Node ready to receive data");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}

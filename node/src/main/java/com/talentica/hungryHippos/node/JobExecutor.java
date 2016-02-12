@@ -158,7 +158,7 @@ public class JobExecutor {
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
 				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
-				dataDescription);
+				dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
 	}
 

@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * Created by debasishc on 22/6/15.
@@ -19,10 +18,8 @@ public class FileReader implements Reader {
 	int readCount = -1;
 
 	@SuppressWarnings("resource")
-	public FileReader(String filename) throws IOException {
-		channel = new FileInputStream(
-				new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + filename)
-						.getChannel();
+	public FileReader(String filepath) throws IOException {
+		channel = new FileInputStream(filepath).getChannel();
 		buf.clear();
 	}
 
@@ -101,29 +98,29 @@ public class FileReader implements Reader {
 			s.reset();
 		}
 		int fieldIndex = 0;
-			while (true) {
-				if (readCount <= 0) {
-					buf.clear();
-					readCount = channel.read(buf);
-					if (readCount < 0) {
-						if (fieldIndex == numfields - 1) {
-							return buffer;
-						}
-						return null;
+		while (true) {
+			if (readCount <= 0) {
+				buf.clear();
+				readCount = channel.read(buf);
+				if (readCount < 0) {
+					if (fieldIndex == numfields - 1) {
+						return buffer;
 					}
-					buf.flip();
+					return null;
+					}
+				buf.flip();
 				}
-				byte nextChar = buf.get();
-				readCount--;
-				if (nextChar == ',') {
-					fieldIndex++;
-				} else if (nextChar == '\n') {
-					// Ignore blank lines with no data.
-						break;
-				} else {
-					buffer[fieldIndex].addCharacter((char) nextChar);
-				}
+			byte nextChar = buf.get();
+			readCount--;
+			if (nextChar == ',') {
+				fieldIndex++;
+			} else if (nextChar == '\n') {
+				// Ignore blank lines with no data.
+				break;
+			} else {
+				buffer[fieldIndex].addCharacter((char) nextChar);
 			}
+		}
 		return buffer;
 	}
 
@@ -153,6 +150,13 @@ public class FileReader implements Reader {
 		if (channel != null && channel.isOpen()) {
 			channel.close();
 		}
+	}
+
+	@Override
+	public void reset() throws IOException {
+		channel.position(0);
+		buf.clear();
+		readCount = -1;
 	}
 
 }

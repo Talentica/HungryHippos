@@ -4,9 +4,13 @@
 package com.talentica.hungryHippos.resource.manager.services;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
 
@@ -17,10 +21,10 @@ import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
  *
  */
 public final class TaskPartitions {
-	
 	private List<ResourceConsumer> resourceConsumers;
 	private List<ResourceConsumer> outBoundResources;
 	private long availableRam;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskPartitions.class.getName());
 	
 	public TaskPartitions(List<ResourceConsumer> resourceConsumers,long availableRam){
 		this.resourceConsumers = resourceConsumers;
@@ -30,6 +34,8 @@ public final class TaskPartitions {
 	public Map<Integer, List<ResourceConsumer>> getIterationWiseResourceConsumers(){
 		long tempAvailableRam;
 		Integer resourceIndex = 0;
+		long startTime = new Date().getTime();
+		LOGGER.info("TASK PARTITION STARTED ON AVAILABLE RAM {}",this.availableRam);
 		TreeMap<Integer, List<ResourceConsumer>> resourcesPartition = new TreeMap<Integer, List<ResourceConsumer>>();
 		for(int index = 0; index < resourceConsumers.size(); index++){
 			if(resourceConsumers.get(index).getResourceRequirement().getRam() > availableRam){
@@ -61,7 +67,10 @@ public final class TaskPartitions {
 			}
 			resourcesPartition.put(resourceIndex++, subsetResorces);
 		}
-		
+		if(outBoundResources != null && !outBoundResources.isEmpty()) {
+			LOGGER.info("NUMBER OF CONSUMERS HAVING MEMORY SIZE BEYOND AVAILABLE MEMORY {}",outBoundResources.size());
+		}
+		LOGGER.info("ELAPSED TIME IN TASK PARTITIONING {} ms",(new Date().getTime()-startTime));
 		return resourcesPartition;
 	}
 
@@ -88,7 +97,4 @@ public final class TaskPartitions {
 	public void setAvailableRam(long availableRam) {
 		this.availableRam = availableRam;
 	} 
-	
-	
-
 }

@@ -19,4 +19,7 @@ ext {
 
 dependencies {
 	testCompile group: 'junit', name: 'junit', version: '4.11'
+	compile "org.slf4j:slf4j-api:$slf4jVersion"
+	testCompile 'junit:junit:4.12'
+    testCompile 'org.apache.commons:commons-math3:3.5'
 }

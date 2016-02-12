@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
@@ -16,103 +19,92 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  * Created by debasishc on 9/9/15.
  */
 public class DataRowProcessor implements RowProcessor {
-    private DynamicMarshal dynamicMarshal;
-    private HashMap<ValueSet,Work> valueSetWorkMap = new HashMap<>();
-    private Job job;
-    private JobEntity jobEntity;
-    private int[] keys;
-    //reused context
-    private ExecutionContextImpl executionContext;
-    //private Map<Integer,Integer> jobIdRowCountMap = new HashMap<>();
+	private DynamicMarshal dynamicMarshal;
+	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
+	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
+	private Job job;
+	private int[] keys;
+	private ExecutionContextImpl executionContext;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
-    //reused valueset
-    private ValueSet valueSet;
+	private ValueSet valueSet;
 
-    //reused array
-    private Object[] values;
-    
-    public DataRowProcessor(Job job){
-    	this.job = job;
-    	this.jobEntity = new JobEntity(job);
-    }
-    public DataRowProcessor(DynamicMarshal dynamicMarshal, Job job) {
-        this.dynamicMarshal = dynamicMarshal;
-        this.job = job;
-        this.keys = job.getDimensions();
-        this.values = new Object[keys.length];
+	private Object[] values;
+
+	public DataRowProcessor(Job job) {
+		this.job = job;
+	}
+
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, Job job) {
+		this.dynamicMarshal = dynamicMarshal;
+		this.job = job;
+		this.keys = job.getDimensions();
+		this.values = new Object[keys.length];
 		this.valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
-        executionContext = new ExecutionContextImpl(dynamicMarshal);
-        this.jobEntity = new JobEntity(job);
-    }
+		executionContext = new ExecutionContextImpl(dynamicMarshal);
+	}
 
-    @Override
-    public void processRow(ByteBuffer row) {
-        for(int i=0;i<keys.length;i++){
-            Object v = dynamicMarshal.readValue(keys[i],row);
-            values[i] = v;
-        }
-        Work work = valueSetWorkMap.get(valueSet);
-        if(work==null){
-			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
-					Arrays.copyOf(values, values.length));
-            work = job.createNewWork();
-            valueSetWorkMap.put(valueSet,work);
-        }
-        executionContext.setData(row);
-        work.processRow(executionContext);
-    }
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, HashMap<ValueSet, Work> valueSetWorkMap,int[] dimensions) {
+		this.dynamicMarshal = dynamicMarshal;
+		this.valueSetWorkMap = valueSetWorkMap;
+		this.keys = dimensions;
+		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
+	}
 
-    @Override
-    public void finishUp() {
-        for(Map.Entry<ValueSet,Work> e:valueSetWorkMap.entrySet()){
-            executionContext.setKeys(e.getKey());
-            e.getValue().calculate(executionContext);
-        }
-    }
-
-    public void addjobEntity(JobEntity jobEntity){
-    	this.jobEntity = jobEntity;
-    }
-    
 	@Override
-	public Object getJob(){
+	public void processRow(ByteBuffer row) {
+		Object[] values = new Object[keys.length];
+		for (int i = 0; i < keys.length; i++) {
+			Object v = dynamicMarshal.readValue(keys[i], row);
+			values[i] = v;
+		}
+		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), Arrays.copyOf(values, values.length));
+		Work work = valueSetWorkMap.get(valueSet);
+			if (work != null){
+				executionContext.setData(row);
+				work.processRow(executionContext);
+			}
+	}
+
+	@Override
+	public void finishUp() {
+		for (Map.Entry<ValueSet, Work> e : valueSetWorkMap.entrySet()) {
+			executionContext.setKeys(e.getKey());
+			e.getValue().calculate(executionContext);
+		}
+	}
+
+	@Override
+	public Job getJob() {
 		return this.job;
 	}
 
 	@Override
-	public Object getJobEntity() {
-		for(ValueSet valueSet : valueSetWorkMap.keySet()){
-			if(valueSetWorkMap.get(valueSet).getRowCount() == 0){
-				valueSetWorkMap.remove(valueSet);
-			}
-			StringBuilder keyValues = new StringBuilder();
-			keyValues.append("_[");
-			for(Object value : valueSet.getValues()){
-				if(keyValues.length() > 2){
-					keyValues.append(",");
-				}
-				keyValues.append(value);
-			}
-			keyValues.append("]");
-			String workerId = valueSetWorkMap.get(valueSet).getWorkerId() + keyValues;
-			jobEntity.getWorkerIdRowCountMap().put(workerId, valueSetWorkMap.get(valueSet).getRowCount());
-		}
-		return this.jobEntity;
-	}
-	
-	@Override
 	public void processRowCount(ByteBuffer row) {
-        for(int i=0;i<keys.length;i++){
-            Object v = dynamicMarshal.readValue(keys[i],row);
-            values[i] = v;
-        }
-        Work work = valueSetWorkMap.get(valueSet);
-        if(work==null){
+		for (int i = 0; i < keys.length; i++) {
+			Object v = dynamicMarshal.readValue(keys[i], row);
+			values[i] = v;
+		}
+		TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
+		if (taskEntity == null) {
 			ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),
 					Arrays.copyOf(values, values.length));
-            work = job.createNewWork();
-            valueSetWorkMap.put(valueSet,work);
-        }
-        work.incrCountRow();
+			Work work = job.createNewWork();
+			taskEntity = new TaskEntity();
+			taskEntity.setWork(work);
+			taskEntity.setJob(job);
+			taskEntity.setValueSet(valueSet);
+			valueSetTaskEntityMap.put(valueSet, taskEntity);
+		}
+		taskEntity.incrRowCount();
 	}
+
+	public HashMap<ValueSet, TaskEntity> getWorkerValueSet() {
+		return valueSetTaskEntityMap;
+	}
+
+	public HashMap<ValueSet, Work> getValueSetWorkMap() {
+		return valueSetWorkMap;
+	}
+
 }

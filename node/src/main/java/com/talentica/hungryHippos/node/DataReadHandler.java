@@ -1,10 +1,5 @@
 package com.talentica.hungryHippos.node;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
@@ -12,6 +7,11 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -69,9 +69,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    	LOGGER.info("\n\t In exceptionCaught method");// (4)
-        // Close the connection when an exception is raised.
-        cause.printStackTrace();
+		LOGGER.error("Error occurred while processing data in channel handler", cause);
         ctx.close();
     }
     @Override

@@ -30,4 +30,12 @@ public class ResourceConsumerImpl implements ResourceConsumer{
 		return new ResourceRequirement(diskSize,ram,consumerId);
 	}
 
+
+	@Override
+	public String toString() {
+		return "ResourceConsumerImpl [diskSize=" + diskSize + ", ram=" + ram
+				+ ", consumerId=" + consumerId + "]";
+	}
+	
+
 }

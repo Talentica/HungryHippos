@@ -17,13 +17,15 @@ jar {
         }
     }
     manifest {
-        attributes("Main-Class": "com.talentica.hungryHippos.manager.node.NodeStarter" )
+        attributes("Main-Class": "com.talentica.hungryHippos.node.NodeStarter" )
     }
 }
 
 dependencies {
     compile project (':common')
     compile project (':coordination')
+	compile project (':resource-manager')
+	compile project (':test-hungry-hippos')
     compile 'io.netty:netty-all:5.0.0.Alpha2'
     testCompile 'io.netty:netty-all:5.0.0.Alpha2'
     testCompile group: 'junit', name: 'junit', version: '4.11'

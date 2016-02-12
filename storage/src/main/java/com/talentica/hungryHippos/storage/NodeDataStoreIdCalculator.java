@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.storage;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -9,56 +10,80 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Created by debasishc on 26/8/15.
  */
-public class NodeDataStoreIdCalculator implements Serializable{
-    /**
-	 * 
-	 */
+public class NodeDataStoreIdCalculator implements Serializable {
+
 	private static final long serialVersionUID = -4962284637100465382L;
-	private final Map<String,Map<Object, Node>> keyValueNodeNumberMap;
-    private final Node thisNode;
-    private final int numberOfDimensions;
-    private final Set<Object>[] keyWiseAcceptingValues;
-    private final String[] keys;
-    private final DynamicMarshal dynamicMarshal;
-    private static final Logger LOGGER = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class.getName());
-    public NodeDataStoreIdCalculator(
-            Map<String, Map<Object, Node>> keyValueNodeNumberMap, int thisNode, DataDescription dataDescription) {
-        this.keyValueNodeNumberMap = keyValueNodeNumberMap;
-        this.thisNode = new Node(0, thisNode);
-        numberOfDimensions = keyValueNodeNumberMap.size();
-        keys =dataDescription.keyOrder();
-        keyWiseAcceptingValues = new Set[numberOfDimensions];
-        this.dynamicMarshal = new DynamicMarshal(dataDescription);
-        for(int i=0;i<keys.length;i++){
-            String key=keys[i];
-            Set<Object> objs = new HashSet<>();
-            for(Map.Entry<Object,Node> e: keyValueNodeNumberMap.get(key).entrySet()){
-                if(e.getValue().getNodeId()==thisNode){
-                    objs.add(e.getKey());
-                }
-            }
-            keyWiseAcceptingValues[i]=objs;
-            LOGGER.info("keyWiseAcceptingValues :: "+keyWiseAcceptingValues[i]);
-        }
+	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
+	private Map<String, Set<Bucket<KeyValueFrequency>>> keyWiseAcceptingBuckets = new HashMap<>();
+	private final String[] keys;
+	private final DynamicMarshal dynamicMarshal;
+	private int count = 0;
+	private Logger LOGGER = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class);
 
-    }
+	public NodeDataStoreIdCalculator(Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
+			Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
+			int thisNode,
+			DataDescription dataDescription) {
+		this.keyToValueToBucketMap = keyToValueToBucketMap;
+		keys = dataDescription.keyOrder();
+		setKeyWiseAcceptingBuckets(bucketToNodeNumberMap, thisNode);
+		this.dynamicMarshal = new DynamicMarshal(dataDescription);
+	}
 
-    public int storeId(ByteBuffer row){
-        int fileId=0;
-        for(int i=keys.length-1;i>=0;i--){
-            fileId<<=1;
-            if(keyWiseAcceptingValues[i].contains(dynamicMarshal.readValue(i,row))){
-                fileId|=1;
-            }
+	private void setKeyWiseAcceptingBuckets(Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
+			int thisNode) {
+		for (String key : bucketToNodeNumberMap.keySet()) {
+			Set<Bucket<KeyValueFrequency>> keyWiseBuckets = new HashSet<>();
+			Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(key);
+			for (Bucket<KeyValueFrequency> bucket : bucketToNodeMap.keySet()) {
+				if (bucketToNodeMap.get(bucket).getNodeId() == thisNode) {
+					keyWiseBuckets.add(bucket);
+				}
+			}
+			this.keyWiseAcceptingBuckets.put(key, keyWiseBuckets);
+		}
+		LOGGER.info("keyWiseAcceptingBuckets:{}", MapUtils.getFormattedString(keyWiseAcceptingBuckets));
+	}
 
-        }
-        return fileId;
-    }
+	public int storeId(ByteBuffer row) {
+		int fileId = 0;
+		for (int i = keys.length - 1; i >= 0; i--) {
+			fileId <<= 1;
+			Object value = getValueWithNoDataSeparator(dynamicMarshal.readValue(i, row));
+			Bucket<KeyValueFrequency> valueBucket = keyToValueToBucketMap.get(keys[i]).get(value);
+			if (valueBucket != null && keyWiseAcceptingBuckets.get(keys[i]) != null
+					&& keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
+				fileId |= 1;
+			}
+		}
+		return fileId;
+	}
+
+	/*
+	 * Removes comma separator if present in value read.
+	 */
+	private Object getValueWithNoDataSeparator(Object value) {
+		if (value instanceof MutableCharArrayString) {
+			MutableCharArrayString arrayString = (MutableCharArrayString) value;
+			if (arrayString.charAt(arrayString.length() - 1) == ',') {
+				value = arrayString.subSequence(0, arrayString.length() - 1);
+			}
+		}
+		return value;
+	}
+
+	public int getCount() {
+		return count;
+	}
 }

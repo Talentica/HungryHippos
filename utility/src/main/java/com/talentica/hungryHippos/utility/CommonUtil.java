@@ -76,7 +76,7 @@ public class CommonUtil {
 	
 	public enum ZKJobNodeEnum{
 		
-		PUSH_JOB_NOTIFICATION("PUSH_JOB"),PULL_JOB_NOTIFICATION("PULL_JOB"),START("START"),FINISH("FINISH");
+		PUSH_JOB_NOTIFICATION("PUSH_JOB"),PULL_JOB_NOTIFICATION("PULL_JOB"),START_ROW_COUNT("START_ROW_COUNT"),START_JOB_MATRIX("START_JOB_MATRIX"),FINISH_JOB_MATRIX("FINISH_JOB_MATRIX"),FINISH_ROW_COUNT("FINISH_ROW_COUNT");
 		
 		private String jobNode;
 		
@@ -114,18 +114,4 @@ public class CommonUtil {
 		}
 	}
 	
-	public enum ZKNodeDeleteSignal{
-		MASTER("MASTER"),NODE("NODE");
-		
-		private String signal;
-		
-		private ZKNodeDeleteSignal(String signal){
-			this.signal = signal;
-		}
-		
-		public String getSignal(){
-			return this.signal;
-		}
-		
-	}
 }

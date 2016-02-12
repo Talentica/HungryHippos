@@ -1,4 +1,4 @@
 pwd:Jan2016!
-job_runner_ip:162.243.48.157
+job_manager_ip:162.243.48.157
 data_publisher_node_ip:192.241.186.71
 sharding_node_ip:162.243.124.53

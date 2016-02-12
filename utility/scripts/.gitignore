@@ -31,3 +31,15 @@
 /run-sum-job.sh~
 /start-all-nodes.sh~
 /node_list.txt
+/copy-sharding-jar.sh~
+/setup-data-publisher.sh~
+/setup-sharding.sh~
+/shut-down-data-publisher.sh~
+/shut-down-job-runner.sh~
+/shut-down-manager.sh~
+/shut-down-sharding.sh~
+/cleanup-data-publisher.sh~
+/copy-file-to-data-publisher.sh~
+/connect-to-sharding.sh~
+/connect-to-data-publisher.sh~
+/cleanup-sharding.sh~

@@ -43,3 +43,12 @@
 /connect-to-sharding.sh~
 /connect-to-data-publisher.sh~
 /cleanup-sharding.sh~
+/connect-to-job-manager.sh~
+/copy-file-to-job-manager.sh~
+/setup-job-manager.sh~
+/shut-down-all-nodes.sh~
+/start-all-nodes-job-execution.sh~
+/start-job-manager.sh~
+/start-node.sh~
+/start-sharding.sh~
+/start-data-publisher.sh~

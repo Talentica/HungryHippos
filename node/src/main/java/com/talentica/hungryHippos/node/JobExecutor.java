@@ -3,13 +3,9 @@
  */
 package com.talentica.hungryHippos.node;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,35 +26,19 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
 import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumerComparator;
 import com.talentica.hungryHippos.resource.manager.services.ResourceConsumerImpl;
 import com.talentica.hungryHippos.resource.manager.services.ResourceManager;
 import com.talentica.hungryHippos.resource.manager.services.ResourceManagerImpl;
-import com.talentica.hungryHippos.sharding.Bucket;
-import com.talentica.hungryHippos.sharding.KeyValueFrequency;
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row
@@ -66,120 +46,25 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * 
  * Created by debasishc on 1/9/15.
  */
-@SuppressWarnings("unchecked")
-public class NodeStarter {
+public class JobExecutor {
 
-	private static DataDescription dataDescription;
-	private static String nodeIdFile = "nodeId";
-	private static final Logger LOGGER = LoggerFactory.getLogger(NodeStarter.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
+
 	private static NodesManager nodesManager;
+
 	private static ResourceManager resourceManager;
+
 	private static DataStore dataStore;
+
 	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
-
-	private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 	
-	private static int nodeId;
-	
-	public NodeStarter(DataDescription dataDescription)
-			throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
-		NodeStarter.dataDescription = dataDescription;
-	}
-
-	static {
-		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
-						+ Sharding.keyToValueToBucketMapFile))) {
-			keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
-					.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
-		}
-
-		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
-						+ Sharding.bucketToNodeNumberMapFile))) {
-			bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
-					.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
-		}
-		try {
-			nodeId = readNodeId();
-		} catch (IOException e) {
-			LOGGER.info("Unable to read the nodeId file");
-		}
-	}
-
-	/**
-	 * Read the file nodeId which contains nodeId value.
-	 * 
-	 * @return NodeId
-	 * @throws Exception
-	 */
-	@SuppressWarnings("resource")
-	public static int readNodeId() throws IOException {
-		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + nodeIdFile)));
-			String line = in.readLine();
-			return Integer.parseInt(line);
-		} catch (IOException exception) {
-			LOGGER.info("Unable to read the file for NODE ID. Exiting..");
-			throw exception;
-		}
-	}
-
-	/**
-	 * It will open the port to accept the sharded data from client.
-	 * 
-	 * @param port
-	 * @param nodeId
-	 * @throws Exception
-	 */
-	private void startServer(int port, int nodeId) throws Exception {
-		LOGGER.info("Start the node");
-		EventLoopGroup workerGroup = new NioEventLoopGroup();
-		EventLoopGroup bossGroup = new NioEventLoopGroup();
-
-		try {
-			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup, workerGroup);
-			b.channel(NioServerSocketChannel.class);
-			b.option(ChannelOption.SO_KEEPALIVE, true);
-			b.childHandler(new ChannelInitializer<SocketChannel>() {
-				@Override
-				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new DataReadHandler(dataDescription, dataStore));
-				}
-			});
-			LOGGER.info("binding to port " + port);
-			ChannelFuture f = b.bind(port).sync();
-			f.channel().closeFuture().sync();
-			LOGGER.info("Wait until the connection is closed");
-
-		} finally {
-			workerGroup.shutdownGracefully();
-			bossGroup.shutdownGracefully();
-			LOGGER.info("Connection is gracefully closed");
-		}
-	}
-
 	public static void main(String[] args) {
 		try {
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
-			(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.NODE.name());
-			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
-			int nodeId = NodeStarter.nodeId;
-			String server;
-			server = serverConfig.getFileData().getProperty("server." + nodeId);
-			int PORT = Integer.valueOf(server.split(":")[1]);
-
+			(nodesManager = ServerHeartBeat.init()).startup();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
-			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
 			CountDownLatch signal = new CountDownLatch(1);
 			waitForStartRowCountSignal(signal);
 			signal.await();
@@ -188,19 +73,11 @@ public class NodeStarter {
 			List<TaskEntity> workEntities = jobRunner.getWorkEntities();
 			LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
 			CommonUtil.dumpFileOnDisk("workEntities", workEntities);
-			/*signal = new CountDownLatch(1);
-			createZKFinishNodeForRowCount(signal);
-			signal.await();*/
-
-			/*signal = new CountDownLatch(1);
-			waitForStartJobMatrixSignal(signal);
-			signal.await();*/
-
 			signal = new CountDownLatch(1);
 			boolean flag = runJobMatrix(jobRunner, workEntities, signal);
 			if (flag) {
 				signal.await();
-				String buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
+				String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 				nodesManager.createNode(buildStartPath, null);
 			}
@@ -228,20 +105,6 @@ public class NodeStarter {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);
 		}
-	}
-
-	/**
-	 * Initialize the node.
-	 * 
-	 * @param nodesManager
-	 * @return NodeStarter
-	 * @throws Exception
-	 */
-	private static NodeStarter getNodeInitializer(NodesManager nodesManager) throws Exception {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
-		dataDescription.setKeyOrder(Property.getKeyOrder());
-		return new NodeStarter(dataDescription);
 	}
 
 	/**
@@ -292,9 +155,10 @@ public class NodeStarter {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 		CommonUtil.setDataDescription(dataDescription);
 		dataDescription.setKeyOrder(Property.getKeyOrder());
-		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(
-				NodeStarter.keyToValueToBucketMap, bucketToNodeNumberMap, NodeStarter.nodeId, dataDescription);
-		dataStore = new FileDataStore(keyToValueToBucketMap.size(), nodeDataStoreIdCalculator, dataDescription);
+		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
+				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
+				dataDescription);
 		return new JobRunner(dataDescription, dataStore);
 	}
 
@@ -309,37 +173,9 @@ public class NodeStarter {
 	private static void waitForStartRowCountSignal(CountDownLatch signal)
 			throws KeeperException, InterruptedException, IOException {
 		String buildStartPath = null;
-		buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
+		buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
 		ZKUtils.waitForSignal(buildStartPath, signal);
-	}
-
-	/**
-	 * Wait for notification for the start job notification.
-	 * 
-	 * @param signal
-	 * @throws IOException
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	private static void waitForStartJobMatrixSignal(CountDownLatch signal) throws IOException, KeeperException, InterruptedException{
-			String buildStartPath = null;
-			buildStartPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.name();
-			ZKUtils.waitForSignal(buildStartPath,signal);
-	}
-
-	/**
-	 * Push the finish notification for row count per task
-	 * 
-	 * @param signal
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private static void createZKFinishNodeForRowCount(CountDownLatch signal) throws IOException, InterruptedException {
-		String buildPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.FINISH_ROW_COUNT.name();
-		nodesManager.createNode(buildPath, signal);
-		signal.countDown();
 	}
 
 	/**
@@ -376,7 +212,7 @@ public class NodeStarter {
 	 */
 	private static List<Job> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
-		String buildPath = ZKUtils.buildNodePath(NodeStarter.nodeId) + PathUtil.FORWARD_SLASH
+		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());

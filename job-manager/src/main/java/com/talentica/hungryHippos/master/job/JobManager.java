@@ -24,7 +24,6 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.CommonUtil.ZKNodeDeleteSignal;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 public class JobManager {
@@ -48,7 +47,7 @@ public class JobManager {
 	public void start() throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.MASTER.name());
+		(nodesManager = ServerHeartBeat.init()).startup();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("GET FINISHED SIGNAL FROM NODES");

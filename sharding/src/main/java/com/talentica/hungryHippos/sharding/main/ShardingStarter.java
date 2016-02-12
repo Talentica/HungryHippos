@@ -21,7 +21,7 @@ public class ShardingStarter {
 
 	public static void main(String[] args) {
 		try {
-			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			overrideProperties(args);
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());

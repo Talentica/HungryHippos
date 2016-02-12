@@ -19,17 +19,17 @@ import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
  * @author PooshanS
  *
  */
-public class JobRunnerStarter {
+public class JobManagerStarter {
 
 	/**
 	 * @param args
 	 */
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobRunnerStarter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerStarter.class);
 
 	public static void main(String[] args) {
 		try {
 			validateProgramArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			overrideProperties(args);
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());

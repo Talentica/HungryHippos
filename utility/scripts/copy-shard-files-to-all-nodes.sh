@@ -3,7 +3,7 @@
 cat ./serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 node_pwd=`cat ./node_pwd_file.txt|grep "pwd"|awk -F":" '{print $2}'`
 data_publisher_node_ip=`cat ./node_pwd_file.txt|grep "data_publisher_node_ip"|awk -F":" '{print $2}'`
-job_manager_ip=`cat ./node_pwd_file.txt|grep "data_publisher_node_ip"|awk -F":" '{print $2}'`
+job_manager_ip=`cat ./node_pwd_file.txt|grep "job_manager_ip"|awk -F":" '{print $2}'`
 for node in `cat node_ips_list.txt`
 do
    echo "Copying file to $node"

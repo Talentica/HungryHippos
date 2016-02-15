@@ -1,2 +1,0 @@
-pwd:Jan2016!
-manager_node_ip:162.243.48.157

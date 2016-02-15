@@ -114,18 +114,4 @@ public class CommonUtil {
 		}
 	}
 	
-	public enum ZKNodeDeleteSignal{
-		MASTER("MASTER"),NODE("NODE");
-		
-		private String signal;
-		
-		private ZKNodeDeleteSignal(String signal){
-			this.signal = signal;
-		}
-		
-		public String getSignal(){
-			return this.signal;
-		}
-		
-	}
 }

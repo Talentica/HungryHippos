@@ -24,7 +24,6 @@ public class Property {
 	public static InputStream CONFIG_FILE;
 	private static ClassLoader loader = Property.class.getClassLoader();
 	private static PROPERTIES_NAMESPACE namespace;
-	public static final String LOG_PROP_FILE = PropertyEnum.LOG4J.getPropertyFileName();
 	public static final String CONF_PROP_FILE = PropertyEnum.CONFIG.getPropertyFileName();
 	public static final String SERVER_CONF_FILE = PropertyEnum.SERVER_CONFIG.getPropertyFileName();
 	public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
@@ -60,24 +59,11 @@ public class Property {
 					properties.load(CONFIG_FILE);
 				}
 				PropertyConfigurator.configure(properties);
-				LOGGER.info("Property file is loaded!!");
-				loadLoggerSetting();
 			} catch (IOException e) {
 				LOGGER.info("Unable to load the property file!!");
 			}
 		}
 		return properties;
-	}
-
-	public static void loadLoggerSetting() {
-		Properties prop = new Properties();
-		try {
-			prop.load(loader.getResourceAsStream(LOG_PROP_FILE));
-			PropertyConfigurator.configure(prop);
-			LOGGER.info("log4j.properties file is loaded");
-		} catch (IOException e) {
-			LOGGER.warn("Unable to load log4j.properties file");
-		}
 	}
 
 	public static Properties loadServerProperties() {

@@ -138,7 +138,7 @@ public class NodeStarter {
 	 * @param nodeId
 	 * @throws Exception
 	 */
-	private void startServer(int port, int nodeId) throws Exception {
+	private void startServer(int port) throws Exception {
 		LOGGER.info("Start the node");
 		EventLoopGroup workerGroup = new NioEventLoopGroup();
 		EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -172,14 +172,14 @@ public class NodeStarter {
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup(ZKNodeDeleteSignal.NODE.name());
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
-			int nodeId = NodeStarter.nodeId;
+			//int nodeId = NodeStarter.nodeId;
 			String server;
-			server = serverConfig.getFileData().getProperty("server." + nodeId);
+			server = serverConfig.getFileData().getProperty("server." + NodeStarter.nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);
 
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
-			getNodeInitializer(nodesManager).startServer(PORT, nodeId);
+			getNodeInitializer(nodesManager).startServer(PORT);
 			CountDownLatch signal = new CountDownLatch(1);
 			waitForStartRowCountSignal(signal);
 			signal.await();

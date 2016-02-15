@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.master.util.FileSender;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -43,6 +44,7 @@ public class DataProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
+	private static final String COPY_SHARD_FILE_SCRIPT = "copy.shard.file.script";
 	
 	
 	
@@ -154,6 +156,9 @@ public class DataProvider {
 			targets[j].flush();
 			targets[j].close();
 		}
+		String output = FileSender.execScript(COPY_SHARD_FILE_SCRIPT);
+		LOGGER.info("OUTPUT OF SCRIPT COMMAND{}",output);
+		
 		long end = System.currentTimeMillis();
 		LOGGER.info("Time taken in ms: " + (end - start));
 		LOGGER.info("Time taken in encoding: " + (timeForEncoding));

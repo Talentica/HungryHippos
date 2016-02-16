@@ -5,5 +5,5 @@ node_pwd=`cat ./node_pwd_file.txt|grep "pwd"|awk -F":" '{print $2}'`
 for node in `echo $sharding_node_ip`
 do
    echo "Starting sharding on $node"
-   sshpass -p $node_pwd ssh root@$node "cd hungryhippos/sharding;java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./ -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter > ./system.out 2>./system.err &"
-done
+   sshpass -p $node_pwd ssh root@$node "cd hungryhippos/sharding;java -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./ -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter > ./system.out 2>./system.err &"
+done	

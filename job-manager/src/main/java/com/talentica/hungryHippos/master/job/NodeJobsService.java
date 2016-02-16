@@ -72,7 +72,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 				}
 		}
 		String buildPath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
-		nodesManager.createNode(buildPath,signal);
+		nodesManager.createEphemeralNode(buildPath, signal);
 		signal.await();
 	}
 
@@ -92,7 +92,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 		boolean flag = false;
 		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+job.getJobId());
 		try {
-			nodesManager.createNode(buildPath,signal,job);
+			nodesManager.createEphemeralNode(buildPath, signal, job);
 			flag = true;
 		} catch (IOException e) {
 			LOGGER.info("Unable to create node");

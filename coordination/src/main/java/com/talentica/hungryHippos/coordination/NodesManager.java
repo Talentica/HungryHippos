@@ -168,10 +168,10 @@ public class NodesManager implements Watcher {
 	     */
 	public void defaultNodesOnStart() throws IOException{
 		createServersMap();
-		createNode(PathUtil.FORWARD_SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),null);
-		createNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()),null);
-		createNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()),null);
-		createNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()),null);
+		createPersistentNode(PathUtil.FORWARD_SLASH+zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),null);
+		createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()),null);
+		createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()),null);
+		createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()),null);
 	}
 	    /**
 	     * Create the node on zookeeper
@@ -180,45 +180,55 @@ public class NodesManager implements Watcher {
 	     * @param data
 	     * @throws IOException 
 	     */
-	    public void createNode(final String node,CountDownLatch signal ,Object ...data) throws IOException {
-	        zk.create(node, (data!=null && data.length != 0) ? ZKUtils.serialize(data[0]):node.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,
-	                new AsyncCallback.StringCallback() {
-	                    @Override
-	                    public void processResult(int rc, String path, Object ctx, String name) {
-	                        switch (KeeperException.Code.get(rc)) {
-	                            case CONNECTIONLOSS:
-								try {
-									createNode(path,signal,data);
-								} catch (IOException e) {
-									LOGGER.warn("Unable to redirect to create node");
-								}
-	                                break;
-	                            case OK:
-	                                LOGGER.info("Server Monitoring Path [" + path + "] is created");
-	                                if(path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name()) && path.contains("_job")){
-	                                	LOGGER.info("DELETE THE PULL/PUSH NODES");
-	                                	deleteNode(path);
-	                                	String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-	                                	String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-	                                	deleteNode(path.replace(oldString, newString));
-	                                }
-	                                if(signal != null ) signal.countDown();
-	                                if(getSignal != null) getSignal.countDown();
-	                                break;
-	                            case NODEEXISTS:
-	                            	LOGGER.info("Server Monitoring Path [" + path + "] already exists");
-	                            	if(getSignal != null) getSignal.countDown();
-	                                break;
-	                            default:
-	                            	LOGGER.info("Unexpected result while trying to create node " +
-	                                        node + ": " + KeeperException.create(KeeperException.Code
-	                                        .get(rc), path));
-	                        }
-	                    }
-	                },
-	                null    
-	        );
+	    public void createPersistentNode(final String node,CountDownLatch signal ,Object ...data) throws IOException {
+		createNode(node, signal, CreateMode.PERSISTENT, data);
 	    }
+
+	private void createNode(final String node, CountDownLatch signal, CreateMode createMode, Object... data)
+			throws IOException {
+		zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
+				ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
+					@Override
+					public void processResult(int rc, String path, Object ctx, String name) {
+						switch (KeeperException.Code.get(rc)) {
+						case CONNECTIONLOSS:
+							try {
+								createPersistentNode(path, signal, data);
+							} catch (IOException e) {
+								LOGGER.warn("Unable to redirect to create node");
+							}
+							break;
+						case OK:
+							LOGGER.info("Server Monitoring Path [" + path + "] is created");
+							if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
+									&& path.contains("_job")) {
+								LOGGER.info("DELETE THE PULL/PUSH NODES");
+								deleteNode(path);
+								String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+								String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+								deleteNode(path.replace(oldString, newString));
+							}
+							if (signal != null)
+								signal.countDown();
+							if (getSignal != null)
+								getSignal.countDown();
+							break;
+						case NODEEXISTS:
+							LOGGER.info("Server Monitoring Path [" + path + "] already exists");
+							if (getSignal != null)
+								getSignal.countDown();
+							break;
+						default:
+							LOGGER.info("Unexpected result while trying to create node " + node + ": "
+									+ KeeperException.create(KeeperException.Code.get(rc), path));
+						}
+					}
+				}, null);
+	}
+
+	public void createEphemeralNode(final String node, CountDownLatch signal, Object... data) throws IOException {
+		createNode(node, signal, CreateMode.PERSISTENT, data);
+	}
 
 	    /**
 	     * @throws InterruptedException
@@ -542,7 +552,7 @@ public class NodesManager implements Watcher {
 		private void createServerNodes() throws IOException{			
 			for(Server server : this.servers){
 				String nodePath = buildMonitorPathForServer(server);
-				createNode(nodePath,null);
+				createPersistentNode(nodePath,null);
 			}
 			
 		}
@@ -581,7 +591,7 @@ public class NodesManager implements Watcher {
 	 * @throws IOException
 	 */
 	public void saveConfigFileToZNode(ZKNodeFile file , CountDownLatch signal) throws IOException {
-		createNode(buildConfigPath(file.getFileName()),signal,
+		createPersistentNode(buildConfigPath(file.getFileName()),signal,
 				file);
 	}
 	
@@ -637,7 +647,7 @@ public class NodesManager implements Watcher {
 						+ (NODE_NAME_PRIFIX + nodeId)
 						+ PathUtil.FORWARD_SLASH
 						+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-				createNode(pushNotification,null);
+				createPersistentNode(pushNotification,null);
 			}
 			flag = true;
 		} catch (IOException ex) {

@@ -54,7 +54,7 @@ public class ServerHeartBeat {
 				LOGGER.info("SERVER ::  ["+ server.getServerAddress().getIp()	+ "] IS RUNNING, STATUS :: "+server.getServerStatus());
 			} else if(server.getServerStatus() == ServerStatus.INACTIVE){
 				server.setServerStatus(ServerStatus.ACTIVE);
-				nodesManager.createNode(nodesManager
+				nodesManager.createPersistentNode(nodesManager
 						.buildMonitorPathForServer(server),null);
 			 }
 		} catch (AsynchronousCloseException  ex) {

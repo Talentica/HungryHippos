@@ -79,7 +79,7 @@ public class JobExecutor {
 				signal.await();
 				String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-				nodesManager.createNode(buildStartPath, null);
+				nodesManager.createEphemeralNode(buildStartPath, null);
 			}
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {

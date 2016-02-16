@@ -120,6 +120,8 @@ public class JobRunner implements Serializable{
             storeAccess.processRowCount();
             for(RowProcessor processor : rowProcessors){
             	DataRowProcessor dataRowProcessor = (DataRowProcessor)processor;
+				LOGGER.info("WorkValueSet map size for primary dimension {} is {}",
+						new Object[] { primDim, dataRowProcessor.getWorkerValueSet().size() });
             	for(TaskEntity taskEntity : dataRowProcessor.getWorkerValueSet().values()){
             		taskEntities.add(taskEntity);
 					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",

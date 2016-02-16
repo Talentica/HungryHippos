@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.client.job.Job;
+import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
  * @author PooshanS
@@ -17,7 +17,7 @@ public class TaskEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private int taskId = 0;
 	private static int counter = 0;
-	private Job job;
+	private JobEntity jobEntity;
 	private Work work;
 	private Integer rowCount;
 	private ValueSet valueSet;
@@ -36,11 +36,11 @@ public class TaskEntity implements Serializable {
 		return rowCount;
 	}
 	
-	public Job getJob() {
-		return job;
+	public JobEntity getJobEntity() {
+		return jobEntity;
 	}
-	public void setJob(Job job) {
-		this.job = job;
+	public void setJobEntity(JobEntity jobEntity) {
+		this.jobEntity = jobEntity;
 	}
 
 	public int getTaskId() {

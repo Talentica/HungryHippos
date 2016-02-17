@@ -17,8 +17,6 @@ public class SumJob implements Job,Serializable{
 	protected int [] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
-    protected long dataSize;
-    protected String status;
     public SumJob(){}
 
     public SumJob(int[] dimensions, int primaryDimension, int valueIndex) {
@@ -43,11 +41,6 @@ public class SumJob implements Job,Serializable{
         return primaryDimension;
     }
 
-	@Override
-	public void status(String status) {
-		this.status = status;
-	}
-	
 	@Override
 	public long getMemoryFootprint(int rowCount) {
 		return 8;

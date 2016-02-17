@@ -16,6 +16,7 @@ public class JobEntity implements Serializable {
 	private int jobId;
 	private static int counter;
 	private Job job;
+	private String status;
 	
 	public JobEntity(){
 		jobId = counter++;
@@ -31,6 +32,12 @@ public class JobEntity implements Serializable {
 		this.job = job;
 	}
 	
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
 	@Override
 	public boolean equals(Object object) {
 		boolean result = false;

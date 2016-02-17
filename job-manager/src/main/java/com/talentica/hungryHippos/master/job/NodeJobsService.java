@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -32,7 +31,6 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class NodeJobsService implements NodesJobsRunnable{
 
 	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
-	//private int poolCapacity;
 	private Node node;
 	private TaskManager taskManager;
 	private NodesManager nodesManager;
@@ -50,11 +48,10 @@ public class NodeJobsService implements NodesJobsRunnable{
 	
 	@Override
 	public void createNodeJobService() throws IOException, InterruptedException, KeeperException, ClassNotFoundException {
-		//if(this.poolCapacity == 0 && !this.jobEntities.isEmpty() ) this.poolCapacity = this.jobEntities.size();
 		TaskManager taskManager = new TaskManager();
 		taskManager.setNode(this.node);
 		for (JobEntity jobEntity : this.jobEntities) {
-			jobEntity.getJob().status(JobPool.status.POOLED.name());
+			jobEntity.setStatus(JobPool.status.POOLED.name());
 			taskManager.getJobPoolService().addJobEntity(jobEntity);
 		}
 		this.taskManager = taskManager;
@@ -65,7 +62,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 		CountDownLatch signal = new CountDownLatch(jobEntities.size()+1);
 		while (!taskManager.getJobPoolService().isEmpty()) {
 			JobEntity jobEntity = taskManager.getJobPoolService().peekJobEntity();
-				jobEntity.getJob().status(JobPool.status.ACTIVE.name());
+				jobEntity.setStatus(JobPool.status.ACTIVE.name());
 				boolean flag = sendJobRunnableNotificationToNode(jobEntity,signal);
 				if(flag){
 					taskManager.getJobPoolService().removeJobEntity(jobEntity);
@@ -79,7 +76,6 @@ public class NodeJobsService implements NodesJobsRunnable{
 	@Override
 	public void addJobs(List<JobEntity> jobEntities) {
 		this.jobEntities.addAll(jobEntities);
-		//this.poolCapacity = jobEntities.size();
 	}
 
 	@Override

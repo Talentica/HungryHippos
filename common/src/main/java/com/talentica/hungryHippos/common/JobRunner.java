@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;

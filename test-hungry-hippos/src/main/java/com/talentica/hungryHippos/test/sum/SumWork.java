@@ -16,7 +16,6 @@ public class SumWork implements Work, Serializable {
 	protected int[] dimensions;
 	protected int primaryDimension;
 	protected int valueIndex;
-	protected String status;
 	private double sum;
 
 	public SumWork(int[] dimensions, int primaryDimension, int valueIndex) {
@@ -45,8 +44,4 @@ public class SumWork implements Work, Serializable {
 		return primaryDimension;
 	}
 
-	@Override
-	public void status(String status) {
-		this.status = status;		
-	}
 }

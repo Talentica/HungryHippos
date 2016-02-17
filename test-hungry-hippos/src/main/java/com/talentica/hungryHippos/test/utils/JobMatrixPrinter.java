@@ -16,9 +16,9 @@ public class JobMatrixPrinter {
 		JobMatrix jobMatrix = (JobMatrix) Class.forName(args[0]).newInstance();
 		List<Job> jobs = jobMatrix.getListOfJobsToExecute();
 		for (Job job : jobs) {
-			System.out.print("Job with id: " + job.getJobId()
+			/*System.out.print("Job with id: " + job.getJobId()
 					+ " is available in test job matrix. Job details: Primary dimension-" + job.getPrimaryDimension()
-					+ " Dimenstions-");
+					+ " Dimenstions-");*/
 			boolean putComma = false;
 			for (int dimensionIndex : job.getDimensions()) {
 				if (putComma) {

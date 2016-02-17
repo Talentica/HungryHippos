@@ -29,7 +29,7 @@ public class JobManagerStarter {
 	public static void main(String[] args) {
 		try {
 			validateProgramArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());

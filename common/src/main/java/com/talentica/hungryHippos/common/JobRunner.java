@@ -13,10 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
+import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
@@ -28,7 +28,7 @@ public class JobRunner implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -4793614653018059851L;
-	List<Job> jobs= new LinkedList<>();
+	List<JobEntity> jobEntities= new LinkedList<>();
 	List<TaskEntity> taskEntities= new ArrayList<TaskEntity>();
     private DataDescription dataDescription;
     private DataStore dataStore;
@@ -39,25 +39,25 @@ public class JobRunner implements Serializable{
         this.dataStore = dataStore;
     }
 
-    private Map<Integer,List<Job>> primaryDimJobsMap = new HashMap<>();
+    private Map<Integer,List<JobEntity>> primaryDimJobsMap = new HashMap<>();
     private Map<Integer,List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
     private Map<int[],RowProcessor> dimensionsRowProcessorMap = new HashMap<int[],RowProcessor>();
     private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
 
-    public void addJob(Job job){
-        jobs.add(job);
-        Integer primDim = job.getPrimaryDimension();
-        List<Job> primDimList = primaryDimJobsMap.get(primDim);
+    public void addJob(JobEntity jobEntity){
+        jobEntities.add(jobEntity);
+        Integer primDim = jobEntity.getJob().getPrimaryDimension();
+        List<JobEntity> primDimList = primaryDimJobsMap.get(primDim);
         if(primDimList == null){
             primDimList = new LinkedList<>();
             primaryDimJobsMap.put(primDim,primDimList);
         }
-        primDimList.add(job);
+        primDimList.add(jobEntity);
     }  
     
-    public void addJobs(List<Job> jobs){
-    	for(Job job : jobs){
-    		addJob(job);
+    public void addJobs(List<JobEntity> jobEntities){
+    	for(JobEntity jobEntity : jobEntities){
+    		addJob(jobEntity);
     	}
     }
     
@@ -112,8 +112,8 @@ public class JobRunner implements Serializable{
     	 List<RowProcessor> rowProcessors = new LinkedList<>();
         for(Integer primDim: primaryDimJobsMap.keySet()){
 			StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
-            for(Job job:primaryDimJobsMap.get(primDim)) {
-                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,job);
+            for(JobEntity jobEntity : primaryDimJobsMap.get(primDim)) {
+                RowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal,jobEntity);
                 storeAccess.addRowProcessor(rowProcessor);
                 rowProcessors.add(rowProcessor);
                }
@@ -124,9 +124,9 @@ public class JobRunner implements Serializable{
 						new Object[] { primDim, dataRowProcessor.getWorkerValueSet().size() });
             	for(TaskEntity taskEntity : dataRowProcessor.getWorkerValueSet().values()){
             		taskEntities.add(taskEntity);
-					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
-							taskEntity.getJob().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
-							taskEntity.getRowCount(), taskEntity.getJob().getMemoryFootprint(taskEntity.getRowCount()));
+            		LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+							taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
+							taskEntity.getRowCount(), taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
             	}
             }
             rowProcessors.clear();
@@ -142,7 +142,7 @@ public class JobRunner implements Serializable{
 	}
 
 	public void clear(){
-    	jobs.clear();
+    	jobEntities.clear();
 		primaryDimJobsMap.clear();
 		primaryDimTasksMap.clear();
 		taskEntities.clear();

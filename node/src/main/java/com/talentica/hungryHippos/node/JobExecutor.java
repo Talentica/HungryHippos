@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -35,6 +34,7 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
@@ -130,7 +130,7 @@ public class JobExecutor {
 						jobRunner.addTask(taskEntity);
 						taskEntities.remove(taskEntity);
 						LOGGER.info("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
-								taskEntity.getJob().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
+								taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 								taskEntity.getRowCount());
 						break;
 					}
@@ -193,7 +193,7 @@ public class JobExecutor {
 		long diskSizeNeeded = 0l;
 		for (TaskEntity taskEntity : taskEntities) {
 			resourceConsumer = new ResourceConsumerImpl(diskSizeNeeded,
-					taskEntity.getJob().getMemoryFootprint(taskEntity.getRowCount()), taskEntity.getTaskId());
+					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()), taskEntity.getTaskId());
 			resourceConsumers.add(resourceConsumer);
 		}
 		Collections.sort(resourceConsumers, new ResourceConsumerComparator());
@@ -210,25 +210,25 @@ public class JobExecutor {
 	 * @throws InterruptedException
 	 * @throws KeeperException
 	 */
-	private static List<Job> getJobsFromZKNode()
+	private static List<JobEntity> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
 		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());
-		List<Job> jobs = new ArrayList<Job>();
+		List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 		for (LeafBean leaf : leafs) {
 			LOGGER.info("Leaf path {} and name {}", leaf.getPath(), leaf.getName());
 			String buildLeafPath = ZKUtils.getNodePath(leaf.getPath(), leaf.getName());
 			LOGGER.info("Build path {}", buildLeafPath);
 			LeafBean leafObject = ZKUtils.getNodeValue(buildPath, buildLeafPath, leaf.getName(), null);
-			Job job = (Job) leafObject.getValue();
-			if (job == null)
+			JobEntity jobEntity = (JobEntity) leafObject.getValue();
+			if (jobEntity == null)
 				continue;
-			jobs.add(job);
+			jobEntities.add(jobEntity);
 		}
-		LOGGER.info("TOTAL JOBS FOUND {}", jobs.size());
-		return jobs;
+		LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
+		return jobEntities;
 	}
 
 }

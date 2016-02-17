@@ -14,12 +14,12 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -30,12 +30,10 @@ import com.talentica.hungryHippos.utility.PathUtil;
  */
 public class NodeJobsService implements NodesJobsRunnable{
 
-	private List<Job> jobs = new ArrayList<Job>();
-	private int poolCapacity;
+	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 	private Node node;
 	private TaskManager taskManager;
 	private NodesManager nodesManager;
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(NodeJobsService.class.getName());
 	
 	public NodeJobsService(Node node,NodesManager nodesManager){
@@ -44,31 +42,30 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 	
 	@Override
-	public void addJob(Job job) {
-		this.jobs.add(job);
+	public void addJob(JobEntity jobEntity) {
+		this.jobEntities.add(jobEntity);
 	}
 	
 	@Override
 	public void createNodeJobService() throws IOException, InterruptedException, KeeperException, ClassNotFoundException {
-		if(this.poolCapacity == 0 && !this.jobs.isEmpty() ) this.poolCapacity = this.jobs.size();
-		TaskManager taskManager = new TaskManager(this.poolCapacity);
+		TaskManager taskManager = new TaskManager();
 		taskManager.setNode(this.node);
-		for (Job job : this.jobs) {
-			job.status(JobPool.status.POOLED.name());
-			taskManager.getJobPoolService().addJob(job);
+		for (JobEntity jobEntity : this.jobEntities) {
+			jobEntity.setStatus(JobPool.status.POOLED.name());
+			taskManager.getJobPoolService().addJobEntity(jobEntity);
 		}
 		this.taskManager = taskManager;
 	}
 
 	@Override
 	public void scheduleTaskManager() throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
-		CountDownLatch signal = new CountDownLatch(this.poolCapacity+1);
+		CountDownLatch signal = new CountDownLatch(jobEntities.size()+1);
 		while (!taskManager.getJobPoolService().isEmpty()) {
-				Job job = taskManager.getJobPoolService().peekJob();
-				job.status(JobPool.status.ACTIVE.name());
-				boolean flag = sendJobRunnableNotificationToNode(job,signal);
+			JobEntity jobEntity = taskManager.getJobPoolService().peekJobEntity();
+				jobEntity.setStatus(JobPool.status.ACTIVE.name());
+				boolean flag = sendJobRunnableNotificationToNode(jobEntity,signal);
 				if(flag){
-					taskManager.getJobPoolService().removeJob(job);
+					taskManager.getJobPoolService().removeJobEntity(jobEntity);
 				}
 		}
 		String buildPath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
@@ -77,9 +74,8 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 
 	@Override
-	public void addJobs(List<Job> jobs) {
-		this.jobs.addAll(jobs);
-		this.poolCapacity = jobs.size();
+	public void addJobs(List<JobEntity> jobEntities) {
+		this.jobEntities.addAll(jobEntities);
 	}
 
 	@Override
@@ -88,11 +84,11 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 
 	@Override
-	public boolean sendJobRunnableNotificationToNode(Job job,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
+	public boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
-		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+job.getJobId());
+		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+jobEntity.getJobId());
 		try {
-			nodesManager.createEphemeralNode(buildPath, signal, job);
+			nodesManager.createEphemeralNode(buildPath, signal, jobEntity);
 			flag = true;
 		} catch (IOException e) {
 			LOGGER.info("Unable to create node");

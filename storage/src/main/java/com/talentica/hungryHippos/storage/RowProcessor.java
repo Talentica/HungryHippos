@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.storage;
 import java.nio.ByteBuffer;
 
 import com.talentica.hungryHippos.client.job.Job;
+import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -10,6 +11,6 @@ import com.talentica.hungryHippos.client.job.Job;
 public interface RowProcessor {
     void processRow(ByteBuffer row);
     void finishUp();
-    Job getJob();
+    JobEntity getJobEntity();
     void processRowCount(ByteBuffer row);
 }

@@ -18,11 +18,9 @@ public class TaskManager {
 	
 	private JobPoolService jobPoolService;
 	
-	private int poolCapacity;
 	
-	public TaskManager(int poolCapacity){
-		this.poolCapacity = poolCapacity;
-		jobPoolService = new JobPoolService(this.poolCapacity);
+	public TaskManager(){
+		jobPoolService = new JobPoolService();
 	}
 
 	public Node getNode() {

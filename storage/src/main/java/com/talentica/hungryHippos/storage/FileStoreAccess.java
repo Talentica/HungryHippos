@@ -9,8 +9,8 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 
 /**
  * Created by debasishc on 31/8/15.

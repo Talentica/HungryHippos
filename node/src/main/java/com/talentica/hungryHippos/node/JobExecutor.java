@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -38,7 +39,6 @@ import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row

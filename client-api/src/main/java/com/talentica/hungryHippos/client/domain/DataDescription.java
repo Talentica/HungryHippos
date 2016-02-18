@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.client.domain;
 
 /**
  * Created by debasishc on 1/9/15.

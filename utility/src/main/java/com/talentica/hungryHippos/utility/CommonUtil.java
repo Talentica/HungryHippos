@@ -12,8 +12,8 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.DataLocator;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 
 /**
  * @author PooshanS

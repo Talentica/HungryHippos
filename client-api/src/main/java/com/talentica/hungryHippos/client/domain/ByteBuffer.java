@@ -1,9 +1,6 @@
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.client.domain;
 
 import java.util.Arrays;
-
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 
 /**
  * This is the memory efficient implementation of byte buffer. It tries to
@@ -15,7 +12,7 @@ import com.talentica.hungryHippos.utility.marshaling.DataLocator;
  * @author nitink
  *
  */
-public class ByteBuffer {
+public final class ByteBuffer {
 
 	private int[] data;
 

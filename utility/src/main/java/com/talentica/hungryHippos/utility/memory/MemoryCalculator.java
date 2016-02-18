@@ -6,8 +6,8 @@ package com.talentica.hungryHippos.utility.memory;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 /**
  * @author PooshanS

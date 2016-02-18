@@ -6,8 +6,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.utility.marshaling.DataLocator.DataType;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.ByteBuffer;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 
 public class ByteBufferTest {
 

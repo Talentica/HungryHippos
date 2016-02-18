@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.client.domain;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Created by debasishc on 1/9/15.
  */
-public class FieldTypeArrayDataDescription implements DataDescription,Serializable{
+public final class FieldTypeArrayDataDescription implements DataDescription, Serializable {
 
     /**
 	 * 

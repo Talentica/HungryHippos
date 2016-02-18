@@ -11,8 +11,8 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 
 /**
  * Created by debasishc on 31/8/15.

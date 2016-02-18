@@ -22,9 +22,9 @@ public class CharUtil {
 	 * It return the resultant value corresponding to the all ASCII value positioning each ASCII values
 	 * to bit's position from right 
 	 * 
-	 * @param ch
-	 * @param bufferSize
-	 * @return int
+	 * @param ch char arrays
+	 * @param bufferSize 32 bits
+	 * @return int value
 	 */
 	public static int getIntValue(char[] ch){
 		if(ch.length > totalByte){
@@ -47,14 +47,15 @@ public class CharUtil {
 	 * It returns the all char in arrays corresponding to the bits representation of the given numbers.
 	 * 
 	 * @param value
-	 * @param bufferSize
-	 * @return char[]
+	 * @param bufferSize 32 bits
+	 * @return char[] arrays of chars
 	 */
 	public static char[] getCharArrays(int value){
 		int bitsPerByte = 8;
 		int oldValue = value;
 		int noOfBytes = bufferSize / bitsPerByte ;
 		char[] chs = new char[noOfBytes] ;
+		
 		for(int i = (noOfBytes-1) ; i >= 0  ; i--){
 			int tempValue = oldValue;
 			int newValue = (tempValue >> (bitsPerByte * i)) & 0x000000FF;

@@ -56,7 +56,7 @@ public class JobManager {
 		(nodesManager = ServerHeartBeat.init()).startup();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
-		LOGGER.info("JOBS SENT ACROSS THE NODES");
+		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 	}

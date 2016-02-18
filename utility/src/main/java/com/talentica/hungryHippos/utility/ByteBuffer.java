@@ -19,6 +19,8 @@ public class ByteBuffer {
 
 	private DataDescription dataDescription;
 
+	private final java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
+
 	private int maximumNoOfBytes = 0;
 
 	public ByteBuffer(DataDescription dataDescription) {
@@ -39,14 +41,21 @@ public class ByteBuffer {
 		}
 		int indexInDataArray = offset / Integer.BYTES;
 		int indexToPutByteInDataAt = offset % Integer.BYTES;
-		int numberOfBitsToShift = (Integer.BYTES - indexToPutByteInDataAt - 1) * Byte.SIZE;
 		int oldValue = data[indexInDataArray];
-		int oldValueRightShifted = oldValue >> numberOfBitsToShift | oldValue << Integer.SIZE - numberOfBitsToShift;
-		int valueWithZeroAtTheIndexToPutNewValueAt = (oldValueRightShifted & 0xFFFFFF00);
-		int newValue = valueWithZeroAtTheIndexToPutNewValueAt | byteToPut;
-		newValue = newValue << numberOfBitsToShift;
-		data[indexInDataArray] = newValue;
+		clearByteBuffer();
+		_INT_SIZE_BYTE_BUFFER.putInt(oldValue);
+		byte[] oldValueBytes = _INT_SIZE_BYTE_BUFFER.array();
+		oldValueBytes[indexToPutByteInDataAt] = byteToPut;
+		clearByteBuffer();
+		_INT_SIZE_BYTE_BUFFER.put(oldValueBytes);
+		_INT_SIZE_BYTE_BUFFER.position(0);
+		data[indexInDataArray] = _INT_SIZE_BYTE_BUFFER.getInt();
 		return this;
+	}
+
+	private void clearByteBuffer() {
+		_INT_SIZE_BYTE_BUFFER.clear();
+		_INT_SIZE_BYTE_BUFFER.position(0);
 	}
 
 	public ByteBuffer put(int offset, byte[] bytes) {
@@ -98,6 +107,19 @@ public class ByteBuffer {
 		return byteBuffer.getInt();
 	}
 
+	public ByteBuffer putLong(int index, long value) {
+		DataLocator dataLocator = dataDescription.locateField(index);
+		int offset = dataLocator.getOffset();
+		putBytes(offset, java.nio.ByteBuffer.allocate(Long.BYTES).putLong(value).array());
+		return this;
+	}
+
+	public long getLong(int index) {
+		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(Long.BYTES);
+		byteBuffer.put(get(index)).flip();
+		return byteBuffer.getLong();
+	}
+
 	public ByteBuffer putString(int index, String value) {
 		DataLocator dataLocator = dataDescription.locateField(index);
 		int offset = dataLocator.getOffset();
@@ -106,7 +128,28 @@ public class ByteBuffer {
 	}
 
 	public String getString(int index) {
-		return new String(get(index));
+		byte[] stringInBytes = get(index);
+		return new String(removeNonFilledValuesInByteArray(stringInBytes));
+	}
+
+	private byte[] removeNonFilledValuesInByteArray(byte[] input) {
+		int index = input.length - 1;
+		int numberOfNonEmptyBytes = input.length;
+		while (index >= 0) {
+			if (input[index] == 0) {
+				numberOfNonEmptyBytes--;
+			} else {
+				break;
+			}
+			index--;
+		}
+		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(numberOfNonEmptyBytes);
+		index = 0;
+		while (index < numberOfNonEmptyBytes) {
+			byteBuffer.put(input[index]);
+			index++;
+		}
+		return byteBuffer.array();
 	}
 
 	public ByteBuffer putCharacter(int index, char value) {
@@ -138,7 +181,9 @@ public class ByteBuffer {
 	}
 
 	public double getDouble(int index) {
-		return Double.valueOf(new String(get(index)));
+		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(Double.BYTES);
+		byteBuffer.put(get(index)).flip();
+		return byteBuffer.getDouble();
 	}
 
 	public ByteBuffer putFloat(int index, float value) {
@@ -149,7 +194,9 @@ public class ByteBuffer {
 	}
 
 	public float getFloat(int index) {
-		return Float.valueOf(new String(get(index)));
+		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(Float.BYTES);
+		byteBuffer.put(get(index)).flip();
+		return byteBuffer.getFloat();
 	}
 
 }

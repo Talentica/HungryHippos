@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.utility;
 
+import java.util.Arrays;
+
 import com.talentica.hungryHippos.utility.marshaling.DataDescription;
 import com.talentica.hungryHippos.utility.marshaling.DataLocator;
 
@@ -197,6 +199,28 @@ public class ByteBuffer {
 		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(Float.BYTES);
 		byteBuffer.put(get(index)).flip();
 		return byteBuffer.getFloat();
+	}
+
+	@Override
+	public boolean equals(Object otherObject) {
+		if (this == otherObject) {
+			return true;
+		}
+		if (otherObject instanceof ByteBuffer) {
+			ByteBuffer otherByteBuffer = (ByteBuffer) otherObject;
+			if (otherByteBuffer.data != null && data != null) {
+				return Arrays.equals(otherByteBuffer.data, data);
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (data != null) {
+			return Arrays.toString(data).hashCode();
+		}
+		return super.hashCode();
 	}
 
 }

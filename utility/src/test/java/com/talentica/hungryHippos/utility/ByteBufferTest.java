@@ -13,8 +13,15 @@ public class ByteBufferTest {
 
 	private ByteBuffer byteBuffer;
 
+	private FieldTypeArrayDataDescription dataDescription;
+
 	@Before
 	public void setup() {
+		dataDescription = createNewTestDataDescription();
+		byteBuffer = new ByteBuffer(dataDescription);
+	}
+
+	private FieldTypeArrayDataDescription createNewTestDataDescription() {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 		dataDescription.addFieldType(DataType.CHAR, 2);
 		dataDescription.addFieldType(DataType.STRING, 8);
@@ -22,7 +29,7 @@ public class ByteBufferTest {
 		dataDescription.addFieldType(DataType.DOUBLE, Double.BYTES);
 		dataDescription.addFieldType(DataType.FLOAT, Float.BYTES);
 		dataDescription.addFieldType(DataType.LONG, Long.BYTES);
-		byteBuffer = new ByteBuffer(dataDescription);
+		return dataDescription;
 	}
 
 	@Test
@@ -103,6 +110,37 @@ public class ByteBufferTest {
 		ByteBuffer byteBufferResult = byteBuffer.putLong(5, longToStore);
 		long readLong = byteBufferResult.getLong(5);
 		Assert.assertEquals(longToStore, readLong);
+	}
+
+	@Test
+	public void testEquals() {
+		ByteBuffer byteBuffer1 = new ByteBuffer(dataDescription);
+		char[] charactersToStore = new char[] { 'a', 'b' };
+		byteBuffer1.putCharacters(0, charactersToStore);
+		ByteBuffer byteBuffer2 = new ByteBuffer(dataDescription);
+		byteBuffer2.putCharacters(0, charactersToStore);
+		Assert.assertTrue(byteBuffer2.equals(byteBuffer1));
+		Assert.assertTrue(byteBuffer1.equals(byteBuffer2));
+	}
+
+	@Test
+	public void testEqualsNot() {
+		ByteBuffer byteBuffer1 = new ByteBuffer(dataDescription);
+		char[] charactersToStore = new char[] { 'a', 'b' };
+		byteBuffer1.putCharacters(0, charactersToStore);
+		ByteBuffer byteBuffer2 = new ByteBuffer(dataDescription);
+		char[] charactersToStoreInSecondByteBuffer = new char[] { 'a', 'b', 'c' };
+		byteBuffer2.putCharacters(0, charactersToStoreInSecondByteBuffer);
+		Assert.assertFalse(byteBuffer2.equals(byteBuffer1));
+		Assert.assertFalse(byteBuffer1.equals(byteBuffer2));
+	}
+
+	@Test
+	public void testEqualsHavingSameReferences() {
+		ByteBuffer byteBuffer1 = new ByteBuffer(dataDescription);
+		char[] charactersToStore = new char[] { 'a', 'b' };
+		byteBuffer1.putCharacters(0, charactersToStore);
+		Assert.assertTrue(byteBuffer1.equals(byteBuffer1));
 	}
 
 }

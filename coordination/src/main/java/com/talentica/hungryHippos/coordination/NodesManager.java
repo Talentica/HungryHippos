@@ -227,7 +227,7 @@ public class NodesManager implements Watcher {
 	}
 
 	public void createEphemeralNode(final String node, CountDownLatch signal, Object... data) throws IOException {
-		createNode(node, signal, CreateMode.PERSISTENT, data);
+		createNode(node, signal, CreateMode.EPHEMERAL, data);
 	}
 
 	    /**

@@ -16,7 +16,6 @@ import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
@@ -129,8 +128,8 @@ public class DataReceiver {
 	 * @throws Exception
 	 */
 	private static DataReceiver getNodeInitializer() throws Exception {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
+				.createDataDescription(Property.getDataTypeConfiguration());
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		return new DataReceiver(dataDescription);
 	}

@@ -6,8 +6,9 @@ package com.talentica.hungryHippos.utility.memory;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.Property;
 
 /**
  * @author PooshanS
@@ -17,7 +18,6 @@ public class MemoryCalculator implements Memory{
 	
 	private Map<Integer,Long> jobIdMemoMap = new HashMap<>();
 	private Map<Integer,Long> jobIdRowCountMap;
-	private FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 	
 	public MemoryCalculator(Map<Integer,Long> jobIdRowCountMap){
 		this.jobIdRowCountMap = jobIdRowCountMap;
@@ -32,7 +32,8 @@ public class MemoryCalculator implements Memory{
 	}
 
 	private long getObjectSize(Long rowCount) {
-		CommonUtil.setDataDescription(dataDescription);
+		DataDescription dataDescription = FieldTypeArrayDataDescription
+				.createDataDescription(Property.getDataTypeConfiguration());
 		return (rowCount * dataDescription.getSize());
 	}
 

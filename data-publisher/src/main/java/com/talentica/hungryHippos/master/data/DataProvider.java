@@ -26,7 +26,6 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
@@ -65,12 +64,10 @@ public class DataProvider {
 
 	@SuppressWarnings({ "unchecked" })
 	public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
-
 		long start = System.currentTimeMillis();
-
 		String[] servers = loadServers(nodesManager);
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
+				.createDataDescription(Property.getDataTypeConfiguration());
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		byte[] buf = new byte[dataDescription.getSize()];
 		ByteBuffer byteBuffer = ByteBuffer.wrap(buf);

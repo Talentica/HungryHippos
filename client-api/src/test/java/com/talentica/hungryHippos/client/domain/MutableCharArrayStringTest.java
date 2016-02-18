@@ -1,10 +1,10 @@
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.client.domain;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 
 public class MutableCharArrayStringTest {
 
@@ -14,9 +14,11 @@ public class MutableCharArrayStringTest {
 
 	@Before
 	public void setUp() {
-		stringL1 = new MutableCharArrayString(1);
+		FieldTypeArrayDataDescription dataDescription= new FieldTypeArrayDataDescription();
+		dataDescription.addFieldType(DataType.STRING, 1);
+		stringL1 = new MutableCharArrayString(new ByteBuffer(dataDescription));
 		stringL1.addCharacter('l');
-		stringL2 = new MutableCharArrayString(1);
+		stringL2 = new MutableCharArrayString(new ByteBuffer(dataDescription));
 		stringL2.addCharacter('l');
 	}
 
@@ -35,28 +37,17 @@ public class MutableCharArrayStringTest {
 
 	@Test
 	public void testClone() {
-		MutableCharArrayString testString = new MutableCharArrayString(2);
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+		dataDescription.addFieldType(DataType.STRING, 2);
+		MutableCharArrayString testString = new MutableCharArrayString(new ByteBuffer(dataDescription));
 		testString.addCharacter('l');
 		testString.addCharacter('c');
 		MutableCharArrayString clonedString1 = testString.clone();
 		Assert.assertNotNull(clonedString1);
-		MutableCharArrayString expectedString1 = new MutableCharArrayString(2);
+		MutableCharArrayString expectedString1 = new MutableCharArrayString(new ByteBuffer(dataDescription));
 		expectedString1.addCharacter('l');
 		expectedString1.addCharacter('c');
 		Assert.assertEquals(expectedString1, clonedString1);
-		testString.reset();
-		testString.addCharacter('m');
-
-		MutableCharArrayString clonedString2 = testString.clone();
-		Assert.assertNotNull(clonedString2);
-		MutableCharArrayString expectedString2 = new MutableCharArrayString(2);
-		expectedString2.addCharacter('m');
-		Assert.assertEquals(expectedString2, clonedString2);
-	}
-
-	@Test
-	public void testReset() {
-
 	}
 
 }

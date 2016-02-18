@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.client.domain;
 
 import java.util.Arrays;
 
@@ -6,8 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.client.domain.ByteBuffer;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 
 public class ByteBufferTest {
@@ -142,6 +140,20 @@ public class ByteBufferTest {
 		char[] charactersToStore = new char[] { 'a', 'b' };
 		byteBuffer1.putCharacters(0, charactersToStore);
 		Assert.assertTrue(byteBuffer1.equals(byteBuffer1));
+	}
+
+	@Test
+	public void testGetSizeOfDataAtIndex() {
+		Assert.assertEquals(Double.BYTES, byteBuffer.getSizeOfDataAtIndex(3));
+	}
+
+	@Test
+	public void testAddCharacter() {
+		int index = 0;
+		byteBuffer.addCharacter('a', index);
+		Assert.assertEquals(1, byteBuffer.getCharacters(index).length);
+		byteBuffer.addCharacter('b', index);
+		Assert.assertEquals(2, byteBuffer.getCharacters(index).length);
 	}
 
 }

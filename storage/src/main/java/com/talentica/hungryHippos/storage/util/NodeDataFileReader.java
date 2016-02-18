@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
@@ -67,8 +66,8 @@ public class NodeDataFileReader {
 	}
 
 	private static DynamicMarshal getDynamicMarshal() {
-		dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
+				.createDataDescription(Property.getDataTypeConfiguration());
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;

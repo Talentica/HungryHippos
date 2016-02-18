@@ -12,7 +12,7 @@ import java.util.Arrays;
  * @author nitink
  *
  */
-public final class ByteBuffer {
+public final class ByteBuffer implements Cloneable {
 
 	private int[] data;
 
@@ -33,7 +33,7 @@ public final class ByteBuffer {
 		maximumNoOfBytes = noOfIntegersNeededToStoreData * Integer.BYTES;
 	}
 
-	private ByteBuffer put(int offset, byte byteToPut) {
+	public ByteBuffer put(int offset, byte byteToPut) {
 		if (offset > maximumNoOfBytes || offset < 0) {
 			throw new IllegalArgumentException("The index to put byte into bytebuffer cannot exceed maximum index:"
 					+ maximumNoOfBytes + " and it cannot be less than zero.");
@@ -132,6 +132,27 @@ public final class ByteBuffer {
 	}
 
 	private byte[] removeNonFilledValuesInByteArray(byte[] input) {
+		int numberOfNonEmptyBytes = getNumberOfBytesFilledWithData(input);
+		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(numberOfNonEmptyBytes);
+		int index = 0;
+		while (index < numberOfNonEmptyBytes) {
+			byteBuffer.put(input[index]);
+			index++;
+		}
+		return byteBuffer.array();
+	}
+
+	private int getNumberOfBytesFilledWithData(int index) {
+		return getNumberOfBytesFilledWithData(get(index));
+	}
+
+	public ByteBuffer addCharacter(char nextChar, int index) {
+		int offsetTillWhatCharactersAreFilled = getNumberOfBytesFilledWithData(index);
+		put(offsetTillWhatCharactersAreFilled, (byte) nextChar);
+		return this;
+	}
+
+	private int getNumberOfBytesFilledWithData(byte[] input) {
 		int index = input.length - 1;
 		int numberOfNonEmptyBytes = input.length;
 		while (index >= 0) {
@@ -142,13 +163,7 @@ public final class ByteBuffer {
 			}
 			index--;
 		}
-		java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.allocate(numberOfNonEmptyBytes);
-		index = 0;
-		while (index < numberOfNonEmptyBytes) {
-			byteBuffer.put(input[index]);
-			index++;
-		}
-		return byteBuffer.array();
+		return numberOfNonEmptyBytes;
 	}
 
 	public ByteBuffer putCharacter(int index, char value) {
@@ -215,9 +230,23 @@ public final class ByteBuffer {
 	@Override
 	public int hashCode() {
 		if (data != null) {
-			return Arrays.toString(data).hashCode();
+			int hashCode = 0;
+			int off = 0;
+			for (int i = 0; i < data.length; i++) {
+				hashCode = 31 * hashCode + data[off++];
+			}
+			return hashCode;
 		}
 		return super.hashCode();
 	}
 
+	@Override
+	public ByteBuffer clone() {
+		return new ByteBuffer(dataDescription);
+	}
+
+	public int getSizeOfDataAtIndex(int index) {
+		DataLocator dataLocator = dataDescription.locateField(index);
+		return dataLocator.getSize();
+	}
 }

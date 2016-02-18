@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
@@ -82,7 +84,11 @@ public class FileReader implements Reader {
 	@Override
 	public void setMaxsize(int maxsize) {
 		for (int i = 0; i < numfields; i++) {
-			buffer[i] = new MutableCharArrayString(maxsize);
+			FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+			dataDescription.addFieldType(DataType.STRING, maxsize);
+			com.talentica.hungryHippos.client.domain.ByteBuffer byteBuffer = new com.talentica.hungryHippos.client.domain.ByteBuffer(
+					dataDescription);
+			buffer[i] = new MutableCharArrayString(byteBuffer);
 		}
 	}
 
@@ -94,9 +100,6 @@ public class FileReader implements Reader {
 	 */
 	@Override
 	public MutableCharArrayString[] read() throws IOException {
-		for (MutableCharArrayString s : buffer) {
-			s.reset();
-		}
 		int fieldIndex = 0;
 		while (true) {
 			if (readCount <= 0) {

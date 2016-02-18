@@ -127,4 +127,8 @@ public class Property {
 		getProperties().setProperty(key, value);
 	}
 
+	public static final String[] getDataTypeConfiguration() {
+		return getPropertyValue("column.datatype-size").toString().split(",");
+	}
+
 }

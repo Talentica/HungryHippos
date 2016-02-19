@@ -3,63 +3,112 @@ package com.talentica.hungryHippos.client.domain;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
-
 /**
  * Created by debasishc on 29/9/15.
  */
 public class MutableCharArrayString implements CharSequence, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -6085804645372631875L;
-	private ByteBuffer byteBuffer;
-	private int byteArrayDataIndexOfString = 0;
+	private int stringLength;
+	private int[] data;
+	private final java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
 
-	public MutableCharArrayString(ByteBuffer byteBuffer) {
-		this.byteBuffer = byteBuffer;
-    }
-
-	public MutableCharArrayString(ByteBuffer byteBuffer, int bytebufferStringIndex) {
-		this.byteBuffer = byteBuffer;
-		this.byteArrayDataIndexOfString = bytebufferStringIndex;
+	public MutableCharArrayString(int length) {
+		int noOfIntegersNeededToStoreData = length / Integer.BYTES;
+		if (length % Integer.BYTES != 0) {
+			noOfIntegersNeededToStoreData++;
+		}
+		data = new int[noOfIntegersNeededToStoreData];
+		stringLength = 0;
 	}
 
-    @Override
-    public int length() {
-		return byteBuffer.getString(byteArrayDataIndexOfString).length();
-    }
+	public MutableCharArrayString(byte[] bytes) {
+		this(bytes.length);
+		putBytes(bytes);
+	}
 
-    @Override
-    public char charAt(int index) {
-		return byteBuffer.getCharacters(byteArrayDataIndexOfString)[index];
-    }
+	@Override
+	public int length() {
+		return stringLength;
+	}
 
-	private char[] getUnderlyingArray() {
-		return byteBuffer.getCharacters(byteArrayDataIndexOfString);
-    }
+	@Override
+	public char charAt(int index) {
+		return (char) getByteAt(index);
+	}
 
-    @Override
-    public MutableCharArrayString subSequence(int start, int end) {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		dataDescription.addFieldType(DataType.STRING, end - start);
-		ByteBuffer byteBuffer = new ByteBuffer(dataDescription);
-		MutableCharArrayString newArray = new MutableCharArrayString(byteBuffer);
-		char[] characters = getUnderlyingArray();
-		for (int i = 0; i < end - start; i++) {
-			byteBuffer.addCharacter(characters[i], byteArrayDataIndexOfString);
-        }
-        return newArray;
-    }
+	private byte getByteAt(int index) {
+		int indexInDataArray = index / Integer.BYTES;
+		int integerToReadBytesFrom = data[indexInDataArray];
+		int numberOfBitsToShift = (Integer.BYTES - index % Integer.BYTES - 1) * Byte.SIZE;
+		return (byte) ((integerToReadBytesFrom >>> numberOfBitsToShift) & 0x000000FF);
+	}
 
-    @Override
-    public String toString() {
-		char[] underlyingArray = getUnderlyingArray();
-		return new String(Arrays.copyOf(underlyingArray, underlyingArray.length));
-    }
+	public byte[] getBytes() {
+		byte[] value = new byte[stringLength];
+		for (int i = 0; i < stringLength; i++) {
+			value[i] = getByteAt(i);
+		}
+		return value;
+	}
 
-    @Override
-	public MutableCharArrayString clone(){
-		return subSequence(0, getUnderlyingArray().length);
-    }
+	@Override
+	public MutableCharArrayString subSequence(int start, int end) {
+		MutableCharArrayString newArray = new MutableCharArrayString(end - start);
+		for (int i = start, j = 0; i < end; i++, j++) {
+			newArray.put(j, (byte) charAt(i));
+		}
+		newArray.stringLength = end - start;
+		return newArray;
+	}
+
+	@Override
+	public String toString() {
+		return new String(Arrays.copyOf(getBytes(), stringLength));
+	}
+
+	public void addCharacter(char ch) {
+		putByte((byte) ch);
+	}
+
+	void putBytes(byte[] bytes) {
+		for (byte byteToAdd : bytes) {
+			putByte(byteToAdd);
+		}
+	}
+
+	private void putByte(byte byteToPut) {
+		put(stringLength, byteToPut);
+		stringLength++;
+	}
+
+	private void put(int offset, byte byteToPut) {
+		int indexInDataArray = offset / Integer.BYTES;
+		int indexToPutByteInDataAt = offset % Integer.BYTES;
+		int oldValue = data[indexInDataArray];
+		clearByteBuffer();
+		_INT_SIZE_BYTE_BUFFER.putInt(oldValue);
+		byte[] oldValueBytes = _INT_SIZE_BYTE_BUFFER.array();
+		oldValueBytes[indexToPutByteInDataAt] = byteToPut;
+		clearByteBuffer();
+		_INT_SIZE_BYTE_BUFFER.put(oldValueBytes);
+		_INT_SIZE_BYTE_BUFFER.position(0);
+		data[indexInDataArray] = _INT_SIZE_BYTE_BUFFER.getInt();
+	}
+
+	private void clearByteBuffer() {
+		_INT_SIZE_BYTE_BUFFER.clear();
+		_INT_SIZE_BYTE_BUFFER.position(0);
+	}
+
+	public void reset() {
+		stringLength = 0;
+	}
+
+	@Override
+	public MutableCharArrayString clone() {
+		return subSequence(0, stringLength);
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -69,35 +118,33 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 			return false;
 		}
 		MutableCharArrayString that = (MutableCharArrayString) o;
-		if(that.byteBuffer!=null && byteBuffer!=null){
-			return that.byteBuffer.equals(byteBuffer);
+		if (stringLength == that.stringLength && data != null && that.data != null && data.length == that.data.length) {
+			for (int i = 0; i < data.length; i++) {
+				if (data[i] != that.data[i]) {
+					return false;
+				}
+			}
+			return true;
 		}
 		return false;
 	}
 
-    @Override
-    public int hashCode() {
-    	if(byteBuffer!=null){
-    		return byteBuffer.hashCode();
-    	}
-    	return super.hashCode();
-    }
-
-	public static MutableCharArrayString from(String value) {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		dataDescription.addFieldType(com.talentica.hungryHippos.client.domain.DataLocator.DataType.STRING,
-				value.length());
-		int index = 0;
-		ByteBuffer byteBuffer = new ByteBuffer(dataDescription);
-		for (char character : value.toCharArray()) {
-			byteBuffer.putCharacter(index, character);
-			index++;
+	@Override
+	public int hashCode() {
+		int h = 0;
+		int off = 0;
+		int val[] = data;
+		for (int i = 0; i < data.length; i++) {
+			h = 31 * h + val[off++];
 		}
-		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(byteBuffer);
-		return mutableCharArrayString;
+		return h;
 	}
 
-	public void addCharacter(char charToAdd) {
-		byteBuffer.addCharacter(charToAdd, byteArrayDataIndexOfString);
+	public static MutableCharArrayString from(String value) {
+		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());
+		for (char character : value.toCharArray()) {
+			mutableCharArrayString.addCharacter(character);
+		}
+		return mutableCharArrayString;
 	}
 }

@@ -12,12 +12,12 @@ public class ValueSet implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private String[] keys;
+	private int[] keyIndexes;
 
 	private Object[] values;
 
-	public ValueSet(String[] keys, Object[] values) {
-		this.keys = keys;
+	public ValueSet(int[] keyIndexes, Object[] values) {
+		this.keyIndexes = keyIndexes;
 		this.values = values;
 	}
 
@@ -52,12 +52,12 @@ public class ValueSet implements Serializable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("ValueSet{");
-		if (keys != null && values != null && keys.length == values.length) {
-			for (int count = 0; count < keys.length; count++) {
+		if (keyIndexes != null && values != null && keyIndexes.length == values.length) {
+			for (int count = 0; count < keyIndexes.length; count++) {
 				if (count != 0) {
 					result.append(",");
 				}
-				result.append(keys[count] + "=" + values[count]);
+				result.append(keyIndexes[count] + "=" + values[count]);
 			}
 		}
 		result.append("}");

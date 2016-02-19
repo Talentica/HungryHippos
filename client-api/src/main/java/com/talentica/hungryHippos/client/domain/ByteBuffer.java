@@ -12,7 +12,7 @@ import java.util.Arrays;
  * @author nitink
  *
  */
-public final class ByteBuffer implements Cloneable {
+public final class ByteBuffer {
 
 	private int[] data;
 
@@ -20,7 +20,7 @@ public final class ByteBuffer implements Cloneable {
 
 	private final java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
 
-	private int maximumNoOfBytes = 0;
+	private MutableCharArrayString mutableCharArrayString = null;
 
 	public ByteBuffer(DataDescription dataDescription) {
 		this.dataDescription = dataDescription;
@@ -30,13 +30,12 @@ public final class ByteBuffer implements Cloneable {
 			noOfIntegersNeededToStoreData++;
 		}
 		data = new int[noOfIntegersNeededToStoreData];
-		maximumNoOfBytes = noOfIntegersNeededToStoreData * Integer.BYTES;
 	}
 
 	public ByteBuffer put(int offset, byte byteToPut) {
-		if (offset > maximumNoOfBytes || offset < 0) {
+		if (offset > data.length * Integer.BYTES || offset < 0) {
 			throw new IllegalArgumentException("The index to put byte into bytebuffer cannot exceed maximum index:"
-					+ maximumNoOfBytes + " and it cannot be less than zero.");
+					+ data.length * Integer.BYTES + " and it cannot be less than zero.");
 		}
 		int indexInDataArray = offset / Integer.BYTES;
 		int indexToPutByteInDataAt = offset % Integer.BYTES;
@@ -126,9 +125,16 @@ public final class ByteBuffer implements Cloneable {
 		return this;
 	}
 
-	public String getString(int index) {
+	public MutableCharArrayString getString(int index) {
 		byte[] stringInBytes = get(index);
-		return new String(removeNonFilledValuesInByteArray(stringInBytes));
+		if (mutableCharArrayString == null) {
+
+			return new MutableCharArrayString(removeNonFilledValuesInByteArray(stringInBytes));
+		} else {
+			mutableCharArrayString.reset();
+			mutableCharArrayString.putBytes(stringInBytes);
+		}
+		return mutableCharArrayString;
 	}
 
 	private byte[] removeNonFilledValuesInByteArray(byte[] input) {
@@ -184,7 +190,13 @@ public final class ByteBuffer implements Cloneable {
 	}
 
 	public char[] getCharacters(int index) {
-		return getString(index).toCharArray();
+		byte[] bytes = get(index);
+		byte[] charBytes = removeNonFilledValuesInByteArray(bytes);
+		char[] characters = new char[charBytes.length];
+		for (int i = 0; i < charBytes.length; i++) {
+			characters[i] = (char) charBytes[i];
+		}
+		return characters;
 	}
 
 	public ByteBuffer putDouble(int index, double value) {
@@ -229,24 +241,27 @@ public final class ByteBuffer implements Cloneable {
 
 	@Override
 	public int hashCode() {
+		int hashCode = 0;
 		if (data != null) {
-			int hashCode = 0;
 			int off = 0;
 			for (int i = 0; i < data.length; i++) {
 				hashCode = 31 * hashCode + data[off++];
 			}
 			return hashCode;
 		}
-		return super.hashCode();
-	}
-
-	@Override
-	public ByteBuffer clone() {
-		return new ByteBuffer(dataDescription);
+		return hashCode;
 	}
 
 	public int getSizeOfDataAtIndex(int index) {
 		DataLocator dataLocator = dataDescription.locateField(index);
 		return dataLocator.getSize();
+	}
+
+	public void reset() {
+		if (data != null) {
+			for (int i = 0; i < data.length; i++) {
+				data[i] = 0;
+			}
+		}
 	}
 }

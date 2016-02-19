@@ -120,4 +120,16 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 		return dataDescription;
 	}
 
+	@Override
+	public FieldTypeArrayDataDescription clone() {
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+		if (dataLocatorMap != null) {
+			dataDescription.dataLocatorMap.putAll(dataLocatorMap);
+			dataDescription.nextIndex = nextIndex;
+			dataDescription.nextOffset = nextOffset;
+			dataDescription.keyOrder = keyOrder;
+		}
+		return dataDescription;
+	}
+
 }

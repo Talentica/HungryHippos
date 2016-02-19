@@ -46,18 +46,16 @@ public class DynamicMarshal implements Serializable{
 
     public MutableCharArrayString readValueString(int index, ByteBuffer source){
         DataLocator locator = dataDescription.locateField(index);
-		com.talentica.hungryHippos.client.domain.ByteBuffer byteBuffer = new com.talentica.hungryHippos.client.domain.ByteBuffer(
-				dataDescription);
         int offset = locator.getOffset();
         int size = locator.getSize();
+		MutableCharArrayString charArrayString = new MutableCharArrayString(size);
         for(int i=offset;i<offset+size;i++){
             byte ch = source.get(i);
             if(ch==0){
                 break;
             }
-			byteBuffer.put(i, ch);
+			charArrayString.addCharacter((char) ch);
         }
-		MutableCharArrayString charArrayString = new MutableCharArrayString(byteBuffer, index);
         return charArrayString;
     }
 

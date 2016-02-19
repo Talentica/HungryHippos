@@ -41,6 +41,7 @@ public class CommonUtil {
 	 * @param obj
 	 */
 	public static void dumpFileOnDisk(String fileName, Object obj) {
+		LOGGER.info("Dumping of file {} on disk started.", fileName);
 		String filePath = null;
 		try {
 			filePath = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
@@ -57,6 +58,7 @@ public class CommonUtil {
 		} catch (IOException e) {
 			LOGGER.info("There occured some problem to dump file {}", fileName);
 		}
+		LOGGER.info("Dumping of file {} on disk finished.", fileName);
 	}
 	
 }

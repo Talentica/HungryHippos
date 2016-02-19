@@ -21,11 +21,14 @@ public class ShardingStarter {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());
 			LOGGER.info("SHARDING DONE!!");
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing master starter program.", exception);
 		}

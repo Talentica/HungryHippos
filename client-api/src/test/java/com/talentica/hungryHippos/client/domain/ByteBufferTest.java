@@ -54,9 +54,9 @@ public class ByteBufferTest {
 	public void testPutAndGetForString() {
 		String stringToPut = "Test";
 		ByteBuffer byteBufferResult = byteBuffer.putString(1, stringToPut);
-		String readString = byteBufferResult.getString(1);
+		MutableCharArrayString readString = byteBufferResult.getString(1);
 		Assert.assertNotNull(readString);
-		Assert.assertEquals(stringToPut, readString);
+		Assert.assertEquals(stringToPut, readString.toString());
 	}
 
 	@Test

@@ -116,15 +116,15 @@ public class DataProvider {
 				input.close();
 				break;
 			}
-			MutableCharArrayString value1 = parts[0];
-			MutableCharArrayString value2 = parts[1];
-			MutableCharArrayString value3 = parts[2];
-			MutableCharArrayString value4 = parts[3];
-			MutableCharArrayString value5 = parts[4];
-			MutableCharArrayString value6 = parts[5];
-			double value7 = Double.parseDouble(parts[6].toString());
-			double value8 = Double.parseDouble(parts[7].toString());
-			MutableCharArrayString value9 = parts[8];
+			MutableCharArrayString value1 = parts[0].clone();
+			MutableCharArrayString value2 = parts[1].clone();
+			MutableCharArrayString value3 = parts[2].clone();
+			MutableCharArrayString value4 = parts[3].clone();
+			MutableCharArrayString value5 = parts[4].clone();
+			MutableCharArrayString value6 = parts[5].clone();
+			double value7 = Double.parseDouble(parts[6].clone().toString());
+			double value8 = Double.parseDouble(parts[7].clone().toString());
+			MutableCharArrayString value9 = parts[8].clone();
 
 			Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
 			String[] keyOrder = Property.getKeyOrder();

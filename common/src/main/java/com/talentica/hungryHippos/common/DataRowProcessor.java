@@ -4,14 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
-import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -24,7 +20,6 @@ public class DataRowProcessor implements RowProcessor {
 	private JobEntity jobEntity;
 	private int[] keys;
 	private ExecutionContextImpl executionContext;
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
 		this.dynamicMarshal = dynamicMarshal;
@@ -47,7 +42,7 @@ public class DataRowProcessor implements RowProcessor {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;
 		}
-		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
+		ValueSet valueSet = new ValueSet(keys, values);
 		Work work = valueSetWorkMap.get(valueSet);
 			if (work != null){
 				executionContext.setData(row);
@@ -71,7 +66,7 @@ public class DataRowProcessor implements RowProcessor {
 	@Override
 	public void processRowCount(ByteBuffer row) {
 		Object[] values = new Object[keys.length];
-		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),values);
+		ValueSet valueSet = new ValueSet(keys, values);
 		for (int i = 0; i < keys.length; i++) {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;

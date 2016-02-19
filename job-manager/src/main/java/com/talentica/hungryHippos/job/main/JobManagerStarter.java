@@ -28,12 +28,15 @@ public class JobManagerStarter {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start();
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for running all jobs.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing master starter program.", exception);
 		}

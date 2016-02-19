@@ -60,6 +60,7 @@ public class JobExecutor {
 	
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup();
@@ -81,6 +82,8 @@ public class JobExecutor {
 						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 				nodesManager.createEphemeralNode(buildStartPath, null);
 			}
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);

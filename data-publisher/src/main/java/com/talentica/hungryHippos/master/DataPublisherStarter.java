@@ -24,6 +24,7 @@ public class DataPublisherStarter {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
@@ -35,6 +36,8 @@ public class DataPublisherStarter {
 			ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
 			dataPublisherStarter.nodesManager.saveConfigFileToZNode(configNodeFile, null);
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
 		}

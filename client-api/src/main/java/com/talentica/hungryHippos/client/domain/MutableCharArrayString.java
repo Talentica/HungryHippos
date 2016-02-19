@@ -11,7 +11,8 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 	private static final long serialVersionUID = -6085804645372631875L;
 	private int stringLength;
 	private int[] data;
-	private final java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
+
+	private final transient java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
 
 	public MutableCharArrayString(int length) {
 		int noOfIntegersNeededToStoreData = length / Integer.BYTES;

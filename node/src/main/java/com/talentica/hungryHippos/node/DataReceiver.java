@@ -85,6 +85,7 @@ public class DataReceiver {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
@@ -95,6 +96,9 @@ public class DataReceiver {
 			int PORT = Integer.valueOf(server.split(":")[1]);
 			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
+					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}

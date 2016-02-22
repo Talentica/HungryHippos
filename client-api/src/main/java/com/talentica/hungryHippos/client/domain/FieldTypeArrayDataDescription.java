@@ -132,4 +132,9 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 		return dataDescription;
 	}
 
+	@Override
+	public int getNumberOfDataFields() {
+		return dataLocatorMap.size();
+	}
+
 }

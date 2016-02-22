@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -15,6 +16,7 @@ public class DynamicMarshal implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -5800537222182360030L;
+
 	private DataDescription dataDescription;
 
     public DynamicMarshal(DataDescription dataDescription) {
@@ -39,7 +41,7 @@ public class DynamicMarshal implements Serializable{
             case DOUBLE:
                 return source.getDouble(locator.getOffset());
             case STRING:
-                return readValueString(index, source);
+			return readValueString(index, source);
         }
         return null;
     }
@@ -48,7 +50,7 @@ public class DynamicMarshal implements Serializable{
         DataLocator locator = dataDescription.locateField(index);
         int offset = locator.getOffset();
         int size = locator.getSize();
-		MutableCharArrayString charArrayString = new MutableCharArrayString(size);
+		MutableCharArrayString charArrayString = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(size);
         for(int i=offset;i<offset+size;i++){
             byte ch = source.get(i);
             if(ch==0){

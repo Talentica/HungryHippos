@@ -11,6 +11,8 @@ import java.io.ObjectOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+
 /**
  * @author PooshanS
  *
@@ -18,6 +20,8 @@ import org.slf4j.LoggerFactory;
 public class CommonUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonUtil.class.getName());
+
+	private static FieldTypeArrayDataDescription dataDescription;
 
 	public enum ZKJobNodeEnum{
 		
@@ -61,4 +65,11 @@ public class CommonUtil {
 		LOGGER.info("Dumping of file {} on disk finished.", fileName);
 	}
 	
+	public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
+		if (dataDescription == null) {
+			dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration());
+		}
+		return dataDescription;
+	}
+
 }

@@ -7,4 +7,5 @@ public interface DataDescription {
     public DataLocator locateField(int index);
     public int getSize();
     public String[] keyOrder();
+	public int getNumberOfDataFields();
 }

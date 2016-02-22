@@ -54,12 +54,7 @@ public class DynamicMarshalTest {
 		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader(
 				"src/test/resources/testSampleInputWithBlankLineAtEOF.txt");
 		Assert.assertNotNull(input);
-
-		
-		input.setNumFields(9);
-		input.setMaxsize(25);
 		int noOfLines=0;
-        
 		while (true) {
 			List<Object> keylist = new ArrayList<Object>(); 
 			MutableCharArrayString[] parts = input.read();
@@ -117,12 +112,7 @@ public class DynamicMarshalTest {
 
 		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("src/test/resources/testSampleInputWithBlankLines.txt");
 		Assert.assertNotNull(input);
-
-		
-		input.setNumFields(9);
-		input.setMaxsize(25);
 		int noOfLines=0;
-        
 		while (true) {
 			List<Object> keylist = new ArrayList<Object>(); 
 			MutableCharArrayString[] parts = input.read();
@@ -179,12 +169,7 @@ public class DynamicMarshalTest {
 
 		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("src/test/resources/testSampleInput_2.txt");
 		Assert.assertNotNull(input);
-
-		
-		input.setNumFields(9);
-		input.setMaxsize(25);
 		int noOfLines=0;
-        
 		while (true) {
 			List<Object> keylist = new ArrayList<Object>(); 
 			MutableCharArrayString[] parts = input.read();

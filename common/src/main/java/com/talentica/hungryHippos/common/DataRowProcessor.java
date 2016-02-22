@@ -66,12 +66,11 @@ public class DataRowProcessor implements RowProcessor {
 	@Override
 	public void processRowCount(ByteBuffer row) {
 		Object[] values = new Object[keys.length];
-		ValueSet valueSet = new ValueSet(keys, values);
 		for (int i = 0; i < keys.length; i++) {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;
 		}
-		
+		ValueSet valueSet = new ValueSet(keys, values);
 		TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
 			if (taskEntity == null) {
 				Work work = this.jobEntity.getJob().createNewWork();

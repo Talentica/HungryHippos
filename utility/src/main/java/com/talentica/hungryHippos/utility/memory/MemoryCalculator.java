@@ -7,8 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.CommonUtil;
 
 /**
  * @author PooshanS
@@ -32,8 +31,7 @@ public class MemoryCalculator implements Memory{
 	}
 
 	private long getObjectSize(Long rowCount) {
-		DataDescription dataDescription = FieldTypeArrayDataDescription
-				.createDataDescription(Property.getDataTypeConfiguration());
+		DataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		return (rowCount * dataDescription.getSize());
 	}
 

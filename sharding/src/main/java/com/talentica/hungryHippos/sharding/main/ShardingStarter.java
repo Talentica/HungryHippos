@@ -30,7 +30,7 @@ public class ShardingStarter {
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error("Error occured while executing master starter program.", exception);
+			LOGGER.error("Error occured while executing sharding program.", exception);
 		}
 	}
 
@@ -45,11 +45,8 @@ public class ShardingStarter {
 
 	private static Reader getInputReaderForSharding() throws IOException {
 		final String inputFile = Property.getProperties().getProperty("input.file");
-		com.talentica.hungryHippos.utility.marshaling.FileReader fileReader = new com.talentica.hungryHippos.utility.marshaling.FileReader(
+		return new com.talentica.hungryHippos.utility.marshaling.FileReader(
 				inputFile);
-		fileReader.setNumFields(9);
-		fileReader.setMaxsize(25);
-		return fileReader;
 	}
 
 }

@@ -60,7 +60,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	private MutableCharArrayString createTestString() {
-		MutableCharArrayString testString = new MutableCharArrayString(2);
+		MutableCharArrayString testString = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(2);
 		testString.addCharacter('l');
 		testString.addCharacter('c');
 		return testString;

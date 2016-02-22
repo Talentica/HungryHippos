@@ -18,7 +18,7 @@ public class ValueSet implements Serializable {
 
 	public ValueSet(int[] keyIndexes, Object[] values) {
 		this.keyIndexes = keyIndexes;
-		this.values = values;
+		setValues(values);
 	}
 
 	@Override
@@ -27,12 +27,9 @@ public class ValueSet implements Serializable {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-
 		ValueSet valueSet = (ValueSet) o;
-
 		// Probably incorrect - comparing Object[] arrays with Arrays.equals
 		return Arrays.equals(values, valueSet.values);
-
 	}
 
 	public Object[] getValues() {
@@ -41,6 +38,14 @@ public class ValueSet implements Serializable {
 
 	public void setValues(Object[] values) {
 		this.values = values;
+		if (values != null) {
+			for (int i = 0; i < values.length; i++) {
+				if (values[i] instanceof MutableCharArrayString) {
+					this.values[i] = ((MutableCharArrayString) values[i]).clone();
+				}
+			}
+		}
+
 	}
 
 	@Override

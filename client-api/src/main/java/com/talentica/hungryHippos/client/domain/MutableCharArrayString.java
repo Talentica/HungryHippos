@@ -11,10 +11,13 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 	private static final long serialVersionUID = -6085804645372631875L;
 	private int stringLength;
 	private int[] data;
+	private int maxlength = 0;
 
-	private final transient java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer.allocate(Integer.BYTES);
+	private static final transient java.nio.ByteBuffer _INT_SIZE_BYTE_BUFFER = java.nio.ByteBuffer
+			.allocate(Integer.BYTES);
 
 	public MutableCharArrayString(int length) {
+		this.maxlength = length;
 		int noOfIntegersNeededToStoreData = length / Integer.BYTES;
 		if (length % Integer.BYTES != 0) {
 			noOfIntegersNeededToStoreData++;
@@ -55,12 +58,16 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
 	@Override
 	public MutableCharArrayString subSequence(int start, int end) {
-		MutableCharArrayString newArray = new MutableCharArrayString(end - start);
+		MutableCharArrayString newArray = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(end - start);
+		copyBytes(start, end, newArray);
+		return newArray;
+	}
+
+	private void copyBytes(int start, int end, MutableCharArrayString newArray) {
 		for (int i = start, j = 0; i < end; i++, j++) {
 			newArray.put(j, (byte) charAt(i));
 		}
 		newArray.stringLength = end - start;
-		return newArray;
 	}
 
 	@Override
@@ -108,7 +115,9 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
 	@Override
 	public MutableCharArrayString clone() {
-		return subSequence(0, stringLength);
+		MutableCharArrayString clonedString = new MutableCharArrayString(maxlength);
+		clonedString.putBytes(getBytes());
+		return clonedString;
 	}
 
 	@Override
@@ -141,11 +150,4 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 		return h;
 	}
 
-	public static MutableCharArrayString from(String value) {
-		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());
-		for (char character : value.toCharArray()) {
-			mutableCharArrayString.addCharacter(character);
-		}
-		return mutableCharArrayString;
-	}
 }

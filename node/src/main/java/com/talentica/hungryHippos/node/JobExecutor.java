@@ -155,8 +155,7 @@ public class JobExecutor {
 	 * @throws IOException
 	 */
 	private static JobRunner createJobRunner() throws IOException {
-		FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
-				.createDataDescription(Property.getDataTypeConfiguration());
+		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
 				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);

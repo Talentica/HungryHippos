@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -111,14 +110,9 @@ public class DataReceiver {
 	 * @param args
 	 * @throws IOException
 	 */
-	private static void validateArguments(String[] args) throws IOException {
+	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-			try {
-				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-			} catch (FileNotFoundException exception) {
-				LOGGER.info("File not found ", exception);
-				throw exception;
-			}
+				Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);

@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -60,7 +59,7 @@ public class NodeDataStoreIdCalculator implements Serializable {
 		int fileId = 0;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			fileId <<= 1;
-			Object value = getValueWithNoDataSeparator(dynamicMarshal.readValue(i, row));
+			Object value = dynamicMarshal.readValue(i, row);
 			Bucket<KeyValueFrequency> valueBucket = keyToValueToBucketMap.get(keys[i]).get(value);
 			if (valueBucket != null && keyWiseAcceptingBuckets.get(keys[i]) != null
 					&& keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
@@ -68,19 +67,6 @@ public class NodeDataStoreIdCalculator implements Serializable {
 			}
 		}
 		return fileId;
-	}
-
-	/*
-	 * Removes comma separator if present in value read.
-	 */
-	private Object getValueWithNoDataSeparator(Object value) {
-		if (value instanceof MutableCharArrayString) {
-			MutableCharArrayString arrayString = (MutableCharArrayString) value;
-			if (arrayString.charAt(arrayString.length() - 1) == ',') {
-				value = arrayString.subSequence(0, arrayString.length() - 1);
-			}
-		}
-		return value;
 	}
 
 	public int getCount() {

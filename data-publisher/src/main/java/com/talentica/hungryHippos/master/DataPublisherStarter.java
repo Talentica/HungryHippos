@@ -25,6 +25,9 @@ public class DataPublisherStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
+			if (args.length >= 1) {
+				Property.overrideConfigurationProperties(args[0]);
+			}
 			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");

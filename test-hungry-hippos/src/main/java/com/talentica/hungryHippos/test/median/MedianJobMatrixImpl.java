@@ -27,7 +27,9 @@ public class MedianJobMatrixImpl implements JobMatrix {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new MedianJobMatrixImpl().getListOfJobsToExecute().size());
-		}
+		List<Job> listOfJobsToExecute = new MedianJobMatrixImpl().getListOfJobsToExecute();
+		System.out.println(listOfJobsToExecute);
+		System.out.println(listOfJobsToExecute.size());
+	}
 
 }

@@ -3,6 +3,8 @@
  */
 package com.talentica.hungryHippos.utility;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -21,7 +23,7 @@ public class Property {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Property.class.getName());
 	private static Properties properties = null;
 	private static Properties serverProp = null;
-	public static InputStream CONFIG_FILE;
+	private static InputStream CONFIG_FILE;
 	private static ClassLoader loader = Property.class.getClassLoader();
 	private static PROPERTIES_NAMESPACE namespace;
 	public static final String CONF_PROP_FILE = PropertyEnum.CONFIG.getPropertyFileName();
@@ -43,7 +45,10 @@ public class Property {
 		public String getNamespace() {
 			return namespace;
 		}
+	}
 
+	public static void overrideConfigurationProperties(String configPropertyFilePath) throws FileNotFoundException {
+		CONFIG_FILE = new FileInputStream(configPropertyFilePath);
 	}
 
 	public static Properties getProperties() {

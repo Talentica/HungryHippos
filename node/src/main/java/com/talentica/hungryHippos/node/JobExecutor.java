@@ -3,7 +3,6 @@
  */
 package com.talentica.hungryHippos.node;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,7 +56,7 @@ public class JobExecutor {
 	private static DataStore dataStore;
 
 	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-	
+
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
@@ -96,14 +95,9 @@ public class JobExecutor {
 	 * @param args
 	 * @throws IOException
 	 */
-	private static void validateArguments(String[] args) throws IOException {
+	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-			try {
-				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-			} catch (FileNotFoundException exception) {
-				LOGGER.info("File not found ", exception);
-				throw exception;
-			}
+			Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);
@@ -143,7 +137,7 @@ public class JobExecutor {
 			jobRunner.clear();
 		}
 		timer.stop();
-        LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms",(timer.elapsedMillis()));
+		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
 		signal.countDown();
 		return true;
 	}
@@ -195,7 +189,8 @@ public class JobExecutor {
 		long diskSizeNeeded = 0l;
 		for (TaskEntity taskEntity : taskEntities) {
 			resourceConsumer = new ResourceConsumerImpl(diskSizeNeeded,
-					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()), taskEntity.getTaskId());
+					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()),
+					taskEntity.getTaskId());
 			resourceConsumers.add(resourceConsumer);
 		}
 		Collections.sort(resourceConsumers, new ResourceConsumerComparator());

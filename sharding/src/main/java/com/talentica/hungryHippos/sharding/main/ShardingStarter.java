@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.sharding.main;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -39,7 +38,7 @@ public class ShardingStarter {
 			LOGGER.info(
 					"You have not provided external config.properties file. Default config.properties file will be use internally");
 		} else if (args.length == 2) {
-			Property.CONFIG_FILE = new FileInputStream(new String(args[1]));
+			Property.overrideConfigurationProperties(args[1]);
 		}
 	}
 

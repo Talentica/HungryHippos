@@ -1,10 +1,5 @@
 package com.talentica.hungryHippos.job.main;
 
-/**
- * 
- */
-
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import org.slf4j.Logger;
@@ -67,7 +62,7 @@ public class JobManagerStarter {
 			LOGGER.info(
 					"You have not provided external config.properties file. Default config.properties file will be use internally");
 		} else if (args.length == 2) {
-			Property.CONFIG_FILE = new FileInputStream(new String(args[1]));
+			Property.overrideConfigurationProperties(args[1]);
 		}
 	}
 

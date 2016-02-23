@@ -6,7 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
@@ -16,17 +16,20 @@ import com.talentica.hungryHippos.utility.PathUtil;
  * Created by debasishc on 31/8/15.
  */
 public class FileStoreAccess implements StoreAccess {
-	List<RowProcessor> rowProcessors = new LinkedList<>();
+
+	private List<RowProcessor> rowProcessors = new ArrayList<>();
 	private int keyId;
 	private int numFiles;
 	private String base;
-	private DataDescription dataDescription;
+	private ByteBuffer byteBuffer = null;
+	private byte[] byteBufferBytes;
 
 	public FileStoreAccess(String base, int keyId, int numFiles, DataDescription dataDescription) {
 		this.keyId = keyId;
 		this.numFiles = numFiles;
 		this.base = base;
-		this.dataDescription = dataDescription;
+		byteBufferBytes = new byte[dataDescription.getSize()];
+		byteBuffer = ByteBuffer.wrap(byteBufferBytes);
 	}
 
 	@Override
@@ -53,16 +56,16 @@ public class FileStoreAccess implements StoreAccess {
 		try {
 			in = new DataInputStream(new FileInputStream(
 					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
-			byte[] buf = new byte[dataDescription.getSize()];
-			ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
 			while (true) {
 				if (in.available() <= 0) {
 					break;
 				}
-				in.readFully(buf);
+				byteBuffer.clear();
+				in.readFully(byteBufferBytes);
 				for (RowProcessor p : rowProcessors) {
 					p.processRow(byteBuffer);
 				}
+				byteBuffer.flip();
 			}
 		} finally {
 			closeDatsInputStream(in);
@@ -88,16 +91,16 @@ public class FileStoreAccess implements StoreAccess {
 		try {
 			in = new DataInputStream(new FileInputStream(
 					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
-			byte[] buf = new byte[dataDescription.getSize()];
 			while (true) {
+				byteBuffer.clear();
 				if (in.available() <= 0) {
 					break;
 				}
-				in.readFully(buf);
-				ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+				in.readFully(byteBufferBytes);
 				for (RowProcessor p : rowProcessors) {
 					p.processRowCount(byteBuffer);
 				}
+				byteBuffer.flip();
 			}
 		} finally {
 			closeDatsInputStream(in);

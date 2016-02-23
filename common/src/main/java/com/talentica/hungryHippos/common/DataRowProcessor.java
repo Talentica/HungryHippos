@@ -14,18 +14,29 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  * Created by debasishc on 9/9/15.
  */
 public class DataRowProcessor implements RowProcessor {
+
 	private DynamicMarshal dynamicMarshal;
-	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
-	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
-	private JobEntity jobEntity;
-	private int[] keys;
+
 	private ExecutionContextImpl executionContext;
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
+	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
+
+	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
+
+	private JobEntity jobEntity;
+
+	private int[] keys;
+
+	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
 		this.dynamicMarshal = dynamicMarshal;
+		executionContext = new ExecutionContextImpl(dynamicMarshal);
+	}
+
+	public void setJob(JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
 		this.keys = this.jobEntity.getJob().getDimensions();
-		executionContext = new ExecutionContextImpl(dynamicMarshal);
+		valueSetTaskEntityMap.clear();
+		valueSetWorkMap.clear();
 	}
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, HashMap<ValueSet, Work> valueSetWorkMap,int[] dimensions) {

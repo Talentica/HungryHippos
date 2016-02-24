@@ -4,33 +4,39 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
-import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Created by debasishc on 9/9/15.
  */
 public class DataRowProcessor implements RowProcessor {
-	private DynamicMarshal dynamicMarshal;
-	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
-	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
-	private JobEntity jobEntity;
-	private int[] keys;
-	private ExecutionContextImpl executionContext;
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
+	private DynamicMarshal dynamicMarshal;
+
+	private ExecutionContextImpl executionContext;
+
+	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
+
+	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
+
+	private JobEntity jobEntity;
+
+	private int[] keys;
+
+	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
 		this.dynamicMarshal = dynamicMarshal;
+		executionContext = new ExecutionContextImpl(dynamicMarshal);
+	}
+
+	public void setJob(JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
 		this.keys = this.jobEntity.getJob().getDimensions();
-		executionContext = new ExecutionContextImpl(dynamicMarshal);
+		valueSetTaskEntityMap.clear();
+		valueSetWorkMap.clear();
 	}
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, HashMap<ValueSet, Work> valueSetWorkMap,int[] dimensions) {
@@ -47,7 +53,7 @@ public class DataRowProcessor implements RowProcessor {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;
 		}
-		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys), values);
+		ValueSet valueSet = new ValueSet(keys, values);
 		Work work = valueSetWorkMap.get(valueSet);
 			if (work != null){
 				executionContext.setData(row);
@@ -71,12 +77,11 @@ public class DataRowProcessor implements RowProcessor {
 	@Override
 	public void processRowCount(ByteBuffer row) {
 		Object[] values = new Object[keys.length];
-		ValueSet valueSet = new ValueSet(Property.getKeyNamesFromIndexes(keys),values);
 		for (int i = 0; i < keys.length; i++) {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;
 		}
-		
+		ValueSet valueSet = new ValueSet(keys, values);
 		TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
 			if (taskEntity == null) {
 				Work work = this.jobEntity.getJob().createNewWork();

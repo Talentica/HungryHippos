@@ -1,4 +1,3 @@
-pwd:Jan2016!
-job_manager_ip:162.243.230.183
-data_publisher_node_ip:162.243.8.228
-sharding_node_ip:162.243.231.188
+job_manager_ip:162.243.95.246
+data_publisher_node_ip:162.243.95.246
+sharding_node_ip:162.243.95.246

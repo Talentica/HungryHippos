@@ -64,15 +64,18 @@ public class Sharding {
 					sharding.bucketCombinationToNodeNumbersMap);
 			CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, sharding.bucketToNodeNumberMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, sharding.keyToValueToBucketMap);
-			LOGGER.info("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
-			LOGGER.info("bucketCombinationToNodeNumbersMap: "
-					+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
+				LOGGER.debug("bucketCombinationToNodeNumbersMap: "
+						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
+			}
 		} catch (IOException | NodeOverflowException e) {
 			LOGGER.error("Error occurred during sharding process.", e);
 		}
 	}
 
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
+		LOGGER.info("Calculating buckets to node numbers map started");
 		data.reset();
 		String[] keys = Property.getKeyOrder();
 		// Map<key1,Map<value1,count>>
@@ -99,10 +102,12 @@ public class Sharding {
 				bucketCombinationFrequencyMap.put(keyCombination, count + 1);
 			}
 		}
+		LOGGER.info("Calculating buckets to node numbers map finished");
 	}
 
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
+		LOGGER.info("Populating frequency map from data started");
 		String[] keys = Property.getKeyOrder();
 		// Map<key1,Map<value1,count>>
 		while (true) {
@@ -127,10 +132,12 @@ public class Sharding {
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
 		}
+		LOGGER.info("Populating frequency map from data finished");
 		return keyValueFrequencyMap;
 	}
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
+		LOGGER.info("Calculating keys to list of buckets map started");
 		String[] keys = Property.getKeyOrder();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		LOGGER.info("Total no. of buckets: {}", totalNoOfBuckets);
@@ -151,9 +158,10 @@ public class Sharding {
 				for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
 					long sizeOfCurrentBucket = idealAverageSizeOfOneBucket;
 					Long frequency = keyValueFrequency.getFrequency();
-					if (frequency>idealAverageSizeOfOneBucket) {
+					if (frequency > idealAverageSizeOfOneBucket) {
 						sizeOfCurrentBucket = frequency;
-						LOGGER.info("Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
+						LOGGER.debug(
+								"Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
 								new Object[] { keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket });
 					}
 					if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket) {
@@ -168,7 +176,10 @@ public class Sharding {
 				this.keysToListOfBucketsMap.put(keys[i], buckets);
 			}
 		}
-		LOGGER.info("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
+		}
+		LOGGER.info("Calculating keys to list of buckets map finished");
 		return this.keysToListOfBucketsMap;
 	}
 
@@ -234,13 +245,18 @@ public class Sharding {
 
 	public void shardAllKeys() throws NodeOverflowException {
 		for (String key : keysToListOfBucketsMap.keySet()) {
-			LOGGER.info("Sharding on key: {}", key);
+			LOGGER.info("Sharding on key started: {}", key);
 			shardSingleKey(key);
+			LOGGER.info("Sharding on key finished: {}", key);
 		}
-		LOGGER.info("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
+		}
 		List<String> keyNameList = new ArrayList<>();
 		keyNameList.addAll(keysToListOfBucketsMap.keySet());
+		LOGGER.info("Generating table started");
 		makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()), keyNameList);
+		LOGGER.info("Generating table finished");
 	}
 
 	private void makeShardingTable(BucketCombination source, List<String> keyNames) throws NodeOverflowException {

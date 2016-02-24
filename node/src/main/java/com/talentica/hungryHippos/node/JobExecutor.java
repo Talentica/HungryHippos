@@ -3,7 +3,6 @@
  */
 package com.talentica.hungryHippos.node;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -38,7 +38,6 @@ import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row
@@ -57,9 +56,10 @@ public class JobExecutor {
 	private static DataStore dataStore;
 
 	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-	
+
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup();
@@ -68,19 +68,21 @@ public class JobExecutor {
 			CountDownLatch signal = new CountDownLatch(1);
 			waitForStartRowCountSignal(signal);
 			signal.await();
-			jobRunner.addJobs(getJobsFromZKNode());
-			jobRunner.doRowCount();
-			List<TaskEntity> workEntities = jobRunner.getWorkEntities();
-			LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
-			CommonUtil.dumpFileOnDisk("workEntities", workEntities);
-			signal = new CountDownLatch(1);
-			boolean flag = runJobMatrix(jobRunner, workEntities, signal);
-			if (flag) {
-				signal.await();
-				String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-				nodesManager.createEphemeralNode(buildStartPath, null);
+			List<JobEntity> jobEntities = getJobsFromZKNode();
+			for (JobEntity jobEntity : jobEntities) {
+				jobRunner.addJobs(jobEntity);
+				jobRunner.doRowCount();
+				List<TaskEntity> workEntities = jobRunner.getWorkEntities();
+				LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
+				runJobMatrix(jobRunner, workEntities);
+				jobRunner.clear();
 			}
+			jobEntities.clear();
+			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
+					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
+			nodesManager.createEphemeralNode(buildStartPath, null);
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
@@ -93,14 +95,9 @@ public class JobExecutor {
 	 * @param args
 	 * @throws IOException
 	 */
-	private static void validateArguments(String[] args) throws IOException {
+	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-			try {
-				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-			} catch (FileNotFoundException exception) {
-				LOGGER.info("File not found ", exception);
-				throw exception;
-			}
+			Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);
@@ -115,21 +112,20 @@ public class JobExecutor {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities, CountDownLatch signal)
-			throws Exception {
+	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities) throws Exception {
 		Stopwatch timer = new Stopwatch().start();
 		LOGGER.info("STARTING JOB RUNNER MATRIX");
 		List<TaskEntity> taskEntities = new ArrayList<>();
 		taskEntities.addAll(workEntities);
 		jobRunner.clear();
 		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(taskEntities).entrySet()) {
-			LOGGER.info("RESOURCE INDEX {}", entry.getKey());
+			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
 			for (ResourceConsumer consumer : entry.getValue()) {
 				for (TaskEntity taskEntity : taskEntities) {
 					if (taskEntity.getTaskId() == consumer.getResourceRequirement().getResourceId()) {
 						jobRunner.addTask(taskEntity);
 						taskEntities.remove(taskEntity);
-						LOGGER.info("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
+						LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
 								taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 								taskEntity.getRowCount());
 						break;
@@ -140,8 +136,7 @@ public class JobExecutor {
 			jobRunner.clear();
 		}
 		timer.stop();
-        LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms",(timer.elapsedMillis()));
-		signal.countDown();
+		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
 		return true;
 	}
 
@@ -152,8 +147,7 @@ public class JobExecutor {
 	 * @throws IOException
 	 */
 	private static JobRunner createJobRunner() throws IOException {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
 				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
@@ -193,7 +187,8 @@ public class JobExecutor {
 		long diskSizeNeeded = 0l;
 		for (TaskEntity taskEntity : taskEntities) {
 			resourceConsumer = new ResourceConsumerImpl(diskSizeNeeded,
-					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()), taskEntity.getTaskId());
+					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()),
+					taskEntity.getTaskId());
 			resourceConsumers.add(resourceConsumer);
 		}
 		Collections.sort(resourceConsumers, new ResourceConsumerComparator());

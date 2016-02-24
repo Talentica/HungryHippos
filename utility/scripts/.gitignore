@@ -67,3 +67,8 @@
 /initial-connect-to-162.243.252.39.sh
 /initial-connect-to-162.243.8.228.sh
 /zookeeper.out
+/bucketToNodeNumberMap
+/bucketCombinationToNodeNumbersMap
+/copy-config-file-to-all-nodes.sh~
+/copy-file-to-sharding.sh~
+/keyToValueToBucketMap

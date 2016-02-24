@@ -55,10 +55,11 @@ public class JobRunner implements Serializable {
 		primDimList.add(jobEntity);
 	}
 
-	public void addJobs(List<JobEntity> jobEntities) {
-		for (JobEntity jobEntity : jobEntities) {
-			addJob(jobEntity);
-		}
+	public void addJobs(JobEntity jobEntity) {
+		/*
+		 * for (JobEntity jobEntity : jobEntities) { addJob(jobEntity); }
+		 */
+		addJob(jobEntity);
 	}
 
 	public void addTask(TaskEntity taskEntity) {

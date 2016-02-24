@@ -68,21 +68,21 @@ public class JobExecutor {
 			CountDownLatch signal = new CountDownLatch(1);
 			waitForStartRowCountSignal(signal);
 			signal.await();
-			jobRunner.addJobs(getJobsFromZKNode());
-			jobRunner.doRowCount();
-			List<TaskEntity> workEntities = jobRunner.getWorkEntities();
-			LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
-			CommonUtil.dumpFileOnDisk("workEntities", workEntities);
-			signal = new CountDownLatch(1);
-			boolean flag = runJobMatrix(jobRunner, workEntities, signal);
-			if (flag) {
-				signal.await();
-				String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-						+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-				nodesManager.createEphemeralNode(buildStartPath, null);
+			List<JobEntity> jobEntities = getJobsFromZKNode();
+			for (JobEntity jobEntity : jobEntities) {
+				jobRunner.addJobs(jobEntity);
+				jobRunner.doRowCount();
+				List<TaskEntity> workEntities = jobRunner.getWorkEntities();
+				LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
+				runJobMatrix(jobRunner, workEntities);
+				jobRunner.clear();
 			}
+			jobEntities.clear();
+			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
+					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
+			nodesManager.createEphemeralNode(buildStartPath, null);
 			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
+			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
@@ -112,21 +112,20 @@ public class JobExecutor {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities, CountDownLatch signal)
-			throws Exception {
+	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities) throws Exception {
 		Stopwatch timer = new Stopwatch().start();
 		LOGGER.info("STARTING JOB RUNNER MATRIX");
 		List<TaskEntity> taskEntities = new ArrayList<>();
 		taskEntities.addAll(workEntities);
 		jobRunner.clear();
 		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(taskEntities).entrySet()) {
-			LOGGER.info("RESOURCE INDEX {}", entry.getKey());
+			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
 			for (ResourceConsumer consumer : entry.getValue()) {
 				for (TaskEntity taskEntity : taskEntities) {
 					if (taskEntity.getTaskId() == consumer.getResourceRequirement().getResourceId()) {
 						jobRunner.addTask(taskEntity);
 						taskEntities.remove(taskEntity);
-						LOGGER.info("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
+						LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
 								taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 								taskEntity.getRowCount());
 						break;
@@ -138,7 +137,6 @@ public class JobExecutor {
 		}
 		timer.stop();
 		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
-		signal.countDown();
 		return true;
 	}
 

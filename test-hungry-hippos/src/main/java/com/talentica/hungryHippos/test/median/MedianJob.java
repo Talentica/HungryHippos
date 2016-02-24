@@ -17,16 +17,12 @@ public class MedianJob implements Job,Serializable{
 	protected int [] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
-    protected int jobId;
-    protected long dataSize;
-    protected String status;
     public MedianJob(){}
 
-    public MedianJob(int[] dimensions, int primaryDimension, int valueIndex, int jobId) {
+    public MedianJob(int[] dimensions, int primaryDimension, int valueIndex) {
         this.dimensions = dimensions;
         this.primaryDimension = primaryDimension;
         this.valueIndex = valueIndex;
-        this.jobId = jobId;
     }
 
 
@@ -45,15 +41,6 @@ public class MedianJob implements Job,Serializable{
         return primaryDimension;
     }
 
-	@Override
-	public int getJobId() {
-		return jobId;
-	}
-	@Override
-	public void status(String status) {
-		this.status = status;
-	}
-	
 	@Override
 	public long getMemoryFootprint(int rowCount) {
 		return 58 * rowCount;

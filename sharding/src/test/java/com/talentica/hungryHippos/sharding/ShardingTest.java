@@ -22,8 +22,6 @@ public class ShardingTest {
 		sharding = new Sharding(5);
 		shardingInputFileReader = new FileReader(
 				new File("src/test/java/com/talentica/hungryHippos/sharding/testSampleInput.txt"));
-		shardingInputFileReader.setNumFields(9);
-		shardingInputFileReader.setMaxsize(25);
 	}
 
 	// @Test

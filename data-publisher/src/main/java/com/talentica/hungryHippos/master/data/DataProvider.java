@@ -16,6 +16,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
@@ -28,7 +29,6 @@ import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.server.ServerUtils;
 
@@ -43,8 +43,6 @@ public class DataProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
 	private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
-	
-	
 	
 	private static String[] loadServers(NodesManager nodesManager) throws Exception {
 		LOGGER.info("Load the server form the configuration file");
@@ -63,12 +61,9 @@ public class DataProvider {
 
 	@SuppressWarnings({ "unchecked" })
 	public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
-
 		long start = System.currentTimeMillis();
-
 		String[] servers = loadServers(nodesManager);
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		byte[] buf = new byte[dataDescription.getSize()];
 		ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
@@ -105,9 +100,6 @@ public class DataProvider {
 		LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
 		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader(
 				Property.getProperties().getProperty("input.file"));
-		input.setNumFields(9);
-		input.setMaxsize(25);
-
 		long timeForEncoding = 0;
 		long timeForLookup = 0;
 
@@ -117,21 +109,21 @@ public class DataProvider {
 				input.close();
 				break;
 			}
-			MutableCharArrayString value1 = parts[0];
-			MutableCharArrayString value2 = parts[1];
-			MutableCharArrayString value3 = parts[2];
-			MutableCharArrayString value4 = parts[3];
-			MutableCharArrayString value5 = parts[4];
-			MutableCharArrayString value6 = parts[5];
-			double value7 = Double.parseDouble(parts[6].toString());
-			double value8 = Double.parseDouble(parts[7].toString());
-			MutableCharArrayString value9 = parts[8];
+			MutableCharArrayString value1 = parts[0].clone();
+			MutableCharArrayString value2 = parts[1].clone();
+			MutableCharArrayString value3 = parts[2].clone();
+			MutableCharArrayString value4 = parts[3].clone();
+			MutableCharArrayString value5 = parts[4].clone();
+			MutableCharArrayString value6 = parts[5].clone();
+			double value7 = Double.parseDouble(parts[6].clone().toString());
+			double value8 = Double.parseDouble(parts[7].clone().toString());
+			MutableCharArrayString value9 = parts[8].clone();
 
 			Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
 			String[] keyOrder = Property.getKeyOrder();
 
 			for (int i = 0; i < keyOrder.length; i++) {
-				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[i]);
+				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[i].clone());
 				keyToBucketMap.put(keyOrder[i], bucket);
 			}
 			dynamicMarshal.writeValueString(0, value1, byteBuffer);

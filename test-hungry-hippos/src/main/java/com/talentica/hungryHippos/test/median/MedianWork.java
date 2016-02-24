@@ -18,7 +18,6 @@ public class MedianWork implements Work,Serializable {
 	protected int[] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
-    protected String status;
 
     private List<Double> values = new ArrayList<>();
 
@@ -49,11 +48,4 @@ public class MedianWork implements Work,Serializable {
 		return primaryDimension;
 	}
 
-
-	@Override
-	public void status(String status) {
-		this.status = status;
-	}
-	
-	
 }

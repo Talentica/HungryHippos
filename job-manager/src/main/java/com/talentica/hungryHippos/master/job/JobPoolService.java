@@ -3,11 +3,10 @@
  */
 package com.talentica.hungryHippos.master.job;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.LinkedList;
 import java.util.Queue;
 
-import com.talentica.hungryHippos.client.job.Job;
+import com.talentica.hungryHippos.utility.JobEntity;
 
 
 /**
@@ -18,26 +17,20 @@ import com.talentica.hungryHippos.client.job.Job;
  */
 public class JobPoolService implements JobPool{
 
-	private Queue<Job> jobPriorityQueue;
-	
-	private static int DEFAULT_POOL_SIZE_CAPACITY = 11;
+	private Queue<JobEntity> jobPriorityQueue;
 	
 	public JobPoolService() {
-		jobPriorityQueue = new PriorityQueue<>(DEFAULT_POOL_SIZE_CAPACITY,sizeComparator);
-	}
-	
-	public JobPoolService(int poolCapacity){
-		jobPriorityQueue = new PriorityQueue<>(poolCapacity,sizeComparator);
+		jobPriorityQueue = new LinkedList<JobEntity>();
 	}
 	
 	@Override
-	public void addJob(Job job) {
-		jobPriorityQueue.add(job);		
+	public void addJobEntity(JobEntity jobEntity) {
+		jobPriorityQueue.add(jobEntity);		
 	}
 
 	@Override
-	public void removeJob(Job job) {
-		jobPriorityQueue.remove(job);
+	public void removeJobEntity(JobEntity jobEntity) {
+		jobPriorityQueue.remove(jobEntity);
 		
 	}
 
@@ -51,25 +44,18 @@ public class JobPoolService implements JobPool{
 		return jobPriorityQueue.size();
 	}
 	
-	public static Comparator<Job> sizeComparator = new Comparator<Job>(){        
-        @Override
-        public int compare(Job job1, Job job2) {
-            return (int) (job1.getJobId() - job2.getJobId());
-        }
-    };
-
 	@Override
-	public Queue<Job> getQueue() {
+	public Queue<JobEntity> getQueue() {
 		return jobPriorityQueue;
 	}
 
 	@Override
-	public Job pollJob() {
+	public JobEntity pollJobEntity() {
 		return jobPriorityQueue.poll();
 	}
 
 	@Override
-	public Job peekJob() {
+	public JobEntity peekJobEntity() {
 		return jobPriorityQueue.peek();
 	}
 

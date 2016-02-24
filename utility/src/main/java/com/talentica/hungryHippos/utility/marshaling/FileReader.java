@@ -6,27 +6,51 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataLocator;
+import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.utility.CommonUtil;
 
 /**
  * Created by debasishc on 22/6/15.
  */
 public class FileReader implements Reader {
-	// 65536*8
-	ByteBuffer buf = ByteBuffer.allocate(65536);
-	FileChannel channel;
-	int readCount = -1;
+
+	private ByteBuffer buf = ByteBuffer.allocate(65536);
+	private FileChannel channel;
+	private int readCount = -1;
+	private int numfields;
+	private MutableCharArrayString[] buffer;
 
 	@SuppressWarnings("resource")
 	public FileReader(String filepath) throws IOException {
 		channel = new FileInputStream(filepath).getChannel();
 		buf.clear();
+		initializeMutableArrayStringBuffer();
 	}
 
 	@SuppressWarnings("resource")
 	public FileReader(File file) throws IOException {
 		channel = new FileInputStream(file).getChannel();
 		buf.clear();
+		initializeMutableArrayStringBuffer();
+	}
+
+	private void initializeMutableArrayStringBuffer() {
+		DataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+		numfields = dataDescription.getNumberOfDataFields();
+		buffer = new MutableCharArrayString[numfields];
+		for (int i = 0; i < numfields; i++) {
+			DataLocator dataLocator = dataDescription.locateField(i);
+			int numberOfCharsDataTypeTakes = dataLocator.getSize();
+			// TODO: Need to fix hard coding later.
+			if (dataLocator.getDataType() == DataType.DOUBLE || dataLocator.getDataType() == DataType.INT
+					|| dataLocator.getDataType() == DataType.LONG || dataLocator.getDataType() == DataType.FLOAT) {
+				numberOfCharsDataTypeTakes = 25;
+			}
+			buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
+		}
 	}
 
 	/*
@@ -57,33 +81,6 @@ public class FileReader implements Reader {
 
 		}
 		return sb.toString();
-	}
-
-	private int numfields;
-	private MutableCharArrayString[] buffer;
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.talentica.hungryHippos.utility.marshaling.Reader#setNumFields(int)
-	 */
-	@Override
-	public void setNumFields(int numFields) {
-		this.numfields = numFields;
-		buffer = new MutableCharArrayString[numFields];
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.talentica.hungryHippos.utility.marshaling.Reader#setMaxsize(int)
-	 */
-	@Override
-	public void setMaxsize(int maxsize) {
-		for (int i = 0; i < numfields; i++) {
-			buffer[i] = new MutableCharArrayString(maxsize);
-		}
 	}
 
 	/*
@@ -122,27 +119,6 @@ public class FileReader implements Reader {
 			}
 		}
 		return buffer;
-	}
-
-	public static void main(String[] args) throws Exception {
-		long startTime = System.currentTimeMillis();
-		Reader reader = new FileReader("sampledata.txt");
-		reader.setNumFields(8);
-		reader.setMaxsize(25);
-		int num = 0;
-		while (true) {
-			MutableCharArrayString[] val = reader.read();
-
-			if (val == null) {
-				reader.close();
-				break;
-			}
-			num++;
-		}
-		long endTime = System.currentTimeMillis();
-		System.out.println("Time taken: " + (endTime - startTime));
-		System.out.println(num);
-
 	}
 
 	@Override

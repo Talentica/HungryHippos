@@ -12,13 +12,13 @@ public class ValueSet implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private String[] keys;
+	private int[] keyIndexes;
 
 	private Object[] values;
 
-	public ValueSet(String[] keys, Object[] values) {
-		this.keys = keys;
-		this.values = values;
+	public ValueSet(int[] keyIndexes, Object[] values) {
+		this.keyIndexes = keyIndexes;
+		setValues(values);
 	}
 
 	@Override
@@ -27,12 +27,9 @@ public class ValueSet implements Serializable {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-
 		ValueSet valueSet = (ValueSet) o;
-
 		// Probably incorrect - comparing Object[] arrays with Arrays.equals
 		return Arrays.equals(values, valueSet.values);
-
 	}
 
 	public Object[] getValues() {
@@ -41,6 +38,14 @@ public class ValueSet implements Serializable {
 
 	public void setValues(Object[] values) {
 		this.values = values;
+		if (values != null) {
+			for (int i = 0; i < values.length; i++) {
+				if (values[i] instanceof MutableCharArrayString) {
+					this.values[i] = ((MutableCharArrayString) values[i]).clone();
+				}
+			}
+		}
+
 	}
 
 	@Override
@@ -52,12 +57,12 @@ public class ValueSet implements Serializable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("ValueSet{");
-		if (keys != null && values != null && keys.length == values.length) {
-			for (int count = 0; count < keys.length; count++) {
+		if (keyIndexes != null && values != null && keyIndexes.length == values.length) {
+			for (int count = 0; count < keyIndexes.length; count++) {
 				if (count != 0) {
 					result.append(",");
 				}
-				result.append(keys[count] + "=" + values[count]);
+				result.append(keyIndexes[count] + "=" + values[count]);
 			}
 		}
 		result.append("}");

@@ -12,53 +12,54 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 	private char[] array;
 	private int stringLength;
 
-    public MutableCharArrayString(int length){
-        array = new char[length];
-        stringLength = 0;
-    }
-    @Override
-    public int length() {
+	public MutableCharArrayString(int length) {
+		array = new char[length];
+		stringLength = 0;
+	}
+
+	@Override
+	public int length() {
 		return stringLength;
-    }
+	}
 
-    @Override
-    public char charAt(int index) {
-        return array[index];
-    }
+	@Override
+	public char charAt(int index) {
+		return array[index];
+	}
 
-    public char [] getUnderlyingArray(){
-        return array;
-    }
+	public char[] getUnderlyingArray() {
+		return array;
+	}
 
-    @Override
-    public MutableCharArrayString subSequence(int start, int end) {
-        MutableCharArrayString newArray = new MutableCharArrayString(end -start);
-        for(int i=start,j=0;i<end;i++,j++){
-            newArray.array[j] = array[i];
-        }
-        newArray.stringLength = end - start;
-        return newArray;
-    }
+	@Override
+	public MutableCharArrayString subSequence(int start, int end) {
+		MutableCharArrayString newArray = new MutableCharArrayString(end - start);
+		for (int i = start, j = 0; i < end; i++, j++) {
+			newArray.array[j] = array[i];
+		}
+		newArray.stringLength = end - start;
+		return newArray;
+	}
 
-    @Override
-    public String toString() {
+	@Override
+	public String toString() {
 		return new String(Arrays.copyOf(array, stringLength));
-    }
+	}
 
-    public void addCharacter(char ch){
-        array[stringLength]=ch;
-        stringLength++;
-    }
+	public void addCharacter(char ch) {
+		array[stringLength] = ch;
+		stringLength++;
+	}
 
-    public void reset(){
-        stringLength=0;
-    }
+	public void reset() {
+		stringLength = 0;
+	}
 
 
-    @Override
-	public MutableCharArrayString clone(){
+	@Override
+	public MutableCharArrayString clone() {
 		return subSequence(0, stringLength);
-    }
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -79,17 +80,17 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 		return false;
 	}
 
-    @Override
-    public int hashCode() {
-        int h = 0;
-        int off = 0;
-        char val[] = array;
-        int len = stringLength;
-        for (int i = 0; i < len; i++) {
-            h = 31*h + val[off++];
-        }
-        return h;
-    }
+	@Override
+	public int hashCode() {
+		int h = 0;
+		int off = 0;
+		char val[] = array;
+		int len = stringLength;
+		for (int i = 0; i < len; i++) {
+			h = 31 * h + val[off++];
+		}
+		return h;
+	}
 
 	public static MutableCharArrayString from(String value) {
 		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());

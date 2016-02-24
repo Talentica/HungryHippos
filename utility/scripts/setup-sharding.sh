@@ -10,6 +10,3 @@ echo 'Copying nodes'' password file'
 sh copy-file-to-sharding.sh ./node_pwd_file.txt
 echo 'Copying shard file copy utility'
 sh copy-file-to-sharding.sh ./copy-shard-files-to-all-nodes.sh
-
-
-

@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.client.domain;
 
 import java.io.Serializable;
 

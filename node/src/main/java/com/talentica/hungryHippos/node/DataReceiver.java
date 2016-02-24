@@ -1,12 +1,13 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
@@ -17,8 +18,6 @@ import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.DataDescription;
-import com.talentica.hungryHippos.utility.marshaling.FieldTypeArrayDataDescription;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -86,6 +85,7 @@ public class DataReceiver {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
@@ -96,6 +96,9 @@ public class DataReceiver {
 			int PORT = Integer.valueOf(server.split(":")[1]);
 			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
+					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}
@@ -107,14 +110,9 @@ public class DataReceiver {
 	 * @param args
 	 * @throws IOException
 	 */
-	private static void validateArguments(String[] args) throws IOException {
+	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-			try {
-				Property.CONFIG_FILE = new FileInputStream(new String(args[0]));
-			} catch (FileNotFoundException exception) {
-				LOGGER.info("File not found ", exception);
-				throw exception;
-			}
+				Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);
@@ -129,8 +127,7 @@ public class DataReceiver {
 	 * @throws Exception
 	 */
 	private static DataReceiver getNodeInitializer() throws Exception {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
-		CommonUtil.setDataDescription(dataDescription);
+		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		return new DataReceiver(dataDescription);
 	}

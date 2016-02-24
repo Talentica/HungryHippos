@@ -8,7 +8,7 @@ import com.talentica.hungryHippos.test.sum.SumJob;
  */
 public class TestJobUniqueCount extends SumJob {
     public TestJobUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
-        super(dimensions,primaryDimension,valueIndex,0);// zero added . need to be removed
+        super(dimensions,primaryDimension,valueIndex);
     }
 
     @Override

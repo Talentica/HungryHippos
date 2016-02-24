@@ -24,6 +24,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 public class JobManager {
@@ -33,10 +34,15 @@ public class JobManager {
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
-	private List<Job> jobs = new ArrayList<Job>();
+	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 
 	public void addJobList(List<Job> jobList) {
-		this.jobs.addAll(jobList);
+		JobEntity jobEntity;
+		for (Job job : jobList) {
+			jobEntity = new JobEntity();
+			jobEntity.setJob(job);
+			this.jobEntities.add(jobEntity);
+		}
 	}
 
 	/**
@@ -50,7 +56,7 @@ public class JobManager {
 		(nodesManager = ServerHeartBeat.init()).startup();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
-		LOGGER.info("GET FINISHED SIGNAL FROM NODES");
+		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 	}
@@ -78,11 +84,7 @@ public class JobManager {
 			Node node = nodesItr.next();
 			if (!getFinishSignal(node.getNodeId(), CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name())) {
 				continue;
-			} /*
-				 * else{
-				 * LOGGER.info("NODE ID {} FINISHED THE JOBS",node.getNodeId());
-				 * }
-				 */
+			} 
 		}
 		LOGGER.info("ALL NODES FINISHED THE JOBS");
 	}
@@ -134,10 +136,10 @@ public class JobManager {
 	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
-			if (jobs == null || jobs.isEmpty())
+			if (jobEntities == null || jobEntities.isEmpty())
 				continue;
 			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId), nodesManager);
-			nodeJobsService.addJobs(jobs);
+			nodeJobsService.addJobs(jobEntities);
 			nodeJobsService.createNodeJobService();
 			nodeJobsService.scheduleTaskManager();
 		}

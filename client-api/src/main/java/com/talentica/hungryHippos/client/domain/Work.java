@@ -8,5 +8,4 @@ public interface Work {
     int getPrimaryDimension();
     void processRow(ExecutionContext executionContext);
     void calculate(ExecutionContext executionContext);
-    void status(String status);
 }

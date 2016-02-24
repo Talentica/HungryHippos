@@ -1,10 +1,5 @@
 package com.talentica.hungryHippos.job.main;
 
-/**
- * 
- */
-
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import org.slf4j.Logger;
@@ -28,12 +23,15 @@ public class JobManagerStarter {
 
 	public static void main(String[] args) {
 		try {
+			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start();
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for running all jobs.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing master starter program.", exception);
 		}
@@ -64,7 +62,7 @@ public class JobManagerStarter {
 			LOGGER.info(
 					"You have not provided external config.properties file. Default config.properties file will be use internally");
 		} else if (args.length == 2) {
-			Property.CONFIG_FILE = new FileInputStream(new String(args[1]));
+			Property.overrideConfigurationProperties(args[1]);
 		}
 	}
 

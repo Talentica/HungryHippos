@@ -23,19 +23,10 @@ public class FileReaderTest {
 	@Before
 	public void setUp() throws IOException {
 		fileReader = new FileReader(new File("src/test/resources/testSampleInputWithNoBlankLineAtEOF.txt"));
-		fileReader.setNumFields(9);
-		fileReader.setMaxsize(25);
 		fileReaderBlankLinesFile = new FileReader(new File("src/test/resources/testSampleInputWithBlankLines.txt"));
-		fileReaderBlankLinesFile.setNumFields(9);
-		fileReaderBlankLinesFile.setMaxsize(25);
 		fileReaderBlankLineAtEofFile = new FileReader(new File("src/test/resources/testSampleInputWithBlankLines.txt"));
-		fileReaderBlankLineAtEofFile.setNumFields(9);
-		fileReaderBlankLineAtEofFile.setMaxsize(25);
 		fileReaderWithBlankLineAtEOF = new FileReader(
 				new File("src/test/resources/testSampleInputWithBlankLineAtEOF.txt"));
-		fileReaderWithBlankLineAtEOF.setNumFields(9);
-		fileReaderWithBlankLineAtEOF.setMaxsize(25);
-
 	}
 
 	@Test

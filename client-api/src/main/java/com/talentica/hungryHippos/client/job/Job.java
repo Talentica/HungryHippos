@@ -9,5 +9,6 @@ public interface Job {
     Work createNewWork();
     int[] getDimensions();
     int getPrimaryDimension();
+    int getIndex();
     long getMemoryFootprint(int rowCount);
 }

@@ -57,7 +57,7 @@ public class JobRunner implements Serializable{
     
     public void addTask(TaskEntity taskEntity){
     	taskEntities.add(taskEntity);
-    	Integer primDim = taskEntity.getWork().getPrimaryDimension();
+    	Integer primDim = taskEntity.getJobEntity().getJob().getPrimaryDimension();
         List<TaskEntity> primDimList = primaryDimTasksMap.get(primDim);
         if(primDimList == null){
             primDimList = new LinkedList<>();
@@ -68,8 +68,6 @@ public class JobRunner implements Serializable{
     
     
     public void run(){
-    	LOGGER.info("BATCH EXECUTION STARTED FOR BATCH SIZE {}",taskEntities.size());
-    	long startTime = System.currentTimeMillis();
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
         RowProcessor rowProcessor = null;
         StoreAccess storeAccess = null;
@@ -77,7 +75,7 @@ public class JobRunner implements Serializable{
 	        		storeAccess = dataStore.getStoreAccess(primDim);
 		        	for(TaskEntity task : primaryDimTasksMap.get(primDim)){
 		        		if(rowProcessor == null ){
-		        			rowProcessor = new DataRowProcessor(dynamicMarshal,task.getWork().getDimensions());
+		        			rowProcessor = new DataRowProcessor(dynamicMarshal,task.getJobEntity().getJob().getDimensions());
 		        			storeAccess.addRowProcessor(rowProcessor);
 		        		}
 		        		DataRowProcessor dataRowProcessor = (DataRowProcessor)rowProcessor;
@@ -85,8 +83,7 @@ public class JobRunner implements Serializable{
 		        	}
 	        		 storeAccess.processRows();
 	        	}
-	    rowProcessor.finishUp();
-        LOGGER.info("BATCH COMPLETION TIME {} ms",(System.currentTimeMillis()-startTime));
+	    if(rowProcessor != null ) rowProcessor.finishUp();
 }
     
     /**
@@ -95,7 +92,6 @@ public class JobRunner implements Serializable{
      * @return Map<Integer, JobEntity>
      */
     public void doRowCount() {
-		long startTime = System.currentTimeMillis();
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		for (Integer primDim : primaryDimJobsMap.keySet()) {
 			StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
@@ -106,15 +102,13 @@ public class JobRunner implements Serializable{
 				storeAccess.processRowCount();
 				for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet().values()) {
 					taskEntities.add(taskEntity);
-					/*LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
 							taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 							taskEntity.getRowCount(),
-							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));*/
+							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
 				}
 			}
 		}
-		long endTime = System.currentTimeMillis();
-		LOGGER.info("TIME TAKEN FOR ABOVE JOB FOR ROW COUNT {} ms", (endTime - startTime));
 	}
 
     

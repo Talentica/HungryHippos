@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.resource.manager.services;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,7 +33,7 @@ public final class TaskPartitions {
 	public Map<Integer, List<ResourceConsumer>> getIterationWiseResourceConsumers(){
 		long tempAvailableRam;
 		Integer resourceIndex = 0;
-		long startTime = new Date().getTime();
+		long startTime = System.currentTimeMillis();
 		LOGGER.info("TASK PARTITION STARTED ON AVAILABLE RAM {}",this.availableRam);
 		TreeMap<Integer, List<ResourceConsumer>> resourcesPartition = new TreeMap<Integer, List<ResourceConsumer>>();
 		for(int index = 0; index < resourceConsumers.size(); index++){
@@ -70,7 +69,7 @@ public final class TaskPartitions {
 		if(outBoundResources != null && !outBoundResources.isEmpty()) {
 			LOGGER.info("NUMBER OF CONSUMERS HAVING MEMORY SIZE BEYOND AVAILABLE MEMORY {}",outBoundResources.size());
 		}
-		LOGGER.info("ELAPSED TIME IN TASK PARTITIONING {} ms",(new Date().getTime()-startTime));
+		LOGGER.info("ELAPSED TIME IN TASK PARTITIONING {} ms",(System.currentTimeMillis()-startTime));
 		return resourcesPartition;
 	}
 

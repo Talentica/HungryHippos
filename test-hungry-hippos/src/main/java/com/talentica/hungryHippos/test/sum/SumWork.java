@@ -34,14 +34,4 @@ public class SumWork implements Work, Serializable {
 		executionContext.saveValue(valueIndex, sum);
 	}
 
-	@Override
-	public int[] getDimensions() {
-		return dimensions;
-	}
-
-	@Override
-	public int getPrimaryDimension() {
-		return primaryDimension;
-	}
-
 }

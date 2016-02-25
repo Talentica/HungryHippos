@@ -84,9 +84,10 @@ public class JobExecutor {
 				long startTimeRowCount = System.currentTimeMillis();
 				LOGGER.info("ROW COUNTS STARTED");
 				jobRunner.doRowCount();
+				long endTime = System.currentTimeMillis();
+				LOGGER.info("TIME TAKEN FOR ABOVE JOB FOR ROW COUNT {} ms", (endTime - startTimeRowCount));
 				LOGGER.info("ROW COUNTS ENDED");
 				totalTileElapsedInRowCount = totalTileElapsedInRowCount + (System.currentTimeMillis()-startTimeRowCount);
-				
 				taskEntities = jobRunner.getWorkEntities();
 				if(taskEntities.size() == 0) continue;	// if no reducers, just skip.
 				Iterator<JobEntity> oldJobitr = totalJobEntities.iterator();
@@ -106,7 +107,7 @@ public class JobExecutor {
 						}
 					}
 					taskEntities.addAll(tasksEntityForDiffIndex);
-					LOGGER.info("SIZE OF WORKENTITIES {}", taskEntities.size());
+					LOGGER.info("SIZE OF TASKS {}", taskEntities.size());
 					LOGGER.info("JOB RUNNER MATRIX STARTED");
 					runJobMatrix(jobRunner, taskEntities);
 					LOGGER.info("FINISHED JOB RUNNER MATRIX");
@@ -114,6 +115,7 @@ public class JobExecutor {
 					taskEntities.clear();
 					tasksEntityForDiffIndex.clear();
 				}
+				processedDims.clear();
 					String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 							+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 					nodesManager.createEphemeralNode(buildStartPath, null);
@@ -178,7 +180,10 @@ public class JobExecutor {
 					}
 				}
 			}
+			LOGGER.info("BATCH EXECUTION STARTED");
+	    	long startTime = System.currentTimeMillis();
 			jobRunner.run();
+			LOGGER.info("BATCH COMPLETION TIME {} ms",(System.currentTimeMillis()-startTime));
 			jobRunner.clear();
 		}
 		return true;

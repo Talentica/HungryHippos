@@ -37,6 +37,7 @@ public class DataRowProcessor implements RowProcessor {
 	public void setJob(JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
 		this.keys = this.jobEntity.getJob().getDimensions();
+		values = new Object[keys.length];
 		valueSetTaskEntityMap.clear();
 		valueSetWorkMap.clear();
 	}

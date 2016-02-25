@@ -76,22 +76,21 @@ public class JobRunner implements Serializable{
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
         List<RowProcessor> rowProcessors = new LinkedList<>();
         StoreAccess storeAccess = null;
-	        	for(Integer primDim: primaryDimTasksMap.keySet()){
-	        		storeAccess = dataStore.getStoreAccess(primDim);
-		        	for(TaskEntity task : primaryDimTasksMap.get(primDim)){
-		        		RowProcessor rowProcessor = dimensionsRowProcessorMap.get(task.getWork().getDimensions());
-		        		if(rowProcessor == null){
-		        			valueSetWorkMap = new HashMap<>();
-		        			rowProcessor = new DataRowProcessor(dynamicMarshal,valueSetWorkMap,task.getWork().getDimensions());	
-		        			dimensionsRowProcessorMap.put(task.getWork().getDimensions(), rowProcessor);
-		        			storeAccess.addRowProcessor(rowProcessor);
-			                rowProcessors.add(rowProcessor);
-		        		}
-		        		DataRowProcessor dataRowProcessor = (DataRowProcessor)rowProcessor;
-		        		dataRowProcessor.getValueSetWorkMap().put(task.getValueSet(), task.getWork());
-		        	}
-	        		 storeAccess.processRows();
-	        	}
+		for(Integer primDim: primaryDimTasksMap.keySet()){
+			storeAccess = dataStore.getStoreAccess(primDim);
+			for(TaskEntity task : primaryDimTasksMap.get(primDim)){
+				RowProcessor rowProcessor = dimensionsRowProcessorMap.get(task.getWork().getDimensions());
+				if(rowProcessor == null){
+					valueSetWorkMap = new HashMap<>();
+					rowProcessor = new DataRowProcessor(dynamicMarshal,valueSetWorkMap,task.getWork().getDimensions());
+					dimensionsRowProcessorMap.put(task.getWork().getDimensions(), rowProcessor);
+					storeAccess.addRowProcessor(rowProcessor);
+					rowProcessors.add(rowProcessor);
+				}
+				valueSetWorkMap.put(task.getValueSet(), task.getWork());
+			}
+			 storeAccess.processRows();
+		}
         rowProcessors.forEach(RowProcessor::finishUp);
         LOGGER.info("BATCH COMPLETION TIME {} ms",(System.currentTimeMillis()-startTime));
 }

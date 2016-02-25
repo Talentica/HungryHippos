@@ -29,10 +29,6 @@ public class DataRowProcessor implements RowProcessor {
 
 	Object[] values = null;
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
-		this.dynamicMarshal = dynamicMarshal;
-		executionContext = new ExecutionContextImpl(dynamicMarshal);
-	}
 
 	public void setJob(JobEntity jobEntity) {
 		this.jobEntity = jobEntity;

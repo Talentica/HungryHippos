@@ -55,10 +55,10 @@ public class DataRowProcessor implements RowProcessor {
 		}
 		ValueSet valueSet = new ValueSet(keys, values);
 		Work work = valueSetWorkMap.get(valueSet);
-			if (work != null){
-				executionContext.setData(row);
-				work.processRow(executionContext);
-			}
+		if (work != null){
+			executionContext.setData(row);
+			work.processRow(executionContext);
+		}
 	}
 
 	@Override
@@ -83,15 +83,15 @@ public class DataRowProcessor implements RowProcessor {
 		}
 		ValueSet valueSet = new ValueSet(keys, values);
 		TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
-			if (taskEntity == null) {
-				Work work = this.jobEntity.getJob().createNewWork();
-				taskEntity = new TaskEntity();
-				taskEntity.setWork(work);
-				taskEntity.setJobEntity(this.jobEntity);
-				taskEntity.setValueSet(valueSet);
-				valueSetTaskEntityMap.put(valueSet, taskEntity);
-			}
-			taskEntity.incrRowCount();
+		if (taskEntity == null) {
+			Work work = this.jobEntity.getJob().createNewWork();
+			taskEntity = new TaskEntity();
+			taskEntity.setWork(work);
+			taskEntity.setJobEntity(this.jobEntity);
+			taskEntity.setValueSet(valueSet);
+			valueSetTaskEntityMap.put(valueSet, taskEntity);
+		}
+		taskEntity.incrRowCount();
 	}
 
 	public HashMap<ValueSet, TaskEntity> getWorkerValueSet() {

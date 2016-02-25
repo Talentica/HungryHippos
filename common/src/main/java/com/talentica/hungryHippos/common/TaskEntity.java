@@ -19,7 +19,7 @@ public class TaskEntity implements Serializable {
 	private static int counter = 0;
 	private JobEntity jobEntity;
 	private Work work;
-	private Integer rowCount;
+	private int rowCount;
 	private ValueSet valueSet;
 	
 	public TaskEntity(){
@@ -32,7 +32,7 @@ public class TaskEntity implements Serializable {
 	public void setWork(Work work) {
 		this.work = work;
 	}
-	public Integer getRowCount() {
+	public int getRowCount() {
 		return rowCount;
 	}
 	

@@ -91,8 +91,8 @@ public class JobRunner implements Serializable {
 					storeAccess.addRowProcessor(rowProcessor);
 					rowProcessors.add(rowProcessor);
 				}
-				DataRowProcessor dataRowProcessor = (DataRowProcessor) rowProcessor;
-				dataRowProcessor.getValueSetWorkMap().put(task.getValueSet(), task.getWork());
+
+				valueSetWorkMap.put(task.getValueSet(), task.getWork());
 			}
 			storeAccess.processRows();
 		}

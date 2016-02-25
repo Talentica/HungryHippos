@@ -38,7 +38,6 @@ public class JobRunner implements Serializable{
 
     private Map<Integer,List<JobEntity>> primaryDimJobsMap = new HashMap<>();
     private Map<Integer,List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
-    private Map<IntArrayKeyHashMap,RowProcessor> dimensionsRowProcessorMap = new HashMap<IntArrayKeyHashMap,RowProcessor>();
 
     public void addJob(JobEntity jobEntity){
         jobEntities.add(jobEntity);
@@ -123,7 +122,6 @@ public class JobRunner implements Serializable{
 		primaryDimJobsMap.clear();
 		primaryDimTasksMap.clear();
 		taskEntities.clear();
-		dimensionsRowProcessorMap.clear();
     }
     
 

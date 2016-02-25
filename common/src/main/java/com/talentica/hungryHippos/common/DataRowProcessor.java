@@ -1,7 +1,9 @@
 package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
@@ -19,7 +21,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
+	private HashMap<ValueSet, List<Work>> valueSetWorksMap = new HashMap<ValueSet, List<Work>>();
 
 	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
 
@@ -29,42 +31,55 @@ public class DataRowProcessor implements RowProcessor {
 
 	Object[] values = null;
 
+	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
+		this.dynamicMarshal = dynamicMarshal;
+		executionContext = new ExecutionContextImpl(dynamicMarshal);
+	}
 
 	public void setJob(JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
 		this.keys = this.jobEntity.getJob().getDimensions();
+		values = new Object[keys.length];
 		valueSetTaskEntityMap.clear();
-		valueSetWorkMap.clear();
+		valueSetWorksMap.clear();
 	}
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, HashMap<ValueSet, Work> valueSetWorkMap,int[] dimensions) {
+	public DataRowProcessor(DynamicMarshal dynamicMarshal,int[] dimensions) {
 		this.dynamicMarshal = dynamicMarshal;
-		this.valueSetWorkMap = valueSetWorkMap;
 		this.keys = dimensions;
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
 		values = new Object[keys.length];
 	}
+	public void putReducer(ValueSet valueSet, Work work){
+		List<Work> works = this.valueSetWorksMap.get(valueSet);
+		if(works == null){
+			works = new ArrayList<Work>();
+			this.valueSetWorksMap.put(valueSet, works);
+		}
+		works.add(work);
+	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-
 		for (int i = 0; i < keys.length; i++) {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;
 		}
 		ValueSet valueSet = new ValueSet(keys, values);
-		Work work = valueSetWorkMap.get(valueSet);
-		if (work != null){
-			executionContext.setData(row);
-			work.processRow(executionContext);
+		List<Work> works = valueSetWorksMap.get(valueSet);
+		executionContext.setData(row);
+		for (Work work : works) {
+			if (work != null)work.processRow(executionContext);
 		}
 	}
 
 	@Override
 	public void finishUp() {
-		for (Map.Entry<ValueSet, Work> e : valueSetWorkMap.entrySet()) {
+		for (Map.Entry<ValueSet, List<Work>> e : valueSetWorksMap.entrySet()) {
 			executionContext.setKeys(e.getKey());
-			e.getValue().calculate(executionContext);
+			for(Work work : e.getValue()){
+				work.calculate(executionContext);
+			}
 		}
 	}
 
@@ -95,10 +110,6 @@ public class DataRowProcessor implements RowProcessor {
 
 	public HashMap<ValueSet, TaskEntity> getWorkerValueSet() {
 		return valueSetTaskEntityMap;
-	}
-
-	public HashMap<ValueSet, Work> getValueSetWorkMap() {
-		return valueSetWorkMap;
 	}
 
 }

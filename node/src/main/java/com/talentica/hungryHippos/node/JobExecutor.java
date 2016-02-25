@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.common.JobRunner;
@@ -83,9 +81,10 @@ public class JobExecutor {
 				if(isDimsProcessed(processedDims,jobEntity)) continue; // if this dimensions is processed then skip. 
 				processedDims.add(jobEntity.getJob().getDimensions());
 				jobRunner.addJobs(jobEntity);
-				
 				long startTimeRowCount = System.currentTimeMillis();
-				jobRunner.doRowCount(); 
+				LOGGER.info("ROW COUNTS STARTED");
+				jobRunner.doRowCount();
+				LOGGER.info("ROW COUNTS ENDED");
 				totalTileElapsedInRowCount = totalTileElapsedInRowCount + (System.currentTimeMillis()-startTimeRowCount);
 				
 				taskEntities = jobRunner.getWorkEntities();

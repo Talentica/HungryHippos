@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.ValueSet;
-import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
@@ -40,8 +38,7 @@ public class JobRunner implements Serializable{
 
     private Map<Integer,List<JobEntity>> primaryDimJobsMap = new HashMap<>();
     private Map<Integer,List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
-    private Map<int[],RowProcessor> dimensionsRowProcessorMap = new HashMap<int[],RowProcessor>();
-    private HashMap<ValueSet, Work> valueSetWorkMap = new HashMap<>();
+    private Map<IntArrayKeyHashMap,RowProcessor> dimensionsRowProcessorMap = new HashMap<IntArrayKeyHashMap,RowProcessor>();
 
     public void addJob(JobEntity jobEntity){
         jobEntities.add(jobEntity);
@@ -74,25 +71,21 @@ public class JobRunner implements Serializable{
     	LOGGER.info("BATCH EXECUTION STARTED FOR BATCH SIZE {}",taskEntities.size());
     	long startTime = System.currentTimeMillis();
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-        List<RowProcessor> rowProcessors = new LinkedList<>();
+        RowProcessor rowProcessor = null;
         StoreAccess storeAccess = null;
-		for(Integer primDim: primaryDimTasksMap.keySet()){
-			storeAccess = dataStore.getStoreAccess(primDim);
-			for(TaskEntity task : primaryDimTasksMap.get(primDim)){
-				RowProcessor rowProcessor = dimensionsRowProcessorMap.get(task.getWork().getDimensions());
-				if(rowProcessor == null){
-					valueSetWorkMap = new HashMap<>();
-					rowProcessor = new DataRowProcessor(dynamicMarshal,valueSetWorkMap,task.getWork().getDimensions());
-					dimensionsRowProcessorMap.put(task.getWork().getDimensions(), rowProcessor);
-					storeAccess.addRowProcessor(rowProcessor);
-					rowProcessors.add(rowProcessor);
-				}
-				DataRowProcessor dataRowProcessor = (DataRowProcessor)rowProcessor;
-				dataRowProcessor.getValueSetWorkMap().put(task.getValueSet(), task.getWork());
-			}
-			 storeAccess.processRows();
-		}
-        rowProcessors.forEach(RowProcessor::finishUp);
+	        	for(Integer primDim: primaryDimTasksMap.keySet()){
+	        		storeAccess = dataStore.getStoreAccess(primDim);
+		        	for(TaskEntity task : primaryDimTasksMap.get(primDim)){
+		        		if(rowProcessor == null ){
+		        			rowProcessor = new DataRowProcessor(dynamicMarshal,task.getWork().getDimensions());
+		        			storeAccess.addRowProcessor(rowProcessor);
+		        		}
+		        		DataRowProcessor dataRowProcessor = (DataRowProcessor)rowProcessor;
+		        		dataRowProcessor.putReducer(task.getValueSet(), task.getWork());
+		        	}
+	        		 storeAccess.processRows();
+	        	}
+	    rowProcessor.finishUp();
         LOGGER.info("BATCH COMPLETION TIME {} ms",(System.currentTimeMillis()-startTime));
 }
     
@@ -102,7 +95,6 @@ public class JobRunner implements Serializable{
      * @return Map<Integer, JobEntity>
      */
     public void doRowCount() {
-		LOGGER.info("ROW COUNTS STARTED");
 		long startTime = System.currentTimeMillis();
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		for (Integer primDim : primaryDimJobsMap.keySet()) {
@@ -114,15 +106,15 @@ public class JobRunner implements Serializable{
 				storeAccess.processRowCount();
 				for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet().values()) {
 					taskEntities.add(taskEntity);
-					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+					/*LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
 							taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 							taskEntity.getRowCount(),
-							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
+							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));*/
 				}
 			}
 		}
 		long endTime = System.currentTimeMillis();
-		LOGGER.info("TIME TAKEN FOR ABOVE JOB {} ms", (endTime - startTime));
+		LOGGER.info("TIME TAKEN FOR ABOVE JOB FOR ROW COUNT {} ms", (endTime - startTime));
 	}
 
     
@@ -138,7 +130,6 @@ public class JobRunner implements Serializable{
 		primaryDimTasksMap.clear();
 		taskEntities.clear();
 		dimensionsRowProcessorMap.clear();
-		valueSetWorkMap.clear();
     }
     
 

@@ -29,7 +29,7 @@ public class ValueSet implements Serializable {
 			return false;
 		ValueSet valueSet = (ValueSet) o;
 		// Probably incorrect - comparing Object[] arrays with Arrays.equals
-		return Arrays.equals(values, valueSet.values);
+		return Arrays.equals(values, valueSet.values) & Arrays.equals(keyIndexes, valueSet.keyIndexes);
 	}
 
 	public Object[] getValues() {

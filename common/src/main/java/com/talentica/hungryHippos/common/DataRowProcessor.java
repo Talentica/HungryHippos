@@ -27,6 +27,8 @@ public class DataRowProcessor implements RowProcessor {
 
 	private int[] keys;
 
+	Object[] values = null;
+
 	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
 		this.dynamicMarshal = dynamicMarshal;
 		executionContext = new ExecutionContextImpl(dynamicMarshal);
@@ -44,11 +46,12 @@ public class DataRowProcessor implements RowProcessor {
 		this.valueSetWorkMap = valueSetWorkMap;
 		this.keys = dimensions;
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
+		values = new Object[keys.length];
 	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-		Object[] values = new Object[keys.length];
+
 		for (int i = 0; i < keys.length; i++) {
 			Object v = dynamicMarshal.readValue(keys[i], row);
 			values[i] = v;

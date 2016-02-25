@@ -91,7 +91,7 @@ public class JobExecutor {
 				taskEntities = jobRunner.getWorkEntities();
 				if(taskEntities.size() == 0) continue;	// if no reducers, just skip.
 				Iterator<JobEntity> oldJobitr = totalJobEntities.iterator();
-				List<TaskEntity> tasksEntityByIndex = new ArrayList<>(); 
+				List<TaskEntity> tasksEntityForDiffIndex = new ArrayList<>(); 
 				while(oldJobitr.hasNext()) { // To find the jobs having reducers on the same dimensions.
 					JobEntity oldJobEntity = oldJobitr.next();
 					Iterator<TaskEntity> tasksPerJobItr = taskEntities.iterator();
@@ -101,21 +101,19 @@ public class JobExecutor {
 								Work work = oldJobEntity.getJob().createNewWork();
 								TaskEntity newTaskEntity = (TaskEntity) takEntity.clone();
 								newTaskEntity.setWork(work);
-								newTaskEntity.setValueSet(takEntity.getValueSet());
 								newTaskEntity.setJobEntity(oldJobEntity);
-								newTaskEntity.setRowCount(takEntity.getRowCount());
-								tasksEntityByIndex.add(newTaskEntity);
+								tasksEntityForDiffIndex.add(newTaskEntity);
 							}
 						}
 					}
-					taskEntities.addAll(tasksEntityByIndex);
+					taskEntities.addAll(tasksEntityForDiffIndex);
 					LOGGER.info("SIZE OF WORKENTITIES {}", taskEntities.size());
 					LOGGER.info("JOB RUNNER MATRIX STARTED");
 					runJobMatrix(jobRunner, taskEntities);
 					LOGGER.info("FINISHED JOB RUNNER MATRIX");
 					jobRunner.clear();
 					taskEntities.clear();
-					tasksEntityByIndex.clear();
+					tasksEntityForDiffIndex.clear();
 				}
 					String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 							+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();

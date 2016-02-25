@@ -62,16 +62,12 @@ public class Node implements Serializable,Comparable<Node>{
     }
 
     public void fillUpBy(long value) throws NodeOverflowException{
-        if(value>remainingCapacity){
-            //throw new NodeOverflowException("Node "+nodeId+" ran out of capacity");
-        }else{
             remainingCapacity-=value;
-        }
     }
 
     @Override
     public String toString() {
-		return "Node{" + nodeId + "}";
+		return "Node{" + nodeId + " And remainingCapacity "+ remainingCapacity +"}";
     }
 
 	@Override

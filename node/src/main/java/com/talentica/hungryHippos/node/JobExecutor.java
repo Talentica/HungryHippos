@@ -6,7 +6,10 @@ package com.talentica.hungryHippos.node;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -56,10 +60,11 @@ public class JobExecutor {
 	private static DataStore dataStore;
 
 	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-
+	
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
+			long totalTileElapsedInRowCount = 0l;
 			validateArguments(args);
 			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup();
@@ -68,27 +73,71 @@ public class JobExecutor {
 			CountDownLatch signal = new CountDownLatch(1);
 			waitForStartRowCountSignal(signal);
 			signal.await();
-			List<JobEntity> jobEntities = getJobsFromZKNode();
-			for (JobEntity jobEntity : jobEntities) {
+			List<TaskEntity> taskEntities;
+			List<JobEntity> totalJobEntities = getJobsFromZKNode();
+			Iterator<JobEntity> itrTotalJobEntity = totalJobEntities.iterator();
+			List<int[]> processedDims = new ArrayList<>();
+			while(itrTotalJobEntity.hasNext()) {   // This while is for each job to execute sequentially.
+				JobEntity jobEntity = itrTotalJobEntity.next();
+				itrTotalJobEntity.remove();
+				if(isDimsProcessed(processedDims,jobEntity)) continue; // if this dimensions is processed then skip. 
+				processedDims.add(jobEntity.getJob().getDimensions());
 				jobRunner.addJobs(jobEntity);
-				jobRunner.doRowCount();
-				List<TaskEntity> workEntities = jobRunner.getWorkEntities();
-				LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
-				runJobMatrix(jobRunner, workEntities);
-				jobRunner.clear();
-			}
-			jobEntities.clear();
-			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-			nodesManager.createEphemeralNode(buildStartPath, null);
-			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
+				
+				long startTimeRowCount = System.currentTimeMillis();
+				jobRunner.doRowCount(); 
+				totalTileElapsedInRowCount = totalTileElapsedInRowCount + (System.currentTimeMillis()-startTimeRowCount);
+				
+				taskEntities = jobRunner.getWorkEntities();
+				if(taskEntities.size() == 0) continue;	// if no reducers, just skip.
+				Iterator<JobEntity> oldJobitr = totalJobEntities.iterator();
+				List<TaskEntity> tasksEntityForDiffIndex = new ArrayList<>(); 
+				while(oldJobitr.hasNext()) { // To find the jobs having reducers on the same dimensions.
+					JobEntity oldJobEntity = oldJobitr.next();
+					Iterator<TaskEntity> tasksPerJobItr = taskEntities.iterator();
+					while(tasksPerJobItr.hasNext()) { // Identify the reducers and create the another reducer for different for same dimension BUT different for index.
+						TaskEntity takEntity = tasksPerJobItr.next();
+							if (Arrays.equals(oldJobEntity.getJob().getDimensions(),takEntity.getJobEntity().getJob().getDimensions())) {
+								Work work = oldJobEntity.getJob().createNewWork();
+								TaskEntity newTaskEntity = (TaskEntity) takEntity.clone();
+								newTaskEntity.setWork(work);
+								newTaskEntity.setJobEntity(oldJobEntity);
+								tasksEntityForDiffIndex.add(newTaskEntity);
+							}
+						}
+					}
+					taskEntities.addAll(tasksEntityForDiffIndex);
+					LOGGER.info("SIZE OF WORKENTITIES {}", taskEntities.size());
+					LOGGER.info("JOB RUNNER MATRIX STARTED");
+					runJobMatrix(jobRunner, taskEntities);
+					LOGGER.info("FINISHED JOB RUNNER MATRIX");
+					jobRunner.clear();
+					taskEntities.clear();
+					tasksEntityForDiffIndex.clear();
+				}
+					String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
+							+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
+					nodesManager.createEphemeralNode(buildStartPath, null);
+			LOGGER.info("TOTAL TIME TAKEN TO RUN ALL JOBS {} ms",(System.currentTimeMillis()-startTime));
+			LOGGER.info("TOTAL TIME TAKEN FOR ROW COUNTS OF ALL JOBS {} ms",totalTileElapsedInRowCount);
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}
 	}
 
+	private static boolean isDimsProcessed(List<int[]> processedDims,JobEntity jobEntity){
+		boolean dimsProcessed = false;
+		Iterator<int[]> dimsItr = processedDims.iterator();
+		while(dimsItr.hasNext()){
+			int[] dims = dimsItr.next();
+			if(Arrays.equals(dims,jobEntity.getJob().getDimensions())){
+				dimsProcessed = true;
+				break;
+			}
+		}
+		return dimsProcessed;
+	}
 	/**
 	 * To validate the argument command line.
 	 * 
@@ -113,8 +162,6 @@ public class JobExecutor {
 	 * @throws Exception
 	 */
 	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities) throws Exception {
-		Stopwatch timer = new Stopwatch().start();
-		LOGGER.info("STARTING JOB RUNNER MATRIX");
 		List<TaskEntity> taskEntities = new ArrayList<>();
 		taskEntities.addAll(workEntities);
 		jobRunner.clear();
@@ -135,8 +182,6 @@ public class JobExecutor {
 			jobRunner.run();
 			jobRunner.clear();
 		}
-		timer.stop();
-		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
 		return true;
 	}
 

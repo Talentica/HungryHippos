@@ -55,4 +55,9 @@ public class MedianJob implements Job,Serializable{
 		return super.toString();
 	}
 
+	@Override
+	public int getIndex() {
+		return valueIndex;
+	}
+
 }

@@ -193,7 +193,7 @@ public class NodesManager implements Watcher {
 						switch (KeeperException.Code.get(rc)) {
 						case CONNECTIONLOSS:
 							try {
-								createPersistentNode(path, signal, data);
+								createNode(path, signal,createMode, data);
 							} catch (IOException e) {
 								LOGGER.warn("Unable to redirect to create node");
 							}
@@ -374,7 +374,7 @@ public class NodesManager implements Watcher {
 	        String fullPath = buildMonitorPathForServer(name);
 	        Stat stat = new Stat();
 	        byte[] data = zk.getData(fullPath, this, stat);
-	        if(data.length == 0){
+	        if(data==null || data.length == 0){
 				return null;
 			}
 			Server server = serverNameMap.get(name);

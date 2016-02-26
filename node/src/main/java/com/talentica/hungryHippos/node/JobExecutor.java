@@ -75,7 +75,7 @@ public class JobExecutor {
 			List<JobEntity> totalJobEntities = getJobsFromZKNode();
 			Iterator<JobEntity> itrTotalJobEntity = totalJobEntities.iterator();
 			List<int[]> processedDims = new ArrayList<>();
-			while(itrTotalJobEntity.hasNext()) {   // This while is for each job to execute sequentially.
+			while(itrTotalJobEntity.hasNext()) {   // This while loop is for each job to execute sequentially.
 				JobEntity jobEntity = itrTotalJobEntity.next();
 				itrTotalJobEntity.remove();
 				if(isDimsProcessed(processedDims,jobEntity)) continue; // if this dimensions is processed then skip. 

@@ -13,13 +13,13 @@ import com.talentica.hungryHippos.utility.JobEntity;
  * @author PooshanS
  *
  */
-public class TaskEntity implements Serializable {
+public class TaskEntity implements Serializable,Cloneable {
 	private static final long serialVersionUID = 1L;
 	private int taskId = 0;
 	private static int counter = 0;
 	private JobEntity jobEntity;
 	private Work work;
-	private Integer rowCount;
+	private int rowCount;
 	private ValueSet valueSet;
 	
 	public TaskEntity(){
@@ -32,7 +32,7 @@ public class TaskEntity implements Serializable {
 	public void setWork(Work work) {
 		this.work = work;
 	}
-	public Integer getRowCount() {
+	public int getRowCount() {
 		return rowCount;
 	}
 	
@@ -58,5 +58,13 @@ public class TaskEntity implements Serializable {
 	public void incrRowCount(){
 		rowCount++;
 	}
+	
+	public void setRowCount(int rowCount){
+		this.rowCount = rowCount;
+	}
+	
+	public Object clone()throws CloneNotSupportedException{  
+	      return (TaskEntity)super.clone();  
+	   }
 }
 

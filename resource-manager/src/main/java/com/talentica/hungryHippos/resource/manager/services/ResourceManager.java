@@ -19,7 +19,8 @@ public interface ResourceManager {
 	 * allocate resources to in corresponding iteration so that resource
 	 * consumers do not end up unavailable resources.
 	 */
-	public Map<Integer, List<ResourceConsumer>> getIterationWiseResourceConsumersToAllocateResourcesTo(Long availableDiskSize,
+	public Map<Integer, List<ResourceConsumer>> getIterationWiseResourceConsumersToAllocateResourcesTo(
+			Long availableDiskSize,
 			Long availableRam, final List<ResourceConsumer> resourceConsumers);
 
 }

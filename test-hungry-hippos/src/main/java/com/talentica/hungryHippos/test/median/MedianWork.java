@@ -37,15 +37,4 @@ public class MedianWork implements Work,Serializable {
 		executionContext.saveValue(valueIndex, MedianCalculator.calculate(values));
 	}
 
-    @Override
-	public int[] getDimensions() {
-		return dimensions;
-	}
-
-
-	@Override
-	public int getPrimaryDimension() {
-		return primaryDimension;
-	}
-
 }

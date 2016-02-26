@@ -28,6 +28,12 @@ public class MutableCharArrayStringTest {
 	@Test
 	public void testHashCode() {
 		Assert.assertEquals(stringL1.hashCode(), stringL2.hashCode());
+		MutableCharArrayString stringForHashCode = new MutableCharArrayString(3);
+		stringForHashCode.addCharacter('t');
+		stringForHashCode.addCharacter('e');
+		stringForHashCode.addCharacter('s');
+		int hashcode = stringForHashCode.hashCode();
+		Assert.assertTrue(hashcode >= 0);
 	}
 
 	@Test

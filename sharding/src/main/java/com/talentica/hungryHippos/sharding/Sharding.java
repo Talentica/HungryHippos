@@ -160,7 +160,7 @@ public class Sharding {
 					Long frequency = keyValueFrequency.getFrequency();
 					if (frequency > idealAverageSizeOfOneBucket) {
 						sizeOfCurrentBucket = frequency;
-						LOGGER.debug(
+						LOGGER.info(
 								"Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
 								new Object[] { keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket });
 					}

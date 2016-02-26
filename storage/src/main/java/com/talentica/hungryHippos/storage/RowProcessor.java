@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.storage;
 
 import java.nio.ByteBuffer;
 
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 /**

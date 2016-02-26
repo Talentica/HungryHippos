@@ -5,5 +5,5 @@ cat ./../../utility/src/main/resources/serverConfigFile.properties|awk -F":" '{p
 for node in `cat node_ips_list.txt`
 do
    echo "Stopping HungryHippos node $node"
-   ssh -o StrictHostKeyChecking=no root@$node "pkill -9 java"
+   ssh -o StrictHostKeyChecking=no root@$node "ps -ef| grep talentica.hungryHippos|awk -F" " '{print $2}' > hungryhippos_java_processes_to_kill.txt;"
 done

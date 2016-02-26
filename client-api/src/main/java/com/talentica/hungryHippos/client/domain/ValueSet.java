@@ -21,6 +21,11 @@ public class ValueSet implements Serializable {
 		setValues(values);
 	}
 
+	public ValueSet(int[] keyIndexes) {
+		this.keyIndexes = keyIndexes;
+		this.values = new Object[keyIndexes.length];
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -40,12 +45,15 @@ public class ValueSet implements Serializable {
 		this.values = values;
 		if (values != null) {
 			for (int i = 0; i < values.length; i++) {
-				if (values[i] instanceof MutableCharArrayString) {
-					this.values[i] = ((MutableCharArrayString) values[i]).clone();
-				}
+				setValue(values[i], i);
 			}
 		}
+	}
 
+	public void setValue(Object value, int index) {
+		if (value instanceof MutableCharArrayString) {
+			this.values[index] = ((MutableCharArrayString) value).clone();
+		}
 	}
 
 	@Override

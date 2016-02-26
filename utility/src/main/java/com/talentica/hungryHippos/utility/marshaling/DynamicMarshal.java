@@ -55,7 +55,7 @@ public class DynamicMarshal implements Serializable {
 			byte ch = source.get(i);
 			charArrayString.addCharacter((char) ch);
 		}
-		return charArrayString.clone();
+		return charArrayString;
 	}
 
 	public void writeValue(int index, Object object, ByteBuffer dest) {

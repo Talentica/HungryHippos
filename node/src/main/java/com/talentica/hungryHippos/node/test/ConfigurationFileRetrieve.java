@@ -38,7 +38,7 @@ public class ConfigurationFileRetrieve {
 	
 	@Before
 	public void setUp() throws Exception{
-		Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		(nodesManager = ServerHeartBeat.init()).startup();
 		keyToValueToBucketMap = new HashMap<String, Map<Object, Bucket<KeyValueFrequency>>>();
 	}

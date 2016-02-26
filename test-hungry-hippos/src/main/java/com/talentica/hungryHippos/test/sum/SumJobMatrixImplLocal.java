@@ -6,7 +6,7 @@ import java.util.List;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 
-public class SumJobMatrixImpl implements JobMatrix {
+public class SumJobMatrixImplLocal implements JobMatrix {
 
 	@Override
 	public List<Job> getListOfJobsToExecute() {
@@ -27,8 +27,8 @@ public class SumJobMatrixImpl implements JobMatrix {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new SumJobMatrixImpl().getListOfJobsToExecute());
-		System.out.println(new SumJobMatrixImpl().getListOfJobsToExecute().size());
+		System.out.println(new SumJobMatrixImplLocal().getListOfJobsToExecute());
+		System.out.println(new SumJobMatrixImplLocal().getListOfJobsToExecute().size());
 	}
 
 }

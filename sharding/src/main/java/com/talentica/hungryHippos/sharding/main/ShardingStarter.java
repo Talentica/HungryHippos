@@ -21,7 +21,7 @@ public class ShardingStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());
@@ -43,7 +43,7 @@ public class ShardingStarter {
 	}
 
 	private static Reader getInputReaderForSharding() throws IOException {
-		final String inputFile = Property.getProperties().getProperty("input.file");
+		final String inputFile = Property.getPropertyValue("input.file").toString();
 		return new com.talentica.hungryHippos.utility.marshaling.FileReader(
 				inputFile);
 	}

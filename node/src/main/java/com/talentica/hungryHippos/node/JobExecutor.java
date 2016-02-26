@@ -64,7 +64,7 @@ public class JobExecutor {
 		try {
 			long startTime = System.currentTimeMillis();
 			validateArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup();
 			waitForStartRowCountSignal();
 			executeAllJobs();
@@ -236,7 +236,7 @@ public class JobExecutor {
 	 * @return Map<Integer, List<ResourceConsumer>>
 	 */
 	private static Map<Integer, List<ResourceConsumer>> getTasksOnPriority(List<TaskEntity> taskEntities) {
-		long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
+		long AVAILABLE_RAM = Long.valueOf(Property.getPropertyValue("node.available.ram").toString());
 		resourceManager = new ResourceManagerImpl();
 		ResourceConsumer resourceConsumer;
 		List<ResourceConsumer> resourceConsumers = new ArrayList<ResourceConsumer>();

@@ -26,15 +26,16 @@ public class Property {
 	private static InputStream CONFIG_FILE;
 	private static ClassLoader loader = Property.class.getClassLoader();
 	private static PROPERTIES_NAMESPACE namespace;
-	public static final String CONF_PROP_FILE = PropertyEnum.CONFIG.getPropertyFileName();
-	public static final String SERVER_CONF_FILE = PropertyEnum.SERVER_CONFIG.getPropertyFileName();
+	private static String environmentPropertiesPrefix;
+	private static Properties localEnvironmentServerproperties;
 	public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
+	
+	public static final String CONF_PROP_FILE = "config.properties";
+	public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
 
 	public enum PROPERTIES_NAMESPACE {
 
-		MASTER("master"), 
-		NODE("node"), 
-		COMMON("common");
+		MASTER("master"), NODE("node"), COMMON("common");
 
 		private String namespace;
 
@@ -72,6 +73,9 @@ public class Property {
 	}
 
 	public static Properties loadServerProperties() {
+		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
+			return localEnvironmentServerproperties;
+		}
 		if (serverProp == null) {
 			serverProp = new Properties();
 			try {
@@ -87,6 +91,9 @@ public class Property {
 
 	public static int getTotalNumberOfNodes() {
 		Properties serverProperties = Property.loadServerProperties();
+		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
+			return 1;
+		}
 		int totalNumberOfNodes = 0;
 		for (Object key : serverProperties.keySet()) {
 			if (StringUtils.startsWith(key.toString(), SERVER_CONFIGURATION_KEY_PREFIX)) {
@@ -96,30 +103,49 @@ public class Property {
 		return totalNumberOfNodes;
 	}
 
-	public static Object getPropertyValue(String propertyName) {
+	public static String getPropertyValue(String propertyName) {
 		Properties properties = getProperties();
 		if (namespace != null) {
-			Object propertyValue = properties.get(namespace.getNamespace() + "." + propertyName);
+			Object propertyValue = properties.get(environmentPropertiesPrefix+"."+namespace.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
-				return propertyValue;
+				return propertyValue.toString();
+			}
+			propertyValue = properties.get(namespace.getNamespace() + "." + propertyName);
+			if (propertyValue != null) {
+				return propertyValue.toString();
+			}
+			propertyValue = properties.get(environmentPropertiesPrefix + "."
+					+ PROPERTIES_NAMESPACE.COMMON.getNamespace() + "." + propertyName);
+			if (propertyValue != null) {
+				return propertyValue.toString();
 			}
 			propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
-				return propertyValue;
+				return propertyValue.toString();
 			}
 		}
-		return properties.get(propertyName);
+		Object propertyValue = properties.get(environmentPropertiesPrefix+"."+propertyName);
+		if(propertyValue!=null){
+			return propertyValue.toString();
+		}
+		return properties.get(propertyName).toString();
 	}
 
-	public static final void setNamespace(PROPERTIES_NAMESPACE appNamespace) {
+	public static final void initialize(PROPERTIES_NAMESPACE appNamespace) {
+		ENVIRONMENT.setCurrentEnvironment(getPropertyValue("environment").toString());
+		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
+			localEnvironmentServerproperties = new Properties();
+			localEnvironmentServerproperties.put(SERVER_CONFIGURATION_KEY_PREFIX + "0", "localhost:2324");
+		}
+		environmentPropertiesPrefix = ENVIRONMENT.getCurrentEnvironment().getConfigurationPropertiesPrefix();
 		namespace = appNamespace;
 	}
 
-	public static String[] getKeyOrder(){
+	public static String[] getKeyOrder() {
 		String keyOrderString = getPropertyValue("common.keyorder").toString();
 		return keyOrderString.split(",");
 	}
-	
+
 	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
 		String[] keyColumnNames = Property.getPropertyValue("common.column.names").toString().split(",");
 		String[] result = new String[keyIndexes.length];
@@ -128,6 +154,7 @@ public class Property {
 		}
 		return result;
 	}
+
 	public static void setOrOverrideConfigurationProperty(String key, String value) {
 		getProperties().setProperty(key, value);
 	}

@@ -26,7 +26,7 @@ public final class TaskPartitions {
 	private long availableRam;
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskPartitions.class.getName());
 	
-	public TaskPartitions(List<ResourceConsumer> resourceConsumers,long availableRam){
+	public TaskPartitions(List<ResourceConsumer> resourceConsumers, long availableRam) {
 		this.resourceConsumers = resourceConsumers;
 		this.availableRam = availableRam;
 	}

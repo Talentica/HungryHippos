@@ -72,7 +72,7 @@ public class JobExecutor {
 			for (JobEntity jobEntity : jobEntities) {
 				jobRunner.addJobs(jobEntity);
 				jobRunner.doRowCount();
-				List<TaskEntity> workEntities = jobRunner.getWorkEntities();
+				Map<Integer, TaskEntity> workEntities = jobRunner.getWorkEntities();
 				LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
 				runJobMatrix(jobRunner, workEntities);
 				jobRunner.clear();
@@ -112,29 +112,24 @@ public class JobExecutor {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private static boolean runJobMatrix(JobRunner jobRunner, List<TaskEntity> workEntities) throws Exception {
+	private static boolean runJobMatrix(JobRunner jobRunner, Map<Integer, TaskEntity> workEntities) throws Exception {
 		Stopwatch timer = new Stopwatch().start();
 		LOGGER.info("STARTING JOB RUNNER MATRIX");
-		List<TaskEntity> taskEntities = new ArrayList<>();
-		taskEntities.addAll(workEntities);
-		jobRunner.clear();
-		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(taskEntities).entrySet()) {
+		List<TaskEntity> listOfTaskEntities = new ArrayList<>();
+		listOfTaskEntities.addAll(workEntities.values());
+		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(listOfTaskEntities).entrySet()) {
 			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
 			for (ResourceConsumer consumer : entry.getValue()) {
-				for (TaskEntity taskEntity : taskEntities) {
-					if (taskEntity.getTaskId() == consumer.getResourceRequirement().getResourceId()) {
-						jobRunner.addTask(taskEntity);
-						taskEntities.remove(taskEntity);
-						LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
-								taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
-								taskEntity.getRowCount());
-						break;
-					}
-				}
+				Integer resourceId = consumer.getResourceRequirement().getResourceId();
+				TaskEntity taskEntity = workEntities.get(resourceId);
+				jobRunner.addTask(taskEntity);
+				workEntities.remove(resourceId);
+				LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
+						taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
+						taskEntity.getRowCount());
 			}
-			jobRunner.run();
-			jobRunner.clear();
 		}
+		jobRunner.run();
 		timer.stop();
 		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
 		return true;

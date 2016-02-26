@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.common;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +28,7 @@ public class JobRunner implements Serializable {
 	 */
 	private static final long serialVersionUID = -4793614653018059851L;
 	private List<JobEntity> jobEntities = new LinkedList<>();
-	private List<TaskEntity> taskEntities = new ArrayList<TaskEntity>();
+	private Map<Integer, TaskEntity> taskIdToTaskEntitiesMap = new HashMap<Integer, TaskEntity>();
 	private DataDescription dataDescription;
 	private DataStore dataStore;
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class.getName());
@@ -63,7 +62,7 @@ public class JobRunner implements Serializable {
 	}
 
 	public void addTask(TaskEntity taskEntity) {
-		taskEntities.add(taskEntity);
+		taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
 		Integer primDim = taskEntity.getWork().getPrimaryDimension();
 		List<TaskEntity> primDimList = primaryDimTasksMap.get(primDim);
 		if (primDimList == null) {
@@ -115,8 +114,8 @@ public class JobRunner implements Serializable {
 				LOGGER.info("WorkValueSet map size for primary dimension {} is {}",
 						new Object[] { primDim, rowProcessor.getWorkerValueSet().size() });
 				for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet().values()) {
-					taskEntities.add(taskEntity);
-					LOGGER.info("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+					taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
+					LOGGER.debug("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
 							taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
 							taskEntity.getRowCount(),
 							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
@@ -127,15 +126,15 @@ public class JobRunner implements Serializable {
 		LOGGER.info("TOTAL TIME TAKEN FOR ROW COUNTS OF ALL JOBS {} ms", (endTime - startTime));
 	}
 
-	public List<TaskEntity> getWorkEntities() {
-		return taskEntities;
+	public Map<Integer, TaskEntity> getWorkEntities() {
+		return taskIdToTaskEntitiesMap;
 	}
 
 	public void clear() {
 		jobEntities.clear();
 		primaryDimJobsMap.clear();
 		primaryDimTasksMap.clear();
-		taskEntities.clear();
+		taskIdToTaskEntitiesMap.clear();
 		dimensionsRowProcessorMap.clear();
 		valueSetWorkMap.clear();
 	}

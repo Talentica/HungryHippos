@@ -8,5 +8,5 @@ job_runner_ip=`cat ./node_pwd_file.txt|grep "job_runner_ip"|awk -F":" '{print $2
 for node in `echo $manager_node_ip`
 do
    echo "Stopping HungryHippos manager $node"
-   ssh -o StrictHostKeyChecking=no root@$node "killall java"
+   ssh -o StrictHostKeyChecking=no root@$node "pkill -9 java"
 done

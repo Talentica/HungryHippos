@@ -42,7 +42,7 @@ public class SumJob implements Job,Serializable{
     }
 
 	@Override
-	public long getMemoryFootprint(int rowCount) {
+	public long getMemoryFootprint(long rowCount) {
 		return 8;
 	}
 

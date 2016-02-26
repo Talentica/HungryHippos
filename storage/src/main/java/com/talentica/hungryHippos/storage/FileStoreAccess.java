@@ -113,4 +113,8 @@ public class FileStoreAccess implements StoreAccess {
 		}
 	}
 
+	public void clear() {
+		rowProcessors.clear();
+	}
+
 }

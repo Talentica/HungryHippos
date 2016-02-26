@@ -10,5 +10,5 @@ public interface Job {
     int[] getDimensions();
     int getPrimaryDimension();
     int getIndex();
-    long getMemoryFootprint(int rowCount);
+	long getMemoryFootprint(long rowCount);
 }

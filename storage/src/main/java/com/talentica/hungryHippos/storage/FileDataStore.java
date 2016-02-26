@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,8 @@ public class FileDataStore implements DataStore, Serializable {
 	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 	private OutputStream[] os;
 	private DataDescription dataDescription;
+
+	private Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
 
 	public static String DATA_FILE_BASE_NAME = "data" + File.separator + "data_";
 
@@ -62,7 +66,13 @@ public class FileDataStore implements DataStore, Serializable {
 
 	@Override
 	public StoreAccess getStoreAccess(int keyId) {
-		return new FileStoreAccess(DATA_FILE_BASE_NAME, keyId, numFiles, dataDescription);
+		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(keyId);
+		if (storeAccess == null) {
+			storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, keyId, numFiles, dataDescription);
+			primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
+		}
+		storeAccess.clear();
+		return storeAccess;
 	}
 
 	@Override

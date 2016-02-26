@@ -24,40 +24,23 @@ public class JobRunner implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -4793614653018059851L;
-	List<JobEntity> jobEntities = new LinkedList<>();
 	private Map<Integer, TaskEntity> taskIdToTaskEntitiesMap = new HashMap<Integer, TaskEntity>();
-	private DataDescription dataDescription;
 	private DataStore dataStore;
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(JobRunner.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class.getName());
+	private DynamicMarshal dynamicMarshal = null;
+	private DataRowProcessor rowProcessor = null;
 
 	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
-		this.dataDescription = dataDescription;
 		this.dataStore = dataStore;
+		dynamicMarshal = new DynamicMarshal(dataDescription);
+		rowProcessor = new DataRowProcessor(dynamicMarshal);
 	}
 
-	private Map<Integer, List<JobEntity>> primaryDimJobsMap = new HashMap<>();
 	private Map<Integer, List<TaskEntity>> primaryDimTasksMap = new HashMap<>();
-
-	public void addJob(JobEntity jobEntity) {
-		jobEntities.add(jobEntity);
-		Integer primDim = jobEntity.getJob().getPrimaryDimension();
-		List<JobEntity> primDimList = primaryDimJobsMap.get(primDim);
-		if (primDimList == null) {
-			primDimList = new LinkedList<>();
-			primaryDimJobsMap.put(primDim, primDimList);
-		}
-		primDimList.add(jobEntity);
-	}
-
-	public void addJobs(JobEntity jobEntity) {
-		addJob(jobEntity);
-	}
 
 	public void addTask(TaskEntity taskEntity) {
 		taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
-		Integer primDim = taskEntity.getJobEntity().getJob()
-				.getPrimaryDimension();
+		Integer primDim = taskEntity.getJobEntity().getJob().getPrimaryDimension();
 		List<TaskEntity> primDimList = primaryDimTasksMap.get(primDim);
 		if (primDimList == null) {
 			primDimList = new LinkedList<>();
@@ -67,15 +50,13 @@ public class JobRunner implements Serializable {
 	}
 
 	public void run() {
-		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		RowProcessor rowProcessor = null;
 		StoreAccess storeAccess = null;
 		for (Integer primDim : primaryDimTasksMap.keySet()) {
 			storeAccess = dataStore.getStoreAccess(primDim);
 			for (TaskEntity task : primaryDimTasksMap.get(primDim)) {
 				if (rowProcessor == null) {
-					rowProcessor = new DataRowProcessor(dynamicMarshal, task
-							.getJobEntity().getJob().getDimensions());
+					rowProcessor = new DataRowProcessor(dynamicMarshal, task.getJobEntity().getJob().getDimensions());
 					storeAccess.addRowProcessor(rowProcessor);
 				}
 				DataRowProcessor dataRowProcessor = (DataRowProcessor) rowProcessor;
@@ -92,41 +73,32 @@ public class JobRunner implements Serializable {
 	 * 
 	 * @return Map<Integer, JobEntity>
 	 */
-	public void doRowCount() {
-		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-		for (Integer primDim : primaryDimJobsMap.keySet()) {
-			StoreAccess storeAccess = dataStore.getStoreAccess(primDim);
-			DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal);
-			for (JobEntity jobEntity : primaryDimJobsMap.get(primDim)) {
-				rowProcessor.setJob(jobEntity);
-				storeAccess.addRowProcessor(rowProcessor);
-				storeAccess.processRowCount();
-				for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet()
-						.values()) {
-					taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
-					LOGGER.debug("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
-							"JOB ID {} AND ValueSet {} Index {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
-							taskEntity.getJobEntity().getJobId(),
-							taskEntity.getValueSet(),
-							taskEntity.getJobEntity().getJob().getIndex(),
-							taskEntity.getRowCount(),
-							taskEntity
-									.getJobEntity()
-									.getJob()
-									.getMemoryFootprint(
-											taskEntity.getRowCount()));
-				}
-			}
+	public void doRowCount(JobEntity jobToExecute) {
+		long startTimeRowCount = System.currentTimeMillis();
+		LOGGER.info("Row count for all jobs started");
+		int primaryDimension = jobToExecute.getJob().getPrimaryDimension();
+		StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimension);
+		rowProcessor.setJob(jobToExecute);
+		storeAccess.addRowProcessor(rowProcessor);
+		storeAccess.processRowCount();
+		for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet().values()) {
+			taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
+			LOGGER.debug("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+					"JOB ID {} AND ValueSet {} Index {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
+					taskEntity.getJobEntity().getJobId(), taskEntity.getValueSet(),
+					taskEntity.getJobEntity().getJob().getIndex(), taskEntity.getRowCount(),
+					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
 		}
+		long endTime = System.currentTimeMillis();
+		LOGGER.info("Row count for job: {} finished in {} ms",
+				new Object[] { jobToExecute, (endTime - startTimeRowCount) });
 	}
 
-	public Map<Integer, TaskEntity> getWorkEntities() {
+	public Map<Integer, TaskEntity> getTaskEntities() {
 		return taskIdToTaskEntitiesMap;
 	}
 
 	public void clear() {
-		jobEntities.clear();
-		primaryDimJobsMap.clear();
 		primaryDimTasksMap.clear();
 		taskIdToTaskEntitiesMap.clear();
 	}

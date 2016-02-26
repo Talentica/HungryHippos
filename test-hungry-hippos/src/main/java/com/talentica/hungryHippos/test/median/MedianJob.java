@@ -42,7 +42,7 @@ public class MedianJob implements Job,Serializable{
     }
 
 	@Override
-	public long getMemoryFootprint(int rowCount) {
+	public long getMemoryFootprint(long rowCount) {
 		return 58 * rowCount;
 	}
 

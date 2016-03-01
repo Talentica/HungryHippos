@@ -6,10 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
+import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -30,6 +34,9 @@ public class DataRowProcessor implements RowProcessor {
 	private int[] keys;
 
 	Object[] values = null;
+	
+	long startTime = System.currentTimeMillis();
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class.getName());
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
 		this.dynamicMarshal = dynamicMarshal;
@@ -90,6 +97,12 @@ public class DataRowProcessor implements RowProcessor {
 
 	@Override
 	public void processRowCount(ByteBuffer row) {
+		if((System.currentTimeMillis() - startTime)/(1000*60) == 1){
+			LOGGER.info("FREE SPACE AVAILABLE {} MB",MemoryStatus.getFreeMemory());
+			LOGGER.info("MAX SPACE AVAILABLE {} MB",MemoryStatus.getMaxMemory());
+			LOGGER.info("TOTAL SPACE AVAILABLE {} MB",MemoryStatus.getTotalmemory());
+			startTime = System.currentTimeMillis();
+		}
 		ValueSet valueSet = new ValueSet(keys);
 		for (int i = 0; i < keys.length; i++) {
 			Object value = dynamicMarshal.readValue(keys[i], row);

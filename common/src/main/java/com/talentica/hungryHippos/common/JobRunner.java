@@ -14,6 +14,7 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.utility.JobEntity;
+import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -74,6 +75,9 @@ public class JobRunner implements Serializable {
 	 * @return Map<Integer, JobEntity>
 	 */
 	public void doRowCount(JobEntity jobToExecute) {
+		LOGGER.info("FREE SPACE AVAILABLE {} MB",MemoryStatus.getFreeMemory());
+		LOGGER.info("MAX SPACE AVAILABLE {} MB",MemoryStatus.getMaxMemory());
+		LOGGER.info("TOTAL SPACE AVAILABLE {} MB",MemoryStatus.getTotalmemory());
 		long startTimeRowCount = System.currentTimeMillis();
 		LOGGER.info("Row count for all jobs started");
 		int primaryDimension = jobToExecute.getJob().getPrimaryDimension();

@@ -6,19 +6,34 @@ package com.talentica.hungryHippos.utility;
  *
  * @param <T>
  */
-class RedBlackNode<T extends Comparable<T>> {
+class RedBlackNode<T extends Comparable<T>, V> {
 
     public static final int BLACK = 0;
     public static final int RED = 1;
 	// the key of each node
-	public T key;
+	private T key;
+
+	private V value;
+
+	public T getKey() {
+		return key;
+	}
+
+	public void setKeyValue(T key, V value) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public V getValue() {
+		return value;
+	}
 
     /** Parent of node */
-    RedBlackNode<T> parent;
+	RedBlackNode<T, V> parent;
     /** Left child */
-    RedBlackNode<T> left;
+	RedBlackNode<T, V> left;
     /** Right child */
-    RedBlackNode<T> right;
+	RedBlackNode<T, V> right;
     // the number of elements to the left of each node
     public int numLeft = 0;
     // the number of elements to the right of each node
@@ -35,8 +50,9 @@ class RedBlackNode<T extends Comparable<T>> {
         right = null;
     }
 
-	RedBlackNode(T key){
+	RedBlackNode(T key, V value) {
         this();
+		this.value = value;
         this.key = key;
 	}
 }

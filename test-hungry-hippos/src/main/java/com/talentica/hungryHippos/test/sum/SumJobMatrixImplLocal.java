@@ -14,7 +14,7 @@ public class SumJobMatrixImplLocal implements JobMatrix {
 		for (int i = 0; i < 1; i++) {
 			for (int j = i + 1; j < 4; j++) {
 				for (int k = j + 2; k < 4; k++) {
-					jobList.add(new SumJob(new int[] { i, k }, i, 6));
+					jobList.add(new SumJob(new int[] { i, j }, i, 6));
 				}
 			}
 		}

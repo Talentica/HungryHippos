@@ -25,8 +25,6 @@ public class DataRowProcessor implements RowProcessor {
 
 	private HashMap<ValueSet, Work> valueSetWorksMap = new HashMap<ValueSet, Work>();
 
-	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
-
 	private JobEntity jobEntity;
 
 	private int[] keys;

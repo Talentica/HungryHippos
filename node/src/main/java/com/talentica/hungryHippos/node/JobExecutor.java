@@ -52,6 +52,8 @@ public class JobExecutor {
 
 	private static NodesManager nodesManager;
 
+	private static final Stopwatch STOPWATCH = new Stopwatch();
+
 	private static ResourceManager resourceManager;
 
 	private static DataStore dataStore;
@@ -71,11 +73,9 @@ public class JobExecutor {
 			signal.await();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
-				jobRunner.doRowCount(jobEntity);
-				Map<Integer, TaskEntity> workEntities = jobRunner.getTaskEntities();
-				LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
-				runJobMatrix(jobRunner, workEntities);
 				jobRunner.clear();
+				jobRunner.doRowCount(jobEntity);
+				runJobMatrix(jobRunner);
 			}
 			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
@@ -112,8 +112,11 @@ public class JobExecutor {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private static boolean runJobMatrix(JobRunner jobRunner, Map<Integer, TaskEntity> workEntities) throws Exception {
-		Stopwatch timer = new Stopwatch().start();
+	private static boolean runJobMatrix(JobRunner jobRunner) throws Exception {
+		Map<Integer, TaskEntity> workEntities = jobRunner.getTaskEntities();
+		LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
+		STOPWATCH.reset();
+		STOPWATCH.start();
 		LOGGER.info("STARTING JOB RUNNER MATRIX");
 		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(workEntities.values()).entrySet()) {
 			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
@@ -128,8 +131,8 @@ public class JobExecutor {
 			}
 		}
 		jobRunner.run();
-		timer.stop();
-		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (timer.elapsedMillis()));
+		STOPWATCH.stop();
+		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (STOPWATCH.elapsedMillis()));
 		return true;
 	}
 

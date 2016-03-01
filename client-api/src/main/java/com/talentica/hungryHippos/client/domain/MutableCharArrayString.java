@@ -6,7 +6,8 @@ import java.util.Arrays;
 /**
  * Created by debasishc on 29/9/15.
  */
-public class MutableCharArrayString implements CharSequence, Cloneable, Serializable {
+public class MutableCharArrayString
+		implements Comparable<MutableCharArrayString>, CharSequence, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -6085804645372631875L;
 	private char[] array;
@@ -50,15 +51,15 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 		return new String(Arrays.copyOf(array, stringLength));
 	}
 
-	public void addCharacter(char ch) {
+	public MutableCharArrayString addCharacter(char ch) {
 		array[stringLength] = ch;
 		stringLength++;
+		return this;
 	}
 
 	public void reset() {
 		stringLength = 0;
 	}
-
 
 	@Override
 	public MutableCharArrayString clone() {
@@ -105,5 +106,22 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 			mutableCharArrayString.addCharacter(character);
 		}
 		return mutableCharArrayString;
+	}
+
+	@Override
+	public int compareTo(MutableCharArrayString otherMutableCharArrayString) {
+		if (equals(otherMutableCharArrayString)) {
+			return 0;
+		}
+		if (stringLength != otherMutableCharArrayString.stringLength) {
+			return Integer.valueOf(stringLength).compareTo(otherMutableCharArrayString.stringLength);
+		}
+		for (int i = 0; i < stringLength; i++) {
+			if (array[i] == otherMutableCharArrayString.array[i]) {
+				continue;
+			}
+			return array[i] - otherMutableCharArrayString.array[i];
+		}
+		return 0;
 	}
 }

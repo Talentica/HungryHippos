@@ -6,7 +6,7 @@ import java.util.Arrays;
 /**
  * Created by debasishc on 9/9/15.
  */
-public class ValueSet implements Serializable {
+public class ValueSet implements Comparable<ValueSet>, Serializable {
 	/**
 	 * 
 	 */
@@ -14,16 +14,16 @@ public class ValueSet implements Serializable {
 
 	private int[] keyIndexes;
 
-	private Object[] values;
+	private Comparable[] values;
 
-	public ValueSet(int[] keyIndexes, Object[] values) {
+	public ValueSet(int[] keyIndexes, Comparable[] values) {
 		this.keyIndexes = keyIndexes;
 		setValues(values);
 	}
 
 	public ValueSet(int[] keyIndexes) {
 		this.keyIndexes = keyIndexes;
-		this.values = new Object[keyIndexes.length];
+		this.values = new Comparable[keyIndexes.length];
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class ValueSet implements Serializable {
 		return values;
 	}
 
-	public void setValues(Object[] values) {
+	public void setValues(Comparable[] values) {
 		this.values = values;
 		if (values != null) {
 			for (int i = 0; i < values.length; i++) {
@@ -82,5 +82,26 @@ public class ValueSet implements Serializable {
 		}
 		result.append("}");
 		return result.toString();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public int compareTo(ValueSet otherValueSet) {
+		if (equals(otherValueSet)) {
+			return 0;
+		}
+		if (values != null && otherValueSet.values != null) {
+			if (values.length != otherValueSet.values.length) {
+				return values.length - otherValueSet.values.length;
+			}
+
+			for (int i = 0; i < values.length; i++) {
+				if (values[i].equals(otherValueSet.values[i])) {
+					continue;
+				}
+				return values[i].compareTo(otherValueSet.values[i]);
+			}
+		}
+		return 0;
 	}
 }

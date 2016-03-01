@@ -17,12 +17,21 @@ import com.talentica.hungryHippos.utility.PathUtil;
  */
 public class FileStoreAccess implements StoreAccess {
 
+	private static String CANONICAL_PATH = null;
 	private List<RowProcessor> rowProcessors = new ArrayList<>();
 	private int keyId;
 	private int numFiles;
 	private String base;
 	private ByteBuffer byteBuffer = null;
 	private byte[] byteBufferBytes;
+
+	static {
+		try {
+			CANONICAL_PATH = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath();
+		} catch (IOException ioException) {
+			System.err.println(ioException.getMessage());
+		}
+	}
 
 	public FileStoreAccess(String base, int keyId, int numFiles, DataDescription dataDescription) {
 		this.keyId = keyId;
@@ -54,14 +63,13 @@ public class FileStoreAccess implements StoreAccess {
 	private void processRows(int fileId) throws IOException {
 		DataInputStream in = null;
 		try {
-			in = new DataInputStream(new FileInputStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
-			while (true) {
-				if (in.available() <= 0) {
-					break;
-				}
+			File dataFile = new File(CANONICAL_PATH + PathUtil.FORWARD_SLASH + base + fileId);
+			in = new DataInputStream(new FileInputStream(dataFile));
+			long dataFileSize = dataFile.length();
+			while (dataFileSize > 0) {
 				byteBuffer.clear();
 				in.readFully(byteBufferBytes);
+				dataFileSize = dataFileSize - byteBufferBytes.length;
 				for (RowProcessor p : rowProcessors) {
 					p.processRow(byteBuffer);
 				}
@@ -89,14 +97,14 @@ public class FileStoreAccess implements StoreAccess {
 	private void processRowCount(int fileId) throws FileNotFoundException, IOException {
 		DataInputStream in = null;
 		try {
-			in = new DataInputStream(new FileInputStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + base + fileId));
-			while (true) {
+			File dataFile = new File(CANONICAL_PATH + PathUtil.FORWARD_SLASH + base + fileId);
+			FileInputStream fileInputStream = new FileInputStream(dataFile);
+			long dataFileSize = dataFile.length();
+			in = new DataInputStream(fileInputStream);
+			while (dataFileSize > 0) {
 				byteBuffer.clear();
-				if (in.available() <= 0) {
-					break;
-				}
 				in.readFully(byteBufferBytes);
+				dataFileSize = dataFileSize - byteBufferBytes.length;
 				for (RowProcessor p : rowProcessors) {
 					p.processRowCount(byteBuffer);
 				}

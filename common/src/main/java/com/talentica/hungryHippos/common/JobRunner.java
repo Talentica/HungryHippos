@@ -84,14 +84,13 @@ public class JobRunner implements Serializable {
 		for (TaskEntity taskEntity : rowProcessor.getWorkerValueSet().values()) {
 			taskIdToTaskEntitiesMap.put(taskEntity.getTaskId(), taskEntity);
 			LOGGER.debug("JOB ID {} AND TASK ID {} AND ValueSet {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
-					"JOB ID {} AND ValueSet {} Index {} AND ROW COUNT {}  AND MEMORY FOOTPRINT {}",
-					taskEntity.getJobEntity().getJobId(), taskEntity.getValueSet(),
-					taskEntity.getJobEntity().getJob().getIndex(), taskEntity.getRowCount(),
-					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()));
+					new Object[] { taskEntity.getJobEntity().getJobId(), taskEntity.getValueSet(),
+							taskEntity.getJobEntity().getJob().getIndex(), taskEntity.getRowCount(),
+							taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()) });
 		}
 		long endTime = System.currentTimeMillis();
 		LOGGER.info("Row count for job: {} finished in {} ms",
-				new Object[] { jobToExecute, (endTime - startTimeRowCount) });
+				new Object[] { jobToExecute.getJobId(), (endTime - startTimeRowCount) });
 	}
 
 	public Map<Integer, TaskEntity> getTaskEntities() {

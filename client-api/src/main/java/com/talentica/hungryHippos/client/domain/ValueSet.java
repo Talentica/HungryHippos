@@ -58,7 +58,14 @@ public class ValueSet implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return Arrays.hashCode(values);
+		int h = 0;
+		int off = 0;
+		for (int i = 0; i < keyIndexes.length; i++) {
+			h = 31 * h + keyIndexes[off];
+			h = h + values[off].hashCode();
+			off++;
+		}
+		return h;
 	}
 
 	@Override

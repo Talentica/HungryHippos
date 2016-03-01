@@ -33,12 +33,16 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
 	@Override
 	public MutableCharArrayString subSequence(int start, int end) {
-		MutableCharArrayString newArray = new MutableCharArrayString(end - start);
+		MutableCharArrayString newArray = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(end - start);
+		copyCharacters(start, end, newArray);
+		newArray.stringLength = end - start;
+		return newArray;
+	}
+
+	private void copyCharacters(int start, int end, MutableCharArrayString newArray) {
 		for (int i = start, j = 0; i < end; i++, j++) {
 			newArray.array[j] = array[i];
 		}
-		newArray.stringLength = end - start;
-		return newArray;
 	}
 
 	@Override
@@ -58,7 +62,10 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
 	@Override
 	public MutableCharArrayString clone() {
-		return subSequence(0, stringLength);
+		MutableCharArrayString newArray = new MutableCharArrayString(stringLength);
+		copyCharacters(0, stringLength, newArray);
+		newArray.stringLength = stringLength;
+		return newArray;
 	}
 
 	@Override

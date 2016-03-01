@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -73,9 +72,7 @@ public class JobExecutor {
 			signal.await();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
-				jobRunner.clear();
-				jobRunner.doRowCount(jobEntity);
-				runJobMatrix(jobRunner);
+				jobRunner.run(jobEntity);
 			}
 			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
@@ -102,38 +99,6 @@ public class JobExecutor {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);
 		}
-	}
-
-	/**
-	 * To run the jobs for aggregation or other operations.
-	 * 
-	 * @param jobRunner
-	 * @param signal
-	 * @return boolean
-	 * @throws Exception
-	 */
-	private static boolean runJobMatrix(JobRunner jobRunner) throws Exception {
-		Map<Integer, TaskEntity> workEntities = jobRunner.getTaskEntities();
-		LOGGER.info("SIZE OF WORKENTITIES {}", workEntities.size());
-		STOPWATCH.reset();
-		STOPWATCH.start();
-		LOGGER.info("STARTING JOB RUNNER MATRIX");
-		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(workEntities.values()).entrySet()) {
-			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
-			for (ResourceConsumer consumer : entry.getValue()) {
-				Integer resourceId = consumer.getResourceRequirement().getResourceId();
-				TaskEntity taskEntity = workEntities.get(resourceId);
-				jobRunner.addTask(taskEntity);
-				workEntities.remove(resourceId);
-				LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
-						taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
-						taskEntity.getRowCount());
-			}
-		}
-		jobRunner.run();
-		STOPWATCH.stop();
-		LOGGER.info("TOTAL TIME TAKEN TO EXECUTE ALL TASKS {} ms", (STOPWATCH.elapsedMillis()));
-		return true;
 	}
 
 	/**

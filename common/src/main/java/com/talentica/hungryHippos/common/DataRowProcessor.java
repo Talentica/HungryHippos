@@ -1,9 +1,7 @@
 package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -25,7 +23,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private HashMap<ValueSet, List<Work>> valueSetWorksMap = new HashMap<ValueSet, List<Work>>();
+	private HashMap<ValueSet, Work> valueSetWorksMap = new HashMap<ValueSet, Work>();
 
 	private HashMap<ValueSet, TaskEntity> valueSetTaskEntityMap = new HashMap<>();
 
@@ -38,69 +36,20 @@ public class DataRowProcessor implements RowProcessor {
 	long startTime = System.currentTimeMillis();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class.getName());
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal) {
-		this.dynamicMarshal = dynamicMarshal;
-		executionContext = new ExecutionContextImpl(dynamicMarshal);
-	}
-
-	public void setJob(JobEntity jobEntity) {
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
-		this.keys = this.jobEntity.getJob().getDimensions();
-		values = new Object[keys.length];
-		valueSetTaskEntityMap.clear();
-		valueSetWorksMap.clear();
-	}
-
-	public DataRowProcessor(DynamicMarshal dynamicMarshal,int[] dimensions) {
 		this.dynamicMarshal = dynamicMarshal;
-		this.keys = dimensions;
+		this.keys = jobEntity.getJob().getDimensions();
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
 		values = new Object[keys.length];
-	}
-	public void putReducer(ValueSet valueSet, Work work){
-		List<Work> works = this.valueSetWorksMap.get(valueSet);
-		if(works == null){
-			works = new ArrayList<Work>();
-			this.valueSetWorksMap.put(valueSet, works);
-		}
-		works.add(work);
 	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-		ValueSet valueSet = new ValueSet(keys);
-		for (int i = 0; i < keys.length; i++) {
-			Object value = dynamicMarshal.readValue(keys[i], row);
-			valueSet.setValue(value, i);
-		}
-		List<Work> works = valueSetWorksMap.get(valueSet);
-		executionContext.setData(row);
-		for (Work work : works) {
-			if (work != null)work.processRow(executionContext);
-		}
-	}
-
-	@Override
-	public void finishUp() {
-		for (Map.Entry<ValueSet, List<Work>> e : valueSetWorksMap.entrySet()) {
-			executionContext.setKeys(e.getKey());
-			for(Work work : e.getValue()){
-				work.calculate(executionContext);
-			}
-		}
-	}
-
-	@Override
-	public JobEntity getJobEntity() {
-		return this.jobEntity;
-	}
-
-	@Override
-	public void processRowCount(ByteBuffer row) {
-		if((System.currentTimeMillis() - startTime)/(1000*60) == 1){
-			LOGGER.info("FREE SPACE AVAILABLE {} MB",MemoryStatus.getFreeMemory());
-			LOGGER.info("MAX SPACE AVAILABLE {} MB",MemoryStatus.getMaxMemory());
-			LOGGER.info("TOTAL SPACE AVAILABLE {} MB",MemoryStatus.getTotalmemory());
+		if ((System.currentTimeMillis() - startTime) / (1000 * 60) == 1) {
+			LOGGER.info("FREE SPACE AVAILABLE {} MB", MemoryStatus.getFreeMemory());
+			LOGGER.info("MAX SPACE AVAILABLE {} MB", MemoryStatus.getMaxMemory());
+			LOGGER.info("TOTAL SPACE AVAILABLE {} MB", MemoryStatus.getTotalmemory());
 			startTime = System.currentTimeMillis();
 		}
 		ValueSet valueSet = new ValueSet(keys);
@@ -108,20 +57,21 @@ public class DataRowProcessor implements RowProcessor {
 			Object value = dynamicMarshal.readValue(keys[i], row);
 			valueSet.setValue(value, i);
 		}
-		TaskEntity taskEntity = valueSetTaskEntityMap.get(valueSet);
-		if (taskEntity == null) {
-			Work work = this.jobEntity.getJob().createNewWork();
-			taskEntity = new TaskEntity();
-			taskEntity.setWork(work);
-			taskEntity.setJobEntity(this.jobEntity);
-			taskEntity.setValueSet(valueSet);
-			valueSetTaskEntityMap.put(valueSet, taskEntity);
+		Work work = valueSetWorksMap.get(valueSet);
+		if (work == null) {
+			work = jobEntity.getJob().createNewWork();
+			valueSetWorksMap.put(valueSet, work);
 		}
-		taskEntity.incrRowCount();
+		executionContext.setData(row);
+		work.processRow(executionContext);
 	}
 
-	public HashMap<ValueSet, TaskEntity> getWorkerValueSet() {
-		return valueSetTaskEntityMap;
+	@Override
+	public void finishUp() {
+		for (Map.Entry<ValueSet, Work> e : valueSetWorksMap.entrySet()) {
+			executionContext.setKeys(e.getKey());
+			e.getValue().calculate(executionContext);
+		}
 	}
 
 }

@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.storage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -72,41 +71,6 @@ public class FileStoreAccess implements StoreAccess {
 				dataFileSize = dataFileSize - byteBufferBytes.length;
 				for (RowProcessor p : rowProcessors) {
 					p.processRow(byteBuffer);
-				}
-				byteBuffer.flip();
-			}
-		} finally {
-			closeDatsInputStream(in);
-		}
-	}
-
-	@Override
-	public void processRowCount() {
-		try {
-			int keyIdBit = 1 << keyId;
-			for (int i = 0; i < numFiles; i++) {
-				if ((keyIdBit & i) > 0) {
-					processRowCount(i);
-				}
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private void processRowCount(int fileId) throws FileNotFoundException, IOException {
-		DataInputStream in = null;
-		try {
-			File dataFile = new File(CANONICAL_PATH + PathUtil.FORWARD_SLASH + base + fileId);
-			FileInputStream fileInputStream = new FileInputStream(dataFile);
-			long dataFileSize = dataFile.length();
-			in = new DataInputStream(fileInputStream);
-			while (dataFileSize > 0) {
-				byteBuffer.clear();
-				in.readFully(byteBufferBytes);
-				dataFileSize = dataFileSize - byteBufferBytes.length;
-				for (RowProcessor p : rowProcessors) {
-					p.processRowCount(byteBuffer);
 				}
 				byteBuffer.flip();
 			}

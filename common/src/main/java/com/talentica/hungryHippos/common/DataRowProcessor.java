@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -35,7 +38,13 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ValueSet processedTillValueSetInLastBatches = null;
 
-	private static final long THRESHOLD_MEMORY_IN_MBS = Long
+	private boolean additionalValueSetsPresentForProcessing = false;
+
+	private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
+
+	private int batchId = 0;
+
+	public static final long THRESHOLD_MEMORY_IN_MBS = Long
 			.valueOf(Property.getPropertyValue("node.threshold.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
@@ -69,6 +78,7 @@ public class DataRowProcessor implements RowProcessor {
 		checkIfBatchIsFull();
 		if (!isCurrentBatchFull) {
 			works = addReducerWhenBatchIsNotFull(valueSet);
+			additionalValueSetsPresentForProcessing = false;
 		} else if (isCurrentBatchFull) {
 			works = addReducerWhenBatchIsFull(valueSet);
 		}
@@ -89,6 +99,7 @@ public class DataRowProcessor implements RowProcessor {
 			reducers.clear();
 			addReducer(valueSet, reducers);
 			maxValueSetOfCurrentBatch = valueSet;
+			additionalValueSetsPresentForProcessing = true;
 		}
 		return reducers;
 	}
@@ -111,7 +122,8 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void checkIfBatchIsFull() {
-		if (!isCurrentBatchFull && MemoryStatus.getFreeMemory() <= THRESHOLD_MEMORY_IN_MBS) {
+		long freeMemory = MemoryStatus.getFreeMemory();
+		if (!isCurrentBatchFull && freeMemory <= THRESHOLD_MEMORY_IN_MBS) {
 			isCurrentBatchFull = true;
 			maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
 		}
@@ -126,7 +138,18 @@ public class DataRowProcessor implements RowProcessor {
 				work.calculate(executionContext);
 			}
 		}
+		reset();
+	}
+
+	private void reset() {
+		LOGGER.info("Processing of batch id:{},size{} completed.", new Object[] { batchId, valuestWorkTreeMap.size() });
 		valuestWorkTreeMap.clear();
+		isCurrentBatchFull = false;
+		batchId++;
+	}
+
+	public boolean isAdditionalValueSetsPresentForProcessing() {
+		return additionalValueSetsPresentForProcessing;
 	}
 
 }

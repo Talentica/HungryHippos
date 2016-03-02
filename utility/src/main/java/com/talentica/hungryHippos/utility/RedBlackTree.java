@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.utility;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public class RedBlackTree<T extends Comparable<T>, V> {
+public class RedBlackTree<T extends Comparable<T>, V> implements Iterable<RedBlackNode<T, V>> {
 
 	private RedBlackNode<T, V> nil = new RedBlackNode<T, V>();
 	private RedBlackNode<T, V> root = nil;
@@ -686,5 +687,14 @@ public class RedBlackTree<T extends Comparable<T>, V> {
 		// nodes on the root's right + the root itself.
 		return root.numLeft + root.numRight + 1;
 	}// end size()
+
+	@Override
+	public Iterator<RedBlackNode<T, V>> iterator() {
+		return new RedBlackTreeIterator<T, V>(this);
+	}
+
+	public RedBlackNode<T, V> getRoot() {
+		return root;
+	}
 
 }// end class RedBlackTree

@@ -6,7 +6,7 @@ package com.talentica.hungryHippos.utility;
  *
  * @param <T>
  */
-class RedBlackNode<T extends Comparable<T>, V> {
+public class RedBlackNode<T extends Comparable<T>, V> {
 
     public static final int BLACK = 0;
     public static final int RED = 1;

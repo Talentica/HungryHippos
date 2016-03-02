@@ -1,8 +1,7 @@
 package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,8 @@ import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
+import com.talentica.hungryHippos.utility.RedBlackNode;
+import com.talentica.hungryHippos.utility.RedBlackTree;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -23,14 +24,14 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private HashMap<ValueSet, Work> valueSetWorksMap = new HashMap<ValueSet, Work>();
-
 	private JobEntity jobEntity;
+
+	private RedBlackTree<ValueSet, Work> valuestWorkTree = new RedBlackTree<>();
 
 	private int[] keys;
 
 	Object[] values = null;
-	
+
 	long startTime = System.currentTimeMillis();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class.getName());
 
@@ -55,10 +56,14 @@ public class DataRowProcessor implements RowProcessor {
 			Object value = dynamicMarshal.readValue(keys[i], row);
 			valueSet.setValue(value, i);
 		}
-		Work work = valueSetWorksMap.get(valueSet);
+		Work work = null;
+		RedBlackNode<ValueSet, Work> node = valuestWorkTree.search(valueSet);
+		if (node != null) {
+			work = node.getValue();
+		}
 		if (work == null) {
 			work = jobEntity.getJob().createNewWork();
-			valueSetWorksMap.put(valueSet, work);
+			valuestWorkTree.insert(valueSet, work);
 		}
 		executionContext.setData(row);
 		work.processRow(executionContext);
@@ -66,9 +71,11 @@ public class DataRowProcessor implements RowProcessor {
 
 	@Override
 	public void finishUp() {
-		for (Map.Entry<ValueSet, Work> e : valueSetWorksMap.entrySet()) {
-			executionContext.setKeys(e.getKey());
-			e.getValue().calculate(executionContext);
+		Iterator<RedBlackNode<ValueSet, Work>> iterator = valuestWorkTree.iterator();
+		while (iterator.hasNext()) {
+			RedBlackNode<ValueSet, Work> next = iterator.next();
+			executionContext.setKeys(next.getKey());
+			next.getValue().calculate(executionContext);
 		}
 	}
 

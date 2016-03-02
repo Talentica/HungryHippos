@@ -6,10 +6,7 @@ package com.talentica.hungryHippos.node;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -17,19 +14,12 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Stopwatch;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.common.JobRunner;
-import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
-import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumerComparator;
-import com.talentica.hungryHippos.resource.manager.services.ResourceConsumerImpl;
-import com.talentica.hungryHippos.resource.manager.services.ResourceManager;
-import com.talentica.hungryHippos.resource.manager.services.ResourceManagerImpl;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
@@ -50,10 +40,6 @@ public class JobExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
 
 	private static NodesManager nodesManager;
-
-	private static final Stopwatch STOPWATCH = new Stopwatch();
-
-	private static ResourceManager resourceManager;
 
 	private static DataStore dataStore;
 
@@ -131,30 +117,6 @@ public class JobExecutor {
 		buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
 		ZKUtils.waitForSignal(buildStartPath, signal);
-	}
-
-	/**
-	 * Prioritize the execution of the task based on resource requirement per
-	 * task operations i.e row count and calculations.
-	 * 
-	 * @param taskEntities
-	 * @return Map<Integer, List<ResourceConsumer>>
-	 */
-	private static Map<Integer, List<ResourceConsumer>> getTasksOnPriority(Collection<TaskEntity> taskEntities) {
-		long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
-		resourceManager = new ResourceManagerImpl();
-		ResourceConsumer resourceConsumer;
-		List<ResourceConsumer> resourceConsumers = new ArrayList<ResourceConsumer>();
-		long diskSizeNeeded = 0l;
-		for (TaskEntity taskEntity : taskEntities) {
-			resourceConsumer = new ResourceConsumerImpl(diskSizeNeeded,
-					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()),
-					taskEntity.getTaskId());
-			resourceConsumers.add(resourceConsumer);
-		}
-		Collections.sort(resourceConsumers, new ResourceConsumerComparator());
-		return resourceManager.getIterationWiseResourceConsumersToAllocateResourcesTo(0l, AVAILABLE_RAM,
-				resourceConsumers);
 	}
 
 	/**

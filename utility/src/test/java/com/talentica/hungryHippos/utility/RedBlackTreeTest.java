@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.utility;
 
+import java.util.Iterator;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,6 +127,26 @@ public class RedBlackTreeTest {
 		ValueSet maxValueSetExpected = new ValueSet(new int[] { 0, 1 }, new Integer[] { 10, 14 });
 		Assert.assertEquals(maxValueSetExpected, redBlackNode.getKey());
 		Assert.assertEquals("Three", redBlackNode.getValue());
+	}
+
+	@Test
+	public void testIterator() {
+		redBlackTree.insert(5, "Five");
+		redBlackTree.insert(15, "Fifteen");
+		redBlackTree.insert(20, "Twenty");
+		redBlackTree.insert(2, "Two");
+		redBlackTree.insert(1, "One");
+		redBlackTree.insert(9, "Nine");
+		redBlackTree.insert(6, "Six");
+		redBlackTree.insert(28, "Twenty Eight");
+		redBlackTree.insert(99, "Ninety Nine");
+		redBlackTree.insert(55, "Fifty Five");
+		redBlackTree.insert(22, "Twenty Two");
+		redBlackTree.insert(21, "Twenty One");
+		Iterator<RedBlackNode<Integer, String>> iterator = redBlackTree.iterator();
+		Assert.assertNotNull(iterator);
+		Assert.assertTrue(iterator.hasNext());
+		Assert.assertEquals(1, iterator.next());
 	}
 
 }

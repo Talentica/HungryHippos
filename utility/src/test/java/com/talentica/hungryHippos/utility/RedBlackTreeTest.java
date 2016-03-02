@@ -13,7 +13,7 @@ public class RedBlackTreeTest {
 	private RedBlackTree<Integer, String> redBlackTree = null;
 
 	@Before
-	public void setup(){
+	public void setup() {
 		redBlackTree = new RedBlackTree<>();
 	}
 
@@ -24,7 +24,7 @@ public class RedBlackTreeTest {
 		redBlackTree.insert(12, "Twelve");
 		Assert.assertEquals(2, redBlackTree.size());
 	}
-	
+
 	@Test
 	public void testSearch1() {
 		Assert.assertEquals(1, redBlackTree.size());

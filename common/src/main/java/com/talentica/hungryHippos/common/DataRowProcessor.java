@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -28,68 +25,108 @@ public class DataRowProcessor implements RowProcessor {
 
 	private JobEntity jobEntity;
 
-	private TreeMap<ValueSet, List<Work>> valuestWorkTree = new TreeMap<>();
+	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
 
 	private int[] keys;
 
-	Object[] values = null;
-	
-	private static final long AVAILABLE_RAM = Long.valueOf(Property.getPropertyValue("node.available.ram"));
-	
-	private static ValueSet maxValueSet;
-	
+	private boolean isCurrentBatchFull;
+
+	private ValueSet maxValueSetOfCurrentBatch = null;
+
+	private ValueSet processedTillValueSetInLastBatches = null;
+
+	private static final long THRESHOLD_MEMORY_IN_MBS = Long
+			.valueOf(Property.getPropertyValue("node.threshold.memory.in.mbs"));
+
 	long startTime = System.currentTimeMillis();
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class.getName());
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
 		this.jobEntity = jobEntity;
 		this.dynamicMarshal = dynamicMarshal;
 		this.keys = jobEntity.getJob().getDimensions();
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
-		values = new Object[keys.length];
 	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-		List<Work> works = null;
 		ValueSet valueSet = new ValueSet(keys);
 		for (int i = 0; i < keys.length; i++) {
 			Object value = dynamicMarshal.readValue(keys[i], row);
 			valueSet.setValue(value, i);
-		}		
-		
-		if (MemoryStatus.getFreeMemory() > AVAILABLE_RAM) {
-			works = valuestWorkTree.get(valueSet);
-			if (works == null) {
-				works = new ArrayList<>();
-				Work work = jobEntity.getJob().createNewWork();
-				works.add(work);
-				valuestWorkTree.put(valueSet, works);
-			}
-			maxValueSet = valuestWorkTree.lastKey();
-		} else if(valueSet.compareTo(maxValueSet) > 0){
-				works = valuestWorkTree.remove(maxValueSet);
-				works.clear();
-				Work work = jobEntity.getJob().createNewWork();
-				works.add(work);
-				valuestWorkTree.put(valueSet, works);
-				maxValueSet = valueSet;
-		} 
-		if(works == null) return;
+		}
+		if (isNotAlreadyProcessedValueSet(valueSet)) {
+			List<Work> reducers = prepareReducersBatch(valueSet);
+			processReducers(reducers, row);
+		}
+	}
+
+	private boolean isNotAlreadyProcessedValueSet(ValueSet valueSet) {
+		return processedTillValueSetInLastBatches == null || valueSet.compareTo(processedTillValueSetInLastBatches) > 0;
+	}
+
+	private List<Work> prepareReducersBatch(ValueSet valueSet) {
+		List<Work> works = null;
+		checkIfBatchIsFull();
+		if (!isCurrentBatchFull) {
+			works = addReducerWhenBatchIsNotFull(valueSet);
+		} else if (isCurrentBatchFull) {
+			works = addReducerWhenBatchIsFull(valueSet);
+		}
+		return works;
+	}
+
+	private void processReducers(List<Work> works, ByteBuffer row) {
 		executionContext.setData(row);
 		for (Work work : works) {
 			work.processRow(executionContext);
 		}
 	}
 
+	private List<Work> addReducerWhenBatchIsFull(ValueSet valueSet) {
+		List<Work> reducers = valuestWorkTreeMap.get(valueSet);
+		if (reducers == null) {
+			reducers = valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
+			reducers.clear();
+			addReducer(valueSet, reducers);
+			maxValueSetOfCurrentBatch = valueSet;
+		}
+		return reducers;
+	}
+
+	private void addReducer(ValueSet valueSet, List<Work> works) {
+		if (!valuestWorkTreeMap.containsKey(valueSet)) {
+			Work work = jobEntity.getJob().createNewWork();
+			works.add(work);
+			valuestWorkTreeMap.put(valueSet, works);
+		}
+	}
+
+	private List<Work> addReducerWhenBatchIsNotFull(ValueSet valueSet) {
+		List<Work> works = valuestWorkTreeMap.get(valueSet);
+		if (works == null) {
+			works = new ArrayList<>();
+			addReducer(valueSet, new ArrayList<>());
+		}
+		return works;
+	}
+
+	private void checkIfBatchIsFull() {
+		if (!isCurrentBatchFull && MemoryStatus.getFreeMemory() <= THRESHOLD_MEMORY_IN_MBS) {
+			isCurrentBatchFull = true;
+			maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
+		}
+	}
+
 	@Override
 	public void finishUp() {
-		for (Entry<ValueSet, List<Work>> e : valuestWorkTree.entrySet()) {
+		processedTillValueSetInLastBatches = valuestWorkTreeMap.lastKey();
+		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
 			for (Work work : e.getValue()) {
 				executionContext.setKeys(e.getKey());
 				work.calculate(executionContext);
 			}
 		}
+		valuestWorkTreeMap.clear();
 	}
 
 }

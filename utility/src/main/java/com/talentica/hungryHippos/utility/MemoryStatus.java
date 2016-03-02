@@ -19,6 +19,10 @@ public class MemoryStatus{
 	public static long getFreeMemory() {
 		return Runtime.getRuntime().freeMemory()/(1024*1024);
 	}
+	
+	public static long getMaximumFreeMemoryThatCanBeAllocated() {
+		return getMaxMemory() - (getTotalmemory() - getFreeMemory());
+	}
 
 	/**
 	 * Return memory in MB
@@ -26,7 +30,7 @@ public class MemoryStatus{
 	 * @return long
 	 */
 	public static long getMaxMemory() {
-		return Runtime.getRuntime().maxMemory()/(1024*1024);
+		return Long.parseLong(Property.getPropertyValue("node.max.memory.in.mbs"));
 	}
 
 	/**

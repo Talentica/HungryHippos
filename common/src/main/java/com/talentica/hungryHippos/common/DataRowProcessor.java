@@ -22,6 +22,10 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  */
 public class DataRowProcessor implements RowProcessor {
 
+	private static final int MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER = 1000;
+
+	private static final int MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = 1000000;
+
 	private DynamicMarshal dynamicMarshal;
 
 	private ExecutionContextImpl executionContext;
@@ -44,8 +48,14 @@ public class DataRowProcessor implements RowProcessor {
 
 	private int batchId = 0;
 
-	public static final long THRESHOLD_MEMORY_IN_MBS = Long
-			.valueOf(Property.getPropertyValue("node.threshold.memory.in.mbs"));
+	private int countOfRows = 0;
+
+	private int totalNoOfRowsProcessed = 0;
+
+	private int totalNoOfValueSetsRemoved = 0;
+
+	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
+			.valueOf(Property.getPropertyValue("node.min.free.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
 
@@ -75,12 +85,22 @@ public class DataRowProcessor implements RowProcessor {
 
 	private List<Work> prepareReducersBatch(ValueSet valueSet) {
 		List<Work> works = null;
-		checkIfBatchIsFull();
+		if (countOfRows >= 1024) {
+			checkIfBatchIsFull();
+			countOfRows = 0;
+		}
+		countOfRows++;
 		if (!isCurrentBatchFull) {
 			works = addReducerWhenBatchIsNotFull(valueSet);
 			additionalValueSetsPresentForProcessing = false;
 		} else if (isCurrentBatchFull) {
 			works = addReducerWhenBatchIsFull(valueSet);
+		}
+		totalNoOfRowsProcessed++;
+		if (totalNoOfRowsProcessed >= MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER) {
+			LOGGER.info("Please wait... Processing in progress. {} more number of rows processed...",
+					new Object[] { totalNoOfRowsProcessed });
+			totalNoOfRowsProcessed = 0;
 		}
 		return works;
 	}
@@ -96,8 +116,12 @@ public class DataRowProcessor implements RowProcessor {
 		List<Work> reducers = valuestWorkTreeMap.get(valueSet);
 		if (reducers == null) {
 			reducers = valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
-			reducers.clear();
-			addReducer(valueSet, reducers);
+			totalNoOfValueSetsRemoved++;
+			if (totalNoOfValueSetsRemoved >= MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER) {
+				totalNoOfValueSetsRemoved = 0;
+				System.gc();
+			}
+			updateReducer(valueSet, reducers);
 			maxValueSetOfCurrentBatch = valueSet;
 			additionalValueSetsPresentForProcessing = true;
 		}
@@ -112,18 +136,23 @@ public class DataRowProcessor implements RowProcessor {
 		}
 	}
 
+	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
+		reducers.get(0).reset();
+		valuestWorkTreeMap.put(valueSet, reducers);
+	}
+
 	private List<Work> addReducerWhenBatchIsNotFull(ValueSet valueSet) {
 		List<Work> works = valuestWorkTreeMap.get(valueSet);
 		if (works == null) {
 			works = new ArrayList<>();
-			addReducer(valueSet, new ArrayList<>());
+			addReducer(valueSet, works);
 		}
 		return works;
 	}
 
 	private void checkIfBatchIsFull() {
-		long freeMemory = MemoryStatus.getFreeMemory();
-		if (!isCurrentBatchFull && freeMemory <= THRESHOLD_MEMORY_IN_MBS) {
+		long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
+		if (!isCurrentBatchFull && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
 			isCurrentBatchFull = true;
 			maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
 		}
@@ -139,6 +168,7 @@ public class DataRowProcessor implements RowProcessor {
 			}
 		}
 		reset();
+		System.gc();
 	}
 
 	private void reset() {

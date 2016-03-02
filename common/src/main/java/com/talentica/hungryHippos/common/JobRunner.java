@@ -43,11 +43,11 @@ public class JobRunner implements Serializable {
 	}
 
 	private void checkIfMemoryAvailableToRunJob() {
-		long freeMemory = MemoryStatus.getFreeMemory();
-		if (freeMemory <= DataRowProcessor.THRESHOLD_MEMORY_IN_MBS) {
+		long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
+		if (freeMemory <= DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
 			LOGGER.error(
-					"Either very less memory:{} is available to run jobs or the amount of threshold memory:{} MBs configured is too high.",
-					new Object[] { freeMemory, DataRowProcessor.THRESHOLD_MEMORY_IN_MBS });
+					"Either very less memory:{} MBs is available to run jobs or the amount of threshold memory:{} MBs configured is too high.",
+					new Object[] { freeMemory, DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS });
 			throw new RuntimeException(
 					"Either very less memory is available to run jobs or the amount of threshold memory configured is too high.");
 		}

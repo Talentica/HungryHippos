@@ -37,4 +37,9 @@ public class MedianWork implements Work,Serializable {
 		executionContext.saveValue(valueIndex, MedianCalculator.calculate(values));
 	}
 
+	@Override
+	public void reset() {
+		values.clear();
+	}
+
 }

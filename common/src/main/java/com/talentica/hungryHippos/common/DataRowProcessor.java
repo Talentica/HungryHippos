@@ -124,7 +124,6 @@ public class DataRowProcessor implements RowProcessor {
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
 			reducers = valuestWorkTreeMap.get(maxValueSetOfCurrentBatch);
 			valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
-			logCountOfRemovedReducers();
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
 		}
@@ -133,14 +132,6 @@ public class DataRowProcessor implements RowProcessor {
 			additionalValueSetsPresentForProcessing = true;
 		}
 		return reducers;
-	}
-
-	private void logCountOfRemovedReducers() {
-		totalNoOfValueSetsRemoved++;
-		if (totalNoOfValueSetsRemoved >= MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER) {
-			totalNoOfValueSetsRemoved = 0;
-			System.gc();
-		}
 	}
 
 	private boolean isValueSetSmallerThanMaxOfCurrentBatch(ValueSet valueSet) {

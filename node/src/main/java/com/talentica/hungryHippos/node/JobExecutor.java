@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -53,9 +52,6 @@ public class JobExecutor {
 			(nodesManager = ServerHeartBeat.init()).startup();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
-			CountDownLatch signal = new CountDownLatch(1);
-			waitForStartRowCountSignal(signal);
-			signal.await();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
 				jobRunner.run(jobEntity);
@@ -101,22 +97,6 @@ public class JobExecutor {
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
 				dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
-	}
-
-	/**
-	 * Wait for notification for the start row count.
-	 * 
-	 * @param signal
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 * @throws IOException
-	 */
-	private static void waitForStartRowCountSignal(CountDownLatch signal)
-			throws KeeperException, InterruptedException, IOException {
-		String buildStartPath = null;
-		buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
-		ZKUtils.waitForSignal(buildStartPath, signal);
 	}
 
 	/**

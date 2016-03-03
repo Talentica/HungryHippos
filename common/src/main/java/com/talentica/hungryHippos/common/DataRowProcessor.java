@@ -34,11 +34,11 @@ public class DataRowProcessor implements RowProcessor {
 
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
 
+	private ValueSet maxValueSetOfCurrentBatch;
+
 	private int[] keys;
 
 	private boolean isCurrentBatchFull;
-
-	private ValueSet maxValueSetOfCurrentBatch = null;
 
 	private ValueSet processedTillValueSetInLastBatches = null;
 
@@ -84,25 +84,30 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private List<Work> prepareReducersBatch(ValueSet valueSet) {
-		List<Work> works = null;
-		if (countOfRows >= 1024) {
-			checkIfBatchIsFull();
-			countOfRows = 0;
-		}
-		countOfRows++;
+		checkIfBatchIsFull();
+		List<Work> reducers = null;
 		if (!isCurrentBatchFull) {
-			works = addReducerWhenBatchIsNotFull(valueSet);
+			reducers = addReducerWhenBatchIsNotFull(valueSet);
 			additionalValueSetsPresentForProcessing = false;
-		} else if (isCurrentBatchFull) {
-			works = addReducerWhenBatchIsFull(valueSet);
+		} else {
+			reducers = addReducerWhenBatchIsFull(valueSet);
 		}
+		logProgress();
+		return reducers;
+	}
+
+	private void setMaxValueSetOfCurrentBatch(ValueSet valueSet) {
+		if (maxValueSetOfCurrentBatch == null || maxValueSetOfCurrentBatch.compareTo(valueSet) < 0) {
+			maxValueSetOfCurrentBatch = valueSet;
+		}
+	}
+
+	private void logProgress() {
 		totalNoOfRowsProcessed++;
-		if (totalNoOfRowsProcessed >= MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER) {
-			LOGGER.info("Please wait... Processing in progress. {} more number of rows processed...",
+		if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
+			LOGGER.info("Please wait... Processing in progress. {} no. of rows processed...",
 					new Object[] { totalNoOfRowsProcessed });
-			totalNoOfRowsProcessed = 0;
 		}
-		return works;
 	}
 
 	private void processReducers(List<Work> works, ByteBuffer row) {
@@ -116,19 +121,30 @@ public class DataRowProcessor implements RowProcessor {
 
 	private List<Work> addReducerWhenBatchIsFull(ValueSet valueSet) {
 		List<Work> reducers = valuestWorkTreeMap.get(valueSet);
-		if (reducers == null && valueSet.compareTo(maxValueSetOfCurrentBatch) < 0) {
-			reducers = valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
-			totalNoOfValueSetsRemoved++;
-			if (totalNoOfValueSetsRemoved >= MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER) {
-				totalNoOfValueSetsRemoved = 0;
-				System.gc();
-			}
+		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
+			reducers = valuestWorkTreeMap.get(maxValueSetOfCurrentBatch);
+			valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
+			logCountOfRemovedReducers();
 			updateReducer(valueSet, reducers);
-			maxValueSetOfCurrentBatch = valueSet;
-		}else if(reducers == null && valueSet.compareTo(maxValueSetOfCurrentBatch) > 0){
+			additionalValueSetsPresentForProcessing = true;
+		}
+		if (!additionalValueSetsPresentForProcessing
+				&& valueSet.compareTo(maxValueSetOfCurrentBatch) > 0) {
 			additionalValueSetsPresentForProcessing = true;
 		}
 		return reducers;
+	}
+
+	private void logCountOfRemovedReducers() {
+		totalNoOfValueSetsRemoved++;
+		if (totalNoOfValueSetsRemoved >= MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER) {
+			totalNoOfValueSetsRemoved = 0;
+			System.gc();
+		}
+	}
+
+	private boolean isValueSetSmallerThanMaxOfCurrentBatch(ValueSet valueSet) {
+		return maxValueSetOfCurrentBatch == null || valueSet.compareTo(maxValueSetOfCurrentBatch) <= 0;
 	}
 
 	private void addReducer(ValueSet valueSet, List<Work> works) {
@@ -136,14 +152,22 @@ public class DataRowProcessor implements RowProcessor {
 			Work work = jobEntity.getJob().createNewWork();
 			works.add(work);
 			valuestWorkTreeMap.put(valueSet, works);
+			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		for(Work work : reducers){
-			work.reset();
+		int i = reducers.size();
+		while (i != 1) {
+			reducers.remove(i);
+			i--;
+		}
+		for (Work reducer : reducers) {
+			reducer.reset();
 		}
 		valuestWorkTreeMap.put(valueSet, reducers);
+		maxValueSetOfCurrentBatch=valueSet;
+		maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
 	}
 
 	private List<Work> addReducerWhenBatchIsNotFull(ValueSet valueSet) {
@@ -156,16 +180,19 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void checkIfBatchIsFull() {
-		long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
-		if (!isCurrentBatchFull && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
-			isCurrentBatchFull = true;
-			maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
+		if (countOfRows >= 1024) {
+			long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
+			if (!isCurrentBatchFull && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
+				isCurrentBatchFull = true;
+			}
+			countOfRows = 0;
 		}
+		countOfRows++;
 	}
 
 	@Override
 	public void finishUp() {
-		processedTillValueSetInLastBatches = valuestWorkTreeMap.lastKey();
+		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
 		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
 			for (Work work : e.getValue()) {
 				executionContext.setKeys(e.getKey());
@@ -177,9 +204,14 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void reset() {
-		LOGGER.info("Processing of batch id:{},size{} completed.", new Object[] { batchId, valuestWorkTreeMap.size() });
+		LOGGER.info("Processing of batch id:{}, size:{} completed.",
+				new Object[] { batchId, valuestWorkTreeMap.size() });
 		valuestWorkTreeMap.clear();
 		isCurrentBatchFull = false;
+		countOfRows = 0;
+		totalNoOfRowsProcessed = 0;
+		totalNoOfValueSetsRemoved = 0;
+		maxValueSetOfCurrentBatch = null;
 		batchId++;
 	}
 

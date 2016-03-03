@@ -106,15 +106,17 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void processReducers(List<Work> works, ByteBuffer row) {
-		executionContext.setData(row);
-		for (Work work : works) {
-			work.processRow(executionContext);
+		if (works != null) {
+			executionContext.setData(row);
+			for (Work work : works) {
+				work.processRow(executionContext);
+			}
 		}
 	}
 
 	private List<Work> addReducerWhenBatchIsFull(ValueSet valueSet) {
 		List<Work> reducers = valuestWorkTreeMap.get(valueSet);
-		if (reducers == null) {
+		if (reducers == null && valueSet.compareTo(maxValueSetOfCurrentBatch) < 0) {
 			reducers = valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
 			totalNoOfValueSetsRemoved++;
 			if (totalNoOfValueSetsRemoved >= MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER) {
@@ -123,6 +125,7 @@ public class DataRowProcessor implements RowProcessor {
 			}
 			updateReducer(valueSet, reducers);
 			maxValueSetOfCurrentBatch = valueSet;
+		}else if(reducers == null && valueSet.compareTo(maxValueSetOfCurrentBatch) > 0){
 			additionalValueSetsPresentForProcessing = true;
 		}
 		return reducers;
@@ -137,7 +140,9 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		reducers.get(0).reset();
+		for(Work work : reducers){
+			work.reset();
+		}
 		valuestWorkTreeMap.put(valueSet, reducers);
 	}
 

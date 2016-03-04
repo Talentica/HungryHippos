@@ -10,6 +10,7 @@ public interface ExecutionContext {
     Object getValue(int index);
     MutableCharArrayString getString(int index);
 	void saveValue(int calculationIndex, Object value);
+	void saveValue(int calculationIndex, Object value, String metric);
     void setKeys(ValueSet valueSet);
     ValueSet getKeys();
 }

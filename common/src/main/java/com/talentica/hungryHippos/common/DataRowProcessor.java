@@ -39,6 +39,8 @@ public class DataRowProcessor implements RowProcessor {
 
 	private JobEntity jobEntity;
 
+	private Class<? extends Work> workClassType = null;
+
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
@@ -69,6 +71,7 @@ public class DataRowProcessor implements RowProcessor {
 		this.dynamicMarshal = dynamicMarshal;
 		this.keys = jobEntity.getJob().getDimensions();
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
+		workClassType = jobEntity.getJob().createNewWork().getClass();
 	}
 
 	@Override
@@ -164,6 +167,13 @@ public class DataRowProcessor implements RowProcessor {
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
 		int i = reducers.size();
+		while (i > 0) {
+			if (workClassType != reducers.get(i).getClass()) {
+				reducers.remove(i);
+			}
+			i--;
+		}
+		i = reducers.size();
 		while (i != 1) {
 			reducers.remove(i);
 			i--;
@@ -221,6 +231,7 @@ public class DataRowProcessor implements RowProcessor {
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
 		garbageCollectionRan = false;
+		workClassType = null;
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

@@ -30,6 +30,6 @@ public class UniqueCountWork extends SumWork{
 
     @Override
     public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(valueIndex, " : " + uniqueValues.size());
+		executionContext.saveValue(valueIndex, " : " + uniqueValues.size(), "Unique ");
     }
 }

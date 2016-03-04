@@ -59,7 +59,6 @@ public class NodesManager implements Watcher {
     private ZookeeperConfiguration zkConfiguration;
     private List<Server> servers;
     private Map<String,Server> serverNameMap;
-    private Properties prop;
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
     private static final int DEFAULT_NODES = PathEnum.values().length-1;// subtracting -1 because HOSTPATH is separately created. Refer bootstrap() method. 
     private Map<String,String> pathMap;
@@ -88,14 +87,12 @@ public class NodesManager implements Watcher {
 		servers = new ArrayList<Server>();
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
-		prop = Property.getProperties();
-		pathMap.put(PathEnum.NAMESPACE.name(),prop.getProperty("zookeeper.namespace_path"));
-		pathMap.put(PathEnum.BASEPATH.name(),prop.getProperty("zookeeper.base_path"));
-		pathMap.put(PathEnum.ZKIPTPATH.name(), prop.getProperty("zookeeper.server.ips"));
-		pathMap.put(PathEnum.ALERTPATH.name(),prop.getProperty("zookeeper.alerts_path"));
-		pathMap.put(PathEnum.CONFIGPATH.name(),prop.getProperty("zookeeper.config_path"));
-		Integer sessionTimeOut = Integer.valueOf(prop
-				.getProperty("zookeeper.session_timeout"));
+		pathMap.put(PathEnum.NAMESPACE.name(), Property.getPropertyValue("zookeeper.namespace_path"));
+		pathMap.put(PathEnum.BASEPATH.name(), Property.getPropertyValue("zookeeper.base_path"));
+		pathMap.put(PathEnum.ZKIPTPATH.name(), Property.getPropertyValue("zookeeper.server.ips"));
+		pathMap.put(PathEnum.ALERTPATH.name(), Property.getPropertyValue("zookeeper.alerts_path"));
+		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getPropertyValue("zookeeper.config_path"));
+		Integer sessionTimeOut = Integer.valueOf(Property.getPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
 		connectZookeeper();
 	}

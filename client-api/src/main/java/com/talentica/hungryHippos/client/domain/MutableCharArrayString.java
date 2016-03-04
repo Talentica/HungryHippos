@@ -6,7 +6,8 @@ import java.util.Arrays;
 /**
  * Created by debasishc on 29/9/15.
  */
-public class MutableCharArrayString implements CharSequence, Cloneable, Serializable {
+public class MutableCharArrayString
+		implements Comparable<MutableCharArrayString>, CharSequence, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -6085804645372631875L;
 	private char[] array;
@@ -33,12 +34,16 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 
 	@Override
 	public MutableCharArrayString subSequence(int start, int end) {
-		MutableCharArrayString newArray = new MutableCharArrayString(end - start);
+		MutableCharArrayString newArray = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(end - start);
+		copyCharacters(start, end, newArray);
+		newArray.stringLength = end - start;
+		return newArray;
+	}
+
+	private void copyCharacters(int start, int end, MutableCharArrayString newArray) {
 		for (int i = start, j = 0; i < end; i++, j++) {
 			newArray.array[j] = array[i];
 		}
-		newArray.stringLength = end - start;
-		return newArray;
 	}
 
 	@Override
@@ -46,19 +51,22 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 		return new String(Arrays.copyOf(array, stringLength));
 	}
 
-	public void addCharacter(char ch) {
+	public MutableCharArrayString addCharacter(char ch) {
 		array[stringLength] = ch;
 		stringLength++;
+		return this;
 	}
 
 	public void reset() {
 		stringLength = 0;
 	}
 
-
 	@Override
 	public MutableCharArrayString clone() {
-		return subSequence(0, stringLength);
+		MutableCharArrayString newArray = new MutableCharArrayString(stringLength);
+		copyCharacters(0, stringLength, newArray);
+		newArray.stringLength = stringLength;
+		return newArray;
 	}
 
 	@Override
@@ -98,5 +106,22 @@ public class MutableCharArrayString implements CharSequence, Cloneable, Serializ
 			mutableCharArrayString.addCharacter(character);
 		}
 		return mutableCharArrayString;
+	}
+
+	@Override
+	public int compareTo(MutableCharArrayString otherMutableCharArrayString) {
+		if (equals(otherMutableCharArrayString)) {
+			return 0;
+		}
+		if (stringLength != otherMutableCharArrayString.stringLength) {
+			return Integer.valueOf(stringLength).compareTo(otherMutableCharArrayString.stringLength);
+		}
+		for (int i = 0; i < stringLength; i++) {
+			if (array[i] == otherMutableCharArrayString.array[i]) {
+				continue;
+			}
+			return array[i] - otherMutableCharArrayString.array[i];
+		}
+		return 0;
 	}
 }

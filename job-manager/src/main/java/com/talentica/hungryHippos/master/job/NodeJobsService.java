@@ -68,9 +68,6 @@ public class NodeJobsService implements NodesJobsRunnable{
 					taskManager.getJobPoolService().removeJobEntity(jobEntity);
 				}
 		}
-		String buildPath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
-		nodesManager.createEphemeralNode(buildPath, signal);
-		signal.await();
 	}
 
 	@Override

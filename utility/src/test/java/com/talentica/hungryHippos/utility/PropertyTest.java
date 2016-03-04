@@ -16,7 +16,7 @@ public class PropertyTest{
 	
 	@Test
 	public void testGetPropertyValueForMaster() {
-		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		Object cleanupZookeeperNodesPropValue = Property.getPropertyValue("cleanup.zookeeper.nodes");
 		Assert.assertNotNull(cleanupZookeeperNodesPropValue);
 		Assert.assertEquals("Y", cleanupZookeeperNodesPropValue);
@@ -24,7 +24,7 @@ public class PropertyTest{
 
 	@Test
 	public void testGetPropertyValueForNode() {
-		Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		Object cleanupZookeeperNodesPropValue = Property.getPropertyValue("cleanup.zookeeper.nodes");
 		Assert.assertNotNull(cleanupZookeeperNodesPropValue);
 		Assert.assertEquals("N", cleanupZookeeperNodesPropValue);
@@ -32,14 +32,14 @@ public class PropertyTest{
 
 	@Test
 	public void testGetPropertyValueWithoutNamespace() {
-		Property.setNamespace(null);
+		Property.initialize(null);
 		Object zookeeperServerIps = Property.getPropertyValue("zookeeper.server.ips");
 		Assert.assertNotNull(zookeeperServerIps);
 	}
 
 	@Test
 	public void testGetKeyOrder() {
-		Property.setNamespace(null);
+		Property.initialize(null);
 		String[] keyOrder= Property.getKeyOrder();
 		Assert.assertNotNull(keyOrder);
 		for(String key:keyOrder){
@@ -65,4 +65,9 @@ public class PropertyTest{
 		Assert.assertEquals(0, keyNames.length);
 	}
 
+	@Test
+	public void testGetEnvironmentSpecificProperty() {
+		ENVIRONMENT.setCurrentEnvironment("LOCAL");
+		Assert.assertEquals(1, Property.getKeyOrder().length);
+	}
 }

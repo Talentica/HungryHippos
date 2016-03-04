@@ -28,7 +28,7 @@ public class DataPublisherStarter {
 			if (args.length >= 1) {
 				Property.overrideConfigurationProperties(args[0]);
 			}
-			Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
 			(dataPublisherStarter.nodesManager = ServerHeartBeat.init()).startup();

@@ -87,7 +87,7 @@ public class DataReceiver {
 		try {
 			long startTime = System.currentTimeMillis();
 			validateArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
 			dataReceiver.nodesManager.startup();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);

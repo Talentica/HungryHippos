@@ -46,7 +46,7 @@ public class ConfigurationFileUploadTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception{
-		Property.setNamespace(PROPERTIES_NAMESPACE.MASTER);
+		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		(nodesManager = ServerHeartBeat.init()).startup();
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
 				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH

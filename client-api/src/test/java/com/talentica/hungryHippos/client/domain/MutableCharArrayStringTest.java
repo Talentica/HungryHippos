@@ -84,4 +84,39 @@ public class MutableCharArrayStringTest {
 		Assert.assertEquals(5, count.intValue());
 	}
 
+	@Test
+	public void testCompareToOfNonEqualSize() {
+		MutableCharArrayString string1 = new MutableCharArrayString(1);
+		string1.addCharacter('a');
+		MutableCharArrayString string2 = new MutableCharArrayString(2);
+		string2.addCharacter('a');
+		string2.addCharacter('b');
+		Assert.assertTrue(string1.compareTo(string2) < 0);
+		Assert.assertTrue(string2.compareTo(string1) > 0);
+	}
+
+	@Test
+	public void testCompareToOfEqualSizeStrings() {
+		MutableCharArrayString string1 = new MutableCharArrayString(2);
+		string1.addCharacter('a');
+		string1.addCharacter('c');
+		MutableCharArrayString string2 = new MutableCharArrayString(2);
+		string2.addCharacter('a');
+		string2.addCharacter('d');
+		Assert.assertTrue(string1.compareTo(string2) < 0);
+		Assert.assertTrue(string2.compareTo(string1) > 0);
+	}
+
+	@Test
+	public void testCompareToOfEqualStrings() {
+		MutableCharArrayString string1 = new MutableCharArrayString(2);
+		string1.addCharacter('a');
+		string1.addCharacter('d');
+		MutableCharArrayString string2 = new MutableCharArrayString(2);
+		string2.addCharacter('a');
+		string2.addCharacter('d');
+		Assert.assertTrue(string1.compareTo(string2) == 0);
+		Assert.assertTrue(string2.compareTo(string1) == 0);
+	}
+
 }

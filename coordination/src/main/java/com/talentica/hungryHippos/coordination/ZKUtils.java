@@ -215,7 +215,7 @@ public class ZKUtils {
 	    }
 	 
 	 public static String buildNodePath(int nodeId){
-			return Property.getProperties().getProperty("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node"+nodeId);
+		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node" + nodeId);
 		}
 	 
 	/**

@@ -6,5 +6,5 @@ data_publisher_node_ip=`cat ./node_pwd_file.txt|grep "data_publisher_node_ip"|aw
 for node in `echo $data_publisher_node_ip`
 do
    echo "Cleaning data publisher on $node"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/data-publisher;rm datapublisher.log*;rm Application.log*;"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/data-publisher;rm datapublisher.log*;rm Application.log*;rm system.out;rm system.err"
 done

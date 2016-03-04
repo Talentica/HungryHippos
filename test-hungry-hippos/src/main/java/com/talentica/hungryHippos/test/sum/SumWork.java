@@ -34,4 +34,9 @@ public class SumWork implements Work, Serializable {
 		executionContext.saveValue(valueIndex, sum);
 	}
 
+	@Override
+	public void reset() {
+		sum = 0;
+	}
+
 }

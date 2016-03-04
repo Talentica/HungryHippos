@@ -99,7 +99,7 @@ public class DataProvider {
 
 		LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
 		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader(
-				Property.getProperties().getProperty("input.file"));
+				Property.getPropertyValue("input.file").toString());
 		long timeForEncoding = 0;
 		long timeForLookup = 0;
 

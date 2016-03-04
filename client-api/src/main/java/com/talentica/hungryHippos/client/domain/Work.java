@@ -6,4 +6,5 @@ package com.talentica.hungryHippos.client.domain;
 public interface Work {
     void processRow(ExecutionContext executionContext);
     void calculate(ExecutionContext executionContext);
+    void reset();
 }

@@ -6,33 +6,19 @@ package com.talentica.hungryHippos.node;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.common.JobRunner;
-import com.talentica.hungryHippos.common.TaskEntity;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumer;
-import com.talentica.hungryHippos.resource.manager.domain.ResourceConsumerComparator;
-import com.talentica.hungryHippos.resource.manager.services.ResourceConsumerImpl;
-import com.talentica.hungryHippos.resource.manager.services.ResourceManager;
-import com.talentica.hungryHippos.resource.manager.services.ResourceManagerImpl;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
@@ -54,8 +40,6 @@ public class JobExecutor {
 
 	private static NodesManager nodesManager;
 
-	private static ResourceManager resourceManager;
-
 	private static DataStore dataStore;
 
 	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
@@ -64,90 +48,27 @@ public class JobExecutor {
 		try {
 			long startTime = System.currentTimeMillis();
 			validateArguments(args);
-			Property.setNamespace(PROPERTIES_NAMESPACE.NODE);
+			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			(nodesManager = ServerHeartBeat.init()).startup();
-			waitForStartRowCountSignal();
-			executeAllJobs();
+			LOGGER.info("Start Node initialize");
+			JobRunner jobRunner = createJobRunner();
+			List<JobEntity> jobEntities = getJobsFromZKNode();
+			for (JobEntity jobEntity : jobEntities) {
+				Object[] loggerJobArgument = new Object[] { jobEntity.getJobId() };
+				LOGGER.info("Starting execution of job: {}", loggerJobArgument);
+				jobRunner.run(jobEntity);
+				LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
+			}
+			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 			nodesManager.createEphemeralNode(buildStartPath, null);
-			LOGGER.info("All jobs on this node executed successfully.");
-			LOGGER.info("*************** TOTAL TIME TAKEN TO EXECUTE ALL JOBS {} ms *******************",
-					(System.currentTimeMillis() - startTime));
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
+			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}
-	}
-
-	private static void executeAllJobs() throws Exception {
-		JobRunner jobRunner = createJobRunner();
-		Map<Integer, TaskEntity> taskEntities;
-		List<JobEntity> allJobsToBeExecuted = getJobsFromZKNode();
-		Iterator<JobEntity> itrTotalJobEntity = allJobsToBeExecuted.iterator();
-		List<int[]> processedDims = new ArrayList<>();
-		long totalTileElapsedInRowCount = 0l;
-		// This while loop is for each job to execute sequentially.
-		while (itrTotalJobEntity.hasNext()) {
-			JobEntity jobEntity = itrTotalJobEntity.next();
-			itrTotalJobEntity.remove();
-			// if this dimensions is processed then skip.
-			if (isDimsProcessed(processedDims, jobEntity)) {
-				continue;
-			}
-			processedDims.add(jobEntity.getJob().getDimensions());
-			long startTimeRowCount = System.currentTimeMillis();
-			jobRunner.doRowCount(jobEntity);
-			totalTileElapsedInRowCount = totalTileElapsedInRowCount + (System.currentTimeMillis() - startTimeRowCount);
-			taskEntities = jobRunner.getTaskEntities();
-			// if no reducers, just skip.
-			if (taskEntities.size() == 0)
-			{
-				continue; 
-			}
-			Iterator<JobEntity> allJobsToBeExecutedIterator = allJobsToBeExecuted.iterator();
-			Map<Integer, TaskEntity> tasksEntityForDiffIndex = new HashMap<>();
-			// To find the jobs having reducers on the same dimensions.
-			while (allJobsToBeExecutedIterator.hasNext()) {
-				JobEntity currentJob = allJobsToBeExecutedIterator.next();
-				Iterator<TaskEntity> tasksPerJobItr = taskEntities.values().iterator();
-				// Identify the reducers and create the another reducer for
-				// different for same dimension BUT different for index.
-				while (tasksPerJobItr.hasNext()) {
-					TaskEntity takEntity = tasksPerJobItr.next();
-					if (Arrays.equals(currentJob.getJob().getDimensions(),
-							takEntity.getJobEntity().getJob().getDimensions())) {
-						Work work = currentJob.getJob().createNewWork();
-						TaskEntity newTaskEntity = takEntity.clone();
-						newTaskEntity.setWork(work);
-						newTaskEntity.setJobEntity(currentJob);
-						tasksEntityForDiffIndex.put(newTaskEntity.getTaskId(), newTaskEntity);
-					}
-				}
-			}
-			taskEntities.putAll(tasksEntityForDiffIndex);
-			LOGGER.info("SIZE OF TASKS {}", taskEntities.size());
-			LOGGER.info("JOB RUNNER MATRIX STARTED");
-			runJobMatrix(jobRunner, taskEntities);
-			LOGGER.info("FINISHED JOB RUNNER MATRIX");
-			jobRunner.clear();
-			taskEntities.clear();
-			tasksEntityForDiffIndex.clear();
-		}
-		processedDims.clear();
-		LOGGER.info("TOTAL TIME TAKEN FOR ROW COUNTS OF ALL JOBS {} ms", totalTileElapsedInRowCount);
-	}
-
-	private static boolean isDimsProcessed(List<int[]> processedDims, JobEntity jobEntity) {
-		boolean dimsProcessed = false;
-		Iterator<int[]> dimsItr = processedDims.iterator();
-		while (dimsItr.hasNext()) {
-			int[] dims = dimsItr.next();
-			if (Arrays.equals(dims, jobEntity.getJob().getDimensions())) {
-				dimsProcessed = true;
-				break;
-			}
-		}
-		return dimsProcessed;
 	}
 
 	/**
@@ -166,36 +87,6 @@ public class JobExecutor {
 	}
 
 	/**
-	 * To run the jobs for aggregation or other operations.
-	 * 
-	 * @param jobRunner
-	 * @param signal
-	 * @return boolean
-	 * @throws Exception
-	 */
-	private static boolean runJobMatrix(JobRunner jobRunner, Map<Integer, TaskEntity> workEntities) throws Exception {
-		List<TaskEntity> listOfTaskEntities = new ArrayList<>();
-		listOfTaskEntities.addAll(workEntities.values());
-		for (Entry<Integer, List<ResourceConsumer>> entry : getTasksOnPriority(listOfTaskEntities).entrySet()) {
-			LOGGER.debug("RESOURCE INDEX {}", entry.getKey());
-			for (ResourceConsumer consumer : entry.getValue()) {
-				Integer resourceId = consumer.getResourceRequirement().getResourceId();
-				TaskEntity taskEntity = workEntities.get(resourceId);
-				jobRunner.addTask(taskEntity);
-				workEntities.remove(resourceId);
-				LOGGER.debug("JOB ID {} AND TASK ID {} AND VALUE SET {} AND COUNT {} WILL BE EXECUTED",
-						taskEntity.getJobEntity().getJobId(), taskEntity.getTaskId(), taskEntity.getValueSet(),
-						taskEntity.getRowCount());
-			}
-		}
-		LOGGER.info("BATCH EXECUTION STARTED");
-		long startTime = System.currentTimeMillis();
-		jobRunner.run();
-		LOGGER.info("BATCH COMPLETION TIME {} ms", (System.currentTimeMillis() - startTime));
-		return true;
-	}
-
-	/**
 	 * Create the job runner.
 	 * 
 	 * @return JobRunner
@@ -209,47 +100,6 @@ public class JobExecutor {
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
 				dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
-	}
-
-	/**
-	 * Wait for notification for the start row count.
-	 * 
-	 * @param signal
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 * @throws IOException
-	 */
-	private static void waitForStartRowCountSignal() throws KeeperException, InterruptedException, IOException {
-		CountDownLatch signal = new CountDownLatch(1);
-		String buildStartPath = null;
-		buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.START_ROW_COUNT.name();
-		ZKUtils.waitForSignal(buildStartPath, signal);
-		signal.await();
-	}
-
-	/**
-	 * Prioritize the execution of the task based on resource requirement per
-	 * task operations i.e row count and calculations.
-	 * 
-	 * @param taskEntities
-	 * @return Map<Integer, List<ResourceConsumer>>
-	 */
-	private static Map<Integer, List<ResourceConsumer>> getTasksOnPriority(List<TaskEntity> taskEntities) {
-		long AVAILABLE_RAM = Long.valueOf(Property.getProperties().getProperty("node.available.ram"));
-		resourceManager = new ResourceManagerImpl();
-		ResourceConsumer resourceConsumer;
-		List<ResourceConsumer> resourceConsumers = new ArrayList<ResourceConsumer>();
-		long diskSizeNeeded = 0l;
-		for (TaskEntity taskEntity : taskEntities) {
-			resourceConsumer = new ResourceConsumerImpl(diskSizeNeeded,
-					taskEntity.getJobEntity().getJob().getMemoryFootprint(taskEntity.getRowCount()),
-					taskEntity.getTaskId());
-			resourceConsumers.add(resourceConsumer);
-		}
-		Collections.sort(resourceConsumers, new ResourceConsumerComparator());
-		return resourceManager.getIterationWiseResourceConsumersToAllocateResourcesTo(0l, AVAILABLE_RAM,
-				resourceConsumers);
 	}
 
 	/**

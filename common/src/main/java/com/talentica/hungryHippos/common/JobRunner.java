@@ -36,10 +36,10 @@ public class JobRunner implements Serializable {
 		storeAccess = dataStore.getStoreAccess(jobEntity.getJob().getPrimaryDimension());
 		DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal, jobEntity);
 		storeAccess.addRowProcessor(rowProcessor);
-		do {
+		// do {
 			storeAccess.processRows();
-			rowProcessor.finishUp();
-		} while (rowProcessor.isAdditionalValueSetsPresentForProcessing());
+		rowProcessor.finishUp();
+		// } while (rowProcessor.isAdditionalValueSetsPresentForProcessing());
 	}
 
 	private void checkIfMemoryAvailableToRunJob() {

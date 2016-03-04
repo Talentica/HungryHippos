@@ -47,13 +47,15 @@ public class DataRowProcessor implements RowProcessor {
 
 	private boolean isCurrentBatchFull;
 
+	private ValueSet processingValueSet = null;
+
 	private ValueSet processedTillValueSetInLastBatches = null;
 
 	private boolean additionalValueSetsPresentForProcessing = false;
 
 	private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
-	private int batchId = 0;
+	private int noOfValueSetsProcessed = 0;
 
 	private int countOfRows = 0;
 
@@ -78,11 +80,20 @@ public class DataRowProcessor implements RowProcessor {
 			Object value = dynamicMarshal.readValue(keys[i], row);
 			valueSet.setValue(value, i);
 		}
-		freeupMemory();
-		if (isNotAlreadyProcessedValueSet(valueSet)) {
-			List<Work> reducers = prepareReducersBatch(valueSet);
-			processReducers(reducers, row);
+		// freeupMemory();
+
+		if (processingValueSet != null && !processingValueSet.equals(valueSet)) {
+			calculate();
+			reset();
 		}
+		totalNoOfRowsProcessed++;
+		processingValueSet = valueSet;
+		List<Work> reducers = prepareReducersBatch(valueSet);
+		processReducers(reducers, row);
+		// if (isNotAlreadyProcessedValueSet(valueSet)) {
+		// List<Work> reducers = prepareReducersBatch(valueSet);
+		// processReducers(reducers, row);
+		// }
 	}
 
 	private void freeupMemory() {
@@ -99,14 +110,15 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private List<Work> prepareReducersBatch(ValueSet valueSet) {
-		checkIfBatchIsFull();
+		// checkIfBatchIsFull();
 		List<Work> reducers = null;
-		if (!isCurrentBatchFull) {
+		// if (!isCurrentBatchFull) {
 			reducers = addReducerWhenBatchIsNotFull(valueSet);
-			additionalValueSetsPresentForProcessing = false;
-		} else {
-			reducers = addReducerWhenBatchIsFull(valueSet);
-		}
+		// additionalValueSetsPresentForProcessing = false;
+		// }
+//		} else {
+//			reducers = addReducerWhenBatchIsFull(valueSet);
+//		}
 		logProgress();
 		return reducers;
 	}
@@ -118,10 +130,9 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void logProgress() {
-		totalNoOfRowsProcessed++;
-		if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
+		if (noOfValueSetsProcessed != 0 && noOfValueSetsProcessed % 100 == 0) {
 			LOGGER.info("Please wait... Processing in progress. {} no. of rows processed...",
-					new Object[] { totalNoOfRowsProcessed });
+					new Object[] { noOfValueSetsProcessed });
 		}
 	}
 
@@ -199,28 +210,32 @@ public class DataRowProcessor implements RowProcessor {
 	@Override
 	public void finishUp() {
 		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
-		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
-			for (Work work : e.getValue()) {
-				executionContext.setKeys(e.getKey());
-				work.calculate(executionContext);
-			}
-		}
+		calculate();
 		if (!garbageCollectionRan) {
 			System.gc();
 		}
 		reset();
 	}
 
+	private void calculate() {
+		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
+			for (Work work : e.getValue()) {
+				executionContext.setKeys(e.getKey());
+				work.calculate(executionContext);
+			}
+		}
+	}
+
 	private void reset() {
-		LOGGER.info("Processing of batch id:{}, size:{} completed.",
-				new Object[] { batchId, valuestWorkTreeMap.size() });
+		// LOGGER.info("Processing of batch id:{}, size:{} completed.",
+		// new Object[] { batchId, valuestWorkTreeMap.size() });
 		valuestWorkTreeMap.clear();
 		isCurrentBatchFull = false;
 		countOfRows = 0;
-		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
-		batchId++;
+		noOfValueSetsProcessed++;
 		garbageCollectionRan = false;
+		processingValueSet = null;
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

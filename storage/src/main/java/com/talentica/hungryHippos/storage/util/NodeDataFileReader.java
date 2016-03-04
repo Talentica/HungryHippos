@@ -14,6 +14,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
@@ -34,6 +35,7 @@ public class NodeDataFileReader {
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		int noOfKeys = Property.getKeyOrder().length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
 			String dataFileName = args[0] + FileDataStore.DATA_FILE_BASE_NAME + i;
@@ -67,7 +69,7 @@ public class NodeDataFileReader {
 	}
 
 	private static DynamicMarshal getDynamicMarshal() {
-		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+		dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;

@@ -22,11 +22,18 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  */
 public class DataRowProcessor implements RowProcessor {
 
-	private static final int MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER = 1000;
+	private static final long MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER = Long
+			.parseLong(Property.getPropertyValue("no.of.rows.to.run.gc.after").toString());
 
-	private static final int MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = 1000000;
+	private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = Long
+			.parseLong(Property.getPropertyValue("no.of.rows.to.log.progress.after").toString());
+
+	private static final long NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER = Long
+			.parseLong(Property.getPropertyValue("no.of.rows.to.check.available.memory.after").toString());
 
 	private DynamicMarshal dynamicMarshal;
+
+	private boolean garbageCollectionRan = false;
 
 	private ExecutionContextImpl executionContext;
 
@@ -52,8 +59,6 @@ public class DataRowProcessor implements RowProcessor {
 
 	private int totalNoOfRowsProcessed = 0;
 
-	private int totalNoOfValueSetsRemoved = 0;
-
 	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
 			.valueOf(Property.getPropertyValue("node.min.free.memory.in.mbs"));
 
@@ -73,9 +78,19 @@ public class DataRowProcessor implements RowProcessor {
 			Object value = dynamicMarshal.readValue(keys[i], row);
 			valueSet.setValue(value, i);
 		}
+		freeupMemory();
 		if (isNotAlreadyProcessedValueSet(valueSet)) {
 			List<Work> reducers = prepareReducersBatch(valueSet);
 			processReducers(reducers, row);
+		}
+	}
+
+	private void freeupMemory() {
+		if (totalNoOfRowsProcessed != 0 && totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER == 0) {
+			LOGGER.info("Requesting garbage collection. No of rows processed: {}",
+					new Object[] { totalNoOfRowsProcessed });
+			System.gc();
+			garbageCollectionRan = true;
 		}
 	}
 
@@ -171,7 +186,7 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void checkIfBatchIsFull() {
-		if (countOfRows >= 1024) {
+		if (countOfRows >= NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER) {
 			long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
 			if (!isCurrentBatchFull && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
 				isCurrentBatchFull = true;
@@ -190,8 +205,10 @@ public class DataRowProcessor implements RowProcessor {
 				work.calculate(executionContext);
 			}
 		}
+		if (!garbageCollectionRan) {
+			System.gc();
+		}
 		reset();
-		System.gc();
 	}
 
 	private void reset() {
@@ -201,9 +218,9 @@ public class DataRowProcessor implements RowProcessor {
 		isCurrentBatchFull = false;
 		countOfRows = 0;
 		totalNoOfRowsProcessed = 0;
-		totalNoOfValueSetsRemoved = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
+		garbageCollectionRan = false;
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

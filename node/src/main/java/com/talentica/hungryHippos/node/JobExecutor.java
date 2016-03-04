@@ -54,7 +54,10 @@ public class JobExecutor {
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
+				Object[] loggerJobArgument = new Object[] { jobEntity.getJobId() };
+				LOGGER.info("Starting execution of job: {}", loggerJobArgument);
 				jobRunner.run(jobEntity);
+				LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
 			}
 			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH

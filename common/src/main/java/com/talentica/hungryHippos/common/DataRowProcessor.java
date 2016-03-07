@@ -37,9 +37,9 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private JobEntity jobEntity;
+	private List<JobEntity> jobEntities;
 
-	private Class<? extends Work> workClassType = null;
+	//private List<Class<? extends Work>> workClassTypeList = new ArrayList<>();
 
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
 
@@ -66,12 +66,16 @@ public class DataRowProcessor implements RowProcessor {
 
 	long startTime = System.currentTimeMillis();
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
-		this.jobEntity = jobEntity;
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities, int[] dimesions) {
+		this.jobEntities = jobEntities;
 		this.dynamicMarshal = dynamicMarshal;
-		this.keys = jobEntity.getJob().getDimensions();
+		this.keys = dimesions;
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
-		workClassType = jobEntity.getJob().createNewWork().getClass();
+		/*for(JobEntity jobEntity : jobEntities){
+			Class<? extends Work> clazz = jobEntity.getJob().createNewWork().getClass();
+			if(workClassTypeList.contains(clazz)) continue;
+			workClassTypeList.add(clazz);
+		}*/
 	}
 
 	@Override
@@ -158,26 +162,30 @@ public class DataRowProcessor implements RowProcessor {
 
 	private void addReducer(ValueSet valueSet, List<Work> works) {
 		if (!valuestWorkTreeMap.containsKey(valueSet)) {
-			Work work = jobEntity.getJob().createNewWork();
-			works.add(work);
+			for (JobEntity jobEntity : this.jobEntities) {
+				Work work = jobEntity.getJob().createNewWork();
+				works.add(work);
+			}
 			valuestWorkTreeMap.put(valueSet, works);
 			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		int i = reducers.size();
-		while (i > 0) {
-			if (workClassType != reducers.get(i).getClass()) {
-				reducers.remove(i);
-			}
+		//int i = reducers.size();
+		/*while (i > 0) {
 			i--;
+				for(Class<? extends Work> clazz : this.workClassTypeList){
+					if (clazz != reducers.get(i).getClass()) {
+						reducers.remove(i);
+					}
+				}
 		}
 		i = reducers.size();
 		while (i != 1) {
-			reducers.remove(i);
 			i--;
-		}
+			reducers.remove(i);
+		}*/
 		for (Work reducer : reducers) {
 			reducer.reset();
 		}
@@ -231,7 +239,7 @@ public class DataRowProcessor implements RowProcessor {
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
 		garbageCollectionRan = false;
-		workClassType = null;
+		//workClassTypeList = null;
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

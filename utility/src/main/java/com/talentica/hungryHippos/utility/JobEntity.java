@@ -56,5 +56,8 @@ public class JobEntity implements Serializable {
 	public int hashCode() {
 		return this.jobId;
 	}
-
+	@Override
+	public String toString() {
+		return "JobEntity [jobId=" + jobId + "]";
+	}
 }

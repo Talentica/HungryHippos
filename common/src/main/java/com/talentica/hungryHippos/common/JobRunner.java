@@ -1,6 +1,10 @@
 package com.talentica.hungryHippos.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,24 +26,45 @@ public class JobRunner implements Serializable {
 	private static final long serialVersionUID = -4793614653018059851L;
 	private DataStore dataStore;
 	private DynamicMarshal dynamicMarshal = null;
-
 	private Logger LOGGER = LoggerFactory.getLogger(JobRunner.class);
-
+	private Map<Integer,Map<IntArrayKeyHashMap,List<JobEntity>>> primDimenAsKeyAndDimensJobEntityMap = new HashMap<Integer,Map<IntArrayKeyHashMap,List<JobEntity>>>();
 	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
 		this.dataStore = dataStore;
 		dynamicMarshal = new DynamicMarshal(dataDescription);
 	}
 
-	public void run(JobEntity jobEntity) {
+	public void addJob(JobEntity jobEntity){
+		Map<IntArrayKeyHashMap,List<JobEntity>> dimensJobListMap = primDimenAsKeyAndDimensJobEntityMap.get(jobEntity.getJob().getPrimaryDimension());
+		IntArrayKeyHashMap dimensAsKey = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
+		if(dimensJobListMap == null){
+			dimensJobListMap = new HashMap<>();
+			primDimenAsKeyAndDimensJobEntityMap.put(jobEntity.getJob().getPrimaryDimension(), dimensJobListMap);
+		}
+		List<JobEntity> jobEntitiesOfLikeDimens = dimensJobListMap.get(dimensAsKey);
+		if(jobEntitiesOfLikeDimens == null){
+			jobEntitiesOfLikeDimens = new ArrayList<>();
+			dimensJobListMap.put(dimensAsKey,jobEntitiesOfLikeDimens);
+		}
+		jobEntitiesOfLikeDimens.add(jobEntity);
+		
+	}
+	
+	public void run() {
 		checkIfMemoryAvailableToRunJob();
 		StoreAccess storeAccess = null;
-		storeAccess = dataStore.getStoreAccess(jobEntity.getJob().getPrimaryDimension());
-		DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal, jobEntity);
-		storeAccess.addRowProcessor(rowProcessor);
-		do {
-			storeAccess.processRows();
-			rowProcessor.finishUp();
-		} while (rowProcessor.isAdditionalValueSetsPresentForProcessing());
+		for (Integer primDimAsKey : primDimenAsKeyAndDimensJobEntityMap.keySet()) {
+			storeAccess = dataStore.getStoreAccess(primDimAsKey);
+			for (IntArrayKeyHashMap dimesAsKey : primDimenAsKeyAndDimensJobEntityMap.get(primDimAsKey).keySet()) {
+				List<JobEntity> jobEntitiesOfLikeDimens = primDimenAsKeyAndDimensJobEntityMap.get(primDimAsKey).get(dimesAsKey);
+				DataRowProcessor dataRowProcessor = new DataRowProcessor(dynamicMarshal, jobEntitiesOfLikeDimens,dimesAsKey.getValues());
+					LOGGER.info("Starting execution of no. of jobs {}" , jobEntitiesOfLikeDimens.size());
+					storeAccess.addRowProcessor(dataRowProcessor);
+					do {
+						storeAccess.processRows();
+					} while (dataRowProcessor.isAdditionalValueSetsPresentForProcessing());
+					dataRowProcessor.finishUp();
+			}
+		}
 	}
 
 	private void checkIfMemoryAvailableToRunJob() {

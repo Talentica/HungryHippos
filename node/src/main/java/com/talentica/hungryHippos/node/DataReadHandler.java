@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.node;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.server.ServerUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -25,16 +27,19 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	private ByteBuffer byteBuffer;
 	private DataStore dataStore;
 	private ByteBuf byteBuf;
+	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 
 	private static int dataReaderHandlerCounter = 0;
 	private int dataReaderHandlerId = -1;
 
-	public DataReadHandler(DataDescription dataDescription, DataStore dataStore) {
+	public DataReadHandler(DataDescription dataDescription, DataStore dataStore) throws IOException {
 		this.dataDescription = dataDescription;
 		this.buf = new byte[dataDescription.getSize()];
 		byteBuffer = ByteBuffer.wrap(this.buf);
 		this.dataStore = dataStore;
 		dataReaderHandlerId = ++dataReaderHandlerCounter;
+		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
+				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
 	}
 
 	@Override
@@ -46,7 +51,8 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
 		while (byteBuf.readableBytes() >= dataDescription.getSize()) {
 			byteBuf.readBytes(buf);
-			dataStore.storeRow(byteBuffer, buf);
+			int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
+			dataStore.storeRow(storeId, byteBuffer, buf);
 		}
 		waitForDataPublishersServerConnectRetryInterval();
 		dataReaderHandlerCounter--;
@@ -72,7 +78,8 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 		// process the new data.
 		while (byteBuf.readableBytes() >= dataDescription.getSize()) {
 			byteBuf.readBytes(buf);
-			dataStore.storeRow(byteBuffer, buf);
+			int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
+			dataStore.storeRow(storeId, byteBuffer, buf);
 		}
 
 		// take the remaining content to the beginning

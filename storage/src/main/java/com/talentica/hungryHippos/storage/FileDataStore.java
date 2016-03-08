@@ -27,7 +27,6 @@ public class FileDataStore implements DataStore, Serializable {
 	private static final long serialVersionUID = -7726551156576482829L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileDataStore.class);
 	private final int numFiles;
-	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 	private OutputStream[] os;
 	private DataDescription dataDescription;
 
@@ -38,15 +37,12 @@ public class FileDataStore implements DataStore, Serializable {
 
 	public static String DATA_FILE_BASE_NAME = "data" + File.separator + "data_";
 
-	public FileDataStore(int numDimensions, NodeDataStoreIdCalculator nodeDataStoreIdCalculator,
-			DataDescription dataDescription) throws IOException {
-		this(numDimensions, nodeDataStoreIdCalculator, dataDescription, false);
+	public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
+		this(numDimensions, dataDescription, false);
 	}
 
-	public FileDataStore(int numDimensions, NodeDataStoreIdCalculator nodeDataStoreIdCalculator,
-			DataDescription dataDescription, boolean readOnly) throws IOException {
+	public FileDataStore(int numDimensions, DataDescription dataDescription, boolean readOnly) throws IOException {
 		this.numFiles = 1 << numDimensions;
-		this.nodeDataStoreIdCalculator = nodeDataStoreIdCalculator;
 		this.dataDescription = dataDescription;
 		os = new OutputStream[numFiles];
 		if (!readOnly) {
@@ -59,8 +55,7 @@ public class FileDataStore implements DataStore, Serializable {
 	}
 
 	@Override
-	public void storeRow(ByteBuffer row, byte[] raw) {
-		int storeId = nodeDataStoreIdCalculator.storeId(row);
+	public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
 		try {
 			os[storeId].write(raw);
 		} catch (IOException e) {

@@ -11,6 +11,9 @@ import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 
 public class MutableCharArrayStringTest {
 
+	private static final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE = MutableCharArrayStringCache
+			.newInstance();
+
 	private MutableCharArrayString stringL1;
 
 	private MutableCharArrayString stringL2;
@@ -66,7 +69,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	private MutableCharArrayString createTestString() {
-		MutableCharArrayString testString = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(2);
+		MutableCharArrayString testString = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(2);
 		testString.addCharacter('l');
 		testString.addCharacter('c');
 		return testString;

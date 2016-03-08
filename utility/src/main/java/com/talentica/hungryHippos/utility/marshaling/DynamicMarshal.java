@@ -12,10 +12,11 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
  * Created by debasishc on 1/9/15.
  */
 public class DynamicMarshal implements Serializable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5800537222182360030L;
+
+	private final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE = MutableCharArrayStringCache
+			.newInstance();
 
 	private DataDescription dataDescription;
 
@@ -50,7 +51,7 @@ public class DynamicMarshal implements Serializable {
 		DataLocator locator = dataDescription.locateField(index);
 		int offset = locator.getOffset();
 		int size = locator.getSize();
-		MutableCharArrayString charArrayString = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(size);
+		MutableCharArrayString charArrayString = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(size);
 		for (int i = offset; i < offset + size; i++) {
 			byte ch = source.get(i);
 			charArrayString.addCharacter((char) ch);

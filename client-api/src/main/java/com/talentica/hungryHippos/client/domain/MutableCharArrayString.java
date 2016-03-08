@@ -9,6 +9,9 @@ import java.util.Arrays;
 public class MutableCharArrayString
 		implements Comparable<MutableCharArrayString>, CharSequence, Cloneable, Serializable {
 
+	private static final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE = MutableCharArrayStringCache
+			.newInstance();
+
 	private static final long serialVersionUID = -6085804645372631875L;
 	private char[] array;
 	private int stringLength;
@@ -34,7 +37,7 @@ public class MutableCharArrayString
 
 	@Override
 	public MutableCharArrayString subSequence(int start, int end) {
-		MutableCharArrayString newArray = MutableCharArrayStringCache.getMutableStringFromCacheOfSize(end - start);
+		MutableCharArrayString newArray = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(end - start);
 		copyCharacters(start, end, newArray);
 		newArray.stringLength = end - start;
 		return newArray;

@@ -97,8 +97,7 @@ public class JobExecutor {
 		dataDescription.setKeyOrder(Property.getKeyOrder());
 		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
 				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
-				dataDescription, true);
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
 	}
 

@@ -112,7 +112,7 @@ public class DataReceiver {
 	 */
 	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-				Property.overrideConfigurationProperties(args[0]);
+			Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);

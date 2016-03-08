@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.Property;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -29,6 +30,9 @@ public class FileDataStore implements DataStore, Serializable {
 	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 	private OutputStream[] os;
 	private DataDescription dataDescription;
+
+	private static final boolean APPEND_TO_DATA_FILES = Boolean
+			.valueOf(Property.getPropertyValue("datareceiver.append.to.data.files"));
 
 	private Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
 
@@ -49,7 +53,7 @@ public class FileDataStore implements DataStore, Serializable {
 			for (int i = 0; i < numFiles; i++) {
 				os[i] = new BufferedOutputStream(
 						new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
-								+ DATA_FILE_BASE_NAME + i));
+								+ DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
 			}
 		}
 	}

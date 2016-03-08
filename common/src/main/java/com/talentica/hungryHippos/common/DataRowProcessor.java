@@ -39,8 +39,6 @@ public class DataRowProcessor implements RowProcessor {
 
 	private List<JobEntity> jobEntities;
 
-	//private List<Class<? extends Work>> workClassTypeList = new ArrayList<>();
-
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
@@ -71,11 +69,6 @@ public class DataRowProcessor implements RowProcessor {
 		this.dynamicMarshal = dynamicMarshal;
 		this.keys = dimesions;
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
-		/*for(JobEntity jobEntity : jobEntities){
-			Class<? extends Work> clazz = jobEntity.getJob().createNewWork().getClass();
-			if(workClassTypeList.contains(clazz)) continue;
-			workClassTypeList.add(clazz);
-		}*/
 	}
 
 	@Override
@@ -129,6 +122,7 @@ public class DataRowProcessor implements RowProcessor {
 		if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
 			LOGGER.info("Please wait... Processing in progress. {} no. of rows processed...",
 					new Object[] { totalNoOfRowsProcessed });
+			LOGGER.info("BATCH SIZE {}",valuestWorkTreeMap.size());
 		}
 	}
 
@@ -172,20 +166,6 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		//int i = reducers.size();
-		/*while (i > 0) {
-			i--;
-				for(Class<? extends Work> clazz : this.workClassTypeList){
-					if (clazz != reducers.get(i).getClass()) {
-						reducers.remove(i);
-					}
-				}
-		}
-		i = reducers.size();
-		while (i != 1) {
-			i--;
-			reducers.remove(i);
-		}*/
 		for (Work reducer : reducers) {
 			reducer.reset();
 		}
@@ -216,6 +196,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	@Override
 	public void finishUp() {
+		LOGGER.info("Finishing up current batch id {} ...",batchId);
 		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
 		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
 			for (Work work : e.getValue()) {
@@ -239,7 +220,6 @@ public class DataRowProcessor implements RowProcessor {
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
 		garbageCollectionRan = false;
-		//workClassTypeList = null;
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

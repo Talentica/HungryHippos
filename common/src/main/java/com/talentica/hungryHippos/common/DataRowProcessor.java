@@ -3,9 +3,11 @@ package com.talentica.hungryHippos.common;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -14,6 +16,7 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.ArrayEncoder;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -42,9 +45,10 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private List<JobEntity> jobEntities;
+	private Map<Integer,List<JobEntity>> dimensAsKeyjobEntityMap = new HashMap<Integer, List<JobEntity>>();
 
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
+	
 	private List<ValueSet> valueSetList = new ArrayList<>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
@@ -65,19 +69,23 @@ public class DataRowProcessor implements RowProcessor {
 
 	private int totalNoOfRowsProcessed = 0;
 	
-	private CountDownLatch signal = null;
-
 	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
 			.valueOf(Property.getPropertyValue("node.min.free.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities) {
-		this.jobEntities = jobEntities;
 		this.dynamicMarshal = dynamicMarshal;
 		for(JobEntity jobEntity : jobEntities){
 			IntArrayKeyHashMap keysSet = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
 			this.keysList.add(keysSet);
+			int encodedKeys = ArrayEncoder.encode(jobEntity.getJob().getDimensions());
+			List<JobEntity> keysJobEntitiesList = dimensAsKeyjobEntityMap.get(encodedKeys);
+			if(keysJobEntitiesList == null) {
+				keysJobEntitiesList = new ArrayList<>();
+				dimensAsKeyjobEntityMap.put(encodedKeys, keysJobEntitiesList);
+			}
+			keysJobEntitiesList.add(jobEntity);
 		}
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
 	}
@@ -93,18 +101,11 @@ public class DataRowProcessor implements RowProcessor {
 			valueSetList.add(valueSet);
 		}
 		freeupMemory();
-		signal = new CountDownLatch(valueSetList.size());
 		for (ValueSet valueSet : valueSetList) {
 			if (isNotAlreadyProcessedValueSet(valueSet)) {
 				List<Work> reducers = prepareReducersBatch(valueSet);
 				processReducers(reducers, row);
 			}
-			signal.countDown();
-		}
-		try {
-			signal.await();
-		} catch (InterruptedException e) {
-			LOGGER.info("Unable to wait to complete");
 		}
 		valueSetList.clear();
 	}
@@ -180,7 +181,8 @@ public class DataRowProcessor implements RowProcessor {
 
 	private void addReducer(ValueSet valueSet, List<Work> works) {
 		if (!valuestWorkTreeMap.containsKey(valueSet)) {
-			for (JobEntity jobEntity : this.jobEntities) {
+			List<JobEntity> jobEntities = dimensAsKeyjobEntityMap.get(valueSet.getEncodedKey());
+			for (JobEntity jobEntity : jobEntities) {
 				if (Arrays.equals(valueSet.getKeyIndexes(), jobEntity.getJob()
 						.getDimensions())) {
 					Work work = jobEntity.getJob().createNewWork();
@@ -235,12 +237,6 @@ public class DataRowProcessor implements RowProcessor {
 			}
 			itr.remove();
 		}
-		/*for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
-			for (Work work : e.getValue()) {
-				executionContext.setKeys(e.getKey());
-				work.calculate(executionContext);
-			}
-		}*/
 		reset(size);
 	}
 

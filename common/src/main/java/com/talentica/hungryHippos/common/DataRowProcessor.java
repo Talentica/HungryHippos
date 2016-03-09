@@ -60,7 +60,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
-	private int batchId = 0;
+	private static int batchId = 0;
 
 	private int countOfRows = 0;
 

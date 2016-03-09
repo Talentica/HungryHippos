@@ -22,8 +22,8 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  */
 public class DataRowProcessor implements RowProcessor {
 
-	private static final long MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER = Long
-			.parseLong(Property.getPropertyValue("no.of.rows.to.run.gc.after").toString());
+	private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR = Long
+			.parseLong(Property.getPropertyValue("node.no.of.rows.to.check.memory.consumption.after").toString());
 
 	private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = Long
 			.parseLong(Property.getPropertyValue("no.of.rows.to.log.progress.after").toString());
@@ -31,9 +31,14 @@ public class DataRowProcessor implements RowProcessor {
 	private static final long NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER = Long
 			.parseLong(Property.getPropertyValue("no.of.rows.to.check.available.memory.after").toString());
 
-	private DynamicMarshal dynamicMarshal;
+	private static final long WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS = Long.parseLong(
+			Property.getPropertyValue("wait.time.in.ms.after.gc.is.requested.for.single.valueset.is.in.process")
+					.toString());
 
-	private boolean garbageCollectionRan = false;
+	private static final int MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS = Integer
+			.parseInt(Property.getPropertyValue("max.no.of.gc.retries.when.single.valueset.is.in.process").toString());
+
+	private DynamicMarshal dynamicMarshal;
 
 	private ExecutionContextImpl executionContext;
 
@@ -89,11 +94,41 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void freeupMemory() {
-		if (totalNoOfRowsProcessed != 0 && totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_PERFORM_GC_AFTER == 0) {
-			LOGGER.info("Requesting garbage collection. No of rows processed: {}",
-					new Object[] { totalNoOfRowsProcessed });
-			System.gc();
-			garbageCollectionRan = true;
+		if (totalNoOfRowsProcessed != 0
+				&& totalNoOfRowsProcessed % NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR == 0) {
+			long maxMemoryVailable = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
+			if (!valuestWorkTreeMap.isEmpty()
+					&& maxMemoryVailable < MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
+				int size = valuestWorkTreeMap.size();
+				if (size > 1) {
+					ValueSet currentMaxValueSet = valuestWorkTreeMap.lastKey();
+					valuestWorkTreeMap.remove(currentMaxValueSet);
+					maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
+					LOGGER.info(
+							"Requesting garbage collection as free memory available is: {}. Total memory in JVM is: {}",
+							new Object[] { maxMemoryVailable, MemoryStatus.getTotalmemory() });
+					LOGGER.info("Total no. of rows processed is: {}. ", new Object[] { totalNoOfRowsProcessed });
+					System.gc();
+				}
+				if (size == 1) {
+					waitForGarbageCollectionToBeRun();
+				}
+			}
+		}
+	}
+
+	private void waitForGarbageCollectionToBeRun() {
+		try {
+			int retryCount = MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS;
+			while (retryCount > 0) {
+				LOGGER.info(
+						"Requesting for garbage collection and waiting as there is a single valueset: {} for which computation is being performed.",
+						new Object[] { valuestWorkTreeMap.lastKey() });
+				Thread.sleep(WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS);
+				retryCount--;
+			}
+		} catch (InterruptedException exception) {
+			throw new RuntimeException(exception);
 		}
 	}
 
@@ -142,11 +177,11 @@ public class DataRowProcessor implements RowProcessor {
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
 			reducers = valuestWorkTreeMap.get(maxValueSetOfCurrentBatch);
 			valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
+
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
 		}
-		if (!additionalValueSetsPresentForProcessing
-				&& valueSet.compareTo(maxValueSetOfCurrentBatch) > 0) {
+		if (!additionalValueSetsPresentForProcessing && valueSet.compareTo(maxValueSetOfCurrentBatch) > 0) {
 			additionalValueSetsPresentForProcessing = true;
 		}
 		return reducers;
@@ -168,10 +203,10 @@ public class DataRowProcessor implements RowProcessor {
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
 		int i = reducers.size();
 		while (i > 0) {
+			i--;
 			if (workClassType != reducers.get(i).getClass()) {
 				reducers.remove(i);
 			}
-			i--;
 		}
 		i = reducers.size();
 		while (i != 1) {
@@ -182,7 +217,7 @@ public class DataRowProcessor implements RowProcessor {
 			reducer.reset();
 		}
 		valuestWorkTreeMap.put(valueSet, reducers);
-		maxValueSetOfCurrentBatch=valueSet;
+		maxValueSetOfCurrentBatch = valueSet;
 		maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
 	}
 
@@ -215,9 +250,6 @@ public class DataRowProcessor implements RowProcessor {
 				work.calculate(executionContext);
 			}
 		}
-		if (!garbageCollectionRan) {
-			System.gc();
-		}
 		reset();
 	}
 
@@ -230,8 +262,8 @@ public class DataRowProcessor implements RowProcessor {
 		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
-		garbageCollectionRan = false;
 		workClassType = null;
+		System.gc();
 	}
 
 	public boolean isAdditionalValueSetsPresentForProcessing() {

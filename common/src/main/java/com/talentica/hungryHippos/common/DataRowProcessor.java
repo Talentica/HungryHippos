@@ -2,9 +2,14 @@ package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +45,11 @@ public class DataRowProcessor implements RowProcessor {
 	private List<JobEntity> jobEntities;
 
 	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
+	private List<ValueSet> valueSetList = new ArrayList<>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
 
-	private int[] keys;
+	private Set<IntArrayKeyHashMap> keysList = new HashSet<>();
 
 	private boolean isCurrentBatchFull;
 
@@ -58,31 +64,49 @@ public class DataRowProcessor implements RowProcessor {
 	private int countOfRows = 0;
 
 	private int totalNoOfRowsProcessed = 0;
+	
+	private CountDownLatch signal = null;
 
 	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
 			.valueOf(Property.getPropertyValue("node.min.free.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities, int[] dimesions) {
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities) {
 		this.jobEntities = jobEntities;
 		this.dynamicMarshal = dynamicMarshal;
-		this.keys = dimesions;
+		for(JobEntity jobEntity : jobEntities){
+			IntArrayKeyHashMap keysSet = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
+			this.keysList.add(keysSet);
+		}
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
 	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-		ValueSet valueSet = new ValueSet(keys);
-		for (int i = 0; i < keys.length; i++) {
-			Object value = dynamicMarshal.readValue(keys[i], row);
-			valueSet.setValue(value, i);
+		for (IntArrayKeyHashMap dimensions : keysList) {
+			ValueSet valueSet = new ValueSet(dimensions.getValues());
+			for (int i = 0; i < dimensions.getValues().length; i++) {
+				Object value = dynamicMarshal.readValue(dimensions.getValues()[i], row);
+				valueSet.setValue(value, i);
+			}
+			valueSetList.add(valueSet);
 		}
 		freeupMemory();
-		if (isNotAlreadyProcessedValueSet(valueSet)) {
-			List<Work> reducers = prepareReducersBatch(valueSet);
-			processReducers(reducers, row);
+		signal = new CountDownLatch(valueSetList.size());
+		for (ValueSet valueSet : valueSetList) {
+			if (isNotAlreadyProcessedValueSet(valueSet)) {
+				List<Work> reducers = prepareReducersBatch(valueSet);
+				processReducers(reducers, row);
+			}
+			signal.countDown();
 		}
+		try {
+			signal.await();
+		} catch (InterruptedException e) {
+			LOGGER.info("Unable to wait to complete");
+		}
+		valueSetList.clear();
 	}
 
 	private void freeupMemory() {
@@ -157,8 +181,11 @@ public class DataRowProcessor implements RowProcessor {
 	private void addReducer(ValueSet valueSet, List<Work> works) {
 		if (!valuestWorkTreeMap.containsKey(valueSet)) {
 			for (JobEntity jobEntity : this.jobEntities) {
-				Work work = jobEntity.getJob().createNewWork();
-				works.add(work);
+				if (Arrays.equals(valueSet.getKeyIndexes(), jobEntity.getJob()
+						.getDimensions())) {
+					Work work = jobEntity.getJob().createNewWork();
+					works.add(work);
+				}
 			}
 			valuestWorkTreeMap.put(valueSet, works);
 			setMaxValueSetOfCurrentBatch(valueSet);
@@ -198,27 +225,37 @@ public class DataRowProcessor implements RowProcessor {
 	public void finishUp() {
 		LOGGER.info("Finishing up current batch id {} ...",batchId);
 		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
-		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
+		Iterator<Entry<ValueSet,List<Work>>> itr = valuestWorkTreeMap.entrySet().iterator();
+		int size = valuestWorkTreeMap.size();
+		while(itr.hasNext()){
+			Entry<ValueSet,List<Work>> entry = itr.next();
+			for(Work work : entry.getValue()) {
+				executionContext.setKeys(entry.getKey());
+				work.calculate(executionContext);
+			}
+			itr.remove();
+		}
+		/*for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
 			for (Work work : e.getValue()) {
 				executionContext.setKeys(e.getKey());
 				work.calculate(executionContext);
 			}
-		}
-		if (!garbageCollectionRan) {
-			System.gc();
-		}
-		reset();
+		}*/
+		reset(size);
 	}
 
-	private void reset() {
+	private void reset(int size) {
 		LOGGER.info("Processing of batch id:{}, size:{} completed.",
-				new Object[] { batchId, valuestWorkTreeMap.size() });
+				new Object[] { batchId, size });
 		valuestWorkTreeMap.clear();
 		isCurrentBatchFull = false;
 		countOfRows = 0;
 		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
+		if (!garbageCollectionRan) {
+			System.gc();
+		}
 		garbageCollectionRan = false;
 	}
 

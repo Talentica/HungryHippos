@@ -25,6 +25,10 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 		this.keyIndexes = keyIndexes;
 		this.values = new Comparable[keyIndexes.length];
 	}
+	
+	public int[] getKeyIndexes(){
+		return keyIndexes;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -94,7 +98,15 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 			if (values.length != otherValueSet.values.length) {
 				return values.length - otherValueSet.values.length;
 			}
-
+			for (int i = 0; i < values.length; i++) {
+				if(keyIndexes[i] == otherValueSet.keyIndexes[i]) {
+					continue;
+				}else if(keyIndexes[i] > otherValueSet.keyIndexes[i]){
+					return 1;
+				}else if(keyIndexes[i] < otherValueSet.keyIndexes[i]){
+					return -1;
+				}
+			}
 			for (int i = 0; i < values.length; i++) {
 				if (values[i].equals(otherValueSet.values[i])) {
 					continue;

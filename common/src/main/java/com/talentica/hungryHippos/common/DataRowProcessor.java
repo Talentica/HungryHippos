@@ -76,6 +76,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities) {
 		this.dynamicMarshal = dynamicMarshal;
+		this.dimensAsKeyjobEntityMap.clear();
 		for(JobEntity jobEntity : jobEntities){
 			IntArrayKeyHashMap keysSet = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
 			this.keysList.add(keysSet);

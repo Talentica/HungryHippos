@@ -1,9 +1,8 @@
 #!/bin/bash
 
-data_publisher_node_ip=`cat ./node_pwd_file.txt|grep "data_publisher_node_ip"|awk -F":" '{print $2}'`
+cat ./data_publisher_nodes_config.txt|awk -F":" '{print $2}' > data_publisher_node_ips.txt
 
-
-for node in `echo $data_publisher_node_ip`
+for node in `cat data_publisher_node_ips.txt`
 do
    echo "Copying file to $node"
    scp $1 root@$node:hungryhippos/data-publisher

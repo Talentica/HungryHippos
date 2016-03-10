@@ -14,7 +14,6 @@ import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
 import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
@@ -38,14 +37,10 @@ public class DataReceiver {
 
 	private DataStore dataStore;
 
-	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-
 	public DataReceiver(DataDescription dataDescription) throws Exception {
 		nodesManager = ServerHeartBeat.init();
 		this.dataDescription = dataDescription;
-		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
-				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(),
 				dataDescription);
 	}
 
@@ -112,7 +107,7 @@ public class DataReceiver {
 	 */
 	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
 		if (args.length == 1) {
-				Property.overrideConfigurationProperties(args[0]);
+			Property.overrideConfigurationProperties(args[0]);
 		} else {
 			System.out.println("Please provide the zookeeper configuration file");
 			System.exit(1);

@@ -1,8 +1,6 @@
 package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.Work;
@@ -18,8 +16,7 @@ public class MedianWork implements Work,Serializable {
 	protected int[] dimensions;
     protected int primaryDimension;
     protected int valueIndex;
-
-    private List<Double> values = new ArrayList<>();
+	private MedianCalculator medianCalculator = new MedianCalculator();
 
     public MedianWork(int[] dimensions, int primaryDimension, int valueIndex) {
         this.dimensions = dimensions;
@@ -29,17 +26,17 @@ public class MedianWork implements Work,Serializable {
 
 	@Override
 	public void processRow(ExecutionContext executionContext) {
-		values.add((Double) executionContext.getValue(valueIndex));
+		medianCalculator.addValue((Double) executionContext.getValue(valueIndex));
 	}
 
 	@Override
 	public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(valueIndex, MedianCalculator.calculate(values), "Median");
+		executionContext.saveValue(valueIndex, medianCalculator.calculate(), "Median");
 	}
 
 	@Override
 	public void reset() {
-		values.clear();
+		medianCalculator.clear();
 	}
 
 }

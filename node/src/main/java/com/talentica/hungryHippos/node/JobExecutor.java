@@ -21,7 +21,6 @@ import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -41,8 +40,6 @@ public class JobExecutor {
 	private static NodesManager nodesManager;
 
 	private static DataStore dataStore;
-
-	private static NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 
 	public static void main(String[] args) {
 		try {
@@ -95,10 +92,7 @@ public class JobExecutor {
 	private static JobRunner createJobRunner() throws IOException {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getKeyOrder());
-		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
-				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), nodeDataStoreIdCalculator,
-				dataDescription, true);
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
 	}
 

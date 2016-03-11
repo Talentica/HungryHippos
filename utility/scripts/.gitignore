@@ -72,3 +72,7 @@
 /copy-config-file-to-all-nodes.sh~
 /copy-file-to-sharding.sh~
 /keyToValueToBucketMap
+/clear-all-nodes-buffers.sh~
+/generate-data-files.sh~
+/cleanup-job-manager.sh~
+/data_publisher_node_ips.txt

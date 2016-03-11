@@ -59,7 +59,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 
 	@Override
 	public void scheduleTaskManager() throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
-		CountDownLatch signal = new CountDownLatch(jobEntities.size()+1);
+		CountDownLatch signal = new CountDownLatch(jobEntities.size());
 		while (!taskManager.getJobPoolService().isEmpty()) {
 			JobEntity jobEntity = taskManager.getJobPoolService().peekJobEntity();
 				jobEntity.setStatus(JobPool.status.ACTIVE.name());
@@ -68,6 +68,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 					taskManager.getJobPoolService().removeJobEntity(jobEntity);
 				}
 		}
+		signal.await();
 	}
 
 	@Override

@@ -143,6 +143,7 @@ public class JobManager {
 			nodeJobsService.createNodeJobService();
 			nodeJobsService.scheduleTaskManager();
 		}
+		LOGGER.info("Now start the all nodes");
 	}
 
 }

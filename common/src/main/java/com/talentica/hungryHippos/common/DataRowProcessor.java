@@ -46,7 +46,7 @@ public class DataRowProcessor implements RowProcessor {
 
 	private Class<? extends Work> workClassType = null;
 
-	private TreeMap<ValueSet, List<Work>> valuestWorkTreeMap = new TreeMap<>();
+	private TreeMap<ValueSet, List<Work>> valuesetToWorkTreeMap = new TreeMap<>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
 
@@ -61,6 +61,8 @@ public class DataRowProcessor implements RowProcessor {
 	private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
 
 	private static int batchId = 0;
+
+	private int retryCount = 0;
 
 	private int countOfRows = 0;
 
@@ -94,39 +96,62 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void freeupMemory() {
-		if (totalNoOfRowsProcessed != 0
-				&& totalNoOfRowsProcessed % NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR == 0) {
-			long maxMemoryVailable = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
-			if (!valuestWorkTreeMap.isEmpty()
-					&& maxMemoryVailable < MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
-				int size = valuestWorkTreeMap.size();
-				if (size > 1) {
-					ValueSet currentMaxValueSet = valuestWorkTreeMap.lastKey();
-					valuestWorkTreeMap.remove(currentMaxValueSet);
-					maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
-					LOGGER.info(
-							"Requesting garbage collection as free memory available is: {}. Total memory in JVM is: {}",
-							new Object[] { maxMemoryVailable, MemoryStatus.getTotalmemory() });
-					LOGGER.info("Total no. of rows processed is: {}. ", new Object[] { totalNoOfRowsProcessed });
-					System.gc();
-				}
-				if (size == 1) {
-					waitForGarbageCollectionToBeRun();
-				}
+		if (checkForFreeMemory()) {
+			int size = valuesetToWorkTreeMap.size();
+			if (size > 1 && isThresholdMemoryNotAvailable()) {
+				long maxMemoryVailable = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
+				LOGGER.info("After garbage collection free memory available is: {}.",
+						new Object[] { maxMemoryVailable, MemoryStatus.getTotalmemory() });
+				removeValuesToFreeupMemory();
+				System.gc();
+			} else if (size == 1 && isThresholdMemoryNotAvailable()) {
+				System.gc();
+				waitForGarbageCollectionToBeRun();
 			}
+			maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 		}
 	}
 
+	private void removeValuesToFreeupMemory() {
+		long usedMemory = MemoryStatus.getUsedMemory();
+		long memoryNeeded = (MemoryStatus.getMaxMemory() - MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
+		long memoryDeficiency = usedMemory - memoryNeeded;
+		long numberOfValuesToBeDeleted = (long) (Math
+				.ceil((double) memoryDeficiency * valuesetToWorkTreeMap.size() / usedMemory));
+		LOGGER.info("Removing {} of values to free up memory.", new Object[] { numberOfValuesToBeDeleted });
+		long valuesDeletedCounter = 0;
+		while (valuesDeletedCounter < numberOfValuesToBeDeleted && valuesetToWorkTreeMap.size() > 1) {
+			ValueSet currentMaxValueSet = valuesetToWorkTreeMap.lastKey();
+			valuesetToWorkTreeMap.remove(currentMaxValueSet);
+			valuesDeletedCounter++;
+		}
+	}
+
+	private boolean isThresholdMemoryNotAvailable() {
+		return MemoryStatus
+				.getMaximumFreeMemoryThatCanBeAllocated() < MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS;
+	}
+
+	private boolean checkForFreeMemory() {
+		return totalNoOfRowsProcessed != 0
+				&& totalNoOfRowsProcessed % NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR == 0;
+	}
+
 	private void waitForGarbageCollectionToBeRun() {
+		while (retryCount <= MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS) {
+			LOGGER.info(
+					"Waiting for GC to be run as there is a single valueset: {} for which computation is being performed and very less memory available.",
+					new Object[] { valuesetToWorkTreeMap.lastKey() });
+			sleep();
+			retryCount++;
+		}
+	}
+
+	private void sleep() {
 		try {
-			int retryCount = MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS;
-			while (retryCount > 0) {
-				LOGGER.info(
-						"Requesting for garbage collection and waiting as there is a single valueset: {} for which computation is being performed.",
-						new Object[] { valuestWorkTreeMap.lastKey() });
-				Thread.sleep(WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS);
-				retryCount--;
-			}
+			LOGGER.info("Sleeping for {} ms. Total no. of rows processed is: {}. ", new Object[] {
+					WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS, totalNoOfRowsProcessed });
+			Thread.sleep(WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS);
 		} catch (InterruptedException exception) {
 			throw new RuntimeException(exception);
 		}
@@ -160,6 +185,11 @@ public class DataRowProcessor implements RowProcessor {
 		if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
 			LOGGER.info("Please wait... Processing in progress. {} no. of rows processed...",
 					new Object[] { totalNoOfRowsProcessed });
+			LOGGER.info(
+					"Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
+					new Object[] { MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(), MemoryStatus.getUsedMemory(),
+							MemoryStatus.getTotalmemory(), MemoryStatus.getFreeMemory(), MemoryStatus.getMaxMemory() });
+			LOGGER.info("Size of valuesetToWorkTreeMap map is: {}", new Object[] { valuesetToWorkTreeMap.size() });
 		}
 	}
 
@@ -173,10 +203,10 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private List<Work> addReducerWhenBatchIsFull(ValueSet valueSet) {
-		List<Work> reducers = valuestWorkTreeMap.get(valueSet);
+		List<Work> reducers = valuesetToWorkTreeMap.get(valueSet);
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
-			reducers = valuestWorkTreeMap.get(maxValueSetOfCurrentBatch);
-			valuestWorkTreeMap.remove(maxValueSetOfCurrentBatch);
+			reducers = valuesetToWorkTreeMap.get(maxValueSetOfCurrentBatch);
+			valuesetToWorkTreeMap.remove(maxValueSetOfCurrentBatch);
 
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
@@ -192,10 +222,10 @@ public class DataRowProcessor implements RowProcessor {
 	}
 
 	private void addReducer(ValueSet valueSet, List<Work> works) {
-		if (!valuestWorkTreeMap.containsKey(valueSet)) {
+		if (!valuesetToWorkTreeMap.containsKey(valueSet)) {
 			Work work = jobEntity.getJob().createNewWork();
 			works.add(work);
-			valuestWorkTreeMap.put(valueSet, works);
+			valuesetToWorkTreeMap.put(valueSet, works);
 			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}
@@ -216,13 +246,13 @@ public class DataRowProcessor implements RowProcessor {
 		for (Work reducer : reducers) {
 			reducer.reset();
 		}
-		valuestWorkTreeMap.put(valueSet, reducers);
+		valuesetToWorkTreeMap.put(valueSet, reducers);
 		maxValueSetOfCurrentBatch = valueSet;
-		maxValueSetOfCurrentBatch = valuestWorkTreeMap.lastKey();
+		maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 	}
 
 	private List<Work> addReducerWhenBatchIsNotFull(ValueSet valueSet) {
-		List<Work> works = valuestWorkTreeMap.get(valueSet);
+		List<Work> works = valuesetToWorkTreeMap.get(valueSet);
 		if (works == null) {
 			works = new ArrayList<>();
 			addReducer(valueSet, works);
@@ -244,7 +274,7 @@ public class DataRowProcessor implements RowProcessor {
 	@Override
 	public void finishUp() {
 		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
-		for (Entry<ValueSet, List<Work>> e : valuestWorkTreeMap.entrySet()) {
+		for (Entry<ValueSet, List<Work>> e : valuesetToWorkTreeMap.entrySet()) {
 			for (Work work : e.getValue()) {
 				executionContext.setKeys(e.getKey());
 				work.calculate(executionContext);
@@ -255,14 +285,15 @@ public class DataRowProcessor implements RowProcessor {
 
 	private void reset() {
 		LOGGER.info("Processing of batch id:{}, size:{} completed.",
-				new Object[] { batchId, valuestWorkTreeMap.size() });
-		valuestWorkTreeMap.clear();
+				new Object[] { batchId, valuesetToWorkTreeMap.size() });
+		valuesetToWorkTreeMap.clear();
 		isCurrentBatchFull = false;
 		countOfRows = 0;
 		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
 		workClassType = null;
+		retryCount = 0;
 		System.gc();
 	}
 

@@ -13,6 +13,7 @@ public class BucketsCalculatorTest {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		Property.setOrOverrideConfigurationProperty("common.keyorder",
 				"key1,key2,key3");
+		Property.setOrOverrideConfigurationProperty("environment", "TEST");
 		Property.setOrOverrideConfigurationProperty("master.maximumShardFileSizeInBytes", "20000000");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		Assert.assertEquals(108, numberOfBucketsNeeded);
@@ -23,6 +24,7 @@ public class BucketsCalculatorTest {
 	public void testCalculateNumberOfBucketsNeededIfBucketsCountIsExceeding() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		Property.setOrOverrideConfigurationProperty("common.keyorder", "key1");
+		Property.setOrOverrideConfigurationProperty("environment", "TEST");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		Assert.assertEquals(1000, numberOfBucketsNeeded);
 	}

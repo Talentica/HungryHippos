@@ -259,9 +259,7 @@ public class DataRowProcessor implements RowProcessor {
 			i--;
 			reducers.remove(i);
 		}
-		for (Work reducer : reducers) {
-			reducer.reset();
-		}
+		reducers.get(0).reset();
 		freeupMemoryIfNeeded();
 		valuesetToWorkTreeMap.put(valueSet, reducers);
 		maxValueSetOfCurrentBatch = valueSet;

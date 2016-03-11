@@ -69,6 +69,7 @@ cwallet.sso.lck
 .gradle
 bin/
 tmp/
+build/
 *.tmp
 *.bak
 *.swp

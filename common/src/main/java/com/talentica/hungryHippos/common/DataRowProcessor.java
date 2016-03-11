@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +26,10 @@ import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
  * Created by debasishc on 9/9/15.
  */
 public class DataRowProcessor implements RowProcessor {
+
+	private static final String AFTER_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS = "After garbage collection free memory available is: ";
+
+	private static final String BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS = "Before garbage collection free memory available is: ";
 
 	private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR = Long
 			.parseLong(Property.getPropertyValue("node.no.of.rows.to.check.memory.consumption.after").toString());
@@ -120,17 +123,23 @@ public class DataRowProcessor implements RowProcessor {
 		if (checkForFreeMemory()) {
 			int size = valuesetToWorkTreeMap.size();
 			if (size > 1 && isThresholdMemoryNotAvailable()) {
-				long maxMemoryVailable = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
-				LOGGER.info("After garbage collection free memory available is: {}.",
-						new Object[] { maxMemoryVailable, MemoryStatus.getTotalmemory() });
+				logFreeMemoryAtThisPoint(BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS);
 				removeValuesToFreeupMemory();
 				System.gc();
+				logFreeMemoryAtThisPoint(AFTER_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS);
 			} else if (size == 1 && isThresholdMemoryNotAvailable()) {
+				logFreeMemoryAtThisPoint(BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS);
 				System.gc();
 				waitForGarbageCollectionToBeRun();
+				logFreeMemoryAtThisPoint(AFTER_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS);
 			}
 			maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 		}
+	}
+
+	private void logFreeMemoryAtThisPoint(String message) {
+		LOGGER.info(message + " {}.",
+				new Object[] { MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(), MemoryStatus.getTotalmemory() });
 	}
 
 	private void removeValuesToFreeupMemory() {
@@ -140,12 +149,17 @@ public class DataRowProcessor implements RowProcessor {
 		long numberOfValuesToBeDeleted = (long) (Math
 				.ceil((double) memoryDeficiency * valuesetToWorkTreeMap.size() / usedMemory));
 		LOGGER.info("Removing {} of values to free up memory.", new Object[] { numberOfValuesToBeDeleted });
+		LOGGER.info("Before removing items free up memory, size of batch(valuesetToWorkTreeMap) is: {}",
+				new Object[] { valuesetToWorkTreeMap.size() });
 		long valuesDeletedCounter = 0;
 		while (valuesDeletedCounter < numberOfValuesToBeDeleted && valuesetToWorkTreeMap.size() > 1) {
 			ValueSet currentMaxValueSet = valuesetToWorkTreeMap.lastKey();
 			valuesetToWorkTreeMap.remove(currentMaxValueSet);
 			valuesDeletedCounter++;
 		}
+		LOGGER.info(
+				"After removing few items according to available memory, size of batch(valuesetToWorkTreeMap) is: {}",
+				new Object[] { valuesetToWorkTreeMap.size() });
 	}
 
 	private boolean isThresholdMemoryNotAvailable() {
@@ -204,13 +218,14 @@ public class DataRowProcessor implements RowProcessor {
 	private void logProgress() {
 		totalNoOfRowsProcessed++;
 		if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
-			LOGGER.info("Please wait... Processing in progress. {} no. of rows processed... and current batch size {}",
+			LOGGER.info(
+					"*********  Processing in progress. {} no. of rows processed... and current batch size {} *********",
 					new Object[] { totalNoOfRowsProcessed, valuesetToWorkTreeMap.size() });
 			LOGGER.info(
 					"Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
 					new Object[] { MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(), MemoryStatus.getUsedMemory(),
 							MemoryStatus.getTotalmemory(), MemoryStatus.getFreeMemory(), MemoryStatus.getMaxMemory() });
-			LOGGER.info("Size of valuesetToWorkTreeMap map is: {}", new Object[] { valuesetToWorkTreeMap.size() });
+			LOGGER.info("Size of batch(valuesetToWorkTreeMap) is: {}", new Object[] { valuesetToWorkTreeMap.size() });
 		}
 	}
 
@@ -228,7 +243,6 @@ public class DataRowProcessor implements RowProcessor {
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
 			reducers = valuesetToWorkTreeMap.get(maxValueSetOfCurrentBatch);
 			valuesetToWorkTreeMap.remove(maxValueSetOfCurrentBatch);
-
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
 		}
@@ -246,12 +260,10 @@ public class DataRowProcessor implements RowProcessor {
 		if (!valuesetToWorkTreeMap.containsKey(valueSet)) {
 			List<JobEntity> jobEntities = dimensAsKeyjobEntityMap.get(valueSet.getEncodedKey());
 			for (JobEntity jobEntity : jobEntities) {
-				if (Arrays.equals(valueSet.getKeyIndexes(), jobEntity.getJob()
-						.getDimensions())) {
 					Work work = jobEntity.getJob().createNewWork();
 					works.add(work);
-				}
 			}
+			valuesetToWorkTreeMap.put(valueSet, works);
 			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}

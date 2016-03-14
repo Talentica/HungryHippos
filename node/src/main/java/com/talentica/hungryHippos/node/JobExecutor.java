@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.common.IntArrayKeyHashMap;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
@@ -51,11 +53,10 @@ public class JobExecutor {
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
-				Object[] loggerJobArgument = new Object[] { jobEntity.getJobId() };
-				LOGGER.info("Starting execution of job: {}", loggerJobArgument);
-				jobRunner.run(jobEntity);
-				LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
+				jobRunner.addJob(jobEntity);
 			}
+			jobRunner.run();
+			LOGGER.info("Finished with execution of all jobs");
 			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();

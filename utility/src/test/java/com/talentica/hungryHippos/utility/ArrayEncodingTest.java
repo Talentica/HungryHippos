@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.utility.test;
+package com.talentica.hungryHippos.utility;
 
 import java.util.Arrays;
 

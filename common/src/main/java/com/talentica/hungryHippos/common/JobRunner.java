@@ -1,6 +1,10 @@
 package com.talentica.hungryHippos.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,24 +26,34 @@ public class JobRunner implements Serializable {
 	private static final long serialVersionUID = -4793614653018059851L;
 	private DataStore dataStore;
 	private DynamicMarshal dynamicMarshal = null;
-
 	private Logger LOGGER = LoggerFactory.getLogger(JobRunner.class);
-
+	private Map<Integer,List<JobEntity>> primDimesJobEntityListMap =  new HashMap<Integer,List<JobEntity>>();
 	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
 		this.dataStore = dataStore;
 		dynamicMarshal = new DynamicMarshal(dataDescription);
 	}
 
-	public void run(JobEntity jobEntity) {
+	public void addJob(JobEntity jobEntity){
+		List<JobEntity> primDimenJobEntityList = primDimesJobEntityListMap.get(jobEntity.getJob().getPrimaryDimension());
+		if(primDimenJobEntityList == null){
+			primDimenJobEntityList = new ArrayList<>();
+			primDimesJobEntityListMap.put(jobEntity.getJob().getPrimaryDimension(),primDimenJobEntityList);
+		}
+		primDimenJobEntityList.add(jobEntity);
+	}
+	
+	public void run() {
 		checkIfMemoryAvailableToRunJob();
 		StoreAccess storeAccess = null;
-		storeAccess = dataStore.getStoreAccess(jobEntity.getJob().getPrimaryDimension());
-		DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal, jobEntity);
-		storeAccess.addRowProcessor(rowProcessor);
-		do {
-			storeAccess.processRows();
-			rowProcessor.finishUp();
-		} while (rowProcessor.isAdditionalValueSetsPresentForProcessing());
+		for (Integer primDimAsKey : primDimesJobEntityListMap.keySet()) {
+			storeAccess = dataStore.getStoreAccess(primDimAsKey);
+			DataRowProcessor dataRowProcessor = new DataRowProcessor(dynamicMarshal, primDimesJobEntityListMap.get(primDimAsKey));
+			storeAccess.addRowProcessor(dataRowProcessor);
+			do {
+				storeAccess.processRows();
+				dataRowProcessor.finishUp();
+			} while (dataRowProcessor.isAdditionalValueSetsPresentForProcessing());
+		}
 	}
 
 	private void checkIfMemoryAvailableToRunJob() {

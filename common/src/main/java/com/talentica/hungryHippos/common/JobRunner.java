@@ -26,18 +26,27 @@ public class JobRunner implements Serializable {
 	private static final long serialVersionUID = -4793614653018059851L;
 	private DataStore dataStore;
 	private DynamicMarshal dynamicMarshal = null;
+
 	private Logger LOGGER = LoggerFactory.getLogger(JobRunner.class);
-	private Map<Integer,List<JobEntity>> primDimesJobEntityListMap =  new HashMap<Integer,List<JobEntity>>();
+	
+	private static Map<Integer,Map<IntArrayKeyHashMap,List<JobEntity>>> primDimenAsKeyDimensEntityMap = new HashMap<>();
+
 	public JobRunner(DataDescription dataDescription, DataStore dataStore) {
 		this.dataStore = dataStore;
 		dynamicMarshal = new DynamicMarshal(dataDescription);
 	}
 
 	public void addJob(JobEntity jobEntity){
-		List<JobEntity> primDimenJobEntityList = primDimesJobEntityListMap.get(jobEntity.getJob().getPrimaryDimension());
+		Map<IntArrayKeyHashMap,List<JobEntity>> dimensJobEntityList = primDimenAsKeyDimensEntityMap.get(jobEntity.getJob().getPrimaryDimension());
+		if(dimensJobEntityList == null){
+			dimensJobEntityList = new HashMap<>();
+			primDimenAsKeyDimensEntityMap.put(jobEntity.getJob().getPrimaryDimension(),dimensJobEntityList);
+		}
+		IntArrayKeyHashMap dimensAsKey = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
+		List<JobEntity> primDimenJobEntityList = dimensJobEntityList.get(dimensAsKey);
 		if(primDimenJobEntityList == null){
 			primDimenJobEntityList = new ArrayList<>();
-			primDimesJobEntityListMap.put(jobEntity.getJob().getPrimaryDimension(),primDimenJobEntityList);
+			dimensJobEntityList.put(dimensAsKey,primDimenJobEntityList);
 		}
 		primDimenJobEntityList.add(jobEntity);
 	}
@@ -45,14 +54,22 @@ public class JobRunner implements Serializable {
 	public void run() {
 		checkIfMemoryAvailableToRunJob();
 		StoreAccess storeAccess = null;
-		for (Integer primDimAsKey : primDimesJobEntityListMap.keySet()) {
-			storeAccess = dataStore.getStoreAccess(primDimAsKey);
-			DataRowProcessor dataRowProcessor = new DataRowProcessor(dynamicMarshal, primDimesJobEntityListMap.get(primDimAsKey));
-			storeAccess.addRowProcessor(dataRowProcessor);
-			do {
-				storeAccess.processRows();
-				dataRowProcessor.finishUp();
-			} while (dataRowProcessor.isAdditionalValueSetsPresentForProcessing());
+		for (int primDimenAsKey : primDimenAsKeyDimensEntityMap.keySet()) {
+			storeAccess = dataStore.getStoreAccess(primDimenAsKey);
+			Map<IntArrayKeyHashMap, List<JobEntity>> dimensWiseJobEntityMap = primDimenAsKeyDimensEntityMap
+					.get(primDimenAsKey);
+			for (IntArrayKeyHashMap dimensAsKey : dimensWiseJobEntityMap
+					.keySet()) {
+				DataRowProcessor rowProcessor = new DataRowProcessor(
+						dynamicMarshal,
+						dimensWiseJobEntityMap.get(dimensAsKey), dimensAsKey);
+				storeAccess.addRowProcessor(rowProcessor);
+				do {
+					storeAccess.processRows();
+					rowProcessor.finishUp();
+				} while (rowProcessor
+						.isAdditionalValueSetsPresentForProcessing());
+			}
 		}
 	}
 

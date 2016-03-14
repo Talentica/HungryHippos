@@ -46,9 +46,9 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
-	private JobEntity jobEntity;
+	private List<JobEntity> jobEntities;
 
-	private Class<? extends Work> workClassType = null;
+	//private Class<? extends Work> workClassType = null;
 
 	private TreeMap<ValueSet, List<Work>> valuesetToWorkTreeMap = new TreeMap<>();
 
@@ -77,12 +77,13 @@ public class DataRowProcessor implements RowProcessor {
 
 	long startTime = System.currentTimeMillis();
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
-		this.jobEntity = jobEntity;
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities,IntArrayKeyHashMap dimensAsKey) {
+		this.jobEntities = jobEntities;
 		this.dynamicMarshal = dynamicMarshal;
-		this.keys = jobEntity.getJob().getDimensions();
+		this.keys = dimensAsKey.getValues();
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
-		workClassType = jobEntity.getJob().createNewWork().getClass();
+		LOGGER.info("All jobs of dimensions are executed {}",dimensAsKey.getValues());
+		//workClassType = jobEntity.getJob().createNewWork().getClass();
 	}
 
 	@Override
@@ -239,15 +240,17 @@ public class DataRowProcessor implements RowProcessor {
 	private void addReducer(ValueSet valueSet, List<Work> works) {
 		if (!valuesetToWorkTreeMap.containsKey(valueSet)) {
 			freeupMemoryIfNeeded();
-			Work work = jobEntity.getJob().createNewWork();
-			works.add(work);
-			valuesetToWorkTreeMap.put(valueSet, works);
+			for (JobEntity jobEntity : jobEntities) {
+				Work work = jobEntity.getJob().createNewWork();
+				works.add(work);
+				valuesetToWorkTreeMap.put(valueSet, works);
+			}
 			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}
 
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		int i = reducers.size();
+		/*int i = reducers.size();
 		while (i > 0) {
 			i--;
 			if (workClassType != reducers.get(i).getClass()) {
@@ -258,7 +261,7 @@ public class DataRowProcessor implements RowProcessor {
 		while (i > 1) {
 			i--;
 			reducers.remove(i);
-		}
+		}*/
 		for (Work reducer : reducers) {
 			reducer.reset();
 		}
@@ -308,7 +311,7 @@ public class DataRowProcessor implements RowProcessor {
 		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
-		workClassType = null;
+		//workClassType = null;
 		retryCount = 0;
 		System.gc();
 	}

@@ -2,18 +2,13 @@ package com.talentica.hungryHippos.common;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.ArrayEncoder;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -51,15 +46,15 @@ public class DataRowProcessor implements RowProcessor {
 
 	private ExecutionContextImpl executionContext;
 
+	private JobEntity jobEntity;
+
+	private Class<? extends Work> workClassType = null;
+
 	private TreeMap<ValueSet, List<Work>> valuesetToWorkTreeMap = new TreeMap<>();
-	
-	private Map<Integer,List<JobEntity>> dimensAsKeyjobEntityMap = new HashMap<Integer, List<JobEntity>>();
 
 	private ValueSet maxValueSetOfCurrentBatch;
-	
-	private Set<IntArrayKeyHashMap> keysList = new HashSet<>();
-	
-	private List<ValueSet> valueSetList = new ArrayList<>();
+
+	private int[] keys;
 
 	private boolean isCurrentBatchFull;
 
@@ -82,44 +77,28 @@ public class DataRowProcessor implements RowProcessor {
 
 	long startTime = System.currentTimeMillis();
 
-	public DataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities) {
+	public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
+		this.jobEntity = jobEntity;
 		this.dynamicMarshal = dynamicMarshal;
-		this.dimensAsKeyjobEntityMap.clear();
-		for(JobEntity jobEntity : jobEntities){
-			IntArrayKeyHashMap keysSet = new IntArrayKeyHashMap(jobEntity.getJob().getDimensions());
-			this.keysList.add(keysSet);
-			int encodedKeys = ArrayEncoder.encode(jobEntity.getJob().getDimensions());
-			List<JobEntity> keysJobEntitiesList = dimensAsKeyjobEntityMap.get(encodedKeys);
-			if(keysJobEntitiesList == null) {
-				keysJobEntitiesList = new ArrayList<>();
-				dimensAsKeyjobEntityMap.put(encodedKeys, keysJobEntitiesList);
-			}
-			keysJobEntitiesList.add(jobEntity);
-		}
+		this.keys = jobEntity.getJob().getDimensions();
 		this.executionContext = new ExecutionContextImpl(dynamicMarshal);
+		workClassType = jobEntity.getJob().createNewWork().getClass();
 	}
 
 	@Override
 	public void processRow(ByteBuffer row) {
-		for (IntArrayKeyHashMap dimensions : keysList) {
-			ValueSet valueSet = new ValueSet(dimensions.getValues());
-			for (int i = 0; i < dimensions.getValues().length; i++) {
-				Object value = dynamicMarshal.readValue(dimensions.getValues()[i], row);
-				valueSet.setValue(value, i);
-			}
-			valueSetList.add(valueSet);
+		ValueSet valueSet = new ValueSet(keys);
+		for (int i = 0; i < keys.length; i++) {
+			Object value = dynamicMarshal.readValue(keys[i], row);
+			valueSet.setValue(value, i);
 		}
-		freeupMemory();
-		for (ValueSet valueSet : valueSetList) {
-			if (isNotAlreadyProcessedValueSet(valueSet)) {
-				List<Work> reducers = prepareReducersBatch(valueSet);
-				processReducers(reducers, row);
-			}
+		if (isNewValueSetWhichCanBeProcessed(valueSet)) {
+			List<Work> reducers = prepareReducersBatch(valueSet);
+			processReducers(reducers, row);
 		}
-		valueSetList.clear();
 	}
 
-	private void freeupMemory() {
+	private void freeupMemoryIfNeeded() {
 		if (checkForFreeMemory()) {
 			int size = valuesetToWorkTreeMap.size();
 			if (size > 1 && isThresholdMemoryNotAvailable()) {
@@ -192,7 +171,7 @@ public class DataRowProcessor implements RowProcessor {
 		}
 	}
 
-	private boolean isNotAlreadyProcessedValueSet(ValueSet valueSet) {
+	private boolean isNewValueSetWhichCanBeProcessed(ValueSet valueSet) {
 		return processedTillValueSetInLastBatches == null || valueSet.compareTo(processedTillValueSetInLastBatches) > 0;
 	}
 
@@ -243,6 +222,7 @@ public class DataRowProcessor implements RowProcessor {
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
 			reducers = valuesetToWorkTreeMap.get(maxValueSetOfCurrentBatch);
 			valuesetToWorkTreeMap.remove(maxValueSetOfCurrentBatch);
+
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
 		}
@@ -258,22 +238,31 @@ public class DataRowProcessor implements RowProcessor {
 
 	private void addReducer(ValueSet valueSet, List<Work> works) {
 		if (!valuesetToWorkTreeMap.containsKey(valueSet)) {
-			List<JobEntity> jobEntities = dimensAsKeyjobEntityMap.get(valueSet.getEncodedKey());
-			for (JobEntity jobEntity : jobEntities) {
-					Work work = jobEntity.getJob().createNewWork();
-					works.add(work);
-			}
+			freeupMemoryIfNeeded();
+			Work work = jobEntity.getJob().createNewWork();
+			works.add(work);
 			valuesetToWorkTreeMap.put(valueSet, works);
 			setMaxValueSetOfCurrentBatch(valueSet);
 		}
 	}
-	
+
 	private void updateReducer(ValueSet valueSet, List<Work> reducers) {
-		for (Work reducer : reducers) {
-			reducer.reset();
+		int i = reducers.size();
+		while (i > 0) {
+			i--;
+			if (workClassType != reducers.get(i).getClass()) {
+				reducers.remove(i);
+			}
 		}
+		i = reducers.size();
+		while (i > 1) {
+			i--;
+			reducers.remove(i);
+		}
+		reducers.get(0).reset();
+		freeupMemoryIfNeeded();
 		valuesetToWorkTreeMap.put(valueSet, reducers);
-		maxValueSetOfCurrentBatch=valueSet;
+		maxValueSetOfCurrentBatch = valueSet;
 		maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 	}
 
@@ -296,7 +285,7 @@ public class DataRowProcessor implements RowProcessor {
 		}
 		countOfRows++;
 	}
-	
+
 	@Override
 	public void finishUp() {
 		processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
@@ -318,6 +307,7 @@ public class DataRowProcessor implements RowProcessor {
 		totalNoOfRowsProcessed = 0;
 		maxValueSetOfCurrentBatch = null;
 		batchId++;
+		workClassType = null;
 		retryCount = 0;
 		System.gc();
 	}

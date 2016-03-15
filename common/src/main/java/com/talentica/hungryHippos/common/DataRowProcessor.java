@@ -112,7 +112,6 @@ public class DataRowProcessor implements RowProcessor {
 				waitForGarbageCollectionToBeRun();
 				logFreeMemoryAtThisPoint(AFTER_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS);
 			}
-			maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 		}
 	}
 
@@ -136,6 +135,7 @@ public class DataRowProcessor implements RowProcessor {
 			valuesetToWorkTreeMap.remove(currentMaxValueSet);
 			valuesDeletedCounter++;
 		}
+		maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 		LOGGER.info(
 				"After removing few items according to available memory, size of batch(valuesetToWorkTreeMap) is: {}",
 				new Object[] { valuesetToWorkTreeMap.size() });
@@ -222,7 +222,7 @@ public class DataRowProcessor implements RowProcessor {
 		if (reducers == null && isValueSetSmallerThanMaxOfCurrentBatch(valueSet)) {
 			reducers = valuesetToWorkTreeMap.get(maxValueSetOfCurrentBatch);
 			valuesetToWorkTreeMap.remove(maxValueSetOfCurrentBatch);
-
+			maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
 			updateReducer(valueSet, reducers);
 			additionalValueSetsPresentForProcessing = true;
 		}
@@ -259,11 +259,12 @@ public class DataRowProcessor implements RowProcessor {
 			i--;
 			reducers.remove(i);
 		}
-		reducers.get(0).reset();
+		for (Work reducer : reducers) {
+			reducer.reset();
+		}
 		freeupMemoryIfNeeded();
 		valuesetToWorkTreeMap.put(valueSet, reducers);
-		maxValueSetOfCurrentBatch = valueSet;
-		maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
+		setMaxValueSetOfCurrentBatch(valueSet);
 	}
 
 	private List<Work> addReducerWhenBatchIsNotFull(ValueSet valueSet) {

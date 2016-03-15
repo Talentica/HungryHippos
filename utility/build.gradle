@@ -28,6 +28,8 @@ dependencies {
     compile group: 'org.ow2.asm', name:'asm-tree', version:'5.0.3'
     compile group: 'org.ow2.asm', name:'asm-util', version:'5.0.3'
     compile group: 'org.ow2.asm', name:'asm-commons', version:'5.0.3'
+	compile 'com.myjeeva.digitalocean:digitalocean-api-client:2.3'	
+
     // Testing
     testCompile 'junit:junit:4.12'
     testCompile 'org.apache.commons:commons-math3:3.5'

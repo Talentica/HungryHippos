@@ -24,6 +24,7 @@ import com.myjeeva.digitalocean.pojo.Delete;
 import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
 import com.talentica.hungryHippos.droplet.DigitalOceanDropletService;
+import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 
 /**
  * @author PooshanS
@@ -32,7 +33,7 @@ import com.talentica.hungryHippos.droplet.DigitalOceanDropletService;
 public class DigitalOceanDropletTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DigitalOceanDropletTest.class);
 	private DigitalOceanDropletService dropletService;
-	private int dropletId = 12003540;
+	private int dropletId = 12060196;
 	
 	private ObjectMapper mapper;
 	
@@ -44,21 +45,22 @@ public class DigitalOceanDropletTest {
 		dropletService = new DigitalOceanDropletService(authToken);
 		mapper = new ObjectMapper();
 	}
-	
-	@Test
 	@Ignore
+	@Test
 	public void testCaseCreateDroplet() throws DigitalOceanException, RequestUnsuccessfulException, JsonParseException, JsonMappingException, IOException{
 		File file = new File(".\\droplet.json");
-		Droplet newDroplet = mapper.readValue(file, Droplet.class);
+		DigitalOceanEntity newDroplet = mapper.readValue(file, DigitalOceanEntity.class);
 		try {
-			newDroplet = dropletService.createDroplet(newDroplet);
-			Assert.assertNotNull(newDroplet.getId());
+			dropletService = new DigitalOceanDropletService(newDroplet.getAuthToken());
+			Droplet droplet = dropletService.createDroplet(newDroplet.getDroplet());
+			Assert.assertNotNull(droplet.getId());
 		} catch (RequestUnsuccessfulException | DigitalOceanException e) {
 			System.out.println("Unable to create the droplet. Exception :: "+e);
 		}
 	}
 	
 	@Test
+	@Ignore
 	public void testCaseListAllDroplets(){
 		try {
 			Droplets droplets = dropletService.getAvailableDroplets(1, 10);

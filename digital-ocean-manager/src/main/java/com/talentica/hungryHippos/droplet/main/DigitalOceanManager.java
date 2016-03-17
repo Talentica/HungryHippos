@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.droplet.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
+import com.myjeeva.digitalocean.pojo.Delete;
 import com.myjeeva.digitalocean.pojo.Droplet;
 import com.talentica.hungryHippos.droplet.DigitalOceanDropletService;
+import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 
 /**
  * @author PooshanS
@@ -22,21 +25,34 @@ import com.talentica.hungryHippos.droplet.DigitalOceanDropletService;
 public class DigitalOceanManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DigitalOceanManager.class);
-	private static String authToken = "02eba1965ba9ba368f57b79f454e05244a7fc7e2b2f7d60d9c235f6009fe5ad9";
 	private static DigitalOceanDropletService dropletService;
-	private static ObjectMapper mapper;
+	private static ObjectMapper mapper = new ObjectMapper();
 	public static void main(String[] args) {
-			try {
-				validateProgramArguments(args);
-				String filePath = args[0];
-				dropletService = new DigitalOceanDropletService(authToken);
-				mapper = new ObjectMapper();
-				File file = new File(filePath);
-				Droplet newDroplet = mapper.readValue(file, Droplet.class);
-				newDroplet = dropletService.createDroplet(newDroplet);
-			} catch (InstantiationException | IllegalAccessException
+		try {
+			validateProgramArguments(args);
+			String filePath = args[0];
+			File file = new File(filePath);
+			DigitalOceanEntity dropletEntity = mapper.readValue(file,
+					DigitalOceanEntity.class);
+			dropletService = new DigitalOceanDropletService(
+					dropletEntity.getAuthToken());
+			switch (dropletEntity.getRequest()) {
+			case "POST":
+				Droplet droplet = dropletService.createDroplet(dropletEntity
+						.getDroplet());
+				LOGGER.info("Droplet of id {} is created", droplet.getId());
+				break;
+			case  "DELETE":
+				List<Delete> deleteList =  dropletService.deleteDroplets(dropletEntity.getIdsAsList());
+				LOGGER.info("There list are deleted {}",deleteList.toString());
+			default:	
+				break;
+
+			}
+		} catch (InstantiationException | IllegalAccessException
 					| ClassNotFoundException | RequestUnsuccessfulException | DigitalOceanException | IOException e) {
 				LOGGER.info("Unable to create the droplet/droples");
+				e.getStackTrace();
 			}
 	}
 	

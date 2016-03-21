@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.droplet.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,8 +24,9 @@ import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
 import com.myjeeva.digitalocean.pojo.Delete;
 import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
-import com.talentica.hungryHippos.droplet.DigitalOceanDropletService;
+import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.utility.CommonUtil;
 
 /**
  * @author PooshanS
@@ -32,7 +34,7 @@ import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
  */
 public class DigitalOceanDropletTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DigitalOceanDropletTest.class);
-	private DigitalOceanDropletService dropletService;
+	private DigitalOceanServiceImpl dropletService;
 	private int dropletId = 12060196;
 	
 	private ObjectMapper mapper;
@@ -42,7 +44,7 @@ public class DigitalOceanDropletTest {
 	
 	@Before
 	public void setUp(){
-		dropletService = new DigitalOceanDropletService(authToken);
+		dropletService = new DigitalOceanServiceImpl(authToken);
 		mapper = new ObjectMapper();
 	}
 	@Ignore
@@ -51,7 +53,7 @@ public class DigitalOceanDropletTest {
 		File file = new File(".\\droplet.json");
 		DigitalOceanEntity newDroplet = mapper.readValue(file, DigitalOceanEntity.class);
 		try {
-			dropletService = new DigitalOceanDropletService(newDroplet.getAuthToken());
+			dropletService = new DigitalOceanServiceImpl(newDroplet.getAuthToken());
 			Droplet droplet = dropletService.createDroplet(newDroplet.getDroplet());
 			Assert.assertNotNull(droplet.getId());
 		} catch (RequestUnsuccessfulException | DigitalOceanException e) {
@@ -102,6 +104,16 @@ public class DigitalOceanDropletTest {
 		} catch (RequestUnsuccessfulException | DigitalOceanException e) {
 			LOGGER.info("Unable to drop the droplet of id {} and exception is {}",new Object[]{dropletIds,e.getMessage()});
 		}
+	}
+	
+	@Test
+	public void test() throws IOException{
+		List<String> servers = new ArrayList<String>();
+		servers.add("server.0:234.34.45.3");
+		servers.add("server.1:234.34.45.2");
+		//for(String server : servers){
+			CommonUtil.writeLine("serverTest.txt", servers);
+		//}
 	}
 	
 }

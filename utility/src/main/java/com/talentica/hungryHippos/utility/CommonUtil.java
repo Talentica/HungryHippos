@@ -3,10 +3,13 @@
  */
 package com.talentica.hungryHippos.utility;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +66,20 @@ public class CommonUtil {
 			LOGGER.info("There occured some problem to dump file {}", fileName);
 		}
 		LOGGER.info("Dumping of file {} on disk finished.", fileName);
+	}
+	
+	public static void writeLine(String fileName, List<String> lines) throws IOException{
+		File fout = new File(fileName);
+		FileOutputStream fos = new FileOutputStream(fout);
+	 
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+		int totalLine = lines.size();
+		for(String line : lines){
+			totalLine--;
+			bw.write(line);
+			if(totalLine!=0)bw.newLine();
+		}
+		bw.close();
 	}
 	
 	public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {

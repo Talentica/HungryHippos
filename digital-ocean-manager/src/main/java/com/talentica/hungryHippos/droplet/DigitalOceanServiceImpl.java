@@ -37,11 +37,11 @@ import com.myjeeva.digitalocean.pojo.Snapshots;
  * @author PooshanS
  *
  */
-public class DigitalOceanDropletService implements DigitalOceanDroplet{
+public class DigitalOceanServiceImpl implements DigitalOceanService{
 	
 	private DigitalOceanClient digitalOceanClient;
 	
-	public DigitalOceanDropletService(String authToken){
+	public DigitalOceanServiceImpl(String authToken){
 		digitalOceanClient = new DigitalOceanClient(authToken);
 	}
 	

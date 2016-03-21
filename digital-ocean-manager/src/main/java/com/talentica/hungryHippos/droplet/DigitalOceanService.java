@@ -14,7 +14,7 @@ import com.myjeeva.digitalocean.pojo.Delete;
  * @author PooshanS
  *
  */
-public interface DigitalOceanDroplet extends DigitalOcean{
+public interface DigitalOceanService extends DigitalOcean{
 	
 	public List<Delete> deleteDroplets(List<Integer> dropletIdList) throws DigitalOceanException, RequestUnsuccessfulException;
 }

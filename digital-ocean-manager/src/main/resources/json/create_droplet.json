@@ -1,15 +1,18 @@
 {
     "authToken": "02eba1965ba9ba368f57b79f454e05244a7fc7e2b2f7d60d9c235f6009fe5ad9",
-	"request": "POST",
+    "request": "CREATE",
     "droplet": {
-        "name": "api-client-test-host",
+        "names": [
+            "hh-node-0"
+        ],
         "region": {
             "slug": "nyc3"
         },
         "image": {
-            "slug": "ubuntu-14-04-x64"
+            "name": "test-node-1-snapshot",
+			"slug": "ubuntu-14-04-x64"
         },
-        "size": "512mb",
+        "size": "4gb",
         "enableBackup": true,
         "enableIpv6": true,
         "enablePrivateNetworking": true,

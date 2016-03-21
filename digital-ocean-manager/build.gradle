@@ -8,7 +8,12 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
-
+sourceSets {
+    main {
+       output.resourcesDir = "build/classes/main"
+     }
+  }
+  
 jar {
 	archiveName='digital-ocean.jar'
     from {
@@ -21,7 +26,9 @@ jar {
 dependencies {
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
 	compile 'com.myjeeva.digitalocean:digitalocean-api-client:2.3'
-	compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'log4j:log4j:1.2.17'
+	compile 'org.slf4j:slf4j-simple:1.7.19'
+	compile 'org.slf4j:slf4j-api:1.7.12'
+	compile 'log4j:log4j:1.2.17'
 	testCompile 'junit:junit:4.12'
+	compile project (':coordination')
 }

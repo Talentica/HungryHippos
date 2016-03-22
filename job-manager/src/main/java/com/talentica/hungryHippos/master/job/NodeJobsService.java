@@ -86,7 +86,7 @@ public class NodeJobsService implements NodesJobsRunnable{
 		boolean flag = false;
 		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+jobEntity.getJobId());
 		try {
-			nodesManager.createEphemeralNode(buildPath, signal, jobEntity);
+			nodesManager.createPersistentNode(buildPath, signal, jobEntity);
 			flag = true;
 		} catch (IOException e) {
 			LOGGER.info("Unable to create node");

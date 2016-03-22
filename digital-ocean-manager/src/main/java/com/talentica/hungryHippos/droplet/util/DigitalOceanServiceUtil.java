@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.talentica.hungryHippos.droplet.util;
 
 import java.io.IOException;
@@ -39,7 +36,7 @@ public class DigitalOceanServiceUtil {
 	 * @param dropletService
 	 * @throws DigitalOceanException
 	 * @throws RequestUnsuccessfulException
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	public static void performServices(DigitalOceanServiceImpl dropletService,
 			DigitalOceanEntity dropletEntity) throws DigitalOceanException,
@@ -63,15 +60,10 @@ public class DigitalOceanServiceUtil {
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is created",
 					droplets.toString());
+
 			droplets = dropletService.getAvailableDroplets(1, null);
-			List<Droplet> dropletFill  = new ArrayList<>();
-			for(Droplet retDroplet : droplets.getDroplets()){
-				while(!DropletStatus.ACTIVE.toString().equalsIgnoreCase(retDroplet.getStatus().name())){
-					Thread.sleep(1000);
-					retDroplet = dropletService.getDropletInfo(retDroplet.getId());
-				}
-				dropletFill.add(retDroplet);
-			}
+			List<Droplet> dropletFill = getActiveDroplets(dropletService,
+					droplets);
 			generateServerConfigFile(dropletFill);
 
 			break;
@@ -172,6 +164,30 @@ public class DigitalOceanServiceUtil {
 	}
 
 	/**
+	 * @param dropletService
+	 * @param droplets
+	 * @return
+	 * @throws InterruptedException
+	 * @throws DigitalOceanException
+	 * @throws RequestUnsuccessfulException
+	 */
+	private static List<Droplet> getActiveDroplets(
+			DigitalOceanServiceImpl dropletService, Droplets droplets)
+			throws InterruptedException, DigitalOceanException,
+			RequestUnsuccessfulException {
+		List<Droplet> dropletFill = new ArrayList<>();
+		for (Droplet retDroplet : droplets.getDroplets()) {
+			while (!DropletStatus.ACTIVE.toString().equalsIgnoreCase(
+					retDroplet.getStatus().name())) {
+				Thread.sleep(1000);
+				retDroplet = dropletService.getDropletInfo(retDroplet.getId());
+			}
+			dropletFill.add(retDroplet);
+		}
+		return dropletFill;
+	}
+
+	/**
 	 * @param droplets
 	 */
 	private static void generateServerConfigFile(List<Droplet> droplets) {
@@ -180,12 +196,16 @@ public class DigitalOceanServiceUtil {
 		int index = 0;
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
+		String PORT = "2324";
 		for (Droplet retDroplet : droplets) {
-			String ipv4Address = retDroplet.getNetworks().getVersion4Networks().get(0).getIpAddress();
-			ipv4Addrs.add(PRIFIX + (index++) + SUFFIX + ipv4Address);
+			String ipv4Address = retDroplet.getNetworks().getVersion4Networks()
+					.get(0).getIpAddress();
+			ipv4Addrs.add(PRIFIX + (index++) + SUFFIX + ipv4Address + SUFFIX
+					+ PORT);
 		}
 		try {
-			CommonUtil.writeLine("serverConfigFile.properties", ipv4Addrs);
+			CommonUtil.writeLine("../utility/src/main/resources/"
+					+ "serverConfigFile.properties", ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
 			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file");

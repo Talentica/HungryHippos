@@ -3,7 +3,8 @@
     "request": "CREATE",
     "droplet": {
         "names": [
-            "hh-node-0"
+            "hh-node-0",
+			"hh-node-1"
         ],
         "region": {
             "slug": "nyc3"

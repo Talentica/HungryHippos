@@ -11,9 +11,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
@@ -29,7 +26,6 @@ public class DigitalOceanManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DigitalOceanManager.class);
 	private static DigitalOceanServiceImpl dropletService;
 	private static ObjectMapper mapper = new ObjectMapper();
-	private NodesManager nodesManager;
 
 	public static void main(String[] args) throws Exception {
 		try {
@@ -44,15 +40,7 @@ public class DigitalOceanManager {
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());
 			
-			DigitalOceanManager digitalOceanManager = new DigitalOceanManager();
-			
 			DigitalOceanServiceUtil.performServices(dropletService,dropletEntity);
-			
-			startZookeeper(digitalOceanManager);
-			
-			uploadServerConfigFileToZK(digitalOceanManager);
-			
-			uploadConfigFileToZk(digitalOceanManager);
 			
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
@@ -61,16 +49,7 @@ public class DigitalOceanManager {
 		}
 	}
 
-	/**
-	 * @param digitalOceanManager
-	 * @throws IOException
-	 */
-	private static void uploadConfigFileToZk(
-			DigitalOceanManager digitalOceanManager) throws IOException {
-		ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
-		digitalOceanManager.nodesManager.saveConfigFileToZNode(configNodeFile, null);
-	}
-
+	
 	/**
 	 * @param args
 	 * @return
@@ -87,26 +66,6 @@ public class DigitalOceanManager {
 		return dropletEntity;
 	}
 
-	/**
-	 * @param digitalOceanManager
-	 * @throws IOException
-	 */
-	private static void uploadServerConfigFileToZK(
-			DigitalOceanManager digitalOceanManager) throws IOException {
-		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
-		digitalOceanManager.nodesManager.saveConfigFileToZNode(serverConfigFile, null);
-		LOGGER.info("serverConfigFile file successfully put on zk node.");
-	}
-
-	/**
-	 * @param digitalOceanManager
-	 * @throws Exception
-	 */
-	private static void startZookeeper(DigitalOceanManager digitalOceanManager)
-			throws Exception {
-		(digitalOceanManager.nodesManager = ServerHeartBeat.init()).startup();
-	}
 
 	private static void validateProgramArguments(String[] args)
 			throws InstantiationException, IllegalAccessException,

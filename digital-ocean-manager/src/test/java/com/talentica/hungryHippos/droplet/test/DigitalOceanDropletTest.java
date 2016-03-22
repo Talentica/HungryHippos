@@ -107,13 +107,12 @@ public class DigitalOceanDropletTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test() throws IOException{
 		List<String> servers = new ArrayList<String>();
 		servers.add("server.0:234.34.45.3");
 		servers.add("server.1:234.34.45.2");
-		//for(String server : servers){
 			CommonUtil.writeLine("serverTest.txt", servers);
-		//}
 	}
 	
 }

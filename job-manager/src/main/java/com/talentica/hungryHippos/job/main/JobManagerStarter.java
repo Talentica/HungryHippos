@@ -25,7 +25,7 @@ public class JobManagerStarter {
 		try {
 			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
-			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			overrideProperties(args);
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());

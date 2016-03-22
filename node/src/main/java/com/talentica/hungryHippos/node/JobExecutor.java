@@ -59,7 +59,7 @@ public class JobExecutor {
 			jobEntities.clear();
 			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-			nodesManager.createEphemeralNode(buildStartPath, null);
+			nodesManager.createPersistentNode(buildStartPath, null);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");

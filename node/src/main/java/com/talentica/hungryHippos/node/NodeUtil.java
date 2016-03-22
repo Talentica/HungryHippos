@@ -142,7 +142,7 @@ public class NodeUtil {
 			for (Node node : nodes) {
 				String buildBucketCombinationNodeNumberPath = keyNodePath
 						+ PathUtil.FORWARD_SLASH + node.toString();
-				nodesManager.createEphemeralNode(buildBucketCombinationNodeNumberPath, null);
+				nodesManager.createPersistentNode(buildBucketCombinationNodeNumberPath, null);
 				LOGGER.info("Path {} is created",buildBucketCombinationNodeNumberPath);
 			}
 		}

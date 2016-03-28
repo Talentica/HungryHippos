@@ -23,33 +23,42 @@ import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
  */
 public class DigitalOceanManager {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DigitalOceanManager.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DigitalOceanManager.class);
 	private static DigitalOceanServiceImpl dropletService;
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	public static void main(String[] args) throws Exception {
+		String perform = null;
 		try {
-			if (args.length == 2) {
+			if (args.length >= 2) {
 				Property.overrideConfigurationProperties(args[1]);
+				perform = (args.length == 3) ? args[2] : null;
 			}
-			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			
+			if (perform != null
+					&& perform.equalsIgnoreCase(PROPERTIES_NAMESPACE.MASTER
+							.name())) {
+				Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+			} else {
+				Property.initialize(PROPERTIES_NAMESPACE.NODE);
+			}
+
 			validateProgramArguments(args);
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
-			
+
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());
-			
-			DigitalOceanServiceUtil.performServices(dropletService,dropletEntity);
-			
+
+			DigitalOceanServiceUtil.performServices(dropletService,
+					dropletEntity);
+
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {
-			LOGGER.info("Unable to perform the operations {}",e.getMessage());
+			LOGGER.info("Unable to perform the operations {}", e.getMessage());
 		}
 	}
 
-	
 	/**
 	 * @param args
 	 * @return
@@ -65,7 +74,6 @@ public class DigitalOceanManager {
 				DigitalOceanEntity.class);
 		return dropletEntity;
 	}
-
 
 	private static void validateProgramArguments(String[] args)
 			throws InstantiationException, IllegalAccessException,

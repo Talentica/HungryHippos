@@ -70,7 +70,7 @@ public class CommonUtil {
 	
 	public static void writeLine(String fileName, List<String> lines) throws IOException{
 		File fout = new File(fileName);
-		FileOutputStream fos = new FileOutputStream(fout);
+		FileOutputStream fos = new FileOutputStream(fout,false);
 	 
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 		int totalLine = lines.size();

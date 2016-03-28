@@ -34,13 +34,13 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	
+
 	private static NodesManager nodesManager;
 
 	/**
 	 * @param dropletEntity
 	 * @param dropletService
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void performServices(DigitalOceanServiceImpl dropletService,
 			DigitalOceanEntity dropletEntity) throws Exception {
@@ -49,12 +49,32 @@ public class DigitalOceanServiceUtil {
 		Droplets droplets;
 		Droplet droplet;
 		Image image = null;
+		Images images = null;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
-			if (dropletEntity.getDroplet() != null
-					&& dropletEntity.getDroplet().getImage() != null) {
+			if (dropletEntity.getDroplet().getImage().getId() != null) {
 				image = dropletService.getImageInfo(dropletEntity.getDroplet()
-						.getImage().getSlug());
+						.getImage().getId());
+			} else if (dropletEntity.getDroplet().getImage().getName() != null
+					|| "".equals(dropletEntity.getDroplet().getImage().getId())) {
+				boolean isImageFound = false;
+				for (int page = 1;; page++) {
+					images = dropletService.getAvailableImages(page, 100);
+					if (images.getImages().isEmpty())
+						break;
+					for (Image img : images.getImages()) {
+						if (dropletEntity.getDroplet().getImage().getName()
+								.equalsIgnoreCase(img.getName())) {
+							LOGGER.info("Image id {} and name {}", img.getId(),
+									img.getName());
+							image = img;
+							isImageFound = true;
+							break;
+						}
+					}
+					if (isImageFound)
+						break;
+				}
 			}
 			if (image != null) {
 				dropletEntity.getDroplet().setImage(image);
@@ -67,10 +87,13 @@ public class DigitalOceanServiceUtil {
 			droplets = dropletService.getAvailableDroplets(1, null);
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets);
+			LOGGER.info("Active droplets are {}",dropletFill.toString());
+			if(Property.getNamespace().name().equalsIgnoreCase("master")){
 			generateServerConfigFile(dropletFill);
 			startZookeeper();
 			uploadServerConfigFileToZK();
 			uploadConfigFileToZk();
+			}
 			break;
 
 		case DELETE:
@@ -108,13 +131,16 @@ public class DigitalOceanServiceUtil {
 		case GET_ALL_DROPLET_INFO:
 			droplets = dropletService.getAvailableDroplets(
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
+			for(Droplet dropletObj : droplets.getDroplets()){
+				LOGGER.info("Droplet id {} , name {} , ip {}",dropletObj.getId(),dropletObj.getName(),dropletObj.getNetworks().getVersion4Networks().toString());
+			}
 			LOGGER.info("All droplets info are {}", droplets.toString());
 			break;
 
 		case GET_ALL_PROPERTIES_OF_DIGITAL_OCEAN:
 			Account account = dropletService.getAccountInfo();
 			LOGGER.info("Account info {}", account.toString());
-			Images images = dropletService.getAvailableImages(
+			images = dropletService.getAvailableImages(
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
 			LOGGER.info("All images available {}", images.toString());
 			Keys keys = dropletService.getAvailableKeys(dropletEntity
@@ -167,13 +193,14 @@ public class DigitalOceanServiceUtil {
 
 		}
 	}
-	
+
 	/**
 	 * @param digitalOceanManager
 	 * @throws IOException
 	 */
 	private static void uploadConfigFileToZk() throws IOException {
-		ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
+		ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE
+				+ "_FILE", Property.getProperties());
 		nodesManager.saveConfigFileToZNode(configNodeFile, null);
 	}
 
@@ -183,7 +210,8 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadServerConfigFileToZK() throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
+		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
+				Property.loadServerProperties());
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
@@ -192,8 +220,7 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws Exception
 	 */
-	private static void startZookeeper()
-			throws Exception {
+	private static void startZookeeper() throws Exception {
 		(nodesManager = ServerHeartBeat.init()).startup();
 	}
 

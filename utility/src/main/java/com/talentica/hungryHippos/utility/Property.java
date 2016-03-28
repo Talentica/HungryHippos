@@ -163,4 +163,8 @@ public class Property {
 		return getPropertyValue("column.datatype-size").toString().split(",");
 	}
 
+	public static PROPERTIES_NAMESPACE getNamespace() {
+		return namespace;
+	}
+
 }

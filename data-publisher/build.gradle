@@ -1,5 +1,5 @@
 group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 apply plugin: 'java'
 
@@ -14,15 +14,16 @@ sourceSets {
      }
   }
   
-task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': 1.0,
-                'Main-Class': 'com.talentica.hungryHippos.master.DataPublisherStarter'
+jar {
+	archiveName='data-publisher.jar'
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
     }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
+    manifest {
+        attributes("Main-Class": "com.talentica.hungryHippos.master.DataPublisherStarter" )
+    }
 }
   
 dependencies {

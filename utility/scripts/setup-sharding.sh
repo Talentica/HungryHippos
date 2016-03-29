@@ -3,7 +3,7 @@ sharding_node_ip=`cat ./node_pwd_file.txt|grep "sharding_node_ip"|awk -F":" '{pr
 sh shut-down-sharding.sh
 sh cleanup-sharding.sh
 echo 'Copying new build'
-sh copy-file-to-sharding.sh ../../sharding/build/libs/sharding.jar
+sh copy-file-to-sharding.sh ../../sharding/build/libs/sharding*.jar
 echo 'Copying common configuration file'
 sh copy-file-to-sharding.sh ../../utility/src/main/resources/config.properties
 echo 'Copying nodes configuration file'

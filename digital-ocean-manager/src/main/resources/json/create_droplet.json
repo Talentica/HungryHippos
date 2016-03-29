@@ -3,15 +3,13 @@
     "request": "CREATE",
     "droplet": {
         "names": [
-            "hh-node-0",
-			"hh-node-1"
+            "local-setup"			
         ],
         "region": {
-            "slug": "nyc3"
+            "slug": "nyc2"
         },
-        "image": {
-            "name": "test-node-1-snapshot",
-			"slug": "ubuntu-14-04-x64"
+        "image": {			
+            "name":"hh-node-snap"
         },
         "size": "4gb",
         "enableBackup": true,

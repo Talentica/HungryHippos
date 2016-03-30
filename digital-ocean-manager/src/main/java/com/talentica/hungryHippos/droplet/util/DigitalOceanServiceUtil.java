@@ -178,7 +178,7 @@ public class DigitalOceanServiceUtil {
 				dropletService.takeDropletSnapshot(dropletId,
 						dropletEntity.getSnapshotName());
 			}
-			LOGGER.info("Snapshot is taken successfully.");
+			LOGGER.info("Snapshot is initiated successfully.");
 			break;
 
 		case SHUTDOWN:

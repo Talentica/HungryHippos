@@ -40,6 +40,7 @@ import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.utility.server.ServerUtils;
 
 /**
  * To manage the different nodes of the server
@@ -514,8 +515,9 @@ public class NodesManager implements Watcher {
 			List<String> checkUnique = new ArrayList<String>();
 			Properties property = Property.loadServerProperties();
 			int nodeIndex = 0;
-			for(Object key : property.keySet()){
-			String srv = property.getProperty((String)key);
+			int size = property.keySet().size();
+			for (int index = 0 ; index < size ; index++) {
+				String srv = property.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT +index);
 			String IP = null;
 			String PORT = null;
 			
@@ -535,7 +537,7 @@ public class NodesManager implements Watcher {
 				checkUnique.add(IP);
 				serverNameMap.put(server.getServerAddress().getHostname(), server);
 				nodeIndex++;
-				LOGGER.info("\tSERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
+				LOGGER.info("SERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
 				}
 			 getSignal = new CountDownLatch(this.servers.size()+DEFAULT_NODES);// additional 3 is added because of namesapce,alert and basepath node is also created
 			}

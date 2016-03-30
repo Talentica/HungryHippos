@@ -89,7 +89,8 @@ public class DigitalOceanServiceUtil {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets);
 			LOGGER.info("Active droplets are {}",dropletFill.toString());
-			if(Property.getNamespace().name().equalsIgnoreCase("zk")){
+			String formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
+			if(Property.getNamespace().name().equalsIgnoreCase("zk") && formatFlag.equals("Y")){
 			generateServerConfigFile(dropletFill);
 			startZookeeper();
 			uploadServerConfigFileToZK();

@@ -240,6 +240,7 @@ public class DigitalOceanServiceUtil {
 			RequestUnsuccessfulException {
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
+			if(!retDroplet.getName().contains("node")) continue;
 			while (!DropletStatus.ACTIVE.toString().equalsIgnoreCase(
 					retDroplet.getStatus().name())) {
 				Thread.sleep(1000);
@@ -269,9 +270,6 @@ public class DigitalOceanServiceUtil {
 					break;
 				}
 			}
-			/*String ipv4Address = retDroplet.getNetworks().getVersion4Networks()
-					.get(0).getIpAddress();*/
-			
 		}
 		try {
 			CommonUtil.writeLine("../utility/src/main/resources/"

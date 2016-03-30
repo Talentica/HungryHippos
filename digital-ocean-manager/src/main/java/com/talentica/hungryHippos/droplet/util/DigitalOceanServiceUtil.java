@@ -17,6 +17,7 @@ import com.myjeeva.digitalocean.pojo.Droplets;
 import com.myjeeva.digitalocean.pojo.Image;
 import com.myjeeva.digitalocean.pojo.Images;
 import com.myjeeva.digitalocean.pojo.Keys;
+import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -88,7 +89,7 @@ public class DigitalOceanServiceUtil {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets);
 			LOGGER.info("Active droplets are {}",dropletFill.toString());
-			if(Property.getNamespace().name().equalsIgnoreCase("master")){
+			if(Property.getNamespace().name().equalsIgnoreCase("zk")){
 			generateServerConfigFile(dropletFill);
 			startZookeeper();
 			uploadServerConfigFileToZK();
@@ -259,10 +260,17 @@ public class DigitalOceanServiceUtil {
 		String SUFFIX = ":";
 		String PORT = "2324";
 		for (Droplet retDroplet : droplets) {
-			String ipv4Address = retDroplet.getNetworks().getVersion4Networks()
-					.get(0).getIpAddress();
-			ipv4Addrs.add(PRIFIX + (index++) + SUFFIX + ipv4Address + SUFFIX
-					+ PORT);
+			List<Network> networks = retDroplet.getNetworks().getVersion4Networks();
+			for(Network network : networks){
+				if(network.getType().equalsIgnoreCase("public")){
+					ipv4Addrs.add(PRIFIX + (index++) + SUFFIX + network.getIpAddress() + SUFFIX
+							+ PORT);
+					break;
+				}
+			}
+			/*String ipv4Address = retDroplet.getNetworks().getVersion4Networks()
+					.get(0).getIpAddress();*/
+			
 		}
 		try {
 			CommonUtil.writeLine("../utility/src/main/resources/"

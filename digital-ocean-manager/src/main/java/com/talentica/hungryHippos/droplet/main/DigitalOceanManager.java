@@ -29,19 +29,20 @@ public class DigitalOceanManager {
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	public static void main(String[] args) throws Exception {
-		String perform = null;
+		//String perform = null;
 		try {
-			if (args.length >= 2) {
+			if (args.length == 2) {
 				Property.overrideConfigurationProperties(args[1]);
-				perform = (args.length == 3) ? args[2] : null;
+				//perform = (args.length == 3) ? args[2] : null;
 			}
-			if (perform != null
-					&& perform.equalsIgnoreCase(PROPERTIES_NAMESPACE.MASTER
+			Property.initialize(PROPERTIES_NAMESPACE.ZK);
+			/*if (perform != null
+					&& perform.equalsIgnoreCase(PROPERTIES_NAMESPACE.ZK
 							.name())) {
-				Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+				Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			} else {
-				Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			}
+				Property.initialize(PROPERTIES_NAMESPACE.ZK);
+			}*/
 
 			validateProgramArguments(args);
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);

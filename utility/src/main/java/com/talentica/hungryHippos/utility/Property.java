@@ -35,7 +35,7 @@ public class Property {
 
 	public enum PROPERTIES_NAMESPACE {
 
-		MASTER("master"), NODE("node"), COMMON("common");
+		MASTER("master"), NODE("node"), COMMON("common"), ZK("zk");
 
 		private String namespace;
 

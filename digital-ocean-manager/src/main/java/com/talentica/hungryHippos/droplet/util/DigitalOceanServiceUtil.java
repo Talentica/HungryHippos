@@ -165,8 +165,11 @@ public class DigitalOceanServiceUtil {
 			if (droplet.isActive()) {
 				dropletService.powerOffDroplet(dropletId);
 			}
-			if (!droplet.isOff())
-				return;
+			while(!droplet.isOff()){
+				Thread.sleep(5000);
+				droplet = dropletService.getDropletInfo(dropletId);
+				LOGGER.info("Wating for power off of droplet id {}",dropletId);
+			}
 			LOGGER.info("Droplet is shutdown now start takeing snapshot.");
 			if (dropletEntity.getSnapshotName() == null
 					|| "".equalsIgnoreCase(dropletEntity.getSnapshotName())) {
@@ -175,6 +178,7 @@ public class DigitalOceanServiceUtil {
 				dropletService.takeDropletSnapshot(dropletId,
 						dropletEntity.getSnapshotName());
 			}
+			LOGGER.info("Snapshot is taken successfully.");
 			break;
 
 		case SHUTDOWN:

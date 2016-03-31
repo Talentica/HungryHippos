@@ -58,7 +58,7 @@ public class DigitalOceanServiceUtil {
 		Images images = null;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
-			/*if (dropletEntity.getDroplet().getImage().getId() != null) {
+			if (dropletEntity.getDroplet().getImage().getId() != null) {
 				image = dropletService.getImageInfo(dropletEntity.getDroplet()
 						.getImage().getId());
 			} else if (dropletEntity.getDroplet().getImage().getName() != null
@@ -97,7 +97,7 @@ public class DigitalOceanServiceUtil {
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
-					droplets.toString());*/
+					droplets.toString());
 			String formatFlag = Property.getPropertyValue(
 					"cleanup.zookeeper.nodes").toString();
 			if (Property.getNamespace().name().equalsIgnoreCase("zk")

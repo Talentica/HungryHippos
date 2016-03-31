@@ -68,20 +68,6 @@ public class CommonUtil {
 		LOGGER.info("Dumping of file {} on disk finished.", fileName);
 	}
 	
-	public static void writeLine(String fileName, List<String> lines) throws IOException{
-		File fout = new File(fileName);
-		FileOutputStream fos = new FileOutputStream(fout,false);
-	 
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-		int totalLine = lines.size();
-		for(String line : lines){
-			totalLine--;
-			bw.write(line);
-			if(totalLine!=0)bw.newLine();
-		}
-		bw.close();
-	}
-	
 	public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
 		if (dataDescription == null) {
 			dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration());

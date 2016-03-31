@@ -1,6 +1,10 @@
 package com.talentica.hungryHippos.droplet.util;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +58,7 @@ public class DigitalOceanServiceUtil {
 		Images images = null;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
-			if (dropletEntity.getDroplet().getImage().getId() != null) {
+			/*if (dropletEntity.getDroplet().getImage().getId() != null) {
 				image = dropletService.getImageInfo(dropletEntity.getDroplet()
 						.getImage().getId());
 			} else if (dropletEntity.getDroplet().getImage().getName() != null
@@ -93,11 +97,12 @@ public class DigitalOceanServiceUtil {
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
-					droplets.toString());
+					droplets.toString());*/
 			String formatFlag = Property.getPropertyValue(
 					"cleanup.zookeeper.nodes").toString();
 			if (Property.getNamespace().name().equalsIgnoreCase("zk")
 					&& formatFlag.equals("Y")) {
+				droplets = dropletService.getAvailableDroplets(1, 20);
 				List<Droplet> dropletFill = getActiveDroplets(dropletService,
 						droplets);
 				LOGGER.info("Active droplets are {}", dropletFill.toString());
@@ -299,12 +304,26 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			CommonUtil.writeLine("../src/main/resources/"
+			writeLine("../utility/src/main/resources/"
 					+ "serverConfigFile.properties", ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
 			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file");
 		}
+	}
+	
+	public static void writeLine(String fileName, List<String> lines) throws IOException{
+		File fout = new File(fileName);
+		FileOutputStream fos = new FileOutputStream(fout,false);
+	 
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+		int totalLine = lines.size();
+		for(String line : lines){
+			totalLine--;
+			bw.write(line);
+			if(totalLine!=0)bw.newLine();
+		}
+		bw.close();
 	}
 
 	/**

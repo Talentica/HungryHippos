@@ -26,6 +26,7 @@ import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
 import com.talentica.hungryHippos.utility.CommonUtil;
 
 /**
@@ -112,7 +113,7 @@ public class DigitalOceanDropletTest {
 		List<String> servers = new ArrayList<String>();
 		servers.add("server.0:234.34.45.3");
 		servers.add("server.1:234.34.45.2");
-			CommonUtil.writeLine("serverTest.txt", servers);
+			DigitalOceanServiceUtil.writeLine("serverTest.txt", servers);
 	}
 	
 }

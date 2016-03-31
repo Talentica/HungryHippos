@@ -261,13 +261,15 @@ public class DigitalOceanServiceUtil {
 			DigitalOceanServiceImpl dropletService, Droplets droplets)
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
+		LOGGER.info("Start getting active droplets...");
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
 			if (!retDroplet.getName().contains("node"))
 				continue;
 			while (!DropletStatus.ACTIVE.toString().equalsIgnoreCase(
 					retDroplet.getStatus().name())) {
-				Thread.sleep(1000);
+				LOGGER.info("Waiting for droplets to get active...");
+				Thread.sleep(30000);
 				retDroplet = dropletService.getDropletInfo(retDroplet.getId());
 			}
 			dropletFill.add(retDroplet);

@@ -32,6 +32,9 @@ public class DigitalOceanManager {
 		try {
 			if (args.length == 2) {
 				Property.overrideConfigurationProperties(args[1]);
+			} else {
+				LOGGER.info("Please provide the argument.First argument is json and second argument is config file.");
+				return;
 			}
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);

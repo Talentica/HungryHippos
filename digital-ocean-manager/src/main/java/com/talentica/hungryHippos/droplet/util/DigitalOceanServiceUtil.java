@@ -16,6 +16,7 @@ import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
 import com.myjeeva.digitalocean.pojo.Image;
 import com.myjeeva.digitalocean.pojo.Images;
+import com.myjeeva.digitalocean.pojo.Key;
 import com.myjeeva.digitalocean.pojo.Keys;
 import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
@@ -82,19 +83,19 @@ public class DigitalOceanServiceUtil {
 			}
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
-			LOGGER.info("Droplet/Droplets is/are of id/ids {} is created",
+			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
 					droplets.toString());
-
-			droplets = dropletService.getAvailableDroplets(1, null);
-			List<Droplet> dropletFill = getActiveDroplets(dropletService,
-					droplets);
-			LOGGER.info("Active droplets are {}",dropletFill.toString());
-			String formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
-			if(Property.getNamespace().name().equalsIgnoreCase("zk") && formatFlag.equals("Y")){
-			generateServerConfigFile(dropletFill);
-			startZookeeper();
-			uploadServerConfigFileToZK();
-			uploadConfigFileToZk();
+			String formatFlag = Property.getPropertyValue(
+					"cleanup.zookeeper.nodes").toString();
+			if (Property.getNamespace().name().equalsIgnoreCase("zk")
+					&& formatFlag.equals("Y")) {
+				List<Droplet> dropletFill = getActiveDroplets(dropletService,
+						droplets);
+				LOGGER.info("Active droplets are {}", dropletFill.toString());
+				generateServerConfigFile(dropletFill);
+				startZookeeper();
+				uploadServerConfigFileToZK();
+				uploadConfigFileToZk();
 			}
 			break;
 
@@ -133,8 +134,10 @@ public class DigitalOceanServiceUtil {
 		case GET_ALL_DROPLET_INFO:
 			droplets = dropletService.getAvailableDroplets(
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
-			for(Droplet dropletObj : droplets.getDroplets()){
-				LOGGER.info("Droplet id {} , name {} , ip {}",dropletObj.getId(),dropletObj.getName(),dropletObj.getNetworks().getVersion4Networks().toString());
+			for (Droplet dropletObj : droplets.getDroplets()) {
+				LOGGER.info("Droplet id {} , name {} , ip {}",
+						dropletObj.getId(), dropletObj.getName(), dropletObj
+								.getNetworks().getVersion4Networks().toString());
 			}
 			LOGGER.info("All droplets info are {}", droplets.toString());
 			break;
@@ -165,10 +168,10 @@ public class DigitalOceanServiceUtil {
 			if (droplet.isActive()) {
 				dropletService.powerOffDroplet(dropletId);
 			}
-			while(!droplet.isOff()){
+			while (!droplet.isOff()) {
 				Thread.sleep(5000);
 				droplet = dropletService.getDropletInfo(dropletId);
-				LOGGER.info("Wating for power off of droplet id {}",dropletId);
+				LOGGER.info("Wating for power off of droplet id {}", dropletId);
 			}
 			LOGGER.info("Droplet is shutdown now start takeing snapshot.");
 			if (dropletEntity.getSnapshotName() == null
@@ -191,6 +194,13 @@ public class DigitalOceanServiceUtil {
 				dropletService.shutdownDroplet(dropletId);
 			}
 			LOGGER.info("Droplets are shutdown");
+			break;
+
+		case CREATE_KEY:
+			for (Key key : dropletEntity.getDroplet().getKeys()) {
+				dropletService.createKey(key);
+			}
+			LOGGER.info("Key is added");
 			break;
 
 		default:
@@ -244,7 +254,8 @@ public class DigitalOceanServiceUtil {
 			RequestUnsuccessfulException {
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
-			if(!retDroplet.getName().contains("node")) continue;
+			if (!retDroplet.getName().contains("node"))
+				continue;
 			while (!DropletStatus.ACTIVE.toString().equalsIgnoreCase(
 					retDroplet.getStatus().name())) {
 				Thread.sleep(1000);
@@ -266,11 +277,12 @@ public class DigitalOceanServiceUtil {
 		String SUFFIX = ":";
 		String PORT = "2324";
 		for (Droplet retDroplet : droplets) {
-			List<Network> networks = retDroplet.getNetworks().getVersion4Networks();
-			for(Network network : networks){
-				if(network.getType().equalsIgnoreCase("public")){
-					ipv4Addrs.add(PRIFIX + (index++) + SUFFIX + network.getIpAddress() + SUFFIX
-							+ PORT);
+			List<Network> networks = retDroplet.getNetworks()
+					.getVersion4Networks();
+			for (Network network : networks) {
+				if (network.getType().equalsIgnoreCase("public")) {
+					ipv4Addrs.add(PRIFIX + (index++) + SUFFIX
+							+ network.getIpAddress() + SUFFIX + PORT);
 					break;
 				}
 			}

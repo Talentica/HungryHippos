@@ -3,13 +3,13 @@
     "request": "CREATE",
     "droplet": {
         "names": [
-            "local-setup"			
+            "local-setup-pooshan"			
         ],
         "region": {
             "slug": "nyc2"
         },
         "image": {			
-            "name":"hh-node-snap"
+            "name":"pooshan-local-setup-snapshot"
         },
         "size": "4gb",
         "enableBackup": true,

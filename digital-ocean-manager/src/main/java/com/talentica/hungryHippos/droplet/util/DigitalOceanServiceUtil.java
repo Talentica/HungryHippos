@@ -299,7 +299,7 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			CommonUtil.writeLine("../utility/src/main/resources/"
+			CommonUtil.writeLine("../src/main/resources/"
 					+ "serverConfigFile.properties", ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {

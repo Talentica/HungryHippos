@@ -3,7 +3,7 @@
     "request": "CREATE",
     "droplet": {
         "names": [
-            "local-setup-pooshan"			
+            "test"			
         ],
         "region": {
             "slug": "nyc2"
@@ -14,38 +14,6 @@
         "size": "4gb",
         "enableBackup": true,
         "enableIpv6": true,
-        "enablePrivateNetworking": true,
-        "keys": [
-            {
-                "id": 966631,
-                "name": "id_rsa",
-                "fingerprint": "e0:d1:62:46:20:1b:fd:ee:e5:34:4e:84:02:76:86:e6",
-                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCx9gE4LXWORgpKkVAYjYY5aXUb9B2Z9uBGfwzyz6+c04AWoJvAT69UiyXYsi4jjGW/Zv2bFzHuCFVePRi2xIv9q+w2UUHl4tY5O+gPNrzVh3ZvXmSt6RJs3ER5ITY73tDLXdxGDUA0xco6JZsz7S3ngjm9NUpYznR55s7+RM1CjWHcnjantpe/l6M5YNK3zIH7kd6S8Hmcyr7/vPFEwabXsx7K1cCnoDx0ehL/tkyFKCYa67bfE3OU+SmdViW5wbYqpaS+8byc4hnvnEPSdle4FZimxAH3A0Qr2RRkrrNrBBfii4eqC/CChs225DgaRABaWVy4GHFT8L6JgbypPBpv"
-            },
-            {
-                "id": 1492123,
-                "name": "root@hadoop",
-                "fingerprint": "dd:a1:80:95:b4:c0:8a:43:f3:8b:d3:e5:00:47:0c:d4",
-                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4LwhLtQ0SBM2QcWUoZ9t/EYlD6LSIKyC/D8m4v2kiEXtVgoAJ77KPS4f1P/nf5PI67RCj5Oe6pZLJZ3KjZiJFwRftO5iv2y8reYkqpVuIvqn8+BNOan8xLQc93o+mogYJTZBp71ycc8SXr/8nI/ZOJIRwf2Noyt5z4r8RucgWMjOGK6SKfnKs2cxTKREQ9Pep0Xyo0TihUC4e4YU9vN4ZWJjJ8fP43QG2847yx2ZKXF78MaNRfQwyjF2uSMze3TZ/FKrqXYJNEt9GCvdTYEXyEJcH9ON3OdvblpPvFIyXznll3UAQconkeeqrhCgtoP+xebsdsxIMGg3yWgJLMlqD root@hadoop"
-            },
-            {
-                "id": 1699947,
-                "name": "--Mayank Porwal's (hduser)",
-                "fingerprint": "dd:8e:11:48:08:ca:08:31:2d:74:5d:75:0f:99:7f:39",
-                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDzgA5D/+zHBbiCp15ArrHbdG2W2S3709k1586kvHLqYJZejRs1XtiC1rRNc12PvE5V6Khb98bX+QU7YCjTp6glZGAaVpzS6mVov203UfhkzUc95agcDPz6278aX2wlwYevGV2vRJfM0erkh0xaSlzVdyv5GqVB9s1nfNkSTRMPu4WDCTCUlhH1BhG5PyhETmaSqbqbtT5G/DAquI29Aql/qHm7uJRNoMpKjdryHMdqAXPiglKhCkYTi6+tlnjzxHWoE7KhakpqVELkFHwbwzQCUV3TA6JfG4DhnfKbQmXU9ZWw9iqTC2INpup4K/wZVTyFUwIIzksd+Kpf3VIhRsb hduser@mayankp"
-            },
-            {
-                "id": 1704282,
-                "name": "NitinsPublicSshKey",
-                "fingerprint": "23:94:46:85:54:c2:7d:b3:7a:ec:3f:71:0b:9a:0f:50",
-                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeXoHGH9rm40Wc88Sr6mAUG1vIHkXqoB9tkrIMpJA5216WuCnx6xJ3boUv1nG15sSS99bo83TKHfMlR6YaqKdgG9y28koV7oOBItJ4yv9+/ruSwGyFrDzdlrDmMVrhj9QLzUx0K4wyhdFNDrhzpiB/r2P+dOASyPnWa4qrofwZmh+pDQm6X1MEru47hq2yA4uUZihFaiScUZguQ8IXNORynQIN1q07qu8GOGQBK7XEYfXKnxMmV0G+JV7CnAWEC7GeFblKwbAGW9PcXrkdNnnxsJwkL7oe5eAq8RPZKW5300cc5aq0RHwzc0oiOySL//bJwNIIznPpKCu2A8Q2v5Mb nitink@nitink"
-            },
-            {
-                "id": 1704289,
-                "name": "Pooshan-SSHkey",
-                "fingerprint": "79:59:20:ff:d5:2a:a5:f3:8a:dc:c4:25:ee:08:34:b2",
-                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCkA3aNhdJuhq52NelT1WRvhcmrg46MLBRuFvTbdd5tnDUJchV5bpCR2bw+SrZDSvC0AYk3FMBfR5S2WBsV6aydHBD6JP0Ed+aC3GIh4gLJ7fdzErhDgv8DRNKXUY1/FsF7btOi3Ber/dGxc9/aEZr1Lfcu+S6YzZDJXADHv1XjSZmoXNu8SwISTCJ+KqO0cxSYeUsDTmD91tbec+PMk5xOpNqxFm3RE98EaydHnE9jY1TvcsyAnICqZq+BH0ycwUDqVd2FXwEbTxYCL7SGwirC9uYnETy4t35miM0KmJyc0TcRYtVvivBet9g0cUFKrYLHYtHUuFG2iYv1Fe/iqq8j PooshanS@PooshanS"
-            }
-        ]
+        "enablePrivateNetworking": true
     }
 }

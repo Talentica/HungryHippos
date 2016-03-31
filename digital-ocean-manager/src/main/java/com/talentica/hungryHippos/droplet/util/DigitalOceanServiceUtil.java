@@ -81,6 +81,15 @@ public class DigitalOceanServiceUtil {
 			if (image != null) {
 				dropletEntity.getDroplet().setImage(image);
 			}
+			List<Key> newKeys = new ArrayList<Key>();
+			Keys fetchKeys = dropletService.getAvailableKeys(null);
+			if (fetchKeys != null && fetchKeys.getKeys() != null
+					&& !fetchKeys.getKeys().isEmpty()) {
+				newKeys.addAll(fetchKeys.getKeys());
+			} else {
+				LOGGER.info("No keys are available");
+			}
+			dropletEntity.getDroplet().setKeys(newKeys);
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",

@@ -36,13 +36,10 @@ public class DigitalOceanManager {
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
-
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());
-
 			DigitalOceanServiceUtil.performServices(dropletService,
 					dropletEntity);
-
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {

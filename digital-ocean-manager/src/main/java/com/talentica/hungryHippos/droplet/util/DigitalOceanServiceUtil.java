@@ -29,6 +29,7 @@ import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.Property;
 
 /**
@@ -38,9 +39,8 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static final String configPath = Property.class
-			.getProtectionDomain().getCodeSource().getLocation().getPath()
-			+ Property.SERVER_CONF_FILE;
+	private static String configPath = Property.class.getProtectionDomain()
+			.getCodeSource().getLocation().getPath();
 	private static NodesManager nodesManager;
 
 	/**
@@ -306,9 +306,11 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			String resPath = new java.io.File(configPath).getCanonicalPath();
-			LOGGER.info("Resource path {}", resPath);
-			writeLineInFile(resPath, ipv4Addrs);
+			LOGGER.info("Resource path {}", configPath);
+			configPath = (configPath.endsWith(PathUtil.FORWARD_SLASH) ? (configPath + Property.SERVER_CONF_FILE)
+					: (configPath + PathUtil.FORWARD_SLASH + Property.SERVER_CONF_FILE));
+			LOGGER.info("serverConfigFile.properties path will be saved in path {}",configPath);
+			writeLineInFile(configPath, ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
 			LOGGER.info(

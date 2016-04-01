@@ -35,7 +35,6 @@ import com.myjeeva.digitalocean.pojo.Neighbors;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.myjeeva.digitalocean.pojo.Snapshots;
-import com.talentica.hungryHippos.droplet.main.DigitalOceanManager;
 
 /**
  * @author PooshanS

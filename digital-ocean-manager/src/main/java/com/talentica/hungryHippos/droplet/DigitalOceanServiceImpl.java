@@ -6,6 +6,9 @@ package com.talentica.hungryHippos.droplet;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.myjeeva.digitalocean.common.ActionType;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
@@ -32,13 +35,15 @@ import com.myjeeva.digitalocean.pojo.Neighbors;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.myjeeva.digitalocean.pojo.Snapshots;
+import com.talentica.hungryHippos.droplet.main.DigitalOceanManager;
 
 /**
  * @author PooshanS
  *
  */
 public class DigitalOceanServiceImpl implements DigitalOceanService{
-	
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DigitalOceanServiceImpl.class);
 	private DigitalOceanClient digitalOceanClient;
 	
 	public DigitalOceanServiceImpl(String authToken){
@@ -470,7 +475,11 @@ public class DigitalOceanServiceImpl implements DigitalOceanService{
 	public List<Delete> deleteDroplets(List<Integer> dropletIdList) throws DigitalOceanException, RequestUnsuccessfulException {
 		List<Delete> deleteLists = new ArrayList<Delete>(); 
 		for(Integer dropletId : dropletIdList){
+			try{
 			deleteLists.add(deleteDroplet(dropletId));
+			}catch(DigitalOceanException ex){
+				LOGGER.info("Unable to delete the droplet id {}",dropletId);
+			}
 		}
 		return deleteLists;
 	}

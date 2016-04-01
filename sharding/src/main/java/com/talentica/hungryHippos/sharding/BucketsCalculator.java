@@ -15,7 +15,7 @@ public final class BucketsCalculator {
 	public static int calculateNumberOfBucketsNeeded() {
 		double MAX_NO_OF_FILE_SIZE = Double
 				.valueOf(Property.getPropertyValue(MAXIMUM_SHARD_FILE_SIZE_PROPERTY_KEY).toString());
-		int noOfKeys = Property.getKeyOrder().length;
+		int noOfKeys = Property.getShardingDimensions().length;
 		long approximateMemoryPerBucketStoredInShardTable = (NO_OF_BYTES_PER_KEY * noOfKeys)
 				+ NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
 		Double noOfBucketsNeeded = Math.pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable,

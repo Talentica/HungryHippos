@@ -69,7 +69,7 @@ public class NodeDataStoreIdCalculatorTest {
 			dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
 					Integer.valueOf(datatype.split("-")[1]));
 		}
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		return dataDescription;
 	}
 

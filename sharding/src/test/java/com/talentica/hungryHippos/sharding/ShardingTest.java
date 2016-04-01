@@ -29,7 +29,7 @@ public class ShardingTest {
 	// Map<String, List<KeyValueFrequency>> frequencyData = sharding
 	// .populateFrequencyFromData(shardingInputFileReader);
 	// Assert.assertNotNull(frequencyData);
-	// int noOfKeys = Property.getKeyOrder().length;
+	// int noOfKeys = Property.getShardingDimensions().length;
 	// Assert.assertEquals(noOfKeys, frequencyData.size());
 	// for (String key : frequencyData.keySet()) {
 	// List<KeyValueFrequency> keyValueFrequencyList = frequencyData.get(key);

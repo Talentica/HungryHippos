@@ -15,7 +15,7 @@
 // public void testEquals() {
 // FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
 // .createDataDescription(Property.getDataTypeConfiguration());
-// dataDescription.setKeyOrder(Property.getKeyOrder());
+// dataDescription.setKeyOrder(Property.getShardingDimensions());
 // ByteBuffer byteBuffer1 = new ByteBuffer(dataDescription);
 // byteBuffer1.put(0, (byte) 'l');
 // MutableCharArrayString mutableCharArrayStringL1 = new

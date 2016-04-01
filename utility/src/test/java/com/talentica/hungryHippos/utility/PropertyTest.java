@@ -40,7 +40,7 @@ public class PropertyTest{
 	@Test
 	public void testGetKeyOrder() {
 		Property.initialize(null);
-		String[] keyOrder= Property.getKeyOrder();
+		String[] keyOrder= Property.getShardingDimensions();
 		Assert.assertNotNull(keyOrder);
 		for(String key:keyOrder){
 			Assert.assertNotNull(key);
@@ -68,6 +68,6 @@ public class PropertyTest{
 	@Test
 	public void testGetEnvironmentSpecificProperty() {
 		ENVIRONMENT.setCurrentEnvironment("LOCAL");
-		Assert.assertEquals(1, Property.getKeyOrder().length);
+		Assert.assertEquals(1, Property.getShardingDimensions().length);
 	}
 }

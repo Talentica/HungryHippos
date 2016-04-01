@@ -123,7 +123,7 @@ public class DataReceiver {
 	 */
 	private static DataReceiver getNodeInitializer() throws Exception {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		return new DataReceiver(dataDescription);
 	}
 

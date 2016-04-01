@@ -141,8 +141,8 @@ public class Property {
 		namespace = appNamespace;
 	}
 
-	public static String[] getKeyOrder() {
-		String keyOrderString = getPropertyValue("common.keyorder").toString();
+	public static String[] getShardingDimensions() {
+		String keyOrderString = getPropertyValue("common.sharding_dimensions").toString();
 		return keyOrderString.split(",");
 	}
 

@@ -64,7 +64,7 @@ public class DataProvider {
 		long start = System.currentTimeMillis();
 		String[] servers = loadServers(nodesManager);
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		byte[] buf = new byte[dataDescription.getSize()];
 		ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -109,32 +109,20 @@ public class DataProvider {
 				input.close();
 				break;
 			}
-			MutableCharArrayString value1 = parts[0].clone();
-			MutableCharArrayString value2 = parts[1].clone();
-			MutableCharArrayString value3 = parts[2].clone();
-			MutableCharArrayString value4 = parts[3].clone();
-			MutableCharArrayString value5 = parts[4].clone();
-			MutableCharArrayString value6 = parts[5].clone();
-			double value7 = Double.parseDouble(parts[6].clone().toString());
-			double value8 = Double.parseDouble(parts[7].clone().toString());
-			MutableCharArrayString value9 = parts[8].clone();
-
+			
 			Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
-			String[] keyOrder = Property.getKeyOrder();
+			String[] keyOrder = Property.getShardingDimensions();
 
 			for (int i = 0; i < keyOrder.length; i++) {
 				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[i].clone());
 				keyToBucketMap.put(keyOrder[i], bucket);
 			}
-			dynamicMarshal.writeValueString(0, value1, byteBuffer);
-			dynamicMarshal.writeValueString(1, value2, byteBuffer);
-			dynamicMarshal.writeValueString(2, value3, byteBuffer);
-			dynamicMarshal.writeValueString(3, value4, byteBuffer);
-			dynamicMarshal.writeValueString(4, value5, byteBuffer);
-			dynamicMarshal.writeValueString(5, value6, byteBuffer);
-			dynamicMarshal.writeValueDouble(6, value7, byteBuffer);
-			dynamicMarshal.writeValueDouble(7, value8, byteBuffer);
-			dynamicMarshal.writeValueString(8, value9, byteBuffer);
+
+			for(int i = 0 ; i < dataDescription.getNumberOfDataFields(); i++){
+				Object value = parts[i].clone();
+				dynamicMarshal.writeValue(i, value, byteBuffer);
+			}
+
 			BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
 			Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
 			for (Node node : nodes) {

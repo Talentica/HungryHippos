@@ -77,7 +77,7 @@ public class Sharding {
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
 		LOGGER.info("Calculating buckets to node numbers map started");
 		data.reset();
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
@@ -85,14 +85,14 @@ public class Sharding {
 				data.close();
 				break;
 			}
-			MutableCharArrayString[] values = new MutableCharArrayString[3];
-			values[0] = parts[0].clone();
-			values[1] = parts[1].clone();
-			values[2] = parts[2].clone();
+			MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
 			Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
 			for (int i = 0; i < keys.length; i++) {
-				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keys[i]).get(values[i]);
-				bucketCombinationMap.put(keys[i], bucket);
+				String key = keys[i];
+				int keyIndex = Integer.parseInt(key.substring(3)) -1;
+				values[i] = parts[keyIndex].clone();
+				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
+				bucketCombinationMap.put(key, bucket);
 			}
 			BucketCombination keyCombination = new BucketCombination(bucketCombinationMap);
 			Long count = bucketCombinationFrequencyMap.get(keyCombination);
@@ -108,22 +108,23 @@ public class Sharding {
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
 		LOGGER.info("Populating frequency map from data started");
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {
 				break;
 			}
-			MutableCharArrayString[] values = new MutableCharArrayString[3];
-			values[0] = parts[0].clone();
-			values[1] = parts[1].clone();
-			values[2] = parts[2].clone();
+			MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
+
 			for (int i = 0; i < keys.length; i++) {
-				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+				String key = keys[i];
+				int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
+				values[i] = parts[keyIndex].clone();
+				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
 				if (frequencyPerValue == null) {
 					frequencyPerValue = new HashMap<>();
-					keyValueFrequencyMap.put(keys[i], frequencyPerValue);
+					keyValueFrequencyMap.put(key, frequencyPerValue);
 				}
 				Long frequency = frequencyPerValue.get(values[i]);
 				if (frequency == null) {
@@ -138,7 +139,7 @@ public class Sharding {
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
 		LOGGER.info("Calculating keys to list of buckets map started");
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		LOGGER.info("Total no. of buckets: {}", totalNoOfBuckets);
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
@@ -185,7 +186,7 @@ public class Sharding {
 
 	public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap() {
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		for (String key : keys) {
 			List<KeyValueFrequency> frequencies = new ArrayList<>();
 			Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);

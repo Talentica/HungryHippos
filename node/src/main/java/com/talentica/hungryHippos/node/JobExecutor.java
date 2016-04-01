@@ -91,7 +91,7 @@ public class JobExecutor {
 	 */
 	private static JobRunner createJobRunner() throws IOException {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
 	}

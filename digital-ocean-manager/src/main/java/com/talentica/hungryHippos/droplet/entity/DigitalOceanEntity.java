@@ -114,7 +114,7 @@ public class DigitalOceanEntity extends RateLimitBase {
 			return null;
 		List<Integer> idsAsList = new ArrayList<Integer>();
 		for (String id : ids.split(",")) {
-			idsAsList.add(Integer.valueOf(id));
+			idsAsList.add(Integer.valueOf(id.trim()));
 		}
 		return idsAsList;
 	}

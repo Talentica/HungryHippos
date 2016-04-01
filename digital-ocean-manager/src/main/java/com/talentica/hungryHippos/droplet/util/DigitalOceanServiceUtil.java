@@ -146,11 +146,14 @@ public class DigitalOceanServiceUtil {
 		case GET_ALL_DROPLET_INFO:
 			droplets = dropletService.getAvailableDroplets(
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
+			List<Integer> dropletIdList = new ArrayList<>();
 			for (Droplet dropletObj : droplets.getDroplets()) {
+				dropletIdList.add(dropletObj.getId());
 				LOGGER.info("Droplet id {} , name {} , ip {}",
 						dropletObj.getId(), dropletObj.getName(), dropletObj
 								.getNetworks().getVersion4Networks().toString());
 			}
+			LOGGER.info("Droplet ids {}",dropletIdList);
 			LOGGER.info("All droplets info are {}", droplets.toString());
 			break;
 
@@ -301,11 +304,12 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			String current = new java.io.File( "../utility/src/main/resources/serverConfigFile.properties" ).getCanonicalPath();
-			writeLineInFile(current, ipv4Addrs);
+			String resPath = new java.io.File( "../utility/src/main/resources/serverConfigFile.properties" ).getCanonicalPath();
+			LOGGER.info("Resource path {}",resPath);
+			writeLineInFile(resPath, ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
-			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file");
+			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file ,exception {}",e);
 		}
 	}
 	

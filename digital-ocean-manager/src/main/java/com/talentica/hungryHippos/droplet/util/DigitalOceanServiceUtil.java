@@ -30,7 +30,6 @@ import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.Property;
 
 /**
@@ -304,8 +303,7 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			writeLine("../utility/src/main/resources/"
-					+ "serverConfigFile.properties", ipv4Addrs);
+			writeLine(Property.class.getClassLoader().getResource("serverConfigFile.properties").getPath(), ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
 			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file");

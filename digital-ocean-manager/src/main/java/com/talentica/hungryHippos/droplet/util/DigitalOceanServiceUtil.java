@@ -39,8 +39,9 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static String configPath = Property.class.getProtectionDomain()
-			.getCodeSource().getLocation().getPath();
+	/*private static String configPath = Property.class.getProtectionDomain()
+			.getCodeSource().getLocation().getPath();*/
+	private static String configPath = new File(System.getProperty("user.dir")).getParent()+File.separator+"utility/src/main/resources";
 	private static NodesManager nodesManager;
 
 	/**

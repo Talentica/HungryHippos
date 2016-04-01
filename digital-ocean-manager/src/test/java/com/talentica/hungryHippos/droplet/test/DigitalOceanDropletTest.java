@@ -113,7 +113,7 @@ public class DigitalOceanDropletTest {
 		List<String> servers = new ArrayList<String>();
 		servers.add("server.0:234.34.45.3");
 		servers.add("server.1:234.34.45.2");
-			DigitalOceanServiceUtil.writeLine("serverTest.txt", servers);
+			DigitalOceanServiceUtil.writeLineInFile("serverTest.txt", servers);
 	}
 	
 }

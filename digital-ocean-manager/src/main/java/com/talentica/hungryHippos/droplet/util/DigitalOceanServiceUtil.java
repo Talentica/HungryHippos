@@ -11,7 +11,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.myjeeva.digitalocean.common.DropletStatus;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
 import com.myjeeva.digitalocean.pojo.Account;
@@ -302,14 +301,15 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			writeLine(Property.class.getClassLoader().getResource("serverConfigFile.properties").getPath(), ipv4Addrs);
+			String current = new java.io.File( "../utility/src/main/resources/serverConfigFile.properties" ).getCanonicalPath();
+			writeLineInFile(current, ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
 			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file");
 		}
 	}
 	
-	public static void writeLine(String fileName, List<String> lines) throws IOException{
+	public static void writeLineInFile(String fileName, List<String> lines) throws IOException{
 		File fout = new File(fileName);
 		FileOutputStream fos = new FileOutputStream(fout,false);
 	 

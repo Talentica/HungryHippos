@@ -38,7 +38,7 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-
+	private static final String configPath = "../src/main/resources/serverConfigFile.properties";
 	private static NodesManager nodesManager;
 
 	/**
@@ -304,7 +304,8 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			String resPath = new java.io.File( "../utility/src/main/resources/serverConfigFile.properties" ).getCanonicalPath();
+			
+			String resPath = new java.io.File(configPath).getCanonicalPath();
 			LOGGER.info("Resource path {}",resPath);
 			writeLineInFile(resPath, ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");

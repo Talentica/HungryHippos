@@ -270,10 +270,9 @@ public class DigitalOceanServiceUtil {
 		for (Droplet retDroplet : droplets.getDroplets()) {
 			if (!retDroplet.getName().contains("node"))
 				continue;
-			while (!DropletStatus.ACTIVE.toString().equalsIgnoreCase(
-					retDroplet.getStatus().name())) {
+			while (!retDroplet.isActive()) {
 				LOGGER.info("Waiting for droplets to get active...");
-				Thread.sleep(30000);
+				Thread.sleep(10000);
 				retDroplet = dropletService.getDropletInfo(retDroplet.getId());
 			}
 			dropletFill.add(retDroplet);

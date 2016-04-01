@@ -38,7 +38,9 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static final String configPath = "../src/main/resources/serverConfigFile.properties";
+	private static final String configPath = Property.class
+			.getProtectionDomain().getCodeSource().getLocation().getPath()
+			+ Property.SERVER_CONF_FILE;
 	private static NodesManager nodesManager;
 
 	/**
@@ -153,7 +155,7 @@ public class DigitalOceanServiceUtil {
 						dropletObj.getId(), dropletObj.getName(), dropletObj
 								.getNetworks().getVersion4Networks().toString());
 			}
-			LOGGER.info("Droplet ids {}",dropletIdList);
+			LOGGER.info("Droplet ids {}", dropletIdList);
 			LOGGER.info("All droplets info are {}", droplets.toString());
 			break;
 
@@ -304,26 +306,29 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		try {
-			
 			String resPath = new java.io.File(configPath).getCanonicalPath();
-			LOGGER.info("Resource path {}",resPath);
+			LOGGER.info("Resource path {}", resPath);
 			writeLineInFile(resPath, ipv4Addrs);
 			LOGGER.info("serverConfigFile.properties file is create successfully");
 		} catch (IOException e) {
-			LOGGER.info("Unable to write the servers ips in serverConfigFile.properties file ,exception {}",e);
+			LOGGER.info(
+					"Unable to write the servers ips in serverConfigFile.properties file ,exception {}",
+					e);
 		}
 	}
-	
-	public static void writeLineInFile(String fileName, List<String> lines) throws IOException{
+
+	public static void writeLineInFile(String fileName, List<String> lines)
+			throws IOException {
 		File fout = new File(fileName);
-		FileOutputStream fos = new FileOutputStream(fout,false);
-	 
+		FileOutputStream fos = new FileOutputStream(fout, false);
+
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 		int totalLine = lines.size();
-		for(String line : lines){
+		for (String line : lines) {
 			totalLine--;
 			bw.write(line);
-			if(totalLine!=0)bw.newLine();
+			if (totalLine != 0)
+				bw.newLine();
 		}
 		bw.close();
 	}

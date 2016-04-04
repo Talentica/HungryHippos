@@ -31,7 +31,7 @@ public class DataPublisherStarter {
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
-			(dataPublisherStarter.nodesManager = ServerHeartBeat.init()).startup();
+			(dataPublisherStarter.nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 			LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
 			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
 			dataPublisherStarter.nodesManager.saveConfigFileToZNode(serverConfigFile, null);

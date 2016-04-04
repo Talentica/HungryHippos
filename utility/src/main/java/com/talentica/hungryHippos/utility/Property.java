@@ -71,6 +71,10 @@ public class Property {
 		}
 		return properties;
 	}
+	
+	public static Properties getPropertiesNewInstance(){
+		return new Properties();
+	}
 
 	public static Properties loadServerProperties() {
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {

@@ -95,18 +95,23 @@ public class NodesManager implements Watcher {
 		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getPropertyValue("zookeeper.config_path"));
 		Integer sessionTimeOut = Integer.valueOf(Property.getPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
-		connectZookeeper();
+		//connectZookeeper(null);
 	}
 
-	public void connectZookeeper() {
-		LOGGER.info("Node Manager started, connecting to ZK hosts: "
-				+ zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+	public NodesManager connectZookeeper(String zkIP) {
 		try {
-			connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+			if(zkIP == null){
+				LOGGER.info("Node Manager started, connecting to ZK hosts: "
+						+ zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+				connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+			}else{
+				connect(zkIP);
+			}
 			LOGGER.info("Connected - Session ID: " + zk.getSessionId());
 		} catch (Exception e) {
 			LOGGER.info("Could not connect to Zookeper instance" + e);
 		}
+		return this;
 	}
 	 
 	/**
@@ -136,7 +141,6 @@ public class NodesManager implements Watcher {
 	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);
 	    		signal.await();
 	    	}
-	    	
 	        defaultNodesOnStart();
 		try {
 			List<String> serverNames = getMonitoredServers();			

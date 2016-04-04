@@ -53,7 +53,7 @@ public class JobManager {
 	public void start() throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		(nodesManager = ServerHeartBeat.init()).startup();
+		(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");

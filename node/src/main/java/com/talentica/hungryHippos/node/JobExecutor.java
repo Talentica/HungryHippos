@@ -46,7 +46,7 @@ public class JobExecutor {
 			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			(nodesManager = ServerHeartBeat.init()).startup();
+			(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,7 +120,7 @@ public class DigitalOceanServiceUtil {
 				startZookeeperServer();
 				LOGGER.info("Zookeeper server started.");
 				LOGGER.info("Connecting zookeeper server.");
-				startZookeeper();
+				connectZookeeper();
 				LOGGER.info("Zookeeper server connected.");
 				LOGGER.info("Uploading server conf file to zk node");
 				uploadServerConfigFileToZK(ipv4AddrsMap);
@@ -276,7 +277,7 @@ public class DigitalOceanServiceUtil {
 	}
 
 	private static void startZookeeperServer() throws IOException{
-			Process proc = Runtime.getRuntime().exec("java -jar "+ SCRIPT_PATH + "/execute.jar start-zk-server.sh");
+			Process proc = Runtime.getRuntime().exec("java -jar "+ SCRIPT_PATH + "execute.jar start-zk-server.sh");
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					proc.getInputStream()));
 			String line = "";
@@ -288,7 +289,7 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws Exception
 	 */
-	private static void startZookeeper() throws Exception {
+	private static void connectZookeeper() throws Exception {
 		(nodesManager = ServerHeartBeat.init()).connectZookeeper(zkIpAndPort).startup();
 	}
 

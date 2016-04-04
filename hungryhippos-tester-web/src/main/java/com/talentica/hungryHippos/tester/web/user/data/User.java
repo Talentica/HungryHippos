@@ -1,12 +1,10 @@
-package com.talentica.hungryHippos.tester.web.entities;
+package com.talentica.hungryHippos.tester.web.user.data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
-import org.apache.commons.lang3.StringUtils;
 
 import lombok.EqualsAndHashCode;
 
@@ -69,13 +67,6 @@ public class User {
 
 	public void setUserId(Integer userId) {
 		this.userId = userId;
-	}
-
-	public void validate() {
-		if (StringUtils.isBlank(getEmailAddress()) || StringUtils.isBlank(getPassword())
-				|| StringUtils.isBlank(getFirstName()) || StringUtils.isBlank(getLastName())) {
-			throw new RuntimeException("First name, last name, email address and password cannot be blank.");
-		}
 	}
 
 }

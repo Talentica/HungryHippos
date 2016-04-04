@@ -14,6 +14,24 @@
 <!-- build:css(.tmp) styles/main.css -->
 <link rel="stylesheet" href="login/login.css">
 <!-- endbuild -->
+
+<!-- build:js(.) scripts/vendor.js -->
+	<!-- bower:js -->
+	<script src="bower_components/jquery/dist/jquery.js"></script>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+	<script src="bower_components/angular-resource/angular-resource.js"></script>
+	<script src="bower_components/angular-route/angular-route.js"></script>
+	<!-- endbower -->
+	<!-- endbuild -->
+	<!-- build:js({.tmp,app}) scripts/scripts.js -->
+	<!-- endbuild -->
+
+	<script src="app.js"></script>
+	<script src="login/loginCtrl.js"></script>
+	<script src="secure/dashboard/DashboardCtrl.js"></script>
+	<script src="login/loginSrvc.js"></script>
+	<script src="bower_components/angular-base64/angular-base64.js"></script>
 </head>
 <body>
 	<!--[if lte IE 8]>
@@ -26,31 +44,16 @@
 			src="images/hungry-hungry-hippos.jpg" alt="Hungry Hippos">
 	</div>
 
-	<div class="container">
+	<div ng-app="testerWebApp">
 		<div>
 			<h1 style="color: white; font-weight: bold; font-size: xx-large;">Welcome
 				to Hungry Hippos</h1>
-			<div ng-app="loginApp" ng-include="'login/login.html'" ng-controller="LoginCtrl"></div>
+			 <ng-view></ng-view>
 		</div>
 	</div>
 
 	<div class="footer">
 		<div class="container"></div>
 	</div>
-
-	<!-- build:js(.) scripts/vendor.js -->
-	<!-- bower:js -->
-	<script src="bower_components/jquery/dist/jquery.js"></script>
-	<script src="bower_components/angular/angular.js"></script>
-	<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-	<script src="bower_components/angular-resource/angular-resource.js"></script>
-	<!-- endbower -->
-	<!-- endbuild -->
-	<!-- build:js({.tmp,app}) scripts/scripts.js -->
-	<!-- endbuild -->
-	<script src="login/loginApp.js"></script>
-	<script src="login/loginCtrl.js"></script>
-	<script src="login/loginSrvc.js"></script>
-	<script src="bower_components/angular-base64/angular-base64.js"></script>
 </body>
 </html>

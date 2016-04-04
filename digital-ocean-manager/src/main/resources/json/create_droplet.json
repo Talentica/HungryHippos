@@ -3,13 +3,22 @@
     "request": "CREATE",
     "droplet": {
         "names": [
-            "test"			
+            "hh-node-0",
+			"hh-node-1",
+			"hh-node-2",
+			"hh-node-3",			
+			"hh-node-4",
+			"hh-node-5",
+			"hh-node-6",
+			"hh-node-7",
+			"hh-node-8",
+			"hh-node-9"
         ],
         "region": {
             "slug": "nyc2"
         },
         "image": {			
-            "name":"pooshan-local-setup-snapshot"
+            "name":"hh-node-snap-final"
         },
         "size": "4gb",
         "enableBackup": true,

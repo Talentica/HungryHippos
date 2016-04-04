@@ -27,7 +27,6 @@ public class DigitalOceanManager {
 			.getLogger(DigitalOceanManager.class);
 	private static DigitalOceanServiceImpl dropletService;
 	private static ObjectMapper mapper = new ObjectMapper();
-
 	public static void main(String[] args) throws Exception {
 		try {
 			if (args.length == 2) {
@@ -46,7 +45,7 @@ public class DigitalOceanManager {
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {
-			LOGGER.info("Unable to perform the operations {}", e.getMessage());
+			LOGGER.info("Unable to perform the operations {}", e);
 		}
 	}
 

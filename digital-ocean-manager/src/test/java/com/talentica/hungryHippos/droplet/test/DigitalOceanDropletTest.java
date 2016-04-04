@@ -27,7 +27,6 @@ import com.myjeeva.digitalocean.pojo.Droplets;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
-import com.talentica.hungryHippos.utility.CommonUtil;
 
 /**
  * @author PooshanS

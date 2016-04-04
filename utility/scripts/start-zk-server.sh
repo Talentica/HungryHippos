@@ -1,6 +1,6 @@
 #!/bin/bash
 
-zk_node_ip=`cat ./../../utility/src/main/resources/config.properties|grep "zookeeper.server.ips"| awk -F"=" '{print $2}'| awk -F":" '{print $1}'`
+zk_node_ip=`cat ./../../utility/scripts/zookeeper_ip`
 
 
 

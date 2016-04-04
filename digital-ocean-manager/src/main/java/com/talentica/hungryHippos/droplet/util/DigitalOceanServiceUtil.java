@@ -1,12 +1,18 @@
 package com.talentica.hungryHippos.droplet.util;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +35,7 @@ import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
-import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryHippos.utility.Property;
 
 /**
@@ -39,8 +45,9 @@ import com.talentica.hungryHippos.utility.Property;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static String configPath = new File(System.getProperty("user.dir")).getParent()+File.separator+"src/main/resources";
 	private static NodesManager nodesManager;
+	private static String zkIpAndPort;
+	private static String SCRIPT_PATH = new File(System.getProperty("user.dir")).getParent()+File.separator+"utility/scripts/";
 
 	/**
 	 * @param dropletEntity
@@ -105,10 +112,21 @@ public class DigitalOceanServiceUtil {
 				List<Droplet> dropletFill = getActiveDroplets(dropletService,
 						droplets);
 				LOGGER.info("Active droplets are {}", dropletFill.toString());
-				generateServerConfigFile(dropletFill);
+				LOGGER.info("Generating server conf file");
+				Map<String,String> ipv4AddrsMap = generateServerConfigFile(dropletFill);
+				LOGGER.info("IP Address {}",MapUtils.getFormattedString(ipv4AddrsMap));
+				LOGGER.info("Start zookeeper server");
+				startZookeeperServer();
+				LOGGER.info("Zookeeper server started.");
+				LOGGER.info("Connecting zookeeper server.");
 				startZookeeper();
-				uploadServerConfigFileToZK();
-				uploadConfigFileToZk();
+				LOGGER.info("Zookeeper server connected.");
+				LOGGER.info("Uploading server conf file to zk node");
+				uploadServerConfigFileToZK(ipv4AddrsMap);
+				LOGGER.info("Server conf file is uploaded");
+				LOGGER.info("Uploading dynamic conf file to zk node");
+				uploadDynamicConfigFileToZk(new HashMap<String, String>()); //need to pass the property map.
+				LOGGER.info("Conf file is uploaded");
 			}
 			break;
 
@@ -230,9 +248,14 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws IOException
 	 */
-	private static void uploadConfigFileToZk() throws IOException {
+	private static void uploadDynamicConfigFileToZk(Map<String,String> keyValue) throws IOException {
+		Properties properties = Property.getProperties();
+		properties.setProperty("zookeeper.server.ips", zkIpAndPort);
+		for(Entry<String,String> entry : keyValue.entrySet()){
+			properties.setProperty(entry.getKey(), entry.getValue());
+		}
 		ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE
-				+ "_FILE", Property.getProperties());
+				+ "_FILE",properties);
 		nodesManager.saveConfigFileToZNode(configNodeFile, null);
 	}
 
@@ -240,20 +263,33 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws IOException
 	 */
-	private static void uploadServerConfigFileToZK() throws IOException {
+	private static void uploadServerConfigFileToZK(Map<String,String> ipv4AddrsMap) throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
+		Properties properties = Property.getPropertiesNewInstance();
+		for(Entry<String, String> entry : ipv4AddrsMap.entrySet()){
+			properties.put(entry.getKey(), entry.getValue());
+		}
 		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
-				Property.loadServerProperties());
+				properties);
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
 
+	private static void startZookeeperServer() throws IOException{
+			Process proc = Runtime.getRuntime().exec("java -jar "+ SCRIPT_PATH + "/execute.jar start-zk-server.sh");
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					proc.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				LOGGER.info(line);
+			}
+	}
 	/**
 	 * @param digitalOceanManager
 	 * @throws Exception
 	 */
 	private static void startZookeeper() throws Exception {
-		(nodesManager = ServerHeartBeat.init()).startup();
+		(nodesManager = ServerHeartBeat.init()).connectZookeeper(zkIpAndPort).startup();
 	}
 
 	/**
@@ -285,42 +321,40 @@ public class DigitalOceanServiceUtil {
 
 	/**
 	 * @param droplets
+	 * @throws IOException 
 	 */
-	private static void generateServerConfigFile(List<Droplet> droplets) {
-		List<String> ipv4Addrs;
-		ipv4Addrs = new ArrayList<String>();
+	private static Map<String,String> generateServerConfigFile(List<Droplet> droplets) throws IOException {
+		Map<String,String> ipv4AddrsMap;
+		ipv4AddrsMap = new HashMap<String,String>();
 		int index = 0;
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
 		String PORT = "2324";
+		List<String> zkIp = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
 			List<Network> networks = retDroplet.getNetworks()
 					.getVersion4Networks();
 			for (Network network : networks) {
 				if (network.getType().equalsIgnoreCase("public")) {
-					ipv4Addrs.add(PRIFIX + (index++) + SUFFIX
-							+ network.getIpAddress() + SUFFIX + PORT);
+					if(retDroplet.getName().contains("0")){
+						zkIpAndPort = network.getIpAddress() + ":2181";
+						zkIp.add(zkIpAndPort);
+						writeLineInFile(SCRIPT_PATH+"zookeeper_ip", zkIp);
+						break;
+					}
+					ipv4AddrsMap.put(PRIFIX + (index++),network.getIpAddress() + SUFFIX + PORT);
 					break;
 				}
 			}
 		}
-		try {
-			LOGGER.info("Resource path {}", configPath);
-			configPath = (configPath.endsWith(PathUtil.FORWARD_SLASH) ? (configPath + Property.SERVER_CONF_FILE)
-					: (configPath + PathUtil.FORWARD_SLASH + Property.SERVER_CONF_FILE));
-			LOGGER.info("serverConfigFile.properties path will be saved in path {}",configPath);
-			writeLineInFile(configPath, ipv4Addrs);
-			LOGGER.info("serverConfigFile.properties file is create successfully");
-		} catch (IOException e) {
-			LOGGER.info(
-					"Unable to write the servers ips in serverConfigFile.properties file ,exception {}",
-					e);
-		}
+		return ipv4AddrsMap;
 	}
 
 	public static void writeLineInFile(String fileName, List<String> lines)
 			throws IOException {
 		File fout = new File(fileName);
+		LOGGER.info("Path {}",fout.getAbsolutePath());
+		fout.createNewFile();
 		FileOutputStream fos = new FileOutputStream(fout, false);
 
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));

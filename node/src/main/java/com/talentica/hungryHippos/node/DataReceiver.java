@@ -84,7 +84,7 @@ public class DataReceiver {
 			validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
-			dataReceiver.nodesManager.startup();
+			dataReceiver.nodesManager.connectZookeeper(null).startup();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
 			String server = serverConfig.getFileData().getProperty("server." + nodeId);

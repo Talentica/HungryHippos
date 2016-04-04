@@ -47,7 +47,7 @@ public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
-	private static String zkIpAndPort;
+	private static String ZK_IP;
 	private static String SCRIPT_PATH = new File(System.getProperty("user.dir")).getParent()+File.separator+"utility/scripts/";
 
 	/**
@@ -251,7 +251,7 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadDynamicConfigFileToZk(Map<String,String> keyValue) throws IOException {
 		Properties properties = Property.getProperties();
-		properties.setProperty("zookeeper.server.ips", zkIpAndPort);
+		properties.setProperty("zookeeper.server.ips", ZK_IP);
 		for(Entry<String,String> entry : keyValue.entrySet()){
 			properties.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -290,7 +290,7 @@ public class DigitalOceanServiceUtil {
 	 * @throws Exception
 	 */
 	private static void connectZookeeper() throws Exception {
-		(nodesManager = ServerHeartBeat.init()).connectZookeeper(zkIpAndPort).startup();
+		(nodesManager = ServerHeartBeat.init()).connectZookeeper(ZK_IP).startup();
 	}
 
 	/**
@@ -331,16 +331,16 @@ public class DigitalOceanServiceUtil {
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
 		String PORT = "2324";
-		List<String> zkIp = new ArrayList<>();
+		List<String> zkIpAndPort = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
 			List<Network> networks = retDroplet.getNetworks()
 					.getVersion4Networks();
 			for (Network network : networks) {
 				if (network.getType().equalsIgnoreCase("public")) {
 					if(retDroplet.getName().contains("0")){
-						zkIpAndPort = network.getIpAddress() + ":2181";
-						zkIp.add(zkIpAndPort);
-						writeLineInFile(SCRIPT_PATH+"zookeeper_ip", zkIp);
+						ZK_IP = network.getIpAddress();
+						zkIpAndPort.add(ZK_IP + ":2181");
+						writeLineInFile(SCRIPT_PATH+"zookeeper_ip", zkIpAndPort);
 						break;
 					}
 					ipv4AddrsMap.put(PRIFIX + (index++),network.getIpAddress() + SUFFIX + PORT);

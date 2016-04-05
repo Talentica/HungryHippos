@@ -10,10 +10,14 @@ app.config(function($routeProvider, $locationProvider) {
 	  $routeProvider
 	   .when('/dashboard', {
 	    templateUrl: '/secure/dashboard/dashboard.html',
-	    controller: 'DashboardCtrl',
+	    controller: 'DashboardCtrl'
 	  })
 	  .when('/login', {
 	    templateUrl: '/login/login.html',
-	    controller: 'LoginCtrl',
+	    controller: 'LoginCtrl'
+	  })
+	  .when('/newjob', {
+	    templateUrl: 'secure/newjob/newjob.html',
+	    controller: 'NewJobCtrl'
 	  })
 });

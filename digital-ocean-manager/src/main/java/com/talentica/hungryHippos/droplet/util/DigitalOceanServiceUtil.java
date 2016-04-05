@@ -47,9 +47,9 @@ public class DigitalOceanServiceUtil {
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
-	private static String SCRIPT_PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "utility/scripts/";
-	private static final String SPACE = "";
+	/*private static String PATH = new File(System.getProperty("user.dir"))
+			.getParent() + File.separator + "tmp/";*/
+	//private static final String SPACE = " ";
 
 	/**
 	 * @param dropletEntity
@@ -106,36 +106,7 @@ public class DigitalOceanServiceUtil {
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
 					droplets.toString());
-			String formatFlag = Property.getPropertyValue(
-					"cleanup.zookeeper.nodes").toString();
-			if (Property.getNamespace().name().equalsIgnoreCase("zk")
-					&& formatFlag.equals("Y")) {
-				droplets = dropletService.getAvailableDroplets(1, 20);
-				List<Droplet> dropletFill = getActiveDroplets(dropletService,
-						droplets);
-				LOGGER.info("Active droplets are {}", dropletFill.toString());
-				LOGGER.info("Generating server conf file");
-				Map<String, String> ipv4AddrsMap = generateServerConfigFile(dropletFill);
-				LOGGER.info("IP Address {}",
-						MapUtils.getFormattedString(ipv4AddrsMap));
-				LOGGER.info("Start zookeeper server");
-				startZookeeperServer();
-				LOGGER.info("Zookeeper server started.");
-				LOGGER.info("Connecting zookeeper server.");
-				connectZookeeper();
-				LOGGER.info("Zookeeper server connected.");
-				LOGGER.info("Uploading server conf file to zk node");
-				uploadServerConfigFileToZK(ipv4AddrsMap);
-				LOGGER.info("Server conf file is uploaded");
-				LOGGER.info("Uploading dynamic conf file to zk node");
-				uploadDynamicConfigFileToZk(new HashMap<String, String>()); // need
-																			// to
-																			// pass
-																			// the
-																			// property
-																			// map.
-				LOGGER.info("Conf file is uploaded");
-			}
+			performConfigurationService(dropletService);
 			break;
 
 		case DELETE:
@@ -175,6 +146,7 @@ public class DigitalOceanServiceUtil {
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
 			List<Integer> dropletIdList = new ArrayList<>();
 			for (Droplet dropletObj : droplets.getDroplets()) {
+				if(!dropletObj.getName().contains("node")) continue;
 				dropletIdList.add(dropletObj.getId());
 				LOGGER.info("Droplet id {} , name {} , ip {}",
 						dropletObj.getId(), dropletObj.getName(), dropletObj
@@ -253,6 +225,47 @@ public class DigitalOceanServiceUtil {
 	}
 
 	/**
+	 * @param dropletService
+	 * @throws DigitalOceanException
+	 * @throws RequestUnsuccessfulException
+	 * @throws InterruptedException
+	 * @throws IOException
+	 * @throws Exception
+	 */
+	private static void performConfigurationService(
+			DigitalOceanServiceImpl dropletService)
+			throws DigitalOceanException, RequestUnsuccessfulException,
+			InterruptedException, IOException, Exception {
+		Droplets droplets;
+		String formatFlag = Property.getPropertyValue(
+				"cleanup.zookeeper.nodes").toString();
+		if (Property.getNamespace().name().equalsIgnoreCase("zk")
+				&& formatFlag.equals("Y")) {
+			droplets = dropletService.getAvailableDroplets(1, 20);
+			List<Droplet> dropletFill = getActiveDroplets(dropletService,
+					droplets);
+			LOGGER.info("Active droplets are {}", dropletFill.toString());
+			LOGGER.info("Generating server conf file");
+			Map<String, String> ipv4AddrsMap = generateServerConfigFile(dropletFill);
+			LOGGER.info("IP Address {}",
+					MapUtils.getFormattedString(ipv4AddrsMap));
+			LOGGER.info("Start zookeeper server");
+			startZookeeperServer();
+			LOGGER.info("Zookeeper server started.");
+			LOGGER.info("Connecting zookeeper server.");
+			connectZookeeper();
+			LOGGER.info("Zookeeper server connected.");
+			LOGGER.info("Uploading server conf file to zk node");
+			uploadServerConfigFileToZK(ipv4AddrsMap);
+			LOGGER.info("Server conf file is uploaded");
+			LOGGER.info("Uploading dynamic conf file to zk node");
+			/*need to pass the property map.*/
+			uploadDynamicConfigFileToZk(new HashMap<String, String>()); 
+			LOGGER.info("Conf file is uploaded");
+		}
+	}
+
+	/**
 	 * @param digitalOceanManager
 	 * @throws IOException
 	 */
@@ -286,8 +299,11 @@ public class DigitalOceanServiceUtil {
 	}
 
 	private static void startZookeeperServer() throws IOException {
-		LOGGER.info("Script path {}",SCRIPT_PATH);
-		String command = "java -jar" + SPACE + SCRIPT_PATH + "execute.jar" + SPACE + SCRIPT_PATH + "start-zk-server.sh";
+		LOGGER.info("Executing shell command to start the zookeeper");
+		executeShellCommand("start-zk-server.sh");
+		LOGGER.info("Shell command is executed");
+		/*LOGGER.info("Script path {}",SCRIPT_PATH);
+		String command = "java -jar" + SPACE + "execute.jar" + SPACE + "start-zk-server.sh";
 		LOGGER.info(command);
 		Process proc = Runtime.getRuntime().exec(command);
 		BufferedReader input = new BufferedReader(new InputStreamReader(
@@ -295,6 +311,21 @@ public class DigitalOceanServiceUtil {
 		String line = "";
 		while ((line = input.readLine()) != null) {
 			LOGGER.info(line);
+		}*/
+	}
+	
+	public static void executeShellCommand(String shellCommand){
+		try {
+			Runtime rt = Runtime.getRuntime();
+			Process pr = rt.exec(new String[] { "/bin/sh", shellCommand });
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					pr.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				LOGGER.info(line);
+			}
+		} catch (Exception e) {
+			LOGGER.info("Execption {}",e);
 		}
 	}
 
@@ -319,20 +350,15 @@ public class DigitalOceanServiceUtil {
 			DigitalOceanServiceImpl dropletService, Droplets droplets)
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
-		long startTime = System.currentTimeMillis();
 		LOGGER.info("Start getting active droplets...");
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
 			if (!retDroplet.getName().contains("node"))
 				continue;
 			while (!retDroplet.isActive()) {
-				long currentTime = System.currentTimeMillis();
-				if ((currentTime - startTime) >= 60000l) {
 					LOGGER.info("Waiting for droplets to get active...");
-					startTime = System.currentTimeMillis();
-				}
-				retDroplet = dropletService.getDropletInfo(retDroplet.getId());
-
+					Thread.sleep(60000);
+					retDroplet = dropletService.getDropletInfo(retDroplet.getId());
 			}
 			dropletFill.add(retDroplet);
 		}
@@ -360,7 +386,7 @@ public class DigitalOceanServiceUtil {
 					if (retDroplet.getName().contains("0")) {
 						ZK_IP = network.getIpAddress();
 						zkIpAndPort.add(ZK_IP);
-						writeLineInFile(SCRIPT_PATH + "zookeeper_ip",
+						writeLineInFile("zookeeper_ip",
 								zkIpAndPort);
 						break;
 					}

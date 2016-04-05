@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +48,7 @@ public class DigitalOceanServiceUtil {
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
 	private static String SCRIPT_PATH = new File(System.getProperty("user.dir")).getParent()+File.separator+"utility/scripts/";
+	private static final String  SPACE = "";
 
 	/**
 	 * @param dropletEntity
@@ -277,7 +277,7 @@ public class DigitalOceanServiceUtil {
 	}
 
 	private static void startZookeeperServer() throws IOException{
-			Process proc = Runtime.getRuntime().exec("java -jar "+ SCRIPT_PATH + "execute.jar start-zk-server.sh");
+			Process proc = Runtime.getRuntime().exec("java -jar"+SPACE+SCRIPT_PATH+"execute.jar"+SPACE+SCRIPT_PATH+"start-zk-server.sh");
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					proc.getInputStream()));
 			String line = "";

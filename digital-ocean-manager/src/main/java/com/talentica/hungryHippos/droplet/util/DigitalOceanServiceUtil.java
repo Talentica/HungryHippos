@@ -251,7 +251,7 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadDynamicConfigFileToZk(Map<String,String> keyValue) throws IOException {
 		Properties properties = Property.getProperties();
-		properties.setProperty("zookeeper.server.ips", ZK_IP);
+		properties.setProperty("zookeeper.server.ips", ZK_IP+":2181");
 		for(Entry<String,String> entry : keyValue.entrySet()){
 			properties.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -339,7 +339,7 @@ public class DigitalOceanServiceUtil {
 				if (network.getType().equalsIgnoreCase("public")) {
 					if(retDroplet.getName().contains("0")){
 						ZK_IP = network.getIpAddress();
-						zkIpAndPort.add(ZK_IP + ":2181");
+						zkIpAndPort.add(ZK_IP);
 						writeLineInFile(SCRIPT_PATH+"zookeeper_ip", zkIpAndPort);
 						break;
 					}

@@ -47,9 +47,9 @@ public class DigitalOceanServiceUtil {
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
-	private static String SCRIPT_PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "temp/";
-	private static final String SPACE = " ";
+	/*private static String PATH = new File(System.getProperty("user.dir"))
+			.getParent() + File.separator + "tmp/";*/
+	//private static final String SPACE = " ";
 
 	/**
 	 * @param dropletEntity
@@ -386,7 +386,7 @@ public class DigitalOceanServiceUtil {
 					if (retDroplet.getName().contains("0")) {
 						ZK_IP = network.getIpAddress();
 						zkIpAndPort.add(ZK_IP);
-						writeLineInFile(SCRIPT_PATH + "zookeeper_ip",
+						writeLineInFile("zookeeper_ip",
 								zkIpAndPort);
 						break;
 					}

@@ -3,7 +3,7 @@
 var app=angular.module('testerWebApp',['ngResource','base64','ngRoute']);
 
 app.factory("User", function($resource) {
-	return $resource("http://localhost:8080/user");
+	return $resource("/user");
 });
 
 app.config(function($routeProvider, $locationProvider) {

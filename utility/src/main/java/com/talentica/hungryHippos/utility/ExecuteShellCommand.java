@@ -24,7 +24,7 @@ public class ExecuteShellCommand {
 				return;
 			}
 			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(new String[] { "/bin/sh", args[0] });
+			Process pr = rt.exec(new String[] { "/bin/bash -c", args[0] });
 
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));

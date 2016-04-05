@@ -286,9 +286,10 @@ public class DigitalOceanServiceUtil {
 	}
 
 	private static void startZookeeperServer() throws IOException {
-		Process proc = Runtime.getRuntime().exec(
-				"java -jar" + SPACE + SCRIPT_PATH + "execute.jar" + SPACE
-						+ SCRIPT_PATH + "start-zk-server.sh");
+		LOGGER.info("Script path {}",SCRIPT_PATH);
+		String command = "java -jar" + SPACE + SCRIPT_PATH + "execute.jar" + SPACE + SCRIPT_PATH + "start-zk-server.sh";
+		LOGGER.info(command);
+		Process proc = Runtime.getRuntime().exec(command);
 		BufferedReader input = new BufferedReader(new InputStreamReader(
 				proc.getInputStream()));
 		String line = "";

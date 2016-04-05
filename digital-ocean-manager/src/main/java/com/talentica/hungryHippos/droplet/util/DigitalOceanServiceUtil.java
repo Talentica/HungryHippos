@@ -48,7 +48,7 @@ public class DigitalOceanServiceUtil {
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
 	private static String SCRIPT_PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "utility/scripts/";
+			.getParent() + File.separator + "temp/";
 	private static final String SPACE = " ";
 
 	/**
@@ -287,7 +287,7 @@ public class DigitalOceanServiceUtil {
 
 	private static void startZookeeperServer() throws IOException {
 		LOGGER.info("Script path {}",SCRIPT_PATH);
-		String command = "java -jar" + SPACE + SCRIPT_PATH + "execute.jar" + SPACE + SCRIPT_PATH + "start-zk-server.sh";
+		String command = "java -jar" + SPACE + "execute.jar" + SPACE + "start-zk-server.sh";
 		LOGGER.info(command);
 		Process proc = Runtime.getRuntime().exec(command);
 		BufferedReader input = new BufferedReader(new InputStreamReader(

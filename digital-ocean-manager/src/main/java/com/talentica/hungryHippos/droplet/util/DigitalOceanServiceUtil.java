@@ -319,20 +319,20 @@ public class DigitalOceanServiceUtil {
 			DigitalOceanServiceImpl dropletService, Droplets droplets)
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
-		long startTime = System.currentTimeMillis();
+		//long startTime = System.currentTimeMillis();
 		LOGGER.info("Start getting active droplets...");
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
 			if (!retDroplet.getName().contains("node"))
 				continue;
 			while (!retDroplet.isActive()) {
-				long currentTime = System.currentTimeMillis();
-				if ((currentTime - startTime) >= 60000l) {
+				//long currentTime = System.currentTimeMillis();
+				//if ((currentTime - startTime) >= 60000l) {
 					LOGGER.info("Waiting for droplets to get active...");
-					startTime = System.currentTimeMillis();
-				}
-				retDroplet = dropletService.getDropletInfo(retDroplet.getId());
-
+					Thread.sleep(60000);
+					//startTime = System.currentTimeMillis();
+					retDroplet = dropletService.getDropletInfo(retDroplet.getId());
+				//}
 			}
 			dropletFill.add(retDroplet);
 		}

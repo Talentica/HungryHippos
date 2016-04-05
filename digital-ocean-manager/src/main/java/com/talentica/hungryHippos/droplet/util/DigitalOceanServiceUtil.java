@@ -175,6 +175,7 @@ public class DigitalOceanServiceUtil {
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
 			List<Integer> dropletIdList = new ArrayList<>();
 			for (Droplet dropletObj : droplets.getDroplets()) {
+				if(!dropletObj.getName().contains("node")) continue;
 				dropletIdList.add(dropletObj.getId());
 				LOGGER.info("Droplet id {} , name {} , ip {}",
 						dropletObj.getId(), dropletObj.getName(), dropletObj

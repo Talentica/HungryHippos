@@ -29,9 +29,10 @@ body {
 h1 {
   text-align: center;
   font-size: 175%;
-  color: #757575;
+  color: black;
   font-weight: 300;
 }
+
 
 h1, input {
   font-family: "Open Sans", Helvetica, sans-serif;
@@ -86,4 +87,8 @@ h1, input {
 }
 .inputButton:focus {
   outline: none;
+}
+
+.centerAlignedText{
+	text-align: center;
 }

@@ -30,6 +30,8 @@ app.controller('LoginCtrl',function ($scope,UserAccountService) {
 	  }
 	  
 	  $scope.register=function(){
+		  $scope.setError(null);
+		  $scope.setSuccess(null);
 		  $scope.validateUser(
 				  function(){UserAccountService.saveNewUser(
 						  	{"user":$scope.user},

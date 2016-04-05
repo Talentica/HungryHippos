@@ -39,17 +39,17 @@
     <![endif]-->
 
 	<!-- Add your site or application content here -->
-	<div class="header">
-		<br /> <img class="img-responsive pull-right"
-			src="images/hungry-hungry-hippos.jpg" alt="Hungry Hippos">
-	</div>
-
+	<div class="container-fluid">
+      <img src="images/hungry-hungry-hippos.jpg" alt="Hungry Hippos" class="pull-right"> 
+	  <div class="row">
+	      <div class="span12">
+	        <h1>Welcome to Hungry Hippos</h1>
+          </div>
+      </div>
+    </div>
+	
 	<div ng-app="testerWebApp">
-		<div>
-			<h1 style="color: white; font-weight: bold; font-size: xx-large;">Welcome
-				to Hungry Hippos</h1>
-			 <ng-view></ng-view>
-		</div>
+		<ng-view></ng-view>
 	</div>
 
 	<div class="footer">

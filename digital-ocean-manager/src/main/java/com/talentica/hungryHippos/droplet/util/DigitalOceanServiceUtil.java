@@ -49,7 +49,7 @@ public class DigitalOceanServiceUtil {
 	private static String ZK_IP;
 	private static String SCRIPT_PATH = new File(System.getProperty("user.dir"))
 			.getParent() + File.separator + "utility/scripts/";
-	private static final String SPACE = "";
+	private static final String SPACE = " ";
 
 	/**
 	 * @param dropletEntity

@@ -109,12 +109,14 @@ public class DataProvider {
 				input.close();
 				break;
 			}
-			
+
 			Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
 			String[] keyOrder = Property.getShardingDimensions();
 
 			for (int i = 0; i < keyOrder.length; i++) {
-				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[i].clone());
+				String key = keyOrder[i];
+				int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
+				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keyOrder[i]).get(parts[keyIndex].clone());
 				keyToBucketMap.put(keyOrder[i], bucket);
 			}
 

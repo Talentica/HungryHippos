@@ -326,7 +326,7 @@ public class DigitalOceanServiceUtil {
 				continue;
 			while (!retDroplet.isActive()) {
 				long currentTime = System.currentTimeMillis();
-				if ((currentTime - startTime) == 60000) {
+				if ((currentTime - startTime) >= 60000l) {
 					LOGGER.info("Waiting for droplets to get active...");
 					startTime = System.currentTimeMillis();
 				}

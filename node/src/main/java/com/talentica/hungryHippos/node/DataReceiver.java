@@ -1,23 +1,5 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
-import com.talentica.hungryHippos.storage.DataStore;
-import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -27,18 +9,31 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.storage.FileDataStore;
+
 public class DataReceiver {
 
 	private DataDescription dataDescription;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
-	private NodesManager nodesManager;
-
 	private DataStore dataStore;
 
 	public DataReceiver(DataDescription dataDescription) throws Exception {
-		nodesManager = ServerHeartBeat.init();
 		this.dataDescription = dataDescription;
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(),
 				dataDescription);
@@ -84,7 +79,7 @@ public class DataReceiver {
 			validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
-			dataReceiver.nodesManager.connectZookeeper(null).startup();
+			CommonUtil.connectZK();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
 			String server = serverConfig.getFileData().getProperty("server." + nodeId);

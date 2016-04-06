@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.coordination.utility;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
-import com.talentica.hungryHippos.utility.marshaling.FileReader;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 
 public class UniqueCombinationsCalculator {
 

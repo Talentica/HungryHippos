@@ -18,14 +18,13 @@ import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row
@@ -46,7 +45,8 @@ public class JobExecutor {
 			long startTime = System.currentTimeMillis();
 			validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
+			//(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
+			nodesManager = CommonUtil.connectZK();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();

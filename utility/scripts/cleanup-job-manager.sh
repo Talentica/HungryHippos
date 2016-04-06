@@ -1,6 +1,6 @@
 #!/bin/bash
 echo 'Cleaning up job manager'
-job_manager_ip=`cat ./node_pwd_file.txt|grep "job_manager_ip"|awk -F":" '{print $2}'`
+job_manager_ip=`cat /root/hungryhippos/tmp/master_ip_file'`
 
 
 for node in `echo $job_manager_ip`

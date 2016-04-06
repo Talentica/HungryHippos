@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.utility.server.ServerUtils;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
 
 public class ServerUtilsTest {
 	

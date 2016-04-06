@@ -19,11 +19,11 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -53,7 +53,8 @@ public class JobManager {
 	public void start() throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
+		//(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
+		nodesManager = CommonUtil.connectZK();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");

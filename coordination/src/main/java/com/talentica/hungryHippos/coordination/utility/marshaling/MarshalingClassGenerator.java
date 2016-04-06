@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.coordination.utility.marshaling;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

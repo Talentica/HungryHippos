@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.coordination.utility.marshaling;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;

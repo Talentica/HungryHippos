@@ -6,9 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.job.JobManager;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
 /**
  * @author PooshanS

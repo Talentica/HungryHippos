@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.Property;
 
 /**
  * 

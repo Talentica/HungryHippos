@@ -3,8 +3,8 @@ package com.talentica.hungryHippos.sharding;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 
 public class BucketsCalculatorTest {
 

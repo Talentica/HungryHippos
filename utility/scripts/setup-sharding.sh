@@ -1,5 +1,5 @@
 #!/bin/bash
-sharding_node_ip=`cat ./node_pwd_file.txt|grep "sharding_node_ip"|awk -F":" '{print $2}'`
+sharding_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 sh shut-down-sharding.sh
 sh cleanup-sharding.sh
 echo 'Copying new build'

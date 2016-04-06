@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.server;
+package com.talentica.hungryHippos.coordination.server;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property;
 
 /**
  * @author PooshanS

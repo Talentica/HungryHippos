@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.utility.marshaling;
+package com.talentica.hungryHippos.coordination.utility.marshaling;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,7 +10,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 
 /**
  * Created by debasishc on 22/6/15.

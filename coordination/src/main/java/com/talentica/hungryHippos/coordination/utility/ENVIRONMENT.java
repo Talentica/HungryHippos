@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.coordination.utility;
 
 /**
  * @author PooshanS

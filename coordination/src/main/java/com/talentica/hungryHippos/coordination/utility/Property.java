@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.utility;
+package com.talentica.hungryHippos.coordination.utility;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,6 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 
 /**
  * @author PooshanS
@@ -32,7 +34,8 @@ public class Property {
 	
 	public static final String CONF_PROP_FILE = "config.properties";
 	public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
-
+	public static boolean isReadFirstTime = true;
+	
 	public enum PROPERTIES_NAMESPACE {
 
 		MASTER("master"), NODE("node"), COMMON("common"), ZK("zk");
@@ -57,8 +60,18 @@ public class Property {
 			try {
 				properties = new Properties();
 				if (CONFIG_FILE != null) {
+					if (!isReadFirstTime) {
+						try {
+							properties = CommonUtil
+									.getConfigurationPropertyFromZk();
+							return properties;
+						} catch (Exception e1) {
+							LOGGER.info("Unable to get the config file from zk.");
+						}
+					}
 					LOGGER.info("External configuration properties file is loaded");
 					properties.load(CONFIG_FILE);
+					isReadFirstTime = false;
 				} else {
 					LOGGER.info("Internal configuration properties file is loaded");
 					CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
@@ -81,6 +94,11 @@ public class Property {
 			return localEnvironmentServerproperties;
 		}
 		if (serverProp == null) {
+			try {
+				serverProp = CommonUtil.getServerConfigurationPropertyFromZk();
+			} catch (Exception e1) {
+				LOGGER.info("Unable to get the server configuration file from zk node.");
+			}
 			serverProp = new Properties();
 			try {
 				serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));

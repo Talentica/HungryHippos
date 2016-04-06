@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import org.junit.Before;
 
-import com.talentica.hungryHippos.utility.marshaling.FileReader;
-import com.talentica.hungryHippos.utility.marshaling.Reader;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
+import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
 /**
  * @author nitink

@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 
 public class FileReaderTest {
 

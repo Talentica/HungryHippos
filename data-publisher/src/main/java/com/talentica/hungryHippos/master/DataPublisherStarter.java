@@ -7,11 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.data.DataProvider;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
 public class DataPublisherStarter {
 
@@ -31,13 +30,13 @@ public class DataPublisherStarter {
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
-			(dataPublisherStarter.nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
-			LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
+			dataPublisherStarter.nodesManager = CommonUtil.connectZK();
+			/*LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
 			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
 			dataPublisherStarter.nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 			LOGGER.info("CONFIG FILE PUT TO ZK NODE SUCCESSFULLY!");
 			ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
-			dataPublisherStarter.nodesManager.saveConfigFileToZNode(configNodeFile, null);
+			dataPublisherStarter.nodesManager.saveConfigFileToZNode(configNodeFile, null);*/
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));

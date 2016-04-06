@@ -33,10 +33,11 @@ import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.utility.MapUtils;
-import com.talentica.hungryHippos.utility.Property;
 
 /**
  * @author PooshanS
@@ -47,11 +48,10 @@ public class DigitalOceanServiceUtil {
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
-	private static String TEMP_PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "tmp/";
-	//private static final String SPACE = " ";
-
-	/**
+	/*private static String TEMP_PATH = new File(System.getProperty("user.dir"))
+			.getParent() + File.separator + "tmp/";*/
+	private static String TEMP_PATH = CommonUtil.TEMP_FOLDER_PATH;
+	/** 
 	 * @param dropletEntity
 	 * @param dropletService
 	 * @throws Exception
@@ -330,8 +330,9 @@ public class DigitalOceanServiceUtil {
 	 * @throws Exception
 	 */
 	private static void connectZookeeper() throws Exception {
-		(nodesManager = ServerHeartBeat.init()).connectZookeeper(ZK_IP)
-				.startup();
+		/*(nodesManager = ServerHeartBeat.init()).connectZookeeper(ZK_IP)
+				.startup();*/
+		nodesManager = CommonUtil.connectZK();
 	}
 
 	/**
@@ -382,7 +383,7 @@ public class DigitalOceanServiceUtil {
 					if (retDroplet.getName().contains("0")) {
 						ZK_IP = network.getIpAddress();
 						zkIpAndPort.add(ZK_IP);
-						writeLineInFile(TEMP_PATH+"zookeeper_ip",
+						writeLineInFile(CommonUtil.MASTER_IP_FILE_NAME_ABSOLUTE_PATH,
 								zkIpAndPort);
 						break;
 					}

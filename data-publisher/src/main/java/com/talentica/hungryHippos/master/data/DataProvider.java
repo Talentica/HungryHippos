@@ -20,17 +20,17 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.marshaling.Reader;
-import com.talentica.hungryHippos.utility.server.ServerUtils;
 
 /**
  * Created by debasishc on 24/9/15.
@@ -98,7 +98,7 @@ public class DataProvider {
 		}
 
 		LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
-		Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader(
+		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				Property.getPropertyValue("input.file").toString());
 		long timeForEncoding = 0;
 		long timeForLookup = 0;

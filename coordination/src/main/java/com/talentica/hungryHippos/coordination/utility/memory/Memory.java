@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.utility.memory;
+package com.talentica.hungryHippos.coordination.utility.memory;
 
 import java.util.Map;
 

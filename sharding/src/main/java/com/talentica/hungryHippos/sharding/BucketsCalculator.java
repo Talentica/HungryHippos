@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.sharding;
 
-import com.talentica.hungryHippos.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property;
 
 public final class BucketsCalculator {
 

@@ -36,11 +36,11 @@ import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.listeners.AlertManager;
 import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.server.ServerUtils;
 
 /**
  * To manage the different nodes of the server

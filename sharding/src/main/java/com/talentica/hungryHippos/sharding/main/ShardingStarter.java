@@ -6,10 +6,10 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 public class ShardingStarter {
 
@@ -44,7 +44,7 @@ public class ShardingStarter {
 
 	private static Reader getInputReaderForSharding() throws IOException {
 		final String inputFile = Property.getPropertyValue("input.file").toString();
-		return new com.talentica.hungryHippos.utility.marshaling.FileReader(
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				inputFile);
 	}
 

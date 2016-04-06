@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.utility.memory;
+package com.talentica.hungryHippos.coordination.utility.memory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 
 /**
  * @author PooshanS

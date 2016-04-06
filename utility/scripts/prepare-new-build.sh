@@ -21,6 +21,5 @@ cd ../node/
 gradle clean jar
 
 echo "Cleaning and building tester web app jar"
-cd ../../hungryhippos-tester-web/
+cd ../hungryhippos-tester-web/
 gradle clean build
-

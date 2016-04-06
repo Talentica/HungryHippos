@@ -246,9 +246,13 @@ public class DigitalOceanServiceUtil {
 					droplets);
 			LOGGER.info("Active droplets are {}", dropletFill.toString());
 			LOGGER.info("Generating server conf file");
-			Map<String, String> ipv4AddrsMap = generateServerConfigFile(dropletFill);
-			LOGGER.info("IP Address {}",
-					MapUtils.getFormattedString(ipv4AddrsMap));
+			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill);
+			/*LOGGER.info("IP Address {}",
+					MapUtils.getFormattedString(ipv4AddrsMap));*/
+			LOGGER.info("IP Address {}",ipv4AddrsList);
+			LOGGER.info("Generating server config file");
+			writeLineInFile(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
+			LOGGER.info("Server config file is created");
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer();
 			LOGGER.info("Zookeeper server started.");
@@ -256,7 +260,7 @@ public class DigitalOceanServiceUtil {
 			connectZookeeper();
 			LOGGER.info("Zookeeper server connected.");
 			LOGGER.info("Uploading server conf file to zk node");
-			uploadServerConfigFileToZK(ipv4AddrsMap);
+			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
 			/*need to pass the property map.*/
@@ -285,15 +289,14 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws IOException
 	 */
-	private static void uploadServerConfigFileToZK(
-			Map<String, String> ipv4AddrsMap) throws IOException {
+	private static void uploadServerConfigFileToZK() throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		Properties properties = Property.getPropertiesNewInstance();
+		/*Properties properties = Property.getPropertiesNewInstance();
 		for (Entry<String, String> entry : ipv4AddrsMap.entrySet()) {
 			properties.put(entry.getKey(), entry.getValue());
-		}
+		}*/
 		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
-				properties);
+				Property.loadServerProperties());
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
@@ -366,15 +369,16 @@ public class DigitalOceanServiceUtil {
 	 * @param droplets
 	 * @throws IOException
 	 */
-	private static Map<String, String> generateServerConfigFile(
+	private static List<String> generateServerConfigFile(
 			List<Droplet> droplets) throws IOException {
 		Map<String, String> ipv4AddrsMap;
-		ipv4AddrsMap = new HashMap<String, String>();
+		//ipv4AddrsMap = new HashMap<String, String>();
 		int index = 0;
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
 		String PORT = "2324";
 		List<String> zkIpAndPort = new ArrayList<>();
+		List<String> serverIps = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
 			List<Network> networks = retDroplet.getNetworks()
 					.getVersion4Networks();
@@ -387,13 +391,14 @@ public class DigitalOceanServiceUtil {
 								zkIpAndPort);
 						break;
 					}
-					ipv4AddrsMap.put(PRIFIX + (index++), network.getIpAddress()
-							+ SUFFIX + PORT);
+					serverIps.add(PRIFIX + (index++)+":"+ network.getIpAddress()+ SUFFIX + PORT);
+					/*ipv4AddrsMap.put(PRIFIX + (index++), network.getIpAddress()
+							+ SUFFIX + PORT);*/
 					break;
 				}
 			}
 		}
-		return ipv4AddrsMap;
+		return serverIps;
 	}
 
 	/**

@@ -101,7 +101,9 @@ public class Property {
 			}
 			serverProp = new Properties();
 			try {
-				serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
+				InputStream is = new FileInputStream(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE);
+				serverProp.load(is);
+				//serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
 				PropertyConfigurator.configure(serverProp);
 				LOGGER.info("serverConfigFile.properties file is loaded");
 			} catch (IOException e) {

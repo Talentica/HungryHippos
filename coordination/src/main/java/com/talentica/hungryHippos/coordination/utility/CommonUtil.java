@@ -118,8 +118,7 @@ public class CommonUtil {
 
 	public static NodesManager connectZK() throws Exception {
 		if(nodesManager == null){
-			(nodesManager= ServerHeartBeat.init()).connectZookeeper(getZKIp())
-				.startup();
+			(nodesManager= ServerHeartBeat.init()).connectZookeeper(getZKIp()).startup();
 		}else {
 			return nodesManager;
 		}

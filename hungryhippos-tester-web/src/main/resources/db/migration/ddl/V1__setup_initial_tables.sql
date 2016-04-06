@@ -8,9 +8,10 @@
 
 CREATE TABLE `hungryhippos_tester`.`job` (
   `job_id` INT NOT NULL AUTO_INCREMENT,
+  `job_uuid` VARCHAR(45) NOT NULL,
   `status` VARCHAR(45) NOT NULL,
   `date_time_submitted` DATETIME NOT NULL,
-  `date_time_finished` VARCHAR(45) NULL,
+  `date_time_finished` DATETIME NULL,
   `user_id` INT NOT NULL,
   PRIMARY KEY (`job_id`),
   INDEX `user_id_idx` (`user_id` ASC),

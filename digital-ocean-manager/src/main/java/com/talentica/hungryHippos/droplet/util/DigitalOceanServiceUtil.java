@@ -47,8 +47,8 @@ public class DigitalOceanServiceUtil {
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
-	/*private static String PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "tmp/";*/
+	private static String TEMP_PATH = new File(System.getProperty("user.dir"))
+			.getParent() + File.separator + "tmp/";
 	//private static final String SPACE = " ";
 
 	/**
@@ -298,22 +298,18 @@ public class DigitalOceanServiceUtil {
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
 
+	/**
+	 * @throws IOException
+	 */
 	private static void startZookeeperServer() throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
-		executeShellCommand("start-zk-server.sh");
+		executeShellCommand(TEMP_PATH+"start-zk-server.sh");
 		LOGGER.info("Shell command is executed");
-		/*LOGGER.info("Script path {}",SCRIPT_PATH);
-		String command = "java -jar" + SPACE + "execute.jar" + SPACE + "start-zk-server.sh";
-		LOGGER.info(command);
-		Process proc = Runtime.getRuntime().exec(command);
-		BufferedReader input = new BufferedReader(new InputStreamReader(
-				proc.getInputStream()));
-		String line = "";
-		while ((line = input.readLine()) != null) {
-			LOGGER.info(line);
-		}*/
 	}
 	
+	/**
+	 * @param shellCommand
+	 */
 	public static void executeShellCommand(String shellCommand){
 		try {
 			Runtime rt = Runtime.getRuntime();
@@ -386,7 +382,7 @@ public class DigitalOceanServiceUtil {
 					if (retDroplet.getName().contains("0")) {
 						ZK_IP = network.getIpAddress();
 						zkIpAndPort.add(ZK_IP);
-						writeLineInFile("zookeeper_ip",
+						writeLineInFile(TEMP_PATH+"zookeeper_ip",
 								zkIpAndPort);
 						break;
 					}
@@ -399,6 +395,11 @@ public class DigitalOceanServiceUtil {
 		return ipv4AddrsMap;
 	}
 
+	/**
+	 * @param fileName
+	 * @param lines
+	 * @throws IOException
+	 */
 	public static void writeLineInFile(String fileName, List<String> lines)
 			throws IOException {
 		File fout = new File(fileName);

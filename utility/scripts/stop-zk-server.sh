@@ -1,7 +1,7 @@
 #!/bin/bash
 
-chmod 777 zookeeper_ip
-zk_node_ip=`cat zookeeper_ip`
+chmod 777 /root/hungryhippos/tmp/zookeeper_ip
+zk_node_ip=`cat /root/hungryhippos/tmp/zookeeper_ip`
 
 
 for node in `echo $zk_node_ip`

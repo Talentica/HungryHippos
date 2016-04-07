@@ -7,6 +7,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @EqualsAndHashCode(of = "userId")
@@ -15,58 +17,28 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "user_id")
+	@Getter
+	@Setter
 	private Integer userId;
 
+	@Getter
+	@Setter
 	@Column(name = "first_name")
 	private String firstName;
 
+	@Getter
+	@Setter
 	@Column(name = "last_name")
 	private String lastName;
 
+	@Getter
+	@Setter
 	@Column(name = "email_address")
 	private String emailAddress;
 
+	@Getter
+	@Setter
 	@Column(name = "password")
 	private String password;
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	public String getEmailAddress() {
-		return emailAddress;
-	}
-
-	public void setEmailAddress(String emailAddress) {
-		this.emailAddress = emailAddress;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Integer getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Integer userId) {
-		this.userId = userId;
-	}
 
 }

@@ -34,7 +34,7 @@ public class JobInput {
 	@Getter
 	@Setter
 	@Column(name = "data_size")
-	private Integer dataSize;
+	private int dataSize;
 
 	@Getter
 	@Setter

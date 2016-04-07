@@ -36,9 +36,6 @@ public class CommonUtil {
 	private static FieldTypeArrayDataDescription dataDescription;
 
 	public static final String TEMP_FOLDER_PATH = "/root/hungryhippos/tmp/";
-	/*public static final String TEMP_FOLDER_PATH = "C:\\Users\\PooshanS\\Desktop\\";*/
-	
-	
 
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 
@@ -112,18 +109,17 @@ public class CommonUtil {
 		return listOfLine;
 	}
 
-	public static String getZKIp() throws IOException {
+	private static String getZKIp() throws IOException {
 		return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 	}
 
 	public static NodesManager connectZK() throws Exception {
 		if(nodesManager == null){
-			(nodesManager= ServerHeartBeat.init()).connectZookeeper(getZKIp())
-				.startup();
+			(nodesManager= ServerHeartBeat.init()).connectZookeeper(getZKIp()).startup();
 		}else {
 			return nodesManager;
 		}
-		return null;
+		return nodesManager;
 	}
 
 	public static Properties getConfigurationPropertyFromZk()

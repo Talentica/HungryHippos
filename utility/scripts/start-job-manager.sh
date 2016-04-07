@@ -1,6 +1,6 @@
 #!/bin/bash
 
-job_manager_ip=`cat ./node_pwd_file.txt|grep "job_manager_ip"|awk -F":" '{print $2}'`
+job_manager_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 
 sh start-zk-server.sh
 for node in `echo $job_manager_ip` 

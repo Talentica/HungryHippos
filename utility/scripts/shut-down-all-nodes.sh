@@ -1,6 +1,6 @@
 #!/bin/bash
 echo 'Shutting all java processes on nodes'
-cat ./../../utility/src/main/resources/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 for node in `cat node_ips_list.txt`
 do

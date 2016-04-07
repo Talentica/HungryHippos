@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sharding_node_ip=`/root/hungryhippos/tmp/master_ip_file`
+sharding_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 
 
 for node in `echo $sharding_node_ip`

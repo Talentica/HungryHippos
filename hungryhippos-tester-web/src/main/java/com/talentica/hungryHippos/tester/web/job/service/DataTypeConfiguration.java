@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job;
+package com.talentica.hungryHippos.tester.web.job.service;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;

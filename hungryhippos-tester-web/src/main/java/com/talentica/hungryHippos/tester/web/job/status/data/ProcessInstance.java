@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.status;
+package com.talentica.hungryHippos.tester.web.job.status.data;
 
 import java.util.List;
 

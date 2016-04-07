@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.status;
+package com.talentica.hungryHippos.tester.web.job.status.data;
 
 import java.util.Date;
 
@@ -10,7 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import com.talentica.hungryHippos.tester.web.job.STATUS;
+import com.talentica.hungryHippos.tester.web.job.data.STATUS;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -1,6 +1,6 @@
-package com.talentica.hungryHippos.tester.web.job;
+package com.talentica.hungryHippos.tester.web.job.service;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
+import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 import lombok.Getter;
 import lombok.Setter;

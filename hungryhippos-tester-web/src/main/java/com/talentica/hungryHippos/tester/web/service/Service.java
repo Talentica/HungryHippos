@@ -2,8 +2,6 @@ package com.talentica.hungryHippos.tester.web.service;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
-
 public class Service {
 
 	protected final ServiceError validateUuid(String jobUuid) {

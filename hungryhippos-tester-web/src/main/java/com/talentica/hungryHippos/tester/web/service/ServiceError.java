@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web;
+package com.talentica.hungryHippos.tester.web.service;
 
 import lombok.Getter;
 import lombok.Setter;

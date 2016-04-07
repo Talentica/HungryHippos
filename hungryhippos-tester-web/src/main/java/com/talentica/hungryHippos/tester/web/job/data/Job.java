@@ -13,8 +13,6 @@ import javax.persistence.Id;
 
 import org.joda.time.DateTime;
 
-import com.talentica.hungryHippos.tester.web.job.STATUS;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

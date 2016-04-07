@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job;
+package com.talentica.hungryHippos.tester.web.job.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.service.Service;
+import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 import lombok.Setter;
 
@@ -30,7 +30,7 @@ public class JobService extends Service {
 	private JobInputRepository jobInputRepository;
 
 	@RequestMapping(value = "new", method = RequestMethod.POST)
-	public @ResponseBody JobServiceResponse create(@RequestBody(required = true) JobServiceRequest request) {
+	public @ResponseBody JobServiceResponse newJob(@RequestBody(required = true) JobServiceRequest request) {
 		ServiceError error = request.validate();
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
 		if (error != null) {
@@ -47,7 +47,7 @@ public class JobService extends Service {
 	}
 
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)
-	public @ResponseBody JobServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
+	public @ResponseBody JobServiceResponse getJobDetail(@PathVariable("jobUuid") String jobUuid) {
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
 		ServiceError error = validateUuid(jobUuid);
 		if (error != null) {

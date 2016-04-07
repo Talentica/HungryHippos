@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.tester.web.job.data;
 
+import java.util.List;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -7,5 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface JobRepository extends CrudRepository<Job, Integer> {
 
 	Job findByUuid(String uuid);
+
+	List<Job> findTop5ByUserIdOrderByDateTimeSubmittedDesc(Integer userId);
 
 }

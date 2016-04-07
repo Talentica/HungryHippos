@@ -1,6 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.status;
-
-import java.util.List;
+package com.talentica.hungryHippos.tester.web.job.output.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,19 +7,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
-import com.talentica.hungryHippos.tester.web.job.JobDetail;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.job.data.JobOutputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
-import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstanceRepository;
+import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository;
+import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
 import com.talentica.hungryHippos.tester.web.service.Service;
+import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 import lombok.Setter;
 
 @Controller
 @RequestMapping("/job")
-public class JobStatusService extends Service {
+public class JobOutputService extends Service {
 
 	@Setter
 	@Autowired(required = false)
@@ -29,15 +26,11 @@ public class JobStatusService extends Service {
 
 	@Setter
 	@Autowired(required = false)
-	private ProcessInstanceRepository processInstanceRepository;
-
-	@Setter
-	@Autowired(required = false)
 	private JobOutputRepository jobOutputRepository;
 
-	@RequestMapping(value = "status/{jobUuid}", method = RequestMethod.GET)
-	public @ResponseBody JobStatusServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
-		JobStatusServiceResponse jobStatusServiceResponse = new JobStatusServiceResponse();
+	@RequestMapping(value = "output/detail/{jobUuid}", method = RequestMethod.GET)
+	public @ResponseBody JobOutputServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
+		JobOutputServiceResponse jobStatusServiceResponse = new JobOutputServiceResponse();
 		ServiceError error = validateUuid(jobUuid);
 		if (error != null) {
 			jobStatusServiceResponse.setError(error);
@@ -50,12 +43,10 @@ public class JobStatusService extends Service {
 			return jobStatusServiceResponse;
 		}
 		Integer jobId = job.getJobId();
-		List<ProcessInstance> processInstances = processInstanceRepository.findByJobId(jobId);
 		JobDetail jobDetail = new JobDetail();
 		jobDetail.setJob(job);
 		jobDetail.setJobOutput(jobOutputRepository.findByJobId(jobId));
 		jobStatusServiceResponse.setJobDetail(jobDetail);
-		jobStatusServiceResponse.setProcessInstances(processInstances);
 		return jobStatusServiceResponse;
 	}
 

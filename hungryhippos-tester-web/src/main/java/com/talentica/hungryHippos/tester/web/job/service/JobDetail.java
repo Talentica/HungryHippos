@@ -1,10 +1,10 @@
-package com.talentica.hungryHippos.tester.web.job;
+package com.talentica.hungryHippos.tester.web.job.service;
 
 import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
-import com.talentica.hungryHippos.tester.web.job.data.JobOutput;
+import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 
 import lombok.Getter;
 import lombok.Setter;

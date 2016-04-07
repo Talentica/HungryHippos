@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.tester.web.user.service;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
+import com.talentica.hungryHippos.tester.web.service.ServiceError;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 
 public class UserAccountServiceResponse {

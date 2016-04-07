@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.status;
+package com.talentica.hungryHippos.tester.web.job.output.data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,24 +11,29 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@EqualsAndHashCode(of = "processId")
-public class Process {
+@EqualsAndHashCode(of = "jobOutputId")
+public class JobOutput {
 
 	@Getter
 	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "process_id")
-	private Integer processId;
+	@Column(name = "job_output_id")
+	private Integer jobOutputId;
 
 	@Getter
 	@Setter
-	@Column(name = "name")
-	private String name;
+	@Column(name = "job_id")
+	private Integer jobId;
 
 	@Getter
 	@Setter
-	@Column(name = "description")
-	private String description;
+	@Column(name = "data_location")
+	private String dataLocation;
+
+	@Getter
+	@Setter
+	@Column(name = "data_size")
+	private Integer dataSize;
 
 }

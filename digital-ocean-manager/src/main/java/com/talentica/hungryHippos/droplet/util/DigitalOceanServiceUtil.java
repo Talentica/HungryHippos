@@ -333,8 +333,6 @@ public class DigitalOceanServiceUtil {
 	 * @throws Exception
 	 */
 	private static void connectZookeeper() throws Exception {
-		/*(nodesManager = ServerHeartBeat.init()).connectZookeeper(ZK_IP)
-				.startup();*/
 		nodesManager = CommonUtil.connectZK();
 	}
 

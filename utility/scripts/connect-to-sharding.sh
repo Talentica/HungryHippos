@@ -1,4 +1,4 @@
 #!/bin/bash
-sharding_node_ip=`cat ./node_pwd_file.txt|grep "sharding_node_ip"|awk -F":" '{print $2}'`
+sharding_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 
 ssh -o StrictHostKeyChecking=no root@$sharding_node_ip

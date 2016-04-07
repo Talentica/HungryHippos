@@ -3,7 +3,7 @@
 cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 cat /root/hungryhippos/tmp/master_ip_file > data_publisher_node_ips.txt
 
-job_manager_ip=`/root/hungryhippos/tmp/master_ip_file`
+job_manager_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 for node in `cat node_ips_list.txt`
 do
    echo "Copying file to $node"

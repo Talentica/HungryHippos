@@ -3,7 +3,7 @@ package com.talentica.hungryHippos.tester.web.user.service;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.talentica.hungryHippos.tester.web.ServiceError;
+import com.talentica.hungryHippos.tester.web.service.ServiceError;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 
 public class UserAccountServiceRequest {

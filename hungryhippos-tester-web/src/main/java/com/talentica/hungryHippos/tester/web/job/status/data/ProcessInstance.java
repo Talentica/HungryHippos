@@ -1,13 +1,15 @@
-package com.talentica.hungryHippos.tester.web.job.process.data;
+package com.talentica.hungryHippos.tester.web.job.status.data;
 
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
 import lombok.EqualsAndHashCode;
@@ -27,8 +29,9 @@ public class ProcessInstance {
 
 	@Getter
 	@Setter
-	@Column(name = "process_id")
-	private Integer processId;
+	@OneToOne
+	@PrimaryKeyJoinColumn
+	private Process process;
 
 	@Getter
 	@Setter
@@ -37,7 +40,7 @@ public class ProcessInstance {
 
 	@Getter
 	@Setter
-	@OneToMany(mappedBy = "processInstanceId")
+	@OneToMany(mappedBy = "processInstanceId", fetch = FetchType.EAGER)
 	@PrimaryKeyJoinColumn
 	private List<ProcessInstanceDetail> processInstanceDetails;
 

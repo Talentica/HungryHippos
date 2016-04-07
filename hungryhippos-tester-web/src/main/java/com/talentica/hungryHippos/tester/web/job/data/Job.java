@@ -1,20 +1,17 @@
 package com.talentica.hungryHippos.tester.web.job.data;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
 
-import com.talentica.hungryHippos.tester.web.job.STATUS;
-import com.talentica.hungryHippos.tester.web.user.data.User;
+import org.joda.time.DateTime;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -54,8 +51,17 @@ public class Job {
 
 	@Getter
 	@Setter
-	@OneToOne(fetch = FetchType.EAGER)
-	@PrimaryKeyJoinColumn
-	private User user;
+	@Column(name = "user_id")
+	private Integer userId;
+
+	public static Job createNewJob() {
+		Job job = new Job();
+		job.setDateTimeSubmitted(DateTime.now().toDate());
+		job.setStatus(STATUS.NOT_STARTED);
+		// TODO: Remove hard coding of user id later.
+		job.setUserId(1);
+		job.setUuid(UUID.randomUUID().toString().toUpperCase());
+		return job;
+	}
 
 }

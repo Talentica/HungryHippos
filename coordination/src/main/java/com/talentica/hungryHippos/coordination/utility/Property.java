@@ -68,6 +68,7 @@ public class Property {
 							LOGGER.info("Unable to get the config file from zk.");
 						}
 					}
+					properties = new Properties();
 					LOGGER.info("External configuration properties file is loaded");
 					properties.load(CONFIG_FILE);
 					isReadFirstTime = false;

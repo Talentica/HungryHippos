@@ -105,19 +105,22 @@ public class Property {
 		if (serverProp == null) {
 			try {
 				serverProp = CommonUtil.getServerConfigurationPropertyFromZk();
-				return serverProp;
 			} catch (Exception e1) {
 				LOGGER.info("Unable to get the server configuration file from zk node.");
 			}
-			serverProp = new Properties();
-			try {
-				InputStream is = new FileInputStream(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE);
-				serverProp.load(is);
-				//serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
-				PropertyConfigurator.configure(serverProp);
-				LOGGER.info("serverConfigFile.properties file is loaded");
-			} catch (IOException e) {
-				LOGGER.warn("Unable to load serverConfigFile.properties file");
+			if (serverProp == null) {
+				serverProp = new Properties();
+				try {
+					InputStream is = new FileInputStream(
+							CommonUtil.TEMP_FOLDER_PATH
+									+ Property.SERVER_CONF_FILE);
+					serverProp.load(is);
+					// serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
+					PropertyConfigurator.configure(serverProp);
+					LOGGER.info("serverConfigFile.properties file is loaded");
+				} catch (IOException e) {
+					LOGGER.warn("Unable to load serverConfigFile.properties file");
+				}
 			}
 		}
 		return serverProp;

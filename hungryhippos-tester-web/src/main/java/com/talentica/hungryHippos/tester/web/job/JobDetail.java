@@ -4,6 +4,7 @@ import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
+import com.talentica.hungryHippos.tester.web.job.data.JobOutput;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,7 @@ public class JobDetail {
 
 	@Getter
 	@Setter
-	private JobInput jobOutput;
+	private JobOutput jobOutput;
 
 	@Getter
 	private Long executionTimeInSeconds;

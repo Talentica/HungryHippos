@@ -1,0 +1,13 @@
+package com.talentica.hungryHippos.tester.web.service;
+
+import com.talentica.hungryHippos.tester.web.ServiceError;
+
+import lombok.Getter;
+import lombok.Setter;
+
+public class ServiceResponse {
+
+	@Getter
+	@Setter
+	private ServiceError error;
+}

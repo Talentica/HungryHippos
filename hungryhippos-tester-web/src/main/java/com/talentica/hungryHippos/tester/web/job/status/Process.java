@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.process.data;
+package com.talentica.hungryHippos.tester.web.job.status;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

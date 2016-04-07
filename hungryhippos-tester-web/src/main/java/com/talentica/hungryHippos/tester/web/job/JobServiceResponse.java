@@ -1,18 +1,14 @@
 package com.talentica.hungryHippos.tester.web.job;
 
-import com.talentica.hungryHippos.tester.web.ServiceError;
+import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
 import lombok.Getter;
 import lombok.Setter;
 
-public class JobServiceResponse {
+public class JobServiceResponse extends ServiceResponse {
 
 	@Getter
 	@Setter
 	private JobDetail jobDetail;
-
-	@Getter
-	@Setter
-	private ServiceError error;
 
 }

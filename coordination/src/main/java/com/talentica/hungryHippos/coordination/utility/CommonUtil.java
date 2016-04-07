@@ -122,7 +122,7 @@ public class CommonUtil {
 		}else {
 			return nodesManager;
 		}
-		return null;
+		return nodesManager;
 	}
 
 	public static Properties getConfigurationPropertyFromZk()

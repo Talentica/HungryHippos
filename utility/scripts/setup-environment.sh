@@ -1,8 +1,6 @@
 echo 'Building all projects'
 sh prepare-new-build.sh
 
-ssh-keygen -R 127.0.0.1
-
 echo '################          Create project directory      ################'
 sh create_proj_directory.sh
 echo '################          Project directory is created and files are copied     ################'
@@ -10,6 +8,14 @@ echo '################          Project directory is created and files are copie
 echo '################          Create droplets      ################'
 sh create_droplets.sh
 echo '################          Droplet creation is initiated      ################'
+
+echo '################          Removing older host key      ################'
+ssh-keygen -R 127.0.0.1
+echo '################          Done      ################'
+
+echo '################          Copying master ip file      ################'
+sh copy-master-ip-to-all-nodes.sh
+echo '################          Master ip file is copied      ################'
 
 echo '################          Sharding setup started      ################'
 sh setup-sharding.sh

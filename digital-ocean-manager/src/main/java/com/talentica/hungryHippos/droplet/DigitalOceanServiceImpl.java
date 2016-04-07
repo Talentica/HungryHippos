@@ -477,7 +477,7 @@ public class DigitalOceanServiceImpl implements DigitalOceanService{
 			try{
 			deleteLists.add(deleteDroplet(dropletId));
 			}catch(DigitalOceanException ex){
-				LOGGER.info("Unable to delete the droplet id {}",dropletId);
+				LOGGER.info("Unable to delete the droplet id {} and exception {}",dropletId,ex);
 			}
 		}
 		return deleteLists;

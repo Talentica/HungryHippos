@@ -1,6 +1,8 @@
 echo 'Building all projects'
 sh prepare-new-build.sh
 
+ssh-keygen -R 127.0.0.1
+
 echo '################          Create project directory      ################'
 sh create_proj_directory.sh
 echo '################          Project directory is created and files are copied     ################'

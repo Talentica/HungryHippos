@@ -1,9 +1,21 @@
 'use strict';
 
-var app=angular.module('testerWebApp',['ngResource','base64','ngRoute']);
+var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap']);
 
-app.factory("User", function($resource) {
+app.factory("UserResource", function($resource) {
 	return $resource("/user");
+});
+
+app.factory("NewJobResource", function($resource) {
+	return $resource("/job/new");
+});
+
+app.factory("JobHistoryResource", function($resource) {
+	return $resource("/job/history/:userId");
+});
+
+app.factory("JobDetailResource", function($resource) {
+	return $resource("/job/detail/:jobUuid");
 });
 
 app.config(function($routeProvider, $locationProvider) {
@@ -17,7 +29,12 @@ app.config(function($routeProvider, $locationProvider) {
 	    controller: 'LoginCtrl'
 	  })
 	  .when('/newjob', {
-	    templateUrl: 'secure/newjob/newjob.html',
+	    templateUrl: 'secure/job/newjob.html',
 	    controller: 'NewJobCtrl'
 	  })
+	  .when('/history', {
+	    templateUrl: 'secure/job/jobHistory.html',
+	    controller: 'JobHistoryCtrl'
+	  })
+	  
 });

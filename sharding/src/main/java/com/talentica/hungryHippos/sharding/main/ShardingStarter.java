@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -23,6 +24,7 @@ public class ShardingStarter {
 			long startTime = System.currentTimeMillis();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			overrideProperties(args);
+			CommonUtil.connectZK();
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());
 			LOGGER.info("SHARDING DONE!!");

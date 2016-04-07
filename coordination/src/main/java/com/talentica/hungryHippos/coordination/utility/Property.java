@@ -58,7 +58,6 @@ public class Property {
 	public static Properties getProperties() {
 		if (properties == null) {
 			try {
-				properties = new Properties();
 				if (CONFIG_FILE != null) {
 					if (!isReadFirstTime) {
 						try {
@@ -69,13 +68,23 @@ public class Property {
 							LOGGER.info("Unable to get the config file from zk.");
 						}
 					}
+					properties = new Properties();
 					LOGGER.info("External configuration properties file is loaded");
 					properties.load(CONFIG_FILE);
 					isReadFirstTime = false;
 				} else {
 					LOGGER.info("Internal configuration properties file is loaded");
-					CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
-					properties.load(CONFIG_FILE);
+					try {
+						properties = CommonUtil
+								.getConfigurationPropertyFromZk();
+					} catch (Exception e) {
+						LOGGER.info("Unable to get the property file from zk node.");
+					}
+					if (properties == null) {
+						properties = new Properties();
+						CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
+						properties.load(CONFIG_FILE);
+					}
 				}
 				PropertyConfigurator.configure(properties);
 			} catch (IOException e) {
@@ -99,15 +108,19 @@ public class Property {
 			} catch (Exception e1) {
 				LOGGER.info("Unable to get the server configuration file from zk node.");
 			}
-			serverProp = new Properties();
-			try {
-				InputStream is = new FileInputStream(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE);
-				serverProp.load(is);
-				//serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
-				PropertyConfigurator.configure(serverProp);
-				LOGGER.info("serverConfigFile.properties file is loaded");
-			} catch (IOException e) {
-				LOGGER.warn("Unable to load serverConfigFile.properties file");
+			if (serverProp == null) {
+				serverProp = new Properties();
+				try {
+					InputStream is = new FileInputStream(
+							CommonUtil.TEMP_FOLDER_PATH
+									+ Property.SERVER_CONF_FILE);
+					serverProp.load(is);
+					// serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
+					PropertyConfigurator.configure(serverProp);
+					LOGGER.info("serverConfigFile.properties file is loaded");
+				} catch (IOException e) {
+					LOGGER.warn("Unable to load serverConfigFile.properties file");
+				}
 			}
 		}
 		return serverProp;

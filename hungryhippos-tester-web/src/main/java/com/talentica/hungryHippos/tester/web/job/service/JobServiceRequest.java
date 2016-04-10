@@ -14,7 +14,7 @@ public class JobServiceRequest {
 
 	public ServiceError validate() {
 		ServiceError error = null;
-		if (jobDetail == null || jobDetail.getJob() == null || jobDetail.getJob().getJobInput() == null) {
+		if (jobDetail == null || jobDetail == null || jobDetail.getJobInput() == null) {
 			error = new ServiceError("Job information is blank. Please provide with the job information.",
 					"Missing jon information in request.");
 		}

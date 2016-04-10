@@ -16,10 +16,6 @@ public class JobDetail {
 
 	@Getter
 	@Setter
-	private JobInput jobInput;
-
-	@Getter
-	@Setter
 	private JobOutput jobOutput;
 
 	@Getter
@@ -30,7 +26,6 @@ public class JobDetail {
 
 	public JobDetail(Job job, JobInput jobInput) {
 		setJob(job);
-		setJobInput(jobInput);
 	}
 
 	public void setExecutionTimeInSeconds() {
@@ -43,8 +38,8 @@ public class JobDetail {
 	private org.joda.time.Duration getExecutionDuration() {
 		org.joda.time.Duration duration = null;
 		if (job != null && job.getDateTimeFinished() != null && job.getDateTimeSubmitted() != null) {
-			Interval executionInterval = new Interval(job.getDateTimeFinished().getTime(),
-					job.getDateTimeSubmitted().getTime());
+			Interval executionInterval = new Interval(job.getDateTimeSubmitted().getTime(),
+					job.getDateTimeFinished().getTime());
 			duration = executionInterval.toDuration();
 		}
 		return duration;

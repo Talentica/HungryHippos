@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository;
 import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
@@ -37,12 +36,8 @@ public class JobStatusService extends Service {
 	@Autowired(required = false)
 	private JobOutputRepository jobOutputRepository;
 
-	@Setter
-	@Autowired(required = false)
-	private JobInputRepository jobInputRepository;
-
 	@RequestMapping(value = "status/{jobUuid}", method = RequestMethod.GET)
-	public @ResponseBody JobStatusServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
+	public @ResponseBody JobStatusServiceResponse getJobStatus(@PathVariable("jobUuid") String jobUuid) {
 		JobStatusServiceResponse jobStatusServiceResponse = new JobStatusServiceResponse();
 		ServiceError error = validateUuid(jobUuid);
 		if (error != null) {
@@ -60,7 +55,6 @@ public class JobStatusService extends Service {
 		JobDetail jobDetail = new JobDetail();
 		jobDetail.setJob(job);
 		jobDetail.setJobOutput(jobOutputRepository.findByJobId(jobId));
-		jobDetail.setJobInput(jobInputRepository.findByJobId(jobId));
 		jobStatusServiceResponse.setJobDetail(jobDetail);
 		jobStatusServiceResponse.setProcessInstances(processInstances);
 		return jobStatusServiceResponse;

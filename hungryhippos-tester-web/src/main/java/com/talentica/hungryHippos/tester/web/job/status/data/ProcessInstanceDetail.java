@@ -9,6 +9,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
+
+import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.data.STATUS;
 
@@ -62,5 +65,29 @@ public class ProcessInstanceDetail {
 	@Setter
 	@Column(name = "error_message")
 	private String error;
+
+	@Transient
+	private Long executionTimeInSeconds;
+
+	public void setExecutionTimeInSeconds() {
+		org.joda.time.Duration duration = getExecutionDuration();
+		if (duration != null) {
+			executionTimeInSeconds = duration.getStandardSeconds();
+		}
+	}
+
+	public Long getExecutionTimeInSeconds() {
+		setExecutionTimeInSeconds();
+		return executionTimeInSeconds;
+	}
+
+	private org.joda.time.Duration getExecutionDuration() {
+		org.joda.time.Duration duration = null;
+		if (executionStartDateTime != null && executionEndDateTime != null) {
+			Interval executionInterval = new Interval(executionStartDateTime.getTime(), executionEndDateTime.getTime());
+			duration = executionInterval.toDuration();
+		}
+		return duration;
+	}
 
 }

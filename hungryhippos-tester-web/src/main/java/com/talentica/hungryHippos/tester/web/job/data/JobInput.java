@@ -46,4 +46,9 @@ public class JobInput {
 	@Column(name = "sharding_dimensions")
 	private String shardingDimensions;
 
+	@Getter
+	@Setter
+	@Column(name = "job_matrix_class")
+	private String jobMatrixClass;
+
 }

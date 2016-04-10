@@ -39,7 +39,7 @@ public class JobService extends Service {
 		}
 		Job job = Job.createNewJob();
 		Job savedJob = jobRepository.save(job);
-		JobInput jobInput = request.getJobDetail().getJobInput();
+		JobInput jobInput = request.getJobDetail().getJob().getJobInput();
 		jobInput.setJobId(savedJob.getJobId());
 		jobInputRepository.save(jobInput);
 		jobServiceResponse.setJobDetail(new JobDetail(savedJob, jobInput));

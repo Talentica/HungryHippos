@@ -92,3 +92,7 @@ h1, input {
 .centerAlignedText{
 	text-align: center;
 }
+
+.bold{
+	font-weight: bold;
+}

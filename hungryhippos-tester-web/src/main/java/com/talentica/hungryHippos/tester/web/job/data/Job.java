@@ -10,6 +10,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 
 import org.joda.time.DateTime;
 
@@ -53,6 +55,12 @@ public class Job {
 	@Setter
 	@Column(name = "user_id")
 	private Integer userId;
+
+	@Getter
+	@Setter
+	@OneToOne
+	@PrimaryKeyJoinColumn
+	private JobInput jobInput;
 
 	public static Job createNewJob() {
 		Job job = new Job();

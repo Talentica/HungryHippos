@@ -92,3 +92,11 @@ h1, input {
 .centerAlignedText{
 	text-align: center;
 }
+
+.bold{
+	font-weight: bold;
+}
+
+.greenBackground{
+font-weight: bold;color: green;
+}

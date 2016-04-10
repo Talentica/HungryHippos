@@ -1,11 +1,188 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-md-12">
-			<uib-accordion close-others="false">
-				<uib-accordion-group heading="{{job.uuid}}" ng-repeat="job in recentJobs">
-				      {{job.dateTimeSubmitted}}
-				</uib-accordion-group>
-			</uib-accordion>
+			<div ng-repeat="(key, value) in recentJobs">
+				<div>
+					<h4>{{key | date:'medium'}}</h4>
+					<uib-accordion close-others="false">
+						<uib-accordion-group heading="{{job.uuid}}" ng-repeat="job in value">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="bold col-md-2">
+										Job Id:
+									</div>
+									<div class="col-md-4">
+										{{job.uuid}}
+									</div>
+									
+									<div class="bold col-md-2">
+										Submitted on:
+									</div>
+									<div class="col-md-4">
+										{{job.dateTimeSubmitted|date:'medium'}}
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" >
+								<div class="row">
+									<div class="bold col-md-2">
+										Sharding Dimensions:
+									</div>
+									<div class="col-md-4">
+										{{job.jobInput.shardingDimensions}}
+									</div>
+									
+									<div class="bold col-md-2">
+										Job Matrix Class:
+									</div>
+									<div class="col-md-4">
+										{{job.jobInput.jobMatrixClass}}
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" >
+								<div class="row">
+									<div class="bold col-md-2">
+										Input Data File Location:
+									</div>
+									<div class="col-md-10">
+										<a>{{job.jobInput.dataLocation}}</a>
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" >
+								<div class="row">
+									<div class="bold col-md-2">
+										Data Type Configuration:
+									</div>
+									<div class="col-md-10">
+										{{job.jobInput.dataTypeConfiguration}}
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" ng-show="job.executionTimeInSeconds">
+								<div class="row">
+									<div class="bold col-md-2">Input Data File Size:</div>
+									<div class="col-md-4">
+										{{job.jobInput.dataSize}} bytes
+									</div>
+									<div class="bold col-md-2">
+										Output File Size:
+									</div>
+									<div class="col-md-4" ng-show="job.jobOutput">
+										{{job.jobOutput.dataSize}} bytes
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" >
+								<div class="row">
+									<div class="bold col-md-2">
+										Output File Location:
+									</div>
+									<div class="col-md-10" ng-show="job.jobOutput">
+										<a>{{job.jobOutput.dataLocation}}</a>
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid">
+								<div class="row">
+									<div class="bold col-md-2">
+										Status:
+									</div>
+									<div class="col-md-4">
+										{{job.status}}
+									</div>
+									
+									<div class="bold col-md-2">
+										Finished on:
+									</div>
+									<div class="col-md-4">
+										{{job.dateTimeFinished| date:'medium'}}
+									</div>
+								</div>
+							</div>
+							
+							<div class="container-fluid" ng-show="job.executionTimeInSeconds">
+								<div class="row">
+									<div class="bold col-md-2">
+										Total Time Taken:
+									</div>
+									<div class="col-md-4" ng-show="{{job.executionTimeInSeconds<60}}">
+										{{job.executionTimeInSeconds}} seconds
+									</div>
+									<div class="col-md-4" ng-show="{{job.executionTimeInSeconds>=60 && job.executionTimeInSeconds<3600}}">
+										{{(job.executionTimeInSeconds/60) | number:2}} minutes
+									</div>
+									<div class="col-md-4" ng-show="{{job.executionTimeInSeconds>=3600}}">
+										{{(job.executionTimeInSeconds/3600) | number:2}} hour(s)
+									</div>
+									<div class="bold col-md-2"></div>
+									<div class="col-md-4">
+									</div>
+								</div>
+							</div>
+							
+							<br/>
+							
+							<uib-accordion close-others="false">
+								<uib-accordion-group heading="Stepwise Time Details" ng-click="getJobStatusDetail(job.uuid)" >
+										<div class="container-fluid" ng-show="jobStepInformation[job.uuid].processInstances.length">
+											<div class="row">
+												<div class="col-md-2 bold">Process</div>					
+												<div class="col-md-10">
+													<div class="container-fluid">
+														<div class="row">				
+															<div class="col-md-2  bold">Node Id</div>
+															<div class="col-md-2  bold">Node IP</div>
+															<div class="col-md-2  bold">Status</div>
+															<div class="col-md-2  bold">Time Taken</div>
+														</div>
+													</div>
+												</div>
+											</div>
+																	
+											<div class="row" ng-repeat="processInstance in jobStepInformation[job.uuid].processInstances | orderBy:'process.processId'">
+													<hr/>													
+													<div class="col-md-2">{{processInstance.process.name}}</div>
+													<div class="col-md-10">
+														<div class="container-fluid">
+															<div class="row" ng-repeat="step in processInstance.processInstanceDetails">
+																<div>
+																	<div class="col-md-2">{{step.nodeId}}</div>
+																	<div class="col-md-2">{{step.nodeIp}}</div>
+																	<div class="col-md-2">{{step.status}}</div>
+																	<div class="col-md-2" ng-show="{{step.executionTimeInSeconds<60}}">
+																		{{step.executionTimeInSeconds}} seconds
+																	</div>
+																	<div class="col-md-2" ng-show="{{step.executionTimeInSeconds>=60 && step.executionTimeInSeconds<3600}}">
+																		{{(step.executionTimeInSeconds/60) | number:2}} minutes
+																	</div>
+																	<div class="col-md-2" ng-show="{{step.executionTimeInSeconds>=3600}}">
+																		{{(step.executionTimeInSeconds/3600) | number:2}} hour(s)
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+											</div>
+										</div>
+										<div class="container-fluid" ng-show="!jobStepInformation[job.uuid].processInstances.length">
+											<div class="row">
+												<div class="col-md-12">No information available.</div>
+											</div>
+										</div>										
+								</uib-accordion-group>
+							</uib-accordion>
+							
+							<br/>																						
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

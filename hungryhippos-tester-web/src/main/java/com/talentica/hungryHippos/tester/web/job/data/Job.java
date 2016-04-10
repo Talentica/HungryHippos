@@ -10,8 +10,14 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
+import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -53,6 +59,43 @@ public class Job {
 	@Setter
 	@Column(name = "user_id")
 	private Integer userId;
+
+	@Getter
+	@Setter
+	@OneToOne
+	@JoinColumn(name = "job_id")
+	private JobInput jobInput;
+
+	@Getter
+	@Setter
+	@OneToOne
+	@JoinColumn(name = "job_id")
+	private JobOutput jobOutput;
+
+	@Transient
+	private Long executionTimeInSeconds;
+
+	public void setExecutionTimeInSeconds() {
+		org.joda.time.Duration duration = getExecutionDuration();
+		if (duration != null) {
+			executionTimeInSeconds = duration.getStandardSeconds();
+		}
+	}
+
+	public Long getExecutionTimeInSeconds() {
+		setExecutionTimeInSeconds();
+		return executionTimeInSeconds;
+	}
+
+	private org.joda.time.Duration getExecutionDuration() {
+		org.joda.time.Duration duration = null;
+		if (getDateTimeFinished() != null && getDateTimeSubmitted() != null) {
+			Interval executionInterval = new Interval(getDateTimeSubmitted().getTime(),
+					getDateTimeFinished().getTime());
+			duration = executionInterval.toDuration();
+		}
+		return duration;
+	}
 
 	public static Job createNewJob() {
 		Job job = new Job();

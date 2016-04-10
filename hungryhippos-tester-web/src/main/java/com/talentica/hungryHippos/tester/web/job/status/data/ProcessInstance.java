@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -30,7 +31,7 @@ public class ProcessInstance {
 	@Getter
 	@Setter
 	@OneToOne
-	@PrimaryKeyJoinColumn
+	@JoinColumn(name = "process_id")
 	private Process process;
 
 	@Getter

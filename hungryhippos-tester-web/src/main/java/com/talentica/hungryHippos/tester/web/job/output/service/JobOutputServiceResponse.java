@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.output.service;
 
-import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
+import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
 import lombok.Getter;
@@ -10,6 +10,6 @@ public class JobOutputServiceResponse extends ServiceResponse {
 
 	@Getter
 	@Setter
-	private JobDetail jobDetail;
+	private Job jobDetail;
 
 }

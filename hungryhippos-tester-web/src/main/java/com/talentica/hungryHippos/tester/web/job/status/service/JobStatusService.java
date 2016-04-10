@@ -10,10 +10,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
-import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository;
-import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
+import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstance;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstanceRepository;
 import com.talentica.hungryHippos.tester.web.service.Service;
@@ -35,14 +33,10 @@ public class JobStatusService extends Service {
 
 	@Setter
 	@Autowired(required = false)
-	private JobOutputRepository jobOutputRepository;
-
-	@Setter
-	@Autowired(required = false)
-	private JobInputRepository jobInputRepository;
+	private JobOutputService jobOutputService;
 
 	@RequestMapping(value = "status/{jobUuid}", method = RequestMethod.GET)
-	public @ResponseBody JobStatusServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
+	public @ResponseBody JobStatusServiceResponse getJobStatus(@PathVariable("jobUuid") String jobUuid) {
 		JobStatusServiceResponse jobStatusServiceResponse = new JobStatusServiceResponse();
 		ServiceError error = validateUuid(jobUuid);
 		if (error != null) {
@@ -57,11 +51,7 @@ public class JobStatusService extends Service {
 		}
 		Integer jobId = job.getJobId();
 		List<ProcessInstance> processInstances = processInstanceRepository.findByJobId(jobId);
-		JobDetail jobDetail = new JobDetail();
-		jobDetail.setJob(job);
-		jobDetail.setJobOutput(jobOutputRepository.findByJobId(jobId));
-		jobDetail.setJobInput(jobInputRepository.findByJobId(jobId));
-		jobStatusServiceResponse.setJobDetail(jobDetail);
+		jobStatusServiceResponse.setJobDetail(job);
 		jobStatusServiceResponse.setProcessInstances(processInstances);
 		return jobStatusServiceResponse;
 	}

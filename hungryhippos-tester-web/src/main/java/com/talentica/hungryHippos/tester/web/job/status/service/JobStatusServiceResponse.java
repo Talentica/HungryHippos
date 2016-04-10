@@ -2,7 +2,7 @@ package com.talentica.hungryHippos.tester.web.job.status.service;
 
 import java.util.List;
 
-import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
+import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstance;
 import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
@@ -13,7 +13,7 @@ public class JobStatusServiceResponse extends ServiceResponse {
 
 	@Getter
 	@Setter
-	private JobDetail jobDetail;
+	private Job jobDetail;
 
 	@Getter
 	@Setter

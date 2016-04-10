@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
+import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 import lombok.Getter;
@@ -9,7 +10,7 @@ public class JobServiceRequest {
 
 	@Getter
 	@Setter
-	private JobDetail jobDetail;
+	private Job jobDetail;
 
 	public ServiceError validate() {
 		ServiceError error = null;
@@ -18,7 +19,7 @@ public class JobServiceRequest {
 					"Missing jon information in request.");
 		}
 
-		if (jobDetail.getJob() != null && jobDetail.getJob().getJobId() != null) {
+		if (jobDetail != null && jobDetail.getJobId() != null) {
 			error = new ServiceError("Please provide with valid job information.",
 					"Job id cannot already set in new job creation request.");
 		}

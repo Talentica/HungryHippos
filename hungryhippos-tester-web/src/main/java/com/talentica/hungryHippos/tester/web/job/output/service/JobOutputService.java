@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
+import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository;
-import com.talentica.hungryHippos.tester.web.job.service.JobDetail;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
@@ -29,7 +29,7 @@ public class JobOutputService extends Service {
 	private JobOutputRepository jobOutputRepository;
 
 	@RequestMapping(value = "output/detail/{jobUuid}", method = RequestMethod.GET)
-	public @ResponseBody JobOutputServiceResponse create(@PathVariable("jobUuid") String jobUuid) {
+	public @ResponseBody JobOutputServiceResponse getJobOutputDetail(@PathVariable("jobUuid") String jobUuid) {
 		JobOutputServiceResponse jobStatusServiceResponse = new JobOutputServiceResponse();
 		ServiceError error = validateUuid(jobUuid);
 		if (error != null) {
@@ -42,12 +42,12 @@ public class JobOutputService extends Service {
 			jobStatusServiceResponse.setError(error);
 			return jobStatusServiceResponse;
 		}
-		Integer jobId = job.getJobId();
-		JobDetail jobDetail = new JobDetail();
-		jobDetail.setJob(job);
-		jobDetail.setJobOutput(jobOutputRepository.findByJobId(jobId));
-		jobStatusServiceResponse.setJobDetail(jobDetail);
+		jobStatusServiceResponse.setJobDetail(job);
 		return jobStatusServiceResponse;
+	}
+
+	public JobOutput getJobOutputByJobId(Integer jobId) {
+		return jobOutputRepository.findByJobId(jobId);
 	}
 
 }

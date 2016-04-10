@@ -12,6 +12,7 @@ import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
+import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
@@ -29,6 +30,10 @@ public class JobService extends Service {
 	@Autowired(required = false)
 	private JobInputRepository jobInputRepository;
 
+	@Setter
+	@Autowired(required = false)
+	private JobOutputService jobOutputService;
+
 	@RequestMapping(value = "new", method = RequestMethod.POST)
 	public @ResponseBody JobServiceResponse newJob(@RequestBody(required = true) JobServiceRequest request) {
 		ServiceError error = request.validate();
@@ -42,7 +47,7 @@ public class JobService extends Service {
 		JobInput jobInput = request.getJobDetail().getJobInput();
 		jobInput.setJobId(savedJob.getJobId());
 		jobInputRepository.save(jobInput);
-		jobServiceResponse.setJobDetail(new JobDetail(savedJob, jobInput));
+		jobServiceResponse.setJobDetail(savedJob);
 		return jobServiceResponse;
 	}
 
@@ -60,9 +65,7 @@ public class JobService extends Service {
 			jobServiceResponse.setError(error);
 			return jobServiceResponse;
 		}
-		JobDetail jobDetail = new JobDetail();
-		jobDetail.setJob(job);
-		jobServiceResponse.setJobDetail(jobDetail);
+		jobServiceResponse.setJobDetail(job);
 		return jobServiceResponse;
 	}
 

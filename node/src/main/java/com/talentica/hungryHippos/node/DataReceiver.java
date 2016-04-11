@@ -76,7 +76,7 @@ public class DataReceiver {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			validateArguments(args);
+			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver dataReceiver = getNodeInitializer();
 			CommonUtil.connectZK();

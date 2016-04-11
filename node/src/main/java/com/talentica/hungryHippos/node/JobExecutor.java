@@ -43,7 +43,7 @@ public class JobExecutor {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			validateArguments(args);
+			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			//(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 			nodesManager = CommonUtil.connectZK();

@@ -82,10 +82,13 @@ public class Property {
 						LOGGER.info("External configuration properties file is loaded");
 						properties.load(CONFIG_FILE_INPUT_STREAM);
 						/* Load zookeeper configuration file */
+						if(zkProperties == null){
+							zkProperties = new Properties();
 						ZK_CONFIG_FILE_INPUT_STREAM = loader
 								.getResourceAsStream(ZK_PROP_FILE);
 						zkProperties.load(ZK_CONFIG_FILE_INPUT_STREAM);
 						isReadFirstTime = false;
+						}
 					}
 				} else {
 					LOGGER.info("Internal configuration properties file is loaded");

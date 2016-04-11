@@ -10,15 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * Created by debasishc on 14/8/15.
@@ -54,6 +57,7 @@ public class Sharding {
 
 	public static void doSharding(Reader input) {
 		LOGGER.info("SHARDING STARTED");
+		NodesManager nodesManager;
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
@@ -68,6 +72,16 @@ public class Sharding {
 				LOGGER.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
 				LOGGER.debug("bucketCombinationToNodeNumbersMap: "
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
+			}
+			try {
+				nodesManager = CommonUtil.connectZK();
+				String shardingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED);
+				CountDownLatch signal = new CountDownLatch(1);
+				nodesManager.createPersistentNode(shardingNodeName, signal);
+				signal.await();
+				LOGGER.info("Sharding completion notification created on zk node");
+			} catch (Exception e) {
+				LOGGER.info("Unable to connect the zk node due to {}",e);
 			}
 		} catch (IOException | NodeOverflowException e) {
 			LOGGER.error("Error occurred during sharding process.", e);

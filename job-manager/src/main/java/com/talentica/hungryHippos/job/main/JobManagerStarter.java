@@ -1,15 +1,19 @@
 package com.talentica.hungryHippos.job.main;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.job.JobManager;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * @author PooshanS
@@ -21,6 +25,7 @@ public class JobManagerStarter {
 	 * @param args
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerStarter.class);
+	private static NodesManager nodesManager;
 
 	public static void main(String[] args) {
 		try {
@@ -28,7 +33,12 @@ public class JobManagerStarter {
 			validateProgramArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			overrideProperties(args);
-			CommonUtil.connectZK();
+			JobManagerStarter.nodesManager = CommonUtil.connectZK();
+			
+			CountDownLatch signal = new CountDownLatch(1);
+			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED), signal);
+			signal.await();
+			
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start();

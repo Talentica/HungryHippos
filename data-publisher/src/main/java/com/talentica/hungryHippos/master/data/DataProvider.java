@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * Created by debasishc on 24/9/15.
@@ -140,6 +142,16 @@ public class DataProvider {
 		LOGGER.info("Time taken in ms: " + (end - start));
 		LOGGER.info("Time taken in encoding: " + (timeForEncoding));
 		LOGGER.info("Time taken in lookup: " + (timeForLookup));
+		try {
+			String dataPublishingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED);
+			CountDownLatch signal = new CountDownLatch(1);
+			nodesManager.createPersistentNode(dataPublishingNodeName, signal);
+			signal.await();
+			LOGGER.info("DataPublishing completion notification created on zk node");
+		} catch (Exception e) {
+			LOGGER.info("Unable to connect the zk node due to {}",e);
+		}
+		
 	}
 
 }

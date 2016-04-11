@@ -460,6 +460,10 @@ public class NodesManager implements Watcher {
 	    protected String buildAlertPathForServer(String serverHostname) {
 	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.FORWARD_SLASH + serverHostname;
 	    }
+	    
+	    public String buildAlertPathByName(String nodeName){
+	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.FORWARD_SLASH + nodeName;
+	    }
 
 	    /**
 	     * Build path for Server

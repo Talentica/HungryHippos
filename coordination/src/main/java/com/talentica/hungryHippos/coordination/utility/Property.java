@@ -25,7 +25,8 @@ public class Property {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Property.class.getName());
 	private static Properties properties = null;
 	private static Properties serverProp = null;
-	private static InputStream CONFIG_FILE;
+	private static InputStream CONFIG_FILE_INPUT_STREAM;
+	private static InputStream ZK_CONFIG_FILE_INPUT_STREAM;
 	private static ClassLoader loader = Property.class.getClassLoader();
 	private static PROPERTIES_NAMESPACE namespace;
 	private static String environmentPropertiesPrefix;
@@ -34,6 +35,7 @@ public class Property {
 	
 	public static final String CONF_PROP_FILE = "config.properties";
 	public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
+	public static final String ZK_PROP_FILE = "zookeeper.properties";
 	public static boolean isReadFirstTime = true;
 	
 	public enum PROPERTIES_NAMESPACE {
@@ -52,13 +54,13 @@ public class Property {
 	}
 
 	public static void overrideConfigurationProperties(String configPropertyFilePath) throws FileNotFoundException {
-		CONFIG_FILE = new FileInputStream(configPropertyFilePath);
+		CONFIG_FILE_INPUT_STREAM = new FileInputStream(configPropertyFilePath);
 	}
 
 	public static Properties getProperties() {
 		if (properties == null) {
 			try {
-				if (CONFIG_FILE != null) {
+				if (CONFIG_FILE_INPUT_STREAM != null) {
 					if (!isReadFirstTime) {
 						try {
 							properties = CommonUtil
@@ -70,7 +72,11 @@ public class Property {
 					}
 					properties = new Properties();
 					LOGGER.info("External configuration properties file is loaded");
-					properties.load(CONFIG_FILE);
+					properties.load(CONFIG_FILE_INPUT_STREAM);
+					/*Load zookeeper configuration file*/
+					ZK_CONFIG_FILE_INPUT_STREAM = loader.getResourceAsStream(ZK_PROP_FILE);
+					properties.load(ZK_CONFIG_FILE_INPUT_STREAM);
+					
 					isReadFirstTime = false;
 				} else {
 					LOGGER.info("Internal configuration properties file is loaded");
@@ -82,8 +88,8 @@ public class Property {
 					}
 					if (properties == null) {
 						properties = new Properties();
-						CONFIG_FILE = loader.getResourceAsStream(CONF_PROP_FILE);
-						properties.load(CONFIG_FILE);
+						CONFIG_FILE_INPUT_STREAM = loader.getResourceAsStream(CONF_PROP_FILE);
+						properties.load(CONFIG_FILE_INPUT_STREAM);
 					}
 				}
 				PropertyConfigurator.configure(properties);
@@ -94,10 +100,6 @@ public class Property {
 		return properties;
 	}
 	
-	public static Properties getPropertiesNewInstance(){
-		return new Properties();
-	}
-
 	public static Properties loadServerProperties() {
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
 			return localEnvironmentServerproperties;

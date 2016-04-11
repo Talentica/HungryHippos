@@ -3,14 +3,18 @@
  */
 package com.talentica.hungryHippos.master;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.data.DataProvider;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class DataPublisherStarter {
 
@@ -31,6 +35,9 @@ public class DataPublisherStarter {
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
 			dataPublisherStarter.nodesManager = CommonUtil.connectZK();
+			CountDownLatch signal = new CountDownLatch(1);
+			ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED), signal);
+			signal.await();
 			/*LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
 			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
 			dataPublisherStarter.nodesManager.saveConfigFileToZNode(serverConfigFile, null);

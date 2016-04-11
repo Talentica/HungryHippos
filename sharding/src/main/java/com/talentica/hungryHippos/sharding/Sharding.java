@@ -1,6 +1,8 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +76,7 @@ public class Sharding {
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
 			try {
+				executeShellCommand("/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh");
 				nodesManager = CommonUtil.connectZK();
 				String shardingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED);
 				CountDownLatch signal = new CountDownLatch(1);
@@ -85,6 +88,21 @@ public class Sharding {
 			}
 		} catch (IOException | NodeOverflowException e) {
 			LOGGER.error("Error occurred during sharding process.", e);
+		}
+	}
+	
+	public static void executeShellCommand(String shellCommand){
+		try {
+			Runtime rt = Runtime.getRuntime();
+			Process pr = rt.exec(new String[] { "/bin/sh", shellCommand });
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					pr.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				LOGGER.info(line);
+			}
+		} catch (Exception e) {
+			LOGGER.info("Execption {}",e);
 		}
 	}
 

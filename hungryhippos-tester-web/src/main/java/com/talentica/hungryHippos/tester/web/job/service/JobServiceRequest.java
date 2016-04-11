@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
@@ -23,6 +25,13 @@ public class JobServiceRequest {
 			error = new ServiceError("Please provide with valid job information.",
 					"Job id cannot already set in new job creation request.");
 		}
+
+		if (jobDetail != null && StringUtils.isBlank(jobDetail.getUuid())) {
+			error = new ServiceError(
+					"Please provide with valid job UUID in request. You should get it after successful upload of a valid job jar file.",
+					"Job UUID not found.");
+		}
+
 		return error;
 	}
 

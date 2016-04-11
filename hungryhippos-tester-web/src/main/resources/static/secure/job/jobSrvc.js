@@ -1,6 +1,6 @@
 'use strict';
 
-app.service("JobService",function(NewJobResource,JobHistoryResource,JobDetailResource,JobStatusResource,JobOutputResource) {
+app.service("JobService",function($http,NewJobResource,JobHistoryResource,JobDetailResource,JobStatusResource,JobOutputResource) {
 	this.submitNewJob = function(jobDetail,callback){
 		var jobServiceRequest = {"jobDetail" :jobDetail}
 		NewJobResource.save(jobServiceRequest,callback);
@@ -18,4 +18,12 @@ app.service("JobService",function(NewJobResource,JobHistoryResource,JobDetailRes
 		JobOutputResource.get({jobUuid:uuid},callback);
 	}
 	
+    this.uploadJobJarFile= function(file,successCallback,errorCallback){
+            var fd = new FormData();
+            fd.append('file', file);
+            $http.post("/job/jar/upload",fd, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
+            }).success(successCallback).error(errorCallback);
+    };
 });

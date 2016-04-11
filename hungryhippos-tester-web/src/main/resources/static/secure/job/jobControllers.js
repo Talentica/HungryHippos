@@ -1,19 +1,49 @@
 'use strict';
 
 app.controller('NewJobCtrl',function ($scope,JobService) {
-	$scope.job={
-		    "job" : null,
-		    "jobInput" : {
-		      "jobInputId" : null,
-		      "jobId" : null,
-		      "dataLocation" : "http://google.com",
-		      "dataSize" : 0,
-		      "dataTypeConfiguration" : "STRING-1,STRING-1,STRING-1,STRING-3,STRING-3,STRING-3,DOUBLE-0,DOUBLE-0,STRING-5",
-		      "shardingDimensions" : "key1,key2,key3"
-		    },
-		    "jobOutput" : null,
-		    "executionTimeInSeconds" : null
-		  };
+	$scope.jobDetail={};
+	$scope.numberOfColumnsInDataFile=1;
+	$scope.getArrayOfSize=function(size){
+		return new Array(size);
+	}
+	$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+	
+	$scope.updateDataTypeConfiguration=function(){
+		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
+	}
+	
+	$scope.getDataTypeConfiguration=function(){
+		return $scope.dataTypeConfiguration;
+	}
+	
+	$scope.createNewJob=function(){
+		var dataTypeConfigSingleString="";
+		for(var i=0;i<$scope.dataTypeConfiguration.length;i++){
+			if(i>0){
+				dataTypeConfigSingleString=dataTypeConfigSingleString+",";
+			}
+			dataTypeConfigSingleString=dataTypeConfigSingleString+$scope.dataTypeConfiguration[i].dataType+'-'+($scope.dataTypeConfiguration[i].dataSize||0);
+		}
+		console.log(dataTypeConfigSingleString);
+		$scope.uploadJobJarFile(
+				function(response){
+		        	if(!response.error && response.uploadedFileSize>0){
+		        		console.log("Successfully uploaded. Job id is: "+response.jobUuid);
+		        	}else{
+		        		console.log("File upload failed.");
+		        	}
+		        }, 
+		        function(response){
+		        	console.log("File upload failed.");
+		        }
+		);
+	}
+	
+	 $scope.uploadJobJarFile = function(sucessCallback,errorCallback){
+	        var file = $scope.jobJarFile;
+	        JobService.uploadJobJarFile(file,sucessCallback,errorCallback);
+	};
+	
 });
 
 

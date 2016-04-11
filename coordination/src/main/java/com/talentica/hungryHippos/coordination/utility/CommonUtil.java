@@ -122,9 +122,9 @@ public class CommonUtil {
 		return nodesManager;
 	}
 
-	public static Properties getConfigurationPropertyFromZk()
+	public static Properties getMergedConfigurationPropertyFromZk()
 			throws Exception {
-		ZKNodeFile configProp = ZKUtils.getConfigZKNodeFile(Property.CONF_PROP_FILE);
+		ZKNodeFile configProp = ZKUtils.getConfigZKNodeFile(Property.MERGED_CONFIG_PROP_FILE);
 		return configProp.getFileData();
 	}
 	

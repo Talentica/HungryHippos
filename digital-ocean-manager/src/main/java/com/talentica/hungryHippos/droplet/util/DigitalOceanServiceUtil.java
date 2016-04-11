@@ -31,13 +31,11 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
-import com.talentica.hungryHippos.utility.MapUtils;
 
 /**
  * @author PooshanS
@@ -280,9 +278,10 @@ public class DigitalOceanServiceUtil {
 		for (Entry<String, String> entry : keyValue.entrySet()) {
 			properties.setProperty(entry.getKey(), entry.getValue());
 		}
-		ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE
+		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(Property.MERGED_CONFIG_PROP_FILE
 				+ "_FILE", properties);
-		nodesManager.saveConfigFileToZNode(configNodeFile, null);
+		nodesManager.saveConfigFileToZNode(mergedConfigNodeFile, null);
+		
 	}
 
 	/**

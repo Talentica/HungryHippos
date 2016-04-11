@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat /root/hungryhippos/tmp/coordination/src/main/resources/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 sh start-zk-server.sh
 for node in `cat node_ips_list.txt`

@@ -5,9 +5,6 @@ sh cleanup-sharding.sh
 echo 'Copying new build'
 sh copy-file-to-sharding.sh ../../sharding/build/libs/sharding*.jar
 echo 'Copying common configuration file'
-sh copy-file-to-sharding.sh ../../utility/src/main/resources/config.properties
-echo 'Copying nodes configuration file'
-sh copy-file-to-sharding.sh ../../utility/src/main/resources/serverConfigFile.properties
 echo 'Copying data publishers node configuration file'
 sh copy-file-to-sharding.sh ./data_publisher_nodes_config.txt
 echo 'Copying nodes'' password file'

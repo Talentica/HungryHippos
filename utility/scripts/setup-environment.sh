@@ -14,7 +14,7 @@ ssh-keygen -R 127.0.0.1
 echo '################          Done      ################'
 
 echo '################          Copying master ip file      ################'
-sh copy-master-ip-to-all-nodes.sh
+sh copy-files-to-all-nodes.sh
 echo '################          Master ip file is copied      ################'
 
 echo '################          Sharding setup started      ################'

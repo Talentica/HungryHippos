@@ -65,7 +65,6 @@ public class Property {
 						try {
 							properties = CommonUtil
 									.getConfigurationPropertyFromZk();
-							return properties;
 						} catch (Exception e1) {
 							LOGGER.info("Unable to get the config file from zk.");
 						}

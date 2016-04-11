@@ -11,12 +11,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -24,6 +26,7 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class DataReceiver {
 
@@ -78,8 +81,13 @@ public class DataReceiver {
 			long startTime = System.currentTimeMillis();
 			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
+			NodesManager nodesManager = CommonUtil.connectZK();
+			
+			CountDownLatch signal = new CountDownLatch(1);
+			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.START_NODE_FOR_DATA_RECIEVER), signal);
+			signal.await();
+			
 			DataReceiver dataReceiver = getNodeInitializer();
-			CommonUtil.connectZK();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
 			String server = serverConfig.getFileData().getProperty("server." + nodeId);
@@ -108,7 +116,8 @@ public class DataReceiver {
 			System.exit(1);
 		}
 	}
-
+	
+	
 	/**
 	 * Initialize the node.
 	 * 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row
@@ -45,8 +47,10 @@ public class JobExecutor {
 			long startTime = System.currentTimeMillis();
 			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			//(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 			nodesManager = CommonUtil.connectZK();
+			CountDownLatch signal = new CountDownLatch(1);
+			ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
+			signal.await();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();

@@ -26,6 +26,7 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class JobManager {
 
@@ -58,6 +59,8 @@ public class JobManager {
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
+		sendSignalToAllNodesToStartJobMatrix();
+		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
 		getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 	}
@@ -90,6 +93,16 @@ public class JobManager {
 		LOGGER.info("ALL NODES FINISHED THE JOBS");
 	}
 
+	private void sendSignalToAllNodesToStartJobMatrix() throws InterruptedException{
+		CountDownLatch signal = new CountDownLatch(1);
+			try {
+				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
+			} catch (IOException e) {
+				LOGGER.info("Unable to send the signal node on zk due to {}",e);
+			}
+		signal.await();
+	
+	}
 	/**
 	 * Get NodeId and Node Map.
 	 * 

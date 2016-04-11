@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.master.data;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -14,12 +15,14 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -63,6 +66,7 @@ public class DataProvider {
 
 	@SuppressWarnings({ "unchecked" })
 	public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
+		sendSignalToNodes(nodesManager);
 		long start = System.currentTimeMillis();
 		String[] servers = loadServers(nodesManager);
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
@@ -152,6 +156,17 @@ public class DataProvider {
 			LOGGER.info("Unable to connect the zk node due to {}",e);
 		}
 		
+	}
+	
+	private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException{
+		CountDownLatch signal = new CountDownLatch(1);
+			try {
+				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(ZKNodeName.START_NODE_FOR_DATA_RECIEVER), signal);
+			} catch (IOException e) {
+				LOGGER.info("Unable to send the signal node on zk due to {}",e);
+			}
+		
+		signal.await();
 	}
 
 }

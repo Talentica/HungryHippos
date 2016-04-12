@@ -1,9 +1,9 @@
 'use strict';
 
-app.service("JobService",function($http,NewJobResource,JobHistoryResource,JobDetailResource,JobStatusResource,JobOutputResource) {
+app.service("JobService",function($http,JobHistoryResource,JobDetailResource,JobStatusResource,JobOutputResource) {
 	this.submitNewJob = function(jobDetail,callback){
 		var jobServiceRequest = {"jobDetail" :jobDetail}
-		NewJobResource.save(jobServiceRequest,callback);
+    	$http.post("/job/new",jobServiceRequest).success(callback).error(callback);
 	}
 	
 	this.getRecentJobs = function(userIdParam,callback){

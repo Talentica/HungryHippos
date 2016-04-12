@@ -5,7 +5,16 @@
 			<h4 class="centerAlignedText">
 				Submit a new job 
 			</h4>
-			<form ng-submit="createNewJob()">
+			<form name="newJobForm" ng-submit="createNewJob()">
+				<div class="alert alert-success" ng-show="notification.message"> 
+						<strong>Congratulations!</strong> 
+						{{notification.message}} 
+				</div>			
+				<div class="alert alert-danger" role="alert" ng-show="error.message">
+				  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+				  <span class="sr-only">Error:</span>
+				  	{{error.message}}
+				</div>				
 				<div class="form-group">
 					<label for="dataFileLocation">
 						Data File Location
@@ -34,6 +43,7 @@
 								<table class="table">
 									<thead>
 										<tr>
+											<div class="form-group">
 											<th>
 												Column
 											</th>
@@ -41,7 +51,10 @@
 												Data Type
 											</th>
 											<th>
-												Data Size
+												Sharding dimension
+											</th>
+											<th>
+												Maximum No. of Characters
 											</th>
 										</tr>
 									</thead>
@@ -51,7 +64,7 @@
 												Column {{$index+1}}
 											</td>
 											<td>
-												<select required="required" ng-model="dataTypeConfiguration[$index].dataType">
+												<select name="Data Type-{{$index}}" ng-model="dataTypeConfiguration[$index].dataType">
 													<option value="BYTE">Byte</option>
 													<option value="SHORT">Short</option>
 													<option value="INT">Integer</option>
@@ -63,8 +76,13 @@
 												</select>
 											</td>
 											<td>
-												<input ng-show="dataTypeConfiguration[$index].dataType==='STRING'"
-													ng-model="dataTypeConfiguration[$index].dataSize" required="required" />
+												<input type="checkbox" name="Sharding Dimension-{{$index}}" 
+													ng-model="dataTypeConfiguration[$index].shardingDimension" />
+											</td>
+
+											<td>
+												<input name="Data Size-{{$index}}" type="number" max="1000" min="2" ng-show="dataTypeConfiguration[$index].dataType==='STRING'"
+													ng-model="dataTypeConfiguration[$index].dataSize" />
 											</td>
 										</tr>
 									</tbody>

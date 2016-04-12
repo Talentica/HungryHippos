@@ -6,10 +6,6 @@ app.factory("UserResource", function($resource) {
 	return $resource("/user");
 });
 
-app.factory("NewJobResource", function($resource) {
-	return $resource("/job/new");
-});
-
 app.factory("JobHistoryResource", function($resource) {
 	return $resource("/job/history/:userId");
 });

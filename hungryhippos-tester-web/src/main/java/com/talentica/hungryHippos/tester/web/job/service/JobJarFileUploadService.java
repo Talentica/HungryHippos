@@ -23,12 +23,29 @@ public class JobJarFileUploadService {
 	@Value("${jobmatrix.jars.dir}")
 	private String ROOT;
 
+	private static final long HUNDRED_MBS = 1024 * 1024 * 100;
+
 	@RequestMapping(method = RequestMethod.POST, value = "jar/upload")
 	public @ResponseBody JobJarFileUploadServiceResponse uploadJobJarFile(@RequestParam("file") MultipartFile file) {
 		JobJarFileUploadServiceResponse fileUploadServiceResponse = new JobJarFileUploadServiceResponse();
 		if (file.isEmpty()) {
-			ServiceError serviceError = new ServiceError("File is empty. Please provide valid job jar file.",
+			ServiceError serviceError = new ServiceError("File is empty. Please provide valid a job jar file.",
 					"File upload failed: " + file.getName() + " because the file was empty");
+			fileUploadServiceResponse.setError(serviceError);
+			return fileUploadServiceResponse;
+		}
+
+		if (!file.getContentType().contains("java-archive") || !file.getOriginalFilename().contains(".jar")) {
+			ServiceError serviceError = new ServiceError(
+					"Please upload a valid jar file. Content type should be application/java-archive and file should have an extension of 'jar'",
+					"File upload failed. Invalid file submitted -" + file.getOriginalFilename());
+			fileUploadServiceResponse.setError(serviceError);
+			return fileUploadServiceResponse;
+		}
+
+		if (file.getSize() >= HUNDRED_MBS) {
+			ServiceError serviceError = new ServiceError("Maximum file size for uload is 100 MB.",
+					"File upload failed: " + file.getOriginalFilename() + ". File size exceeded:" + file.getSize());
 			fileUploadServiceResponse.setError(serviceError);
 			return fileUploadServiceResponse;
 		}

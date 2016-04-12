@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JobOutputRepository extends CrudRepository<JobOutput, Integer> {
 
-	JobOutput findByJobId(Integer jobId);
-
 }

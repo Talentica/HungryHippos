@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
-import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
@@ -44,10 +43,6 @@ public class JobOutputService extends Service {
 		}
 		jobStatusServiceResponse.setJobDetail(job);
 		return jobStatusServiceResponse;
-	}
-
-	public JobOutput getJobOutputByJobId(Integer jobId) {
-		return jobOutputRepository.findByJobId(jobId);
 	}
 
 }

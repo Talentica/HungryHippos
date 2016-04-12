@@ -24,6 +24,7 @@ targetCompatibility = 1.8
 dependencies {
 	compile project (':client-api')
 	compile('joda-time:joda-time:2.3')
+	compile('commons-httpclient:commons-httpclient:3.1')
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework.boot:spring-boot-devtools")
 	compile("org.springframework.boot:spring-boot-starter-data-jpa")

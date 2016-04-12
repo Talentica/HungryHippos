@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,7 @@ import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
+import com.talentica.hungryHippos.tester.web.job.data.STATUS;
 import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
@@ -36,18 +38,31 @@ public class JobService extends Service {
 
 	@RequestMapping(value = "new", method = RequestMethod.POST)
 	public @ResponseBody JobServiceResponse newJob(@RequestBody(required = true) JobServiceRequest request) {
-		ServiceError error = request.validate();
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
-		if (error != null) {
-			jobServiceResponse.setError(error);
-			return jobServiceResponse;
+		try {
+			ServiceError error = request.validate();
+
+			if (error != null) {
+				jobServiceResponse.setError(error);
+				return jobServiceResponse;
+			}
+			Job job = request.getJobDetail();
+			JobInput jobInput = job.getJobInput();
+			// TODO: Remove hard coding of user id later.
+			job.setUserId(1);
+			job.setDateTimeSubmitted(DateTime.now().toDate());
+			job.setJobOutput(null);
+			job.setJobInput(null);
+			job.setStatus(STATUS.NOT_STARTED);
+			Job savedJob = jobRepository.save(job);
+			jobInput.setJob(job);
+			jobInputRepository.save(jobInput);
+			jobServiceResponse.setJobDetail(savedJob);
+		} catch (Exception exception) {
+			jobServiceResponse.setError(
+					new ServiceError("Error occurred while processing your request. Please try after some time.",
+							exception.getMessage()));
 		}
-		Job job = Job.createNewJob();
-		Job savedJob = jobRepository.save(job);
-		JobInput jobInput = request.getJobDetail().getJobInput();
-		jobInput.setJobId(savedJob.getJobId());
-		jobInputRepository.save(jobInput);
-		jobServiceResponse.setJobDetail(savedJob);
 		return jobServiceResponse;
 	}
 

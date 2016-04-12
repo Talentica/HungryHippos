@@ -2,7 +2,10 @@
 
 app.controller('NewJobCtrl',function ($scope,JobService) {
 	$scope.jobDetail={};
+	$scope.error={};
 	$scope.numberOfColumnsInDataFile=1;
+	$scope.notification={};
+
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
 	}
@@ -17,24 +20,64 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 	}
 	
 	$scope.createNewJob=function(){
+		$scope.error={};
+		$scope.notification={};
+		var shardingDimensions="";
+		var shardingDimensionsSelected=false;
 		var dataTypeConfigSingleString="";
 		for(var i=0;i<$scope.dataTypeConfiguration.length;i++){
-			if(i>0){
-				dataTypeConfigSingleString=dataTypeConfigSingleString+",";
+			if($scope.dataTypeConfiguration[i] && $scope.dataTypeConfiguration[i].dataType){
+				if($scope.dataTypeConfiguration[i].dataType==='STRING' && !$scope.dataTypeConfiguration[i].dataSize){
+					$scope.error.message="Please select maximum no. of characters for a 'String' data type column.";
+					return;
+				}
+				if(i>0){
+					dataTypeConfigSingleString=dataTypeConfigSingleString+",";
+				}
+				if(shardingDimensionsSelected){
+					shardingDimensions=shardingDimensions+",";
+				}
+				dataTypeConfigSingleString=dataTypeConfigSingleString+$scope.dataTypeConfiguration[i].dataType+'-'+($scope.dataTypeConfiguration[i].dataSize||0);
+				if($scope.dataTypeConfiguration[i].shardingDimension){
+					shardingDimensions=shardingDimensions+"key"+(i+1);
+					shardingDimensionsSelected=true;
+				}
+			}else{
+				$scope.error.message="Please select data type of all columns.";
+				return;
 			}
-			dataTypeConfigSingleString=dataTypeConfigSingleString+$scope.dataTypeConfiguration[i].dataType+'-'+($scope.dataTypeConfiguration[i].dataSize||0);
 		}
-		console.log(dataTypeConfigSingleString);
+		if(!shardingDimensionsSelected){
+			$scope.error.message="Please select at least one sharding dimension.";
+			return;
+		}else{
+			$scope.jobDetail.jobInput.shardingDimensions=shardingDimensions;
+		}
+		$scope.jobDetail.jobInput.dataTypeConfiguration=dataTypeConfigSingleString;
 		$scope.uploadJobJarFile(
 				function(response){
 		        	if(!response.error && response.uploadedFileSize>0){
-		        		console.log("Successfully uploaded. Job id is: "+response.jobUuid);
+		        		$scope.jobDetail.uuid=response.jobUuid;
+		        		$scope.notification={};
+		        		$scope.error={};
+		        		JobService.submitNewJob($scope.jobDetail,
+		        				function(response){
+		        					if(response && response.error && response.error.message){
+		        						$scope.error.message=response.error.message;
+		        					}else if(response.error){
+		        						$scope.error.message="There was some error occurred on server side. Please try again."
+		        					}else{
+		        						$scope.reset();
+		        						$scope.notification.message="Job with id: "+$scope.jobDetail.uuid+" submitted successfully.";
+		        					}
+		        				}
+		        		);
 		        	}else{
-		        		console.log("File upload failed.");
+		        		$scope.error.message=(response.error.message)||"File upload failed.";
 		        	}
 		        }, 
 		        function(response){
-		        	console.log("File upload failed.");
+		        	$scope.error.message=response||"File upload failed.";
 		        }
 		);
 	}
@@ -43,6 +86,12 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 	        var file = $scope.jobJarFile;
 	        JobService.uploadJobJarFile(file,sucessCallback,errorCallback);
 	};
+	
+	$scope.reset=function(){
+		$scope.error={};
+		$scope.numberOfColumnsInDataFile=1;
+		$scope.notification={};
+	}
 	
 });
 

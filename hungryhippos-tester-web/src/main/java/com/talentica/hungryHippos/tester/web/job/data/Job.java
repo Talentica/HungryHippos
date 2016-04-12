@@ -1,12 +1,12 @@
 package com.talentica.hungryHippos.tester.web.job.data;
 
 import java.util.Date;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
@@ -62,14 +61,14 @@ public class Job {
 
 	@Getter
 	@Setter
-	@OneToOne
-	@JoinColumn(name = "job_id")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "job")
+	@JoinColumn(name = "job_id", insertable = false, updatable = false)
 	private JobInput jobInput;
 
 	@Getter
 	@Setter
-	@OneToOne
-	@JoinColumn(name = "job_id")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "job")
+	@JoinColumn(name = "job_id", insertable = false, updatable = false)
 	private JobOutput jobOutput;
 
 	@Transient
@@ -96,15 +95,4 @@ public class Job {
 		}
 		return duration;
 	}
-
-	public static Job createNewJob() {
-		Job job = new Job();
-		job.setDateTimeSubmitted(DateTime.now().toDate());
-		job.setStatus(STATUS.NOT_STARTED);
-		// TODO: Remove hard coding of user id later.
-		job.setUserId(1);
-		job.setUuid(UUID.randomUUID().toString().toUpperCase());
-		return job;
-	}
-
 }

@@ -82,12 +82,12 @@
 								</div>
 							</div>
 							
-							<div class="container-fluid" >
+							<div class="container-fluid" ng-show="job.jobOutput">
 								<div class="row">
 									<div class="bold col-md-2">
 										Output File Location:
 									</div>
-									<div class="col-md-10" ng-show="job.jobOutput">
+									<div class="col-md-10">
 										<a>{{job.jobOutput.dataLocation}}</a>
 									</div>
 								</div>
@@ -102,10 +102,10 @@
 										{{job.status}}
 									</div>
 									
-									<div class="bold col-md-2">
+									<div class="bold col-md-2" ng-show="job.jobOutput">
 										Finished on:
 									</div>
-									<div class="col-md-4">
+									<div class="col-md-4" ng-show="job.jobOutput">
 										{{job.dateTimeFinished| date:'medium'}}
 									</div>
 								</div>

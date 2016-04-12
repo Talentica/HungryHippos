@@ -5,6 +5,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.talentica.hungryHippos.tester.web.job.data.Job;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,8 +28,10 @@ public class JobOutput {
 
 	@Getter
 	@Setter
-	@Column(name = "job_id")
-	private Integer jobId;
+	@OneToOne
+	@JoinColumn(name = "job_id")
+	@JsonIgnore
+	private Job job;
 
 	@Getter
 	@Setter

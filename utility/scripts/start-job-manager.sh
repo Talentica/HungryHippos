@@ -9,4 +9,4 @@ do
    ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/job-manager;java -XX:HeapDumpPath=./ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./ -cp job-manager.jar:test-jobs.jar com.talentica.hungryHippos.job.main.JobManagerStarter $1 > ./system.out 2>./system.err &"
 done
 
-start-all-nodes-job-execution.sh
+sh start-all-nodes-job-execution.sh

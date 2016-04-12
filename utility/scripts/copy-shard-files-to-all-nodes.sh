@@ -7,7 +7,8 @@ job_manager_ip=`cat /root/hungryhippos/tmp/master_ip_file`
 for node in `cat node_ips_list.txt`
 do
    echo "Copying file to $node"
-   ssh -o "StrictHostKeyChecking no" root@$node `ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""`
+   scp ~/.ssh/id_rsa.pub root@$node:~/.ssh
+   scp ~/.ssh/id_rsa root@$node:~/.ssh
    scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/keyToValueToBucketMap root@$node:hungryhippos
    scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketToNodeNumberMap root@$node:hungryhippos
    scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketCombinationToNodeNumbersMap root@$node:hungryhippos

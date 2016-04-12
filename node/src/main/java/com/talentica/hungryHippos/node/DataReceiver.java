@@ -9,8 +9,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -79,7 +77,6 @@ public class DataReceiver {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			NodesManager nodesManager = CommonUtil.connectZK();
 			
@@ -102,22 +99,6 @@ public class DataReceiver {
 		}
 	}
 
-	/**
-	 * To validate the argument command line.
-	 * 
-	 * @param args
-	 * @throws IOException
-	 */
-	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
-		if (args.length == 1) {
-			Property.overrideConfigurationProperties(args[0]);
-		} else {
-			System.out.println("Please provide the zookeeper configuration file");
-			System.exit(1);
-		}
-	}
-	
-	
 	/**
 	 * Initialize the node.
 	 * 

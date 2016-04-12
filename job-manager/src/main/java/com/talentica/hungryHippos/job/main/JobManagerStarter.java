@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.job.main;
 import java.io.FileNotFoundException;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +33,9 @@ public class JobManagerStarter {
 			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			overrideProperties(args);
+			overrideProperties(args);  
 			JobManagerStarter.nodesManager = CommonUtil.connectZK();
-			
-			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED), signal);
-			signal.await();
-			
+			waitForCompletion();
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start();
@@ -47,6 +44,18 @@ public class JobManagerStarter {
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing master starter program.", exception);
 		}
+	}
+
+	/**
+	 * Await for the data publishing to be completed. Once completed, it start the execution of the job manager. 
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	private static void waitForCompletion() throws KeeperException,
+			InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED), signal);
+		signal.await();
 	}
 
 	private static void validateProgramArguments(String[] args)

@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.master;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,22 +35,28 @@ public class DataPublisherStarter {
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			LOGGER.info("Initializing nodes manager.");
-			dataPublisherStarter.nodesManager = CommonUtil.connectZK();
-			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED), signal);
-			signal.await();
-			/*LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-			ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE, Property.loadServerProperties());
-			dataPublisherStarter.nodesManager.saveConfigFileToZNode(serverConfigFile, null);
-			LOGGER.info("CONFIG FILE PUT TO ZK NODE SUCCESSFULLY!");
-			ZKNodeFile configNodeFile = new ZKNodeFile(Property.CONF_PROP_FILE + "_FILE", Property.getProperties());
-			dataPublisherStarter.nodesManager.saveConfigFileToZNode(configNodeFile, null);*/
+			waitForSinal(dataPublisherStarter);
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
 		}
+	}
+
+	/**
+	 * Await for the signal of the sharding. Once sharding is completed, it start execution for the data publishing.
+	 * @param dataPublisherStarter
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	private static void waitForSinal(DataPublisherStarter dataPublisherStarter)
+			throws Exception, KeeperException, InterruptedException {
+		dataPublisherStarter.nodesManager = CommonUtil.connectZK();
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED), signal);
+		signal.await();
 	}
 
 }

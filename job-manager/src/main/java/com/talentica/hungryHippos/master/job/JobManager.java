@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -54,13 +53,15 @@ public class JobManager {
 	public void start() throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		//(nodesManager = ServerHeartBeat.init()).connectZookeeper(null).startup();
 		nodesManager = CommonUtil.connectZK();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
+		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
+		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/download-output/"+"start-kazoo-server.py "+CommonUtil.getKazooIp());
+		LOGGER.info("KAZOO SERVER IS STARTED");
 		getFinishNodeJobsSignal();
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 	}

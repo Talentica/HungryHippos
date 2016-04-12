@@ -34,5 +34,5 @@ sh setup-nodes.sh
 echo '################          Nodes setup completed      ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
-start-sharding-and-datapublishing-and-jobmatrix.sh
+sh start-sharding-and-datapublishing-and-jobmatrix.sh
 echo '################          PROCESS INITIATED      ################'

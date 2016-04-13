@@ -91,9 +91,8 @@ public class NodeJobsService implements NodesJobsRunnable {
 			KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
 		String buildPath = ZKUtils.buildNodePath(node.getNodeId())
+				+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name()
 				+ PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64()
-				+ PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name()
 				+ PathUtil.FORWARD_SLASH + ("_job" + jobEntity.getJobId());
 		try {
 			nodesManager.createPersistentNode(buildPath, signal, jobEntity);

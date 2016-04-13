@@ -101,8 +101,7 @@ public class DigitalOceanServiceUtil {
 			List<String> names = dropletEntity.getDroplet().getNames();
 			List<String> newNames = new ArrayList<>();
 			for(String name : names){
-				name.replaceAll("hh", "hh"+"-"+dropletNamePattern);
-				newNames.add(name);
+				newNames.add(name.replaceAll("hh", "hh"+"-"+dropletNamePattern));
 			}
 			dropletEntity.getDroplet().setNames(newNames);
 			droplets = dropletService

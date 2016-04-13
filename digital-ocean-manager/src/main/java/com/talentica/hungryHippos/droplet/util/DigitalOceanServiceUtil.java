@@ -283,8 +283,7 @@ public class DigitalOceanServiceUtil {
 		for (Entry<String, String> entry : keyValue.entrySet()) {
 			properties.setProperty(entry.getKey(), entry.getValue());
 		}
-		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(Property.MERGED_CONFIG_PROP_FILE
-				+ "_FILE", properties);
+		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(Property.MERGED_CONFIG_PROP_FILE, properties);
 		nodesManager.saveConfigFileToZNode(mergedConfigNodeFile, null);
 		
 	}

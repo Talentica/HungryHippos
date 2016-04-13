@@ -1,6 +1,7 @@
 #!/bin/bash
 echo 'Copying master ip file on all nodes'
 cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat /root/hungryhippos/tmp/output_ip_file >> node_ips_list.txt
 sh remove-ssh-keygen.sh
 for node in `cat node_ips_list.txt`
 do

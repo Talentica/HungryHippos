@@ -112,7 +112,6 @@ public class JobExecutor {
 		leafs.clear();
 		String buildPathWithJobMatrixId = buildPath + PathUtil.FORWARD_SLASH + jobMatrixId;
 		leafs = ZKUtils.searchTree(buildPathWithJobMatrixId, null, null);*/
-		if(leafs.size()!=0) 
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 		for (LeafBean leaf : leafs) {

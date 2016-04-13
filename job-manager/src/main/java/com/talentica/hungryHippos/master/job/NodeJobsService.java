@@ -28,26 +28,28 @@ import com.talentica.hungryHippos.utility.PathUtil;
  * @author PooshanS
  *
  */
-public class NodeJobsService implements NodesJobsRunnable{
+public class NodeJobsService implements NodesJobsRunnable {
 
 	private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 	private Node node;
 	private TaskManager taskManager;
 	private NodesManager nodesManager;
-	private static final Logger LOGGER = LoggerFactory.getLogger(NodeJobsService.class.getName());
-	
-	public NodeJobsService(Node node,NodesManager nodesManager){
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(NodeJobsService.class.getName());
+
+	public NodeJobsService(Node node, NodesManager nodesManager) {
 		this.node = node;
 		this.nodesManager = nodesManager;
 	}
-	
+
 	@Override
 	public void addJob(JobEntity jobEntity) {
 		this.jobEntities.add(jobEntity);
 	}
-	
+
 	@Override
-	public void createNodeJobService() throws IOException, InterruptedException, KeeperException, ClassNotFoundException {
+	public void createNodeJobService() throws IOException,
+			InterruptedException, KeeperException, ClassNotFoundException {
 		TaskManager taskManager = new TaskManager();
 		taskManager.setNode(this.node);
 		for (JobEntity jobEntity : this.jobEntities) {
@@ -58,15 +60,17 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 
 	@Override
-	public void scheduleTaskManager() throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
+	public void scheduleTaskManager() throws InterruptedException,
+			KeeperException, ClassNotFoundException, IOException {
 		CountDownLatch signal = new CountDownLatch(jobEntities.size());
 		while (!taskManager.getJobPoolService().isEmpty()) {
-			JobEntity jobEntity = taskManager.getJobPoolService().peekJobEntity();
-				jobEntity.setStatus(JobPool.status.ACTIVE.name());
-				boolean flag = sendJobRunnableNotificationToNode(jobEntity,signal);
-				if(flag){
-					taskManager.getJobPoolService().removeJobEntity(jobEntity);
-				}
+			JobEntity jobEntity = taskManager.getJobPoolService()
+					.peekJobEntity();
+			jobEntity.setStatus(JobPool.status.ACTIVE.name());
+			boolean flag = sendJobRunnableNotificationToNode(jobEntity, signal);
+			if (flag) {
+				taskManager.getJobPoolService().removeJobEntity(jobEntity);
+			}
 		}
 		signal.await();
 	}
@@ -82,9 +86,15 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 
 	@Override
-	public boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
+	public boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,
+			CountDownLatch signal) throws InterruptedException,
+			KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
-		String buildPath =  ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job"+jobEntity.getJobId());
+		String buildPath = ZKUtils.buildNodePath(node.getNodeId())
+				+ PathUtil.FORWARD_SLASH + CommonUtil.getJobUUId()
+				+ PathUtil.FORWARD_SLASH
+				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name()
+				+ PathUtil.FORWARD_SLASH + ("_job" + jobEntity.getJobId());
 		try {
 			nodesManager.createPersistentNode(buildPath, signal, jobEntity);
 			flag = true;
@@ -95,15 +105,23 @@ public class NodeJobsService implements NodesJobsRunnable{
 	}
 
 	@Override
-	public Set<LeafBean> receiveJobSucceedNotificationFromNode() throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
+	public Set<LeafBean> receiveJobSucceedNotificationFromNode()
+			throws InterruptedException, KeeperException,
+			ClassNotFoundException, IOException {
 		Set<LeafBean> jobLeafs = new HashSet<>();
-		String buildpath = ZKUtils.buildNodePath(node.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null,null);
-		for(LeafBean leaf : leafs){
-			if(leaf.getPath().contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())){
-				LeafBean jobBean = ZKUtils.getNodeValue(leaf.getPath(),leaf.getPath() + PathUtil.FORWARD_SLASH + leaf.getName(),leaf.getName(), null);
+		String buildpath = ZKUtils.buildNodePath(node.getNodeId())
+				+ PathUtil.FORWARD_SLASH
+				+ CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null, null);
+		for (LeafBean leaf : leafs) {
+			if (leaf.getPath().contains(
+					CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {
+				LeafBean jobBean = ZKUtils.getNodeValue(
+						leaf.getPath(),
+						leaf.getPath() + PathUtil.FORWARD_SLASH
+								+ leaf.getName(), leaf.getName(), null);
 				jobLeafs.add(jobBean);
-				
+
 			}
 		}
 		return jobLeafs;

@@ -13,6 +13,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,8 @@ public class CommonUtil {
 	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH + OUTPUT_IP_FILE_NAME;
 	
 	private static NodesManager nodesManager;
+	
+	private static UUID UUId;
 
 	public enum ZKJobNodeEnum {
 
@@ -158,6 +161,14 @@ public class CommonUtil {
 		} catch (Exception e) {
 			LOGGER.info("Execption {}",e);
 		}
+	}
+	
+	public static void generateJobUUID(){
+		UUId = UUID.randomUUID();
+	}
+	
+	public static String getJobUUId(){
+		return String.valueOf(UUId);
 	}
 
 }

@@ -150,6 +150,7 @@ public class JobManager {
 	 */
 	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
+		CommonUtil.generateJobUUID();
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
 			if (jobEntities == null || jobEntities.isEmpty())
 				continue;

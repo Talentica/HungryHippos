@@ -106,7 +106,8 @@ public class JobExecutor {
 	private static List<JobEntity> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
 		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+				+ CommonUtil.getJobUUId()
+				+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();

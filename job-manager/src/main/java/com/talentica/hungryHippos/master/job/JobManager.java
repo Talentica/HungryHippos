@@ -151,9 +151,14 @@ public class JobManager {
 	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
 		CommonUtil.generateJobUUID();
+		CountDownLatch signal = new CountDownLatch(1);
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
 			if (jobEntities == null || jobEntities.isEmpty())
 				continue;
+			String buildPath = ZKUtils.buildNodePath(nodeId)
+					+ PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64();
+			nodesManager.createPersistentNode(buildPath, signal);
+			signal.await();
 			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId), nodesManager);
 			nodeJobsService.addJobs(jobEntities);
 			nodeJobsService.createNodeJobService();

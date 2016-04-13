@@ -59,6 +59,7 @@ public class DigitalOceanServiceUtil {
 		Droplet droplet;
 		Image image = null;
 		Images images = null;
+		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
 			if (dropletEntity.getDroplet().getImage().getId() != null) {
@@ -97,6 +98,13 @@ public class DigitalOceanServiceUtil {
 				LOGGER.info("No keys are available");
 			}
 			dropletEntity.getDroplet().setKeys(newKeys);
+			List<String> names = dropletEntity.getDroplet().getNames();
+			List<String> newNames = new ArrayList<>();
+			for(String name : names){
+				name.replaceAll("hh", "hh"+"-"+dropletNamePattern);
+				newNames.add(name);
+			}
+			dropletEntity.getDroplet().setNames(newNames);
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
@@ -140,7 +148,6 @@ public class DigitalOceanServiceUtil {
 			droplets = dropletService.getAvailableDroplets(
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
 			List<Integer> dropletIdList = new ArrayList<>();
-			String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
 			for (Droplet dropletObj : droplets.getDroplets()) {
 				if(!dropletObj.getName().contains(dropletNamePattern)) continue;
 				dropletIdList.add(dropletObj.getId());

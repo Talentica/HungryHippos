@@ -2,10 +2,6 @@
 
 var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter']);
 
-app.factory("UserResource", function($resource) {
-	return $resource("/user");
-});
-
 app.factory("JobHistoryResource", function($resource) {
 	return $resource("/job/history/:userId");
 });
@@ -41,16 +37,12 @@ app.directive('fileModel', ['$parse', function ($parse) {
 
 app.config(function($routeProvider, $locationProvider) {
 	  $routeProvider
-	  .when('/login', {
-	    templateUrl: '/login/login.html',
-	    controller: 'LoginCtrl'
-	  })
 	  .when('/newjob', {
-	    templateUrl: 'secure/job/newjob.html',
+	    templateUrl: 'job/newjob.html',
 	    controller: 'NewJobCtrl'
 	  })
 	  .when('/history', {
-	    templateUrl: 'secure/job/jobHistory.html',
+	    templateUrl: 'job/jobHistory.html',
 	    controller: 'JobHistoryCtrl'
 	  })
 	  

@@ -59,6 +59,7 @@ public class DigitalOceanServiceUtil {
 		Droplet droplet;
 		Image image = null;
 		Images images = null;
+		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
 			if (dropletEntity.getDroplet().getImage().getId() != null) {
@@ -97,6 +98,12 @@ public class DigitalOceanServiceUtil {
 				LOGGER.info("No keys are available");
 			}
 			dropletEntity.getDroplet().setKeys(newKeys);
+			List<String> names = dropletEntity.getDroplet().getNames();
+			List<String> newNames = new ArrayList<>();
+			for(String name : names){
+				newNames.add(name.replaceAll("hh", "hh"+"-"+dropletNamePattern));
+			}
+			dropletEntity.getDroplet().setNames(newNames);
 			droplets = dropletService
 					.createDroplets(dropletEntity.getDroplet());
 			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
@@ -141,7 +148,7 @@ public class DigitalOceanServiceUtil {
 					dropletEntity.getPageNo(), dropletEntity.getPerPage());
 			List<Integer> dropletIdList = new ArrayList<>();
 			for (Droplet dropletObj : droplets.getDroplets()) {
-				if(!dropletObj.getName().contains("node")) continue;
+				if(!dropletObj.getName().contains(dropletNamePattern)) continue;
 				dropletIdList.add(dropletObj.getId());
 				LOGGER.info("Droplet id {} , name {} , ip {}",
 						dropletObj.getId(), dropletObj.getName(), dropletObj
@@ -322,9 +329,11 @@ public class DigitalOceanServiceUtil {
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
 		LOGGER.info("Start getting active droplets...");
+		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
+		LOGGER.info("Droplet name patter {}",dropletNamePattern);
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
-			if (!retDroplet.getName().contains("node"))
+			if (!retDroplet.getName().contains(dropletNamePattern))
 				continue;
 			retDroplet = dropletService.getDropletInfo(retDroplet
 					.getId());
@@ -358,14 +367,14 @@ public class DigitalOceanServiceUtil {
 					.getVersion4Networks();
 			for (Network network : networks) {
 				if (network.getType().equalsIgnoreCase("public")) {
-					if (retDroplet.getName().contains("0")) {
+					if (retDroplet.getName().contains("master")) {
 						ZK_IP = network.getIpAddress();
 						ipAndPort.clear();
 						ipAndPort.add(ZK_IP);
 						writeLineInFile(CommonUtil.MASTER_IP_FILE_NAME_ABSOLUTE_PATH,
 								ipAndPort);
 						break;
-					}else if(retDroplet.getName().contains("1")){
+					}else if(retDroplet.getName().contains("output")){
 						OUTPUT_IP = network.getIpAddress();
 						ipAndPort.clear();
 						ipAndPort.add(OUTPUT_IP);

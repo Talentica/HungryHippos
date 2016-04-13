@@ -37,7 +37,16 @@ public class CommonUtil {
 
 	private static FieldTypeArrayDataDescription dataDescription;
 
-	public static final String TEMP_FOLDER_PATH = "/root/hungryhippos/tmp/";
+	public static String TEMP_FOLDER_PATH = null;
+	
+	static{
+		if(OSValidator.isWindows()){
+			TEMP_FOLDER_PATH = "D:/root/hungryhippos/tmp/";
+		}else if(OSValidator.isUnix()){
+			TEMP_FOLDER_PATH = "/root/hungryhippos/tmp/";
+		}
+	}
+	
 
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 	

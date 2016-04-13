@@ -49,7 +49,7 @@ CREATE TABLE `hungryhippos_tester`.`process_instance` (
 CREATE TABLE `hungryhippos_tester`.`process_instance_detail` (
   `process_instance_detail_id` INT NOT NULL AUTO_INCREMENT,
   `process_instance_id` INT NOT NULL,
-  `node_id` INT NOT NULL,
+  `node_id` INT NULL,
   `node_ip` VARCHAR(45) NOT NULL,
   `status` VARCHAR(45) NOT NULL,
   `execution_start_time` DATETIME NOT NULL,

@@ -114,7 +114,6 @@ public class Property {
 						}
 					}
 				}
-				// PropertyConfigurator.configure(properties);
 			} catch (IOException e) {
 				LOGGER.info("Unable to load the property file!!");
 			}
@@ -142,7 +141,6 @@ public class Property {
 							CommonUtil.TEMP_FOLDER_PATH
 									+ Property.SERVER_CONF_FILE);
 					serverProp.load(is);
-					// serverProp.load(loader.getResourceAsStream(SERVER_CONF_FILE));
 					PropertyConfigurator.configure(serverProp);
 					LOGGER.info("serverConfigFile.properties file is loaded");
 				} catch (IOException e) {

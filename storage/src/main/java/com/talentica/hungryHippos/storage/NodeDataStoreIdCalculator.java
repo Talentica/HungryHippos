@@ -2,11 +2,9 @@ package com.talentica.hungryHippos.storage;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.talentica.hungryHippos.sharding.BucketUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +57,18 @@ public class NodeDataStoreIdCalculator implements Serializable {
 		int fileId = 0;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			fileId <<= 1;
-			Object value = dynamicMarshal.readValue(i, row);
-			Bucket<KeyValueFrequency> valueBucket = keyToValueToBucketMap.get(keys[i]).get(value);
+			String key = keys[i];
+			int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
+			Object value = dynamicMarshal.readValue(keyIndex, row);
+			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(keys[i]);
+			Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value);
+			if(valueBucket == null){
+				Collection<Bucket<KeyValueFrequency>> keyBuckets = (Collection<Bucket<KeyValueFrequency>>) valueToBucketMap.values();
+				List<Bucket<KeyValueFrequency>> keyBucketList = new ArrayList(keyBuckets);
+				Collections.sort(keyBucketList);
+				int bucketNo = value.hashCode() % keyBucketList.get(keyBucketList.size() - 1).getId();
+				valueBucket = BucketUtil.getBucket(valueToBucketMap, bucketNo);
+			}
 			if (valueBucket != null && keyWiseAcceptingBuckets.get(keys[i]) != null
 					&& keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
 				fileId |= 1;
@@ -68,7 +76,6 @@ public class NodeDataStoreIdCalculator implements Serializable {
 		}
 		return fileId;
 	}
-
 	public int getCount() {
 		return count;
 	}

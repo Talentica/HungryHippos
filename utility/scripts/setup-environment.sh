@@ -33,14 +33,6 @@ echo '################          Nodes setup started      ################'
 sh setup-nodes.sh
 echo '################          Nodes setup completed      ################'
 
-echo '################          START SHARDING      ################'
-sh start-sharding.sh
-echo '################          SHARDING INITIATED      ################'
-
-echo '################          START DATA-PUBLISHING      ################'
-sh start-data-publisher.sh
-echo '################          DATA-PUBLISHING INITIATED      ################'
-
-echo '################          START JOB MATRIX      ################'
-sh start-job-manager.sh  com.talentica.hungryHippos.test.sum.SumJobMatrixImpl
-echo '################          JOB MATRIX INITIATED      ################'
+echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
+sh start-sharding-and-datapublishing-and-jobmatrix.sh
+echo '################          PROCESS INITIATED      ################'

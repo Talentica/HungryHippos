@@ -1,11 +1,9 @@
 package com.talentica.hungryHippos.droplet.util;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,8 +44,7 @@ public class DigitalOceanServiceUtil {
 			.getLogger(DigitalOceanServiceUtil.class);
 	private static NodesManager nodesManager;
 	private static String ZK_IP;
-	/*private static String TEMP_PATH = new File(System.getProperty("user.dir"))
-			.getParent() + File.separator + "tmp/";*/
+	private static String OUTPUT_IP;
 	private static String TEMP_PATH = CommonUtil.TEMP_FOLDER_PATH;
 	/** 
 	 * @param dropletEntity
@@ -245,8 +242,6 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Active droplets are {}", dropletFill.toString());
 			LOGGER.info("Generating server conf file");
 			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill);
-			/*LOGGER.info("IP Address {}",
-					MapUtils.getFormattedString(ipv4AddrsMap));*/
 			LOGGER.info("IP Address {}",ipv4AddrsList);
 			LOGGER.info("Generating server config file");
 			writeLineInFile(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
@@ -290,10 +285,6 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadServerConfigFileToZK() throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		/*Properties properties = Property.getPropertiesNewInstance();
-		for (Entry<String, String> entry : ipv4AddrsMap.entrySet()) {
-			properties.put(entry.getKey(), entry.getValue());
-		}*/
 		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
 				Property.loadServerProperties());
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
@@ -305,27 +296,10 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void startZookeeperServer() throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
-		executeShellCommand(TEMP_PATH+"start-zk-server.sh");
+		CommonUtil.executeScriptCommand("/bin/sh",TEMP_PATH+"start-zk-server.sh");
 		LOGGER.info("Shell command is executed");
 	}
 	
-	/**
-	 * @param shellCommand
-	 */
-	public static void executeShellCommand(String shellCommand){
-		try {
-			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(new String[] { "/bin/sh", shellCommand });
-			BufferedReader input = new BufferedReader(new InputStreamReader(
-					pr.getInputStream()));
-			String line = "";
-			while ((line = input.readLine()) != null) {
-				LOGGER.info(line);
-			}
-		} catch (Exception e) {
-			LOGGER.info("Execption {}",e);
-		}
-	}
 
 	/**
 	 * @param digitalOceanManager
@@ -373,13 +347,11 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static List<String> generateServerConfigFile(
 			List<Droplet> droplets) throws IOException {
-		Map<String, String> ipv4AddrsMap;
-		//ipv4AddrsMap = new HashMap<String, String>();
 		int index = 0;
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
 		String PORT = "2324";
-		List<String> zkIpAndPort = new ArrayList<>();
+		List<String> ipAndPort = new ArrayList<>();
 		List<String> serverIps = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
 			List<Network> networks = retDroplet.getNetworks()
@@ -388,14 +360,19 @@ public class DigitalOceanServiceUtil {
 				if (network.getType().equalsIgnoreCase("public")) {
 					if (retDroplet.getName().contains("0")) {
 						ZK_IP = network.getIpAddress();
-						zkIpAndPort.add(ZK_IP);
+						ipAndPort.clear();
+						ipAndPort.add(ZK_IP);
 						writeLineInFile(CommonUtil.MASTER_IP_FILE_NAME_ABSOLUTE_PATH,
-								zkIpAndPort);
+								ipAndPort);
+						break;
+					}else if(retDroplet.getName().contains("1")){
+						OUTPUT_IP = network.getIpAddress();
+						ipAndPort.clear();
+						ipAndPort.add(OUTPUT_IP);
+						writeLineInFile(CommonUtil.OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH, ipAndPort);
 						break;
 					}
 					serverIps.add(PRIFIX + (index++)+":"+ network.getIpAddress()+ SUFFIX + PORT);
-					/*ipv4AddrsMap.put(PRIFIX + (index++), network.getIpAddress()
-							+ SUFFIX + PORT);*/
 					break;
 				}
 			}

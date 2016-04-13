@@ -1,8 +1,6 @@
 package com.talentica.hungryHippos.sharding;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -76,12 +74,9 @@ public class Sharding {
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
 			try {
-				executeShellCommand("/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh");
+				CommonUtil.executeScriptCommand("/bin/sh","/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh");
 				nodesManager = CommonUtil.connectZK();
-				String shardingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED);
-				CountDownLatch signal = new CountDownLatch(1);
-				nodesManager.createPersistentNode(shardingNodeName, signal);
-				signal.await();
+				sendSignal(nodesManager);
 				LOGGER.info("Sharding completion notification created on zk node");
 			} catch (Exception e) {
 				LOGGER.info("Unable to connect the zk node due to {}",e);
@@ -90,22 +85,21 @@ public class Sharding {
 			LOGGER.error("Error occurred during sharding process.", e);
 		}
 	}
-	
-	public static void executeShellCommand(String shellCommand){
-		try {
-			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(new String[] { "/bin/sh", shellCommand });
-			BufferedReader input = new BufferedReader(new InputStreamReader(
-					pr.getInputStream()));
-			String line = "";
-			while ((line = input.readLine()) != null) {
-				LOGGER.info(line);
-			}
-		} catch (Exception e) {
-			LOGGER.info("Execption {}",e);
-		}
-	}
 
+	/**
+	 * Send signal to data publisher node that sharding is completed.
+	 * @param nodesManager
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static void sendSignal(NodesManager nodesManager)
+			throws IOException, InterruptedException {
+		String shardingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED);
+		CountDownLatch signal = new CountDownLatch(1);
+		nodesManager.createPersistentNode(shardingNodeName, signal);
+		signal.await();
+	}
+	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
 		LOGGER.info("Calculating buckets to node numbers map started");
 		data.reset();

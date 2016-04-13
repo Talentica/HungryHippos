@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.talentica.hungryHippos.tester.web.UserCache;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
@@ -17,6 +18,7 @@ import com.talentica.hungryHippos.tester.web.job.data.STATUS;
 import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
+import com.talentica.hungryHippos.tester.web.user.data.User;
 
 import lombok.Setter;
 
@@ -36,6 +38,10 @@ public class JobService extends Service {
 	@Autowired(required = false)
 	private JobOutputService jobOutputService;
 
+	@Setter
+	@Autowired(required = false)
+	private UserCache userCache;
+
 	@RequestMapping(value = "new", method = RequestMethod.POST)
 	public @ResponseBody JobServiceResponse newJob(@RequestBody(required = true) JobServiceRequest request) {
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
@@ -48,8 +54,8 @@ public class JobService extends Service {
 			}
 			Job job = request.getJobDetail();
 			JobInput jobInput = job.getJobInput();
-			// TODO: Remove hard coding of user id later.
-			job.setUserId(1);
+			User user = userCache.getCurrentLoggedInUser();
+			job.setUserId(user.getUserId());
 			job.setDateTimeSubmitted(DateTime.now().toDate());
 			job.setJobOutput(null);
 			job.setJobInput(null);

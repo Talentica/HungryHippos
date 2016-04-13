@@ -1,6 +1,6 @@
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-md-11">
+		<div class="col-md-10">
 			<nav class="navbar navbar-default" role="navigation">
 				<div class="navbar-header">
 					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
@@ -16,16 +16,19 @@
 						<li>
 							<a href="#/history">Job History</a>
 						</li>
-						
-					</ul>
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<a href="#/login" ng-click="hideNavigationBar()">Logout</a>
-						</li>
 					</ul>
 				</div>
 			</nav>
 		</div>
+
+		<li class="col-md-1">
+			<form name="logoutForm" id="logoutForm" action="/logout" method="post">
+				<a onclick="$('#logoutForm').submit();" ><img src="../images/logout.jpg" alt="Logout" class="pull-right"></a>
+  	            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+			</form> 
+		</li>
+				
+		
 		<div class="col-md-1">
 			<img src="../images/hungry-hungry-hippos.jpg" alt="Hungry Hippos" class="pull-right">
 		</div>

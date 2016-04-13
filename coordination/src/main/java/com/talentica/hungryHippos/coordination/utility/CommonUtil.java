@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +41,17 @@ public class CommonUtil {
 	public static final String TEMP_FOLDER_PATH = "/root/hungryhippos/tmp/";
 
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
+	
+	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
 
 	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
 			+ MASTER_IP_FILE_NAME;
 	
+	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH + OUTPUT_IP_FILE_NAME;
+	
 	private static NodesManager nodesManager;
+	
+	private static UUID UUId;
 
 	public enum ZKJobNodeEnum {
 
@@ -112,6 +121,10 @@ public class CommonUtil {
 	private static String getZKIp() throws IOException {
 		return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 	}
+	
+	public static String getKazooIp() throws IOException {
+		return readFile(new File(OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
+	}
 
 	public static NodesManager connectZK() throws Exception {
 		if(nodesManager == null){
@@ -132,6 +145,41 @@ public class CommonUtil {
 			throws Exception {
 		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 		return (serverConfig == null ) ? null :serverConfig.getFileData();
+	}
+	
+	/**
+	 * @param shellCommand
+	 */
+	public static void executeScriptCommand(String script,String shellCommand){
+		try {
+			Runtime rt = Runtime.getRuntime();
+			Process pr = rt.exec(new String[] { script, shellCommand });
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					pr.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				LOGGER.info(line);
+			}
+		} catch (Exception e) {
+			LOGGER.info("Execption {}",e);
+		}
+	}
+	
+	public static void generateJobUUID(){
+		UUId = UUID.randomUUID();
+	}
+	
+	public static String getJobUUIdInBase64(){
+		return uuidToBase64(String.valueOf(UUId));
+	}
+		
+	private static String uuidToBase64(String str) {
+	    return Base64.getUrlEncoder().encodeToString(str.getBytes());
+	}
+	
+	private static String uuidFromBase64(String str) {
+	    return new String(Base64.getUrlDecoder().decode(str.getBytes()));
+	    
 	}
 
 }

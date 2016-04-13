@@ -45,12 +45,9 @@ public class JobExecutor {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			//validateArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			nodesManager = CommonUtil.connectZK();
-			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
-			signal.await();
+			waitForSignal();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
@@ -73,18 +70,15 @@ public class JobExecutor {
 	}
 
 	/**
-	 * To validate the argument command line.
-	 * 
-	 * @param args
-	 * @throws IOException
+	 * Await for the signal of the job manager. Once job is submitted, it start execution on respective servers.
+	 * @throws KeeperException
+	 * @throws InterruptedException
 	 */
-	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
-		if (args.length == 1) {
-			Property.overrideConfigurationProperties(args[0]);
-		} else {
-			System.out.println("Please provide the zookeeper configuration file");
-			System.exit(1);
-		}
+	private static void waitForSignal() throws KeeperException,
+			InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
+		signal.await();
 	}
 
 	/**
@@ -112,7 +106,8 @@ public class JobExecutor {
 	private static List<JobEntity> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
 		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+				+ CommonUtil.getJobUUIdInBase64()
+				+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();

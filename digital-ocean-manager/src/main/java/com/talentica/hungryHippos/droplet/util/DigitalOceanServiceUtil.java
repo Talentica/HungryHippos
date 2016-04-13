@@ -330,6 +330,7 @@ public class DigitalOceanServiceUtil {
 			RequestUnsuccessfulException {
 		LOGGER.info("Start getting active droplets...");
 		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
+		LOGGER.info("Droplet name patter {}",dropletNamePattern);
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {
 			if (!retDroplet.getName().contains(dropletNamePattern))

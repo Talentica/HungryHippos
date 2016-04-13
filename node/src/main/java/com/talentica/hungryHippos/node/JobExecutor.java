@@ -3,7 +3,6 @@
  */
 package com.talentica.hungryHippos.node;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,10 +104,15 @@ public class JobExecutor {
 	 */
 	private static List<JobEntity> getJobsFromZKNode()
 			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
-		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.getJobUUIdInBase64()
-				+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
+				+ PathUtil.FORWARD_SLASH
+				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
+		/*String jobMatrixId = leafs.iterator().next().getName();
+		leafs.clear();
+		String buildPathWithJobMatrixId = buildPath + PathUtil.FORWARD_SLASH + jobMatrixId;
+		leafs = ZKUtils.searchTree(buildPathWithJobMatrixId, null, null);*/
+		if(leafs.size()!=0) 
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 		for (LeafBean leaf : leafs) {

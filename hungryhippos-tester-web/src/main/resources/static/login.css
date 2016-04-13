@@ -7,7 +7,7 @@
 }
 
 body {
-  background: #3CC;
+  background: #E5E9EC;
 }
 
 .container {
@@ -99,4 +99,16 @@ h1, input {
 
 .greenBackground{
 font-weight: bold;color: green;
+}
+
+.content{
+	background-color:#F5F5EF;
+}
+
+.nav{
+	float: right;
+}
+
+.floatLeft{
+	float: left;
 }

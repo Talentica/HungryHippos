@@ -1,123 +1,115 @@
-<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-3"/>
-		<div class="col-md-6">
-			<h4 class="centerAlignedText">
-				Submit a new job 
-			</h4>
-			<form name="newJobForm" ng-submit="createNewJob()">
-				<div class="alert alert-success" ng-show="notification.message"> 
-						<strong>Congratulations!</strong> 
-						{{notification.message}} 
-				</div>			
-				<div class="alert alert-danger" role="alert" ng-show="error.message">
-				  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-				  <span class="sr-only">Error:</span>
-				  	{{error.message}}
-				</div>				
-				<div class="form-group">
-					<label for="dataFileLocation">
-						Data File Location
-					</label>
-					<input type="url" ng-model="jobDetail.jobInput.dataLocation" 
-							data-bv-uri-message="The website address is not valid"  placeholder="Please provide URL to valid CSV input data file" class="form-control" 
-									required="required"	id="dataFileLocation">
-				</div>
-				
-				<div class="form-group">
-					<label for="numberOfColumns">
-						Number of Columns
-					</label>
-					<input ng-change="updateDataTypeConfiguration()" ng-model="numberOfColumnsInDataFile" type="number" required="required" max="25" min="1" 
-							placeholder="Please provide with number of data columns in input CSV data file" 
-							class="form-control" id="numberOfColumns">
-				</div>
-				<div class="form-group">
-					<label>
-						Data Type Configuration  
-					</label>
-					
-					<div class="container-fluid">
-						<div class="row">
-							<div class="col-md-12">
-								<table class="table">
-									<thead>
-										<tr>
-											<div class="form-group">
-											<th>
-												Column
-											</th>
-											<th>
-												Data Type
-											</th>
-											<th>
-												Sharding dimension
-											</th>
-											<th>
-												Maximum No. of Characters
-											</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr ng-repeat="count in getDataTypeConfiguration() track by $index">
-											<td>
-												Column {{$index+1}}
-											</td>
-											<td>
-												<select name="Data Type-{{$index}}" ng-model="dataTypeConfiguration[$index].dataType">
-													<option value="BYTE">Byte</option>
-													<option value="SHORT">Short</option>
-													<option value="INT">Integer</option>
-													<option value="LONG">Long</option>
-													<option value="CHAR">Character</option>
-													<option value="FLOAT">Float</option>
-													<option value="DOUBLE">Double</option>
-													<option value="STRING">String</option>
-												</select>
-											</td>
-											<td>
-												<input type="checkbox" name="Sharding Dimension-{{$index}}" 
-													ng-model="dataTypeConfiguration[$index].shardingDimension" />
-											</td>
-
-											<td>
-												<input name="Data Size-{{$index}}" type="number" max="1000" min="2" ng-show="dataTypeConfiguration[$index].dataType==='STRING'"
-													ng-model="dataTypeConfiguration[$index].dataSize" />
-											</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>					
-				</div>
-				<div class="form-group">
-					<label for="jobJarFile">
-						Upload Job JAR File
-					</label>
-					<input file-model="jobJarFile" accept="application/java-archive" required="required" type="file" id="jobJarFile">
-					<p class="help-block">
-						Please upload a valid job jar file containing below specified job matrix implementation and compiled with Java 1.8 or below.
-					</p>
-				</div>
-				
-				<div class="form-group">
-					<label for="jobMatrixClassName">
-						Job Matrix Class Name: 
-					</label>
-					<input class="form-control" ng-model="jobDetail.jobInput.jobMatrixClass" required="required" 
-							type="text" id="jobMatrixClassName" placeholder="Please provide fully qualified name. e.g. com.test.SumJobMatrixImpl">
-				</div>
-				
-				<div class="form-group">
-					<label>
-					</label>
-					<button type="submit" class="btn btn-primary">
-						Submit
-					</button>
-				</div>
-			</form>
-		</div>
-		<div class="col-md-3"/>
+<h4 class="centerAlignedText">
+	Submit a new job 
+</h4>
+<form name="newJobForm" ng-submit="createNewJob()">
+	<div class="alert alert-success" ng-show="notification.message"> 
+			<strong>Congratulations!</strong> 
+			{{notification.message}} 
+	</div>			
+	<div class="alert alert-danger" role="alert" ng-show="error.message">
+	  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	  <span class="sr-only">Error:</span>
+	  	{{error.message}}
+	</div>				
+	<div class="form-group">
+		<label for="dataFileLocation">
+			Data File Location
+		</label>
+		<input type="url" ng-model="jobDetail.jobInput.dataLocation" 
+				data-bv-uri-message="The website address is not valid"  placeholder="Please provide URL to valid CSV input data file" class="form-control" 
+						required="required"	id="dataFileLocation">
 	</div>
-</div>
+	
+	<div class="form-group">
+		<label for="numberOfColumns">
+			Number of Columns
+		</label>
+		<input ng-change="updateDataTypeConfiguration()" ng-model="numberOfColumnsInDataFile" type="number" required="required" max="25" min="1" 
+				placeholder="Please provide with number of data columns in input CSV data file" 
+				class="form-control" id="numberOfColumns">
+	</div>
+	<div class="form-group">
+		<label>
+			Data Type Configuration  
+		</label>
+		
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-12">
+					<table class="table">
+						<thead>
+							<tr>
+								<div class="form-group">
+								<th>
+									Column
+								</th>
+								<th>
+									Data Type
+								</th>
+								<th>
+									Sharding dimension
+								</th>
+								<th>
+									Maximum No. of Characters
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="count in getDataTypeConfiguration() track by $index">
+								<td>
+									Column {{$index+1}}
+								</td>
+								<td>
+									<select name="Data Type-{{$index}}" ng-model="dataTypeConfiguration[$index].dataType">
+										<option value="BYTE">Byte</option>
+										<option value="SHORT">Short</option>
+										<option value="INT">Integer</option>
+										<option value="LONG">Long</option>
+										<option value="CHAR">Character</option>
+										<option value="FLOAT">Float</option>
+										<option value="DOUBLE">Double</option>
+										<option value="STRING">String</option>
+									</select>
+								</td>
+								<td>
+									<input type="checkbox" name="Sharding Dimension-{{$index}}" 
+										ng-model="dataTypeConfiguration[$index].shardingDimension" />
+								</td>
+
+								<td>
+									<input name="Data Size-{{$index}}" type="number" max="1000" min="2" ng-show="dataTypeConfiguration[$index].dataType==='STRING'"
+										ng-model="dataTypeConfiguration[$index].dataSize" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>					
+	</div>
+	<div class="form-group">
+		<label for="jobJarFile">
+			Upload Job JAR File
+		</label>
+		<input file-model="jobJarFile" accept="application/java-archive" required="required" type="file" id="jobJarFile">
+		<p class="help-block">
+			Please upload a valid job jar file containing below specified job matrix implementation and compiled with Java 1.8 or below.
+		</p>
+	</div>
+	
+	<div class="form-group">
+		<label for="jobMatrixClassName">
+			Job Matrix Class Name: 
+		</label>
+		<input class="form-control" ng-model="jobDetail.jobInput.jobMatrixClass" required="required" 
+				type="text" id="jobMatrixClassName" placeholder="Please provide fully qualified name. e.g. com.test.SumJobMatrixImpl">
+	</div>
+	
+	<div class="form-group">
+		<label>
+		</label>
+		<button type="submit" class="btn btn-primary">
+			Submit
+		</button>
+	</div>
+</form>

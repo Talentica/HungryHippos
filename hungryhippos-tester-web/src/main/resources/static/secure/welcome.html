@@ -44,23 +44,24 @@
 
 	<!-- Add your site or application content here -->
 	<div class="container-fluid">
-	  <div class="row">
-	      <div class="span12" ng-include="'navigation.html'" ng-show="shownavigation">
-	  	  </div>
-	  </div>
-	  <div class="row">
-	      <div class="span9">
-	        <h1>Welcome to Hungry Hippos</h1>
-          </div>
-      </div>
-    </div>
-	
-	<div>
-		<ng-view></ng-view>
-	</div>
-
-	<div class="footer">
-		<div class="container"></div>
+		    <div class="col-md-1"></div>
+			<div class="col-md-10 content">
+				  <div class="row">
+				      <div ng-include="'navigation.html'" ></div>
+				  </div>
+				  <div class="row">
+				      <div>
+				        <h1>Welcome to Hungry Hippos</h1>
+			          </div>
+			      </div>
+  				 <div>
+					<ng-view></ng-view>
+				 </div>
+				<div class="footer">
+					<div></div>
+				</div>
+    		</div>
+			<div class="col-md-1"></div>
 	</div>
 </body>
 </html>

@@ -49,5 +49,7 @@ app.config(function($routeProvider, $locationProvider) {
 	    templateUrl: 'job/jobHistory.html',
 	    controller: 'JobHistoryCtrl'
 	  })
-	  
+	  .when('/about', {
+		    templateUrl: 'about.html',
+		  })
 });

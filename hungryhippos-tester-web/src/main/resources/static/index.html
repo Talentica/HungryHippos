@@ -49,7 +49,7 @@
           </div>
       </div>
 
-		<div class="container" ng-controller="LoginCtrl">
+		<div class="container">
 		    <div class="col-md-6">
 		    <div id="logbox">
 		      <form id="signup" ng-submit="register()">
@@ -69,12 +69,13 @@
 		   </div>
 		   <div class="col-md-6">
 		    <div id="logbox">
-		      <form id="signup" name="loginForm" action='/login' method="post">
+		    	<form id="signup" action="#" name="loginForm" method="post">
 			        <h4 class="centerAlignedText">Already have an account?</h4>
-			        <input required type="email" placeholder="Please enter your email" class="input pass" name="username"/>
-			        <input name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
-			        <input type="submit" value="Sign me in!" class="inputButton"/>
-		      </form>
+			        <div class="alert alert-danger" ng-show="loginErrorDetails.message">{{loginErrorDetails.message}}</div>
+			        <input ng-model="loginUserName" required="required" type="email" placeholder="Please enter your email" class="input pass" name="username"/>
+			        <input ng-model="loginPassword" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
+			        <input type="button" ng-click="login();" value="Sign me in!" class="inputButton"/>
+			    </form>
 		    </div>
 		   </div>
 		</div>    

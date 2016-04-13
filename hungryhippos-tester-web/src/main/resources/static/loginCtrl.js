@@ -6,7 +6,7 @@ app.factory("UserResource", function($resource) {
 	return $resource("/user");
 });
 
-app.controller('LoginCtrl',function ($scope,UserAccountService) {
+app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window) {
 	  $scope.user = {};
 	  $scope.successDetails=null;
 	  $scope.errorDetails=null;
@@ -53,4 +53,26 @@ app.controller('LoginCtrl',function ($scope,UserAccountService) {
 			  }
 		  );
 	  }
+	  
+	  $scope.loginUserName=null;
+	  $scope.loginPassword=null;
+	  $scope.loginErrorDetails={};
+	  $scope.login=function(){
+		  if($scope.loginUserName && $scope.loginPassword){
+			  $scope.loginErrorDetails={};
+			  UserAccountService.login($scope.loginUserName,$scope.loginPassword,
+			  function(response){
+		  		console.log("Logged in successfully");
+		  		$window.location.href="/secure/welcome.html#/about";
+			  	},
+			  	function(response){
+			  		console.log("Log in failed.");
+			  		$scope.loginErrorDetails.message="The email and password you entered don't match. Please try again.";
+			  	}
+		  );
+	    }else{
+	    	$scope.loginErrorDetails.message="Please enter username and password both."
+	    }
+	  }
+	  
 });

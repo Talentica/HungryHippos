@@ -1,36 +1,32 @@
-<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-10">
-			<nav class="navbar navbar-default" role="navigation">
-				<div class="navbar-header">
+<nav class="navbar navbar-default" >
+	<div class="navbar-header">
+		<img src="../images/hungry-hippos-logo.jpg" alt="Hungry Hippos" class="pull-right">
+	</div>
+	<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		<ul class="nav navbar-nav class="navbar-right">
+			<li class="active">
+			    <div>
 					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
 						 <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-					</button> <a class="navbar-brand" href="#">Hungry Hippos</a>
+					</button> <a class="navbar-brand" href="#/about">About</a>
 				</div>
-				
-				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-					<ul class="nav navbar-nav">
-						<li class="active">
-							<a href="#/newjob">Submit a New Job</a>
-						</li>
-						<li>
-							<a href="#/history">Job History</a>
-						</li>
-					</ul>
-				</div>
-			</nav>
-		</div>
+			</li>
 
-		<li class="col-md-1">
-			<form name="logoutForm" id="logoutForm" action="/logout" method="post">
-				<a onclick="$('#logoutForm').submit();" ><img src="../images/logout.jpg" alt="Logout" class="pull-right"></a>
-  	            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-			</form> 
-		</li>
-				
-		
-		<div class="col-md-1">
-			<img src="../images/hungry-hungry-hippos.jpg" alt="Hungry Hippos" class="pull-right">
-		</div>
+			<li>
+				<a href="#/newjob">Submit a New Job</a>
+			</li>
+			<li>
+				<a href="#/history">Job History</a>
+			</li>
+			<li>
+				<div>
+					<form name="logoutForm" id="logoutForm" action="/logout" method="post">
+					    <a onclick="$('#logoutForm').submit();"  href="#" class="btn btn-info btn-lg">
+		          			<span class="glyphicon glyphicon-log-out"></span> Log out
+		        		</a>
+					</form> 
+				</div>							
+			</li>
+		</ul>
 	</div>
-</div>
+</nav>

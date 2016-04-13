@@ -12,7 +12,7 @@
 <!-- endbower -->
 <!-- endbuild -->
 <!-- build:css(.tmp) styles/main.css -->
-<link rel="stylesheet" href="login/login.css">
+<link rel="stylesheet" href="login.css">
 
 <!-- endbuild -->
 
@@ -27,38 +27,58 @@
 	<!-- endbuild -->
 	<!-- build:js({.tmp,app}) scripts/scripts.js -->
 	<!-- endbuild -->
-
-	<script src="app.js" ></script>
-	<script src="login/loginCtrl.js"></script>
-	<script src="main/mainCtrl.js"></script>
-	<script src="secure/job/jobControllers.js"></script>
-	<script src="login/loginSrvc.js"></script>
-	<script src="secure/job/jobSrvc.js"></script>
+	<script src="loginCtrl.js"></script>
+	<script src="loginSrvc.js"></script>
 	<script src="bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js"></script>
 	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 	<script src="bower_components/angular-filter/dist/angular-filter.min.js"></script>
 	<script src="bower_components/angular-base64/angular-base64.js"></script>
 </head>
-<body ng-app="testerWebApp" ng-controller="MainCtrl">
+<body ng-app="loginApp" ng-controller="LoginCtrl">
 	<!--[if lte IE 8]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
 	<!-- Add your site or application content here -->
-	<div class="container-fluid">
+	<div>
 	  <div class="row">
-	      <div class="span12" ng-include="'navigation.html'" ng-show="shownavigation">
-	  	  </div>
 	  </div>
 	  <div class="row">
 	      <div class="span9">
 	        <h1>Welcome to Hungry Hippos</h1>
           </div>
       </div>
-    </div>
-	
-	<div>
-		<ng-view></ng-view>
+
+		<div class="container" ng-controller="LoginCtrl">
+		    <div class="col-md-6">
+		    <div id="logbox">
+		      <form id="signup" ng-submit="register()">
+		        <h4 class="centerAlignedText">Create an account</h4>
+		
+		      	<div class="alert alert-danger" ng-show="errorDetails">{{errorDetails.message}}</div>
+				<div class="alert alert-success" ng-show="successDetails">{{successDetails.message}}</div>
+		        
+		        <input ng-model="user.firstName" type="text" placeholder="What's your first name?" autofocus="autofocus" required="required" class="input pass"/>
+		        <input ng-model="user.lastName" type="text" placeholder="What's your last name?" autofocus="autofocus" required="required" class="input pass"/>
+		        <input ng-model="user.emailAddress" type="email" placeholder="Email address" required="required" class="input pass"/>
+				<input ng-model="user.password" type="password" placeholder="Choose a password" required="required" class="input pass"/>
+		        <input ng-model="confirmPassword" type="password" placeholder="Confirm password" required="required" class="input pass"/>
+		        <input type="submit" value="Sign me up!" class="inputButton"/>
+		      </form>
+		    </div>
+		   </div>
+		   <div class="col-md-6">
+		    <div id="logbox">
+		      <form id="signup" name="loginForm" action='/login' method="post">
+			        <h4 class="centerAlignedText">Already have an account?</h4>
+			        <input required type="email" placeholder="Please enter your email" class="input pass" name="username"/>
+			        <input name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
+			        <input type="submit" value="Sign me in!" class="inputButton"/>
+		      </form>
+		    </div>
+		   </div>
+		</div>    
+		
 	</div>
 
 	<div class="footer">

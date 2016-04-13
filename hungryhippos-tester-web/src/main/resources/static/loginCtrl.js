@@ -1,5 +1,11 @@
 'use strict';
 
+var app=angular.module('loginApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter']);
+
+app.factory("UserResource", function($resource) {
+	return $resource("/user");
+});
+
 app.controller('LoginCtrl',function ($scope,UserAccountService) {
 	  $scope.user = {};
 	  $scope.successDetails=null;

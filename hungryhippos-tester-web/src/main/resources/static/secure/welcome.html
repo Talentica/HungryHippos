@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width">
+<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+<!-- build:css(.) styles/vendor.css -->
+<!-- bower:css -->
+<link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css" />
+<!-- endbower -->
+<!-- endbuild -->
+<!-- build:css(.tmp) styles/main.css -->
+<link rel="stylesheet" href="../login.css">
+
+<!-- endbuild -->
+
+<!-- build:js(.) scripts/vendor.js -->
+	<!-- bower:js -->
+	<script src="../bower_components/jquery/dist/jquery.js"></script>
+	<script src="../bower_components/angular/angular.js"></script>
+	<script src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
+	<script src="../bower_components/angular-resource/angular-resource.js"></script>
+	<script src="../bower_components/angular-route/angular-route.js"></script>
+	<!-- endbower -->
+	<!-- endbuild -->
+	<!-- build:js({.tmp,app}) scripts/scripts.js -->
+	<!-- endbuild -->
+
+	<script src="app.js" ></script>
+	<script src="../main/mainCtrl.js"></script>
+	<script src="job/jobControllers.js"></script>
+	<script src="job/jobSrvc.js"></script>
+	<script src="../bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js"></script>
+	<script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+	<script src="../bower_components/angular-filter/dist/angular-filter.min.js"></script>
+	<script src="../bower_components/angular-base64/angular-base64.js"></script>
+</head>
+<body ng-app="testerWebApp" ng-controller="MainCtrl">
+	<!--[if lte IE 8]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+	<!-- Add your site or application content here -->
+	<div class="container-fluid">
+	  <div class="row">
+	      <div class="span12" ng-include="'navigation.html'" ng-show="shownavigation">
+	  	  </div>
+	  </div>
+	  <div class="row">
+	      <div class="span9">
+	        <h1>Welcome to Hungry Hippos</h1>
+          </div>
+      </div>
+    </div>
+	
+	<div>
+		<ng-view></ng-view>
+	</div>
+
+	<div class="footer">
+		<div class="container"></div>
+	</div>
+</body>
+</html>

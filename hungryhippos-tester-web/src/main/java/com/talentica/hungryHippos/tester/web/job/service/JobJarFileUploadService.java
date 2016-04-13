@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 @Controller
-@RequestMapping("/job")
+@RequestMapping("/secure/job")
 public class JobJarFileUploadService {
 
 	@Value("${jobmatrix.jars.dir}")

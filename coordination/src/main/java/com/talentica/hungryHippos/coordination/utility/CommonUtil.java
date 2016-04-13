@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -167,8 +169,17 @@ public class CommonUtil {
 		UUId = UUID.randomUUID();
 	}
 	
-	public static String getJobUUId(){
-		return String.valueOf(UUId);
+	public static String getJobUUIdInBase64(){
+		return uuidToBase64(String.valueOf(UUId));
+	}
+		
+	private static String uuidToBase64(String str) {
+	    return Base64.getUrlEncoder().encodeToString(str.getBytes());
+	}
+	
+	private static String uuidFromBase64(String str) {
+	    return new String(Base64.getUrlDecoder().decode(str.getBytes()));
+	    
 	}
 
 }

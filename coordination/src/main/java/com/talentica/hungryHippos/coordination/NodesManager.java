@@ -95,7 +95,6 @@ public class NodesManager implements Watcher {
 		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getZkPropertyValue("zookeeper.config_path"));
 		Integer sessionTimeOut = Integer.valueOf(Property.getZkPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
-		//connectZookeeper(null);
 	}
 
 	public NodesManager connectZookeeper(String zkIP) {

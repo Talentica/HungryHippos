@@ -64,7 +64,7 @@ public class Property {
 	}
 
 	public static Properties getProperties() {
-		if (mergeProperties == null) {
+		if (mergeProperties == null || mergeProperties.isEmpty()) {
 			mergeProperties = new Properties();
 			try {
 				if (CONFIG_FILE_INPUT_STREAM != null) {
@@ -84,6 +84,11 @@ public class Property {
 						properties.load(CONFIG_FILE_INPUT_STREAM);
 					}
 				} else {
+					try {
+						CommonUtil.connectZK();
+					} catch (Exception e1) {
+						LOGGER.info("Unable to start zk due to  {}",e1);
+					}
 					LOGGER.info("Internal configuration properties file is loaded");
 					try {
 						properties = CommonUtil

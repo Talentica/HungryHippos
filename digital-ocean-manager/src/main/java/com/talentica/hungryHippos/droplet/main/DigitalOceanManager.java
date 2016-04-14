@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
@@ -36,6 +37,7 @@ public class DigitalOceanManager {
 				return;
 			}
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
+			/*CommonUtil.connectZK();*/
 			validateProgramArguments(args);
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
 			dropletService = new DigitalOceanServiceImpl(

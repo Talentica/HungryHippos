@@ -14,6 +14,10 @@ apply plugin: 'spring-boot'
 jar {
 	baseName = 'hungryhippos-tester-web'
 	version =  '0.1.0'
+	archiveName='hungryhippos-tester-web.jar'
+	manifest {
+		attributes("Main-Class": "com.talentica.hungryHippos.tester.web.Application" )
+	}
 }
 
 repositories { mavenCentral() }
@@ -35,10 +39,6 @@ dependencies {
 	compile('org.projectlombok:lombok:1.16.8')
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit")
-}
-
-jar {
-	archiveName='hungryhippos-tester-web.jar'
 }
 
 task wrapper(type: Wrapper) { gradleVersion = '2.3' }

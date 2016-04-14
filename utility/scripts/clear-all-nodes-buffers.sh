@@ -1,5 +1,5 @@
 #!/bin/bash
-cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 for node in `cat node_ips_list.txt`
 do
    echo "Clearing buffers on node $node"

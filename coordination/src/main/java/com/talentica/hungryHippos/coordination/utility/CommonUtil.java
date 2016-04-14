@@ -128,7 +128,7 @@ public class CommonUtil {
 		return listOfLine;
 	}
 
-	private static String getZKIp() throws IOException {
+	public static String getZKIp() throws IOException {
 		return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 	}
 	

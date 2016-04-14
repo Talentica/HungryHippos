@@ -14,6 +14,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 
 /**
@@ -72,8 +73,10 @@ public class Property {
 						try {
 							properties = CommonUtil
 									.getMergedConfigurationPropertyFromZk();
-							if (properties != null)
+							if (properties != null){
+								LOGGER.info("Fetched config file from zookeeper");
 								return properties;
+							}
 						} catch (Exception e1) {
 							LOGGER.info("Unable to get the config file from zk.");
 						}
@@ -85,7 +88,8 @@ public class Property {
 					}
 				} else {
 					try {
-						CommonUtil.connectZK();
+						//CommonUtil.connectZK();
+						ServerHeartBeat.init().connectZookeeper(CommonUtil.getZKIp());
 					} catch (Exception e1) {
 						LOGGER.info("Unable to start zk due to  {}",e1);
 					}

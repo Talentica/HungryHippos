@@ -1,6 +1,6 @@
-<h4 class="centerAlignedText">
+<h1 class="centerAlignedText">
 	Submit a new job 
-</h4>
+</h1>
 <form name="newJobForm" ng-submit="createNewJob()">
 	<div class="alert alert-success" ng-show="notification.message"> 
 			<strong>Congratulations!</strong> 
@@ -26,7 +26,7 @@
 		</label>
 		<input ng-change="updateDataTypeConfiguration()" ng-model="numberOfColumnsInDataFile" type="number" required="required" max="25" min="1" 
 				placeholder="Please provide with number of data columns in input CSV data file" 
-				class="form-control" id="numberOfColumns">
+				class="form-control smallWidthTextBox" id="numberOfColumns">
 	</div>
 	<div class="form-group">
 		<label>
@@ -78,7 +78,7 @@
 
 								<td>
 									<input name="Data Size-{{$index}}" type="number" max="1000" min="2" ng-show="dataTypeConfiguration[$index].dataType==='STRING'"
-										ng-model="dataTypeConfiguration[$index].dataSize" />
+										ng-model="dataTypeConfiguration[$index].dataSize" class="form-control smallWidthTextBox" />
 								</td>
 							</tr>
 						</tbody>
@@ -93,7 +93,7 @@
 		</label>
 		<input file-model="jobJarFile" accept="application/java-archive" required="required" type="file" id="jobJarFile">
 		<p class="help-block">
-			Please upload a valid job jar file containing below specified job matrix implementation and compiled with Java 1.8 or below.
+			Please upload a valid job jar file containing below specified job matrix implementation and compiled with Java 1.8 or below. Also JAR should be a runnable JAR with all required dependencies included. 
 		</p>
 	</div>
 	
@@ -101,7 +101,7 @@
 		<label for="jobMatrixClassName">
 			Job Matrix Class Name: 
 		</label>
-		<input class="form-control" ng-model="jobDetail.jobInput.jobMatrixClass" required="required" 
+		<input class="form-control mediumWidthTextBox" ng-model="jobDetail.jobInput.jobMatrixClass" required="required" 
 				type="text" id="jobMatrixClassName" placeholder="Please provide fully qualified name. e.g. com.test.SumJobMatrixImpl">
 	</div>
 	

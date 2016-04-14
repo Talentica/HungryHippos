@@ -1,7 +1,7 @@
 <h4 class="centerAlignedText">
 				Job History 
 </h4>
-<div ng-show="recentJobs.length">
+<div ng-show="recentJobs">
 	<div ng-repeat="(key, value) in recentJobs">
 		<div>
 			<h4>{{key | date:'medium'}}</h4>
@@ -31,10 +31,10 @@
 								{{job.jobInput.jobMatrixClass}}
 							</div>
 	
-							<div class="bold col-md-4">
+							<div class="bold col-md-3">
 								Sharding Dimensions:
 							</div>
-							<div class="col-md-2">
+							<div class="col-md-3">
 								{{job.jobInput.shardingDimensions}}
 							</div>
 						</div>
@@ -169,7 +169,7 @@
 		</div>
 	</div>
 </div>
-<div ng-hide="recentJobs.length">
+<div ng-hide="recentJobs">
 	<br/>
 	<p class="centerAlignedText">There are no jobs to display.<p>
 </div>

@@ -112,3 +112,11 @@ font-weight: bold;color: green;
 .floatLeft{
 	float: left;
 }
+
+.smallWidthTextBox{
+	width: 102px;
+}
+
+.mediumWidthTextBox{
+	width: 500px;
+}

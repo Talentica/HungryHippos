@@ -116,6 +116,8 @@ app.controller('JobHistoryCtrl',function ($scope,JobService) {
 			 $scope.recentJobs = [];
 			 angular.copy(response.jobs, $scope.recentJobs);
 			 $scope.recentJobs = $scope.groupByDayWise($scope.recentJobs, 'dateTimeSubmitted');
+		}else{
+			$scope.recentJobs =null;
 		}
 	});
 	

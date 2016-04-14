@@ -24,7 +24,7 @@ CREATE TABLE `hungryhippos_tester`.`job` (
 CREATE TABLE `hungryhippos_tester`.`process` (
   `process_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
-  `description` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(150) NOT NULL,
   PRIMARY KEY (`process_id`));
 
  

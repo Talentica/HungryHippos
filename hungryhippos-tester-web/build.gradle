@@ -37,4 +37,8 @@ dependencies {
 	testCompile("junit:junit")
 }
 
+jar {
+	archiveName='hungryhippos-tester-web.jar'
+}
+
 task wrapper(type: Wrapper) { gradleVersion = '2.3' }

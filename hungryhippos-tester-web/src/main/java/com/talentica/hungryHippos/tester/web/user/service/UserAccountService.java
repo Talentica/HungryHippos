@@ -9,14 +9,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
+import com.talentica.hungryHippos.tester.web.user.data.Role;
+import com.talentica.hungryHippos.tester.web.user.data.RoleRepository;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 import com.talentica.hungryHippos.tester.web.user.data.UserRepository;
+
+import lombok.Setter;
 
 @Controller
 @RequestMapping("/user")
 public class UserAccountService {
 
 	private UserRepository userRepository;
+
+	@Setter
+	@Autowired(required = false)
+	private RoleRepository roleRepository;
+
+	private Role userRole = null;
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody UserAccountServiceResponse create(
@@ -35,9 +45,17 @@ public class UserAccountService {
 			response.setError(error);
 			return response;
 		}
+		user.getRoles().add(getUserRole());
 		User savedUserDetail = userRepository.save(user);
 		response.setUser(savedUserDetail);
 		return response;
+	}
+
+	private Role getUserRole() {
+		if (userRole == null) {
+			userRole = roleRepository.findByRole("USER");
+		}
+		return userRole;
 	}
 
 	@RequestMapping(method = RequestMethod.GET)

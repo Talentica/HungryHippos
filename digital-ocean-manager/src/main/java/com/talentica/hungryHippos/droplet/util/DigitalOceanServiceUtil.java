@@ -307,7 +307,7 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void startZookeeperServer() throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
-		String zkScriptPath = Paths.get("../").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		CommonUtil.executeScriptCommand("/bin/sh",zkScriptPath+"start-zk-server.sh");
 		LOGGER.info("Shell command is executed");
 	}

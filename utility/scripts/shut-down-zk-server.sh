@@ -1,6 +1,6 @@
 #!/bin/bash
 
-zk_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
+zk_node_ip=`cat ../tmp/master_ip_file`
 
 
 for node in `echo $zk_node_ip`

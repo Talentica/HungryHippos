@@ -97,8 +97,10 @@ public class Property {
 					try {
 						properties = CommonUtil
 								.getMergedConfigurationPropertyFromZk();
-						if (properties != null)
+						if (properties != null){
+							LOGGER.info("Fetched config file from zookeeper");
 							return properties;
+							}
 					} catch (Exception e) {
 						LOGGER.info("Unable to get the property file from zk node.");
 					}

@@ -1,10 +1,3 @@
-echo 'Building all projects'
-sh prepare-new-build.sh
-
-echo '################          Create project directory      ################'
-sh create_proj_directory.sh
-echo '################          Project directory is created and files are copied     ################'
-
 echo '################          Create droplets      ################'
 sh create_droplets.sh
 echo '################          Droplet creation is initiated      ################'

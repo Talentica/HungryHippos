@@ -1,6 +1,6 @@
 #!/bin/bash
 sh start-zk-server.sh
-sharding_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
+sharding_node_ip=`cat ../tmp/master_ip_file`
 
 for node in `echo $sharding_node_ip`
 do

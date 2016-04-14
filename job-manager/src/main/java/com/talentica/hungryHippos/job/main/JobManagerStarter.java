@@ -33,7 +33,6 @@ public class JobManagerStarter {
 			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			overrideProperties(args);  
 			JobManagerStarter.nodesManager = CommonUtil.connectZK();
 			waitForCompletion();
 			JobManager jobManager = new JobManager();

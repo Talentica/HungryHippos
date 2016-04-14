@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -41,10 +42,11 @@ public class CommonUtil {
 	
 	static{
 		if(OSValidator.isWindows()){
-			TEMP_FOLDER_PATH = "D:/root/hungryhippos/tmp/";
+			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		}else if(OSValidator.isUnix()){
-			TEMP_FOLDER_PATH = "/root/hungryhippos/tmp/";
+			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		}
+		LOGGER.info("tmp directory path is {}",TEMP_FOLDER_PATH);
 	}
 	
 
@@ -146,6 +148,7 @@ public class CommonUtil {
 	public static Properties getMergedConfigurationPropertyFromZk()
 			throws Exception {
 		ZKNodeFile configProp = ZKUtils.getConfigZKNodeFile(Property.MERGED_CONFIG_PROP_FILE);
+		if(configProp == null) return null;
 		return configProp.getFileData();
 	}
 	

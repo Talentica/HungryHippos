@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 sh start-zk-server.sh
 sh remove-ssh-keygen.sh

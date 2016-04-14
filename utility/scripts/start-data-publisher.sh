@@ -1,5 +1,5 @@
 #!/bin/bash
-cat /root/hungryhippos/tmp/master_ip_file > data_publisher_node_ips.txt
+cat ../tmp/master_ip_file > data_publisher_node_ips.txt
 sh shut-down-all-nodes.sh 
 sh start-zk-server.sh
 

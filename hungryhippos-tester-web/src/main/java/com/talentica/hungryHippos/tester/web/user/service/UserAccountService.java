@@ -26,8 +26,6 @@ public class UserAccountService {
 	@Autowired(required = false)
 	private RoleRepository roleRepository;
 
-	private Role userRole = null;
-
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody UserAccountServiceResponse create(
 			@RequestBody(required = true) UserAccountServiceRequest request) {
@@ -45,17 +43,11 @@ public class UserAccountService {
 			response.setError(error);
 			return response;
 		}
-		user.getRoles().add(getUserRole());
+		Role userRole = roleRepository.findByRole("USER");
+		user.getRoles().add(userRole);
 		User savedUserDetail = userRepository.save(user);
 		response.setUser(savedUserDetail);
 		return response;
-	}
-
-	private Role getUserRole() {
-		if (userRole == null) {
-			userRole = roleRepository.findByRole("USER");
-		}
-		return userRole;
 	}
 
 	@RequestMapping(method = RequestMethod.GET)

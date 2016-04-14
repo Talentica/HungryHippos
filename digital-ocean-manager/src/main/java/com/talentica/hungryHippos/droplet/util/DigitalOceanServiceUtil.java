@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * @author PooshanS
@@ -305,7 +307,8 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void startZookeeperServer() throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
-		CommonUtil.executeScriptCommand("/bin/sh",TEMP_PATH+"start-zk-server.sh");
+		String zkScriptPath = Paths.get("../").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		CommonUtil.executeScriptCommand("/bin/sh",zkScriptPath+"start-zk-server.sh");
 		LOGGER.info("Shell command is executed");
 	}
 	

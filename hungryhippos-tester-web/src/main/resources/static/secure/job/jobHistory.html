@@ -1,6 +1,6 @@
-<h4 class="centerAlignedText">
+<h1 class="centerAlignedText">
 				Job History 
-</h4>
+</h1>
 <div ng-show="recentJobs">
 	<div ng-repeat="(key, value) in recentJobs">
 		<div>
@@ -171,5 +171,7 @@
 </div>
 <div ng-hide="recentJobs">
 	<br/>
-	<p class="centerAlignedText">There are no jobs to display.<p>
+		<div class="alert alert-info">
+		  <strong>There are no jobs to display.</strong>
+		</div>	
 </div>

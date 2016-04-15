@@ -30,7 +30,7 @@ public class DataProvider {
             .valueOf(Property.getPropertyValue("no.of.attempts.to.connect.to.node").toString());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
-    private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
+    private static NodeCombination[] nodeCombinations;
     private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
 
     private static String[] loadServers(NodesManager nodesManager) throws Exception {
@@ -62,7 +62,7 @@ public class DataProvider {
         try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
                 new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
                         + Sharding.bucketCombinationToNodeNumbersMapFile))) {
-            bucketCombinationNodeMap = (Map<BucketCombination, Set<Node>>) inBucketCombinationNodeMap.readObject();
+            nodeCombinations = (NodeCombination[]) inBucketCombinationNodeMap.readObject();
         } catch (Exception exception) {
             LOGGER.error("Error occurred while publishing data on nodes.", exception);
             throw new RuntimeException(exception);
@@ -100,38 +100,17 @@ public class DataProvider {
                 break;
             }
 
-            Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
-            String[] keyOrder = Property.getShardingDimensions();
-
-            for (int i = 0; i < keyOrder.length; i++) {
-                String key = keyOrder[i];
-                int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
-                Object value = parts[keyIndex].clone();
-                Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(key);
-                if(valueToBucketMap != null){
-                    Bucket<KeyValueFrequency> bucket = valueToBucketMap.get(value);
-                    if(bucket == null){
-                        Collection<Bucket<KeyValueFrequency>> keyBuckets = (Collection<Bucket<KeyValueFrequency>>) valueToBucketMap.values();
-                        List<Bucket<KeyValueFrequency>> keyBucketList = new ArrayList(keyBuckets);
-                        Collections.sort(keyBucketList);
-                        int bucketNo = value.hashCode() % keyBucketList.get(keyBucketList.size() - 1).getId();
-                        bucket = BucketUtil.getBucket(valueToBucketMap, bucketNo);
-                    }
-                    keyToBucketMap.put(keyOrder[i], bucket);
-                }
-            }
-
             for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
                 Object value = parts[i].clone();
                 dynamicMarshal.writeValue(i, value, byteBuffer);
             }
 
-            BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
-            Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
+            List<String> keyNameList = new ArrayList<>();
+            keyNameList.addAll(keyToValueToBucketMap.keySet());
+            Set<Node> nodes = ((NodeCombination) nodeCombinations[calculatedIndex(keyNameList, parts)]).getNodes();
             for (Node node : nodes) {
                 targets[node.getNodeId()].write(buf);
             }
-
         }
         for (int j = 0; j < targets.length; j++) {
             targets[j].flush();
@@ -162,5 +141,31 @@ public class DataProvider {
         }
 
         signal.await();
+    }
+
+    private static int calculatedIndex(List<String> keyNames, MutableCharArrayString[] values) {
+        int b = 1;
+        int result = 0;
+        if (keyNames != null && !keyNames.isEmpty()) {
+            for (int i = 0; i < keyNames.size(); i++) {
+                int bucketNo = 0;
+                String key = keyNames.get(i);
+                int keyIndex = Integer.parseInt(key.substring(3)) - 1;
+                Object value = values[keyIndex].clone();
+
+                Collection<Bucket<KeyValueFrequency>> keyBuckets = (Collection<Bucket<KeyValueFrequency>>) keyToValueToBucketMap.get(key).values();
+                List<Bucket<KeyValueFrequency>> keyBucketList = new ArrayList(keyBuckets);
+                Collections.sort(keyBucketList);
+                result += b * keyBucketList.get(keyBucketList.size() - 1).getId();
+                Bucket bucket = keyToValueToBucketMap.get(key).get(value);
+                if (bucket == null) {
+                    bucketNo = value.hashCode() % keyBucketList.get(keyBucketList.size() - 1).getId();
+                } else {
+                    bucketNo = keyToValueToBucketMap.get(key).get(value).getId();
+                }
+                b *= bucketNo;
+            }
+        }
+        return result;
     }
 }

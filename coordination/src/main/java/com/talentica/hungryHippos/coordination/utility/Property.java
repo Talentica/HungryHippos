@@ -72,6 +72,7 @@ public class Property {
 			mergeProperties = new Properties();
 			try {
 				if (CONFIG_FILE_INPUT_STREAM != null) {
+					LOGGER.info("External configuration properties file is loaded");
 					if (!isReadFirstTime) {
 						try {
 							properties = CommonUtil
@@ -86,7 +87,6 @@ public class Property {
 					}
 					if (properties == null) {
 						properties = new Properties();
-						LOGGER.info("External configuration properties file is loaded");
 						properties.load(CONFIG_FILE_INPUT_STREAM);
 					}
 				} else {
@@ -100,7 +100,6 @@ public class Property {
 					} catch (Exception e1) {
 						LOGGER.info("Unable to start zk due to  {}", e1);
 					}
-					LOGGER.info("Internal configuration properties file is loaded");
 					try {
 						properties = CommonUtil
 								.getMergedConfigurationPropertyFromZk();
@@ -221,7 +220,9 @@ public class Property {
 	}
 
 	public static String getPropertyValue(String propertyName) {
-		Properties properties = getProperties();
+		if(properties == null){
+		 properties = getProperties();
+		}
 		if (namespace != null) {
 			Object propertyValue = properties.get(environmentPropertiesPrefix
 					+ "." + namespace.getNamespace() + "." + propertyName);

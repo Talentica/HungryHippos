@@ -197,32 +197,32 @@ public class Property {
 		if (zkProperties == null) {
 			zkProperties = loadZkProperties();
 		}
-		if (properties != null) {
+		if (mergeProperties != null) {
 			if (namespace != null) {
-				Object propertyValue = properties
+				Object propertyValue = mergeProperties
 						.get(environmentPropertiesPrefix + "."
 								+ namespace.getNamespace() + "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(namespace.getNamespace() + "."
+				propertyValue = mergeProperties.get(namespace.getNamespace() + "."
 						+ propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(environmentPropertiesPrefix
+				propertyValue = mergeProperties.get(environmentPropertiesPrefix
 						+ "." + PROPERTIES_NAMESPACE.COMMON.getNamespace()
 						+ "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON
+				propertyValue = mergeProperties.get(PROPERTIES_NAMESPACE.COMMON
 						.getNamespace() + "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
 			}
-			Object propertyValue = properties.get(environmentPropertiesPrefix
+			Object propertyValue = mergeProperties.get(environmentPropertiesPrefix
 					+ "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
@@ -232,38 +232,38 @@ public class Property {
 	}
 
 	public static String getPropertyValue(String propertyName) {
-		if(properties == null){
-		 properties = getProperties();
+		if(mergeProperties == null){
+			mergeProperties = getProperties();
 		}
 		if (namespace != null) {
-			Object propertyValue = properties.get(environmentPropertiesPrefix
+			Object propertyValue = mergeProperties.get(environmentPropertiesPrefix
 					+ "." + namespace.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(namespace.getNamespace() + "."
+			propertyValue = mergeProperties.get(namespace.getNamespace() + "."
 					+ propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(environmentPropertiesPrefix + "."
+			propertyValue = mergeProperties.get(environmentPropertiesPrefix + "."
 					+ PROPERTIES_NAMESPACE.COMMON.getNamespace() + "."
 					+ propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON
+			propertyValue = mergeProperties.get(PROPERTIES_NAMESPACE.COMMON
 					.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
 		}
-		Object propertyValue = properties.get(environmentPropertiesPrefix + "."
+		Object propertyValue = mergeProperties.get(environmentPropertiesPrefix + "."
 				+ propertyName);
 		if (propertyValue != null) {
 			return propertyValue.toString();
 		}
-		return properties.get(propertyName).toString();
+		return mergeProperties.get(propertyName).toString();
 	}
 
 	public static final void initialize(PROPERTIES_NAMESPACE appNamespace) {

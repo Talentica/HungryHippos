@@ -134,7 +134,7 @@ public class NodesManager implements Watcher {
 	     * @throws Exception
 	     */
 	public void startup() throws Exception {
-	    	formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
+		formatFlag = Property.getPropertyValue(Property.getNamespace().toString().toLowerCase()+"."+"cleanup.zookeeper.nodes").toString();
 	    	if(formatFlag.equals("Y")){
 	    		CountDownLatch signal = new CountDownLatch(1);
 	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);

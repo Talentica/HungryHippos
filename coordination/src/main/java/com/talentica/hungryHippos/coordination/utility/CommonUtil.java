@@ -54,11 +54,15 @@ public class CommonUtil {
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 	
 	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
+	
+	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
 
 	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
 			+ MASTER_IP_FILE_NAME;
 	
 	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH + OUTPUT_IP_FILE_NAME;
+	
+	public static final String DROPLET_IDS_FILE_PATH = TEMP_FOLDER_PATH + DROPLET_IDS_FILE_NAME;
 	
 	private static NodesManager nodesManager;
 	
@@ -68,7 +72,7 @@ public class CommonUtil {
 
 		PUSH_JOB_NOTIFICATION("PUSH_JOB"), PULL_JOB_NOTIFICATION("PULL_JOB"), START_ROW_COUNT(
 				"START_ROW_COUNT"), START_JOB_MATRIX("START_JOB_MATRIX"), FINISH_JOB_MATRIX(
-				"FINISH_JOB_MATRIX"), FINISH_ROW_COUNT("FINISH_ROW_COUNT");
+				"FINISH_JOB_MATRIX"), FINISH_ROW_COUNT("FINISH_ROW_COUNT"),DOWNLOAD_FINISHED("DOWNLOAD_FINISHED");
 
 		private String jobNode;
 
@@ -117,7 +121,7 @@ public class CommonUtil {
 		return dataDescription;
 	}
 
-	private static List<String> readFile(File fin) throws IOException {
+	public static List<String> readFile(File fin) throws IOException {
 		List<String> listOfLine = new ArrayList<>();
 		FileInputStream fis = new FileInputStream(fin);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));

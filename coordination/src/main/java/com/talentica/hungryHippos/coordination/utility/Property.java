@@ -85,6 +85,16 @@ public class Property {
 							LOGGER.info("Unable to get the config file from zk.");
 						}
 					}
+					try {
+						if (!isConnected) {
+							if (nodesManager == null && (nodesManager= ServerHeartBeat.init().connectZookeeper(
+									CommonUtil.getZKIp())) != null) {
+								isConnected = true;
+							}
+						}
+					} catch (Exception e1) {
+						LOGGER.info("Unable to start zk due to  {}", e1);
+					}
 					if (properties == null) {
 						properties = new Properties();
 						properties.load(CONFIG_FILE_INPUT_STREAM);
@@ -184,7 +194,9 @@ public class Property {
 	}
 	
 	public static String getZkPropertyValue(String propertyName) {
-		Properties zkProperties = loadZkProperties();
+		if (zkProperties == null) {
+			zkProperties = loadZkProperties();
+		}
 		if (properties != null) {
 			if (namespace != null) {
 				Object propertyValue = properties

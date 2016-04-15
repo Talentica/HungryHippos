@@ -44,7 +44,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static NodesManager nodesManager;
+	private static NodesManager nodesManager = Property.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
 	private static String TEMP_PATH = CommonUtil.TEMP_FOLDER_PATH;
@@ -262,9 +262,9 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer();
 			LOGGER.info("Zookeeper server started.");
-			LOGGER.info("Connecting zookeeper server.");
-			connectZookeeper();
-			LOGGER.info("Zookeeper server connected.");
+			LOGGER.info("Creating default nodes");
+			if(nodesManager != null) nodesManager.startup();
+			LOGGER.info("Default nodes are created.");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
@@ -318,9 +318,9 @@ public class DigitalOceanServiceUtil {
 	 * @param digitalOceanManager
 	 * @throws Exception
 	 */
-	private static void connectZookeeper() throws Exception {
+	/*private static void connectZookeeper() throws Exception {
 		nodesManager = CommonUtil.connectZK();
-	}
+	}*/
 
 	/**
 	 * @param dropletService

@@ -37,6 +37,7 @@ dependencies {
 	compile("org.flywaydb:flyway-core")
 	compile('org.apache.commons:commons-lang3:3.0')
 	compile("mysql:mysql-connector-java:5.1.6")
+	compile('org.apache.commons:commons-compress:1.11')
 	compile('org.projectlombok:lombok:1.16.8')
 	compile('org.springframework.boot:spring-boot-starter-log4j2')
 	testCompile("org.springframework.boot:spring-boot-starter-test")

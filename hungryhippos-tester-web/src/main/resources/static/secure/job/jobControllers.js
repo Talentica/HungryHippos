@@ -84,7 +84,7 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 	
 	 $scope.uploadJobJarFile = function(sucessCallback,errorCallback){
 	        var file = $scope.jobJarFile;
-	        JobService.uploadJobJarFile(file,sucessCallback,errorCallback);
+	        JobService.uploadJobJarFile(file,$scope.jobDetail.jobInput.jobMatrixClass,sucessCallback,errorCallback);
 	};
 	
 	$scope.reset=function(){

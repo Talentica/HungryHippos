@@ -18,10 +18,10 @@ app.service("JobService",function($http,JobHistoryResource,JobDetailResource,Job
 		JobOutputResource.get({jobUuid:uuid},callback);
 	}
 	
-    this.uploadJobJarFile= function(file,successCallback,errorCallback){
+    this.uploadJobJarFile= function(file,jobMatrixClassName,successCallback,errorCallback){
             var fd = new FormData();
             fd.append('file', file);
-            $http.post("/secure/job/jar/upload",fd, {
+            $http.post("/secure/job/jar/upload?jobMatrixClassName="+jobMatrixClassName,fd, {
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
             }).success(successCallback).error(errorCallback);

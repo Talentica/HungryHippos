@@ -9,9 +9,10 @@ do
    echo "Copying file to $node"
    scp ~/.ssh/id_rsa.pub root@$node:~/.ssh
    scp ~/.ssh/id_rsa root@$node:~/.ssh
-   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/keyToValueToBucketMap root@$node:hungryhippos
-   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketToNodeNumberMap root@$node:hungryhippos
-   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketCombinationToNodeNumbersMap root@$node:hungryhippos
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;mkdir node"
+   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/keyToValueToBucketMap root@$node:hungryhippos/node/
+   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketToNodeNumberMap root@$node:hungryhippos/node/
+   scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketCombinationToNodeNumbersMap root@$node:hungryhippos/node/
 done
 
 for data_publisher_node_ip in `cat data_publisher_node_ips.txt`

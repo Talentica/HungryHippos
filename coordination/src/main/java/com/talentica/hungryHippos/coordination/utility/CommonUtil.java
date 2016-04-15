@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,8 +129,13 @@ public class CommonUtil {
 		return listOfLine;
 	}
 
-	public static String getZKIp() throws IOException {
-		return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
+	public static String getZKIp() {
+		try {
+			return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
+		} catch (IOException e) {
+			LOGGER.info("Unable to read the file zk ip file.");
+		}
+		return StringUtils.EMPTY;
 	}
 	
 	public static String getKazooIp() throws IOException {

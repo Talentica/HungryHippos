@@ -30,6 +30,7 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -47,7 +48,6 @@ public class DigitalOceanServiceUtil {
 	private static NodesManager nodesManager = Property.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
-	private static String TEMP_PATH = CommonUtil.TEMP_FOLDER_PATH;
 	/** 
 	 * @param dropletEntity
 	 * @param dropletService
@@ -263,7 +263,12 @@ public class DigitalOceanServiceUtil {
 			startZookeeperServer();
 			LOGGER.info("Zookeeper server started.");
 			LOGGER.info("Creating default nodes");
-			if(nodesManager != null) nodesManager.startup();
+			if (nodesManager == null) {
+				String zkIp = CommonUtil.getZKIp();
+				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
+			} else {
+				nodesManager.startup();
+			}
 			LOGGER.info("Default nodes are created.");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,7 +30,7 @@ import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class JobManager {
 
-	private NodesManager nodesManager;
+	public static NodesManager nodesManager;
 
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 
@@ -53,17 +54,30 @@ public class JobManager {
 	public void start() throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		nodesManager = CommonUtil.connectZK();
 		LOGGER.info("SEND TASKS TO NODES");
 		sendJobsToNodes();
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
 		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
-		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/download-output/"+"start-kazoo-server.py "+CommonUtil.getKazooIp());
+		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/download-output/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());
 		LOGGER.info("KAZOO SERVER IS STARTED");
-		getFinishNodeJobsSignal();
+		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
+		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
+		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
+		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
+		
+		
+		/*Caution : It will distroy the droplets. Please uncomment the code if needed.*/
+		
+		/*LOGGER.info("DISTROYING DROPLETS");
+		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		CommonUtil.executeScriptCommand("/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh");
+		LOGGER.info("DROPLET DISTROY IS INITIATED");*/
+		
+		
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -82,12 +96,12 @@ public class JobManager {
 	/**
 	 * Get finish jobs matrix signal.
 	 */
-	private void getFinishNodeJobsSignal() {
+	private void getFinishNodeJobsSignal(String nodeName) {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
 		Iterator<Node> nodesItr = nodeIdNodeMap.values().iterator();
 		while (nodesItr.hasNext()) {
 			Node node = nodesItr.next();
-			if (!getFinishSignal(node.getNodeId(), CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name())) {
+			if (!geSignalFromZk(node.getNodeId(), nodeName)) {
 				continue;
 			} 
 		}
@@ -128,7 +142,7 @@ public class JobManager {
 	 * @param finishNode
 	 * @return boolean
 	 */
-	private boolean getFinishSignal(Integer nodeId, String finishNode) {
+	private boolean geSignalFromZk(Integer nodeId, String finishNode) {
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
 		try {

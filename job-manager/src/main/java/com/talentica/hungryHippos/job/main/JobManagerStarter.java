@@ -35,6 +35,7 @@ public class JobManagerStarter {
 			JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
 			waitForCompletion();
 			JobManager jobManager = new JobManager();
+			JobManager.nodesManager = nodesManager;
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start();
 			long endTime = System.currentTimeMillis();

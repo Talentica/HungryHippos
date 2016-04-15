@@ -29,9 +29,6 @@ public class DataPublisherStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			if (args.length >= 1) {
-				Property.overrideConfigurationProperties(args[0]);
-			}
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			dataPublisherStarter.nodesManager = CommonUtil.connectZK();

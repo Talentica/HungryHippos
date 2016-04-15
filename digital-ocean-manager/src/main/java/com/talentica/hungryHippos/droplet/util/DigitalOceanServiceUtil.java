@@ -244,8 +244,9 @@ public class DigitalOceanServiceUtil {
 			throws DigitalOceanException, RequestUnsuccessfulException,
 			InterruptedException, IOException, Exception {
 		Droplets droplets;
-		String formatFlag = Property.getPropertyValue(
-				"cleanup.zookeeper.nodes").toString();
+		
+		String formatFlag = Property.getZkPropertyValue(
+				"zk.cleanup.zookeeper.nodes").toString();
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			droplets = dropletService.getAvailableDroplets(1, 20);

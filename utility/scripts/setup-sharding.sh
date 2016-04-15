@@ -1,9 +1,9 @@
 #!/bin/bash
-sharding_node_ip=`cat /root/hungryhippos/tmp/master_ip_file`
+sharding_node_ip=`cat ../tmp/master_ip_file`
 sh shut-down-sharding.sh
 sh cleanup-sharding.sh
 echo 'Copying new build'
-sh copy-file-to-sharding.sh ../../sharding/build/libs/sharding*.jar
+sh copy-file-to-sharding.sh ../lib/sharding*.jar
 echo 'Copying common configuration file'
 echo 'Copying data publishers node configuration file'
 sh copy-file-to-sharding.sh ./data_publisher_nodes_config.txt

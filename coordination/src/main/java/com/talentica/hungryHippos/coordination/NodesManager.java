@@ -88,12 +88,12 @@ public class NodesManager implements Watcher {
 		servers = new ArrayList<Server>();
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
-		pathMap.put(PathEnum.NAMESPACE.name(), Property.getPropertyValue("zookeeper.namespace_path"));
-		pathMap.put(PathEnum.BASEPATH.name(), Property.getPropertyValue("zookeeper.base_path"));
-		pathMap.put(PathEnum.ZKIPTPATH.name(), Property.getPropertyValue("zookeeper.server.ips"));
-		pathMap.put(PathEnum.ALERTPATH.name(), Property.getPropertyValue("zookeeper.alerts_path"));
-		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getPropertyValue("zookeeper.config_path"));
-		Integer sessionTimeOut = Integer.valueOf(Property.getPropertyValue("zookeeper.session_timeout"));
+		pathMap.put(PathEnum.NAMESPACE.name(), Property.getZkPropertyValue("zookeeper.namespace_path"));
+		pathMap.put(PathEnum.BASEPATH.name(), Property.getZkPropertyValue("zookeeper.base_path"));
+		pathMap.put(PathEnum.ZKIPTPATH.name(), Property.getZkPropertyValue("zookeeper.server.ips"));
+		pathMap.put(PathEnum.ALERTPATH.name(), Property.getZkPropertyValue("zookeeper.alerts_path"));
+		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getZkPropertyValue("zookeeper.config_path"));
+		Integer sessionTimeOut = Integer.valueOf(Property.getZkPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
 		//connectZookeeper(null);
 	}

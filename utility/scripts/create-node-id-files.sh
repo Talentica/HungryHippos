@@ -1,6 +1,6 @@
 #!/bin/bash
 echo 'Creating nodeId files on nodes'
-cat /root/hungryhippos/tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 
 i=0

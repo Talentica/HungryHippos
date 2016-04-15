@@ -60,6 +60,7 @@ public class Property {
 	public static void overrideConfigurationProperties(
 			String configPropertyFilePath) throws FileNotFoundException {
 		CONFIG_FILE_INPUT_STREAM = new FileInputStream(configPropertyFilePath);
+		getProperties();
 	}
 
 	public static Properties getProperties() {
@@ -81,14 +82,6 @@ public class Property {
 						properties = new Properties();
 						LOGGER.info("External configuration properties file is loaded");
 						properties.load(CONFIG_FILE_INPUT_STREAM);
-						/* Load zookeeper configuration file */
-						if(zkProperties == null){
-							zkProperties = new Properties();
-						ZK_CONFIG_FILE_INPUT_STREAM = loader
-								.getResourceAsStream(ZK_PROP_FILE);
-						zkProperties.load(ZK_CONFIG_FILE_INPUT_STREAM);
-						isReadFirstTime = false;
-						}
 					}
 				} else {
 					LOGGER.info("Internal configuration properties file is loaded");
@@ -105,24 +98,31 @@ public class Property {
 						CONFIG_FILE_INPUT_STREAM = loader
 								.getResourceAsStream(CONF_PROP_FILE);
 						properties.load(CONFIG_FILE_INPUT_STREAM);
-						if (zkProperties == null) {
-							zkProperties = new Properties();
-							/* Load zookeeper configuration file */
-							ZK_CONFIG_FILE_INPUT_STREAM = loader
-									.getResourceAsStream(ZK_PROP_FILE);
-							zkProperties.load(ZK_CONFIG_FILE_INPUT_STREAM);
-						}
 					}
 				}
 			} catch (IOException e) {
 				LOGGER.info("Unable to load the property file!!");
 			}
 			mergeProperties.putAll(properties);
-			mergeProperties.putAll(zkProperties);
+			mergeProperties.putAll(loadZkProperties());
 			PropertyConfigurator.configure(mergeProperties);
 		}
 		return mergeProperties;
 	}
+	
+	public static Properties loadZkProperties(){
+		if (zkProperties == null) {
+			zkProperties = new Properties();
+			ZK_CONFIG_FILE_INPUT_STREAM = loader
+					.getResourceAsStream(ZK_PROP_FILE);
+			try {
+				zkProperties.load(ZK_CONFIG_FILE_INPUT_STREAM);
+			} catch (IOException e) {
+				LOGGER.info("Unable to load the zkProperties file from resources due to {}",e);
+			}
+		}
+		return zkProperties;
+	} 
 
 	public static Properties loadServerProperties() {
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
@@ -164,6 +164,42 @@ public class Property {
 			}
 		}
 		return totalNumberOfNodes;
+	}
+	
+	public static String getZkPropertyValue(String propertyName) {
+		Properties zkProperties = loadZkProperties();
+		if (properties != null) {
+			if (namespace != null) {
+				Object propertyValue = properties
+						.get(environmentPropertiesPrefix + "."
+								+ namespace.getNamespace() + "." + propertyName);
+				if (propertyValue != null) {
+					return propertyValue.toString();
+				}
+				propertyValue = properties.get(namespace.getNamespace() + "."
+						+ propertyName);
+				if (propertyValue != null) {
+					return propertyValue.toString();
+				}
+				propertyValue = properties.get(environmentPropertiesPrefix
+						+ "." + PROPERTIES_NAMESPACE.COMMON.getNamespace()
+						+ "." + propertyName);
+				if (propertyValue != null) {
+					return propertyValue.toString();
+				}
+				propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON
+						.getNamespace() + "." + propertyName);
+				if (propertyValue != null) {
+					return propertyValue.toString();
+				}
+			}
+			Object propertyValue = properties.get(environmentPropertiesPrefix
+					+ "." + propertyName);
+			if (propertyValue != null) {
+				return propertyValue.toString();
+			}
+		}
+		return zkProperties.get(propertyName).toString();
 	}
 
 	public static String getPropertyValue(String propertyName) {

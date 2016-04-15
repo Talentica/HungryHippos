@@ -23,7 +23,6 @@ public class ShardingStarter {
 		try {
 			long startTime = System.currentTimeMillis();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			overrideProperties(args);
 			CommonUtil.connectZK();
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());

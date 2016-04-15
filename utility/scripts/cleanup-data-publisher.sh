@@ -1,6 +1,6 @@
 #!/bin/bash
 echo 'Cleaning up data publisher'
-cat /root/hungryhippos/tmp/master_ip_file > data_publisher_node_ips.txt
+cat ../tmp/master_ip_file > data_publisher_node_ips.txt
 for node in `cat data_publisher_node_ips.txt`
 do
    echo "Cleaning data publisher node $node"

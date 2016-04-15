@@ -1,3 +1,4 @@
+#!/bin/bash
 echo '################          Create droplets      ################'
 sh create_droplets.sh
 echo '################          Droplet creation is initiated      ################'

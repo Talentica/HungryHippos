@@ -32,8 +32,9 @@ public class DataPublisherStarter {
 			if (args.length >= 1) {
 				Property.overrideConfigurationProperties(args[0]);
 			}
-			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
+			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+			dataPublisherStarter.nodesManager = CommonUtil.connectZK();
 			LOGGER.info("Initializing nodes manager.");
 			waitForSinal(dataPublisherStarter);
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
@@ -53,7 +54,6 @@ public class DataPublisherStarter {
 	 */
 	private static void waitForSinal(DataPublisherStarter dataPublisherStarter)
 			throws Exception, KeeperException, InterruptedException {
-		dataPublisherStarter.nodesManager = CommonUtil.connectZK();
 		CountDownLatch signal = new CountDownLatch(1);
 		ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED), signal);
 		signal.await();

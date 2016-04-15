@@ -1,6 +1,6 @@
 #!/bin/bash
 
-job_manager_ip=`cat /root/hungryhippos/tmp/master_ip_file`
+job_manager_ip=`cat ../tmp/master_ip_file`
 
 
 for node in `echo $job_manager_ip`

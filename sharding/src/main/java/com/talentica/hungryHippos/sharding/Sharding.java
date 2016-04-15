@@ -55,9 +55,8 @@ public class Sharding {
 		}
 	}
 
-	public static void doSharding(Reader input) {
+	public static void doSharding(Reader input,NodesManager nodesManager) {
 		LOGGER.info("SHARDING STARTED");
-		NodesManager nodesManager;
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
@@ -75,7 +74,7 @@ public class Sharding {
 			}
 			try {
 				CommonUtil.executeScriptCommand("/bin/sh","/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh");
-				nodesManager = CommonUtil.connectZK();
+				//nodesManager = CommonUtil.connectZK();
 				sendSignal(nodesManager);
 				LOGGER.info("Sharding completion notification created on zk node");
 			} catch (Exception e) {

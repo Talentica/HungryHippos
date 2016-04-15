@@ -14,6 +14,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 
@@ -42,6 +43,8 @@ public class Property {
 	public static final String ZK_PROP_FILE = "zookeeper.properties";
 	public static final String MERGED_CONFIG_PROP_FILE = "mergedConfig.properties";
 	public static boolean isReadFirstTime = true;
+	private static boolean isConnected = false;
+	private static NodesManager nodesManager = null;
 
 	public enum PROPERTIES_NAMESPACE {
 
@@ -88,10 +91,14 @@ public class Property {
 					}
 				} else {
 					try {
-						//CommonUtil.connectZK();
-						ServerHeartBeat.init().connectZookeeper(CommonUtil.getZKIp());
+						if (!isConnected) {
+							if (nodesManager == null && (nodesManager= ServerHeartBeat.init().connectZookeeper(
+									CommonUtil.getZKIp())) != null) {
+								isConnected = true;
+							}
+						}
 					} catch (Exception e1) {
-						LOGGER.info("Unable to start zk due to  {}",e1);
+						LOGGER.info("Unable to start zk due to  {}", e1);
 					}
 					LOGGER.info("Internal configuration properties file is loaded");
 					try {
@@ -286,6 +293,10 @@ public class Property {
 
 	public static PROPERTIES_NAMESPACE getNamespace() {
 		return namespace;
+	}
+	
+	public static NodesManager getNodesManagerIntances(){
+		return nodesManager;
 	}
 
 }

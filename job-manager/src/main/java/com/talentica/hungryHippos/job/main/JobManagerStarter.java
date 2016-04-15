@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.job.JobManager;
@@ -33,7 +32,7 @@ public class JobManagerStarter {
 			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			JobManagerStarter.nodesManager = CommonUtil.connectZK();
+			JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
 			waitForCompletion();
 			JobManager jobManager = new JobManager();
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());

@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -18,14 +18,16 @@ public class ShardingStarter {
 	 * @param args
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
+	private static NodesManager nodesManager;
 
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			CommonUtil.connectZK();
+			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
+			//CommonUtil.connectZK();
 			LOGGER.info("SHARDING STARTED");
-			Sharding.doSharding(getInputReaderForSharding());
+			Sharding.doSharding(getInputReaderForSharding(),ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));

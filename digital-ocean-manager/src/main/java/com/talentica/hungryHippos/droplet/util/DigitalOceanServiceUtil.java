@@ -266,9 +266,8 @@ public class DigitalOceanServiceUtil {
 			if (nodesManager == null) {
 				String zkIp = CommonUtil.getZKIp();
 				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
-			} else {
-				nodesManager.startup();
-			}
+			} 
+			nodesManager.startup();
 			LOGGER.info("Default nodes are created.");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();

@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title></title>
+<title>Hungry Hippos</title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width">
 <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
@@ -29,10 +29,13 @@
 	<!-- endbuild -->
 	<script src="loginCtrl.js"></script>
 	<script src="loginSrvc.js"></script>
+	<script src="main/common.js"></script>
 	<script src="bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js"></script>
 	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 	<script src="bower_components/angular-filter/dist/angular-filter.min.js"></script>
 	<script src="bower_components/angular-base64/angular-base64.js"></script>
+	<script src="bower_components/spin.js/spin.js"></script>
+	<script src="bower_components/angular-spinner/angular-spinner.js"></script>
 </head>
 <body ng-app="loginApp" ng-controller="LoginCtrl">
 	<!--[if lte IE 8]>
@@ -63,11 +66,11 @@
 			      	<div class="alert alert-danger" ng-show="errorDetails">{{errorDetails.message}}</div>
 					<div class="alert alert-success" ng-show="successDetails">{{successDetails.message}}</div>
 			        
-			        <input ng-model="user.firstName" type="text" placeholder="What's your first name?" autofocus="autofocus" required="required" class="input pass"/>
-			        <input ng-model="user.lastName" type="text" placeholder="What's your last name?" autofocus="autofocus" required="required" class="input pass"/>
-			        <input ng-model="user.emailAddress" type="email" placeholder="Email address" required="required" class="input pass"/>
-					<input ng-model="user.password" type="password" placeholder="Choose a password" required="required" class="input pass"/>
-			        <input ng-model="confirmPassword" type="password" placeholder="Confirm password" required="required" class="input pass"/>
+			        <input ng-model="user.firstName" type="text" limit-to="45" placeholder="What's your first name?" autofocus="autofocus" required="required" class="input pass"/>
+			        <input ng-model="user.lastName" type="text" limit-to="45" placeholder="What's your last name?" autofocus="autofocus" required="required" class="input pass"/>
+			        <input ng-model="user.emailAddress" type="email" limit-to="45" placeholder="Email address" required="required" class="input pass"/>
+					<input ng-model="user.password" type="password" limit-to="15"  placeholder="Choose a password" required="required" class="input pass"/>
+			        <input ng-model="confirmPassword" type="password" limit-to="15" placeholder="Confirm password" required="required" class="input pass"/>
 			        <input type="submit" value="Sign me up!" class="inputButton"/>
 			      </form>
 			    </div>
@@ -77,8 +80,8 @@
 			    	<form id="signup" action="#" name="loginForm" method="post">
 				        <h4 class="centerAlignedText">Already have an account?</h4>
 				        <div class="alert alert-danger" ng-show="loginErrorDetails.message">{{loginErrorDetails.message}}</div>
-				        <input ng-model="loginUserName" required="required" type="email" placeholder="Please enter your email" class="input pass" name="username"/>
-				        <input ng-model="loginPassword" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
+				        <input ng-model="loginUserName" limit-to="45" required="required" type="email" placeholder="Please enter your email" class="input pass" name="username"/>
+				        <input ng-model="loginPassword" limit-to="15" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
 				        <input type="button" ng-click="login();" value="Sign me in!" class="inputButton"/>
 				    </form>
 			    </div>
@@ -91,5 +94,6 @@
 	<div class="footer">
 		<div class="container"></div>
 	</div>
+	<span us-spinner="{radius:30, width:8, length: 16}" spinner-key="spinner-1"></span>
 </body>
 </html>

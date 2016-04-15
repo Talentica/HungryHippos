@@ -25,7 +25,7 @@ public class JobHistoryService extends Service {
 	@Autowired(required = false)
 	private UserCache userCache;
 
-	@RequestMapping(value = "history/{userId}", method = RequestMethod.GET)
+	@RequestMapping(value = "history", method = RequestMethod.GET)
 	public @ResponseBody JobHistoryServiceResponse getJobsRecentlyExecutedByUser() {
 		User user = userCache.getCurrentLoggedInUser();
 		JobHistoryServiceResponse jobHistoryServiceResponse = new JobHistoryServiceResponse();

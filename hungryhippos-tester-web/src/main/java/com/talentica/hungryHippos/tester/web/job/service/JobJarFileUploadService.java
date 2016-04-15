@@ -88,12 +88,13 @@ public class JobJarFileUploadService {
 		return fileUploadServiceResponse;
 	}
 
-	@SuppressWarnings("resource")
 	private ServiceError validateIfClassPresentInUploadedJobJarFile(String jobJarFilePath, String jobMatrixClassName) {
 		ServiceError error = null;
+		ZipFile zipFile = null;
 		try {
 			String jobMatrixClassEntryPathInZip = jobMatrixClassName.replaceAll("\\.", File.separator) + ".class";
-			ZipArchiveEntry entry = new ZipFile(jobJarFilePath).getEntry(jobMatrixClassEntryPathInZip);
+			zipFile = new ZipFile(jobJarFilePath);
+			ZipArchiveEntry entry = zipFile.getEntry(jobMatrixClassEntryPathInZip);
 			if (entry == null) {
 				error = new ServiceError(
 						"Job matrix class: " + jobMatrixClassName + " does not exist in uploaded jar file.",
@@ -102,6 +103,8 @@ public class JobJarFileUploadService {
 		} catch (Exception exception) {
 			error = new ServiceError("Please provide with valid job jar file.",
 					"Job JAR file uploaded is invalid." + exception.getMessage());
+		} finally {
+			ZipFile.closeQuietly(zipFile);
 		}
 		return error;
 	}

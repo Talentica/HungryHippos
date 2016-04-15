@@ -1,12 +1,21 @@
 'use strict';
 
-var app=angular.module('loginApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter']);
+var app=angular.module('loginApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner']);
 
 app.factory("UserResource", function($resource) {
 	return $resource("/user");
 });
 
-app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window) {
+app.directive("limitTo", [function() {
+    return {
+        restrict: "A",
+        link: function(scope, elem, attrs) {
+        	limitCharactersInInputText(scope,elem,attrs);
+        }
+    }
+}]);
+
+app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window,usSpinnerService) {
 	  $scope.user = {};
 	  $scope.successDetails=null;
 	  $scope.errorDetails=null;
@@ -36,6 +45,7 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 	  }
 	  
 	  $scope.register=function(){
+		  usSpinnerService.spin('spinner-1');
 		  $scope.setError(null);
 		  $scope.setSuccess(null);
 		  $scope.validateUser(
@@ -48,6 +58,7 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 						  			$scope.setSuccess({message:"Registration successful. Please login with your credentials."});
 						  			 $scope.resetUser();
 								 }
+						  		usSpinnerService.stop('spinner-1');
 						  	}
 				  );
 			  }
@@ -58,16 +69,19 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 	  $scope.loginPassword=null;
 	  $scope.loginErrorDetails={};
 	  $scope.login=function(){
+		  usSpinnerService.spin('spinner-1');
 		  if($scope.loginUserName && $scope.loginPassword){
 			  $scope.loginErrorDetails={};
 			  UserAccountService.login($scope.loginUserName,$scope.loginPassword,
 			  function(response){
 		  		console.log("Logged in successfully");
 		  		$window.location.href="/secure/welcome.html#/about";
+		  		usSpinnerService.stop('spinner-1');
 			  	},
 			  	function(response){
 			  		console.log("Log in failed.");
 			  		$scope.loginErrorDetails.message="The email and password you entered don't match. Please try again.";
+			  		usSpinnerService.stop('spinner-1');
 			  	}
 		  );
 	    }else{

@@ -67,10 +67,10 @@ CREATE TABLE `hungryhippos_tester`.`process_instance_detail` (
 CREATE TABLE `hungryhippos_tester`.`job_input` (
   `job_input_id` INT NOT NULL AUTO_INCREMENT,
   `job_id` INT NOT NULL,
-  `data_location` VARCHAR(45) NOT NULL,
-  `data_size` INT NOT NULL,
-  `data_type_configuration` VARCHAR(150) NOT NULL,
-  `sharding_dimensions` VARCHAR(45) NOT NULL,
+  `data_location` VARCHAR(200) NOT NULL,
+  `data_size_in_kbs` DECIMAL(19,2) NOT NULL,
+  `data_type_configuration` VARCHAR(1000) NOT NULL,
+  `sharding_dimensions` VARCHAR(300) NOT NULL,
   PRIMARY KEY (`job_input_id`),
   INDEX `job_id_idx` (`job_id` ASC),
   CONSTRAINT `job_id_fk_job_input`
@@ -83,7 +83,7 @@ CREATE TABLE `hungryhippos_tester`.`job_output` (
   `job_output_id` INT NOT NULL AUTO_INCREMENT,
   `job_id` INT NOT NULL,
   `data_location` VARCHAR(150) NOT NULL,
-  `data_size` INT NOT NULL,
+  `data_size_in_kbs` DECIMAL(19,2) NOT NULL,
   PRIMARY KEY (`job_output_id`),
   INDEX `job_id_job_output_fk_idx` (`job_id` ASC),
   CONSTRAINT `job_id_job_output_fk`

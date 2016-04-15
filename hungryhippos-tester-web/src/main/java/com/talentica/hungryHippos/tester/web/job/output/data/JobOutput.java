@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.tester.web.job.output.data;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -40,7 +42,7 @@ public class JobOutput {
 
 	@Getter
 	@Setter
-	@Column(name = "data_size")
-	private Integer dataSize;
+	@Column(name = "data_size_in_kbs")
+	private BigDecimal dataSize;
 
 }

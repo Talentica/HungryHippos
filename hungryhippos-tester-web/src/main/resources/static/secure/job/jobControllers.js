@@ -1,6 +1,6 @@
 'use strict';
 
-app.controller('NewJobCtrl',function ($scope,JobService) {
+app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	$scope.jobDetail={};
 	$scope.error={};
 	$scope.numberOfColumnsInDataFile=1;
@@ -20,6 +20,7 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 	}
 	
 	$scope.createNewJob=function(){
+		usSpinnerService.spin('spinner-1');
 		$scope.error={};
 		$scope.notification={};
 		var shardingDimensions="";
@@ -67,9 +68,11 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 		        					}else if(response.error){
 		        						$scope.error.message="There was some error occurred on server side. Please try again."
 		        					}else{
+		        						var jobuuid= $scope.jobDetail.uuid;
 		        						$scope.reset();
-		        						$scope.notification.message="Job with id: "+$scope.jobDetail.uuid+" submitted successfully.";
+		        						$scope.notification.message="Job with id: "+jobuuid+" submitted successfully.";
 		        					}
+		        					usSpinnerService.stop('spinner-1');
 		        				}
 		        		);
 		        	}else{
@@ -91,13 +94,17 @@ app.controller('NewJobCtrl',function ($scope,JobService) {
 		$scope.error={};
 		$scope.numberOfColumnsInDataFile=1;
 		$scope.notification={};
+		$scope.jobDetail={};
+		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+		$scope.jobJarFile=null;
 	}
 	
 });
 
 
-app.controller('JobHistoryCtrl',function ($scope,JobService) {
-
+app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
+	$scope.jobsPresent=false;
+	$scope.jobsLoaded=false;
 	$scope.groupByDayWise = function (arr, key) {
 	    var groups = {};
 	    for (var i=0;i<arr.length;i++) {
@@ -110,25 +117,32 @@ app.controller('JobHistoryCtrl',function ($scope,JobService) {
 	    }
 	    return groups;
 	};	
-	
-	JobService.getRecentJobs(1,function(response){
+
+	usSpinnerService.spin('spinner-1');
+	JobService.getRecentJobs(function(response){
 		if(response && response.jobs && response.jobs.length){
 			 $scope.recentJobs = [];
 			 angular.copy(response.jobs, $scope.recentJobs);
 			 $scope.recentJobs = $scope.groupByDayWise($scope.recentJobs, 'dateTimeSubmitted');
+			 $scope.jobsPresent=true;
 		}else{
 			$scope.recentJobs =null;
+			$scope.jobsPresent=false;
 		}
+		$scope.jobsLoaded=true;
+		usSpinnerService.stop('spinner-1');
 	});
 	
 	$scope.jobStepInformation=null;
 	$scope.getJobStatusDetail=function(jobUuid){
 		if(!$scope.jobStepInformation){
+			usSpinnerService.spin('spinner-1');
 			$scope.jobStepInformation=[];
 			JobService.getJobStatusDetail(jobUuid,function(response){
 				if(response && response.jobDetail && response.jobDetail.uuid && response.processInstances){
 				$scope.jobStepInformation[response.jobDetail.uuid]=response;
 				}
+				usSpinnerService.stop('spinner-1');
 			}
 		);
 		}

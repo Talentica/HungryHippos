@@ -6,8 +6,8 @@ app.service("JobService",function($http,JobHistoryResource,JobDetailResource,Job
     	$http.post("/job/new",jobServiceRequest).success(callback).error(callback);
 	}
 	
-	this.getRecentJobs = function(userIdParam,callback){
-		JobHistoryResource.get({userId:userIdParam},callback);
+	this.getRecentJobs = function(callback){
+		JobHistoryResource.get(callback);
 	}
 	
 	this.getJobStatusDetail=function(uuid,callback){

@@ -1,9 +1,9 @@
 'use strict';
 
-var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter']);
+var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner']);
 
 app.factory("JobHistoryResource", function($resource) {
-	return $resource("/job/history/:userId");
+	return $resource("/job/history/");
 });
 
 app.factory("UserResource", function($resource) {
@@ -22,6 +22,14 @@ app.factory("JobOutputResource", function($resource) {
 	return $resource("/job/output/detail/:jobUuid");
 });
 
+app.directive("limitTo", [function() {
+    return {
+        restrict: "A",
+        link: function(scope, elem, attrs) {
+        	limitCharactersInInputText(scope,elem,attrs);
+        }
+    }
+}]);
 
 app.directive('fileModel', ['$parse', function ($parse) {
     return {

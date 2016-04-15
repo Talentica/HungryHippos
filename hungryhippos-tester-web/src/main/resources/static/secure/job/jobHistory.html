@@ -1,69 +1,88 @@
 <h1 class="centerAlignedText">
 				Job History 
 </h1>
-<div ng-show="recentJobs">
+<div ng-show="jobsPresent">
 	<div ng-repeat="(key, value) in recentJobs">
 		<div>
 			<h4>{{key | date:'medium'}}</h4>
 			<uib-accordion close-others="false">
 				<uib-accordion-group heading="{{job.uuid}}" ng-repeat="job in value">
 						<div class="row">
-							<div class="bold col-md-2">
+							<div class="bold col-md-3">
 								Job Id:
 							</div>
-							<div class="col-md-4">
+							<div class="col-md-6">
 								{{job.uuid}}
 							</div>
-							
-							<div class="bold col-md-2">
+						</div>
+						
+						<div class="row">
+							<div class="bold col-md-3">
 								Submitted on:
 							</div>
-							<div class="col-md-4">
+							<div class="col-md-6">
 								{{job.dateTimeSubmitted|date:'medium'}}
 							</div>
 						</div>
 					
 						<div class="row">
-							<div class="bold col-md-2">
+							<div class="bold col-md-3">
 								Job Matrix:
 							</div>
-							<div class="col-md-4">
+							<div class="col-md-6">
 								{{job.jobInput.jobMatrixClass}}
 							</div>
-	
+						</div>
+						<div class="row">
 							<div class="bold col-md-3">
 								Sharding Dimensions:
 							</div>
-							<div class="col-md-3">
+							<div class="col-md-6">
 								{{job.jobInput.shardingDimensions}}
 							</div>
 						</div>
 						
-						<div class="row" ng-show="job.executionTimeInSeconds">
-							<div class="bold col-md-2">Input Data File Size:</div>
-							<div class="col-md-4">
-								{{job.jobInput.dataSize}} bytes
+						<div class="row" ng-show="job.jobInput.dataSize">
+							<div class="bold col-md-3">Input Data File Size:</div>
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize<1024}}">
+								{{job.jobInput.dataSize}} KB
 							</div>
-							<div class="bold col-md-2">
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
+								{{job.jobInput.dataSize/1024}} MB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1048576}}">
+								{{job.jobInput.dataSize/1048576}} GB
+							</div>
+						</div>
+						<div class="row" ng-show="job.jobOutput.dataSize">
+							<div class="bold col-md-3">
 								Output File Size:
 							</div>
-							<div class="col-md-4" ng-show="job.jobOutput">
-								{{job.jobOutput.dataSize}} bytes
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize<1024}}">
+								{{job.jobOutput.dataSize}} KB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
+								{{job.jobOutput.dataSize/1024}} MB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1048576}}">
+								{{job.jobOutput.dataSize/1048576}} GB
 							</div>
 						</div>
 						
 						<div class="row">
-							<div class="bold col-md-2">
+							<div class="bold col-md-3">
 								Status:
 							</div>
-							<div class="col-md-4">
+							<div class="col-md-6">
 								{{job.status}}
 							</div>
-							
-							<div class="bold col-md-2" ng-show="job.jobOutput">
+						</div>
+						
+						<div class="row" ng-show="job.jobOutput">
+							<div class="bold col-md-3" >
 								Finished on:
 							</div>
-							<div class="col-md-4" ng-show="job.jobOutput">
+							<div class="col-md-6">
 								{{job.dateTimeFinished| date:'medium'}}
 							</div>
 						</div>
@@ -71,8 +90,8 @@
 						<div class="row">
 							<div class="bold col-md-3">
 								Data Type Configuration:
-							</div class="bold col-md-9">
-							<div>
+							</div>
+							<div  class="bold col-md-6">
 								{{job.jobInput.dataTypeConfiguration}}
 							</div>
 						</div>
@@ -81,8 +100,8 @@
 							<div class="bold col-md-3">
 								Input Data File Location:
 							</div>
-							<div class="col-md-9">
-								<a>{{job.jobInput.dataLocation}}</a>
+							<div class="col-md-6">
+								<a href="{{job.jobInput.dataLocation}}">{{job.jobInput.dataLocation}}</a>
 							</div>
 						</div>
 						
@@ -90,8 +109,8 @@
 							<div class="bold col-md-3">
 								Output File Location:
 							</div>
-							<div class="col-md-9">
-								<a>{{job.jobOutput.dataLocation}}</a>
+							<div class="col-md-6">
+								<a href="{{job.jobOutput.dataLocation}}">{{job.jobOutput.dataLocation}}</a>
 							</div>
 						</div>
 					
@@ -99,17 +118,14 @@
 							<div class="bold col-md-3">
 								Total Time Taken:
 							</div>
-							<div class="col-md-4" ng-show="{{job.executionTimeInSeconds<60}}">
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds<60}}">
 								{{job.executionTimeInSeconds}} seconds
 							</div>
-							<div class="col-md-4" ng-show="{{job.executionTimeInSeconds>=60 && job.executionTimeInSeconds<3600}}">
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds>=60 && job.executionTimeInSeconds<3600}}">
 								{{(job.executionTimeInSeconds/60) | number:2}} minutes
 							</div>
-							<div class="col-md-4" ng-show="{{job.executionTimeInSeconds>=3600}}">
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds>=3600}}">
 								{{(job.executionTimeInSeconds/3600) | number:2}} hour(s)
-							</div>
-							<div class="bold col-md-2"></div>
-							<div class="col-md-4">
 							</div>
 						</div>
 					
@@ -169,7 +185,7 @@
 		</div>
 	</div>
 </div>
-<div ng-hide="recentJobs">
+<div ng-show="{{jobsLoaded && !jobsPresent}}">
 	<br/>
 		<div class="alert alert-info">
 		  <strong>There are no jobs to display.</strong>

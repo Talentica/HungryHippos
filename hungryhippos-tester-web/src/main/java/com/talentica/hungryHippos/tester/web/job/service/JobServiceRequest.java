@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -42,11 +43,11 @@ public class JobServiceRequest {
 		HttpClient httpClient = new HttpClient();
 		httpClient.executeMethod(head);
 		long dataSize = head.getResponseContentLength();
-		if (dataSize == 0) {
+		if (dataSize <= 0) {
 			error = new ServiceError("Input data file is empty. Please provide input data file with some content.",
 					"Empty data file.");
 		}
-		jobDetail.getJobInput().setDataSize((int) dataSize);
+		jobDetail.getJobInput().setDataSize(BigDecimal.valueOf(Double.valueOf(dataSize) / 1024));
 		return error;
 	}
 

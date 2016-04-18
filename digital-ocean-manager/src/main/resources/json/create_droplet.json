@@ -4,10 +4,7 @@
     "droplet": {
         "names": [
             "hh-master",
-			"hh-output",
-			"hh-0",
-			"hh-1",
-			"hh-2"
+			"hh-output"
         ],
         "region": {
             "slug": "nyc2"

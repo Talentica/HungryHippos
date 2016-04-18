@@ -461,7 +461,7 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		dropletIdToBeDeleted.add(String.valueOf(masterDropletId));
-		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_NAME,dropletIdToBeDeleted);
+		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_PATH,dropletIdToBeDeleted);
 		return serverIps;
 	}
 

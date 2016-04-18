@@ -52,6 +52,7 @@ public class JobManager {
 	 * @throws Exception
 	 */
 	public void start() throws Exception {
+		String uuidForTesting = "NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A"; //need to remove
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
 		LOGGER.info("SEND TASKS TO NODES");
@@ -60,7 +61,8 @@ public class JobManager {
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
 		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
-		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/download-output/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());
+		/*CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());*/
+		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+uuidForTesting);
 		LOGGER.info("KAZOO SERVER IS STARTED");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");

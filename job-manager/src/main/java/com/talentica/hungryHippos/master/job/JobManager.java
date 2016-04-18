@@ -71,10 +71,10 @@ public class JobManager {
 		
 		/*Caution : It will distroy the droplets. Please uncomment the code if needed.*/
 		
-		/*LOGGER.info("DISTROYING DROPLETS");
+		LOGGER.info("DISTROYING DROPLETS");
 		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		CommonUtil.executeScriptCommand("/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh");
-		LOGGER.info("DROPLET DISTROY IS INITIATED");*/
+		LOGGER.info("DROPLET DISTROY IS INITIATED");
 		
 		
 		

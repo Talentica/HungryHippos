@@ -47,6 +47,7 @@ public class DigitalOceanServiceUtil {
 	private static NodesManager nodesManager = Property.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
+	private static int MAXIMUM_DROPLETS_IN_BATCH = 10;
 	/** 
 	 * @param dropletEntity
 	 * @param dropletService
@@ -63,53 +64,10 @@ public class DigitalOceanServiceUtil {
 		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");;
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
-			if (dropletEntity.getDroplet().getImage().getId() != null) {
-				image = dropletService.getImageInfo(dropletEntity.getDroplet()
-						.getImage().getId());
-			} else if (dropletEntity.getDroplet().getImage().getName() != null
-					|| "".equals(dropletEntity.getDroplet().getImage().getId())) {
-				boolean isImageFound = false;
-				for (int page = 1;; page++) {
-					images = dropletService.getAvailableImages(page, 100);
-					if (images.getImages().isEmpty())
-						break;
-					for (Image img : images.getImages()) {
-						if (dropletEntity.getDroplet().getImage().getName()
-								.equalsIgnoreCase(img.getName())) {
-							LOGGER.info("Image id {} and name {}", img.getId(),
-									img.getName());
-							image = img;
-							isImageFound = true;
-							break;
-						}
-					}
-					if (isImageFound)
-						break;
-				}
-			}
-			if (image != null) {
-				dropletEntity.getDroplet().setImage(image);
-			}
-			List<Key> newKeys = new ArrayList<Key>();
-			Keys fetchKeys = dropletService.getAvailableKeys(null);
-			if (fetchKeys != null && fetchKeys.getKeys() != null
-					&& !fetchKeys.getKeys().isEmpty()) {
-				newKeys.addAll(fetchKeys.getKeys());
-			} else {
-				LOGGER.info("No keys are available");
-			}
-			dropletEntity.getDroplet().setKeys(newKeys);
-			List<String> names = dropletEntity.getDroplet().getNames();
-			List<String> newNames = new ArrayList<>();
-			for(String name : names){
-				newNames.add(name.replaceAll("hh", "hh"+"-"+dropletNamePattern));
-			}
-			dropletEntity.getDroplet().setNames(newNames);
-			droplets = dropletService
-					.createDroplets(dropletEntity.getDroplet());
-			LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
-					droplets.toString());
-			performConfigurationService(dropletService);
+			populatePresetValues(dropletService, dropletEntity, image);
+			Droplets retDroplest = createDroplets(dropletService,
+					dropletEntity, dropletNamePattern);
+			performConfigurationService(dropletService,retDroplest);
 			break;
 
 		case DELETE:
@@ -239,6 +197,104 @@ public class DigitalOceanServiceUtil {
 
 		}
 	}
+
+	/**
+	 * @param dropletService
+	 * @param dropletEntity
+	 * @param image
+	 * @throws DigitalOceanException
+	 * @throws RequestUnsuccessfulException
+	 */
+	private static void populatePresetValues(
+			DigitalOceanServiceImpl dropletService,
+			DigitalOceanEntity dropletEntity, Image image)
+			throws DigitalOceanException, RequestUnsuccessfulException {
+		Images images;
+		if (dropletEntity.getDroplet().getImage().getId() != null) {
+			image = dropletService.getImageInfo(dropletEntity.getDroplet()
+					.getImage().getId());
+		} else if (dropletEntity.getDroplet().getImage().getName() != null
+				|| "".equals(dropletEntity.getDroplet().getImage().getId())) {
+			boolean isImageFound = false;
+			for (int page = 1;; page++) {
+				images = dropletService.getAvailableImages(page, 100);
+				if (images.getImages().isEmpty())
+					break;
+				for (Image img : images.getImages()) {
+					if (dropletEntity.getDroplet().getImage().getName()
+							.equalsIgnoreCase(img.getName())) {
+						LOGGER.info("Image id {} and name {}", img.getId(),
+								img.getName());
+						image = img;
+						isImageFound = true;
+						break;
+					}
+				}
+				if (isImageFound)
+					break;
+			}
+		}
+		if (image != null) {
+			dropletEntity.getDroplet().setImage(image);
+		}
+		List<Key> newKeys = new ArrayList<Key>();
+		Keys fetchKeys = dropletService.getAvailableKeys(null);
+		if (fetchKeys != null && fetchKeys.getKeys() != null
+				&& !fetchKeys.getKeys().isEmpty()) {
+			newKeys.addAll(fetchKeys.getKeys());
+		} else {
+			LOGGER.info("No keys are available");
+		}
+		dropletEntity.getDroplet().setKeys(newKeys);
+	}
+
+	/**
+	 * @param dropletService
+	 * @param dropletEntity
+	 * @param dropletNamePattern
+	 * @return
+	 * @throws DigitalOceanException
+	 * @throws RequestUnsuccessfulException
+	 */
+	private static Droplets createDroplets(
+			DigitalOceanServiceImpl dropletService,
+			DigitalOceanEntity dropletEntity, String dropletNamePattern)
+			throws DigitalOceanException, RequestUnsuccessfulException {
+		Droplets droplets;
+		List<String> newNames = new ArrayList<>();
+		int onOfDroplets = Integer.valueOf(Property.getProperties().getProperty("common.no.of.droplets"));
+		String PRIFIX = "hh";
+		String HYPHEN = "-";
+		List<String> names = dropletEntity.getDroplet().getNames();
+		// for master and output droplets default
+		for(String name : names){
+			newNames.add(name.replaceAll("hh", "hh"+"-"+dropletNamePattern));
+		}
+		dropletEntity.getDroplet().getNames().clear();
+		dropletEntity.getDroplet().getNames().addAll(newNames);
+		Droplets retDroplest = new Droplets();
+		List<Droplet> dropletList = new ArrayList<>();
+		for(int index = 0 ; index < onOfDroplets ; index ++ ){
+			dropletEntity.getDroplet().getNames().add(PRIFIX + HYPHEN + dropletNamePattern + HYPHEN + index);
+			if(dropletEntity.getDroplet().getNames().size() == MAXIMUM_DROPLETS_IN_BATCH){
+				droplets = dropletService
+						.createDroplets(dropletEntity.getDroplet());
+				dropletList.addAll(droplets.getDroplets());
+				dropletEntity.getDroplet().getNames().clear();
+			}
+		}
+		
+		if(dropletEntity.getDroplet().getNames().size() != 0 && dropletEntity.getDroplet().getNames().size() < 10){
+			droplets = dropletService
+					.createDroplets(dropletEntity.getDroplet());
+			dropletList.addAll(droplets.getDroplets());
+			dropletEntity.getDroplet().getNames().clear();
+		}
+		retDroplest.setDroplets(dropletList);
+		LOGGER.info("Droplet/Droplets is/are of id/ids {} is initiated",
+				retDroplest.toString());
+		return retDroplest;
+	}
 	
 	public static List<String> getDropletIdsFile() throws IOException {
 		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH));
@@ -252,17 +308,16 @@ public class DigitalOceanServiceUtil {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	private static void performConfigurationService(
-			DigitalOceanServiceImpl dropletService)
+	private static void performConfigurationService(DigitalOceanServiceImpl dropletService,Droplets droplets)
 			throws DigitalOceanException, RequestUnsuccessfulException,
 			InterruptedException, IOException, Exception {
-		Droplets droplets;
+		//Droplets droplets;
 		
 		String formatFlag = Property.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
-			droplets = dropletService.getAvailableDroplets(1, 20);
+			//droplets = dropletService.getAvailableDroplets(1, 20);
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets);
 			LOGGER.info("Active droplets are {}", dropletFill.toString());

@@ -8,6 +8,6 @@ one=1
 for node in `cat node_ips_list.txt`
 do
    echo "Creating HungryHippos nodeId for $node"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;rm nodeId;echo $i >> nodeId;mkdir data"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;mkdir node;rm node/nodeId;echo $i >> node/nodeId;mkdir node/data"
    i=$(($i+$one))
 done

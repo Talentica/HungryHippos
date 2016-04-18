@@ -45,7 +45,7 @@ public class JobExecutor {
 		try {
 			long startTime = System.currentTimeMillis();
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			nodesManager = CommonUtil.connectZK();
+			nodesManager = Property.getNodesManagerIntances();
 			waitForSignal();
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();

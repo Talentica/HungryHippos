@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
 import com.myjeeva.digitalocean.pojo.Account;
-import com.myjeeva.digitalocean.pojo.Delete;
 import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
 import com.myjeeva.digitalocean.pojo.Image;
@@ -30,6 +29,7 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -44,10 +44,9 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static NodesManager nodesManager;
+	private static NodesManager nodesManager = Property.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
-	private static String TEMP_PATH = CommonUtil.TEMP_FOLDER_PATH;
 	/** 
 	 * @param dropletEntity
 	 * @param dropletService
@@ -114,9 +113,19 @@ public class DigitalOceanServiceUtil {
 			break;
 
 		case DELETE:
-			List<Delete> deleteList = dropletService
-					.deleteDroplets(dropletEntity.getIdsAsList());
-			LOGGER.info("The list are deleted {}", deleteList.toString());
+			/*List<Delete> deleteList = dropletService
+					.deleteDroplets(dropletEntity.getIdsAsList());*/
+			for (String dpltId : getDropletIdsFile()) {
+				try {
+					dropletService.deleteDroplet(Integer.valueOf(dpltId));
+					LOGGER.info("Distroy of droplet id {} is initiated.",
+							dpltId);
+				} catch (DigitalOceanException ex) {
+					LOGGER.info(
+							"Unable to delete the droplet id {} and exception {}",
+							dpltId, ex);
+				}
+			}
 			break;
 
 		case RENAME:
@@ -230,6 +239,10 @@ public class DigitalOceanServiceUtil {
 
 		}
 	}
+	
+	public static List<String> getDropletIdsFile() throws IOException {
+		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH));
+	}
 
 	/**
 	 * @param dropletService
@@ -244,8 +257,9 @@ public class DigitalOceanServiceUtil {
 			throws DigitalOceanException, RequestUnsuccessfulException,
 			InterruptedException, IOException, Exception {
 		Droplets droplets;
-		String formatFlag = Property.getPropertyValue(
-				"cleanup.zookeeper.nodes").toString();
+		
+		String formatFlag = Property.getZkPropertyValue(
+				"zk.cleanup.zookeeper.nodes").toString();
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			droplets = dropletService.getAvailableDroplets(1, 20);
@@ -261,9 +275,13 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer();
 			LOGGER.info("Zookeeper server started.");
-			LOGGER.info("Connecting zookeeper server.");
-			connectZookeeper();
-			LOGGER.info("Zookeeper server connected.");
+			LOGGER.info("Creating default nodes");
+			if (nodesManager == null) {
+				String zkIp = CommonUtil.getZKIp();
+				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
+			} 
+			nodesManager.startup();
+			LOGGER.info("Default nodes are created.");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
@@ -314,14 +332,6 @@ public class DigitalOceanServiceUtil {
 	
 
 	/**
-	 * @param digitalOceanManager
-	 * @throws Exception
-	 */
-	private static void connectZookeeper() throws Exception {
-		nodesManager = CommonUtil.connectZK();
-	}
-
-	/**
 	 * @param dropletService
 	 * @param droplets
 	 * @return
@@ -365,14 +375,17 @@ public class DigitalOceanServiceUtil {
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
 		String PORT = "2324";
+		Integer masterDropletId = null;
 		List<String> ipAndPort = new ArrayList<>();
 		List<String> serverIps = new ArrayList<>();
+		List<String> dropletIdToBeDeleted = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
 			List<Network> networks = retDroplet.getNetworks()
 					.getVersion4Networks();
 			for (Network network : networks) {
 				if (network.getType().equalsIgnoreCase("public")) {
 					if (retDroplet.getName().contains("master")) {
+						masterDropletId = retDroplet.getId();
 						ZK_IP = network.getIpAddress();
 						ipAndPort.clear();
 						ipAndPort.add(ZK_IP);
@@ -387,10 +400,13 @@ public class DigitalOceanServiceUtil {
 						break;
 					}
 					serverIps.add(PRIFIX + (index++)+":"+ network.getIpAddress()+ SUFFIX + PORT);
+					dropletIdToBeDeleted.add(String.valueOf(retDroplet.getId()));
 					break;
 				}
 			}
 		}
+		dropletIdToBeDeleted.add(String.valueOf(masterDropletId));
+		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_NAME,dropletIdToBeDeleted);
 		return serverIps;
 	}
 

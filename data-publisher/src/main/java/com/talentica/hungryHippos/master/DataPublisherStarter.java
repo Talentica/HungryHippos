@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.data.DataProvider;
@@ -29,12 +28,9 @@ public class DataPublisherStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			if (args.length >= 1) {
-				Property.overrideConfigurationProperties(args[0]);
-			}
 			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			dataPublisherStarter.nodesManager = CommonUtil.connectZK();
+			dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
 			LOGGER.info("Initializing nodes manager.");
 			waitForSinal(dataPublisherStarter);
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);

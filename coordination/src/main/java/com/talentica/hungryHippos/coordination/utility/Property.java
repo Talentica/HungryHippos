@@ -14,6 +14,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 
 /**
@@ -41,6 +43,8 @@ public class Property {
 	public static final String ZK_PROP_FILE = "zookeeper.properties";
 	public static final String MERGED_CONFIG_PROP_FILE = "mergedConfig.properties";
 	public static boolean isReadFirstTime = true;
+	private static boolean isConnected = false;
+	private static NodesManager nodesManager = null;
 
 	public enum PROPERTIES_NAMESPACE {
 
@@ -64,32 +68,55 @@ public class Property {
 	}
 
 	public static Properties getProperties() {
-		if (mergeProperties == null) {
+		if (mergeProperties == null || mergeProperties.isEmpty()) {
 			mergeProperties = new Properties();
 			try {
+				String zkIp = CommonUtil.getZKIp();
 				if (CONFIG_FILE_INPUT_STREAM != null) {
+					LOGGER.info("External configuration properties file is loaded");
 					if (!isReadFirstTime) {
+						try {
+							if (!isConnected && !"".equals(zkIp)) {
+								if (nodesManager == null && (nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp)) != null) {
+									isConnected = true;
+								}
+							}
+						} catch (Exception e1) {
+							LOGGER.info("Unable to start zk due to  {}", e1);
+						}
 						try {
 							properties = CommonUtil
 									.getMergedConfigurationPropertyFromZk();
-							if (properties != null)
+							if (properties != null){
+								LOGGER.info("Fetched config file from zookeeper");
 								return properties;
+							}
 						} catch (Exception e1) {
 							LOGGER.info("Unable to get the config file from zk.");
 						}
 					}
 					if (properties == null) {
 						properties = new Properties();
-						LOGGER.info("External configuration properties file is loaded");
 						properties.load(CONFIG_FILE_INPUT_STREAM);
 					}
 				} else {
-					LOGGER.info("Internal configuration properties file is loaded");
+					try {
+						if (!isConnected) {
+							if (nodesManager == null && (nodesManager= ServerHeartBeat.init().connectZookeeper(
+									zkIp)) != null) {
+								isConnected = true;
+							}
+						}
+					} catch (Exception e1) {
+						LOGGER.info("Unable to start zk due to  {}", e1);
+					}
 					try {
 						properties = CommonUtil
 								.getMergedConfigurationPropertyFromZk();
-						if (properties != null)
+						if (properties != null){
+							LOGGER.info("Fetched config file from zookeeper");
 							return properties;
+							}
 					} catch (Exception e) {
 						LOGGER.info("Unable to get the property file from zk node.");
 					}
@@ -167,33 +194,35 @@ public class Property {
 	}
 	
 	public static String getZkPropertyValue(String propertyName) {
-		Properties zkProperties = loadZkProperties();
-		if (properties != null) {
+		if (zkProperties == null) {
+			zkProperties = loadZkProperties();
+		}
+		if (mergeProperties != null) {
 			if (namespace != null) {
-				Object propertyValue = properties
+				Object propertyValue = mergeProperties
 						.get(environmentPropertiesPrefix + "."
 								+ namespace.getNamespace() + "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(namespace.getNamespace() + "."
+				propertyValue = mergeProperties.get(namespace.getNamespace() + "."
 						+ propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(environmentPropertiesPrefix
+				propertyValue = mergeProperties.get(environmentPropertiesPrefix
 						+ "." + PROPERTIES_NAMESPACE.COMMON.getNamespace()
 						+ "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
-				propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON
+				propertyValue = mergeProperties.get(PROPERTIES_NAMESPACE.COMMON
 						.getNamespace() + "." + propertyName);
 				if (propertyValue != null) {
 					return propertyValue.toString();
 				}
 			}
-			Object propertyValue = properties.get(environmentPropertiesPrefix
+			Object propertyValue = mergeProperties.get(environmentPropertiesPrefix
 					+ "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
@@ -203,36 +232,38 @@ public class Property {
 	}
 
 	public static String getPropertyValue(String propertyName) {
-		Properties properties = getProperties();
+		if(mergeProperties == null){
+			mergeProperties = getProperties();
+		}
 		if (namespace != null) {
-			Object propertyValue = properties.get(environmentPropertiesPrefix
+			Object propertyValue = mergeProperties.get(environmentPropertiesPrefix
 					+ "." + namespace.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(namespace.getNamespace() + "."
+			propertyValue = mergeProperties.get(namespace.getNamespace() + "."
 					+ propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(environmentPropertiesPrefix + "."
+			propertyValue = mergeProperties.get(environmentPropertiesPrefix + "."
 					+ PROPERTIES_NAMESPACE.COMMON.getNamespace() + "."
 					+ propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
-			propertyValue = properties.get(PROPERTIES_NAMESPACE.COMMON
+			propertyValue = mergeProperties.get(PROPERTIES_NAMESPACE.COMMON
 					.getNamespace() + "." + propertyName);
 			if (propertyValue != null) {
 				return propertyValue.toString();
 			}
 		}
-		Object propertyValue = properties.get(environmentPropertiesPrefix + "."
+		Object propertyValue = mergeProperties.get(environmentPropertiesPrefix + "."
 				+ propertyName);
 		if (propertyValue != null) {
 			return propertyValue.toString();
 		}
-		return properties.get(propertyName).toString();
+		return mergeProperties.get(propertyName).toString();
 	}
 
 	public static final void initialize(PROPERTIES_NAMESPACE appNamespace) {
@@ -275,6 +306,10 @@ public class Property {
 
 	public static PROPERTIES_NAMESPACE getNamespace() {
 		return namespace;
+	}
+	
+	public static NodesManager getNodesManagerIntances(){
+		return nodesManager;
 	}
 
 }

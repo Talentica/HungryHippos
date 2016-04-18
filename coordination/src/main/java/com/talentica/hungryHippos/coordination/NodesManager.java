@@ -95,7 +95,6 @@ public class NodesManager implements Watcher {
 		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getZkPropertyValue("zookeeper.config_path"));
 		Integer sessionTimeOut = Integer.valueOf(Property.getZkPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
-		//connectZookeeper(null);
 	}
 
 	public NodesManager connectZookeeper(String zkIP) {
@@ -135,7 +134,7 @@ public class NodesManager implements Watcher {
 	     * @throws Exception
 	     */
 	public void startup() throws Exception {
-	    	formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
+		formatFlag = Property.getPropertyValue(Property.getNamespace().toString().toLowerCase()+"."+"cleanup.zookeeper.nodes").toString();
 	    	if(formatFlag.equals("Y")){
 	    		CountDownLatch signal = new CountDownLatch(1);
 	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);

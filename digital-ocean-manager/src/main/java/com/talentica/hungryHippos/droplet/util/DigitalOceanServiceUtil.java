@@ -76,7 +76,7 @@ public class DigitalOceanServiceUtil {
 			for (String dpltId : getDropletIdsFile()) {
 				try {
 					dropletService.deleteDroplet(Integer.valueOf(dpltId));
-					LOGGER.info("Distroy of droplet id {} is initiated.",
+					LOGGER.info("Destroy of droplet id {} is initiated.",
 							dpltId);
 				} catch (DigitalOceanException ex) {
 					LOGGER.info(

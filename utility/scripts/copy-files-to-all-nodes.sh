@@ -8,7 +8,7 @@ do
    echo "Copying master_ip_file to HungryHippos for $node"
    ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;mkdir tmp"
    scp ../tmp/master_ip_file root@$node:hungryhippos/tmp/
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;mv tmp ../"
+   scp ../tmp/serverConfigFile.properties root@$node:hungryhippos/tmp/
 done
 
 cat ../tmp/master_ip_file > temp_master_ip

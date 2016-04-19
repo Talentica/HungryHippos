@@ -10,9 +10,9 @@
             "slug": "nyc2"
         },
         "image": {			
-            "name":"hh-node-snap-final"
+            "name":"test-final-sanpshot-for-demo"
         },
-        "size": "4gb",
+        "size": "2gb",
         "enableBackup": true,
         "enableIpv6": true,
         "enablePrivateNetworking": true

@@ -59,22 +59,19 @@ public class JobManager {
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
-		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
-		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/download-output/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());
-		LOGGER.info("KAZOO SERVER IS STARTED");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
 		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
 		
-		
 		/*Caution : It will distroy the droplets. Please uncomment the code if needed.*/
 		
-		/*LOGGER.info("DISTROYING DROPLETS");
+		LOGGER.info("DISTROYING DROPLETS");
 		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		CommonUtil.executeScriptCommand("/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh");
-		LOGGER.info("DROPLET DISTROY IS INITIATED");*/
+		String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("DROPLET DISTROY IS INITIATED");
 		
 		
 		

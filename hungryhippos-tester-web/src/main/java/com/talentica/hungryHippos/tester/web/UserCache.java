@@ -10,13 +10,10 @@ import org.springframework.stereotype.Component;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 import com.talentica.hungryHippos.tester.web.user.data.UserRepository;
 
-import lombok.Setter;
-
 @Component
 public final class UserCache {
 
 	@Autowired(required = false)
-	@Setter
 	private UserRepository userRepository;
 
 	private static final Map<String, User> USER_EMAIL_ADDRESS_TO_USER_ENTITIES_CACHE = new HashMap<>();
@@ -45,5 +42,9 @@ public final class UserCache {
 	public User getCurrentLoggedInUser() {
 		String emailAddress = SecurityContextHolder.getContext().getAuthentication().getName();
 		return getUserByEmailAddress(emailAddress);
+	}
+
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
 	}
 }

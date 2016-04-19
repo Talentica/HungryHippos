@@ -11,13 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class JobServiceRequest {
 
-	@Getter
-	@Setter
 	private Job jobDetail;
 
 	public ServiceError validate() throws HttpException, IOException {
@@ -58,6 +53,14 @@ public class JobServiceRequest {
 					"Invalid data file location.");
 		}
 		return error;
+	}
+
+	public Job getJobDetail() {
+		return jobDetail;
+	}
+
+	public void setJobDetail(Job jobDetail) {
+		this.jobDetail = jobDetail;
 	}
 
 }

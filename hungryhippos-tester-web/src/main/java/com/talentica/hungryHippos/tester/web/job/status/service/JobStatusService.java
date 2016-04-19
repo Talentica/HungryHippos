@@ -17,21 +17,16 @@ import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstanceRepo
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
-import lombok.Setter;
-
 @Controller
 @RequestMapping("/job")
 public class JobStatusService extends Service {
 
-	@Setter
 	@Autowired(required = false)
 	private JobRepository jobRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private ProcessInstanceRepository processInstanceRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private JobOutputService jobOutputService;
 
@@ -54,6 +49,18 @@ public class JobStatusService extends Service {
 		jobStatusServiceResponse.setJobDetail(job);
 		jobStatusServiceResponse.setProcessInstances(processInstances);
 		return jobStatusServiceResponse;
+	}
+
+	public void setJobOutputService(JobOutputService jobOutputService) {
+		this.jobOutputService = jobOutputService;
+	}
+
+	public void setJobRepository(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
+	}
+
+	public void setProcessInstanceRepository(ProcessInstanceRepository processInstanceRepository) {
+		this.processInstanceRepository = processInstanceRepository;
 	}
 
 }

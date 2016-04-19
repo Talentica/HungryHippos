@@ -1,16 +1,9 @@
 package com.talentica.hungryHippos.tester.web.service;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class ServiceError {
 
-	@Getter
-	@Setter
 	private String message;
 
-	@Getter
-	@Setter
 	private String detail;
 
 	public ServiceError() {
@@ -19,6 +12,22 @@ public class ServiceError {
 
 	public ServiceError(String message, String detail) {
 		this.message = message;
+		this.detail = detail;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getDetail() {
+		return detail;
+	}
+
+	public void setDetail(String detail) {
 		this.detail = detail;
 	}
 

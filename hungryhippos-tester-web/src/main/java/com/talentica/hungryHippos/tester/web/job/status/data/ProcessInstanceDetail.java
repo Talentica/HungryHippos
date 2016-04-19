@@ -15,54 +15,33 @@ import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.data.STATUS;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
-@EqualsAndHashCode(of = "processInstanceDetailId")
 public class ProcessInstanceDetail {
 
-	@Getter
-	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "process_instance_detail_id")
 	private Integer processInstanceDetailId;
 
-	@Getter
-	@Setter
 	@Column(name = "process_instance_id")
 	private Integer processInstanceId;
 
-	@Getter
-	@Setter
 	@Column(name = "node_id")
 	private Integer nodeId;
 
-	@Getter
-	@Setter
 	@Column(name = "node_ip")
 	private String nodeIp;
 
-	@Getter
-	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
 	private STATUS status;
 
-	@Getter
-	@Setter
 	@Column(name = "execution_start_time")
 	private Date executionStartDateTime;
 
-	@Getter
-	@Setter
 	@Column(name = "execution_end_time")
 	private Date executionEndDateTime;
 
-	@Getter
-	@Setter
 	@Column(name = "error_message")
 	private String error;
 
@@ -88,6 +67,94 @@ public class ProcessInstanceDetail {
 			duration = executionInterval.toDuration();
 		}
 		return duration;
+	}
+
+	public Integer getProcessInstanceDetailId() {
+		return processInstanceDetailId;
+	}
+
+	public void setProcessInstanceDetailId(Integer processInstanceDetailId) {
+		this.processInstanceDetailId = processInstanceDetailId;
+	}
+
+	public Integer getProcessInstanceId() {
+		return processInstanceId;
+	}
+
+	public void setProcessInstanceId(Integer processInstanceId) {
+		this.processInstanceId = processInstanceId;
+	}
+
+	public Integer getNodeId() {
+		return nodeId;
+	}
+
+	public void setNodeId(Integer nodeId) {
+		this.nodeId = nodeId;
+	}
+
+	public String getNodeIp() {
+		return nodeIp;
+	}
+
+	public void setNodeIp(String nodeIp) {
+		this.nodeIp = nodeIp;
+	}
+
+	public STATUS getStatus() {
+		return status;
+	}
+
+	public void setStatus(STATUS status) {
+		this.status = status;
+	}
+
+	public Date getExecutionStartDateTime() {
+		return executionStartDateTime;
+	}
+
+	public void setExecutionStartDateTime(Date executionStartDateTime) {
+		this.executionStartDateTime = executionStartDateTime;
+	}
+
+	public Date getExecutionEndDateTime() {
+		return executionEndDateTime;
+	}
+
+	public void setExecutionEndDateTime(Date executionEndDateTime) {
+		this.executionEndDateTime = executionEndDateTime;
+	}
+
+	public String getError() {
+		return error;
+	}
+
+	public void setError(String error) {
+		this.error = error;
+	}
+
+	public void setExecutionTimeInSeconds(Long executionTimeInSeconds) {
+		this.executionTimeInSeconds = executionTimeInSeconds;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof ProcessInstanceDetail && processInstanceDetailId != null) {
+			ProcessInstanceDetail other = (ProcessInstanceDetail) obj;
+			return processInstanceDetailId.equals(other.processInstanceDetailId);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (processInstanceDetailId != null) {
+			return processInstanceDetailId.hashCode();
+		}
+		return 0;
 	}
 
 }

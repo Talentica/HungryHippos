@@ -13,36 +13,75 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
-@EqualsAndHashCode(of = "processInstanceId")
 public class ProcessInstance {
 
-	@Getter
-	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "process_instance_id")
 	private Integer processInstanceId;
 
-	@Getter
-	@Setter
 	@OneToOne
 	@JoinColumn(name = "process_id")
 	private Process process;
 
-	@Getter
-	@Setter
 	@Column(name = "job_id")
 	private Integer jobId;
 
-	@Getter
-	@Setter
 	@OneToMany(mappedBy = "processInstanceId", fetch = FetchType.EAGER)
 	@PrimaryKeyJoinColumn
 	private List<ProcessInstanceDetail> processInstanceDetails;
+
+	public Integer getProcessInstanceId() {
+		return processInstanceId;
+	}
+
+	public void setProcessInstanceId(Integer processInstanceId) {
+		this.processInstanceId = processInstanceId;
+	}
+
+	public Process getProcess() {
+		return process;
+	}
+
+	public void setProcess(Process process) {
+		this.process = process;
+	}
+
+	public Integer getJobId() {
+		return jobId;
+	}
+
+	public void setJobId(Integer jobId) {
+		this.jobId = jobId;
+	}
+
+	public List<ProcessInstanceDetail> getProcessInstanceDetails() {
+		return processInstanceDetails;
+	}
+
+	public void setProcessInstanceDetails(List<ProcessInstanceDetail> processInstanceDetails) {
+		this.processInstanceDetails = processInstanceDetails;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof ProcessInstance && processInstanceId != null) {
+			ProcessInstance other = (ProcessInstance) obj;
+			return processInstanceId.equals(other.processInstanceId);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (processInstanceId != null) {
+			return processInstanceId.hashCode();
+		}
+		return 0;
+	}
 
 }

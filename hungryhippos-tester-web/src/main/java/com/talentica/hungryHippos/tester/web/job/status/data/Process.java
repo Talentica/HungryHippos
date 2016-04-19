@@ -10,51 +10,80 @@ import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
-@EqualsAndHashCode(of = "processId")
 public class Process {
-	
-	public enum PROCESS_NAME{
-		
-		FILE_DOWNLOAD("File Download"),
-		SAMPLING("Sampling"),
-		SHARDING("Sharding"),
-		DATA_PUBLISHING("Data Publishing"),
-		JOB_EXECUTION("Job Execution"),
-		OUTPUT_TRANSFER("Transferring output");
+
+	public enum PROCESS_NAME {
+
+		FILE_DOWNLOAD("File Download"), SAMPLING("Sampling"), SHARDING("Sharding"), DATA_PUBLISHING(
+				"Data Publishing"), JOB_EXECUTION("Job Execution"), OUTPUT_TRANSFER("Transferring output");
 
 		private String name;
-		
+
 		@JsonValue
 		public String getName() {
 			return name;
 		}
-		
-		private PROCESS_NAME(String name){
-			this.name=name;
+
+		private PROCESS_NAME(String name) {
+			this.name = name;
 		}
 	}
 
-	@Getter
-	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "process_id")
 	private Integer processId;
 
-	@Getter
-	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(name = "name")
 	private PROCESS_NAME name;
 
-	@Getter
-	@Setter
 	@Column(name = "description")
 	private String description;
+
+	public Integer getProcessId() {
+		return processId;
+	}
+
+	public void setProcessId(Integer processId) {
+		this.processId = processId;
+	}
+
+	public PROCESS_NAME getName() {
+		return name;
+	}
+
+	public void setName(PROCESS_NAME name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof Process && processId != null) {
+			Process otherprocess = (Process) obj;
+			return processId.equals(otherprocess.processId);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (processId != null) {
+			return processId.hashCode();
+		}
+		return 0;
+	}
 
 }

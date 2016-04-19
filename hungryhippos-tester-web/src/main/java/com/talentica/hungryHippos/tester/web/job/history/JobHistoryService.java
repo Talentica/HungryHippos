@@ -11,17 +11,13 @@ import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 
-import lombok.Setter;
-
 @Controller
 @RequestMapping("/job")
 public class JobHistoryService extends Service {
 
-	@Setter
 	@Autowired(required = false)
 	private JobRepository jobRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private UserCache userCache;
 
@@ -31,6 +27,14 @@ public class JobHistoryService extends Service {
 		JobHistoryServiceResponse jobHistoryServiceResponse = new JobHistoryServiceResponse();
 		jobHistoryServiceResponse.setJobs(jobRepository.findTop5ByUserIdOrderByDateTimeSubmittedDesc(user.getUserId()));
 		return jobHistoryServiceResponse;
+	}
+
+	public void setJobRepository(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
+	}
+
+	public void setUserCache(UserCache userCache) {
+		this.userCache = userCache;
 	}
 
 }

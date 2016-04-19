@@ -13,36 +13,75 @@ import javax.persistence.OneToOne;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
-@EqualsAndHashCode(of = "jobOutputId")
 public class JobOutput {
 
-	@Getter
-	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "job_output_id")
 	private Integer jobOutputId;
 
-	@Getter
-	@Setter
 	@OneToOne
 	@JoinColumn(name = "job_id")
 	@JsonIgnore
 	private Job job;
 
-	@Getter
-	@Setter
 	@Column(name = "data_location")
 	private String dataLocation;
 
-	@Getter
-	@Setter
 	@Column(name = "data_size_in_kbs")
 	private BigDecimal dataSize;
+
+	public Integer getJobOutputId() {
+		return jobOutputId;
+	}
+
+	public void setJobOutputId(Integer jobOutputId) {
+		this.jobOutputId = jobOutputId;
+	}
+
+	public Job getJob() {
+		return job;
+	}
+
+	public void setJob(Job job) {
+		this.job = job;
+	}
+
+	public String getDataLocation() {
+		return dataLocation;
+	}
+
+	public void setDataLocation(String dataLocation) {
+		this.dataLocation = dataLocation;
+	}
+
+	public BigDecimal getDataSize() {
+		return dataSize;
+	}
+
+	public void setDataSize(BigDecimal dataSize) {
+		this.dataSize = dataSize;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof JobOutput && jobOutputId != null) {
+			JobOutput other = (JobOutput) obj;
+			return jobOutputId.equals(other.jobOutputId);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (jobOutputId != null) {
+			return jobOutputId.hashCode();
+		}
+		return 0;
+	}
 
 }

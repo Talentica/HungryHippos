@@ -13,17 +13,13 @@ import com.talentica.hungryHippos.tester.web.job.output.data.JobOutputRepository
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
-import lombok.Setter;
-
 @Controller
 @RequestMapping("/job")
 public class JobOutputService extends Service {
 
-	@Setter
 	@Autowired(required = false)
 	private JobRepository jobRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private JobOutputRepository jobOutputRepository;
 
@@ -45,4 +41,11 @@ public class JobOutputService extends Service {
 		return jobStatusServiceResponse;
 	}
 
+	public void setJobOutputRepository(JobOutputRepository jobOutputRepository) {
+		this.jobOutputRepository = jobOutputRepository;
+	}
+
+	public void setJobRepository(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
+	}
 }

@@ -2,17 +2,26 @@ package com.talentica.hungryHippos.tester.web.job.service;
 
 import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class JobJarFileUploadServiceResponse extends ServiceResponse {
 
-	@Getter
-	@Setter
 	private long uploadedFileSize = 0;
 
-	@Getter
-	@Setter
 	private String jobUuid;
+
+	public long getUploadedFileSize() {
+		return uploadedFileSize;
+	}
+
+	public void setUploadedFileSize(long uploadedFileSize) {
+		this.uploadedFileSize = uploadedFileSize;
+	}
+
+	public String getJobUuid() {
+		return jobUuid;
+	}
+
+	public void setJobUuid(String jobUuid) {
+		this.jobUuid = jobUuid;
+	}
 
 }

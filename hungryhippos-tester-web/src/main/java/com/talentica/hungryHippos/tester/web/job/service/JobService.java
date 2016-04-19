@@ -24,8 +24,6 @@ import com.talentica.hungryHippos.tester.web.service.ServiceError;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 import com.talentica.hungryHippos.utility.ScriptRunner;
 
-import lombok.Setter;
-
 @Controller
 @RequestMapping("/job")
 public class JobService extends Service {
@@ -35,19 +33,15 @@ public class JobService extends Service {
 	@Value("${job.submission.script.path.jars.dir}")
 	private String JOB_SUBMISSION_SCRIPT_FILE_PATH;
 
-	@Setter
 	@Autowired(required = false)
 	private JobRepository jobRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private JobInputRepository jobInputRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private JobOutputService jobOutputService;
 
-	@Setter
 	@Autowired(required = false)
 	private UserCache userCache;
 
@@ -125,6 +119,22 @@ public class JobService extends Service {
 		}
 		jobServiceResponse.setJobDetail(job);
 		return jobServiceResponse;
+	}
+
+	public void setJobInputRepository(JobInputRepository jobInputRepository) {
+		this.jobInputRepository = jobInputRepository;
+	}
+
+	public void setJobOutputService(JobOutputService jobOutputService) {
+		this.jobOutputService = jobOutputService;
+	}
+
+	public void setJobRepository(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
+	}
+
+	public void setUserCache(UserCache userCache) {
+		this.userCache = userCache;
 	}
 
 }

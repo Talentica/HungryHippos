@@ -18,60 +18,37 @@ import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity
-@EqualsAndHashCode(of = "jobId")
 public class Job {
 
-	@Getter
-	@Setter
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "job_id")
 	private Integer jobId;
 
-	@Getter
-	@Setter
 	@Column(name = "job_uuid")
 	private String uuid;
 
-	@Getter
-	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
 	private STATUS status;
 
-	@Getter
-	@Setter
 	@Column(name = "date_time_submitted")
 	private Date dateTimeSubmitted;
 
-	@Getter
-	@Setter
 	@Column(name = "date_time_started")
 	private Date dateTimeStarted;
 
-	@Getter
-	@Setter
 	@Column(name = "date_time_finished")
 	private Date dateTimeFinished;
 
-	@Getter
-	@Setter
 	@Column(name = "user_id")
 	private Integer userId;
 
-	@Getter
-	@Setter
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "job")
 	@JoinColumn(name = "job_id", insertable = false, updatable = false)
 	private JobInput jobInput;
 
-	@Getter
-	@Setter
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "job")
 	@JoinColumn(name = "job_id", insertable = false, updatable = false)
 	private JobOutput jobOutput;
@@ -99,4 +76,101 @@ public class Job {
 		}
 		return duration;
 	}
+
+	public Integer getJobId() {
+		return jobId;
+	}
+
+	public void setJobId(Integer jobId) {
+		this.jobId = jobId;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public STATUS getStatus() {
+		return status;
+	}
+
+	public void setStatus(STATUS status) {
+		this.status = status;
+	}
+
+	public Date getDateTimeSubmitted() {
+		return dateTimeSubmitted;
+	}
+
+	public void setDateTimeSubmitted(Date dateTimeSubmitted) {
+		this.dateTimeSubmitted = dateTimeSubmitted;
+	}
+
+	public Date getDateTimeStarted() {
+		return dateTimeStarted;
+	}
+
+	public void setDateTimeStarted(Date dateTimeStarted) {
+		this.dateTimeStarted = dateTimeStarted;
+	}
+
+	public Date getDateTimeFinished() {
+		return dateTimeFinished;
+	}
+
+	public void setDateTimeFinished(Date dateTimeFinished) {
+		this.dateTimeFinished = dateTimeFinished;
+	}
+
+	public JobInput getJobInput() {
+		return jobInput;
+	}
+
+	public void setJobInput(JobInput jobInput) {
+		this.jobInput = jobInput;
+	}
+
+	public JobOutput getJobOutput() {
+		return jobOutput;
+	}
+
+	public void setJobOutput(JobOutput jobOutput) {
+		this.jobOutput = jobOutput;
+	}
+
+	public Integer getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}
+
+	public void setExecutionTimeInSeconds(Long executionTimeInSeconds) {
+		this.executionTimeInSeconds = executionTimeInSeconds;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof Job && jobId != null) {
+			Job other = (Job) obj;
+			return jobId.equals(other.jobId);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		if (jobId != null) {
+			return jobId.hashCode();
+		}
+		return 0;
+	}
+
 }

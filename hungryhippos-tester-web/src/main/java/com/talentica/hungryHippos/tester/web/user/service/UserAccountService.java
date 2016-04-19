@@ -14,15 +14,12 @@ import com.talentica.hungryHippos.tester.web.user.data.RoleRepository;
 import com.talentica.hungryHippos.tester.web.user.data.User;
 import com.talentica.hungryHippos.tester.web.user.data.UserRepository;
 
-import lombok.Setter;
-
 @Controller
 @RequestMapping("/user")
 public class UserAccountService {
 
 	private UserRepository userRepository;
 
-	@Setter
 	@Autowired(required = false)
 	private RoleRepository roleRepository;
 
@@ -61,6 +58,10 @@ public class UserAccountService {
 	@Autowired(required = false)
 	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
+	}
+
+	public void setRoleRepository(RoleRepository roleRepository) {
+		this.roleRepository = roleRepository;
 	}
 
 }

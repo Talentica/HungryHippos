@@ -6,17 +6,26 @@ import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstance;
 import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class JobStatusServiceResponse extends ServiceResponse {
 
-	@Getter
-	@Setter
 	private Job jobDetail;
 
-	@Getter
-	@Setter
 	private List<ProcessInstance> processInstances;
+
+	public Job getJobDetail() {
+		return jobDetail;
+	}
+
+	public void setJobDetail(Job jobDetail) {
+		this.jobDetail = jobDetail;
+	}
+
+	public List<ProcessInstance> getProcessInstances() {
+		return processInstances;
+	}
+
+	public void setProcessInstances(List<ProcessInstance> processInstances) {
+		this.processInstances = processInstances;
+	}
 
 }

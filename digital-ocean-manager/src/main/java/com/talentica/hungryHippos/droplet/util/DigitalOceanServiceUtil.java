@@ -326,24 +326,27 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("IP Address {}",ipv4AddrsList);
 			LOGGER.info("Generating server config file");
 			writeLineInFile(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
-			LOGGER.info("Server config file is created");
+			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer();
-			LOGGER.info("Zookeeper server started.");
+			LOGGER.info("Zookeeper server started...");
 			LOGGER.info("Creating default nodes");
 			if (nodesManager == null) {
 				String zkIp = CommonUtil.getZKIp();
 				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
 			} 
 			nodesManager.startup();
-			LOGGER.info("Default nodes are created.");
+			LOGGER.info("Default nodes are created...");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
 			/*need to pass the property map.*/
 			uploadDynamicConfigFileToZk(new HashMap<String, String>()); 
-			LOGGER.info("Conf file is uploaded");
+			LOGGER.info("Conf file is uploaded...");
+			LOGGER.info("Starting kazoo on output server");
+			startKazooServer();
+			LOGGER.info("Kazoo server started...");
 		}
 	}
 
@@ -384,6 +387,16 @@ public class DigitalOceanServiceUtil {
 		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh"};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Shell command is executed");
+	}
+	
+	private static void startKazooServer(){
+		String uuidForTesting = "NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A"; //need to remove
+		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-kazoo-server.sh",uuidForTesting};
+		/*CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());*/
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("KAZOO SERVER IS STARTED");
 	}
 	
 

@@ -52,7 +52,6 @@ public class JobManager {
 	 * @throws Exception
 	 */
 	public void start() throws Exception {
-		String uuidForTesting = "NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A"; //need to remove
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
 		LOGGER.info("SEND TASKS TO NODES");
@@ -60,23 +59,17 @@ public class JobManager {
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
-		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
-		String[] strArr = new String[] {"/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py",uuidForTesting};
-		/*CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());*/
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("KAZOO SERVER IS STARTED");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
 		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
 		
-		
 		/*Caution : It will distroy the droplets. Please uncomment the code if needed.*/
 		
 		LOGGER.info("DISTROYING DROPLETS");
 		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
+		String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("DROPLET DISTROY IS INITIATED");
 		

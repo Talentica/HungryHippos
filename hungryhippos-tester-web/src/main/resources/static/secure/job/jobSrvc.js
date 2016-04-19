@@ -21,7 +21,8 @@ app.service("JobService",function($http,JobHistoryResource,JobDetailResource,Job
     this.uploadJobJarFile= function(file,jobMatrixClassName,successCallback,errorCallback){
             var fd = new FormData();
             fd.append('file', file);
-            $http.post("/secure/job/jar/upload?jobMatrixClassName="+jobMatrixClassName,fd, {
+            fd.append("jobMatrixClassName",jobMatrixClassName);
+            $http.post("/secure/job/jar/upload",fd, {
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
             }).success(successCallback).error(errorCallback);

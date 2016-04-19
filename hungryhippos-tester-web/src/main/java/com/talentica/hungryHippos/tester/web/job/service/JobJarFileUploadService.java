@@ -8,6 +8,8 @@ import java.util.UUID;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
@@ -22,6 +24,8 @@ import com.talentica.hungryHippos.tester.web.service.ServiceError;
 @Controller
 @RequestMapping("/secure/job")
 public class JobJarFileUploadService {
+
+	private Logger LOGGER = LoggerFactory.getLogger(JobJarFileUploadService.class);
 
 	@Value("${jobmatrix.jars.dir}")
 	private String JOB_MATRIX_JAR_DIRECTORY;
@@ -70,6 +74,7 @@ public class JobJarFileUploadService {
 			BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(jobJarFile));
 			FileCopyUtils.copy(file.getInputStream(), stream);
 			stream.close();
+
 			ServiceError error = validateIfClassPresentInUploadedJobJarFile(uploadedJarFilePath, jobMatrixClassName);
 			if (error != null) {
 				fileUploadServiceResponse.setError(error);
@@ -80,6 +85,7 @@ public class JobJarFileUploadService {
 			fileUploadServiceResponse.setUploadedFileSize(jobJarFile.length());
 			fileUploadServiceResponse.setJobUuid(jobUuid);
 		} catch (Exception e) {
+			LOGGER.error("Error occurred while processing job jar upload request.", e);
 			ServiceError serviceError = new ServiceError("There was an error while uploading job jar file.",
 					"File upload failed: " + file.getName() + " because " + e.getMessage());
 			fileUploadServiceResponse.setError(serviceError);

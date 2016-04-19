@@ -51,6 +51,11 @@ public class Job {
 
 	@Getter
 	@Setter
+	@Column(name = "date_time_started")
+	private Date dateTimeStarted;
+
+	@Getter
+	@Setter
 	@Column(name = "date_time_finished")
 	private Date dateTimeFinished;
 
@@ -88,9 +93,8 @@ public class Job {
 
 	private org.joda.time.Duration getExecutionDuration() {
 		org.joda.time.Duration duration = null;
-		if (getDateTimeFinished() != null && getDateTimeSubmitted() != null) {
-			Interval executionInterval = new Interval(getDateTimeSubmitted().getTime(),
-					getDateTimeFinished().getTime());
+		if (getDateTimeFinished() != null && getDateTimeStarted() != null) {
+			Interval executionInterval = new Interval(getDateTimeStarted().getTime(), getDateTimeFinished().getTime());
 			duration = executionInterval.toDuration();
 		}
 		return duration;

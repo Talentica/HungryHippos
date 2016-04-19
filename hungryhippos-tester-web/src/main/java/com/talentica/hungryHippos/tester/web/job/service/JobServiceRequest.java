@@ -25,7 +25,7 @@ public class JobServiceRequest {
 		if (jobDetail == null || jobDetail == null || jobDetail.getJobInput() == null
 				|| StringUtils.isBlank(jobDetail.getJobInput().getDataLocation())) {
 			error = new ServiceError("Job information is blank. Please provide with the job information.",
-					"Missing jon information in request.");
+					"Missing job information in request.");
 		}
 
 		if (jobDetail != null && jobDetail.getJobId() != null) {
@@ -39,15 +39,24 @@ public class JobServiceRequest {
 					"Job UUID not found.");
 		}
 
-		HeadMethod head = new HeadMethod(jobDetail.getJobInput().getDataLocation());
-		HttpClient httpClient = new HttpClient();
-		httpClient.executeMethod(head);
-		long dataSize = head.getResponseContentLength();
-		if (dataSize <= 0) {
-			error = new ServiceError("Input data file is empty. Please provide input data file with some content.",
-					"Empty data file.");
+		String dataLocation = jobDetail.getJobInput().getDataLocation();
+		try {
+			HeadMethod head = new HeadMethod(dataLocation);
+			HttpClient httpClient = new HttpClient();
+			httpClient.executeMethod(head);
+			long dataSize = head.getResponseContentLength();
+			if (dataSize <= 0 || head.getStatusCode() == 404) {
+				error = new ServiceError(
+						"Either input data file content is empty or file does not exist. Please provide valid input data file.",
+						"Empty data file.");
+			}
+			jobDetail.getJobInput().setDataSize(BigDecimal.valueOf(Double.valueOf(dataSize) / 1024));
+		} catch (Exception exception) {
+			error = new ServiceError(
+					"Could not get size of input CSV file from location:" + dataLocation
+							+ ". Please make sure file is accessible over internet for processing.",
+					"Invalid data file location.");
 		}
-		jobDetail.getJobInput().setDataSize(BigDecimal.valueOf(Double.valueOf(dataSize) / 1024));
 		return error;
 	}
 

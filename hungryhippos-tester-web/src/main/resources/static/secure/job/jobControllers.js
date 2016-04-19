@@ -30,6 +30,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 			if($scope.dataTypeConfiguration[i] && $scope.dataTypeConfiguration[i].dataType){
 				if($scope.dataTypeConfiguration[i].dataType==='STRING' && !$scope.dataTypeConfiguration[i].dataSize){
 					$scope.error.message="Please select maximum no. of characters for a 'String' data type column.";
+					usSpinnerService.stop('spinner-1');
 					return;
 				}
 				if(i>0){
@@ -45,11 +46,13 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 				}
 			}else{
 				$scope.error.message="Please select data type of all columns.";
+				usSpinnerService.stop('spinner-1');
 				return;
 			}
 		}
 		if(!shardingDimensionsSelected){
 			$scope.error.message="Please select at least one sharding dimension.";
+			usSpinnerService.stop('spinner-1');
 			return;
 		}else{
 			$scope.jobDetail.jobInput.shardingDimensions=shardingDimensions;
@@ -81,6 +84,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		        }, 
 		        function(response){
 		        	$scope.error.message=response||"File upload failed.";
+		        	usSpinnerService.stop('spinner-1');
 		        }
 		);
 	}
@@ -97,6 +101,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		$scope.jobDetail={};
 		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
 		$scope.jobJarFile=null;
+		usSpinnerService.stop('spinner-1');
 	}
 	
 });

@@ -6,7 +6,8 @@
 		<div>
 			<h4>{{key | date:'medium'}}</h4>
 			<uib-accordion close-others="false">
-				<uib-accordion-group heading="{{job.uuid}}" ng-repeat="job in value">
+				<uib-accordion-group heading="{{job.uuid}}" panel-class="panel-info" ng-repeat="job in value">
+						
 						<div class="row">
 							<div class="bold col-md-3">
 								Job Id:
@@ -91,7 +92,7 @@
 							<div class="bold col-md-3">
 								Data Type Configuration:
 							</div>
-							<div  class="bold col-md-6">
+							<div  class="col-md-6">
 								{{job.jobInput.dataTypeConfiguration}}
 							</div>
 						</div>
@@ -132,7 +133,7 @@
 					<br/>
 					
 					<uib-accordion close-others="false">
-						<uib-accordion-group heading="Stepwise Time Details" ng-click="getJobStatusDetail(job.uuid)" >
+						<uib-accordion-group panel-class="accordinInsideAccordian" heading="Stepwise Time Details" ng-click="getJobStatusDetail(job.uuid)" >
 								<div class="container-fluid" ng-show="jobStepInformation[job.uuid].processInstances.length">
 									<div class="row">
 										<div class="col-md-2 bold">Process</div>					

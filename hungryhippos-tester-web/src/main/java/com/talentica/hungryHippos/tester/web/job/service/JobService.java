@@ -1,7 +1,10 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,12 +22,18 @@ import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 import com.talentica.hungryHippos.tester.web.user.data.User;
+import com.talentica.hungryHippos.utility.ScriptRunner;
 
 import lombok.Setter;
 
 @Controller
 @RequestMapping("/job")
 public class JobService extends Service {
+
+	private Logger LOGGER = LoggerFactory.getLogger(JobService.class);
+
+	@Value("${job.submission.script.path.jars.dir}")
+	private String JOB_SUBMISSION_SCRIPT_FILE_PATH;
 
 	@Setter
 	@Autowired(required = false)
@@ -45,31 +54,59 @@ public class JobService extends Service {
 	@RequestMapping(value = "new", method = RequestMethod.POST)
 	public @ResponseBody JobServiceResponse newJob(@RequestBody(required = true) JobServiceRequest request) {
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
+		Job submittedJob = null;
 		try {
 			ServiceError error = request.validate();
-
 			if (error != null) {
 				jobServiceResponse.setError(error);
+				cleanup(jobServiceResponse, submittedJob);
 				return jobServiceResponse;
 			}
-			Job job = request.getJobDetail();
-			JobInput jobInput = job.getJobInput();
-			User user = userCache.getCurrentLoggedInUser();
-			job.setUserId(user.getUserId());
-			job.setDateTimeSubmitted(DateTime.now().toDate());
-			job.setJobOutput(null);
-			job.setJobInput(null);
-			job.setStatus(STATUS.NOT_STARTED);
-			Job savedJob = jobRepository.save(job);
-			jobInput.setJob(job);
-			jobInputRepository.save(jobInput);
-			jobServiceResponse.setJobDetail(savedJob);
+			submittedJob = submitJob(request);
+			jobServiceResponse.setJobDetail(submittedJob);
 		} catch (Exception exception) {
+			cleanup(jobServiceResponse, submittedJob);
+			LOGGER.error("Error occurred while creating and submitting new job.-", exception);
 			jobServiceResponse.setError(
 					new ServiceError("Error occurred while processing your request. Please try after some time.",
 							exception.getMessage()));
 		}
 		return jobServiceResponse;
+	}
+
+	private void cleanup(JobServiceResponse jobServiceResponse, Job submittedJob) {
+		if (submittedJob != null && submittedJob.getJobId() != null) {
+			if (submittedJob.getJobInput() != null && submittedJob.getJobInput().getJobInputId() != null) {
+				jobInputRepository.delete(submittedJob.getJobInput().getJobInputId());
+			}
+			jobRepository.delete(submittedJob.getJobId());
+			submittedJob.setUuid(null);
+			if (jobServiceResponse.getError() == null) {
+				jobServiceResponse.setError(new ServiceError("Job submission failed.", "No details available."));
+			}
+		}
+	}
+
+	private Job submitJob(JobServiceRequest request) {
+		Job job = request.getJobDetail();
+		JobInput jobInput = job.getJobInput();
+		User user = userCache.getCurrentLoggedInUser();
+		job.setUserId(user.getUserId());
+		job.setDateTimeSubmitted(DateTime.now().toDate());
+		job.setJobOutput(null);
+		job.setJobInput(null);
+		job.setStatus(STATUS.NOT_STARTED);
+		Job savedJob = jobRepository.save(job);
+		jobInput.setJob(job);
+		jobInputRepository.save(jobInput);
+		savedJob.setJobInput(jobInput);
+		LOGGER.info("Executing job submission script.");
+		String scriptExecutionOutput = ScriptRunner.executeShellScript(JOB_SUBMISSION_SCRIPT_FILE_PATH,
+				savedJob.getUuid());
+		LOGGER.info("Job submission script executed successfully.");
+		LOGGER.debug("Script execution output for job:{} is {}",
+				new Object[] { savedJob.getUuid(), scriptExecutionOutput });
+		return savedJob;
 	}
 
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)

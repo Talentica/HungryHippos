@@ -11,6 +11,7 @@ CREATE TABLE `hungryhippos_tester`.`job` (
   `job_uuid` VARCHAR(45) NOT NULL,
   `status` VARCHAR(45) NOT NULL,
   `date_time_submitted` DATETIME NOT NULL,
+  `date_time_started` DATETIME NULL,
   `date_time_finished` DATETIME NULL,
   `user_id` INT NOT NULL,
   PRIMARY KEY (`job_id`),

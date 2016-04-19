@@ -344,9 +344,9 @@ public class DigitalOceanServiceUtil {
 			/*need to pass the property map.*/
 			uploadDynamicConfigFileToZk(new HashMap<String, String>()); 
 			LOGGER.info("Conf file is uploaded...");
-			LOGGER.info("Starting kazoo on output server");
+			/*LOGGER.info("Starting kazoo on output server");
 			startKazooServer();
-			LOGGER.info("Kazoo server started...");
+			LOGGER.info("Kazoo server started...");*/
 		}
 	}
 
@@ -389,15 +389,15 @@ public class DigitalOceanServiceUtil {
 		LOGGER.info("Shell command is executed");
 	}
 	
-	private static void startKazooServer(){
+	/*private static void startKazooServer(){
 		String uuidForTesting = "NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A"; //need to remove
 		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
 		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-kazoo-server.sh",uuidForTesting};
-		/*CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());*/
+		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("KAZOO SERVER IS STARTED");
-	}
+	}*/
 	
 
 	/**

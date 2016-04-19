@@ -169,12 +169,14 @@ public class CommonUtil {
 	}
 	
 	/**
+	 * First args is script name and second one is command
+	 * 
 	 * @param shellCommand
 	 */
-	public static void executeScriptCommand(String script,String shellCommand){
+	public static void executeScriptCommand(String[] strArr){
 		try {
 			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(new String[] { script, shellCommand });
+			Process pr = rt.exec(new String[] { strArr[0], strArr[1] });
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
 			String line = "";

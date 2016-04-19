@@ -61,8 +61,9 @@ public class JobManager {
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
 		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
+		String[] strArr = new String[] {"/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py",uuidForTesting};
 		/*CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());*/
-		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+uuidForTesting);
+		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("KAZOO SERVER IS STARTED");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
@@ -75,7 +76,8 @@ public class JobManager {
 		
 		LOGGER.info("DISTROYING DROPLETS");
 		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		CommonUtil.executeScriptCommand("/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh");
+		strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
+		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("DROPLET DISTROY IS INITIATED");
 		
 		

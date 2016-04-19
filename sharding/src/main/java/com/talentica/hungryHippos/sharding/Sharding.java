@@ -73,7 +73,8 @@ public class Sharding {
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
 			try {
-				CommonUtil.executeScriptCommand("/bin/sh","/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh");
+				String[] strArr = new String[] {"/bin/sh","/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh"};
+				CommonUtil.executeScriptCommand(strArr);
 				//nodesManager = CommonUtil.connectZK();
 				sendSignal(nodesManager);
 				LOGGER.info("Sharding completion notification created on zk node");

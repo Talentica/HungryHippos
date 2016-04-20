@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -19,7 +20,12 @@ import org.joda.time.Interval;
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 
 @Entity
-public class Job {
+public class Job implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

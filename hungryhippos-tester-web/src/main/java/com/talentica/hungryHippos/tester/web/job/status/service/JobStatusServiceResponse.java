@@ -8,6 +8,11 @@ import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
 public class JobStatusServiceResponse extends ServiceResponse {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private Job jobDetail;
 
 	private List<ProcessInstance> processInstances;

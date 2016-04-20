@@ -5,6 +5,10 @@ import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
 
 public class JobServiceResponse extends ServiceResponse {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Job jobDetail;
 
 	public Job getJobDetail() {

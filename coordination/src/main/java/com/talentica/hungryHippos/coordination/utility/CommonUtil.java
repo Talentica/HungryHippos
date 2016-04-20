@@ -56,6 +56,8 @@ public class CommonUtil {
 	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
 	
 	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
+	
+	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
 
 	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
 			+ MASTER_IP_FILE_NAME;
@@ -63,6 +65,8 @@ public class CommonUtil {
 	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH + OUTPUT_IP_FILE_NAME;
 	
 	public static final String DROPLET_IDS_FILE_PATH = TEMP_FOLDER_PATH + DROPLET_IDS_FILE_NAME;
+	
+	public static final String WEBSERVER_IP_FILE_PATH = TEMP_FOLDER_PATH + WEBSERVER_IP_FILE_NAME;
 	
 	private static NodesManager nodesManager;
 	
@@ -188,21 +192,21 @@ public class CommonUtil {
 		}
 	}
 	
-	public static void generateJobUUID(){
+/*	public static void generateJobUUID(){
 		UUId = UUID.randomUUID();
 	}
-	
-	public static String getJobUUIdInBase64(){
-		return uuidToBase64(String.valueOf(UUId));
+*/	
+	public static String getJobUUIdInBase64(String jobUUId){
+		return uuidToBase64(jobUUId);
 	}
 		
 	private static String uuidToBase64(String str) {
 	    return Base64.getUrlEncoder().encodeToString(str.getBytes());
 	}
 	
-	private static String uuidFromBase64(String str) {
+	/*private static String uuidFromBase64(String str) {
 	    return new String(Base64.getUrlDecoder().decode(str.getBytes()));
 	    
-	}
+	}*/
 
 }

@@ -51,11 +51,11 @@ public class JobManager {
 	 * 
 	 * @throws Exception
 	 */
-	public void start() throws Exception {
+	public void start(String jobUUId) throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
 		LOGGER.info("SEND TASKS TO NODES");
-		sendJobsToNodes();
+		sendJobsToNodes(jobUUId);
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
 		sendSignalToAllNodesToStartJobMatrix();
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
@@ -159,9 +159,8 @@ public class JobManager {
 	 * @throws InterruptedException
 	 * @throws KeeperException
 	 */
-	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
+	private void sendJobsToNodes(String jobUUId) throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
-		CommonUtil.generateJobUUID();
 		
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
 			if (jobEntities == null || jobEntities.isEmpty())
@@ -172,13 +171,13 @@ public class JobManager {
 			/*nodesManager.createPersistentNode(buildPath, signal);
 			signal.await();
 			signal = new CountDownLatch(1);*/
-			String buildZkNotificationPath =  buildPath + PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64();
+			String buildZkNotificationPath =  buildPath + PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64(jobUUId);
 			nodesManager.createPersistentNode(buildZkNotificationPath, signal);
 			signal.await();
 			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId), nodesManager);
 			nodeJobsService.addJobs(jobEntities);
 			nodeJobsService.createNodeJobService();
-			nodeJobsService.scheduleTaskManager();
+			nodeJobsService.scheduleTaskManager(jobUUId);
 		}
 		LOGGER.info("Now start the all nodes");
 	}

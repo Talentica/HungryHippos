@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.tester.web.job.service;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Base64;
 import java.util.UUID;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -67,6 +68,7 @@ public class JobJarFileUploadService {
 			}
 
 			String jobUuid = UUID.randomUUID().toString().toUpperCase();
+			jobUuid = Base64.getUrlEncoder().encodeToString(jobUuid.getBytes());
 			String directoryPath = JOB_MATRIX_JAR_DIRECTORY + File.separator + jobUuid;
 			new File(directoryPath).mkdirs();
 			String uploadedJarFilePath = directoryPath + File.separator + file.getOriginalFilename();

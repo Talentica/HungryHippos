@@ -7,5 +7,5 @@ sh start-data-publisher.sh
 echo '################          DATA-PUBLISHING INITIATED      ################'
 
 echo '################          START JOB MATRIX      ################'
-sh start-job-manager.sh  com.talentica.hungryHippos.test.sum.SumJobMatrixImpl
+sh start-job-manager.sh  com.talentica.hungryHippos.test.sum.SumJobMatrixImpl $1
 echo '################          JOB MATRIX INITIATED      ################'

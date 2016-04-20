@@ -60,14 +60,14 @@ public class NodeJobsService implements NodesJobsRunnable {
 	}
 
 	@Override
-	public void scheduleTaskManager() throws InterruptedException,
+	public void scheduleTaskManager(String jobUUId) throws InterruptedException,
 			KeeperException, ClassNotFoundException, IOException {
 		CountDownLatch signal = new CountDownLatch(jobEntities.size());
 		while (!taskManager.getJobPoolService().isEmpty()) {
 			JobEntity jobEntity = taskManager.getJobPoolService()
 					.peekJobEntity();
 			jobEntity.setStatus(JobPool.status.ACTIVE.name());
-			boolean flag = sendJobRunnableNotificationToNode(jobEntity, signal);
+			boolean flag = sendJobRunnableNotificationToNode(jobEntity, signal,jobUUId);
 			if (flag) {
 				taskManager.getJobPoolService().removeJobEntity(jobEntity);
 			}
@@ -87,12 +87,12 @@ public class NodeJobsService implements NodesJobsRunnable {
 
 	@Override
 	public boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,
-			CountDownLatch signal) throws InterruptedException,
+			CountDownLatch signal,String jobUUId) throws InterruptedException,
 			KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
 		String buildPath = ZKUtils.buildNodePath(node.getNodeId())
 				+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name()
-				+ PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64()
+				+ PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64(jobUUId)
 				+ PathUtil.FORWARD_SLASH + ("_job" + jobEntity.getJobId());
 		try {
 			nodesManager.createPersistentNode(buildPath, signal, jobEntity);

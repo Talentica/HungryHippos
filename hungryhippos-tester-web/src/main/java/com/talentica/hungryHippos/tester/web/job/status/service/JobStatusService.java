@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.talentica.hungryHippos.tester.web.UserCache;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
-import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstance;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstanceRepository;
 import com.talentica.hungryHippos.tester.web.service.Service;
@@ -28,7 +28,7 @@ public class JobStatusService extends Service {
 	private ProcessInstanceRepository processInstanceRepository;
 
 	@Autowired(required = false)
-	private JobOutputService jobOutputService;
+	private UserCache userCache;
 
 	@RequestMapping(value = "status/{jobUuid}", method = RequestMethod.GET)
 	public @ResponseBody JobStatusServiceResponse getJobStatus(@PathVariable("jobUuid") String jobUuid) {
@@ -38,7 +38,7 @@ public class JobStatusService extends Service {
 			jobStatusServiceResponse.setError(error);
 			return jobStatusServiceResponse;
 		}
-		Job job = jobRepository.findByUuid(jobUuid);
+		Job job = jobRepository.findByUuidAndUserId(jobUuid, userCache.getCurrentLoggedInUser().getUserId());
 		if (job == null) {
 			error = getInvalidJobUuidError(jobUuid);
 			jobStatusServiceResponse.setError(error);
@@ -51,8 +51,8 @@ public class JobStatusService extends Service {
 		return jobStatusServiceResponse;
 	}
 
-	public void setJobOutputService(JobOutputService jobOutputService) {
-		this.jobOutputService = jobOutputService;
+	public void setUserCache(UserCache userCache) {
+		this.userCache = userCache;
 	}
 
 	public void setJobRepository(JobRepository jobRepository) {

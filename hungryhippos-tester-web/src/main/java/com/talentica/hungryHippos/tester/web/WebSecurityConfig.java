@@ -21,7 +21,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		AuthenticationFailureHandler authenticationFailureHandler = new AuthenticationFailureHandler();
-		http.csrf().disable().authorizeRequests().antMatchers("/secure/**").authenticated().and().formLogin()
+		http.anonymous().disable().csrf().disable().authorizeRequests().antMatchers("/secure/**").authenticated().and()
+				.formLogin()
 				.permitAll().defaultSuccessUrl("/secure/welcome.html").failureHandler(authenticationFailureHandler)
 				.and().logout().logoutSuccessUrl("/index.html");
 	}

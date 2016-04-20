@@ -11,6 +11,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class User {
@@ -31,6 +34,10 @@ public class User {
 
 	@Column(name = "password")
 	private String password;
+
+	@Transient
+	@JsonIgnore
+	private boolean admin;
 
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "user_role", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = {
@@ -103,6 +110,17 @@ public class User {
 			return userId.hashCode();
 		}
 		return 0;
+	}
+
+	public boolean isAdmin() {
+		if (!admin && roles != null) {
+			roles.stream().filter(role -> !role.getRole().equals("ADMIN")).forEach(role -> setAdmin(true));
+		}
+		return admin;
+	}
+
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
 	}
 
 }

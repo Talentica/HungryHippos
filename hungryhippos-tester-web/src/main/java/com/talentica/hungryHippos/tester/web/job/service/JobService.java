@@ -18,7 +18,6 @@ import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.job.data.STATUS;
-import com.talentica.hungryHippos.tester.web.job.output.service.JobOutputService;
 import com.talentica.hungryHippos.tester.web.service.Service;
 import com.talentica.hungryHippos.tester.web.service.ServiceError;
 import com.talentica.hungryHippos.tester.web.user.data.User;
@@ -38,9 +37,6 @@ public class JobService extends Service {
 
 	@Autowired(required = false)
 	private JobInputRepository jobInputRepository;
-
-	@Autowired(required = false)
-	private JobOutputService jobOutputService;
 
 	@Autowired(required = false)
 	private UserCache userCache;
@@ -106,27 +102,58 @@ public class JobService extends Service {
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)
 	public @ResponseBody JobServiceResponse getJobDetail(@PathVariable("jobUuid") String jobUuid) {
 		JobServiceResponse jobServiceResponse = new JobServiceResponse();
-		ServiceError error = validateUuid(jobUuid);
-		if (error != null) {
-			jobServiceResponse.setError(error);
-			return jobServiceResponse;
+		try {
+			ServiceError error = validateUuid(jobUuid);
+			if (error != null) {
+				jobServiceResponse.setError(error);
+				return jobServiceResponse;
+			}
+			User user = userCache.getCurrentLoggedInUser();
+			Job job = jobRepository.findByUuidAndUserId(jobUuid, user.getUserId());
+			if (job == null) {
+				error = getInvalidJobUuidError(jobUuid);
+				jobServiceResponse.setError(error);
+				return jobServiceResponse;
+			}
+			jobServiceResponse.setJobDetail(job);
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while getting job details.", exception);
+			jobServiceResponse.setError(
+					new ServiceError("Error occurred while processing your request. Please try after some time.",
+							exception.getMessage()));
 		}
-		Job job = jobRepository.findByUuid(jobUuid);
-		if (job == null) {
-			error = getInvalidJobUuidError(jobUuid);
-			jobServiceResponse.setError(error);
-			return jobServiceResponse;
+		return jobServiceResponse;
+	}
+	
+	// TODO: Allow only admins access to this REST API call.
+	// @PreAuthorize(value="ADMIN")
+	@RequestMapping(value = "any/detail/{jobUuid}", method = RequestMethod.GET)
+	public @ResponseBody JobServiceResponse getAnyJobDetail(@PathVariable("jobUuid") String jobUuid) {
+		JobServiceResponse jobServiceResponse = new JobServiceResponse();
+		try {
+			ServiceError error = validateUuid(jobUuid);
+			if (error != null) {
+				jobServiceResponse.setError(error);
+				return jobServiceResponse;
+			}
+			Job job = jobRepository.findByUuid(jobUuid);
+			if (job == null) {
+				error = getInvalidJobUuidError(jobUuid);
+				jobServiceResponse.setError(error);
+				return jobServiceResponse;
+			}
+			jobServiceResponse.setJobDetail(job);
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while getting job details.", exception);
+			jobServiceResponse.setError(
+					new ServiceError("Error occurred while processing your request. Please try after some time.",
+							exception.getMessage()));
 		}
-		jobServiceResponse.setJobDetail(job);
 		return jobServiceResponse;
 	}
 
 	public void setJobInputRepository(JobInputRepository jobInputRepository) {
 		this.jobInputRepository = jobInputRepository;
-	}
-
-	public void setJobOutputService(JobOutputService jobOutputService) {
-		this.jobOutputService = jobOutputService;
 	}
 
 	public void setJobRepository(JobRepository jobRepository) {

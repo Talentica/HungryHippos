@@ -101,7 +101,7 @@ public class JobService extends Service {
 		savedJob.setJobInput(jobInput);
 		LOGGER.info("Executing job submission script.");
 		String scriptExecutionOutput = ScriptRunner.executeShellScript(JOB_SUBMISSION_SCRIPT_FILE_PATH,
-				savedJob.getUuid(), jobInputEntity.getJobMatrixClass());
+				jobInputEntity.getJobMatrixClass(), savedJob.getUuid());
 		LOGGER.info("Job submission script executed successfully.");
 		LOGGER.info("Script execution output for job:{} is {}",
 				new Object[] { savedJob.getUuid(), scriptExecutionOutput });

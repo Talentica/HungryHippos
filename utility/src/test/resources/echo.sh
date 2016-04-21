@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo $1;
+echo $param1 $param2;

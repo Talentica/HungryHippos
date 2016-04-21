@@ -30,9 +30,9 @@ sh setup-nodes.sh
 echo '################          Nodes setup completed      ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
-sh start-sharding-and-datapublishing-and-jobmatrix.sh $1 $2
+sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid
 echo '################          PROCESS INITIATED      ################'
 
 echo '################          starting kazoo server   ################'
-sh start-kazoo-server.sh $2
+sh start-kazoo-server.sh $jobUuid
 echo '################          kazoo server started.  ################'

@@ -1,5 +1,8 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.dozer.DozerBeanMapper;
 import org.dozer.Mapper;
 import org.joda.time.DateTime;
@@ -83,7 +86,8 @@ public class JobService extends Service {
 		}
 	}
 
-	private com.talentica.hungryHippos.tester.api.job.Job submitJob(JobServiceRequest request) {
+	private com.talentica.hungryHippos.tester.api.job.Job submitJob(JobServiceRequest request)
+			throws InterruptedException {
 		com.talentica.hungryHippos.tester.api.job.Job job = request.getJobDetail();
 		com.talentica.hungryHippos.tester.api.job.JobInput jobInput = job.getJobInput();
 		User user = userCache.getCurrentLoggedInUser();
@@ -100,8 +104,10 @@ public class JobService extends Service {
 		jobInputRepository.save(jobInputEntity);
 		savedJob.setJobInput(jobInput);
 		LOGGER.info("Executing job submission script.");
-		String scriptExecutionOutput = ScriptRunner.executeShellScript(JOB_SUBMISSION_SCRIPT_FILE_PATH,
-				jobInputEntity.getJobMatrixClass(), savedJob.getUuid());
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("jobMatrixClassName", jobInputEntity.getJobMatrixClass());
+		parameters.put("jobUuid", savedJob.getUuid());
+		String scriptExecutionOutput = ScriptRunner.executeShellScript(JOB_SUBMISSION_SCRIPT_FILE_PATH, parameters);
 		LOGGER.info("Job submission script executed successfully.");
 		LOGGER.info("Script execution output for job:{} is {}",
 				new Object[] { savedJob.getUuid(), scriptExecutionOutput });

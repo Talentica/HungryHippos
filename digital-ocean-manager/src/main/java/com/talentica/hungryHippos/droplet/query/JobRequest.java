@@ -25,7 +25,9 @@ public class JobRequest {
 	public Job getJobDetails(String uuid) throws HttpException, IOException {
 			final String WEBSERVER_IP = Property.getProperties().getProperty(
 					"common.webserver.ip");
-		GetMethod getJobDetails = new GetMethod("http://" + WEBSERVER_IP
+			final String WEBSERVER_PORT = Property.getProperties().getProperty("common.webserver.port");
+			final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
+		GetMethod getJobDetails = new GetMethod("http://" + WEBSERVER_IP_PORT
 					+ "/job/any/detail/" + uuid);
 		HttpClient httpClient = new HttpClient();
 		httpClient.executeMethod(getJobDetails);

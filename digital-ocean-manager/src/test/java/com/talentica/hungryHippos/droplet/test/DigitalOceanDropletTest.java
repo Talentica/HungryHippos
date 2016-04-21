@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.httpclient.HttpException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -26,7 +27,9 @@ import com.myjeeva.digitalocean.pojo.Droplet;
 import com.myjeeva.digitalocean.pojo.Droplets;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.droplet.query.JobRequest;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
+import com.talentica.hungryHippos.tester.api.job.Job;
 
 /**
  * @author PooshanS
@@ -113,6 +116,13 @@ public class DigitalOceanDropletTest {
 		servers.add("server.0:234.34.45.3");
 		servers.add("server.1:234.34.45.2");
 			DigitalOceanServiceUtil.writeLineInFile("serverTest.txt", servers);
+	}
+	
+	@Test
+	public void testHttpRequest() throws HttpException, IOException{
+		JobRequest jobRequest = new JobRequest();
+		Job job = jobRequest.getJobDetails("NzFiNzdlM2MtMDgwMC00N2M3L");
+		System.out.println(job.getJobId());
 	}
 	
 }

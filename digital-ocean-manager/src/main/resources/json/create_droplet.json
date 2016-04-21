@@ -10,7 +10,7 @@
             "slug": "nyc2"
         },
         "image": {			
-            "name":"test-final-sanpshot-for-demo"
+            "name":"hh-deployable-demo-image"
         },
         "size": "2gb",
         "enableBackup": true,

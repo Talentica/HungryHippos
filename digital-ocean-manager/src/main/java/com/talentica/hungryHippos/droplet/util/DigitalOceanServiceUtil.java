@@ -355,15 +355,25 @@ public class DigitalOceanServiceUtil {
 	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId)
 			throws HttpException, IOException {
 		Map<String,String> keyValue = new HashMap<String, String>();
-		JobRequest jobRequest = new JobRequest();
+		/*Please remove the comment for actual testing.*/
+		
+		/*JobRequest jobRequest = new JobRequest();
 		Job job = jobRequest.getJobDetails(jobUUId);
-		JobInput jobInput = job.getJobInput();
-		keyValue.put("input.file.url.link",jobInput.getDataLocation());
+		JobInput jobInput = job.getJobInput();*/
+		
+		/*keyValue.put("input.file.url.link",jobInput.getDataLocation());
 		keyValue.put("common.sharding_dimensions",jobInput.getShardingDimensions());
 		keyValue.put("column.datatype-size",jobInput.getDataTypeConfiguration());
 		keyValue.put("column.file.size",jobInput.getDataSize().toString());
 		keyValue.put("job.matrix.class",jobInput.getJobMatrixClass());
-		keyValue.put("job.uuid",jobUUId);
+		keyValue.put("job.uuid",jobUUId);*/
+		
+		keyValue.put("input.file.url.link","http://192.241.248.197/input/sampledata.csv");
+		keyValue.put("common.sharding_dimensions","key1,key2,key3");
+		keyValue.put("column.datatype-size","STRING-1,STRING-1,STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,STRING-3");
+		keyValue.put("input.file.size","232343");
+		keyValue.put("job.matrix.class","com.talentica.hungryHippos.test.sum.SumJobMatrixImpl");
+		keyValue.put("job.uuid","NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A");
 		return keyValue;
 	}
 

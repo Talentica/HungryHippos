@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.service;
+package com.talentica.hungryHippos.tester.api;
 
 import org.apache.commons.lang3.StringUtils;
 

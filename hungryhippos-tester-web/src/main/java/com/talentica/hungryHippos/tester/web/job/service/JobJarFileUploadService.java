@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.tester.web.job.service;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Base64;
 import java.util.UUID;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.talentica.hungryHippos.tester.web.service.ServiceError;
+import com.talentica.hungryHippos.tester.api.ServiceError;
 
 @Controller
 @RequestMapping("/secure/job")
@@ -68,7 +67,6 @@ public class JobJarFileUploadService {
 			}
 
 			String jobUuid = UUID.randomUUID().toString().toUpperCase();
-			jobUuid = Base64.getUrlEncoder().encodeToString(jobUuid.getBytes());
 			String directoryPath = JOB_MATRIX_JAR_DIRECTORY + File.separator + jobUuid;
 			new File(directoryPath).mkdirs();
 			String uploadedJarFilePath = directoryPath + File.separator + file.getOriginalFilename();
@@ -84,7 +82,7 @@ public class JobJarFileUploadService {
 				new File(directoryPath).delete();
 				return fileUploadServiceResponse;
 			}
-			fileUploadServiceResponse.setUploadedFileSize(jobJarFile.length());
+			fileUploadServiceResponse.setUploadedFileSize(jobJarFile.length() / 1024);
 			fileUploadServiceResponse.setJobUuid(jobUuid);
 		} catch (Exception e) {
 			LOGGER.error("Error occurred while processing job jar upload request.", e);

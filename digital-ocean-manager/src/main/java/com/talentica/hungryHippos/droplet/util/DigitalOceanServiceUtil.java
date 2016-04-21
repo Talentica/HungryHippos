@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.commons.httpclient.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,8 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.query.JobRequest;
-import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.job.data.JobInput;
+import com.talentica.hungryHippos.tester.api.job.Job;
+import com.talentica.hungryHippos.tester.api.job.JobInput;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -351,7 +352,8 @@ public class DigitalOceanServiceUtil {
 		}
 	}
 	
-	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId){
+	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId)
+			throws HttpException, IOException {
 		Map<String,String> keyValue = new HashMap<String, String>();
 		JobRequest jobRequest = new JobRequest();
 		Job job = jobRequest.getJobDetails(jobUUId);

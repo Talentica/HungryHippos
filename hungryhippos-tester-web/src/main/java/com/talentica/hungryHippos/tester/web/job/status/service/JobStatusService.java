@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.talentica.hungryHippos.tester.api.Service;
+import com.talentica.hungryHippos.tester.api.ServiceError;
 import com.talentica.hungryHippos.tester.web.UserCache;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstance;
 import com.talentica.hungryHippos.tester.web.job.status.data.ProcessInstanceRepository;
-import com.talentica.hungryHippos.tester.web.service.Service;
-import com.talentica.hungryHippos.tester.web.service.ServiceError;
 
 @Controller
 @RequestMapping("/job")

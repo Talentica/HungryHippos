@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.tester.web.job.service;
+package com.talentica.hungryHippos.tester.api.job;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -8,8 +8,8 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.lang3.StringUtils;
 
-import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.service.ServiceError;
+import com.talentica.hungryHippos.tester.api.ServiceError;
+
 
 public class JobServiceRequest {
 

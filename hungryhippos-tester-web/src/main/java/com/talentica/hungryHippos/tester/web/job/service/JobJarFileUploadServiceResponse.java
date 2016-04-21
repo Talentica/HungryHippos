@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
-import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
+import com.talentica.hungryHippos.tester.api.ServiceResponse;
 
 public class JobJarFileUploadServiceResponse extends ServiceResponse {
 

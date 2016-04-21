@@ -1,7 +1,6 @@
-package com.talentica.hungryHippos.tester.web.job.service;
+package com.talentica.hungryHippos.tester.api.job;
 
-import com.talentica.hungryHippos.tester.web.job.data.Job;
-import com.talentica.hungryHippos.tester.web.service.ServiceResponse;
+import com.talentica.hungryHippos.tester.api.ServiceResponse;
 
 public class JobServiceResponse extends ServiceResponse {
 

@@ -27,12 +27,13 @@ targetCompatibility = 1.8
 
 dependencies {
 	compile project (':client-api')
+	compile project (':hungryhippos_tester-services-client')
 	compile project (':utility')
 	compile('joda-time:joda-time:2.3')
+	compile('net.sf.dozer:dozer:5.4.0')
 	compile("org.springframework.boot:spring-boot-starter-security"){
 		exclude module: "spring-boot-starter-logging"
 	}
-	compile('commons-httpclient:commons-httpclient:3.1')
 	compile("org.springframework.boot:spring-boot-starter-web"){
 		exclude module: "spring-boot-starter-logging"
 	}
@@ -42,7 +43,6 @@ dependencies {
 		exclude group: "org.slf4j"
 	}
 	compile("org.flywaydb:flyway-core")
-	compile('org.apache.commons:commons-lang3:3.0')
 	compile("mysql:mysql-connector-java:5.1.6")
 	compile('org.apache.commons:commons-compress:1.11')
 	testCompile("org.springframework.boot:spring-boot-starter-test"){

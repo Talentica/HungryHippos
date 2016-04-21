@@ -1,4 +1,5 @@
 #!/bin/bash
+# first argument is job matrix, second argument is jobuuid.
 
 job_manager_ip=`cat ../tmp/master_ip_file`
 

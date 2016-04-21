@@ -1,4 +1,5 @@
 #!/bin/bash
+# first argument is {job_matrix}, second argument is {jobuuid}
 echo '################          Create droplets      ################'
 sh create_droplets.sh
 echo '################          Droplet creation is initiated      ################'
@@ -28,7 +29,7 @@ sh setup-nodes.sh
 echo '################          Nodes setup completed      ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
-sh start-sharding-and-datapublishing-and-jobmatrix.sh $1
+sh start-sharding-and-datapublishing-and-jobmatrix.sh $1 $2
 echo '################          PROCESS INITIATED      ################'
 
 echo '################          starting kazoo server   ################'

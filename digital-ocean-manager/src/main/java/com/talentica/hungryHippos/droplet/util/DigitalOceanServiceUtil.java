@@ -356,11 +356,12 @@ public class DigitalOceanServiceUtil {
 		JobRequest jobRequest = new JobRequest();
 		Job job = jobRequest.getJobDetails(jobUUId);
 		JobInput jobInput = job.getJobInput();
-		keyValue.put("input.file",jobInput.getDataLocation());
+		keyValue.put("input.file.url.link",jobInput.getDataLocation());
 		keyValue.put("common.sharding_dimensions",jobInput.getShardingDimensions());
 		keyValue.put("column.datatype-size",jobInput.getDataTypeConfiguration());
 		keyValue.put("column.file.size",jobInput.getDataSize().toString());
 		keyValue.put("job.matrix.class",jobInput.getJobMatrixClass());
+		keyValue.put("job.uuid",jobUUId);
 		return keyValue;
 	}
 

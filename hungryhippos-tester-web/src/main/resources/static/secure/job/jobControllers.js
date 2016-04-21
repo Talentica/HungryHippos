@@ -3,16 +3,17 @@
 app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	$scope.jobDetail={};
 	$scope.error={};
-	$scope.numberOfColumnsInDataFile=1;
+	$scope.numberOfColumnsInDataFile=9;
 	$scope.notification={};
 
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
 	}
-	$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 	
 	$scope.updateDataTypeConfiguration=function(){
-		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
+		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+//		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
 	}
 	
 	$scope.getDataTypeConfiguration=function(){
@@ -36,7 +37,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 				if(i>0){
 					dataTypeConfigSingleString=dataTypeConfigSingleString+",";
 				}
-				if(shardingDimensionsSelected){
+				if(shardingDimensionsSelected && $scope.dataTypeConfiguration[i].shardingDimension){
 					shardingDimensions=shardingDimensions+",";
 				}
 				dataTypeConfigSingleString=dataTypeConfigSingleString+$scope.dataTypeConfiguration[i].dataType+'-'+($scope.dataTypeConfiguration[i].dataSize||0);
@@ -96,7 +97,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	
 	$scope.reset=function(){
 		$scope.error={};
-		$scope.numberOfColumnsInDataFile=1;
+		$scope.numberOfColumnsInDataFile=9;
 		$scope.notification={};
 		$scope.jobDetail={};
 		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);

@@ -13,9 +13,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
-import javax.persistence.Transient;
-
-import org.joda.time.Interval;
 
 import com.talentica.hungryHippos.tester.web.job.output.data.JobOutput;
 
@@ -58,30 +55,6 @@ public class Job implements Serializable{
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "job")
 	@JoinColumn(name = "job_id", insertable = false, updatable = false)
 	private JobOutput jobOutput;
-
-	@Transient
-	private Long executionTimeInSeconds;
-
-	public void setExecutionTimeInSeconds() {
-		org.joda.time.Duration duration = getExecutionDuration();
-		if (duration != null) {
-			executionTimeInSeconds = duration.getStandardSeconds();
-		}
-	}
-
-	public Long getExecutionTimeInSeconds() {
-		setExecutionTimeInSeconds();
-		return executionTimeInSeconds;
-	}
-
-	private org.joda.time.Duration getExecutionDuration() {
-		org.joda.time.Duration duration = null;
-		if (getDateTimeFinished() != null && getDateTimeStarted() != null) {
-			Interval executionInterval = new Interval(getDateTimeStarted().getTime(), getDateTimeFinished().getTime());
-			duration = executionInterval.toDuration();
-		}
-		return duration;
-	}
 
 	public Integer getJobId() {
 		return jobId;
@@ -153,10 +126,6 @@ public class Job implements Serializable{
 
 	public void setUserId(Integer userId) {
 		this.userId = userId;
-	}
-
-	public void setExecutionTimeInSeconds(Long executionTimeInSeconds) {
-		this.executionTimeInSeconds = executionTimeInSeconds;
 	}
 
 	@Override

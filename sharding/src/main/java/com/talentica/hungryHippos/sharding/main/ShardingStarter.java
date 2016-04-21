@@ -59,16 +59,17 @@ public class ShardingStarter {
 		String downloadUrlLink = Property.getProperties().getProperty("input.file.url.link");
 		LOGGER.info("Calling shell script to download the input file from url link {} for jobuuid {} and webserver ip {}",downloadUrlLink,jobuuid,webserverIp);
 		String downloadScriptPath = Paths.get("/root/hungryhippos/scripts/bash_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/bin/sh",downloadScriptPath+"download-file-from-url.sh",jobuuid,downloadUrlLink,webserverIp};
+		String[] strArr = new String[] {"/bin/sh",downloadScriptPath+"download-file-from-url.sh",downloadUrlLink,jobuuid,webserverIp};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Downloading is initiated.");
 	}
 	
 	private static void callSamplingShellScript() {
+		String jobuuid = Property.getProperties().getProperty("job.uuid");
 		String webserverIp = Property.getProperties().getProperty("common.webserver.ip");
-		LOGGER.info("Calling sampling python script and webserver ip {}",webserverIp);
+		LOGGER.info("Calling sampling python script and uuid {} webserver ip {}",jobuuid,webserverIp);
 		String downloadScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/usr/bin/python",downloadScriptPath+"sampling-input-file.py",webserverIp};
+		String[] strArr = new String[] {"/usr/bin/python",downloadScriptPath+"sampling-input-file.py",jobuuid,webserverIp};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Sampling is initiated.");
 	}

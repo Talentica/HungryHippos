@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -22,7 +21,6 @@ import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
  * @author PooshanS
  *
  */
-@SpringBootApplication
 public class DigitalOceanManager {
 
 	private static final Logger LOGGER = LoggerFactory

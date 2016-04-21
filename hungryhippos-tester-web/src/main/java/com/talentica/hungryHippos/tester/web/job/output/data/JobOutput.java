@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.output.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import javax.persistence.Column;
@@ -14,7 +15,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.talentica.hungryHippos.tester.web.job.data.Job;
 
 @Entity
-public class JobOutput {
+public class JobOutput implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

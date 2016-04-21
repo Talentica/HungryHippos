@@ -1,16 +1,22 @@
 package com.talentica.hungryHippos.sharding.main;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class ShardingStarter {
 
@@ -19,13 +25,21 @@ public class ShardingStarter {
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
 	private static NodesManager nodesManager;
+	private static final String sampleInputFile = "sample_input.txt";
 
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
-			//CommonUtil.connectZK();
+			callDownloadShellScript();
+			LOGGER.info("WATING FOR THE SIGNAL OF DOWNLOAD COMPLETION.");
+			waitForDownloadSinal();
+			LOGGER.info("SIGNAL RECIEVED, DOWNLOAD IS COMPLETED.");
+			callSamplingShellScript();
+			LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
+			waitForSamplingSinal();
+			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding(),ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
@@ -36,19 +50,46 @@ public class ShardingStarter {
 		}
 	}
 
-	private static void overrideProperties(String[] args) throws FileNotFoundException {
-		if (args.length == 1) {
-			LOGGER.info(
-					"You have not provided external config.properties file. Default config.properties file will be use internally");
-		} else if (args.length == 2) {
-			Property.overrideConfigurationProperties(args[1]);
-		}
+	/**
+	 * 
+	 */
+	private static void callDownloadShellScript() {
+		String webserverIp = Property.getProperties().getProperty("common.webserver.ip");
+		String jobuuid = Property.getProperties().getProperty("job.uuid");
+		String downloadUrlLink = Property.getProperties().getProperty("input.file.url.link");
+		LOGGER.info("Calling shell script to download the input file from url link {} for jobuuid {} and webserver ip {}",downloadUrlLink,jobuuid,webserverIp);
+		String downloadScriptPath = Paths.get("/root/hungryhippos/scripts/bash_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/bin/sh",downloadScriptPath+"download-file-from-url.sh",jobuuid,downloadUrlLink,webserverIp};
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Downloading is initiated.");
+	}
+	
+	private static void callSamplingShellScript() {
+		String webserverIp = Property.getProperties().getProperty("common.webserver.ip");
+		LOGGER.info("Calling sampling python script and webserver ip {}",webserverIp);
+		String downloadScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/usr/bin/python",downloadScriptPath+"sampling-input-file.py",webserverIp};
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Sampling is initiated.");
 	}
 
 	private static Reader getInputReaderForSharding() throws IOException {
-		final String inputFile = Property.getPropertyValue("input.file").toString();
-		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				inputFile);
+		//final String inputFile = Property.getPropertyValue("input.file").toString();
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(sampleInputFile);
+	}
+	
+	private static void waitForSamplingSinal()
+			throws Exception, KeeperException, InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(ShardingStarter.nodesManager.buildAlertPathByName(ZKNodeName.SAMPLING_COMPLETED), signal);
+		signal.await();
+	}
+	
+	private static void waitForDownloadSinal()
+			throws Exception, KeeperException, InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(ShardingStarter.nodesManager.buildAlertPathByName(ZKNodeName.INPUT_DOWNLOAD_COMPLETED), signal);
+		signal.await();
 	}
 
 }

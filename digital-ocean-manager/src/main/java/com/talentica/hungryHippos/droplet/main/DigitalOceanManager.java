@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -21,27 +22,32 @@ import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
  * @author PooshanS
  *
  */
+@SpringBootApplication
 public class DigitalOceanManager {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanManager.class);
 	private static DigitalOceanServiceImpl dropletService;
 	private static ObjectMapper mapper = new ObjectMapper();
+	private static String jobUUId;
 	public static void main(String[] args) throws Exception {
 		try {
 			if (args.length == 2) {
 				Property.overrideConfigurationProperties(args[1]);
-			} else {
-				LOGGER.info("Please provide the argument.First argument is json and second argument is config file.");
+			}else if(args.length == 3){
+				jobUUId = args[2];
+			}else {
+				LOGGER.info("Please provide the argument.First argument is json,second argument is config file and third argument is optional for jobUUId");
 				return;
 			}
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
+			Property.getProperties().get("common.webserver.ip").toString();
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());
 			DigitalOceanServiceUtil.performServices(dropletService,
-					dropletEntity);
+					dropletEntity,jobUUId);
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {

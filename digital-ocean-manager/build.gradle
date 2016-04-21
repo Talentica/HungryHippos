@@ -28,10 +28,12 @@ jar {
 
 dependencies {
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+	compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
 	compile 'com.myjeeva.digitalocean:digitalocean-api-client:2.3'
 	compile 'org.slf4j:slf4j-simple:1.7.19'
 	compile 'org.slf4j:slf4j-api:1.7.12'
 	compile 'log4j:log4j:1.2.17'
 	testCompile 'junit:junit:4.12'
 	compile project (':coordination')
+	compile project (':hungryhippos-tester-web')
 }

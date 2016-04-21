@@ -1,6 +1,13 @@
 package com.talentica.hungryHippos.tester.web.service;
 
-public class ServiceError {
+import java.io.Serializable;
+
+public class ServiceError implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private String message;
 

@@ -37,7 +37,7 @@ public class JobManagerStarter {
 			JobManager jobManager = new JobManager();
 			JobManager.nodesManager = nodesManager;
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
-			jobManager.start();
+			jobManager.start(args[1]);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to for running all jobs.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
@@ -59,9 +59,9 @@ public class JobManagerStarter {
 
 	private static void validateProgramArguments(String[] args)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		if (args.length < 1) {
+		if (args.length < 2) {
 			System.out.println(
-					"Please provide the required jobn matrix class name argument to be able to run the program.");
+					"Please provide the required jobn matrix class name argument to be able to run the program and second argument as jobuuid.");
 			System.exit(1);
 		}
 		Object jobMatrix = getJobMatrix(args);

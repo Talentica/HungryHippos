@@ -35,6 +35,9 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
+import com.talentica.hungryHippos.droplet.query.JobRequest;
+import com.talentica.hungryHippos.tester.web.job.data.Job;
+import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -54,7 +57,7 @@ public class DigitalOceanServiceUtil {
 	 * @throws Exception
 	 */
 	public static void performServices(DigitalOceanServiceImpl dropletService,
-			DigitalOceanEntity dropletEntity) throws Exception {
+			DigitalOceanEntity dropletEntity,String ...jobUUId) throws Exception {
 		String[] dropletIds;
 		int dropletId;
 		Droplets droplets;
@@ -67,12 +70,13 @@ public class DigitalOceanServiceUtil {
 			populatePresetValues(dropletService, dropletEntity, image);
 			Droplets retDroplest = createDroplets(dropletService,
 					dropletEntity, dropletNamePattern);
-			performConfigurationService(dropletService,retDroplest);
+			if(jobUUId != null && jobUUId.length == 1)
+				performConfigurationService(dropletService,retDroplest,jobUUId);
+			else
+				LOGGER.info("Please provide the jobUUId");
 			break;
 
 		case DELETE:
-			/*List<Delete> deleteList = dropletService
-					.deleteDroplets(dropletEntity.getIdsAsList());*/
 			for (String dpltId : getDropletIdsFile()) {
 				try {
 					dropletService.deleteDroplet(Integer.valueOf(dpltId));
@@ -308,16 +312,14 @@ public class DigitalOceanServiceUtil {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	private static void performConfigurationService(DigitalOceanServiceImpl dropletService,Droplets droplets)
+	private static void performConfigurationService(DigitalOceanServiceImpl dropletService,Droplets droplets,String ...jobUUId)
 			throws DigitalOceanException, RequestUnsuccessfulException,
 			InterruptedException, IOException, Exception {
-		//Droplets droplets;
 		
 		String formatFlag = Property.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
-			//droplets = dropletService.getAvailableDroplets(1, 20);
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets);
 			LOGGER.info("Active droplets are {}", dropletFill.toString());
@@ -341,13 +343,26 @@ public class DigitalOceanServiceUtil {
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
-			/*need to pass the property map.*/
-			uploadDynamicConfigFileToZk(new HashMap<String, String>()); 
+			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0])); 
 			LOGGER.info("Conf file is uploaded...");
-			/*LOGGER.info("Starting kazoo on output server");
-			startKazooServer();
-			LOGGER.info("Kazoo server started...");*/
+			List<String> webServerIp = new ArrayList<String>();
+			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
+			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_NAME, webServerIp);
 		}
+	}
+	
+	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId){
+		Map<String,String> keyValue = new HashMap<String, String>();
+		JobRequest jobRequest = new JobRequest();
+		Job job = jobRequest.getJobDetails(jobUUId);
+		JobInput jobInput = job.getJobInput();
+		keyValue.put("input.file.url.link",jobInput.getDataLocation());
+		keyValue.put("common.sharding_dimensions",jobInput.getShardingDimensions());
+		keyValue.put("column.datatype-size",jobInput.getDataTypeConfiguration());
+		keyValue.put("column.file.size",jobInput.getDataSize().toString());
+		keyValue.put("job.matrix.class",jobInput.getJobMatrixClass());
+		keyValue.put("job.uuid",jobUUId);
+		return keyValue;
 	}
 
 	/**

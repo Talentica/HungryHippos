@@ -9,10 +9,10 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
 	}
-	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 	
 	$scope.updateDataTypeConfiguration=function(){
-		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 //		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
 	}
 	
@@ -100,7 +100,8 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		$scope.numberOfColumnsInDataFile=9;
 		$scope.notification={};
 		$scope.jobDetail={};
-		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+//		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 		$scope.jobJarFile=null;
 		usSpinnerService.stop('spinner-1');
 	}

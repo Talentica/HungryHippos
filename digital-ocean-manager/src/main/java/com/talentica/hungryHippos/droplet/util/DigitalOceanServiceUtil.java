@@ -348,7 +348,7 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Conf file is uploaded...");
 			List<String> webServerIp = new ArrayList<String>();
 			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
-			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_NAME, webServerIp);
+			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 		}
 	}
 	

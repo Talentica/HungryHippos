@@ -357,16 +357,16 @@ public class DigitalOceanServiceUtil {
 			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 			
-			LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
+			/*LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 			getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
-			LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
+			LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");*/
 			/*Caution : It will destroy the droplets. Please uncomment the code if needed.*/
 			
-			LOGGER.info("DESTROYING DROPLETS");
+			/*LOGGER.info("DESTROYING DROPLETS");
 			String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 			String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
 			CommonUtil.executeScriptCommand(strArr);
-			LOGGER.info("DROPLET DISTROY IS INITIATED");
+			LOGGER.info("DROPLET DISTROY IS INITIATED");*/
 		}
 	}
 	

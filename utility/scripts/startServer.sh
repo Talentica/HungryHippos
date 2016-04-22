@@ -38,3 +38,7 @@ echo '################          PROCESS INITIATED      ################'
 echo '################          starting kazoo server   ################'
 sh start-kazoo-server.sh $jobUuid
 echo '################          kazoo server started.  ################'
+
+echo '################          Start to destroy the droplets   ################'
+sh delete-droplets.sh
+echo '################          Destroy of the droplets are initiated   ################'

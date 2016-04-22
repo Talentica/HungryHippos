@@ -115,7 +115,9 @@ public class FileReader implements Reader {
 				// Ignore blank lines with no data.
 				break;
 			} else {
-				buffer[fieldIndex].addCharacter((char) nextChar);
+				if (fieldIndex < buffer.length) {
+					buffer[fieldIndex].addCharacter((char) nextChar);
+				}
 			}
 		}
 		return buffer;

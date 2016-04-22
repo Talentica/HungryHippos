@@ -184,6 +184,7 @@ public class CommonUtil {
 			Process pr = rt.exec(strArr,null,null);
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
+			pr.waitFor();
 			String line = "";
 			while ((line = input.readLine()) != null) {
 				LOGGER.info(line);

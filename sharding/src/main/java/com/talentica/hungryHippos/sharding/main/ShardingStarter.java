@@ -68,8 +68,8 @@ public class ShardingStarter {
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
 		String webserverIp = Property.getProperties().getProperty("common.webserver.ip");
 		LOGGER.info("Calling sampling python script and uuid {} webserver ip {}",jobuuid,webserverIp);
-		String downloadScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/usr/bin/python",downloadScriptPath+"sampling-input-file.py",jobuuid,webserverIp};
+		String samplingScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/usr/bin/python",samplingScriptPath+"sampling-input-file.py",jobuuid,webserverIp};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Sampling is initiated.");
 	}

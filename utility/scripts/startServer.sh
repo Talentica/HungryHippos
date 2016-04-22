@@ -1,5 +1,7 @@
 #!/bin/bash
 # first argument is {job_matrix}, second argument is {jobuuid}
+jobMatrixClassName=$1
+jobUuid=$2
 
 echo '################          Create droplets      ################'
 sh create_droplets.sh

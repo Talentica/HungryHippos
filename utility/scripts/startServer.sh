@@ -1,5 +1,7 @@
 #!/bin/bash
 # first argument is {job_matrix}, second argument is {jobuuid}
+jobMatrixClassName=$1
+jobUuid=$2
 
 echo '################          Create droplets      ################'
 sh create_droplets.sh
@@ -36,3 +38,7 @@ echo '################          PROCESS INITIATED      ################'
 echo '################          starting kazoo server   ################'
 sh start-kazoo-server.sh $jobUuid
 echo '################          kazoo server started.  ################'
+
+echo '################          Start to destroy the droplets   ################'
+sh delete-droplets.sh
+echo '################          Destroy of the droplets are initiated   ################'

@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
@@ -180,9 +181,10 @@ public class CommonUtil {
 	public static void executeScriptCommand(String[] strArr){
 		try {
 			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(new String[] { strArr[0], strArr[1] });
+			Process pr = rt.exec(strArr,null,null);
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
+			pr.waitFor();
 			String line = "";
 			while ((line = input.readLine()) != null) {
 				LOGGER.info(line);
@@ -191,6 +193,7 @@ public class CommonUtil {
 			LOGGER.info("Execption {}",e);
 		}
 	}
+	
 	
 /*	public static void generateJobUUID(){
 		UUId = UUID.randomUUID();

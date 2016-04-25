@@ -55,6 +55,7 @@ public class MutableCharArrayString
 	}
 
 	public MutableCharArrayString addCharacter(char ch) {
+		if(array.length == stringLength) return this;
 		array[stringLength] = ch;
 		stringLength++;
 		return this;

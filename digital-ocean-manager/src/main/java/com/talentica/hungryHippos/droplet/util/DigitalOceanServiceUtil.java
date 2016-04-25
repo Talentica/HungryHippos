@@ -425,10 +425,10 @@ public class DigitalOceanServiceUtil {
 		Map<String,String> keyValue = new HashMap<String, String>();
 		keyValue.put("input.file.url.link","http://192.241.248.197/input/sampledata.txt");
 		keyValue.put("common.sharding_dimensions","key1,key2,key3");
-		keyValue.put("column.datatype-size","STRING-1,STRING-1,STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,STRING-3");
-		keyValue.put("input.file.size","232343");
+		keyValue.put("column.datatype-size","STRING-1,STRING-1,STRING-1,STRING-3,STRING-3,STRING-3,DOUBLE-0,DOUBLE-0,STRING-5");
+		keyValue.put("input.file.size","55537404");
 		keyValue.put("job.matrix.class","com.talentica.hungryHippos.test.sum.SumJobMatrixImpl");
-		keyValue.put("job.uuid","NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A");
+		keyValue.put("job.uuid","NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5T");
 		return keyValue;
 	}
 

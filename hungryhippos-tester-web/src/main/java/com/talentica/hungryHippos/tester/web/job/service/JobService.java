@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import org.dozer.DozerBeanMapper;
 import org.dozer.Mapper;
@@ -27,18 +26,32 @@ import com.talentica.hungryHippos.tester.web.job.data.JobInput;
 import com.talentica.hungryHippos.tester.web.job.data.JobInputRepository;
 import com.talentica.hungryHippos.tester.web.job.data.JobRepository;
 import com.talentica.hungryHippos.tester.web.user.data.User;
-import com.talentica.hungryHippos.utility.ScriptRunner;
+import com.talentica.hungryHippos.utility.SecureShellExecutor;
 
 @Controller
 @RequestMapping("/job")
 public class JobService extends Service {
 
 	private Logger LOGGER = LoggerFactory.getLogger(JobService.class);
-	
+
 	private static final Mapper DOZER_BEAN_MAPPER = new DozerBeanMapper();
+
+	private static final String SPACE = " ";
 
 	@Value("${job.submission.script.path.jars.dir}")
 	private String JOB_SUBMISSION_SCRIPT_FILE_PATH;
+
+	@Value("${job.submission.script.host}")
+	private String JOB_SUBMISSION_SCRIPT_HOST;
+
+	@Value("${job.submission.script.host.username}")
+	private String JOB_SUBMISSION_SCRIPT_HOST_USERNAME;
+
+	@Value("${job.submission.script.host.private.key.file.path}")
+	private String JOB_SUBMISSION_SCRIPT_HOST_PRIVATE_KEY_FILE_PATH;
+
+	@Value("${job.submission.script.host.password}")
+	private String JOB_SUBMISSION_SCRIPT_HOST_PASSWORD;
 
 	@Autowired(required = false)
 	private JobRepository jobRepository;
@@ -103,15 +116,21 @@ public class JobService extends Service {
 		jobInputEntity.setJob(jobEntity);
 		jobInputRepository.save(jobInputEntity);
 		savedJob.setJobInput(jobInput);
+		executeJobSubmissionScript(savedJob, jobInputEntity);
+		return savedJob;
+	}
+
+	private void executeJobSubmissionScript(com.talentica.hungryHippos.tester.api.job.Job savedJob,
+			JobInput jobInputEntity) {
 		LOGGER.info("Executing job submission script.");
-		Map<String, String> parameters = new HashMap<>();
-		parameters.put("jobMatrixClassName", jobInputEntity.getJobMatrixClass());
-		parameters.put("jobUuid", savedJob.getUuid());
-		String scriptExecutionOutput = ScriptRunner.executeShellScript(JOB_SUBMISSION_SCRIPT_FILE_PATH, parameters);
+		SecureShellExecutor secureShellExecutor = new SecureShellExecutor(JOB_SUBMISSION_SCRIPT_HOST,
+				JOB_SUBMISSION_SCRIPT_HOST_USERNAME, JOB_SUBMISSION_SCRIPT_HOST_PRIVATE_KEY_FILE_PATH,
+				JOB_SUBMISSION_SCRIPT_HOST_PASSWORD);
+		List<String> scriptExecutionOutput = secureShellExecutor.execute(
+				JOB_SUBMISSION_SCRIPT_FILE_PATH + SPACE + jobInputEntity.getJobMatrixClass() + SPACE + savedJob.getUuid());
 		LOGGER.info("Job submission script executed successfully.");
 		LOGGER.info("Script execution output for job:{} is {}",
 				new Object[] { savedJob.getUuid(), scriptExecutionOutput });
-		return savedJob;
 	}
 
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)
@@ -140,7 +159,7 @@ public class JobService extends Service {
 		}
 		return jobServiceResponse;
 	}
-	
+
 	// TODO: Allow only admins access to this REST API call.
 	// @PreAuthorize(value="ADMIN")
 	@RequestMapping(value = "any/detail/{jobUuid}", method = RequestMethod.GET)

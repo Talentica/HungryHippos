@@ -334,7 +334,7 @@ public class DigitalOceanServiceUtil {
 			writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
 			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
-			startZookeeperServer();
+			startZookeeperServer(jobUUId[0]);
 			LOGGER.info("Zookeeper server started...");
 			LOGGER.info("Creating default nodes");
 			if (nodesManager == null) {
@@ -463,10 +463,10 @@ public class DigitalOceanServiceUtil {
 	/**
 	 * @throws IOException
 	 */
-	private static void startZookeeperServer() throws IOException {
+	private static void startZookeeperServer(String jobuuid) throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
 		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh"};
+		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh",jobuuid};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Shell command is executed");
 	}

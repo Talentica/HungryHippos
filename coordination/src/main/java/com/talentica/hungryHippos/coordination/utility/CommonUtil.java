@@ -40,6 +40,25 @@ public class CommonUtil {
 
 	public static String TEMP_JOBUUID_FOLDER_PATH = null;
 	public static String jobUUIdFolderName;
+	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
+
+	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
+
+	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
+
+	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
+	
+	public static  String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
+			+ MASTER_IP_FILE_NAME;
+
+	public static  String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
+			+ OUTPUT_IP_FILE_NAME;
+
+	public static  String DROPLET_IDS_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
+			+ DROPLET_IDS_FILE_NAME;
+
+	public static  String WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
+			+ WEBSERVER_IP_FILE_NAME;
 
 	public static void createDefaultPath(){
 
@@ -54,27 +73,15 @@ public class CommonUtil {
 		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
 		file.mkdir();
 		LOGGER.info("Created the directory name {}",file.getAbsolutePath());
-	
+		MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
+				+ MASTER_IP_FILE_NAME;
+		OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
+				+ OUTPUT_IP_FILE_NAME;
+		DROPLET_IDS_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
+				+ DROPLET_IDS_FILE_NAME;
+		WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
+				+ WEBSERVER_IP_FILE_NAME;
 	}
-	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
-
-	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
-
-	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
-
-	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
-
-	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ MASTER_IP_FILE_NAME;
-
-	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ OUTPUT_IP_FILE_NAME;
-
-	public static final String DROPLET_IDS_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ DROPLET_IDS_FILE_NAME;
-
-	public static final String WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ WEBSERVER_IP_FILE_NAME;
 
 	private static NodesManager nodesManager;
 

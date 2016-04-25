@@ -328,7 +328,7 @@ public class DigitalOceanServiceUtil {
 					droplets);
 			LOGGER.info("Active droplets are {}", dropletFill.toString());
 			LOGGER.info("Generating server conf file");
-			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill);
+			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill,jobUUId[0]);
 			LOGGER.info("IP Address {}",ipv4AddrsList);
 			LOGGER.info("Generating server config file");
 			writeLineInFile(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
@@ -521,7 +521,7 @@ public class DigitalOceanServiceUtil {
 	 * @throws IOException
 	 */
 	private static List<String> generateServerConfigFile(
-			List<Droplet> droplets) throws IOException {
+			List<Droplet> droplets,String jobUUId) throws IOException {
 		int index = 0;
 		String PRIFIX = "server.";
 		String SUFFIX = ":";
@@ -557,7 +557,9 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		dropletIdToBeDeleted.add(String.valueOf(masterDropletId));
-		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_PATH,dropletIdToBeDeleted);
+		File file = new File(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId));
+		file.getParentFile().mkdirs();
+		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId),dropletIdToBeDeleted);
 		return serverIps;
 	}
 

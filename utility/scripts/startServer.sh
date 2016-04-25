@@ -24,11 +24,11 @@ sh setup-data-publisher.sh
 echo '################          Data publisher setup completed      ################'
 
 echo '################          Job manager setup started      ################'
-sh setup-job-manager.sh
+sh setup-job-manager.sh $2
 echo '################          Job manager setup completed      ################'
 
 echo '################          Nodes setup started      ################'
-sh setup-nodes.sh
+sh setup-nodes.sh $2
 echo '################          Nodes setup completed      ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'

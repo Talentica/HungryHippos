@@ -12,11 +12,9 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -43,7 +41,8 @@ public class CommonUtil {
 	public static String TEMP_JOBUUID_FOLDER_PATH = null;
 	public static String jobUUIdFolderName;
 
-	static {
+	public static void createDefaultPath(){
+
 		if (OSValidator.isWindows()) {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
@@ -51,12 +50,12 @@ public class CommonUtil {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		}
-		LOGGER.info("tmp directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
+		LOGGER.info("tem jobuuid directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
 		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
 		file.mkdir();
 		LOGGER.info("Created the directory name {}",file.getAbsolutePath());
+	
 	}
-
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 
 	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";

@@ -40,6 +40,7 @@ public class DigitalOceanManager {
 				return;
 			}
 			CommonUtil.jobUUIdFolderName = jobUUId;
+			CommonUtil.createDefaultPath();
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
 			Property.getProperties().get("common.webserver.ip").toString();

@@ -4,7 +4,7 @@ jobMatrixClassName=$1
 jobUuid=$2
 
 echo '################          Create droplets      ################'
-sh create_droplets.sh
+sh create_droplets.sh $jobUuid
 echo '################          Droplet creation is initiated      ################'
 
 echo '################          Removing older host key      ################'

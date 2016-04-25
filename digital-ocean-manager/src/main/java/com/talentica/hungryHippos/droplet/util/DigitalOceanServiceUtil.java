@@ -12,10 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,6 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -62,6 +59,7 @@ public class DigitalOceanServiceUtil {
 	 */
 	public static void performServices(DigitalOceanServiceImpl dropletService,
 			DigitalOceanEntity dropletEntity,String ...jobUUId) throws Exception {
+		if(jobUUId != null && jobUUId.length == 1) CommonUtil.loadDefaultPath(jobUUId[0]);
 		String[] dropletIds;
 		int dropletId;
 		Droplets droplets;
@@ -358,51 +356,7 @@ public class DigitalOceanServiceUtil {
 			List<String> webServerIp = new ArrayList<String>();
 			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
-			
-			/*LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
-			getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
-			LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");*/
-			/*Caution : It will destroy the droplets. Please uncomment the code if needed.*/
-			
-			/*LOGGER.info("DESTROYING DROPLETS");
-			String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-			String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh"};
-			CommonUtil.executeScriptCommand(strArr);
-			LOGGER.info("DROPLET DISTROY IS INITIATED");*/
 		}
-	}
-	
-	/**
-	 * Get download finish signal.
-	 */
-	private static void getFinishNodeJobsSignal(String nodeName) {
-		int totalCluster = Integer.valueOf(Property.getProperties()
-				.get("common.no.of.droplets").toString());
-		for (int nodeId = 0; nodeId < totalCluster; nodeId++) {
-			if (!getSignalFromZk(nodeId, nodeName)) {
-				continue;
-			}
-		}
-		LOGGER.info("DOWNLOADED ALL RESULTS");
-	}
-	
-	/**
-	 * Wait for finish signal from node.
-	 * 
-	 * @param nodeId
-	 * @param finishNode
-	 * @return boolean
-	 */
-	private static boolean getSignalFromZk(Integer nodeId, String finishNode) {
-		CountDownLatch signal = new CountDownLatch(1);
-		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
-		try {
-			ZKUtils.waitForSignal(buildPath, signal);
-			signal.await();
-		} catch (KeeperException | InterruptedException e) {
-			return false;
-		}
-		return true;
 	}
 	
 	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId)

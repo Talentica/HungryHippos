@@ -3,6 +3,7 @@
  */
 package com.talentica.hungryHippos.droplet.main;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
@@ -25,9 +26,10 @@ public class DeleteDropletsMain {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DeleteDropletsMain.class);
 	private static String jobUUId;
-	public static void main(String[] args){
+	public static void main(String[] args) throws FileNotFoundException{
 		validateProgramArguments(args);
-		jobUUId = args[0];
+		Property.overrideConfigurationProperties(args[0]);
+		jobUUId = args[1];
 		CommonUtil.jobUUIdFolderName = jobUUId;
 		CommonUtil.loadDefaultPath();
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
@@ -57,8 +59,8 @@ public class DeleteDropletsMain {
 	}
 	
 	private static void validateProgramArguments(String[] args) {
-		if (args.length < 1) {
-			LOGGER.info("please provide the jobuuid as argument");
+		if (args.length < 2) {
+			LOGGER.info("please provide config property file as first argument and the jobuuid as second argument");
 			System.exit(1);
 		}
 	}

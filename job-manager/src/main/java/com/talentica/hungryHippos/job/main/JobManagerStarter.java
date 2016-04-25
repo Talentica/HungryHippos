@@ -14,7 +14,6 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.job.JobManager;
-import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * @author PooshanS

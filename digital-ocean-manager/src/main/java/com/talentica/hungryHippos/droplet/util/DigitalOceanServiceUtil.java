@@ -81,7 +81,7 @@ public class DigitalOceanServiceUtil {
 			break;
 
 		case DELETE:
-			for (String dpltId : getDropletIdsFile()) {
+			for (String dpltId : getDropletIdsFile(jobUUId[0])) {
 				try {
 					dropletService.deleteDroplet(Integer.valueOf(dpltId));
 					LOGGER.info("Destroy of droplet id {} is initiated.",
@@ -304,8 +304,8 @@ public class DigitalOceanServiceUtil {
 		return retDroplest;
 	}
 	
-	public static List<String> getDropletIdsFile() throws IOException {
-		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH));
+	public static List<String> getDropletIdsFile(String jobUUId) throws IOException {
+		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId)));
 	}
 
 	/**
@@ -348,8 +348,8 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
 			
-			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0])); 
-			//uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
+			//uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0])); 
+			uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			
 			
 			LOGGER.info("Conf file is uploaded...");

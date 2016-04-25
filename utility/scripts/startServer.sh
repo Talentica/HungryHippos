@@ -40,5 +40,5 @@ sh start-kazoo-server.sh $jobUuid
 echo '################          kazoo server started.  ################'
 
 echo '################          Start to destroy the droplets   ################'
-sh delete-droplets.sh
+sh delete-droplets.sh $2
 echo '################          Destroy of the droplets are initiated   ################'

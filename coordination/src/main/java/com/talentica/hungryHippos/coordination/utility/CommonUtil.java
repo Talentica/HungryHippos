@@ -154,6 +154,7 @@ public class CommonUtil {
 
 	public static String getZKIp() {
 		try {
+			LOGGER.info("Master ip file path {}",MASTER_IP_FILE_NAME_ABSOLUTE_PATH);
 			return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 		} catch (IOException e) {
 			LOGGER.info("Unable to read the file zk ip file.");

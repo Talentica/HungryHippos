@@ -340,6 +340,7 @@ public class DigitalOceanServiceUtil {
 			if (nodesManager == null) {
 				CommonUtil.loadDefaultPath(jobUUId[0]);
 				String zkIp = CommonUtil.getZKIp();
+				LOGGER.info("zk ip is {}",zkIp);
 				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
 			} 
 			nodesManager.startup();

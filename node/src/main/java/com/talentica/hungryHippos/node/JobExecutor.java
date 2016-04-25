@@ -76,7 +76,7 @@ public class JobExecutor {
 	private static void waitForSignal() throws KeeperException,
 			InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
+		ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode()), signal);
 		signal.await();
 	}
 

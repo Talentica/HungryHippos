@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.job.JobManager;
@@ -53,7 +54,7 @@ public class JobManagerStarter {
 	private static void waitForCompletion() throws KeeperException,
 			InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED), signal);
+		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED.getZKJobNode()), signal);
 		signal.await();
 	}
 

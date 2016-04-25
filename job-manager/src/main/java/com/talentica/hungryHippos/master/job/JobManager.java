@@ -93,7 +93,7 @@ public class JobManager {
 	private void sendSignalToAllNodesToStartJobMatrix() throws InterruptedException{
 		CountDownLatch signal = new CountDownLatch(1);
 			try {
-				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(ZKNodeName.START_JOB_MATRIX), signal);
+				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode()), signal);
 			} catch (IOException e) {
 				LOGGER.info("Unable to send the signal node on zk due to {}",e);
 			}

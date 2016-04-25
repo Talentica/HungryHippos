@@ -81,7 +81,7 @@ public class DataReceiver {
 			NodesManager nodesManager = Property.getNodesManagerIntances();
 			
 			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(ZKNodeName.START_NODE_FOR_DATA_RECIEVER), signal);
+			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
 			signal.await();
 			
 			DataReceiver dataReceiver = getNodeInitializer();

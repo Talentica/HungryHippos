@@ -142,7 +142,7 @@ public class DataProvider {
         LOGGER.info("Time taken in encoding: " + (timeForEncoding));
         LOGGER.info("Time taken in lookup: " + (timeForLookup));
         try {
-            String dataPublishingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.DATA_PUBLISHING_COMPLETED);
+            String dataPublishingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED.getZKJobNode());
             CountDownLatch signal = new CountDownLatch(1);
             nodesManager.createPersistentNode(dataPublishingNodeName, signal);
             signal.await();
@@ -156,7 +156,7 @@ public class DataProvider {
     private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
         CountDownLatch signal = new CountDownLatch(1);
         try {
-            nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(ZKNodeName.START_NODE_FOR_DATA_RECIEVER), signal);
+            nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
         } catch (IOException e) {
             LOGGER.info("Unable to send the signal node on zk due to {}", e);
         }

@@ -94,7 +94,7 @@ public class Sharding {
 	 */
 	private static void sendSignal(NodesManager nodesManager)
 			throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED);
+		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();

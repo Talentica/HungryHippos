@@ -41,43 +41,50 @@ public class CommonUtil {
 	private static FieldTypeArrayDataDescription dataDescription;
 
 	public static String TEMP_FOLDER_PATH = null;
-	
-	static{
-		if(OSValidator.isWindows()){
-			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		}else if(OSValidator.isUnix()){
-			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+
+	static {
+		if (OSValidator.isWindows()) {
+			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()
+					+ PathUtil.FORWARD_SLASH;
+		} else if (OSValidator.isUnix()) {
+			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()
+					+ PathUtil.FORWARD_SLASH;
 		}
-		LOGGER.info("tmp directory path is {}",TEMP_FOLDER_PATH);
+		LOGGER.info("tmp directory path is {}", TEMP_FOLDER_PATH);
 	}
-	
 
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
-	
+
 	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
-	
+
 	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
-	
+
 	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
 
 	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
 			+ MASTER_IP_FILE_NAME;
-	
-	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH + OUTPUT_IP_FILE_NAME;
-	
-	public static final String DROPLET_IDS_FILE_PATH = TEMP_FOLDER_PATH + DROPLET_IDS_FILE_NAME;
-	
-	public static final String WEBSERVER_IP_FILE_PATH = TEMP_FOLDER_PATH + WEBSERVER_IP_FILE_NAME;
-	
+
+	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
+			+ OUTPUT_IP_FILE_NAME;
+
+	public static final String DROPLET_IDS_FILE_PATH = TEMP_FOLDER_PATH
+			+ DROPLET_IDS_FILE_NAME;
+
+	public static final String WEBSERVER_IP_FILE_PATH = TEMP_FOLDER_PATH
+			+ WEBSERVER_IP_FILE_NAME;
+
 	private static NodesManager nodesManager;
-	
-	private static UUID UUId;
 
 	public enum ZKJobNodeEnum {
 
 		PUSH_JOB_NOTIFICATION("PUSH_JOB"), PULL_JOB_NOTIFICATION("PULL_JOB"), START_ROW_COUNT(
 				"START_ROW_COUNT"), START_JOB_MATRIX("START_JOB_MATRIX"), FINISH_JOB_MATRIX(
-				"FINISH_JOB_MATRIX"), FINISH_ROW_COUNT("FINISH_ROW_COUNT"),DOWNLOAD_FINISHED("DOWNLOAD_FINISHED");
+				"FINISH_JOB_MATRIX"), FINISH_ROW_COUNT("FINISH_ROW_COUNT"), DOWNLOAD_FINISHED(
+				"DOWNLOAD_FINISHED"), SHARDING_COMPLETED("SHARDING_COMPLETED"), DATA_PUBLISHING_COMPLETED(
+				"DATA_PUBLISHING_COMPLETED"), START_NODE_FOR_DATA_RECIEVER(
+				"START_NODE_FOR_DATA_RECIEVER"), SAMPLING_COMPLETED(
+				"SAMPLING_COMPLETED"), INPUT_DOWNLOAD_COMPLETED(
+				"INPUT_DOWNLOAD_COMPLETED");
 
 		private String jobNode;
 
@@ -146,15 +153,16 @@ public class CommonUtil {
 		}
 		return StringUtils.EMPTY;
 	}
-	
+
 	public static String getKazooIp() throws IOException {
 		return readFile(new File(OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 	}
 
 	public static NodesManager connectZK() throws Exception {
-		if(nodesManager == null){
-			(nodesManager= ServerHeartBeat.init()).connectZookeeper(getZKIp()).startup();
-		}else {
+		if (nodesManager == null) {
+			(nodesManager = ServerHeartBeat.init()).connectZookeeper(getZKIp())
+					.startup();
+		} else {
 			return nodesManager;
 		}
 		return nodesManager;
@@ -162,26 +170,29 @@ public class CommonUtil {
 
 	public static Properties getMergedConfigurationPropertyFromZk()
 			throws Exception {
-		ZKNodeFile configProp = ZKUtils.getConfigZKNodeFile(Property.MERGED_CONFIG_PROP_FILE);
-		if(configProp == null) return null;
+		ZKNodeFile configProp = ZKUtils
+				.getConfigZKNodeFile(Property.MERGED_CONFIG_PROP_FILE);
+		if (configProp == null)
+			return null;
 		return configProp.getFileData();
 	}
-	
+
 	public static Properties getServerConfigurationPropertyFromZk()
 			throws Exception {
-		ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
-		return (serverConfig == null ) ? null :serverConfig.getFileData();
+		ZKNodeFile serverConfig = ZKUtils
+				.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
+		return (serverConfig == null) ? null : serverConfig.getFileData();
 	}
-	
+
 	/**
 	 * First args is script name and second one is command
 	 * 
 	 * @param shellCommand
 	 */
-	public static void executeScriptCommand(String[] strArr){
+	public static void executeScriptCommand(String[] strArr) {
 		try {
 			Runtime rt = Runtime.getRuntime();
-			Process pr = rt.exec(strArr,null,null);
+			Process pr = rt.exec(strArr, null, null);
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
 			pr.waitFor();
@@ -190,26 +201,16 @@ public class CommonUtil {
 				LOGGER.info(line);
 			}
 		} catch (Exception e) {
-			LOGGER.info("Execption {}",e);
+			LOGGER.info("Execption {}", e);
 		}
 	}
-	
-	
-/*	public static void generateJobUUID(){
-		UUId = UUID.randomUUID();
-	}
-*/	
-	public static String getJobUUIdInBase64(String jobUUId){
+
+	public static String getJobUUIdInBase64(String jobUUId) {
 		return uuidToBase64(jobUUId);
 	}
-		
+
 	private static String uuidToBase64(String str) {
-	    return Base64.getUrlEncoder().encodeToString(str.getBytes());
+		return Base64.getUrlEncoder().encodeToString(str.getBytes());
 	}
-	
-	/*private static String uuidFromBase64(String str) {
-	    return new String(Base64.getUrlDecoder().decode(str.getBytes()));
-	    
-	}*/
 
 }

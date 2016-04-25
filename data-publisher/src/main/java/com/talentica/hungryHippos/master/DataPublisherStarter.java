@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.data.DataProvider;
@@ -51,7 +52,7 @@ public class DataPublisherStarter {
 	private static void waitForSinal(DataPublisherStarter dataPublisherStarter)
 			throws Exception, KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(ZKNodeName.SHARDING_COMPLETED), signal);
+		ZKUtils.waitForSignal(dataPublisherStarter.nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode()), signal);
 		signal.await();
 	}
 

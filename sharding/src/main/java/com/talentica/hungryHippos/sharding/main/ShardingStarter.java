@@ -106,7 +106,7 @@ public class ShardingStarter {
 			KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
 		ZKUtils.waitForSignal(ShardingStarter.nodesManager
-				.buildAlertPathByName(ZKNodeName.SAMPLING_COMPLETED), signal);
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED.getZKJobNode()), signal);
 		signal.await();
 	}
 
@@ -114,7 +114,7 @@ public class ShardingStarter {
 			KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
 		ZKUtils.waitForSignal(ShardingStarter.nodesManager
-				.buildAlertPathByName(ZKNodeName.INPUT_DOWNLOAD_COMPLETED),
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED.getZKJobNode()),
 				signal);
 		signal.await();
 	}

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,8 @@ public final class SecureShellExecutor {
 
 	private String privateKeyFilePath;
 
+	private String password;
+
 	private int port;
 
 	private static final String EXECUTABLE_CHANNEL = "exec";
@@ -40,11 +43,26 @@ public final class SecureShellExecutor {
 		this(host, username, privateKeyFilePath, 22);
 	}
 
+	public SecureShellExecutor(String host, String username, String privateKeyFilePath, String password) {
+		this(host, username, privateKeyFilePath, 22);
+		this.password = password;
+
+	}
+
+	public SecureShellExecutor(String host, String username) {
+		this(host, username, null, 22);
+	}
+
 	private Session getSession() throws JSchException {
 		JSch securedShell = new JSch();
-		securedShell.addIdentity(privateKeyFilePath);
+		if (StringUtils.isNotBlank(privateKeyFilePath)) {
+			securedShell.addIdentity(privateKeyFilePath);
+		}
 		Session session = securedShell.getSession(username, host, port);
 		session.setConfig("StrictHostKeyChecking", "no");
+		if (StringUtils.isNotBlank(password)) {
+			session.setPassword(password);
+		}
 		return session;
 	}
 

@@ -16,7 +16,7 @@ sh copy-files-to-all-nodes.sh $jobUuid
 echo '################          Master ip file is copied      ################'
 
 echo '################          Sharding setup started      ################'
-sh setup-sharding.sh
+sh setup-sharding.sh $jobUuid
 echo '################          Sharding setup completed      ################'
 
 echo '################          Data publisher setup started      ################'

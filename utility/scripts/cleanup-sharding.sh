@@ -1,6 +1,7 @@
 #!/bin/bash
+jobuuid=$1
 echo 'Cleaning up sharding'
-sharding_node_ip=`cat ../tmp/master_ip_file|awk -F":" '{print $2}'`
+sharding_node_ip=`cat ../$jobuuid/master_ip_file|awk -F":" '{print $2}'`
 
 
 for node in `echo $sharding_node_ip`

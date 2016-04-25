@@ -1,6 +1,7 @@
 #!/bin/bash
+jobUuid=$1
 echo 'Creating nodeId files on nodes'
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../$jobUuid/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 
 i=0

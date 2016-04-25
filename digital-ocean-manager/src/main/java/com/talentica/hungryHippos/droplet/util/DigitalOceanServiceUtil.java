@@ -305,7 +305,7 @@ public class DigitalOceanServiceUtil {
 	}
 	
 	public static List<String> getDropletIdsFile(String jobUUId) throws IOException {
-		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId)));
+		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH));
 	}
 
 	/**
@@ -331,7 +331,7 @@ public class DigitalOceanServiceUtil {
 			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill,jobUUId[0]);
 			LOGGER.info("IP Address {}",ipv4AddrsList);
 			LOGGER.info("Generating server config file");
-			writeLineInFile(CommonUtil.TEMP_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
+			writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
 			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer();
@@ -557,9 +557,7 @@ public class DigitalOceanServiceUtil {
 			}
 		}
 		dropletIdToBeDeleted.add(String.valueOf(masterDropletId));
-		File file = new File(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId));
-		file.getParentFile().mkdirs();
-		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_PATH.replace("tmp", "tmp/"+jobUUId),dropletIdToBeDeleted);
+		writeLineInFile(CommonUtil.DROPLET_IDS_FILE_PATH,dropletIdToBeDeleted);
 		return serverIps;
 	}
 

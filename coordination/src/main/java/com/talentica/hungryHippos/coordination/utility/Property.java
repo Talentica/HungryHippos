@@ -165,7 +165,7 @@ public class Property {
 				serverProp = new Properties();
 				try {
 					InputStream is = new FileInputStream(
-							CommonUtil.TEMP_FOLDER_PATH
+							CommonUtil.TEMP_JOBUUID_FOLDER_PATH
 									+ Property.SERVER_CONF_FILE);
 					serverProp.load(is);
 					PropertyConfigurator.configure(serverProp);

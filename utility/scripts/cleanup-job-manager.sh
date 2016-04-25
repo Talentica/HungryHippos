@@ -1,7 +1,7 @@
 #!/bin/bash
+jobUuid=$1
 echo 'Cleaning up job manager'
-job_manager_ip=`cat ../tmp/master_ip_file`
-
+job_manager_ip=`cat ../$jobUuid/master_ip_file`
 
 for node in `echo $job_manager_ip`
 do

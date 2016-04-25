@@ -40,17 +40,21 @@ public class CommonUtil {
 
 	private static FieldTypeArrayDataDescription dataDescription;
 
-	public static String TEMP_FOLDER_PATH = null;
+	public static String TEMP_JOBUUID_FOLDER_PATH = null;
+	public static String jobUUIdFolderName;
 
 	static {
 		if (OSValidator.isWindows()) {
-			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()
+			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		} else if (OSValidator.isUnix()) {
-			TEMP_FOLDER_PATH = Paths.get("../tmp").toAbsolutePath().toString()
+			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		}
-		LOGGER.info("tmp directory path is {}", TEMP_FOLDER_PATH);
+		LOGGER.info("tmp directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
+		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
+		file.mkdir();
+		LOGGER.info("Created the directory name {}",file.getAbsolutePath());
 	}
 
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
@@ -61,16 +65,16 @@ public class CommonUtil {
 
 	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
 
-	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
+	public static final String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
 			+ MASTER_IP_FILE_NAME;
 
-	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_FOLDER_PATH
+	public static final String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
 			+ OUTPUT_IP_FILE_NAME;
 
-	public static final String DROPLET_IDS_FILE_PATH = TEMP_FOLDER_PATH
+	public static final String DROPLET_IDS_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
 			+ DROPLET_IDS_FILE_NAME;
 
-	public static final String WEBSERVER_IP_FILE_PATH = TEMP_FOLDER_PATH
+	public static final String WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
 			+ WEBSERVER_IP_FILE_NAME;
 
 	private static NodesManager nodesManager;

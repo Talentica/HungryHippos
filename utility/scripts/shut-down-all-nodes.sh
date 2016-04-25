@@ -1,6 +1,7 @@
 #!/bin/bash
+jobUuid=$1
 echo 'Shutting all java processes on nodes'
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../$jobUuid/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
 for node in `cat node_ips_list.txt`
 do

@@ -1,6 +1,7 @@
 #!/bin/bash
+jobuuid=$1
 echo 'Shutting down all java processes on data publisher node'
-cat ../tmp/master_ip_file > data_publisher_node_ips.txt
+cat ../$jobuuid/master_ip_file > data_publisher_node_ips.txt
 
 for node in `cat data_publisher_node_ips.txt`
 do

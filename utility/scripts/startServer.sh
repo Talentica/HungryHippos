@@ -12,7 +12,7 @@ ssh-keygen -R 127.0.0.1
 echo '################          Done      ################'
 
 echo '################          Copying master ip file      ################'
-sh copy-files-to-all-nodes.sh
+sh copy-files-to-all-nodes.sh $jobUuid
 echo '################          Master ip file is copied      ################'
 
 echo '################          Sharding setup started      ################'
@@ -20,15 +20,15 @@ sh setup-sharding.sh
 echo '################          Sharding setup completed      ################'
 
 echo '################          Data publisher setup started      ################'
-sh setup-data-publisher.sh
+sh setup-data-publisher.sh $jobUuid
 echo '################          Data publisher setup completed      ################'
 
 echo '################          Job manager setup started      ################'
-sh setup-job-manager.sh $2
+sh setup-job-manager.sh $jobUuid
 echo '################          Job manager setup completed      ################'
 
 echo '################          Nodes setup started      ################'
-sh setup-nodes.sh $2
+sh setup-nodes.sh $jobUuid
 echo '################          Nodes setup completed      ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
@@ -40,5 +40,5 @@ sh start-kazoo-server.sh $jobUuid
 echo '################          kazoo server started.  ################'
 
 echo '################          Start to destroy the droplets   ################'
-sh delete-droplets.sh $2
+sh delete-droplets.sh $jobUuid
 echo '################          Destroy of the droplets are initiated   ################'

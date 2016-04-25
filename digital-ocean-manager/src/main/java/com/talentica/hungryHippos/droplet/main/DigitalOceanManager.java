@@ -39,6 +39,7 @@ public class DigitalOceanManager {
 				LOGGER.info("Please provide the argument.First argument is json,second argument is config file and third argument is optional for jobUUId");
 				return;
 			}
+			CommonUtil.jobUUIdFolderName = jobUUId;
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
 			Property.getProperties().get("common.webserver.ip").toString();

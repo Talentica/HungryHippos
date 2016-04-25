@@ -1,8 +1,8 @@
 #!/bin/bash
+jobUuid=$1
+cat ../$jobUuid/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
 
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
-
-sh start-zk-server.sh
+sh start-zk-server.sh $jobUuid
 for node in `cat node_ips_list.txt`
 do
 echo "Starting HungryHippos node for job execution $node"

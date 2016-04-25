@@ -56,7 +56,7 @@ public class CommonUtil {
 
 	public static  String WEBSERVER_IP_FILE_PATH;
 
-	public static void createDefaultPath(){
+	public static void loadDefaultPath(){
 
 		if (OSValidator.isWindows()) {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()

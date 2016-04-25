@@ -66,7 +66,9 @@ public class CommonUtil {
 		}
 		LOGGER.info("tmp jobuuid directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
 		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
+		if (!file.exists()) {
 		file.mkdir();
+		}
 		LOGGER.info("Created the directory name {}",file.getAbsolutePath());
 		MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
 				+ MASTER_IP_FILE_NAME;

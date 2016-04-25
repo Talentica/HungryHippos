@@ -111,13 +111,11 @@ public class FileReader implements Reader {
 			readCount--;
 			if (nextChar == ',') {
 				fieldIndex++;
-			} else if (String.valueOf(nextChar).equalsIgnoreCase(System.getProperty("line.separator"))) {
+			} else if (String.valueOf(nextChar).equalsIgnoreCase(System.getProperty("line.separator")) || fieldIndex >= buffer.length) {
 				// Ignore blank lines with no data.
 				break;
 			} else {
-				if (fieldIndex < buffer.length) {
 					buffer[fieldIndex].addCharacter((char) nextChar);
-				}
 			}
 		}
 		return buffer;

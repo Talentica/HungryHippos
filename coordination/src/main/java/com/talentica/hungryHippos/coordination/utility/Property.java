@@ -72,6 +72,7 @@ public class Property {
 			mergeProperties = new Properties();
 			try {
 				String zkIp = CommonUtil.getZKIp();
+				LOGGER.info("zkip is {}",zkIp);
 				if (CONFIG_FILE_INPUT_STREAM != null) {
 					LOGGER.info("External configuration properties file is loaded");
 					if (!isReadFirstTime) {

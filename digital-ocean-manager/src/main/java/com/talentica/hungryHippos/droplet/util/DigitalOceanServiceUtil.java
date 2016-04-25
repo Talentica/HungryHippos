@@ -348,8 +348,8 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
 			
-			//uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0])); 
-			uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
+			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0])); 
+			//uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			
 			
 			LOGGER.info("Conf file is uploaded...");

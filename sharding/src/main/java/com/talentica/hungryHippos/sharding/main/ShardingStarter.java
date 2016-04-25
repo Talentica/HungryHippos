@@ -16,7 +16,6 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class ShardingStarter {
 
@@ -94,6 +93,7 @@ public class ShardingStarter {
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Sampling is initiated.");
 	}
+	
 
 	private static Reader getInputReaderForSharding() throws IOException {
 		// final String inputFile =

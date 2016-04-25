@@ -35,8 +35,7 @@ public class DigitalOceanManager {
 				Property.overrideConfigurationProperties(args[1]);
 			}else if(args.length == 3){
 				jobUUId = args[2];
-				CommonUtil.jobUUIdFolderName = jobUUId;
-				CommonUtil.loadDefaultPath();
+				CommonUtil.loadDefaultPath(jobUUId);
 				Property.overrideConfigurationProperties(args[1]);
 			}else {
 				LOGGER.info("Please provide the argument.First argument is json,second argument is config file and third argument is optional for jobUUId");

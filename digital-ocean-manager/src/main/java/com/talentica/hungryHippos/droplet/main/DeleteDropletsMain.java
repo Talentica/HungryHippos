@@ -29,8 +29,7 @@ public class DeleteDropletsMain {
 	public static void main(String[] args) throws FileNotFoundException{
 		validateProgramArguments(args);
 		jobUUId = args[1];
-		CommonUtil.jobUUIdFolderName = jobUUId;
-		CommonUtil.loadDefaultPath();
+		CommonUtil.loadDefaultPath(jobUUId);
 		Property.overrideConfigurationProperties(args[0]);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");

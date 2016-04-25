@@ -39,7 +39,6 @@ public class CommonUtil {
 	private static FieldTypeArrayDataDescription dataDescription;
 
 	public static String TEMP_JOBUUID_FOLDER_PATH = null;
-	public static String jobUUIdFolderName;
 	public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 
 	public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
@@ -56,7 +55,7 @@ public class CommonUtil {
 
 	public static  String WEBSERVER_IP_FILE_PATH;
 
-	public static void loadDefaultPath(){
+	public static void loadDefaultPath(String jobUUIdFolderName){
 
 		if (OSValidator.isWindows()) {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()

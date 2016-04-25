@@ -338,6 +338,7 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Zookeeper server started...");
 			LOGGER.info("Creating default nodes");
 			if (nodesManager == null) {
+				CommonUtil.loadDefaultPath(jobUUId[0]);
 				String zkIp = CommonUtil.getZKIp();
 				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
 			} 

@@ -34,14 +34,14 @@ public class DigitalOceanManager {
 			if (args.length == 2) {
 				Property.overrideConfigurationProperties(args[1]);
 			}else if(args.length == 3){
-				Property.overrideConfigurationProperties(args[1]);
 				jobUUId = args[2];
+				CommonUtil.jobUUIdFolderName = jobUUId;
+				CommonUtil.loadDefaultPath();
+				Property.overrideConfigurationProperties(args[1]);
 			}else {
 				LOGGER.info("Please provide the argument.First argument is json,second argument is config file and third argument is optional for jobUUId");
 				return;
 			}
-			CommonUtil.jobUUIdFolderName = jobUUId;
-			CommonUtil.loadDefaultPath();
 			Property.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
 			Property.getProperties().get("common.webserver.ip").toString();

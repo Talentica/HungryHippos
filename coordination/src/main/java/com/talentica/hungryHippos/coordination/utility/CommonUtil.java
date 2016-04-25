@@ -48,17 +48,13 @@ public class CommonUtil {
 
 	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
 	
-	public static  String MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ MASTER_IP_FILE_NAME;
+	public static  String MASTER_IP_FILE_NAME_ABSOLUTE_PATH;
 
-	public static  String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ OUTPUT_IP_FILE_NAME;
+	public static  String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH;
 
-	public static  String DROPLET_IDS_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ DROPLET_IDS_FILE_NAME;
+	public static  String DROPLET_IDS_FILE_PATH;
 
-	public static  String WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
-			+ WEBSERVER_IP_FILE_NAME;
+	public static  String WEBSERVER_IP_FILE_PATH;
 
 	public static void createDefaultPath(){
 

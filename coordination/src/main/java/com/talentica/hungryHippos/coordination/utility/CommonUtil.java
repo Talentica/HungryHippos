@@ -65,7 +65,7 @@ public class CommonUtil {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		}
-		LOGGER.info("tem jobuuid directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
+		LOGGER.info("tmp jobuuid directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
 		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
 		file.mkdir();
 		LOGGER.info("Created the directory name {}",file.getAbsolutePath());

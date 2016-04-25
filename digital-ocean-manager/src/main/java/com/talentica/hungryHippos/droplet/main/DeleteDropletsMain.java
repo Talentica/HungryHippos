@@ -24,8 +24,12 @@ public class DeleteDropletsMain {
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DeleteDropletsMain.class);
+	private static String jobUUId;
 	public static void main(String[] args){
 		validateProgramArguments(args);
+		jobUUId = args[0];
+		CommonUtil.jobUUIdFolderName = jobUUId;
+		CommonUtil.loadDefaultPath();
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());

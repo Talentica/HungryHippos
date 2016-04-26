@@ -306,6 +306,7 @@ public class DigitalOceanServiceUtil {
 	
 	public static List<String> getDropletIdsFile(String jobUUId) throws IOException {
 		CommonUtil.loadDefaultPath(jobUUId);
+		LOGGER.info("Droplet ids file path {}",CommonUtil.DROPLET_IDS_FILE_PATH);
 		return CommonUtil.readFile(new File(CommonUtil.DROPLET_IDS_FILE_PATH));
 	}
 

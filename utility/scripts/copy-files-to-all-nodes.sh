@@ -3,7 +3,7 @@ jobUuid=$1
 echo 'Copying master ip file on all nodes'
 cat ../$jobUuid/serverConfigFile.properties|awk -F":" '{print $2}' > ../$jobUuid/node_ips_list.txt
 cat ../$jobUuid/output_ip_file >> ../$jobUuid/node_ips_list.txt
-sh remove-ssh-keygen.sh
+sh remove-ssh-keygen.sh $jobUuid
 for node in `cat ../$jobUuid/node_ips_list.txt`
 do
    echo "Copying master_ip_file to HungryHippos for $node"

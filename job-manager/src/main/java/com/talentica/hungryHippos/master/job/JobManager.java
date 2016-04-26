@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -60,6 +61,9 @@ public class JobManager {
 		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
+		LOGGER.info("SEND SIGNAL TO END JOB MATRIX");
+		sendSignalEndJobMatrix();
+		LOGGER.info("SIGNAL IS SENT");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -94,6 +98,18 @@ public class JobManager {
 		CountDownLatch signal = new CountDownLatch(1);
 			try {
 				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode()), signal);
+			} catch (IOException e) {
+				LOGGER.info("Unable to send the signal node on zk due to {}",e);
+			}
+		signal.await();
+	
+	}
+	
+	private void sendSignalEndJobMatrix() throws InterruptedException{
+		CountDownLatch signal = new CountDownLatch(1);
+		String basePath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH;
+			try {
+				nodesManager.createPersistentNode(basePath + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode(), signal);
 			} catch (IOException e) {
 				LOGGER.info("Unable to send the signal node on zk due to {}",e);
 			}

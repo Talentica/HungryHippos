@@ -1,9 +1,11 @@
+#!/usr/bin/env python
 import random
 import fileinput
 import csv
 import os
 import MySQLdb
 import sys
+from kazoo.client import KazooClient
 
 #Input file
 #f_input=raw_input("Enter the input file name for sampling:")
@@ -19,12 +21,20 @@ job_uuid=args[1]
 
 mysql_server_ip=args[2]
 
-## Read IP of the node from the file
-f2=open('/root/hungryhippos/tmp/master_ip_file')
+## Read Zookeeper's IP from the file
+master_ip_file_path="/root/hungryhippos/"+job_uuid+"/master_ip_file"
 
-for line in f2:
+f=open(master_ip_file_path)
+
+for line in f:
     hostname=line.strip()
 
+## Connect Kazoo Client to Zookeeper
+zk = KazooClient(hosts=hostname)
+zk.start()
+
+## Path of Zookeeper node
+zk_path='/rootnode/alertsnode/'
 
 def calc_file_size(filename):
     statinfo= os.stat(filename)
@@ -158,6 +168,8 @@ try:
                 f1.write(i)
 
     completed_status()
+    sampling_znode=zk_path+"/"+"SAMPLING_COMPLETED"
+    zk.create(sampling_znode)
 except:
     failed_status()
 

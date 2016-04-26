@@ -13,7 +13,9 @@ mysql_server_ip=args[2]
 
 print "uuid:",uuid
 
-f=open('/root/hungryhippos/tmp/master_ip_file')
+master_ip_file_path="/root/hungryhippos/"+uuid+"/master_ip_file"
+
+f=open(master_ip_file_path)
 
 for line in f:
     hostname=line.strip()

@@ -44,6 +44,9 @@ public class ShardingStarter {
 			Sharding.doSharding(getInputReaderForSharding(),
 					ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
+			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
+			callProcessAfterShardingScript();
+			LOGGER.info("STARTED...");
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
@@ -93,7 +96,24 @@ public class ShardingStarter {
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Sampling is initiated.");
 	}
-	
+
+	private static void callProcessAfterShardingScript() {
+		String jobuuid = Property.getProperties().getProperty("job.uuid");
+		String webserverIp = Property.getProperties().getProperty(
+				"common.webserver.ip");
+		LOGGER.info(
+				"Calling process after sharding python script and uuid {} webserver ip {}",
+				jobuuid, webserverIp);
+		String pythonScriptPath = Paths
+				.get("/root/hungryhippos/scripts/python_scripts")
+				.toAbsolutePath().toString()
+				+ PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] { "/usr/bin/python",
+				pythonScriptPath + "processes-db-entries.py", jobuuid,
+				webserverIp };
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Sampling is initiated.");
+	}
 
 	private static Reader getInputReaderForSharding() throws IOException {
 		// final String inputFile =
@@ -105,17 +125,20 @@ public class ShardingStarter {
 	private static void waitForSamplingSinal() throws Exception,
 			KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(ShardingStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED.getZKJobNode()), signal);
+		ZKUtils.waitForSignal(
+				ShardingStarter.nodesManager
+						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED
+								.getZKJobNode()), signal);
 		signal.await();
 	}
 
 	private static void waitForDownloadSinal() throws Exception,
 			KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(ShardingStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED.getZKJobNode()),
-				signal);
+		ZKUtils.waitForSignal(
+				ShardingStarter.nodesManager
+						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED
+								.getZKJobNode()), signal);
 		signal.await();
 	}
 

@@ -1,9 +1,9 @@
 #!/bin/bash
+jobUuid=$1
+cat ../$jobUuid/serverConfigFile.properties|awk -F":" '{print $2}' > ../$jobUuid/node_ips_list.txt
+cat ../$jobUuid/master_ip_file > ../$jobUuid/data_publisher_node_ips.txt
 
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > ../$jobUuid/node_ips_list.txt
-cat ../tmp/master_ip_file > ../$jobUuid/data_publisher_node_ips.txt
-
-job_manager_ip=`cat ../tmp/master_ip_file`
+job_manager_ip=`cat ../$jobUuid/master_ip_file`
 for node in `cat ../$jobUuid/node_ips_list.txt`
 do
    echo "Copying file to $node"

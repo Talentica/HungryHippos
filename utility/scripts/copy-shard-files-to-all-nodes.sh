@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
-cat ../tmp/master_ip_file > data_publisher_node_ips.txt
+cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > ../$jobUuid/node_ips_list.txt
+cat ../tmp/master_ip_file > ../$jobUuid/data_publisher_node_ips.txt
 
 job_manager_ip=`cat ../tmp/master_ip_file`
-for node in `cat node_ips_list.txt`
+for node in `cat ../$jobUuid/node_ips_list.txt`
 do
    echo "Copying file to $node"
    scp ~/.ssh/id_rsa.pub root@$node:~/.ssh
@@ -15,7 +15,7 @@ do
    scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketCombinationToNodeNumbersMap root@$node:hungryhippos/node/
 done
 
-for data_publisher_node_ip in `cat data_publisher_node_ips.txt`
+for data_publisher_node_ip in `cat ../$jobUuid/data_publisher_node_ips.txt`
 do
 echo 'copying files on data publisher'
    scp -o "StrictHostKeyChecking no" /root/hungryhippos/sharding/bucketCombinationToNodeNumbersMap /root/hungryhippos/data-publisher/

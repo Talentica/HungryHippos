@@ -1,10 +1,10 @@
 #!/bin/bash
 jobUuid=$1
-cat ../$jobUuid/master_ip_file > data_publisher_node_ips.txt
+cat ../$jobUuid/master_ip_file > ../$jobUuid/data_publisher_node_ips.txt
 sh shut-down-all-nodes.sh $jobUuid
 sh start-zk-server.sh $jobUuid
 
-for node in `cat data_publisher_node_ips.txt`
+for node in `cat ../$jobUuid/data_publisher_node_ips.txt`
 do
     ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;sh copy-shard-files-to-all-nodes.sh"
    echo "Starting data publisher $node"

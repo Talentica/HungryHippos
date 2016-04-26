@@ -1,5 +1,5 @@
 #!/bin/bash
-cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > node_ips_list.txt
+cat ../tmp/serverConfigFile.properties|awk -F":" '{print $2}' > ../$jobUuid/node_ips_list.txt
 
 sh start-zk-server.sh
 echo "Starting HungryHippos node $1"

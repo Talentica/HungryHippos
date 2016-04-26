@@ -3,11 +3,11 @@ package com.talentica.hungryHippos.tester.api.job;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum STATUS {
+
 	NOT_STARTED("Not Started"), 
-	STARTED("Started"), 
 	IN_PROGRESS("In Progress"), 
 	COMPLETED("Completed"), 
-	ERROR("Error");
+	FAILED("Failed");
 	
 	private String name;
 	

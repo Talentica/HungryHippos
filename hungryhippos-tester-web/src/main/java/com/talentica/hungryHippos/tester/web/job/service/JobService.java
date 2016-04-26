@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.tester.web.job.service;
 
+import java.io.File;
 import java.util.List;
 
 import org.dozer.DozerBeanMapper;
@@ -52,6 +53,9 @@ public class JobService extends Service {
 
 	@Value("${job.submission.script.host.password}")
 	private String JOB_SUBMISSION_SCRIPT_HOST_PASSWORD;
+
+	@Value("${job.submission.script.execution.log.dir}")
+	private String JOB_SUBMISSION_SCRIPT_EXECUTION_LOG_DIRECTORY;
 
 	@Autowired(required = false)
 	private JobRepository jobRepository;
@@ -126,11 +130,15 @@ public class JobService extends Service {
 		SecureShellExecutor secureShellExecutor = new SecureShellExecutor(JOB_SUBMISSION_SCRIPT_HOST,
 				JOB_SUBMISSION_SCRIPT_HOST_USERNAME, JOB_SUBMISSION_SCRIPT_HOST_PRIVATE_KEY_FILE_PATH,
 				JOB_SUBMISSION_SCRIPT_HOST_PASSWORD);
-		List<String> scriptExecutionOutput = secureShellExecutor.execute(
-				JOB_SUBMISSION_SCRIPT_FILE_PATH + SPACE + jobInputEntity.getJobMatrixClass() + SPACE + savedJob.getUuid());
+		String uuid = savedJob.getUuid();
+		String scriptLogFile = JOB_SUBMISSION_SCRIPT_EXECUTION_LOG_DIRECTORY + File.separator + uuid + File.separator
+				+ "jobsubmission.script.out";
+		String command = JOB_SUBMISSION_SCRIPT_FILE_PATH + SPACE + jobInputEntity.getJobMatrixClass() + SPACE + uuid
+				+ SPACE + "> " + scriptLogFile + SPACE + "2>" + scriptLogFile + " & ";
+		LOGGER.info("Script being executed:{}", command);
+		List<String> scriptExecutionOutput = secureShellExecutor.execute(command);
 		LOGGER.info("Job submission script executed successfully.");
-		LOGGER.info("Script execution output for job:{} is {}",
-				new Object[] { savedJob.getUuid(), scriptExecutionOutput });
+		LOGGER.info("Script execution output for job:{} is {}", new Object[] { uuid, scriptExecutionOutput });
 	}
 
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)

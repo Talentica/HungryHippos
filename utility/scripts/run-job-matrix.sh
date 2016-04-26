@@ -1,7 +1,7 @@
 #!/bin/bash
-
-sh shut-down-all-nodes.sh
-sh clear-all-nodes-buffers.sh
-sh start-job-manager.sh $1
-sh start-all-nodes-job-execution.sh
+jobuuid=$1
+sh shut-down-all-nodes.sh $jobuuid
+sh clear-all-nodes-buffers.sh $jobuuid
+sh start-job-manager.sh $jobuuid
+sh start-all-nodes-job-execution.sh $jobuuid
 

@@ -46,30 +46,37 @@ public class CommonUtil {
 	public static final String DROPLET_IDS_FILE_NAME = "droplet_ids_file";
 
 	public static final String WEBSERVER_IP_FILE_NAME = "webserver_ip_file";
-	
-	public static  String MASTER_IP_FILE_NAME_ABSOLUTE_PATH;
 
-	public static  String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH;
+	public static final String JOB_UUID_FILE_NAME = "job_uuid_file";
 
-	public static  String DROPLET_IDS_FILE_PATH;
+	public static String MASTER_IP_FILE_NAME_ABSOLUTE_PATH;
 
-	public static  String WEBSERVER_IP_FILE_PATH;
+	public static String OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH;
 
-	public static void loadDefaultPath(String jobUUIdFolderName){
+	public static String DROPLET_IDS_FILE_PATH;
+
+	public static String WEBSERVER_IP_FILE_PATH;
+
+	public static String JOB_UUID_FILE_PATH;
+
+	public static void loadDefaultPath(String jobUUIdFolderName) {
 
 		if (OSValidator.isWindows()) {
-			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
+			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../" + jobUUIdFolderName)
+					.toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		} else if (OSValidator.isUnix()) {
-			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../"+jobUUIdFolderName).toAbsolutePath().toString()
+			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../" + jobUUIdFolderName)
+					.toAbsolutePath().toString()
 					+ PathUtil.FORWARD_SLASH;
 		}
-		LOGGER.info("tmp jobuuid directory path is {}", TEMP_JOBUUID_FOLDER_PATH);
+		LOGGER.info("tmp jobuuid directory path is {}",
+				TEMP_JOBUUID_FOLDER_PATH);
 		File file = new File(TEMP_JOBUUID_FOLDER_PATH);
 		if (!file.exists()) {
-		file.mkdir();
+			file.mkdir();
 		}
-		LOGGER.info("Created the directory name {}",file.getAbsolutePath());
+		LOGGER.info("Created the directory name {}", file.getAbsolutePath());
 		MASTER_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
 				+ MASTER_IP_FILE_NAME;
 		OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH = TEMP_JOBUUID_FOLDER_PATH
@@ -78,6 +85,8 @@ public class CommonUtil {
 				+ DROPLET_IDS_FILE_NAME;
 		WEBSERVER_IP_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
 				+ WEBSERVER_IP_FILE_NAME;
+		JOB_UUID_FILE_PATH = TEMP_JOBUUID_FOLDER_PATH
+				+ JOB_UUID_FILE_NAME;
 	}
 
 	private static NodesManager nodesManager;
@@ -154,7 +163,8 @@ public class CommonUtil {
 
 	public static String getZKIp() {
 		try {
-			LOGGER.info("Master ip file path {}",MASTER_IP_FILE_NAME_ABSOLUTE_PATH);
+			LOGGER.info("Master ip file path {}",
+					MASTER_IP_FILE_NAME_ABSOLUTE_PATH);
 			return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
 		} catch (IOException e) {
 			LOGGER.info("Unable to read the file zk ip file.");

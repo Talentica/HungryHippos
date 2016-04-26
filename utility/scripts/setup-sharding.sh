@@ -4,7 +4,7 @@ sharding_node_ip=`cat ../$jobuuid/master_ip_file`
 sh shut-down-sharding.sh $jobuuid
 sh cleanup-sharding.sh $jobuuid
 echo 'Copying new build'
-sh copy-file-to-sharding.sh ../lib/sharding*.jar
+sh copy-file-to-sharding.sh ../lib/sharding*.jar $jobuuid
 echo 'Copying common configuration file'
 echo 'Copying data publishers node configuration file'
 sh copy-file-to-sharding.sh ./data_publisher_nodes_config.txt $jobuuid

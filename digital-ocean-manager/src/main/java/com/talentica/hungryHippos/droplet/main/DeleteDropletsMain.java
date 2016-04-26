@@ -28,10 +28,10 @@ public class DeleteDropletsMain {
 	private static String jobUUId;
 	public static void main(String[] args) throws FileNotFoundException{
 		validateProgramArguments(args);
-		jobUUId = args[1];
+		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
-		Property.overrideConfigurationProperties(args[0]);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		//NodesManager nodesManager = Property.getNodesManagerIntances();
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
 		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
@@ -58,8 +58,8 @@ public class DeleteDropletsMain {
 	}
 	
 	private static void validateProgramArguments(String[] args) {
-		if (args.length < 2) {
-			LOGGER.info("please provide config property file as first argument and the jobuuid as second argument");
+		if (args.length < 1) {
+			LOGGER.info("please provide  the jobuuid as first argument");
 			System.exit(1);
 		}
 	}

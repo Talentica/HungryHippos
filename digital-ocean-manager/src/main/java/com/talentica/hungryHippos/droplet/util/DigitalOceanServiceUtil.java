@@ -320,6 +320,10 @@ public class DigitalOceanServiceUtil {
 		
 		String formatFlag = Property.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
+		/*List<String> jobuuid = new ArrayList<String>();
+		jobuuid.add(jobUUId[0]);
+		writeLineInFile(CommonUtil.JOB_UUID_FILE_PATH,jobuuid);
+		LOGGER.info("job uuid file is cleated in path {}",CommonUtil.JOB_UUID_FILE_PATH);*/
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,

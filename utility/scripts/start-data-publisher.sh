@@ -1,7 +1,7 @@
 #!/bin/bash
 jobUuid=$1
 cat ../$jobUuid/master_ip_file > data_publisher_node_ips.txt
-sh shut-down-all-nodes.sh 
+sh shut-down-all-nodes.sh $jobUuid
 sh start-zk-server.sh $jobUuid
 
 for node in `cat data_publisher_node_ips.txt`

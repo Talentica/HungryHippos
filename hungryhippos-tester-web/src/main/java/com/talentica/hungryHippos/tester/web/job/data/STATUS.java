@@ -3,7 +3,8 @@ package com.talentica.hungryHippos.tester.web.job.data;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum STATUS {
-	NOT_STARTED("In Progress"), 
+
+	NOT_STARTED("Not Started"), 
 	STARTED("Started"), 
 	IN_PROGRESS("In Progress"), 
 	COMPLETED("Completed"), 

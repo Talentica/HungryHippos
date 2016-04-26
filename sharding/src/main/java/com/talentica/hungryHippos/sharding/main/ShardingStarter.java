@@ -30,6 +30,8 @@ public class ShardingStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
+			String jobUUId = args[0];
+			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
 			callDownloadShellScript();

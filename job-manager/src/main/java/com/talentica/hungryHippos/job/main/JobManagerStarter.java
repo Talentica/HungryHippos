@@ -31,6 +31,8 @@ public class JobManagerStarter {
 		try {
 			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
+			String jobUUId = args[1];
+			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
 			waitForCompletion();

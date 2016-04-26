@@ -24,7 +24,6 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class DataReceiver {
 
@@ -77,6 +76,8 @@ public class DataReceiver {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
+			String jobUUId = args[0];
+			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			NodesManager nodesManager = Property.getNodesManagerIntances();
 			

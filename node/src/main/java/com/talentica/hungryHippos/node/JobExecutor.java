@@ -25,7 +25,6 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row
@@ -44,6 +43,8 @@ public class JobExecutor {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
+			String jobUUId = args[0];
+			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			nodesManager = Property.getNodesManagerIntances();
 			waitForSignal();

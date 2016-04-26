@@ -66,7 +66,8 @@ public class DigitalOceanServiceUtil {
 		Droplet droplet;
 		Image image = null;
 		Images images = null;
-		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");;
+		//String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
+		String dropletNamePattern = jobUUId[0];
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
 			populatePresetValues(dropletService, dropletEntity, image);

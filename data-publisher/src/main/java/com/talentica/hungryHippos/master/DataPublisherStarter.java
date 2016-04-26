@@ -3,6 +3,7 @@
  */
 package com.talentica.hungryHippos.master;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -24,13 +25,13 @@ public class DataPublisherStarter {
 	 * @param args
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
-
+	private static DataPublisherStarter dataPublisherStarter;
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
-			DataPublisherStarter dataPublisherStarter = new DataPublisherStarter();
+			dataPublisherStarter = new DataPublisherStarter();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
 			LOGGER.info("Initializing nodes manager.");
@@ -40,6 +41,17 @@ public class DataPublisherStarter {
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
+			String alertPathForDataPublisherFailure = dataPublisherStarter.nodesManager
+					.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
+							.getZKJobNode());
+					CountDownLatch signal = new CountDownLatch(1);
+					try {
+						dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure, signal);
+						signal.await();
+					} catch (IOException | InterruptedException e) {
+						LOGGER.info("Unable to create the sharding failure path");
+					}
+					
 		}
 	}
 

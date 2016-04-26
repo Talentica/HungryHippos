@@ -55,6 +55,17 @@ public class ShardingStarter {
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing sharding program.",
 					exception);
+			String alertPathForShardingFailure = ShardingStarter.nodesManager
+			.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED
+					.getZKJobNode());
+			CountDownLatch signal = new CountDownLatch(1);
+			try {
+				nodesManager.createPersistentNode(alertPathForShardingFailure, signal);
+				signal.await();
+			} catch (IOException | InterruptedException e) {
+				LOGGER.info("Unable to create the sharding failure path");
+			}
+			
 		}
 	}
 

@@ -39,8 +39,11 @@ public class JobService extends Service {
 
 	private static final String SPACE = " ";
 
-	@Value("${job.submission.script.path.jars.dir}")
-	private String JOB_SUBMISSION_SCRIPT_FILE_PATH;
+	@Value("${job.submission.script.execution.command}")
+	private String JOB_SUBMISSION_SCRIPT_EXECUTION_COMMAND;
+
+	@Value("${job.submission.script.dir}")
+	private String JOB_SUBMISSION_SCRIPT_DIRECTORY;
 
 	@Value("${job.submission.script.host}")
 	private String JOB_SUBMISSION_SCRIPT_HOST;
@@ -56,6 +59,12 @@ public class JobService extends Service {
 
 	@Value("${job.submission.script.execution.log.dir}")
 	private String JOB_SUBMISSION_SCRIPT_EXECUTION_LOG_DIRECTORY;
+
+	@Value("${job.submission.script.change.dir.command}")
+	private String CHANGE_DIRECTORY_COMMAND;
+
+	@Value("${job.submission.script.commands.separator}")
+	private String COMMANDS_SEPARATOR;
 
 	@Autowired(required = false)
 	private JobRepository jobRepository;
@@ -133,8 +142,10 @@ public class JobService extends Service {
 		String uuid = savedJob.getUuid();
 		String scriptLogFile = JOB_SUBMISSION_SCRIPT_EXECUTION_LOG_DIRECTORY + File.separator + uuid + File.separator
 				+ "jobsubmission.script.out";
-		String command = JOB_SUBMISSION_SCRIPT_FILE_PATH + SPACE + jobInputEntity.getJobMatrixClass() + SPACE + uuid
-				+ SPACE + "> " + scriptLogFile + SPACE + "2>" + scriptLogFile + " & ";
+		String command = CHANGE_DIRECTORY_COMMAND + SPACE + JOB_SUBMISSION_SCRIPT_DIRECTORY + COMMANDS_SEPARATOR
+				+ JOB_SUBMISSION_SCRIPT_EXECUTION_COMMAND + SPACE
+				+ jobInputEntity.getJobMatrixClass() + SPACE + uuid + SPACE + "> " + scriptLogFile + SPACE + "2> "
+				+ scriptLogFile + " & ";
 		LOGGER.info("Script being executed:{}", command);
 		List<String> scriptExecutionOutput = secureShellExecutor.execute(command);
 		LOGGER.info("Job submission script executed successfully.");

@@ -4,8 +4,8 @@ url_link=$1
 job_uuid=$2
 mysql_server_ip=$3
 
-path_master='/root/hungryhippos/tmp/'
-node_ip=`cat $pathmaster/master_ip_file|head -1`
+path_master='/root/hungryhippos/'$job_uuid
+node_ip=`cat $path_master/master_ip_file|head -1`
 
 in_progress() {
 mysql -umysql_admin -ppassword123 -h$mysql_server_ip << EOF
@@ -58,10 +58,11 @@ EOF
 
 in_progress
 
-curl $url_link -o input.txt -s
+curl $url_link -o /root/hungryhippos/input/input.txt -s
 if [ $? = 0 ]
 then
         completed_status
+	python /root/hungryhippos/scripts/python_scripts/input-download-complete.py $job_uuid
 else
         failed_status
 fi

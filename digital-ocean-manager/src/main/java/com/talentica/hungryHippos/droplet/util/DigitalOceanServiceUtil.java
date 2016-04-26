@@ -81,6 +81,7 @@ public class DigitalOceanServiceUtil {
 
 		case DELETE:
 			for (String dpltId : getDropletIdsFile(jobUUId[0])) {
+				if(dpltId == null) continue;
 				try {
 					dropletService.deleteDroplet(Integer.valueOf(dpltId));
 					LOGGER.info("Destroy of droplet id {} is initiated.",

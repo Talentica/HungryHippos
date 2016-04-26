@@ -331,7 +331,7 @@ public class DigitalOceanServiceUtil {
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
-					droplets);
+					droplets,jobUUId[0]);
 			LOGGER.info("Active droplets are {}", dropletFill.toString());
 			LOGGER.info("Generating server conf file");
 			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill,jobUUId[0]);
@@ -452,11 +452,12 @@ public class DigitalOceanServiceUtil {
 	 * @throws RequestUnsuccessfulException
 	 */
 	private static List<Droplet> getActiveDroplets(
-			DigitalOceanServiceImpl dropletService, Droplets droplets)
+			DigitalOceanServiceImpl dropletService, Droplets droplets,String jobuuid)
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
 		LOGGER.info("Start getting active droplets...");
-		String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
+		/*String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");*/
+		String dropletNamePattern = jobuuid;
 		LOGGER.info("Droplet name pattern {}",dropletNamePattern);
 		List<Droplet> dropletFill = new ArrayList<>();
 		for (Droplet retDroplet : droplets.getDroplets()) {

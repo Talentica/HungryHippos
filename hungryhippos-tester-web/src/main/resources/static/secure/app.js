@@ -1,6 +1,6 @@
 'use strict';
 
-var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner']);
+var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner','angularFileUpload']);
 
 app.factory("JobHistoryResource", function($resource) {
 	return $resource("/job/history/");
@@ -46,6 +46,22 @@ app.directive('fileModel', ['$parse', function ($parse) {
         }
     };
 }]);
+
+app.directive('fileSelect', function() {
+	  var template = '<input type="file" name="files"/>';
+	  return function( scope, elem, attrs ) {
+	    var selector = $( template );
+	    elem.append(selector);
+	    selector.bind('change', function( event ) {
+	      scope.$apply(function() {
+	        scope[ attrs.fileSelect ] = event.originalEvent.target.files;
+	      });
+	    });
+	    scope.$watch(attrs.fileSelect, function(file) {
+	      selector.val(file);
+	    });
+	  };
+	});
 
 app.config(function($routeProvider, $locationProvider) {
 	  $routeProvider

@@ -42,14 +42,14 @@ public class ShardingStarter {
 			LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
 			waitForSamplingSinal();
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
+			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
+			callProcessAfterShardingScript();
+			LOGGER.info("STARTED...");
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding(),
 					ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
 			callCopyScriptForMapFiles();
-			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
-			callProcessAfterShardingScript();
-			LOGGER.info("STARTED...");
 			long endTime = System.currentTimeMillis();
 			sendSignal(nodesManager);
 			LOGGER.info("It took {} seconds of time to do sharding.",
@@ -149,7 +149,7 @@ public class ShardingStarter {
 				pythonScriptPath + "processes-db-entries.py", jobuuid,
 				webserverIp };
 		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Sampling is initiated.");
+		LOGGER.info("DB entry is initiated.");
 	}
 
 	private static Reader getInputReaderForSharding() throws IOException {

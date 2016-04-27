@@ -46,13 +46,13 @@
 						<div class="row" ng-show="job.jobInput.dataSize">
 							<div class="bold col-md-3">Input Data File Size:</div>
 							<div class="col-md-6" ng-show="{{job.jobInput.dataSize<1024}}">
-								{{job.jobInput.dataSize}} KB
+								{{job.jobInput.dataSize | number:2}} KB
 							</div>
 							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
-								{{job.jobInput.dataSize/1024}} MB
+								{{job.jobInput.dataSize/1024 | number:2}} MB
 							</div>
 							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1048576}}">
-								{{job.jobInput.dataSize/1048576}} GB
+								{{job.jobInput.dataSize/1048576 | number:2}} GB
 							</div>
 						</div>
 						<div class="row" ng-show="job.jobOutput.dataSize">
@@ -60,13 +60,13 @@
 								Output File Size:
 							</div>
 							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize<1024}}">
-								{{job.jobOutput.dataSize}} KB
+								{{job.jobOutput.dataSize | number:2}} KB
 							</div>
 							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
-								{{job.jobOutput.dataSize/1024}} MB
+								{{job.jobOutput.dataSize/1024 | number:2}} MB
 							</div>
 							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1048576}}">
-								{{job.jobOutput.dataSize/1048576}} GB
+								{{job.jobOutput.dataSize/1048576 | number:2}} GB
 							</div>
 						</div>
 						
@@ -111,7 +111,7 @@
 								Output File Location:
 							</div>
 							<div class="col-md-6">
-								<a href="{{job.jobOutput.dataLocation}}">{{job.jobOutput.dataLocation}}</a>
+								<a href="{{job.jobOutput.dataLocation}}">Download</a>
 							</div>
 						</div>
 					

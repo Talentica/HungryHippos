@@ -13,15 +13,22 @@ mysql_server_ip=args[2]
 
 print "uuid:",uuid
 master_ip_file_path="/root/hungryhippos/"+uuid+"/master_ip_file"
+nginx_server_path="/root/hungryhippos/scripts/conf/nginx.txt"
 
 f=open(master_ip_file_path)
 
 for line in f:
     hostname=line.strip()
 
-#zk = KazooClient(hosts='127.0.0.1:2181')
 zk = KazooClient(hosts=hostname)
 zk.start()
+
+f1=open(nginx_server_path)
+
+for l in f1:
+    nginx_ip=line.strip()
+    break
+
 
 ##########################################	SHARDING	##########################################
 
@@ -43,7 +50,7 @@ def in_progress_sharding():
           and a.job_id=c.job_id
           and c.job_uuid= %s
           and b.name='SHARDING')
-          ,%s,"In-Progress",now())"""
+          ,%s,"IN_PROGRESS",now())"""
 
     cur.execute(sql, (uuid, ))
     db.commit()
@@ -100,7 +107,7 @@ def in_progress_data_publishing():
           and a.job_id=c.job_id
           and c.job_uuid= %s
           and b.name='DATA_PUBLISHING')
-          ,%s,"In-Progress",now())"""
+          ,%s,"IN_PROGRESS",now())"""
 
     cur.execute(sql, (uuid, ))
     db.commit()
@@ -149,7 +156,70 @@ def in_progress_job_execution():
     cur.execute(sql, (uuid, ))
     db.commit()
 
-##########################################
+##########################################	Update JOB table	##########################################
+
+def update_job_table():
+    cur = db.cursor()
+    sql= """
+    update job a
+    set status='COMPLETED',
+        date_time_finished=now()
+    where a.job_uuid= %s"""
+
+    cur.execute(sql, (uuid, ))
+    db.commit()
+
+##########################################	Zip OUTPUT_TRANSFER		##########################################
+
+def zip_output_in_progress():
+    cur = db.cursor()
+
+    sql1= """
+    insert into
+        process_instance_detail(process_instance_id,node_ip,status,execution_start_time)
+    values
+        ((Select process_instance_id from process_instance a, process b,job c
+          where a.process_id=b.process_id
+          and a.job_id=c.job_id
+          and c.job_uuid= %s
+          and b.name='OUTPUT_TRANSFER')
+        ,%s,"IN_PROGRESS",now())"""
+
+    cur.execute(sql1, (uuid,nginx_ip))
+    db.commit()
+
+
+def zip_output_completed_status():
+    cur = db.cursor()
+    sql_update= """
+    update process_instance_detail a , process_instance b
+    set a.status='COMPLETED',
+        a.execution_end_time=now()
+    where a.process_instance_id=b.process_instance_id
+    and a.node_ip= %s
+    and b.job_id=(select job_id from job where job_uuid= %s)
+    and b.process_id=(select process_id from process where name='OUTPUT_TRANSFER')"""
+
+    cur.execute(sql_update, (nginx_ip,uuid, ))
+    db.commit()
+
+def zip_output_failed_status():
+    cur = db.cursor()
+    sql_failed= """
+    update process_instance_detail a , process_instance b
+    set a.status='FAILED',
+        a.execution_end_time=now(),
+        a.error_message='Zipping of the output files has failed. Please check!!'
+    where a.process_instance_id=b.process_instance_id
+    and a.node_ip= %s
+    and b.job_id=(select job_id from job where job_uuid= %s)
+    and b.process_id=(select process_id from process where name='OUTPUT_TRANSFER')"""
+
+    cur.execute(sql_failed, (nginx_ip,uuid, ))
+    db.commit()
+
+
+########################################################################################################
 
 path_alert="/rootnode/alertsnode"
 
@@ -166,7 +236,7 @@ path_hosts="/rootnode/hostsnode"
 ## Watcher on Zookeeper  for above path
 child_hosts=set()
 
-@zk.ChildrenWatch(path)
+@zk.ChildrenWatch(path_hosts)
 def watch_hosts(c):
     for i in c:
         child_hosts.add(i)
@@ -228,11 +298,48 @@ while True:
 
 while True:
     if 'START_JOB_MATRIX' in child_hosts:
-        print "Job Execution started. Making entry in DB for In-Progress Status!!"
+        print "Job Execution started. Making entry in DB for IN_PROGRESS Status!!"
 	in_progress_job_execution()
         break
 
     else:
         time.sleep(5)
+        count=count+1
+        print "count:",count
+
+############## Update Job table with end_time now ############## 
+
+while True:
+    if 'END_JOB_MATRIX' in child_hosts:
+        print "Job Execution sucessfully ended on all nodes. Making entry in DB!!"
+	update_job_table()
+        break
+
+    else:
+        time.sleep(10)
+        count=count+1
+        print "count:",count
+
+
+############## Zipping all output files and sending to nginx server ############## 
+
+while True:
+    if 'ALL_OUTPUT_FILES_DOWNLOADED' in child_hosts:
+        print "Output files ready to be Zipped!!"
+	zip_output_in_progress()
+        cmd="sh /root/hungryhippos/scripts/bash_scripts/zip-output-files.sh"+" "+uuid+" "+mysql_server_ip
+        rc=os.system(cmd)
+        if (rc==0): 
+	    zip_output_completed_status()
+            zipped_znode=path_hosts+"/"+"OUTPUT_FILES_ZIPPED_AND_TRANSFERRED"
+            zk.create(zipped_znode)
+	    break
+	else:
+	    print "Transferring zipped output failed!!"
+    	    zip_output_failed_status()
+            break
+
+    else:
+        time.sleep(10)
         count=count+1
         print "count:",count

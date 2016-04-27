@@ -14,7 +14,7 @@ print "uuid:",job_uuid
 mysql_ip=path[3]
 
 ## Read Zookeeper's IP from the file
-master_ip_file_path="/root/hungryhippos/"+uuid+"/master_ip_file"
+master_ip_file_path="/root/hungryhippos/"+job_uuid+"/master_ip_file"
 
 f=open(master_ip_file_path)
 for line in f:
@@ -35,7 +35,7 @@ print "node_id:",node_id
 
 ## Read IP for the node_id from serverConfigFile.properties file
 pattern='server.'+str(node_id)
-serverConfig_path="/root/hungryhippos/"+uuid+"/serverConfigFile.properties"
+serverConfig_path="/root/hungryhippos/"+job_uuid+"/serverConfigFile.properties"
 
 with open(serverConfig_path) as f1:
     for line in f1:
@@ -53,7 +53,7 @@ def watch1(c):
     for i in c:
         child.add(i)
 
-## Function to insert "In-Progress" status for JOB_EXECUTION into DB
+## Function to insert "IN_PROGRESS" status for JOB_EXECUTION into DB
 def in_progress_job_execution():
     cur = db.cursor()
     sql1= """
@@ -65,7 +65,7 @@ def in_progress_job_execution():
           and a.job_id=c.job_id
           and c.job_uuid= %s
           and b.name='JOB_EXECUTION')
-          ,%s,%s,"In-Progress",now())"""
+          ,%s,%s,"IN_PROGRESS",now())"""
 
     cur.execute(sql1, (job_uuid,node_id,node_ip))
     db.commit()
@@ -102,7 +102,7 @@ def failed_status_job_execution():
     db.commit()
 
 
-## Function to insert "In-Progress" status for OUTPUT_TRANSFER into DB
+## Function to insert "IN_PROGRESS" status for OUTPUT_TRANSFER into DB
 def in_progress():
     cur = db.cursor()
 
@@ -115,7 +115,7 @@ def in_progress():
           and a.job_id=c.job_id
           and c.job_uuid= %s
           and b.name='OUTPUT_TRANSFER')
-        ,%s,%s,"In-Progress",now())"""
+        ,%s,%s,"IN_PROGRESS",now())"""
 
     cur.execute(sql1, (job_uuid,node_id,node_ip))
     db.commit()

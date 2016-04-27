@@ -91,7 +91,7 @@
 		<label for="jobJarFile">
 			Upload Job JAR File
 		</label>
-		<input file-model="jobJarFile" accept="application/java-archive" required="required" type="file" id="jobJarFile">
+		<input accept="application/java-archive" type="file" nv-file-select uploader="jobJarFile" />
 		<p class="help-block">
 			Please upload a valid job jar file containing below specified job matrix implementation and compiled with Java 1.8 or below. Also JAR should be a runnable JAR with all required dependencies included. 
 		</p>

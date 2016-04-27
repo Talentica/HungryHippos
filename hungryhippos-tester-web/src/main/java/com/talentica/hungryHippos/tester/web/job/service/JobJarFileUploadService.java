@@ -30,6 +30,9 @@ public class JobJarFileUploadService {
 	@Value("${jobmatrix.jars.dir}")
 	private String JOB_MATRIX_JAR_DIRECTORY;
 
+	@Value("${job.submission.jar.file.name}")
+	private String JOBS_JAR_FILE_NAME;
+
 	private static final long HUNDRED_MBS = 1024 * 1024 * 100;
 
 	@RequestMapping(method = RequestMethod.POST, value = "jar/upload")
@@ -69,7 +72,7 @@ public class JobJarFileUploadService {
 			String jobUuid = UUID.randomUUID().toString().toUpperCase();
 			String directoryPath = JOB_MATRIX_JAR_DIRECTORY + File.separator + jobUuid;
 			new File(directoryPath).mkdirs();
-			String uploadedJarFilePath = directoryPath + File.separator + file.getOriginalFilename();
+			String uploadedJarFilePath = directoryPath + File.separator + JOBS_JAR_FILE_NAME;
 			File jobJarFile = new File(uploadedJarFilePath);
 			BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(jobJarFile));
 			FileCopyUtils.copy(file.getInputStream(), stream);

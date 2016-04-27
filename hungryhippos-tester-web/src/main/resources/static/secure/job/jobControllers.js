@@ -1,10 +1,11 @@
 'use strict';
 
-app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
+app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUploader) {
 	$scope.jobDetail={};
 	$scope.error={};
 	$scope.numberOfColumnsInDataFile=9;
 	$scope.notification={};
+	$scope.jobJarFile=new FileUploader();
 
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
@@ -69,8 +70,10 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		        				function(response){
 		        					if(response && response.error && response.error.message){
 		        						$scope.error.message=response.error.message;
+		        						usSpinnerService.stop('spinner-1');
 		        					}else if(response.error){
 		        						$scope.error.message="There was some error occurred on server side. Please try again."
+		        						usSpinnerService.stop('spinner-1');
 		        					}else{
 		        						var jobuuid= $scope.jobDetail.uuid;
 		        						$scope.reset();
@@ -81,6 +84,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		        		);
 		        	}else{
 		        		$scope.error.message=(response.error && response.error.message)||"File upload failed. Please logout and login again and try after some time.";
+		        		usSpinnerService.stop('spinner-1');
 		        	}
 		        }, 
 		        function(response){
@@ -92,8 +96,8 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	
 	 $scope.uploadJobJarFile = function(sucessCallback,errorCallback){
 	        var file = $scope.jobJarFile;
-	        if(file){
-	        JobService.uploadJobJarFile(file,$scope.jobDetail.jobInput.jobMatrixClass,sucessCallback,errorCallback);
+	        if(file && file.queue && file.queue.length>0 && file.queue[file.queue.length-1] && file.queue[file.queue.length-1]._file){
+	        JobService.uploadJobJarFile(file.queue[file.queue.length-1]._file,$scope.jobDetail.jobInput.jobMatrixClass,sucessCallback,errorCallback);
 	        }else{
 	        	$scope.error.message="Please select a job jar file.";
 	        	usSpinnerService.stop('spinner-1');
@@ -107,7 +111,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		$scope.jobDetail={};
 //		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
 		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-		$scope.jobJarFile=undefined;
+		$scope.jobJarFile.clearQueue();
 		usSpinnerService.stop('spinner-1');
 		$("#jobJarFile").value=null;
 	}

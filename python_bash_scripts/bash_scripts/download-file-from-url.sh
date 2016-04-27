@@ -11,6 +11,10 @@ in_progress() {
 mysql -umysql_admin -ppassword123 -h$mysql_server_ip << EOF
 use hungryhippos_tester;
 
+update job a 
+set status="IN_PROGRESS"
+where a.job_uuid=('$job_uuid');
+
 insert into process_instance(process_id,job_id)
 values
 ((select process_id from process where name='FILE_DOWNLOAD'),
@@ -23,7 +27,7 @@ values
           and a.job_id=c.job_id
           and c.job_uuid= ('$job_uuid')
           and b.name='FILE_DOWNLOAD')
-        ,('$node_ip'),"In-Progress",now())
+        ,('$node_ip'),"IN_PROGRESS",now())
 
 EOF
 }

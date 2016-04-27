@@ -92,6 +92,12 @@ db = MySQLdb.connect(host=mysql_server_ip,user="mysql_admin",passwd="password123
 ## Function to insert "In-Progress" status into DB
 def in_progress():
     cur = db.cursor()
+
+    sql_begin="""
+    update job a
+    set date_time_submitted=now()
+    where a.job_uuid= %s"""
+
     sql= """
     insert into
         process_instance(process_id,job_id)
@@ -108,8 +114,10 @@ def in_progress():
           and a.job_id=c.job_id
           and c.job_uuid= %s
           and b.name='SAMPLING')
-        ,%s,"In-Progress",now())"""
+        ,%s,"IN_PROGRESS",now())"""
 
+    cur.execute(sql_begin, (job_uuid, ))
+    db.commit()
     cur.execute(sql, (job_uuid, ))
     db.commit()
     cur.execute(sql1, (job_uuid,hostname))

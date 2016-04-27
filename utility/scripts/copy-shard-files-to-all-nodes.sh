@@ -7,6 +7,7 @@ job_manager_ip=`cat ../$jobUuid/master_ip_file`
 for node in `cat ../$jobUuid/node_ips_list.txt`
 do
    echo "Copying file to $node"
+   ssh-keygen -f "/root/.ssh/known_hosts" -R $node
    scp ~/.ssh/id_rsa.pub root@$node:~/.ssh
    scp ~/.ssh/id_rsa root@$node:~/.ssh
    ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos;mkdir node"

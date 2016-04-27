@@ -66,7 +66,6 @@ public class DigitalOceanServiceUtil {
 		Droplet droplet;
 		Image image = null;
 		Images images = null;
-		//String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");
 		String dropletNamePattern = jobUUId[0];
 		switch (dropletEntity.getRequest()) {
 		case CREATE:
@@ -324,10 +323,6 @@ public class DigitalOceanServiceUtil {
 		
 		String formatFlag = Property.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
-		/*List<String> jobuuid = new ArrayList<String>();
-		jobuuid.add(jobUUId[0]);
-		writeLineInFile(CommonUtil.JOB_UUID_FILE_PATH,jobuuid);
-		LOGGER.info("job uuid file is cleated in path {}",CommonUtil.JOB_UUID_FILE_PATH);*/
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
@@ -432,17 +427,6 @@ public class DigitalOceanServiceUtil {
 		LOGGER.info("Shell command is executed");
 	}
 	
-	/*private static void startKazooServer(){
-		String uuidForTesting = "NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5A"; //need to remove
-		LOGGER.info("START THE KAZOO TO MONITOR THE NODES FOR FINISH");
-		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-kazoo-server.sh",uuidForTesting};
-		CommonUtil.executeScriptCommand("/usr/bin/python","/root/hungryhippos/scripts/python_scripts/"+"start-kazoo-server.py"+" "+CommonUtil.getJobUUIdInBase64());
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("KAZOO SERVER IS STARTED");
-	}*/
-	
-
 	/**
 	 * @param dropletService
 	 * @param droplets
@@ -456,7 +440,6 @@ public class DigitalOceanServiceUtil {
 			throws InterruptedException, DigitalOceanException,
 			RequestUnsuccessfulException {
 		LOGGER.info("Start getting active droplets...");
-		/*String dropletNamePattern = Property.getProperties().getProperty("common.droplet.name.pattern");*/
 		String dropletNamePattern = jobuuid;
 		LOGGER.info("Droplet name pattern {}",dropletNamePattern);
 		List<Droplet> dropletFill = new ArrayList<>();

@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.droplet.main;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
@@ -11,6 +12,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -31,10 +33,15 @@ public class DeleteDropletsMain {
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
-		//NodesManager nodesManager = Property.getNodesManagerIntances();
+		NodesManager nodesManager = Property.getNodesManagerIntances();
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
 		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
+		LOGGER.info("SEND SIGNAL TO OUTPUT SERVER THAT ALL FILES ARE DOWNLOAED");
+		sendSignalForAllOutputFilesDownloaded(nodesManager);
+		LOGGER.info("SIGNAL SENT");
+		LOGGER.info("WAITING FOR THE SIGNAL OF TRANSFER AND ZIPPED FROM OUTPUT SERVER");
+		waitForSinalOfOutputFileZippedAndTransferred(nodesManager);
 		LOGGER.info("DESTROYING DROPLETS");
 		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
 		String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh",args[0]};
@@ -83,4 +90,34 @@ public class DeleteDropletsMain {
 		return true;
 	}
 
+	private static void sendSignalForAllOutputFilesDownloaded(NodesManager nodesManager){
+		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			nodesManager.createPersistentNode(buildPath, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the path on zk node {}",buildPath);
+		}
+	}
+	
+	/**
+	 * Await for the signal of the sharding. Once sharding is completed, it start execution for the data publishing.
+	 * @param dataPublisherStarter
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	private static void waitForSinalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode()), signal);
+			signal.await();
+		} catch (KeeperException | InterruptedException e) {
+			LOGGER.info("Unable to wait for the signal of output zip and transfer signal");
+		}
+		
+	}
+	
+	
 }

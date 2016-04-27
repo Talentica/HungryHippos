@@ -21,7 +21,6 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
-import com.talentica.hungryHippos.utility.ZKNodeName;
 
 /**
  * Created by debasishc on 14/8/15.
@@ -72,33 +71,12 @@ public class Sharding {
 				LOGGER.debug("bucketCombinationToNodeNumbersMap: "
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
-			try {
-				String[] strArr = new String[] {"/bin/sh","/root/hungryhippos/sharding/"+"copy-shard-files-to-all-nodes.sh"};
-				CommonUtil.executeScriptCommand(strArr);
-				//nodesManager = CommonUtil.connectZK();
-				sendSignal(nodesManager);
-				LOGGER.info("Sharding completion notification created on zk node");
-			} catch (Exception e) {
-				LOGGER.info("Unable to connect the zk node due to {}",e);
-			}
+			
 		} catch (IOException | NodeOverflowException e) {
 			LOGGER.error("Error occurred during sharding process.", e);
 		}
 	}
 
-	/**
-	 * Send signal to data publisher node that sharding is completed.
-	 * @param nodesManager
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private static void sendSignal(NodesManager nodesManager)
-			throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
-		CountDownLatch signal = new CountDownLatch(1);
-		nodesManager.createPersistentNode(shardingNodeName, signal);
-		signal.await();
-	}
 	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
 		LOGGER.info("Calculating buckets to node numbers map started");

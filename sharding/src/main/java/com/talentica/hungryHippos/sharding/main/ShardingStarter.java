@@ -46,10 +46,12 @@ public class ShardingStarter {
 			Sharding.doSharding(getInputReaderForSharding(),
 					ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
+			callCopyScriptForMapFiles();
 			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
 			callProcessAfterShardingScript();
 			LOGGER.info("STARTED...");
 			long endTime = System.currentTimeMillis();
+			sendSignal(nodesManager);
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
@@ -68,7 +70,29 @@ public class ShardingStarter {
 			
 		}
 	}
+	
+	public static void callCopyScriptForMapFiles() {
+			LOGGER.info("Calling script file to copy map file across all nodes");
+		String jobuuid = Property.getProperties().getProperty("job.uuid");
+		String[] strArr = new String[] { "/bin/sh", "copy-shard-files-to-all-nodes.sh", jobuuid };
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Done.");
+		
+	}
 
+	/**
+	 * Send signal to data publisher node that sharding is completed.
+	 * @param nodesManager
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static void sendSignal(NodesManager nodesManager)
+			throws IOException, InterruptedException {
+		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		nodesManager.createPersistentNode(shardingNodeName, signal);
+		signal.await();
+	}
 	/**
 	 * 
 	 */

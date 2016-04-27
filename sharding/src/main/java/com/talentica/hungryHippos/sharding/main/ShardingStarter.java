@@ -46,6 +46,7 @@ public class ShardingStarter {
 			Sharding.doSharding(getInputReaderForSharding(),
 					ShardingStarter.nodesManager);
 			LOGGER.info("SHARDING DONE!!");
+			callCopyScriptForMapFiles();
 			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
 			callProcessAfterShardingScript();
 			LOGGER.info("STARTED...");
@@ -67,6 +68,14 @@ public class ShardingStarter {
 			}
 			
 		}
+	}
+	
+	public static void callCopyScriptForMapFiles() {
+		LOGGER.info("Calling script file to copy map file across all nodes");
+		String jobuuid = Property.getProperties().getProperty("job.uuid");
+		String[] strArr = new String[] { "/bin/sh", "copy-shard-files-to-all-nodes.sh", jobuuid };
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Done.");
 	}
 
 	/**

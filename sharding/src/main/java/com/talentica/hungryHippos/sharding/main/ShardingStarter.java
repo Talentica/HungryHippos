@@ -42,9 +42,6 @@ public class ShardingStarter {
 			LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
 			waitForSamplingSinal();
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
-			LOGGER.info("START PROCESS DB SCRIPT BEFORE SHARDING..");
-			callProcessAfterShardingScript();
-			LOGGER.info("STARTED...");
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding(),
 					ShardingStarter.nodesManager);
@@ -52,8 +49,11 @@ public class ShardingStarter {
 			callCopyScriptForMapFiles();
 			long endTime = System.currentTimeMillis();
 			sendSignal(nodesManager);
+			LOGGER.info("STARTED...");
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
+			LOGGER.info("START PROCESS DB SCRIPT BEFORE SHARDING..");
+			callProcessAfterShardingScript();
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing sharding program.",
 					exception);

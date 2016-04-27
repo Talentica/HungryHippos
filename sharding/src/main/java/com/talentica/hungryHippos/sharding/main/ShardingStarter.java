@@ -42,7 +42,7 @@ public class ShardingStarter {
 			LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
 			waitForSamplingSinal();
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
-			LOGGER.info("START PROCESS AFTER SHARDING IS DONE..");
+			LOGGER.info("START PROCESS DB SCRIPT BEFORE SHARDING..");
 			callProcessAfterShardingScript();
 			LOGGER.info("STARTED...");
 			LOGGER.info("SHARDING STARTED");
@@ -139,7 +139,7 @@ public class ShardingStarter {
 		String webserverIp = Property.getProperties().getProperty(
 				"common.webserver.ip");
 		LOGGER.info(
-				"Calling process after sharding python script and uuid {} webserver ip {}",
+				"Calling process db python script and uuid {} webserver ip {}",
 				jobuuid, webserverIp);
 		String pythonScriptPath = Paths
 				.get("/root/hungryhippos/scripts/python_scripts")
@@ -147,7 +147,7 @@ public class ShardingStarter {
 				+ PathUtil.FORWARD_SLASH;
 		String[] strArr = new String[] { "/usr/bin/python",
 				pythonScriptPath + "processes-db-entries.py", jobuuid,
-				webserverIp };
+				webserverIp , "&"};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("DB entry is initiated.");
 	}

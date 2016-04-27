@@ -109,9 +109,10 @@ public class DeleteDropletsMain {
 	 * @throws InterruptedException
 	 */
 	private static void waitForSinalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
+		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
-			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode()), signal);
+			ZKUtils.waitForSignal(buildPath, signal);
 			signal.await();
 		} catch (KeeperException | InterruptedException e) {
 			LOGGER.info("Unable to wait for the signal of output zip and transfer signal");

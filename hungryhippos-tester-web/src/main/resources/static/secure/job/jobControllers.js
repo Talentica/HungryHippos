@@ -80,7 +80,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		        				}
 		        		);
 		        	}else{
-		        		$scope.error.message=(response.error.message)||"File upload failed.";
+		        		$scope.error.message=(response.error && response.error.message)||"File upload failed. Please logout and login again and try after some time.";
 		        	}
 		        }, 
 		        function(response){
@@ -92,7 +92,12 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 	
 	 $scope.uploadJobJarFile = function(sucessCallback,errorCallback){
 	        var file = $scope.jobJarFile;
+	        if(file){
 	        JobService.uploadJobJarFile(file,$scope.jobDetail.jobInput.jobMatrixClass,sucessCallback,errorCallback);
+	        }else{
+	        	$scope.error.message="Please select a job jar file.";
+	        	usSpinnerService.stop('spinner-1');
+	        }
 	};
 	
 	$scope.reset=function(){
@@ -102,8 +107,9 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService) {
 		$scope.jobDetail={};
 //		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
 		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-		$scope.jobJarFile=null;
+		$scope.jobJarFile=undefined;
 		usSpinnerService.stop('spinner-1');
+		$("#jobJarFile").value=null;
 	}
 	
 });

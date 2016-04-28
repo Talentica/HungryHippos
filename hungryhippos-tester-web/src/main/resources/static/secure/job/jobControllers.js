@@ -111,7 +111,6 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUpl
 		$scope.jobDetail={};
 //		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
 		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-		$scope.jobJarFile.clearQueue();
 		usSpinnerService.stop('spinner-1');
 		$("#jobJarFile").value=null;
 	}

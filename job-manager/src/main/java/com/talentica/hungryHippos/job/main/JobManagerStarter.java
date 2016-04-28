@@ -41,11 +41,23 @@ public class JobManagerStarter {
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
 			jobManager.start(args[1]);
 			long endTime = System.currentTimeMillis();
+			callCopyScriptToRunKazoo();
 			LOGGER.info("It took {} seconds of time to for running all jobs.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing master starter program.", exception);
 		}
 	}
+	
+	public static void callCopyScriptToRunKazoo() {
+		LOGGER.info("Calling script file to start kazoo server");
+	String jobuuid = Property.getProperties().getProperty("job.uuid");
+	String webserverIp = Property.getProperties().getProperty(
+			"common.webserver.ip");
+	String[] strArr = new String[] { "/bin/sh", "start-kazoo-server.sh", jobuuid, webserverIp };
+	CommonUtil.executeScriptCommand(strArr);
+	LOGGER.info("Done.");
+	
+}
 
 	/**
 	 * Await for the data publishing to be completed. Once completed, it start the execution of the job manager. 

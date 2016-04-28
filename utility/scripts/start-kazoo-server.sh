@@ -1,7 +1,12 @@
 #!/bin/bash
 jobUuid=$1
 output_server_ip=`cat ../$jobUuid/output_ip_file`
-webserver_ip=`cat ../$jobUuid/webserver_ip_file`
+
+#webserver_ip=`cat ../$jobUuid/webserver_ip_file`
+
+webserver_ip=$2
+
+ssh-keygen -R 127.0.0.1
 
 for node in `echo $output_server_ip`
 do

@@ -6,3 +6,4 @@ echo 'Copying new build'
 sh copy-file-to-job-manager.sh ../lib/job-manager.jar $jobUuid
 echo 'Copying test jobs jar'
 sh copy-file-to-job-manager.sh ../lib/$jobUuid/test-jobs.jar $jobUuid
+sh copy-file-to-job-manager.sh start-kazoo-server.sh $jobUuid

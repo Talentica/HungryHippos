@@ -2,6 +2,8 @@ package com.talentica.hungryHippos.tester.web.job.service;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.dozer.DozerBeanMapper;
 import org.dozer.Mapper;
@@ -66,8 +68,17 @@ public class JobService extends Service {
 	@Value("${job.submission.script.commands.separator}")
 	private String COMMANDS_SEPARATOR;
 
+	@Value("${spring.datasource.username}")
+	private String DB_CONN_USERNAME;
+
+	@Value("${spring.datasource.password}")
+	private String DB_CONN_PASSWORD;
+
 	@Autowired(required = false)
 	private JobRepository jobRepository;
+
+	@Value("${spring.datasource.url}")
+	private String DB_CONN_URL;
 
 	@Autowired(required = false)
 	private JobInputRepository jobInputRepository;
@@ -142,14 +153,27 @@ public class JobService extends Service {
 		String uuid = savedJob.getUuid();
 		String scriptLogFile = JOB_SUBMISSION_SCRIPT_EXECUTION_LOG_DIRECTORY + File.separator + uuid + File.separator
 				+ "jobsubmission.script.out";
-		String command = CHANGE_DIRECTORY_COMMAND + SPACE + JOB_SUBMISSION_SCRIPT_DIRECTORY + COMMANDS_SEPARATOR
-				+ JOB_SUBMISSION_SCRIPT_EXECUTION_COMMAND + SPACE
-				+ jobInputEntity.getJobMatrixClass() + SPACE + uuid + SPACE + "> " + scriptLogFile + SPACE + "2> "
-				+ scriptLogFile + " & ";
+		String changeDirCommand = CHANGE_DIRECTORY_COMMAND + SPACE + JOB_SUBMISSION_SCRIPT_DIRECTORY;
+		String dbConnectionParameters = getDatabaseHost(DB_CONN_URL) + SPACE + DB_CONN_USERNAME + SPACE
+				+ DB_CONN_PASSWORD;
+		String scriptExecutionCommand = JOB_SUBMISSION_SCRIPT_EXECUTION_COMMAND + SPACE + uuid + SPACE
+				+ jobInputEntity.getJobMatrixClass() + SPACE + dbConnectionParameters + "> " + scriptLogFile + SPACE
+				+ "2> " + scriptLogFile + " & ";
+		String command = changeDirCommand + COMMANDS_SEPARATOR + scriptExecutionCommand;
 		LOGGER.info("Script being executed:{}", command);
 		List<String> scriptExecutionOutput = secureShellExecutor.execute(command);
 		LOGGER.info("Job submission script executed successfully.");
 		LOGGER.info("Script execution output for job:{} is {}", new Object[] { uuid, scriptExecutionOutput });
+	}
+
+	private static String getDatabaseHost(String dbConnectionUrl) {
+		String dbHost = null;
+		Pattern dbConnectionUrlPattern = Pattern.compile("(.*)(//)(.*)(:)(.*)");
+		Matcher matcher = dbConnectionUrlPattern.matcher(dbConnectionUrl);
+		if (matcher.find()) {
+			dbHost = matcher.group(3);
+		}
+		return dbHost;
 	}
 
 	@RequestMapping(value = "detail/{jobUuid}", method = RequestMethod.GET)

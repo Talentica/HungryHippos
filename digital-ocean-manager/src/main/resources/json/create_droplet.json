@@ -13,8 +13,8 @@
             "name":"hh-deployable-demo-image"
         },
         "size": "2gb",
-        "enableBackup": true,
-        "enableIpv6": true,
-        "enablePrivateNetworking": true
+        "enableBackup": false,
+        "enableIpv6": false,
+        "enablePrivateNetworking": false
     }
 }

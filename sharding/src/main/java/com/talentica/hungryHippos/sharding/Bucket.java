@@ -22,6 +22,10 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 		this.size = size;
 	}
 
+	public Bucket(int id) {
+		this.id = id;
+	}
+
 	public void add(T t) {
 		numberOfObjects++;
 	}

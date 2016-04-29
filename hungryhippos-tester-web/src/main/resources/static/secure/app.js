@@ -76,4 +76,7 @@ app.config(function($routeProvider, $locationProvider) {
 	  .when('/about', {
 		    templateUrl: 'about.html',
 		  })
+	  .when('/faq', {
+		    templateUrl: 'faq.html',
+		  })
 });

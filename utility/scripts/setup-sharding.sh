@@ -12,5 +12,6 @@ echo 'Copying nodes'' password file'
 sh copy-file-to-sharding.sh ./node_pwd_file.txt $jobuuid
 echo 'Copying shard file copy utility'
 sh copy-file-to-sharding.sh ./copy-shard-files-to-all-nodes.sh $jobuuid
+sh copy-file-to-sharding.sh start-kazoo-server.sh $jobUuid
 scp ~/.ssh/id_rsa.pub root@$sharding_node_ip:~/.ssh
 scp ~/.ssh/id_rsa root@$sharding_node_ip:~/.ssh

@@ -23,7 +23,8 @@ public class JobManagerStarter {
 	/**
 	 * @param args
 	 */
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerStarter.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(JobManagerStarter.class);
 	private static NodesManager nodesManager;
 
 	public static void main(String[] args) {
@@ -37,55 +38,56 @@ public class JobManagerStarter {
 			waitForCompletion();
 			JobManager jobManager = new JobManager();
 			JobManager.nodesManager = nodesManager;
-			jobManager.addJobList(((JobMatrix) getJobMatrix(args)).getListOfJobsToExecute());
+			jobManager.addJobList(((JobMatrix) getJobMatrix(args))
+					.getListOfJobsToExecute());
 			jobManager.start(args[1]);
 			long endTime = System.currentTimeMillis();
-			callCopyScriptToRunKazoo();
-			LOGGER.info("It took {} seconds of time to for running all jobs.", ((endTime - startTime) / 1000));
+			LOGGER.info("It took {} seconds of time to for running all jobs.",
+					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error("Error occured while executing master starter program.", exception);
+			LOGGER.error(
+					"Error occured while executing master starter program.",
+					exception);
 		}
 	}
-	
-	public static void callCopyScriptToRunKazoo() {
-		LOGGER.info("Calling script file to start kazoo server");
-	String jobuuid = Property.getProperties().getProperty("job.uuid");
-	String webserverIp = Property.getProperties().getProperty(
-			"common.webserver.ip");
-	String[] strArr = new String[] { "/bin/sh", "start-kazoo-server.sh", jobuuid, webserverIp };
-	CommonUtil.executeScriptCommand(strArr);
-	LOGGER.info("Done.");
-	
-}
+
 
 	/**
-	 * Await for the data publishing to be completed. Once completed, it start the execution of the job manager. 
+	 * Await for the data publishing to be completed. Once completed, it start
+	 * the execution of the job manager.
+	 * 
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
 	private static void waitForCompletion() throws KeeperException,
 			InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED.getZKJobNode()), signal);
+		ZKUtils.waitForSignal(
+				nodesManager
+						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED
+								.getZKJobNode()), signal);
 		signal.await();
 	}
 
 	private static void validateProgramArguments(String[] args)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
 		if (args.length < 2) {
-			System.out.println(
-					"Please provide the required jobn matrix class name argument to be able to run the program and second argument as jobuuid.");
+			System.out
+					.println("Please provide the required jobn matrix class name argument to be able to run the program and second argument as jobuuid.");
 			System.exit(1);
 		}
 		Object jobMatrix = getJobMatrix(args);
 		if (!(jobMatrix instanceof JobMatrix)) {
-			System.out.println("First argument should be a valid job matrix class name in the class-path.");
+			System.out
+					.println("First argument should be a valid job matrix class name in the class-path.");
 			System.exit(1);
 		}
 	}
 
 	private static Object getJobMatrix(String[] args)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
 		Object jobMatrix = Class.forName(args[0]).newInstance();
 		return jobMatrix;
 	}

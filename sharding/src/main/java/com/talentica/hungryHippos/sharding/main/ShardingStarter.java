@@ -53,7 +53,6 @@ public class ShardingStarter {
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 			LOGGER.info("START PROCESS DB SCRIPT BEFORE SHARDING..");
-			callProcessAfterShardingScript();
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing sharding program.",
 					exception);
@@ -134,27 +133,7 @@ public class ShardingStarter {
 		LOGGER.info("Sampling is initiated.");
 	}
 
-	private static void callProcessAfterShardingScript() {
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String webserverIp = Property.getProperties().getProperty(
-				"common.webserver.ip");
-		LOGGER.info(
-				"Calling process db python script and uuid {} webserver ip {}",
-				jobuuid, webserverIp);
-		String pythonScriptPath = Paths
-				.get("/root/hungryhippos/scripts/python_scripts")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/usr/bin/python",
-				pythonScriptPath + "processes-db-entries.py", jobuuid,
-				webserverIp , "&"};
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("DB entry is initiated.");
-	}
-
 	private static Reader getInputReaderForSharding() throws IOException {
-		// final String inputFile =
-		// Property.getPropertyValue("input.file").toString();
 		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				sampleInputFile);
 	}

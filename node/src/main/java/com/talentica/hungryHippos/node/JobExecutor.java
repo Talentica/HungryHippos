@@ -67,10 +67,28 @@ public class JobExecutor {
 			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
+			try {
+				sendFailureSignal(nodesManager);
+			} catch (IOException | InterruptedException e) {
+				LOGGER.info("Unable to create the node for signal FINISH_JOB_FAILED due to {}",e);
+			}
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}
 	}
 
+	
+	/**
+	 * @param nodesManager
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static void sendFailureSignal(NodesManager nodesManager)
+			throws IOException, InterruptedException {
+		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		nodesManager.createPersistentNode(shardingNodeName, signal);
+		signal.await();
+	}
 	/**
 	 * Await for the signal of the job manager. Once job is submitted, it start execution on respective servers.
 	 * @throws KeeperException
@@ -111,10 +129,6 @@ public class JobExecutor {
 				+ PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
-		/*String jobMatrixId = leafs.iterator().next().getName();
-		leafs.clear();
-		String buildPathWithJobMatrixId = buildPath + PathUtil.FORWARD_SLASH + jobMatrixId;
-		leafs = ZKUtils.searchTree(buildPathWithJobMatrixId, null, null);*/
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 		for (LeafBean leaf : leafs) {

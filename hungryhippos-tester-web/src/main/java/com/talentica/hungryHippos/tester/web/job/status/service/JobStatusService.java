@@ -46,6 +46,9 @@ public class JobStatusService extends Service {
 		}
 		Integer jobId = job.getJobId();
 		List<ProcessInstance> processInstances = processInstanceRepository.findByJobId(jobId);
+		if (processInstances != null) {
+			processInstances.forEach(processInstance -> processInstance.setExecutionDurations());
+		}
 		jobStatusServiceResponse.setJobDetail(job);
 		jobStatusServiceResponse.setProcessInstances(processInstances);
 		return jobStatusServiceResponse;

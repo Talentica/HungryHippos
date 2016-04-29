@@ -85,6 +85,7 @@ public class Job {
 
 	public void setDateTimeStarted(Date dateTimeStarted) {
 		this.dateTimeStarted = dateTimeStarted;
+		setExecutionTimeInSeconds();
 	}
 
 	public Date getDateTimeFinished() {
@@ -93,6 +94,7 @@ public class Job {
 
 	public void setDateTimeFinished(Date dateTimeFinished) {
 		this.dateTimeFinished = dateTimeFinished;
+		setExecutionTimeInSeconds();
 	}
 
 	public JobInput getJobInput() {

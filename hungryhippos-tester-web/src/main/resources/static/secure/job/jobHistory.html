@@ -119,8 +119,8 @@
 							<div class="bold col-md-3">
 								Total Time Taken:
 							</div>
-							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds<60 && job.executionTimeInSeconds>0}}">
-								{{job.executionTimeInSeconds}} seconds
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds<60 && job.executionTimeInSeconds>=0}}">
+								{{job.executionTimeInSeconds}} second(s)
 							</div>
 							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds>=60 && job.executionTimeInSeconds<3600}}">
 								{{(job.executionTimeInSeconds/60) | number:2}} minutes
@@ -159,8 +159,8 @@
 															<div class="col-md-2">{{step.nodeId}}</div>
 															<div class="col-md-2">{{step.nodeIp}}</div>
 															<div class="col-md-2">{{step.status}}</div>
-															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds<60  && job.executionTimeInSeconds>0}}">
-																{{step.executionTimeInSeconds}} seconds
+															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds<60  && step.executionTimeInSeconds>=0}}">
+																{{step.executionTimeInSeconds}} second(s)
 															</div>
 															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds>=60 && step.executionTimeInSeconds<3600}}">
 																{{(step.executionTimeInSeconds/60) | number:2}} minutes

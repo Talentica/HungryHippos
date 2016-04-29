@@ -115,6 +115,7 @@ public class ProcessInstanceDetail {
 
 	public void setExecutionStartDateTime(Date executionStartDateTime) {
 		this.executionStartDateTime = executionStartDateTime;
+		setExecutionTimeInSeconds();
 	}
 
 	public Date getExecutionEndDateTime() {
@@ -123,6 +124,7 @@ public class ProcessInstanceDetail {
 
 	public void setExecutionEndDateTime(Date executionEndDateTime) {
 		this.executionEndDateTime = executionEndDateTime;
+		setExecutionTimeInSeconds();
 	}
 
 	public String getError() {

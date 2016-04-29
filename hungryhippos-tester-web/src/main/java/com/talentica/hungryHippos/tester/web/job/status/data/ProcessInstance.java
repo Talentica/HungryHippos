@@ -64,6 +64,12 @@ public class ProcessInstance {
 		this.processInstanceDetails = processInstanceDetails;
 	}
 
+	public void setExecutionDurations() {
+		if (processInstanceDetails != null) {
+			processInstanceDetails.forEach(processInstanceDetail -> processInstanceDetail.setExecutionTimeInSeconds());
+		}
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {

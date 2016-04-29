@@ -16,6 +16,7 @@ public class JobServiceResponse extends ServiceResponse {
 
 	public void setJobDetail(Job jobDetail) {
 		this.jobDetail = jobDetail;
+		jobDetail.setExecutionTimeInSeconds();
 	}
 
 }

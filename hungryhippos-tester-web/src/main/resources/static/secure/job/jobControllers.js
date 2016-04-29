@@ -149,11 +149,9 @@ app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
 		usSpinnerService.stop('spinner-1');
 	});
 	
-	$scope.jobStepInformation=null;
+	$scope.jobStepInformation=[];
 	$scope.getJobStatusDetail=function(jobUuid){
-		if(!$scope.jobStepInformation){
-			usSpinnerService.spin('spinner-1');
-			$scope.jobStepInformation=[];
+		usSpinnerService.spin('spinner-1');
 			JobService.getJobStatusDetail(jobUuid,function(response){
 				if(response && response.jobDetail && response.jobDetail.uuid && response.processInstances){
 				$scope.jobStepInformation[response.jobDetail.uuid]=response;
@@ -161,6 +159,5 @@ app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
 				usSpinnerService.stop('spinner-1');
 			}
 		);
-		}
 	}
 });

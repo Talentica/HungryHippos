@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.job.main;
 
-import java.io.FileNotFoundException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -89,15 +88,6 @@ public class JobManagerStarter {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Object jobMatrix = Class.forName(args[0]).newInstance();
 		return jobMatrix;
-	}
-
-	private static void overrideProperties(String[] args) throws FileNotFoundException {
-		if (args.length == 1) {
-			LOGGER.info(
-					"You have not provided external config.properties file. Default config.properties file will be use internally");
-		} else if (args.length == 2) {
-			Property.overrideConfigurationProperties(args[1]);
-		}
 	}
 
 }

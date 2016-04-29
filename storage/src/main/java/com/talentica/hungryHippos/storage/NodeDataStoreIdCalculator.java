@@ -2,15 +2,18 @@ package com.talentica.hungryHippos.storage;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import com.talentica.hungryHippos.sharding.BucketUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.MapUtils;
@@ -21,18 +24,16 @@ import com.talentica.hungryHippos.utility.MapUtils;
 public class NodeDataStoreIdCalculator implements Serializable {
 
 	private static final long serialVersionUID = -4962284637100465382L;
-	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 	private Map<String, Set<Bucket<KeyValueFrequency>>> keyWiseAcceptingBuckets = new HashMap<>();
 	private final String[] keys;
 	private final DynamicMarshal dynamicMarshal;
-	private int count = 0;
 	private Logger LOGGER = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class);
+	private BucketsCalculator bucketsCalculator;
 
 	public NodeDataStoreIdCalculator(Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
-			Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-			int thisNode,
+			Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode,
 			DataDescription dataDescription) {
-		this.keyToValueToBucketMap = keyToValueToBucketMap;
+		bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);
 		keys = dataDescription.keyOrder();
 		setKeyWiseAcceptingBuckets(bucketToNodeNumberMap, thisNode);
 		this.dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -58,17 +59,9 @@ public class NodeDataStoreIdCalculator implements Serializable {
 		for (int i = keys.length - 1; i >= 0; i--) {
 			fileId <<= 1;
 			String key = keys[i];
-			int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
+			int keyIndex = Integer.parseInt(key.substring(3)) - 1;
 			Object value = dynamicMarshal.readValue(keyIndex, row);
-			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(keys[i]);
-			Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value);
-			if(valueBucket == null){
-				Collection<Bucket<KeyValueFrequency>> keyBuckets = (Collection<Bucket<KeyValueFrequency>>) valueToBucketMap.values();
-				List<Bucket<KeyValueFrequency>> keyBucketList = new ArrayList(keyBuckets);
-				Collections.sort(keyBucketList);
-				int bucketNo = value.hashCode() % keyBucketList.get(keyBucketList.size() - 1).getId();
-				valueBucket = BucketUtil.getBucket(valueToBucketMap, bucketNo);
-			}
+			Bucket<KeyValueFrequency> valueBucket = bucketsCalculator.getBucketNumberForValue(key, value);
 			if (valueBucket != null && keyWiseAcceptingBuckets.get(keys[i]) != null
 					&& keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
 				fileId |= 1;
@@ -76,7 +69,5 @@ public class NodeDataStoreIdCalculator implements Serializable {
 		}
 		return fileId;
 	}
-	public int getCount() {
-		return count;
-	}
+
 }

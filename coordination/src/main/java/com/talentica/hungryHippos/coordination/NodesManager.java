@@ -15,6 +15,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -188,12 +189,11 @@ public class NodesManager implements Watcher {
 
 	private void createNode(final String node, CountDownLatch signal, CreateMode createMode, Object... data)
 			throws IOException {
-		try {
-			ZKPaths.mkdirs(zk, node.substring(0, node.lastIndexOf("/")));
-			zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
-					ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
-						@Override
-						public void processResult(int rc, String path, Object ctx, String name) {
+		zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
+				ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
+					@Override
+					public void processResult(int rc, String path, Object ctx, String name) {
+						try {
 							switch (KeeperException.Code.get(rc)) {
 							case CONNECTIONLOSS:
 								try {
@@ -226,16 +226,22 @@ public class NodesManager implements Watcher {
 									signal.countDown();
 								}
 								break;
+							case NONODE:
+								String parent = node.substring(0, node.lastIndexOf("/"));
+								if (StringUtils.isNotBlank(parent)) {
+									ZKPaths.mkdirs(zk, parent);
+								}
+								break;
 							default:
 								LOGGER.error("Unexpected result while trying to create node " + node + ": "
 										+ KeeperException.create(KeeperException.Code.get(rc), path));
 							}
+						} catch (KeeperException | InterruptedException exception) {
+							LOGGER.error("Unexpected result while trying to create node {} ", node);
+							throw new RuntimeException(exception);
 						}
-					}, null);
-		} catch (KeeperException | InterruptedException exception) {
-			LOGGER.error("Unexpected result while trying to create node {} ", node);
-			throw new RuntimeException(exception);
-		}
+					}
+				}, null);
 	}
 
 	public void createEphemeralNode(final String node, CountDownLatch signal, Object... data) throws IOException {

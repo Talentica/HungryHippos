@@ -81,7 +81,7 @@ public final class BucketsCalculator {
 			List<Bucket<KeyValueFrequency>> bucketsForKey = keyToBucketNumbersCollectionMap.get(key);
 			int totalNumberOfBuckets = bucketsForKey.size();
 			if (totalNumberOfBuckets > 1) {
-				int bucketNumber = value.hashCode() % totalNumberOfBuckets;
+				int bucketNumber = value.hashCode() % totalNumberOfBuckets + 1;
 				Bucket<KeyValueFrequency> bucketToBeAllotted = new Bucket<KeyValueFrequency>(bucketNumber);
 				if (bucketsForKey.contains(bucketToBeAllotted)) {
 					bucket = bucketsForKey.get(bucketsForKey.indexOf(bucketToBeAllotted));

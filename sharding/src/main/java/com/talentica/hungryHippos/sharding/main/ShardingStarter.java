@@ -52,7 +52,6 @@ public class ShardingStarter {
 			LOGGER.info("STARTED...");
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
-			LOGGER.info("START PROCESS DB SCRIPT BEFORE SHARDING..");
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing sharding program.",
 					exception);

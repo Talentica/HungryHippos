@@ -54,7 +54,10 @@ public class DataProvider {
         ArrayList<String> servers = new ArrayList<>();
         Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
         ZKNodeFile serverConfig = (obj == null) ? null : (ZKNodeFile) obj;
-        Properties prop = serverConfig.getFileData();
+		Properties prop = Property.loadServerProperties();
+		if (serverConfig != null) {
+			prop = serverConfig.getFileData();
+		}
         int size = prop.keySet().size();
         for (int index = 0; index < size; index++) {
             System.out.println();
@@ -66,7 +69,7 @@ public class DataProvider {
 
     @SuppressWarnings({"unchecked"})
     public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
-        sendSignalToNodes(nodesManager);
+		sendSignalToNodes(nodesManager);
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();

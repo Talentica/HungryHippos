@@ -1,14 +1,6 @@
 package com.talentica.hungryHippos.node;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -24,6 +16,15 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
@@ -87,7 +88,11 @@ public class DataReceiver {
 			DataReceiver dataReceiver = getNodeInitializer();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
-			String server = serverConfig.getFileData().getProperty("server." + nodeId);
+			Properties serverConfigProps = Property.loadServerProperties();
+			if (serverConfig != null) {
+				serverConfigProps = serverConfig.getFileData();
+			}
+			String server = serverConfigProps.getProperty("server." + nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);
 			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);

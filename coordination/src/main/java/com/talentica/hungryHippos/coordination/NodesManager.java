@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.netflix.curator.utils.ZKPaths;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerAddress;
@@ -181,50 +182,60 @@ public class NodesManager implements Watcher {
 	     * @param data
 	     * @throws IOException 
 	     */
-	    public void createPersistentNode(final String node,CountDownLatch signal ,Object ...data) throws IOException {
-		createNode(node, signal, CreateMode.PERSISTENT, data);
+	public void createPersistentNode(final String node, CountDownLatch signal, Object... data) throws IOException {
+	    	createNode(node, signal, CreateMode.PERSISTENT, data);
 	    }
 
 	private void createNode(final String node, CountDownLatch signal, CreateMode createMode, Object... data)
 			throws IOException {
-		zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
-				ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
-					@Override
-					public void processResult(int rc, String path, Object ctx, String name) {
-						switch (KeeperException.Code.get(rc)) {
-						case CONNECTIONLOSS:
-							try {
-								createNode(path, signal,createMode, data);
-							} catch (IOException e) {
-								LOGGER.warn("Unable to redirect to create node");
+		try {
+			ZKPaths.mkdirs(zk, node.substring(0, node.lastIndexOf("/")));
+			zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
+					ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
+						@Override
+						public void processResult(int rc, String path, Object ctx, String name) {
+							switch (KeeperException.Code.get(rc)) {
+							case CONNECTIONLOSS:
+								try {
+									createNode(path, signal, createMode, data);
+								} catch (IOException e) {
+									LOGGER.warn("Unable to redirect to create node");
+								}
+								break;
+							case OK:
+								LOGGER.info("Server Monitoring Path [" + path + "] is created");
+								if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
+										&& path.contains("_job")) {
+									LOGGER.info("DELETE THE PULL/PUSH NODES");
+									deleteNode(path);
+									String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+									String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+									deleteNode(path.replace(oldString, newString));
+								}
+								if (signal != null)
+									signal.countDown();
+								if (getSignal != null)
+									getSignal.countDown();
+								break;
+							case NODEEXISTS:
+								LOGGER.warn("Server Monitoring Path [" + path + "] already exists");
+								if (getSignal != null) {
+									getSignal.countDown();
+								}
+								if (signal != null) {
+									signal.countDown();
+								}
+								break;
+							default:
+								LOGGER.error("Unexpected result while trying to create node " + node + ": "
+										+ KeeperException.create(KeeperException.Code.get(rc), path));
 							}
-							break;
-						case OK:
-							LOGGER.info("Server Monitoring Path [" + path + "] is created");
-							if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
-									&& path.contains("_job")) {
-								LOGGER.info("DELETE THE PULL/PUSH NODES");
-								deleteNode(path);
-								String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-								String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-								deleteNode(path.replace(oldString, newString));
-							}
-							if (signal != null)
-								signal.countDown();
-							if (getSignal != null)
-								getSignal.countDown();
-							break;
-						case NODEEXISTS:
-							LOGGER.info("Server Monitoring Path [" + path + "] already exists");
-							if (getSignal != null)
-								getSignal.countDown();
-							break;
-						default:
-							LOGGER.info("Unexpected result while trying to create node " + node + ": "
-									+ KeeperException.create(KeeperException.Code.get(rc), path));
 						}
-					}
-				}, null);
+					}, null);
+		} catch (KeeperException | InterruptedException exception) {
+			LOGGER.error("Unexpected result while trying to create node {} ", node);
+			throw new RuntimeException(exception);
+		}
 	}
 
 	public void createEphemeralNode(final String node, CountDownLatch signal, Object... data) throws IOException {

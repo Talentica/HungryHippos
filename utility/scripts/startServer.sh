@@ -36,6 +36,10 @@ echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SE
 sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid
 echo '################          PROCESS INITIATED      ################'
 
+echo '################          Start communication for the output file transfer      ################'
+sh output-file-zip-transfer.sh $jobUuid
+echo '################          Done      ################'
+
 echo '################          Start to destroy the droplets   ################'
 sh delete-droplets.sh $jobUuid
 echo '################          Destroy of the droplets are initiated   ################'

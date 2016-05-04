@@ -181,7 +181,7 @@ public class Property {
 	public static int getTotalNumberOfNodes() {
 		Properties serverProperties = Property.loadServerProperties();
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
-			return 1;
+			return getShardingDimensions().length;
 		}
 		int totalNumberOfNodes = 0;
 		for (Object key : serverProperties.keySet()) {
@@ -267,15 +267,14 @@ public class Property {
 	}
 
 	public static final void initialize(PROPERTIES_NAMESPACE appNamespace) {
-		ENVIRONMENT.setCurrentEnvironment(getPropertyValue("environment")
-				.toString());
+		ENVIRONMENT.setCurrentEnvironment(getPropertyValue("environment").toString());
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
 			localEnvironmentServerproperties = new Properties();
-			localEnvironmentServerproperties.put(
-					SERVER_CONFIGURATION_KEY_PREFIX + "0", "localhost:2324");
+			for (int i = 0; i < getShardingDimensions().length; i++) {
+				localEnvironmentServerproperties.put(SERVER_CONFIGURATION_KEY_PREFIX + i, "localhost:2324");
+			}
 		}
-		environmentPropertiesPrefix = ENVIRONMENT.getCurrentEnvironment()
-				.getConfigurationPropertiesPrefix();
+		environmentPropertiesPrefix = ENVIRONMENT.getCurrentEnvironment().getConfigurationPropertiesPrefix();
 		namespace = appNamespace;
 	}
 

@@ -3,18 +3,18 @@
 app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUploader) {
 	$scope.jobDetail={};
 	$scope.error={};
-	$scope.numberOfColumnsInDataFile=9;
+	$scope.numberOfColumnsInDataFile=1;
 	$scope.notification={};
 	$scope.jobJarFile=new FileUploader();
 
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
 	}
-	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-	
+//	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+	$scope.dataTypeConfiguration= [];
 	$scope.updateDataTypeConfiguration=function(){
-		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-//		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
+//		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
 	}
 	
 	$scope.getDataTypeConfiguration=function(){
@@ -106,11 +106,11 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUpl
 	
 	$scope.reset=function(){
 		$scope.error={};
-		$scope.numberOfColumnsInDataFile=9;
+		$scope.numberOfColumnsInDataFile=1;
 		$scope.notification={};
 		$scope.jobDetail={};
-//		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
-		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
+		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+//		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 		usSpinnerService.stop('spinner-1');
 		$("#jobJarFile").value=null;
 	}
@@ -133,6 +133,15 @@ app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
 	    }
 	    return groups;
 	};	
+	
+	$scope.jobsDownloadAvailable=function(job){
+		if(job && job.dateTimeFinished){
+			var downloadAvailableTill= new Date(job.dateTimeFinished);
+			downloadAvailableTill.setDate(downloadAvailableTill.getDate()+1);
+			return new Date() <= downloadAvailableTill;
+		}
+		return true;
+	}
 
 	usSpinnerService.spin('spinner-1');
 	JobService.getRecentJobs(function(response){

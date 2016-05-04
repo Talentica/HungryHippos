@@ -1,6 +1,6 @@
 'use strict';
 
-var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner','angularFileUpload']);
+var app=angular.module('testerWebApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner','angularFileUpload','720kb.tooltips']);
 
 app.factory("JobHistoryResource", function($resource) {
 	return $resource("/job/history/");

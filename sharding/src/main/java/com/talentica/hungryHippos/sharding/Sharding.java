@@ -10,13 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -32,6 +30,9 @@ public class Sharding {
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
 	private Map<String, Map<MutableCharArrayString, Long>> keyValueFrequencyMap = new HashMap<>();
+
+	private Map<String, Integer> keyToIndexMap = new HashMap<>();
+
 	// Map<Key1,Map<value1,Node(1)>
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 	PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
@@ -54,10 +55,11 @@ public class Sharding {
 		}
 	}
 
-	public static void doSharding(Reader input,NodesManager nodesManager) {
+	public static void doSharding(Reader input) {
 		LOGGER.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
+			sharding.setKeysToIndexes();
 			sharding.populateFrequencyFromData(input);
 			sharding.populateKeysToListOfBucketsMap();
 			sharding.updateBucketToNodeNumbersMap(input);
@@ -93,7 +95,7 @@ public class Sharding {
 			Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
 			for (int i = 0; i < keys.length; i++) {
 				String key = keys[i];
-				int keyIndex = Integer.parseInt(key.substring(3)) -1;
+				int keyIndex = keyToIndexMap.get(key);
 				values[i] = parts[keyIndex].clone();
 				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
 				bucketCombinationMap.put(key, bucket);
@@ -107,6 +109,15 @@ public class Sharding {
 			}
 		}
 		LOGGER.info("Calculating buckets to node numbers map finished");
+	}
+
+	private void setKeysToIndexes() {
+		String[] keys = Property.getColumnsConfiguration();
+		int index = 0;
+		for (String key : keys) {
+			keyToIndexMap.put(key, index);
+			index++;
+		}
 	}
 
 	// TODO: This method needs to be generalized
@@ -123,7 +134,7 @@ public class Sharding {
 
 			for (int i = 0; i < keys.length; i++) {
 				String key = keys[i];
-				int keyIndex = Integer.parseInt(key.substring(3)) - 1 ;
+				int keyIndex = keyToIndexMap.get(key);
 				values[i] = parts[keyIndex].clone();
 				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
 				if (frequencyPerValue == null) {
@@ -153,7 +164,7 @@ public class Sharding {
 			long frequencyOfAlreadyAddedValues = 0;
 			int bucketCount = 0;
 			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
-			long idealAverageSizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
+			long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
 			LOGGER.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
 			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
 			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
@@ -203,7 +214,7 @@ public class Sharding {
 		return keyToListOfKeyValueFrequency;
 	}
 
-	private long getSizeOfOnBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
+	private long getSizeOfOneBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
 		long sizeOfOneBucket = 0;
 		long totalofAllKeyValueFrequencies = 0;
 		for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
@@ -219,7 +230,12 @@ public class Sharding {
 		Map<Bucket<KeyValueFrequency>, Node> bucketToNodeNumber = new HashMap<>();
 		bucketToNodeNumberMap.put(keyName, bucketToNodeNumber);
 		Collections.sort(buckets);
+		int counter = 0;
 		for (Bucket<KeyValueFrequency> bucket : buckets) {
+			counter++;
+			if (counter % 100 == 0) {
+				LOGGER.info("Buckets processed: {}", counter);
+			}
 			Node mostEmptyNode = fillupQueue.poll();
 			List<BucketCombination> currentKeys = nodeToKeyMap.get(mostEmptyNode);
 			if (currentKeys == null) {

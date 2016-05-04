@@ -84,7 +84,8 @@ public class JobExecutor {
 	 */
 	private static void sendFailureSignal(NodesManager nodesManager)
 			throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode());
+		String basePathPerNode = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + NodeUtil.getNodeId() + PathUtil.FORWARD_SLASH;
+		String shardingNodeName = basePathPerNode + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();

@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 
 /**
  * @author PooshanS
@@ -287,13 +286,18 @@ public class Property {
 	}
 
 	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
-		String[] keyColumnNames = Property
-				.getPropertyValue("common.column.names").toString().split(",");
+		String[] keyColumnNames = getColumnsConfiguration();
 		String[] result = new String[keyIndexes.length];
 		for (int i = 0; i < keyIndexes.length; i++) {
 			result[i] = keyColumnNames[keyIndexes[i]];
 		}
 		return result;
+	}
+
+	public static String[] getColumnsConfiguration() {
+		String[] keyColumnNames = Property
+				.getPropertyValue("common.column.names").toString().split(",");
+		return keyColumnNames;
 	}
 
 	public static void setOrOverrideConfigurationProperty(String key,

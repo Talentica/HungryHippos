@@ -366,14 +366,29 @@ public class DigitalOceanServiceUtil {
 		JobRequest jobRequest = new JobRequest();
 		Job job = jobRequest.getJobDetails(jobUUId);
 		JobInput jobInput = job.getJobInput();
-		
 		keyValue.put("input.file.url.link",jobInput.getDataLocation());
 		keyValue.put("common.sharding_dimensions",jobInput.getShardingDimensions());
-		keyValue.put("column.datatype-size",jobInput.getDataTypeConfiguration());
+		String dataTypeConfiguration = jobInput.getDataTypeConfiguration();
+		String columnsConfiguration = getColumnsConfiguration(dataTypeConfiguration);
+		keyValue.put("common.column.names", columnsConfiguration);
+		keyValue.put("column.datatype-size",dataTypeConfiguration);
 		keyValue.put("column.file.size",jobInput.getDataSize().toString());
 		keyValue.put("job.matrix.class",jobInput.getJobMatrixClass());
 		keyValue.put("job.uuid",jobUUId);
 		return keyValue;
+	}
+
+	static String getColumnsConfiguration(String dataTypeConfiguration) {
+		int numberOfColumns = dataTypeConfiguration.split(",").length;
+		StringBuilder columnNames = new StringBuilder();
+		for (int i = 0; i < numberOfColumns; i++) {
+			if (i > 0 && i < numberOfColumns) {
+				columnNames.append(",");
+			}
+			columnNames.append("key" + (i + 1));
+		}
+		String columnsConfiguration = columnNames.toString();
+		return columnsConfiguration;
 	}
 	
 	private static Map<String, String> getHardCodePropertyKeyValueFromJobByHHTPRequest(String jobUUId)

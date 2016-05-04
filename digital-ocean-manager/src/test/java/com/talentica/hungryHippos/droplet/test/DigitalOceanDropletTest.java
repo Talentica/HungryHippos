@@ -119,6 +119,7 @@ public class DigitalOceanDropletTest {
 	}
 	
 	@Test
+	@Ignore
 	public void testHttpRequest() throws HttpException, IOException{
 		JobRequest jobRequest = new JobRequest();
 		Job job = jobRequest.getJobDetails("NzFiNzdlM2MtMDgwMC00N2M3L");

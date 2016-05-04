@@ -10,7 +10,7 @@ do
    echo "Started process db entry"
 
    echo "Starting kazoo server"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.StartKazooScriptMain $jobUuid > ./system.out_kazoo_server 2>./system_kazoo_server.err &"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.StartKazooScriptMain $jobUuid > ./system_kazoo_server.out 2>./system_kazoo_server.err &"
    echo "Kazoo Server started"
 
    echo "Starting sharding on $node"

@@ -20,7 +20,6 @@ jar {
 
 dependencies {
     compile project (':common')
-    compile project (':test-hungry-hippos')
     compile project (':coordination')
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

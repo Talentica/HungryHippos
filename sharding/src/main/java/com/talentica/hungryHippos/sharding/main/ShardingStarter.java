@@ -52,44 +52,75 @@ public class ShardingStarter {
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error("Error occured while executing sharding program.",
-					exception);
-			String alertPathForShardingFailure = ShardingStarter.nodesManager
-			.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED
-					.getZKJobNode());
-			CountDownLatch signal = new CountDownLatch(1);
-			try {
-				nodesManager.createPersistentNode(alertPathForShardingFailure, signal);
-				signal.await();
-			} catch (IOException | InterruptedException e) {
-				LOGGER.info("Unable to create the sharding failure path");
-			}
-			
+			createShardingFailureSignal(exception);
+			createErrorEncounterSignal();
 		}
 	}
-	
+
+	/**
+	 * @param exception
+	 */
+	private static void createShardingFailureSignal(Exception exception) {
+		CountDownLatch signal;
+		LOGGER.error("Error occured while executing sharding program.",
+				exception);
+		String alertPathForShardingFailure = ShardingStarter.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED
+						.getZKJobNode());
+		signal = new CountDownLatch(1);
+		try {
+			nodesManager.createPersistentNode(alertPathForShardingFailure,
+					signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the sharding failure path");
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private static void createErrorEncounterSignal() {
+		String alertErrorEncounter = ShardingStarter.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
+						.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			nodesManager.createPersistentNode(alertErrorEncounter, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the ERROR_ENCOUNTERED path");
+		}
+		LOGGER.info("ERROR_ENCOUNTERED node is created");
+	}
+
 	public static void callCopyScriptForMapFiles() {
-			LOGGER.info("Calling script file to copy map file across all nodes");
+		LOGGER.info("Calling script file to copy map file across all nodes");
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String[] strArr = new String[] { "/bin/sh", "copy-shard-files-to-all-nodes.sh", jobuuid };
+		String[] strArr = new String[] { "/bin/sh",
+				"copy-shard-files-to-all-nodes.sh", jobuuid };
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Done.");
-		
+
 	}
 
 	/**
 	 * Send signal to data publisher node that sharding is completed.
+	 * 
 	 * @param nodesManager
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
 	private static void sendSignal(NodesManager nodesManager)
 			throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
+		String shardingNodeName = nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED
+						.getZKJobNode());
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();
 	}
+
 	/**
 	 * 
 	 */

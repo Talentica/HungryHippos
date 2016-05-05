@@ -34,7 +34,8 @@ import com.talentica.hungryHippos.utility.PathUtil;
  */
 public class JobExecutor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(JobExecutor.class);
 
 	private static NodesManager nodesManager;
 
@@ -52,31 +53,57 @@ public class JobExecutor {
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 			for (JobEntity jobEntity : jobEntities) {
-				Object[] loggerJobArgument = new Object[] { jobEntity.getJobId() };
+				Object[] loggerJobArgument = new Object[] { jobEntity
+						.getJobId() };
 				LOGGER.info("Starting execution of job: {}", loggerJobArgument);
 				jobRunner.run(jobEntity);
-				LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
+				LOGGER.info("Finished with execution of job: {}",
+						loggerJobArgument);
 			}
 			jobEntities.clear();
-			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
+			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
+					+ PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 			CountDownLatch signal = new CountDownLatch(1);
 			nodesManager.createPersistentNode(buildStartPath, signal);
 			signal.await();
 			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
+			LOGGER.info("It took {} seconds of time to execute all jobs.",
+					((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
+			
 			try {
 				sendFailureSignal(nodesManager);
 			} catch (IOException | InterruptedException e) {
-				LOGGER.info("Unable to create the node for signal FINISH_JOB_FAILED due to {}",e);
+				LOGGER.info(
+						"Unable to create the node for signal FINISH_JOB_FAILED due to {}",
+						e);
 			}
-			LOGGER.error("Error occured while executing node starter program.", exception);
+			LOGGER.error("Error occured while executing node starter program.",
+					exception);
+			createErrorEncounterSignal();
 		}
 	}
 
-	
+	/**
+	 * 
+	 */
+	private static void createErrorEncounterSignal() {
+		String alertErrorEncounterJobExecution = JobExecutor.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
+						.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			JobExecutor.nodesManager.createPersistentNode(
+					alertErrorEncounterJobExecution, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the sharding failure path");
+		}
+		LOGGER.info("ERROR_ENCOUNTERED path is created");
+	}
+
 	/**
 	 * @param nodesManager
 	 * @throws IOException
@@ -84,21 +111,31 @@ public class JobExecutor {
 	 */
 	private static void sendFailureSignal(NodesManager nodesManager)
 			throws IOException, InterruptedException {
-		String basePathPerNode = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + NodeUtil.getNodeId() + PathUtil.FORWARD_SLASH;
-		String shardingNodeName = basePathPerNode + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
+		String basePathPerNode = Property
+				.getPropertyValue("zookeeper.base_path")
+				+ PathUtil.FORWARD_SLASH
+				+ NodeUtil.getNodeId()
+				+ PathUtil.FORWARD_SLASH;
+		String shardingNodeName = basePathPerNode
+				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();
 	}
+
 	/**
-	 * Await for the signal of the job manager. Once job is submitted, it start execution on respective servers.
+	 * Await for the signal of the job manager. Once job is submitted, it start
+	 * execution on respective servers.
+	 * 
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
 	private static void waitForSignal() throws KeeperException,
 			InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(JobExecutor.nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode()), signal);
+		ZKUtils.waitForSignal(JobExecutor.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX
+						.getZKJobNode()), signal);
 		signal.await();
 	}
 
@@ -109,9 +146,11 @@ public class JobExecutor {
 	 * @throws IOException
 	 */
 	private static JobRunner createJobRunner() throws IOException {
-		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+		FieldTypeArrayDataDescription dataDescription = CommonUtil
+				.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getShardingDimensions());
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, true);
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap()
+				.size(), dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);
 	}
 
@@ -124,8 +163,8 @@ public class JobExecutor {
 	 * @throws InterruptedException
 	 * @throws KeeperException
 	 */
-	private static List<JobEntity> getJobsFromZKNode()
-			throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
+	private static List<JobEntity> getJobsFromZKNode() throws IOException,
+			ClassNotFoundException, InterruptedException, KeeperException {
 		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
 				+ PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
@@ -133,10 +172,13 @@ public class JobExecutor {
 		LOGGER.info("Leafs size found {}", leafs.size());
 		List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 		for (LeafBean leaf : leafs) {
-			LOGGER.info("Leaf path {} and name {}", leaf.getPath(), leaf.getName());
-			String buildLeafPath = ZKUtils.getNodePath(leaf.getPath(), leaf.getName());
+			LOGGER.info("Leaf path {} and name {}", leaf.getPath(),
+					leaf.getName());
+			String buildLeafPath = ZKUtils.getNodePath(leaf.getPath(),
+					leaf.getName());
 			LOGGER.info("Build path {}", buildLeafPath);
-			LeafBean leafObject = ZKUtils.getNodeValue(buildPath, buildLeafPath, leaf.getName(), null);
+			LeafBean leafObject = ZKUtils.getNodeValue(buildPath,
+					buildLeafPath, leaf.getName(), null);
 			JobEntity jobEntity = (JobEntity) leafObject.getValue();
 			if (jobEntity == null)
 				continue;

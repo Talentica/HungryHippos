@@ -43,8 +43,7 @@ public class ShardingStarter {
 			waitForSamplingSinal();
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 			LOGGER.info("SHARDING STARTED");
-			Sharding.doSharding(getInputReaderForSharding(),
-					ShardingStarter.nodesManager);
+			Sharding.doSharding(getInputReaderForSharding());
 			LOGGER.info("SHARDING DONE!!");
 			callCopyScriptForMapFiles();
 			long endTime = System.currentTimeMillis();

@@ -487,7 +487,6 @@ public class DigitalOceanServiceUtil {
 		String SUFFIX = ":";
 		String PORT = "2324";
 		Integer masterDropletId = null;
-		List<String> ipAndPort = new ArrayList<>();
 		List<String> serverIps = new ArrayList<>();
 		List<String> dropletIdToBeDeleted = new ArrayList<>();
 		for (Droplet retDroplet : droplets) {
@@ -498,16 +497,12 @@ public class DigitalOceanServiceUtil {
 					if (retDroplet.getName().contains("master")) {
 						masterDropletId = retDroplet.getId();
 						ZK_IP = network.getIpAddress();
-						ipAndPort.clear();
-						ipAndPort.add(ZK_IP);
-						writeLineInFile(CommonUtil.MASTER_IP_FILE_NAME_ABSOLUTE_PATH,
-								ipAndPort);
+						writeSingleLine(CommonUtil.MASTER_IP_FILE_NAME_ABSOLUTE_PATH, ZK_IP);
 						break;
 					}else if(retDroplet.getName().contains("output")){
 						OUTPUT_IP = network.getIpAddress();
-						ipAndPort.clear();
-						ipAndPort.add(OUTPUT_IP);
-						writeLineInFile(CommonUtil.OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH, ipAndPort);
+						dropletIdToBeDeleted.add(String.valueOf(retDroplet.getId()));
+						writeSingleLine(CommonUtil.OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH, OUTPUT_IP);
 						break;
 					}
 					serverIps.add(PRIFIX + (index++)+":"+ network.getIpAddress()+ SUFFIX + PORT);
@@ -537,12 +532,39 @@ public class DigitalOceanServiceUtil {
 		int totalLine = lines.size();
 		for (String line : lines) {
 			totalLine--;
-			bw.write(line);
+			writeLine(bw,line);
 			if (totalLine != 0)
 				bw.newLine();
 		}
 		bw.close();
 	}
+	
+	/**
+	 * @param fileName
+	 * @param line
+	 * @throws IOException
+	 */
+	public static void writeSingleLine(String fileName, String line) throws IOException{
+		File fout = new File(fileName);
+		LOGGER.info("Path {}", fout.getAbsolutePath());
+		fout.createNewFile();
+		FileOutputStream fos = new FileOutputStream(fout, false);
+
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+		writeLine(bw, line);
+		bw.close();
+	}
+	
+	/**
+	 * @param bw
+	 * @param line
+	 * @throws IOException
+	 */
+	private static void writeLine(BufferedWriter bw,String line) throws IOException{
+		bw.write(line);
+	}
+	
+	
 
 	/**
 	 * @param dropletEntity

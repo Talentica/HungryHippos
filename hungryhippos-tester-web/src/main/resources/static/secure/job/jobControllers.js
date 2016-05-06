@@ -11,7 +11,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUpl
 		return new Array(size);
 	}
 //	$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
-	$scope.dataTypeConfiguration= [];
+	$scope.dataTypeConfiguration= $scope.getArrayOfSize(1);
 	$scope.updateDataTypeConfiguration=function(){
 //		$scope.dataTypeConfiguration= [{"shardingDimension":true,"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":2},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"STRING","dataSize":3},{"dataType":"DOUBLE"},{"dataType":"DOUBLE"},{"dataType":"STRING","dataSize":5}]
 		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);

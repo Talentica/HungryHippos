@@ -196,11 +196,7 @@ public class NodesManager implements Watcher {
 						try {
 							switch (KeeperException.Code.get(rc)) {
 							case CONNECTIONLOSS:
-								try {
-									createNode(path, signal, createMode, data);
-								} catch (IOException e) {
-									LOGGER.warn("Unable to redirect to create node");
-								}
+								retryCreationOfNode(signal, createMode, path, data);
 								break;
 							case OK:
 								LOGGER.info("Server Monitoring Path [" + path + "] is created");
@@ -212,33 +208,49 @@ public class NodesManager implements Watcher {
 									String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 									deleteNode(path.replace(oldString, newString));
 								}
-								if (signal != null)
-									signal.countDown();
-								if (getSignal != null)
-									getSignal.countDown();
+								countDown(signal);
 								break;
 							case NODEEXISTS:
 								LOGGER.warn("Server Monitoring Path [" + path + "] already exists");
-								if (getSignal != null) {
-									getSignal.countDown();
-								}
-								if (signal != null) {
-									signal.countDown();
-								}
+								countDown(signal);
 								break;
 							case NONODE:
-								String parent = node.substring(0, node.lastIndexOf("/"));
-								if (StringUtils.isNotBlank(parent)) {
-									ZKPaths.mkdirs(zk, parent);
-								}
+								createParentNode(node);
+								retryCreationOfNode(signal, createMode, path, data);
 								break;
 							default:
 								LOGGER.error("Unexpected result while trying to create node " + node + ": "
 										+ KeeperException.create(KeeperException.Code.get(rc), path));
+								countDown(signal);
 							}
 						} catch (KeeperException | InterruptedException exception) {
 							LOGGER.error("Unexpected result while trying to create node {} ", node);
 							throw new RuntimeException(exception);
+						}
+					}
+
+					private void createParentNode(final String node) throws InterruptedException, KeeperException {
+						String parent = node.substring(0, node.lastIndexOf("/"));
+						if (StringUtils.isNotBlank(parent)) {
+							ZKPaths.mkdirs(zk, parent);
+						}
+					}
+
+					private void retryCreationOfNode(CountDownLatch signal, CreateMode createMode, String path,
+							Object... data) {
+						try {
+							createNode(path, signal, createMode, data);
+						} catch (IOException e) {
+							LOGGER.warn("Unable to redirect to create node");
+						}
+					}
+
+					private void countDown(CountDownLatch signal) {
+						if (getSignal != null) {
+							getSignal.countDown();
+						}
+						if (signal != null) {
+							signal.countDown();
 						}
 					}
 				}, null);

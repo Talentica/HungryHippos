@@ -9,4 +9,6 @@ cp ../../test-hungry-hippos/build/libs/*.jar ../../installation/lib/
 cp ../../coordination/build/classes/main/config.properties ../../installation/conf/
 cp ../../digital-ocean-manager/build/classes/main/json/* ../../installation/json/
 cp ../../utility/scripts/*.sh ../../installation/bin/
+echo "192.241.248.197" > ../../installation/conf/ngnixip
+chmod 777 ../../installation/conf/ngnixip
 echo '####Completed####'

@@ -41,18 +41,43 @@ public class DataPublisherStarter {
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
-			String alertPathForDataPublisherFailure = dataPublisherStarter.nodesManager
-					.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
-							.getZKJobNode());
-					CountDownLatch signal = new CountDownLatch(1);
-					try {
-						dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure, signal);
-						signal.await();
-					} catch (IOException | InterruptedException e) {
-						LOGGER.info("Unable to create the sharding failure path");
-					}
-					
+			createDataPublishingFailure();
+			createErrorEncounterSignal();
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private static void createDataPublishingFailure() {
+		CountDownLatch signal = new CountDownLatch(1);
+		String alertPathForDataPublisherFailure = dataPublisherStarter.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
+						.getZKJobNode());
+				signal = new CountDownLatch(1);
+				try {
+					dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure, signal);
+					signal.await();
+				} catch (IOException | InterruptedException e) {
+					LOGGER.info("Unable to create the sharding failure path");
+				}
+	}
+
+	/**
+	 * 
+	 */
+	private static void createErrorEncounterSignal() {
+		LOGGER.info("ERROR_ENCOUNTERED signal is sent");
+		String alertErrorEncounterDataPublisher = dataPublisherStarter.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
+						.getZKJobNode());
+				CountDownLatch signal = new CountDownLatch(1);
+				try {
+					dataPublisherStarter.nodesManager.createPersistentNode(alertErrorEncounterDataPublisher, signal);
+					signal.await();
+				} catch (IOException | InterruptedException e) {
+					LOGGER.info("Unable to create the sharding failure path");
+				}
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.node;
 
+import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
@@ -33,6 +34,8 @@ public class DataReceiver {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
 	private DataStore dataStore;
+	
+	private static NodesManager nodesManager;
 
 	public DataReceiver(DataDescription dataDescription) throws Exception {
 		this.dataDescription = dataDescription;
@@ -80,9 +83,9 @@ public class DataReceiver {
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			NodesManager nodesManager = Property.getNodesManagerIntances();
+			DataReceiver.nodesManager = Property.getNodesManagerIntances();
 			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
 			signal.await();
 			
 			DataReceiver dataReceiver = getNodeInitializer();
@@ -100,8 +103,26 @@ public class DataReceiver {
 			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
+			createErrorEncounterSignal();
+			LOGGER.info("ERROR_ENCOUNTERED path is created");
 			LOGGER.error("Error occured while executing node starter program.", exception);
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private static void createErrorEncounterSignal() {
+		String alertErrorEncounterDataReciever = DataReceiver.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
+						.getZKJobNode());
+				CountDownLatch signal = new CountDownLatch(1);
+				try {
+					DataReceiver.nodesManager.createPersistentNode(alertErrorEncounterDataReciever, signal);
+					signal.await();
+				} catch (IOException | InterruptedException e) {
+					LOGGER.info("Unable to create the sharding failure path");
+				}
 	}
 
 	/**

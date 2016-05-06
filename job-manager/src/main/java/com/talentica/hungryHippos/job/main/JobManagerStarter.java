@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.job.main;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -45,10 +46,28 @@ public class JobManagerStarter {
 			LOGGER.info("It took {} seconds of time to for running all jobs.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
+			createErrorEncounterSignal();
 			LOGGER.error(
 					"Error occured while executing master starter program.",
 					exception);
 		}
+	}
+
+
+	/**
+	 * 
+	 */
+	private static void createErrorEncounterSignal() {
+		String alertErrorEncounterJobManager = JobManager.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
+						.getZKJobNode());
+				CountDownLatch signal = new CountDownLatch(1);
+				try {
+					JobManager.nodesManager.createPersistentNode(alertErrorEncounterJobManager, signal);
+					signal.await();
+				} catch (IOException | InterruptedException e) {
+					LOGGER.info("Unable to create the sharding failure path");
+				}
 	}
 
 

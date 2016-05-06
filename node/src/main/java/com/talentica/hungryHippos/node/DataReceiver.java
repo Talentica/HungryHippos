@@ -85,9 +85,10 @@ public class DataReceiver {
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver.nodesManager = Property.getNodesManagerIntances();
 			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
+					CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
 			signal.await();
-			
+
 			DataReceiver dataReceiver = getNodeInitializer();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
@@ -103,26 +104,24 @@ public class DataReceiver {
 			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			createErrorEncounterSignal();
-			LOGGER.info("ERROR_ENCOUNTERED path is created");
 			LOGGER.error("Error occured while executing node starter program.", exception);
+			handleError();
 		}
 	}
 
 	/**
 	 * 
 	 */
-	private static void createErrorEncounterSignal() {
+	private static void handleError() {
 		String alertErrorEncounterDataReciever = DataReceiver.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
-						.getZKJobNode());
-				CountDownLatch signal = new CountDownLatch(1);
-				try {
-					DataReceiver.nodesManager.createPersistentNode(alertErrorEncounterDataReciever, signal);
-					signal.await();
-				} catch (IOException | InterruptedException e) {
-					LOGGER.info("Unable to create the sharding failure path");
-				}
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			DataReceiver.nodesManager.createPersistentNode(alertErrorEncounterDataReciever, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the sharding failure path");
+		}
 	}
 
 	/**

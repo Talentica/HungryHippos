@@ -46,10 +46,10 @@ public class JobManagerStarter {
 			LOGGER.info("It took {} seconds of time to for running all jobs.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			createErrorEncounterSignal();
 			LOGGER.error(
 					"Error occured while executing master starter program.",
 					exception);
+			createErrorEncounterSignal();
 		}
 	}
 

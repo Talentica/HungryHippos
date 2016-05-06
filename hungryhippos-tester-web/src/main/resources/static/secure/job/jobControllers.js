@@ -133,12 +133,12 @@ app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
 	    }
 	    return groups;
 	};	
-	
+	$scope.downloadAvailableTill=[];
 	$scope.jobsDownloadAvailable=function(job){
 		if(job && job.dateTimeFinished){
-			var downloadAvailableTill= new Date(job.dateTimeFinished);
-			downloadAvailableTill.setDate(downloadAvailableTill.getDate()+1);
-			return new Date() <= downloadAvailableTill;
+			$scope.downloadAvailableTill[job.uuid]= new Date(job.dateTimeFinished);
+			$scope.downloadAvailableTill[job.uuid].setDate($scope.downloadAvailableTill[job.uuid].getDate()+1);
+			return new Date() <= $scope.downloadAvailableTill[job.uuid];
 		}
 		return true;
 	}

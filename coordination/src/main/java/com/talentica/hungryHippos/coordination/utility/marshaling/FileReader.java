@@ -22,23 +22,30 @@ public class FileReader implements Reader {
 	private int readCount = -1;
 	private int numfields;
 	private MutableCharArrayString[] buffer;
+	private static final char[] LINE_SEPARATOR_CHARS = System.getProperty("line.separator").toCharArray();
 
 	@SuppressWarnings("resource")
 	public FileReader(String filepath) throws IOException {
 		channel = new FileInputStream(filepath).getChannel();
 		buf.clear();
-		initializeMutableArrayStringBuffer();
+		initializeMutableArrayStringBuffer(CommonUtil.getConfiguredDataDescription());
 	}
 
 	@SuppressWarnings("resource")
 	public FileReader(File file) throws IOException {
 		channel = new FileInputStream(file).getChannel();
 		buf.clear();
-		initializeMutableArrayStringBuffer();
+		initializeMutableArrayStringBuffer(CommonUtil.getConfiguredDataDescription());
 	}
 
-	private void initializeMutableArrayStringBuffer() {
-		DataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+	@SuppressWarnings("resource")
+	public FileReader(File file, DataDescription dataDescription) throws IOException {
+		channel = new FileInputStream(file).getChannel();
+		buf.clear();
+		initializeMutableArrayStringBuffer(dataDescription);
+	}
+
+	private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
 		numfields = dataDescription.getNumberOfDataFields();
 		buffer = new MutableCharArrayString[numfields];
 		for (int i = 0; i < numfields; i++) {
@@ -70,9 +77,7 @@ public class FileReader implements Reader {
 				}
 				buf.flip();
 			}
-			byte nextChar = buf.get();
-			readCount--;
-
+			byte nextChar = readNextChar();
 			if (nextChar != '\n') {
 				sb.append((char) nextChar);
 			} else {
@@ -107,11 +112,10 @@ public class FileReader implements Reader {
 					}
 				buf.flip();
 				}
-			byte nextChar = buf.get();
-			readCount--;
+			byte nextChar = readNextChar();
 			if (nextChar == ',') {
 				fieldIndex++;
-			} else if (nextChar == '\n') {
+			} else if (isNewLine(nextChar, fieldIndex)) {
 				// Ignore blank lines with no data.
 				break;
 			} else {
@@ -119,6 +123,34 @@ public class FileReader implements Reader {
 			}
 		}
 		return buffer;
+	}
+
+	private byte readNextChar() {
+		byte nextChar = buf.get();
+		readCount--;
+		return nextChar;
+	}
+
+	private boolean isNewLine(byte readByte, int fieldIndex) throws IOException {
+		boolean newLine = (LINE_SEPARATOR_CHARS[0] == readByte);
+		if (newLine) {
+			for (int i = 1; i < LINE_SEPARATOR_CHARS.length; i++) {
+				if (readCount <= 0) {
+					buf.clear();
+					readCount = channel.read(buf);
+					if (readCount < 0) {
+						if (fieldIndex == numfields - 1) {
+							return newLine;
+						}
+						return newLine;
+					}
+					buf.flip();
+				}
+				byte nextChar = readNextChar();
+				newLine = newLine && (LINE_SEPARATOR_CHARS[i] == nextChar);
+			}
+		}
+		return newLine;
 	}
 
 	@Override

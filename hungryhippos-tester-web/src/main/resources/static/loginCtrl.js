@@ -1,6 +1,6 @@
 'use strict';
 
-var app=angular.module('loginApp',['ngResource','base64','ngRoute','ui.bootstrap','angular.filter','angularSpinner']);
+var app=angular.module('loginApp',['ngResource','ngRoute','ui.bootstrap','angular.filter','angularSpinner']);
 
 app.factory("UserResource", function($resource) {
 	return $resource("/user");

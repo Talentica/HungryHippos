@@ -41,26 +41,25 @@ public class DataPublisherStarter {
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing publishing data on nodes.", exception);
-			createDataPublishingFailure();
-			createErrorEncounterSignal();
+			dataPublishingFailed();
 		}
 	}
 
 	/**
 	 * 
 	 */
-	private static void createDataPublishingFailure() {
+	private static void dataPublishingFailed() {
 		CountDownLatch signal = new CountDownLatch(1);
 		String alertPathForDataPublisherFailure = dataPublisherStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
-						.getZKJobNode());
-				signal = new CountDownLatch(1);
-				try {
-					dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure, signal);
-					signal.await();
-				} catch (IOException | InterruptedException e) {
-					LOGGER.info("Unable to create the sharding failure path");
-				}
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
+		signal = new CountDownLatch(1);
+		try {
+			dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the sharding failure path");
+		}
+		createErrorEncounterSignal();
 	}
 
 	/**

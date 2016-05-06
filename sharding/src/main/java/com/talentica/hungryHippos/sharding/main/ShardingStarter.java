@@ -52,29 +52,27 @@ public class ShardingStarter {
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			createShardingFailureSignal(exception);
-			createErrorEncounterSignal();
+			LOGGER.error("Error occurred while sharding.", exception);
+			shardingFailed(exception);
 		}
 	}
 
 	/**
 	 * @param exception
 	 */
-	private static void createShardingFailureSignal(Exception exception) {
+	private static void shardingFailed(Exception exception) {
 		CountDownLatch signal;
-		LOGGER.error("Error occured while executing sharding program.",
-				exception);
+		LOGGER.error("Error occured while executing sharding program.", exception);
 		String alertPathForShardingFailure = ShardingStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED
-						.getZKJobNode());
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED.getZKJobNode());
 		signal = new CountDownLatch(1);
 		try {
-			nodesManager.createPersistentNode(alertPathForShardingFailure,
-					signal);
+			nodesManager.createPersistentNode(alertPathForShardingFailure, signal);
 			signal.await();
 		} catch (IOException | InterruptedException e) {
 			LOGGER.info("Unable to create the sharding failure path");
 		}
+		createErrorEncounterSignal();
 	}
 
 	/**

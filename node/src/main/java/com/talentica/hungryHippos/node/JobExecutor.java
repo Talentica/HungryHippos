@@ -72,7 +72,7 @@ public class JobExecutor {
 					((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
-			
+			LOGGER.error("Error occured while executing node starter program.", exception);
 			try {
 				sendFailureSignal(nodesManager);
 			} catch (IOException | InterruptedException e) {
@@ -80,9 +80,6 @@ public class JobExecutor {
 						"Unable to create the node for signal FINISH_JOB_FAILED due to {}",
 						e);
 			}
-			LOGGER.error("Error occured while executing node starter program.",
-					exception);
-			createErrorEncounterSignal();
 		}
 	}
 
@@ -121,6 +118,7 @@ public class JobExecutor {
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();
+		createErrorEncounterSignal();
 	}
 
 	/**

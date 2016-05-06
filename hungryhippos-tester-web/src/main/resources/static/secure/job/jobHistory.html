@@ -108,7 +108,7 @@
 						
 						<div class="row" ng-show="job.jobOutput">
 							<div class="bold col-md-3">
-								<a tooltips tooltip-template="Available for download for 24 hours after job finished time." tooltip-size="large" tooltip-smart="true">Output File Location:</a>
+								<a tooltips tooltip-template="Available for download till {{downloadAvailableTill[job.uuid] | date:'short'}}." tooltip-size="large" tooltip-smart="true">Output File Location:</a>
 							</div>
 							<div class="col-md-6">
 								<a href="{{job.jobOutput.dataLocation}}" ng-show="jobsDownloadAvailable(job)" >Download</a>
@@ -118,7 +118,7 @@
 					
 						<div class="row" ng-show="job.executionTimeInSeconds">
 							<div class="bold col-md-3">
-								<a tooltips tooltip-template="Sampling to finishing of job matrix" tooltip-size="large" tooltip-smart="true"> Time Taken for Jobs Execution:</a>
+								<a tooltips tooltip-template="Time measured for 'Sampling' to 'Finishing of jobs execution' steps" tooltip-size="large" tooltip-smart="true"> Time Taken for Jobs Execution:</a>
 							</div>
 							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds<60 && job.executionTimeInSeconds>=0}}">
 								{{job.executionTimeInSeconds}} second(s)

@@ -114,7 +114,7 @@ public class JobExecutor {
 		String basePathPerNode = Property
 				.getPropertyValue("zookeeper.base_path")
 				+ PathUtil.FORWARD_SLASH
-				+ NodeUtil.getNodeId()
+				+ "_node"+NodeUtil.getNodeId()
 				+ PathUtil.FORWARD_SLASH;
 		String shardingNodeName = basePathPerNode
 				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();

@@ -54,7 +54,7 @@ public class JobJarFileUploadService {
 				return fileUploadServiceResponse;
 			}
 
-			if (!file.getContentType().contains("java-archive") || !file.getOriginalFilename().contains(".jar")) {
+			if (!file.getOriginalFilename().contains(".jar")) {
 				ServiceError serviceError = new ServiceError(
 						"Please upload a valid jar file. Content type should be application/java-archive and file should have an extension of 'jar'",
 						"File upload failed. Invalid file submitted -" + file.getOriginalFilename());
@@ -101,7 +101,7 @@ public class JobJarFileUploadService {
 		ServiceError error = null;
 		ZipFile zipFile = null;
 		try {
-			String jobMatrixClassEntryPathInZip = jobMatrixClassName.replaceAll("\\.", File.separator) + ".class";
+			String jobMatrixClassEntryPathInZip = jobMatrixClassName.replaceAll("\\.", "/") + ".class";
 			zipFile = new ZipFile(jobJarFilePath);
 			ZipArchiveEntry entry = zipFile.getEntry(jobMatrixClassEntryPathInZip);
 			if (entry == null) {

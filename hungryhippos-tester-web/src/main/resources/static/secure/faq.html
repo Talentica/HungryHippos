@@ -1,21 +1,87 @@
-<h1>Frequenctly Asked Questions</h1>
-<br />
-<ol>
-	<li>
-		<h4>What are steps I need to follow to be able to run job on Hungry Hippos? </h4>
-		<ol type="a">
-			<li>
-				First 
-			</li>
-		</ol>
-	</li>
-	<br/>
-	<li>
-		<h4></h4>
-		<p class="text-justify">
+<div class="faq">
+	<h2>Frequently Asked Questions</h2>
+	<ol>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#kindOfJobsCanRun">
+				What kind of jobs can I run on Hungry Hippos platform?
+			</a>
+		</li>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#maximumSizeOfData">
+				What is the maximum size of data for which I can submit jobs for, using this tester web application?
+			</a>
+		</li>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#dataLocation">
+				Where should I put my data?
+			</a>
+		</li>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#fileFormats">
+				What all file formats are supported?
+			</a>
+		</li>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#multipleJobs">
+				Can I submit multiple jobs in the one go?
+			</a>
+		</li>
+
+
+	</ol>
+	<hr class="sectionSeparator"/>
+
+	<h2 id="about">
+		Answers
+		</h3>
+		<ol>
 			
-		</p>
-	</li>
-	
-	
-</ol>	
+			<li>
+				<p id="kindOfJobsCanRun" class="question">
+					What kind of jobs can I run on Hungry Hippos platform?
+				</p>
+				<p class="answer">You can run almost all jobs that you can run on Hadoop platform.</p>
+				<p></p>
+			</li>
+			
+			<li>
+				<p id="maximumSizeOfData" class="question">
+					What is the maximum size of data for which I can submit jobs for, using this tester web application?
+				</p>
+				<p>
+					It really depends on RAM and CPU requirement of job/computation you are trying to perform. But as this tool is made available for testing purposes, 
+					you can run jobs of maximum data size of 30 GB and computations that can be accommodated in 2GB RAM on one node.
+					This limitation is because when you submit a job, we create a 10 nodes cluster with each node having 2GB RAM and 40 GB hard disk.     
+				</p>
+				<p>We have successfully tested computations on data of size of 10GB for sum and median metric calculations.</p>
+			</li>
+			
+			<li>
+				<p id="dataLocation" class="question">
+					Where should I put my data?
+				</p>
+				<p>
+					Data should be available and accessible over internet.      
+				</p>
+				<p></p>
+			</li>
+			
+			<li>
+				<p id="fileFormats" class="question">
+					What all file formats are supported?
+				</p>
+				<p>
+					As of now only CSV file format is supported.       
+				</p>
+				<p></p>
+			</li>
+			
+			<li>
+				<p id="multipleJobs" class="question">
+					Can I submit multiple jobs in the one go?					
+				</p>
+				<p>Yes. You can submit a job matrix which contains more than one job/computation.</p>
+			</li>
+			
+		</ol>
+</div>

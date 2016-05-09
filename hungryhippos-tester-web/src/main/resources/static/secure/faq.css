@@ -1,0 +1,27 @@
+.faq h2{
+	padding: 10px 10px 10px 10px;
+}
+
+.faq .question{ 
+	font-weight: bold;
+	padding:2px 2px 2px 2px;
+}
+
+.faq .questionLink{
+	padding:5px 5px 5px 5px;
+}
+
+.faq .answer{
+	padding:0;
+	margin: 0;
+}
+
+.faq .sectionSeparator{
+	display: block;
+    height: 1px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+    margin: 1em 0;
+    margin: 20px 10px 0px 10px; 
+    padding-bottom: 2em;
+}

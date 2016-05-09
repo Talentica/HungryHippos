@@ -8,6 +8,7 @@
 
 body {
   background: #E5E9EC;
+  counter-reset: faqheading;
 }
 
 .container {
@@ -123,4 +124,8 @@ font-weight: bold;color: green;
 
 .accordinInsideAccordian{
 font-size: small;
+}
+
+.logo{
+	padding: 0px 15px 0px 15px;
 }

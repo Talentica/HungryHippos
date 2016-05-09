@@ -39,9 +39,9 @@ public class DownloadOutputMain {
 		LOGGER.info("SEND SIGNAL TO OUTPUT SERVER THAT ALL FILES ARE DOWNLOAED");
 		sendSignalForAllOutputFilesDownloaded(nodesManager);
 		LOGGER.info("SIGNAL SENT");
-		LOGGER.info("WAITING FOR THE SIGNAL OF TRANSFER AND ZIPPED FROM OUTPUT SERVER");
-		waitForSinalOfOutputFileZippedAndTransferred(nodesManager);
-		LOGGER.info("ALL OUTPUT FILE IS TRANSFFERED AND ZIPPED.");
+		/*LOGGER.info("WAITING FOR THE SIGNAL OF TRANSFER AND ZIPPED FROM OUTPUT SERVER");
+		waitForSignalOfOutputFileZippedAndTransferred(nodesManager);
+		LOGGER.info("ALL OUTPUT FILE IS TRANSFFERED AND ZIPPED.");*/
 	}
 	
 	/**
@@ -102,7 +102,7 @@ public class DownloadOutputMain {
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	private static void waitForSinalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
+	private static void waitForSignalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
 		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {

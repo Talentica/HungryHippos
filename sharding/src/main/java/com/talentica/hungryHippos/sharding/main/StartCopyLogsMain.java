@@ -38,7 +38,7 @@ public class StartCopyLogsMain {
 				.toAbsolutePath().toString()
 				+ PathUtil.FORWARD_SLASH;
 		String[] strArr = new String[] { "/usr/bin/python",
-				pythonScriptPath + "copy-all-logs-to-nginx.py", jobuuid, "&" };
+				pythonScriptPath + "copy-all-logs-to-nginx.py", jobuuid};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Done.");
 	}

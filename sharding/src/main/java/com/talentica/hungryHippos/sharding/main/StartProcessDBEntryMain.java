@@ -44,7 +44,7 @@ public class StartProcessDBEntryMain {
 				+ PathUtil.FORWARD_SLASH;
 		String[] strArr = new String[] { "/usr/bin/python",
 				pythonScriptPath + "processes-db-entries.py", jobuuid,
-				webserverIp , "&"};
+				webserverIp};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("DB entry is initiated.");
 	}

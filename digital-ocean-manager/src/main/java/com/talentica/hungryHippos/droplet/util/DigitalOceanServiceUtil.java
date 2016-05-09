@@ -400,6 +400,7 @@ public class DigitalOceanServiceUtil {
 		keyValue.put("input.file.size","55537404");
 		keyValue.put("job.matrix.class","com.talentica.hungryHippos.test.sum.SumJobMatrixImpl");
 		keyValue.put("job.uuid","NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5T");
+		keyValue.put("common.column.names", getColumnsConfiguration("STRING-1,STRING-1,STRING-1,STRING-3,STRING-3,STRING-3,DOUBLE-0,DOUBLE-0,STRING-5"));
 		return keyValue;
 	}
 

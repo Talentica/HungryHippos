@@ -128,4 +128,11 @@ font-size: small;
 
 .logo{
 	padding: 0px 15px 0px 15px;
+	max-height: 100%;
+	max-width: 100%;
+}
+
+.logout{
+	margin-left: 10px;
+	margin-right: 10px;
 }

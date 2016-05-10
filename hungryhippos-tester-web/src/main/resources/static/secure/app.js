@@ -78,5 +78,6 @@ app.config(function($routeProvider, $locationProvider) {
 		  })
 	  .when('/faq', {
 		    templateUrl: 'faq.html',
+		    controller: 'FaqCtrl'
 		  })
 });

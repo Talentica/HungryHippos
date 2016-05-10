@@ -26,6 +26,18 @@
 				Can I submit multiple jobs in the one go?
 			</a>
 		</li>
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#languagesSupported">
+				Which languages can I write job matrix implementation in?   
+			</a>
+		</li>
+		
+		<li>
+			<a class="questionLink" href="/secure/welcome.html#/faq#whatToImplementForJobMatrix">
+				What code do I need to write for job matrix?    
+			</a>
+		</li>
+		
 
 
 	</ol>
@@ -40,7 +52,7 @@
 				<p id="kindOfJobsCanRun" class="question">
 					What kind of jobs can I run on Hungry Hippos platform?
 				</p>
-				<p class="answer">You can run almost all jobs that you can run on Hadoop platform.</p>
+				<p class="answer">You can run almost all types of jobs that you can run on Hadoop platform.</p>
 				<p></p>
 			</li>
 			
@@ -49,9 +61,11 @@
 					What is the maximum size of data for which I can submit jobs for, using this tester web application?
 				</p>
 				<p>
-					It really depends on RAM and CPU requirement of job/computation you are trying to perform. But as this tool is made available for testing purposes, 
-					you can run jobs of maximum data size of 30 GB and computations that can be accommodated in 2GB RAM on one node.
-					This limitation is because when you submit a job, we create a 10 nodes cluster with each node having 2GB RAM and 40 GB hard disk.     
+					It really depends on RAM and CPU requirement of job/computation you are trying to perform. 
+					But as this application is made available for testing purposes right now, 
+					you can run jobs of maximum data size of 30 GB and computations that can be run on 2GB RAM on one node.
+					This limitation is because when you submit a job, we create a 10 nodes cluster with each node having 2GB RAM 
+					and 40 GB hard disk.     
 				</p>
 				<p>We have successfully tested computations on data of size of 10GB for sum and median metric calculations.</p>
 			</li>
@@ -61,7 +75,7 @@
 					Where should I put my data?
 				</p>
 				<p>
-					Data should be available and accessible over internet.      
+					Your data should be available and accessible over internet.      
 				</p>
 				<p></p>
 			</li>
@@ -80,8 +94,27 @@
 				<p id="multipleJobs" class="question">
 					Can I submit multiple jobs in the one go?					
 				</p>
-				<p>Yes. You can submit a job matrix which contains more than one job/computation.</p>
+				<p>Yes. You can submit a job matrix which contains more than one job definitions.</p>
 			</li>
 			
+			<li>
+				<p id="languagesSupported" class="question">
+						Which languages can I write job matrix implementation in?			
+				</p>
+				<p>As of now, only 'Java' is supported.</p>
+			</li>
+			
+			<li>
+				<p id="whatToImplementForJobMatrix" class="question">
+						What code do I need to write for job matrix?			
+				</p>
+				<p>
+					You need to provide your own implementation of com.talentica.hungryHippos.client.job.JobMatrix interface.
+					Please download the current version of hungry hippos client JAR from <a href="{{client_jar_location}}">here</a>  
+				</p>
+				<p>
+					You can also refer to few sample job matrix implementations from <a href="{{test_job_matrix_jar_location}}">here</a>.
+				</p> 
+			</li>
 		</ol>
 </div>

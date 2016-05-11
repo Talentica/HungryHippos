@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.httpclient.HttpException;
 import org.slf4j.Logger;
@@ -323,6 +324,8 @@ public class DigitalOceanServiceUtil {
 		
 		String formatFlag = Property.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
+		int retryCounter = Integer.valueOf(Property.getZkPropertyValue(
+				"zk.zookeeper.retry").toString());
 		if (Property.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
@@ -336,7 +339,20 @@ public class DigitalOceanServiceUtil {
 			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
 			startZookeeperServer(jobUUId[0]);
-			LOGGER.info("Zookeeper server started...");
+			LOGGER.info("Checking zookeeper running status on master server...");
+			String zkStatus = checkZookeeperServerStatus(jobUUId[0]);
+				while (zkStatus.toLowerCase().contains("Error".toLowerCase())) {
+					startZookeeperServer(jobUUId[0]);
+					zkStatus = checkZookeeperServerStatus(jobUUId[0]);
+					retryCounter--;
+					if(retryCounter == 0){
+						LOGGER.info("Unable to start the zookeeper server. Now copying the logs file to ngnix server.");
+						callCopyFailureShellScript(jobUUId[0]);
+						callCopySuccessShellScript(jobUUId[0]);
+						break;
+					}
+				}
+			LOGGER.info("Zookeeper server started and status is {}...",zkStatus);
 			LOGGER.info("Creating default nodes");
 			if (nodesManager == null) {
 				CommonUtil.loadDefaultPath(jobUUId[0]);
@@ -350,8 +366,8 @@ public class DigitalOceanServiceUtil {
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
-			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
-			// uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
+			//uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
+			uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			LOGGER.info("Conf file is uploaded...");
 			List<String> webServerIp = new ArrayList<String>();
 			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
@@ -441,6 +457,19 @@ public class DigitalOceanServiceUtil {
 		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh",jobuuid};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Shell command is executed");
+	}
+	
+	
+	/**
+	 * @throws IOException
+	 */
+	private static String checkZookeeperServerStatus(String jobuuid) throws IOException {
+		LOGGER.info("Executing shell command to check the zookeeper server status");
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"zk-server-status.sh",jobuuid};
+		String retStatus = CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Shell command is executed");
+		return retStatus;
 	}
 	
 	/**
@@ -579,6 +608,26 @@ public class DigitalOceanServiceUtil {
 			return null;
 		}
 		return dropletIds;
+	}
+	
+	public static void callCopySuccessShellScript(String jobuuid) {
+		String downloadScriptPath = Paths.get("../bin")
+				.toAbsolutePath().toString()
+				+ PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] { "/bin/sh",
+				downloadScriptPath + "copy-logs-success.sh", jobuuid };
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Copying success logs are initiated");
+	}
+	
+	public static void callCopyFailureShellScript(String jobuuid) {
+		String downloadScriptPath = Paths.get("../bin")
+				.toAbsolutePath().toString()
+				+ PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] { "/bin/sh",
+				downloadScriptPath + "copy-log-failure.sh", jobuuid };
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Copying failure logs are initiated");
 	}
 
 }

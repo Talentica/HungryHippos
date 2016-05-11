@@ -340,7 +340,7 @@ public class DigitalOceanServiceUtil {
 			startZookeeperServer(jobUUId[0]);
 			LOGGER.info("Checking zookeeper running status on master server...");
 			String zkStatus = checkZookeeperServerStatus(jobUUId[0]);
-			while (!zkStatus.toLowerCase().contains("Mode".toLowerCase()) || zkStatus.toLowerCase().contains("Error".toLowerCase())) {
+			while (!zkStatus.toLowerCase().contains("Mode".toLowerCase())) {
 					startZookeeperServer(jobUUId[0]);
 					zkStatus = checkZookeeperServerStatus(jobUUId[0]);
 					retryCounter--;

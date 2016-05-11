@@ -133,6 +133,9 @@ public class FileReader implements Reader {
 
 	private boolean isNewLine(byte readByte, int fieldIndex) throws IOException {
 		char[] windowsLineseparatorChars = OsUtils.WINDOWS_LINE_SEPARATOR_CHARS;
+		if (windowsLineseparatorChars[1] == readByte) {
+			return true;
+		}
 		boolean newLine = (windowsLineseparatorChars[0] == readByte);
 		if (newLine) {
 			for (int i = 1; i < windowsLineseparatorChars.length; i++) {

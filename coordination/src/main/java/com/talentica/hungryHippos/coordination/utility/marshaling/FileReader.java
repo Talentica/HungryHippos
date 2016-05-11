@@ -11,6 +11,7 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.utility.OsUtils;
 
 /**
  * Created by debasishc on 22/6/15.
@@ -22,7 +23,6 @@ public class FileReader implements Reader {
 	private int readCount = -1;
 	private int numfields;
 	private MutableCharArrayString[] buffer;
-	private static final char[] LINE_SEPARATOR_CHARS = System.getProperty("line.separator").toCharArray();
 
 	@SuppressWarnings("resource")
 	public FileReader(String filepath) throws IOException {
@@ -132,9 +132,10 @@ public class FileReader implements Reader {
 	}
 
 	private boolean isNewLine(byte readByte, int fieldIndex) throws IOException {
-		boolean newLine = (LINE_SEPARATOR_CHARS[0] == readByte);
+		char[] windowsLineseparatorChars = OsUtils.WINDOWS_LINE_SEPARATOR_CHARS;
+		boolean newLine = (windowsLineseparatorChars[0] == readByte);
 		if (newLine) {
-			for (int i = 1; i < LINE_SEPARATOR_CHARS.length; i++) {
+			for (int i = 1; i < windowsLineseparatorChars.length; i++) {
 				if (readCount <= 0) {
 					buf.clear();
 					readCount = channel.read(buf);
@@ -147,7 +148,7 @@ public class FileReader implements Reader {
 					buf.flip();
 				}
 				byte nextChar = readNextChar();
-				newLine = newLine && (LINE_SEPARATOR_CHARS[i] == nextChar);
+				newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
 			}
 		}
 		return newLine;

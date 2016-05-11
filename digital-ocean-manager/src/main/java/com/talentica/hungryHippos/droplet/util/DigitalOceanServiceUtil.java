@@ -365,8 +365,7 @@ public class DigitalOceanServiceUtil {
 			uploadServerConfigFileToZK();
 			LOGGER.info("Server conf file is uploaded");
 			LOGGER.info("Uploading dynamic conf file to zk node");
-			//uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
-			uploadDynamicConfigFileToZk(getHardCodePropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
+			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			LOGGER.info("Conf file is uploaded...");
 			List<String> webServerIp = new ArrayList<String>();
 			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
@@ -406,19 +405,6 @@ public class DigitalOceanServiceUtil {
 		return columnsConfiguration;
 	}
 	
-	private static Map<String, String> getHardCodePropertyKeyValueFromJobByHHTPRequest(String jobUUId)
-			throws HttpException, IOException {
-		Map<String,String> keyValue = new HashMap<String, String>();
-		keyValue.put("input.file.url.link","http://192.241.248.197/input/sampledata.txt");
-		keyValue.put("common.sharding_dimensions","key1,key2,key3");
-		keyValue.put("column.datatype-size","STRING-1,STRING-1,STRING-1,STRING-3,STRING-3,STRING-3,DOUBLE-0,DOUBLE-0,STRING-5");
-		keyValue.put("input.file.size","55537404");
-		keyValue.put("job.matrix.class","com.talentica.hungryHippos.test.sum.SumJobMatrixImpl");
-		keyValue.put("job.uuid","NzFiNzdlM2MtMDgwMC00N2M3LTkzOTgtN2Y1YWU4ZmQ5T");
-		keyValue.put("common.column.names", getColumnsConfiguration("STRING-1,STRING-1,STRING-1,STRING-3,STRING-3,STRING-3,DOUBLE-0,DOUBLE-0,STRING-5"));
-		return keyValue;
-	}
-
 	/**
 	 * @param digitalOceanManager
 	 * @throws IOException

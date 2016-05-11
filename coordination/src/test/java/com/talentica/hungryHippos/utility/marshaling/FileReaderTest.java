@@ -23,6 +23,8 @@ public class FileReaderTest {
 
 	private FileReader fileReaderWithBlankLineAtEOF;
 
+	private FileReader testSampleFileGeneratedOnWindows;
+
 	@Before
 	public void setUp() throws IOException {
 		ClassLoader classLoader = this.getClass().getClassLoader();
@@ -37,6 +39,11 @@ public class FileReaderTest {
 				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), dataDescription);
 		fileReaderWithBlankLineAtEOF = new FileReader(
 				new File(classLoader.getResource("testSampleInputWithBlankLineAtEOF.txt").getPath()), dataDescription);
+		DataDescription dataDescriptionWindowsTestFile = FieldTypeArrayDataDescription
+				.createDataDescription("STRING-3,LONG-0".split(","));
+		testSampleFileGeneratedOnWindows = new FileReader(
+				new File(classLoader.getResource("testSampleFileGeneratedOnWindows.txt").getPath()),
+				dataDescriptionWindowsTestFile);
 	}
 
 	@Test
@@ -99,12 +106,28 @@ public class FileReaderTest {
 		Assert.assertEquals(999993, numberOfLines);
 	}
 
+	@Test
+	public void testReadFileCreatedOnWindows() throws IOException {
+		int numberOfLines = 0;
+		while (true) {
+			MutableCharArrayString[] data = testSampleFileGeneratedOnWindows.read();
+			if (data == null) {
+				break;
+			}
+			Assert.assertEquals(1, data[0].length());
+			Assert.assertEquals(2, data[1].length());
+			numberOfLines++;
+		}
+		Assert.assertEquals(5, numberOfLines);
+	}
+
 	@After
 	public void tearDown() throws IOException {
 		fileReader.close();
 		fileReaderBlankLinesFile.close();
 		fileReaderBlankLineAtEofFile.close();
 		fileReaderWithBlankLineAtEOF.close();
+		testSampleFileGeneratedOnWindows.close();
 	}
 
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.httpclient.HttpException;
 import org.slf4j.Logger;
@@ -341,7 +340,7 @@ public class DigitalOceanServiceUtil {
 			startZookeeperServer(jobUUId[0]);
 			LOGGER.info("Checking zookeeper running status on master server...");
 			String zkStatus = checkZookeeperServerStatus(jobUUId[0]);
-				while (zkStatus.toLowerCase().contains("Error".toLowerCase())) {
+				while (!zkStatus.toLowerCase().contains("Mode".toLowerCase()) || zkStatus.toLowerCase().contains("Error".toLowerCase())) {
 					startZookeeperServer(jobUUId[0]);
 					zkStatus = checkZookeeperServerStatus(jobUUId[0]);
 					retryCounter--;

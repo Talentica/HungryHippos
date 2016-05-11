@@ -33,12 +33,11 @@ public class StartCopyLogsMain {
 	private static void callCopyLogsScript() {
 		LOGGER.info("Calling script file to start the logs file");
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String pythonScriptPath = Paths
-				.get("/root/hungryhippos/scripts/python_scripts")
-				.toAbsolutePath().toString()
+		String sqlServerIp = Property.getProperties().getProperty("common.webserver.ip");
+		String pythonScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()
 				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/usr/bin/python",
-				pythonScriptPath + "copy-all-logs-to-nginx.py", jobuuid};
+		String[] strArr = new String[] { "/usr/bin/python", pythonScriptPath + "copy-all-logs-to-nginx.py", jobuuid,
+				sqlServerIp };
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Done.");
 	}

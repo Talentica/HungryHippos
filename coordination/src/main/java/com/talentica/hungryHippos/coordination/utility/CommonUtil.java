@@ -211,20 +211,23 @@ public class CommonUtil {
 	 * 
 	 * @param shellCommand
 	 */
-	public static void executeScriptCommand(String[] strArr) {
+	public static String executeScriptCommand(String[] strArr) {
+		String line = "";
+		String retResult = "";
 		try {
 			Runtime rt = Runtime.getRuntime();
 			Process pr = rt.exec(strArr, null, null);
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
 			pr.waitFor();
-			String line = "";
 			while ((line = input.readLine()) != null) {
+				retResult = retResult + line;
 				LOGGER.info(line);
 			}
 		} catch (Exception e) {
 			LOGGER.info("Execption {}", e);
 		}
+		return retResult;
 	}
 
 	public static String getJobUUIdInBase64(String jobUUId) {

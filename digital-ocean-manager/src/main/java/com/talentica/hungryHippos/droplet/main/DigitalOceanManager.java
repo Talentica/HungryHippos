@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.droplet.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,6 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * @author PooshanS
@@ -53,13 +51,13 @@ public class DigitalOceanManager {
 			DigitalOceanServiceUtil.performServices(dropletService,
 					dropletEntity, jobUUId);
 			if(dropletEntity.getRequest().getRequest().toUpperCase().equals("CREATE")){
-				callCopySuccessShellScript(jobUUId);
+				DigitalOceanServiceUtil.callCopySuccessShellScript(jobUUId);
 			}
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {
 			LOGGER.info("Unable to perform the operations {}", e);
-			callCopyFailureShellScript(jobUUId);
+			DigitalOceanServiceUtil.callCopyFailureShellScript(jobUUId);
 		}
 	}
 
@@ -88,24 +86,5 @@ public class DigitalOceanManager {
 		}
 	}
 
-	private static void callCopySuccessShellScript(String jobuuid) {
-		String downloadScriptPath = Paths.get("../bin")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/bin/sh",
-				downloadScriptPath + "copy-logs-success.sh", jobuuid };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Copying success logs are initiated");
-	}
-	
-	private static void callCopyFailureShellScript(String jobuuid) {
-		String downloadScriptPath = Paths.get("../bin")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/bin/sh",
-				downloadScriptPath + "copy-log-failure.sh", jobuuid };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Copying failure logs are initiated");
-	}
 
 }

@@ -8,5 +8,5 @@ ssh -o StrictHostKeyChecking=no root@$ngnixip "cd $success_logspath;mkdir $jobuu
 echo "done."
 
 echo "copying success logs..."
-scp -o StrictHostKeyChecking=no ./$jobuuid/*.out root@$ngnixip:$success_logspath/$jobuuid/
+scp -o StrictHostKeyChecking=no ../lib/$jobuuid/*.out root@$ngnixip:$success_logspath/$jobuuid/
 echo "done."

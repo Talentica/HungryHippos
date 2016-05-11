@@ -52,6 +52,13 @@ public class JobExecutor {
 			LOGGER.info("Start Node initialize");
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
+
+			// TODO: Trying negative testing.
+			if (NodeUtil.getNodeId() == 0) {
+				throw new RuntimeException(
+						"Either very less memory is available to run jobs or the amount of threshold memory configured is too high.");
+			}
+
 			for (JobEntity jobEntity : jobEntities) {
 				Object[] loggerJobArgument = new Object[] { jobEntity
 						.getJobId() };

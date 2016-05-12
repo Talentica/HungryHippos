@@ -27,10 +27,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		AuthenticationFailureHandler authenticationFailureHandler = new AuthenticationFailureHandler();
-		http.anonymous().disable().csrf().disable().authorizeRequests().antMatchers("/secure/**").authenticated().and()
-				.formLogin().permitAll().defaultSuccessUrl("/secure/welcome.html#/about")
-				.successHandler(new AuthenticationSuccessHandler())
-				.failureHandler(authenticationFailureHandler).and().logout().logoutSuccessUrl("/index.html");
+		http.csrf().disable().authorizeRequests().antMatchers("/secure/**").authenticated().and().formLogin()
+				.loginPage("/index.html").loginProcessingUrl("/login").permitAll()
+				.defaultSuccessUrl("/secure/welcome.html#/about")
+				.successHandler(new AuthenticationSuccessHandler()).failureHandler(authenticationFailureHandler).and()
+				.httpBasic().and().logout().logoutSuccessUrl("/index.html");
 	}
 
 	public class AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {

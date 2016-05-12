@@ -4,7 +4,11 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * Created by debasishc on 9/9/15.
+ * This class represent the key-index and value pair.
+ * 
+ * @version 0.5.0
+ * @author debasishc
+ * @since 2015-09-09
  */
 public class ValueSet implements Comparable<ValueSet>, Serializable {
 	/**
@@ -16,11 +20,25 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 
 	private Comparable[] values;
 
+	/**
+	 * Constructor of ValueSet.
+	 * 
+	 * @param keyIndexes
+	 *            is the index of the particular records under aggregation.
+	 * @param values
+	 *            is the corresponding value of the keyIndexes.
+	 */
 	public ValueSet(int[] keyIndexes, Comparable[] values) {
 		this.keyIndexes = keyIndexes;
 		setValues(values);
 	}
 
+	/**
+	 * Constructor of ValueSet.
+	 * 
+	 * @param keyIndexes
+	 *            is the index of the particular records under aggregation.
+	 */
 	public ValueSet(int[] keyIndexes) {
 		this.keyIndexes = keyIndexes;
 		this.values = new Comparable[keyIndexes.length];
@@ -34,13 +52,20 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 			return false;
 		ValueSet valueSet = (ValueSet) o;
 		// Probably incorrect - comparing Object[] arrays with Arrays.equals
-		return Arrays.equals(values, valueSet.values) & Arrays.equals(keyIndexes, valueSet.keyIndexes);
+		return Arrays.equals(values, valueSet.values)
+				& Arrays.equals(keyIndexes, valueSet.keyIndexes);
 	}
 
 	public Object[] getValues() {
 		return values;
 	}
 
+	/**
+	 * To set the values of the particular keyIndexes.
+	 * 
+	 * @param values
+	 *            is the value of the particular keyIndexes.
+	 */
 	public void setValues(Comparable[] values) {
 		this.values = values;
 		if (values != null) {
@@ -50,6 +75,14 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 		}
 	}
 
+	/**
+	 * To set the value at particular index.
+	 * 
+	 * @param value
+	 *            at particular index.
+	 * @param index
+	 *            of the record.
+	 */
 	public void setValue(Object value, int index) {
 		if (value instanceof MutableCharArrayString) {
 			this.values[index] = ((MutableCharArrayString) value).clone();
@@ -72,7 +105,8 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("ValueSet{");
-		if (keyIndexes != null && values != null && keyIndexes.length == values.length) {
+		if (keyIndexes != null && values != null
+				&& keyIndexes.length == values.length) {
 			for (int count = 0; count < keyIndexes.length; count++) {
 				if (count != 0) {
 					result.append(",");

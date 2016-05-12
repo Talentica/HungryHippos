@@ -2,7 +2,7 @@
 # first argument is {job_matrix}, second argument is {jobuuid}
 jobUuid=$1
 jobMatrixClassName=$2
-webserverIp=$3
+mysqlIp=$3
 
 echo '################          Create droplets      ################'
 sh create_droplets.sh $jobUuid
@@ -31,6 +31,11 @@ echo '################          Job manager setup completed      ###############
 echo '################          Nodes setup started      ################'
 sh setup-nodes.sh $jobUuid
 echo '################          Nodes setup completed      ################'
+
+echo '################ 			Start scheduler to for clean up of inactive jobs ################'
+hours=6
+sh scheduler-to-cleanup.sh $jobUuid $mysqlIp $hours
+echo '################  		Scheduler started   	 ################'
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
 sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid

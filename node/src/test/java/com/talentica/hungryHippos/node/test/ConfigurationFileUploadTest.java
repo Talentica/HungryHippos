@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
@@ -35,6 +35,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
  * @author PooshanS
  *
  */
+@Ignore
 public class ConfigurationFileUploadTest {
 
 	private NodesManager nodesManager;

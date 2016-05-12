@@ -1,11 +1,13 @@
 package com.talentica.hungryHippos.sharding;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 
+@Ignore
 public class BucketsCalculatorTest {
 
 	@Test

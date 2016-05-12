@@ -6,10 +6,12 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 
+@Ignore
 public class ServerUtilsTest {
 	
 	@Test

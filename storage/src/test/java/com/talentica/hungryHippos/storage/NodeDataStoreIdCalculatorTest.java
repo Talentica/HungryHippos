@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
@@ -19,6 +20,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
+@Ignore
 public class NodeDataStoreIdCalculatorTest {
 
 	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;

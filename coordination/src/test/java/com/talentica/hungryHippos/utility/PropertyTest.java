@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.utility;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
@@ -14,6 +15,7 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  * @author nitink
  *
  */
+@Ignore
 public class PropertyTest{
 	
 	@Test

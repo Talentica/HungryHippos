@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0'
+
 
 apply plugin: 'java'
 
@@ -10,7 +9,6 @@ repositories {
 }
 
 jar {
-	archiveName='sharding.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

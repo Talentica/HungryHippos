@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
@@ -16,6 +17,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
+@Ignore
 public class DynamicMarshalTest {
 	private DynamicMarshal dynamicmarshal;
 	private ByteBuffer bytebuffer;

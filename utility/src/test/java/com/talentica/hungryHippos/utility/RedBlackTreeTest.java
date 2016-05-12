@@ -4,10 +4,12 @@ import java.util.Iterator;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 
+@Ignore
 public class RedBlackTreeTest {
 
 	private RedBlackTree<Integer, String> redBlackTree = null;

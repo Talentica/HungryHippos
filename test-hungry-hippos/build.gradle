@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
@@ -20,7 +19,6 @@ dependencies {
 
   
 jar {
-	archiveName='test-jobs.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

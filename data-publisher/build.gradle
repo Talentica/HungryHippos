@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0'
+
 
 apply plugin: 'java'
 
@@ -15,7 +14,6 @@ sourceSets {
   }
   
 jar {
-	archiveName='data-publisher.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

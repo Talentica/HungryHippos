@@ -10,6 +10,7 @@ import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import com.talentica.hungryHippos.coordination.utility.Property;
  * @author PooshanS
  *
  */
+@Ignore
 public class StartZookeeperTest {
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(StartZookeeperTest.class);
@@ -41,6 +43,7 @@ public class StartZookeeperTest {
 		configuration.readFrom(quorumConfiguration);
 
 		new Thread() {
+			@Override
 			public void run() {
 				try {
 					zooKeeperServer.runFromConfig(configuration);

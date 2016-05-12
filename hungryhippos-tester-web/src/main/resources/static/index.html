@@ -80,7 +80,7 @@
 				        <h4 class="centerAlignedText">Already have an account?</h4>
 				        <div class="alert alert-danger" ng-show="loginErrorDetails.message">{{loginErrorDetails.message}}</div>
 				        <input ng-model="loginUserName" limit-to="45" required="required" type="email" placeholder="Please enter your email" class="input pass" name="username"/>
-				        <input ng-model="loginPassword" limit-to="15" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
+				        <input ng-model="loginPassword" min="8" limit-to="15" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
 				        <input type="button" ng-click="login();" value="Sign me in!" class="inputButton"/>
 				    </form>
 			    </div>

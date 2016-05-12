@@ -30,7 +30,11 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 		  $scope.errorDetails=null;
 	  }
 	  $scope.validateUser=function(ifValidCallback){
-		  if($scope.user.password!=$scope.confirmPassword){
+		  if($scope.user.password && $scope.user.password.length<8){
+			  $scope.setError({message:"Password should be of at least 8 characters."});
+			  $scope.user.password=null;
+			  $scope.confirmPassword=null;
+		  }else if($scope.user.password!=$scope.confirmPassword){
 			  $scope.setError({message:"Password and confirm password should match. Please try again."});
 			  $scope.user.password=null;
 			  $scope.confirmPassword=null;
@@ -63,6 +67,7 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 				  );
 			  }
 		  );
+		  usSpinnerService.stop('spinner-1');
 	  }
 	  
 	  $scope.loginUserName=null;

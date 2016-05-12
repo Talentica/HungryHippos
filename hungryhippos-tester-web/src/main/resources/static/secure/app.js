@@ -22,6 +22,10 @@ app.factory("JobOutputResource", function($resource) {
 	return $resource("/job/output/detail/:jobUuid");
 });
 
+app.factory("EnvironmentResource", function($resource) {
+	return $resource("/env/:getvalueof");
+});
+
 app.directive("limitTo", [function() {
     return {
         restrict: "A",

@@ -244,6 +244,21 @@ public class DigitalOceanServiceUtil {
 		if (image != null) {
 			dropletEntity.getDroplet().setImage(image);
 		}
+		if (dropletEntity.getGrantAllAccessBySSHKey()) {
+			getAndPopulateAllSshKeys(dropletService, dropletEntity);
+		}
+	}
+
+	/**
+	 * @param dropletService
+	 * @param dropletEntity
+	 * @throws DigitalOceanException
+	 * @throws RequestUnsuccessfulException
+	 */
+	private static void getAndPopulateAllSshKeys(
+			DigitalOceanServiceImpl dropletService,
+			DigitalOceanEntity dropletEntity) throws DigitalOceanException,
+			RequestUnsuccessfulException {
 		List<Key> newKeys = new ArrayList<Key>();
 		Keys fetchKeys = dropletService.getAvailableKeys(null);
 		if (fetchKeys != null && fetchKeys.getKeys() != null

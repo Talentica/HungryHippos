@@ -36,6 +36,8 @@ public class DigitalOceanEntity extends RateLimitBase {
 	private String snapshotName;
 	
 	private Image image;
+	
+	private Boolean grantAllAccessBySSHKey;
 
 	public Droplet getDroplet() {
 		return droplet;
@@ -107,6 +109,14 @@ public class DigitalOceanEntity extends RateLimitBase {
 
 	public void setImage(Image image) {
 		this.image = image;
+	}
+	
+	public Boolean getGrantAllAccessBySSHKey() {
+		return grantAllAccessBySSHKey;
+	}
+
+	public void setGrantAllAccessBySSHKey(Boolean grantAllAccessBySSHKey) {
+		this.grantAllAccessBySSHKey = grantAllAccessBySSHKey;
 	}
 
 	public List<Integer> getIdsAsList() {

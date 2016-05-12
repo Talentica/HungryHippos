@@ -14,7 +14,7 @@ public interface Work {
 	 * This method need to be implemented to perform particular type of the
 	 * aggregation such as sum, median etc.
 	 * 
-	 * @param executionContext
+	 * @param executionContext object as parameter.
 	 */
 	void processRow(ExecutionContext executionContext);
 
@@ -22,7 +22,7 @@ public interface Work {
 	 * This method need to be implemented to calculate and save the key-value
 	 * pairs in file.
 	 * 
-	 * @param executionContext
+	 * @param executionContext object as parameter.
 	 */
 	void calculate(ExecutionContext executionContext);
 

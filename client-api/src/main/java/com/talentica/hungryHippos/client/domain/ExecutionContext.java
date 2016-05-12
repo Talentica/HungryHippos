@@ -23,7 +23,7 @@ public interface ExecutionContext {
 	 * Method is used to get the value at particular index of the record of data
 	 * set.
 	 * 
-	 * @param index
+	 * @param index is the position of the particular value.
 	 * @return Value as object at particular index
 	 */
 	Object getValue(int index);
@@ -31,7 +31,7 @@ public interface ExecutionContext {
 	/**
 	 * To get the String value of the record at particular index of data set.
 	 * 
-	 * @param index
+	 * @param index is position of the particular value.
 	 * @return Custom mutable char array string
 	 */
 	MutableCharArrayString getString(int index);

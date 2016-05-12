@@ -48,8 +48,8 @@ public interface Job {
 	 * This method provides us the memory footprint which is required for
 	 * resource manager later on. However, this method is not in use now.
 	 * 
-	 * @param the
-	 *            rowCount of particular job matrix
+	 * @param rowCount
+	 *            of particular job matrix
 	 * @return the memory foot print.
 	 * @deprecated
 	 */

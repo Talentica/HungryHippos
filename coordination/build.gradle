@@ -15,6 +15,9 @@ ext {
   slf4jVersion = '1.7.10'
 }
 
+jar{
+	version=null
+}
 
 dependencies {
 	compile project (":utility")	

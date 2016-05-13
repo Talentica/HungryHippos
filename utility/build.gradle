@@ -16,6 +16,10 @@ task fatJar(type: Jar) {
     with jar
 }
 
+jar{
+	version=null
+}
+
 dependencies {
  	compile project (':client-api')
 	compile ('com.jcraft:jsch:0.1.53')

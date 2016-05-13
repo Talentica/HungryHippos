@@ -5,6 +5,7 @@ import subprocess
 import time
 import fileinput
 import MySQLdb
+from datetime import datetime
 from kazoo.client import KazooClient
 
 args=sys.argv
@@ -15,19 +16,34 @@ print "uuid:",uuid
 master_ip_file_path="/root/hungryhippos/"+uuid+"/master_ip_file"
 nginx_server_path="/root/hungryhippos/scripts/conf/nginx.txt"
 
+## Reading IP of Zookeeper
 f=open(master_ip_file_path)
 
 for line in f:
     hostname=line.strip()
 
+## Starting Kazoo Client
 zk = KazooClient(hosts=hostname)
 zk.start()
 
+## Reading IP of nginx server
 f1=open(nginx_server_path)
 
 for l in f1:
-    nginx_ip=line.strip()
+    nginx_ip=l.strip()
     break
+
+## Getting list of node_ip's and node_id's of all Data Nodes
+server_list=dict()
+
+serverConfig_path="/root/hungryhippos/"+uuid+"/serverConfigFile.properties"
+f=open(serverConfig_path)
+
+for i in f:
+    a=i.split(":")[1]
+    b=i.split(".")[1]
+    c=b.split(":")[0]
+    server_list[int(c)]=a
 
 
 ##########################################	SHARDING	##########################################
@@ -144,7 +160,7 @@ def failed_status_data_publishing():
 
 ##########################################      JOB EXECUTION      ##########################################
 
-def in_progress_job_execution():
+def process_instance_job_execution():
     cur = db.cursor()
     sql= """
     insert into
@@ -155,6 +171,37 @@ def in_progress_job_execution():
 
     cur.execute(sql, (uuid, ))
     db.commit()
+
+def in_progress_job_execution(job_uuid,server_id,server_ip,end_time):
+    cur = db.cursor()
+    sql1= """
+    insert into
+        process_instance_detail(process_instance_id,node_id,node_ip,status,execution_start_time)
+    values
+        ((Select process_instance_id from process_instance a, process b,job c
+          where a.process_id=b.process_id
+          and a.job_id=c.job_id
+          and c.job_uuid= %s
+          and b.name='JOB_EXECUTION')
+          ,%s,%s,"IN_PROGRESS",%s)"""
+
+    cur.execute(sql1, (job_uuid,server_id,server_ip,end_time))
+    db.commit()
+
+##########################################	OUTPUT TRANSFER      ##########################################
+
+def process_instance_output_transfer():
+    cur = db.cursor()
+    sql= """
+    insert into
+        process_instance(process_id,job_id)
+    values
+        ((select process_id from process where name='OUTPUT_TRANSFER'),
+         (select job_id from job where job_uuid= %s))"""
+
+    cur.execute(sql, (uuid, ))
+    db.commit()
+
 
 ##########################################	Update JOB table	##########################################
 
@@ -246,100 +293,113 @@ def watch_hosts(c):
 db = MySQLdb.connect(host=mysql_server_ip,user="mysql_admin",passwd="password123",db="hungryhippos_tester")
 
 count=0
+
+try:   
 ############## Sharding entries ##############
-
-while True:
-    if 'SAMPLING_COMPLETED' in child:
-        print "Sampling Finished. Making entry in DB for starting Sharding!!"
-	in_progress_sharding()	
-        break
-    else:
-        time.sleep(5)
-        count=count+1
-        print "count:",count
-
-while True:
-    if 'SHARDING_COMPLETED' in child:
-        print "Sharding Finished. Making entry in DB for Completed Status!!"
-	completed_status_sharding()
-	in_progress_data_publishing()
-        break
-
-    elif 'SHARDING_FAILED' in child:
-        print "Sharding Failed. Making entry in DB for Failed Status!!"
-	failed_status_sharding()
-        break
-
-    else:
-        time.sleep(5)
-        count=count+1
-        print "count:",count
-
-############## Data Publishing entries ##############
-
-while True:
-    if 'DATA_PUBLISHING_COMPLETED' in child:
-        print "Data Publishing Finished. Making entry in DB for Completed Status!!"
-        completed_status_data_publishing()
-	in_progress_job_execution()	
-        break
-
-    elif 'DATA_PUBLISHING_FAILED' in child:
-        print "Data Publishing Failed. Making entry in DB for Failed Status!!"
-        failed_status_data_publishing()
-        break
-
-    else:
-        time.sleep(5)
-        count=count+1
-        print "count:",count
-
-############## Job Execution entries ############## 
-
-while True:
-    if 'START_JOB_MATRIX' in child_hosts:
-        print "Job Execution started. Making entry in DB for IN_PROGRESS Status!!"
-	in_progress_job_execution()
-        break
-
-    else:
-        time.sleep(5)
-        count=count+1
-        print "count:",count
-
-############## Update Job table with end_time now ############## 
-
-while True:
-    if 'END_JOB_MATRIX' in child_hosts:
-        print "Job Execution sucessfully ended on all nodes. Making entry in DB!!"
-	update_job_table()
-        break
-
-    else:
-        time.sleep(10)
-        count=count+1
-        print "count:",count
-
-
-############## Zipping all output files and sending to nginx server ############## 
-
-while True:
-    if 'ALL_OUTPUT_FILES_DOWNLOADED' in child_hosts:
-        print "Output files ready to be Zipped!!"
-	zip_output_in_progress()
-        cmd="sh /root/hungryhippos/scripts/bash_scripts/zip-output-files.sh"+" "+uuid+" "+mysql_server_ip
-        rc=os.system(cmd)
-        if (rc==0): 
-	    zip_output_completed_status()
-            zipped_znode=path_hosts+"/"+"OUTPUT_FILES_ZIPPED_AND_TRANSFERRED"
-            zk.create(zipped_znode)
-	    break
-	else:
-	    print "Transferring zipped output failed!!"
-    	    zip_output_failed_status()
+    
+    while True:
+        if 'SAMPLING_COMPLETED' in child:
+            print "Sampling Finished. Making entry in DB for starting Sharding!!"
+            in_progress_sharding()
             break
-
-    else:
-        time.sleep(10)
-        count=count+1
-        print "count:",count
+        else:
+            time.sleep(5)
+            count=count+1
+            print "count:",count
+    
+    while True:
+        if 'SHARDING_COMPLETED' in child:
+            print "Sharding Finished. Making entry in DB for Completed Status!!"
+            completed_status_sharding()
+            in_progress_data_publishing()
+            break
+    
+        elif 'SHARDING_FAILED' in child:
+            print "Sharding Failed. Making entry in DB for Failed Status!!"
+            failed_status_sharding()
+            break
+    
+        else:
+            time.sleep(5)
+            count=count+1
+            print "count:",count
+    
+############## Data Publishing entries ##############
+    
+    while True:
+        if 'DATA_PUBLISHING_COMPLETED' in child:
+            print "Data Publishing Finished. Making entry in DB for Completed Status!!"
+            completed_status_data_publishing()
+    #       in_progress_job_execution()     
+            break
+    
+        elif 'DATA_PUBLISHING_FAILED' in child:
+            print "Data Publishing Failed. Making entry in DB for Failed Status!!"
+            failed_status_data_publishing()
+            break
+    
+        else:
+            time.sleep(5)
+            count=count+1
+            print "count:",count
+    
+############## Job Execution entries ############## 
+    
+    while True:
+        if 'START_JOB_MATRIX' in child:
+            print "Job Execution started. Making entry in DB for IN_PROGRESS Status!!"
+            process_instance_job_execution()
+	    zk.create("/rootnode/alertsnode/JOB_EXEC_ENTRY_DONE")
+            current_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+            for k,v in server_list.items():
+                in_progress_job_execution(uuid,k,v,current_time)
+    
+            #process_instance_output_transfer()
+            break
+    
+        else:
+            time.sleep(5)
+            count=count+1
+            print "count:",count
+    
+############## Update Job table with end_time now ############## 
+    
+    while True:
+        if 'END_JOB_MATRIX' in child_hosts:
+            print "Job Execution sucessfully ended on all nodes. Making entry in DB!!"
+            update_job_table()
+            break
+    
+        else:
+            time.sleep(10)
+            count=count+1
+            print "count:",count
+    
+    
+############## Zipping all output files and sending to nginx server ############## 
+    
+    while True:
+        if 'ALL_OUTPUT_FILES_DOWNLOADED' in child_hosts:
+            print "Output files ready to be Zipped!!"
+            zip_output_in_progress()
+            cmd="sh /root/hungryhippos/scripts/bash_scripts/zip-output-files.sh"+" "+uuid+" "+mysql_server_ip
+            rc=os.system(cmd)
+            if (rc==0):
+                zip_output_completed_status()
+                zipped_znode=path_hosts+"/"+"OUTPUT_FILES_ZIPPED_AND_TRANSFERRED"
+                zk.create(zipped_znode)
+                break
+            else:
+                print "Transferring zipped output failed!!"
+                zip_output_failed_status()
+                break
+    
+        else:
+            time.sleep(10)
+            count=count+1
+            print "count:",count
+except:
+    error_node="/rootnode/alertsnode/ERROR_ENCOUNTERED"
+    zk.create(error_node)
+    db.close()

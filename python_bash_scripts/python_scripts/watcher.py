@@ -53,23 +53,6 @@ def watch1(c):
     for i in c:
         child.add(i)
 
-## Function to insert "IN_PROGRESS" status for JOB_EXECUTION into DB
-def in_progress_job_execution():
-    cur = db.cursor()
-    sql1= """
-    insert into
-        process_instance_detail(process_instance_id,node_id,node_ip,status,execution_start_time)
-    values
-        ((Select process_instance_id from process_instance a, process b,job c
-          where a.process_id=b.process_id
-          and a.job_id=c.job_id
-          and c.job_uuid= %s
-          and b.name='JOB_EXECUTION')
-          ,%s,%s,"IN_PROGRESS",now())"""
-
-    cur.execute(sql1, (job_uuid,node_id,node_ip))
-    db.commit()
-
 ## Function to insert "Completed" status for JOB_EXECUTION into DB
 def completed_status_job_execution():
     cur = db.cursor()
@@ -78,11 +61,13 @@ def completed_status_job_execution():
     set a.status='COMPLETED',
         a.execution_end_time=now()
     where a.process_instance_id=b.process_instance_id
-    and a.node_id= %s
+    and a.node_ip= %s
     and b.job_id=(select job_id from job where job_uuid= %s)
     and b.process_id=(select process_id from process where name='JOB_EXECUTION')"""
 
-    cur.execute(sql_update, (node_id,job_uuid, ))
+    print "Inside completed_status_job_execution!! node_ip=",node_ip
+    print "UUID:",job_uuid
+    cur.execute(sql_update, (node_ip,job_uuid, ))
     db.commit()
 
 ## Function to insert "Failed" status for JOB_EXECUTION into DB
@@ -154,30 +139,42 @@ def failed_status():
 
 ## Connection to MySql Database 
 db = MySQLdb.connect(host=mysql_ip,user="mysql_admin",passwd="password123",db="hungryhippos_tester")
-in_progress_job_execution()
-in_progress()
+#in_progress()
 
 count=0
-while True:
-    if 'FINISH_JOB_MATRIX' in child:
-        print "finish found"
-	completed_status_job_execution()	
-        cmd="sh /root/hungryhippos/scripts/bash_scripts/copy-output-file.sh"+" "+str(node_id)+" "+job_uuid
-        print cmd
-        rc=os.system(cmd)
-        if (rc==0):
-            completed_status()
-            download_znode=path[1]+"/"+"DOWNLOAD_FINISHED"
-            zk.create(download_znode)
+try:
+    while True:
+        if 'FINISH_JOB_MATRIX' in child:
+            print "finish found"
+            completed_status_job_execution()
+	    in_progress()
+            cmd = "sh /root/hungryhippos/scripts/bash_scripts/copy-output-file.sh" + " " + str(node_id) + " " + job_uuid
+            print cmd
+            rc = os.system(cmd)
+            print "rc:", rc
+            if (rc == 0):
+                completed_status()
+                download_znode = path[1] + "/" + "DOWNLOAD_FINISHED"
+                print "download_znode:", download_znode
+                zk.create(download_znode)
+            else:
+                failed_status()
+            break
+    
+        elif 'FINISH_JOB_FAILED' in child:
+            failed_status_job_execution()
+            break
+    
         else:
-            failed_status()
-        break
+            time.sleep(5)
+            count = count + 1
+            print "count:", count
+except:
+    print "Script Failed due to some exception !!"
+    error_node="/rootnode/alertsnode/ERROR_ENCOUNTERED"
+    zk.create(error_node)
+    db.close()
 
-    elif 'FINISH_JOB_FAILED' in child:
-	failed_status_job_execution()
-	break
+finally:
+    db.close()
 
-    else:
-        time.sleep(5)
-        count=count+1
-        print "count:",count

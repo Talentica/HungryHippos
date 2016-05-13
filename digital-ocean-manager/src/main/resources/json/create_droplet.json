@@ -11,7 +11,7 @@
             "slug": "nyc2"
         },
         "image": {			
-            "name":"hh-deployable-demo-image"
+            "name":"hh-deployable-release-0.5.0"
         },
         "size": "2gb",
         "enableBackup": false,

@@ -19,6 +19,7 @@ dependencies {
 
   
 jar {
+	archiveName='test-jobs.jar'
 	version=null
     from {
         (configurations.runtime).collect {

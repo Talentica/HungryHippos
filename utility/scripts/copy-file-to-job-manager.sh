@@ -1,10 +1,11 @@
 #!/bin/bash
-
-job_manager_ip=`cat ./node_pwd_file.txt|grep "job_manager_ip"|awk -F":" '{print $2}'`
+file=$1
+jobUuid=$2
+job_manager_ip=`cat ../$jobUuid/master_ip_file`
 
 
 for node in `echo $job_manager_ip`
 do
    echo "Copying file to $node"
-   scp $1 root@$node:hungryhippos/job-manager
+   scp $file root@$node:hungryhippos/job-manager
 done

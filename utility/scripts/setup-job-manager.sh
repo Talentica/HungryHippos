@@ -1,9 +1,8 @@
 #!/bin/bash
-sh shut-down-job-manager.sh
-sh cleanup-job-manager.sh
-echo 'Copying common configuration file'
-sh copy-file-to-job-manager.sh ../../utility/src/main/resources/config.properties
+jobUuid=$1
+sh shut-down-job-manager.sh $jobUuid
+sh cleanup-job-manager.sh $jobUuid
 echo 'Copying new build'
-sh copy-file-to-job-manager.sh ../../job-manager/build/libs/job-manager.jar
+sh copy-file-to-job-manager.sh ../lib/job-manager.jar $jobUuid
 echo 'Copying test jobs jar'
-sh copy-file-to-job-manager.sh ../../test-hungry-hippos/build/libs/test-jobs.jar
+sh copy-file-to-job-manager.sh ../lib/$jobUuid/test-jobs.jar $jobUuid

@@ -1,7 +1,6 @@
 #!/bin/bash
-sh shut-down-data-publisher.sh
-sh cleanup-data-publisher.sh
-echo 'Copying common configuration file'
-sh copy-file-to-data-publisher.sh ../../utility/src/main/resources/config.properties
+jobuuid=$1
+sh shut-down-data-publisher.sh $jobuuid
+sh cleanup-data-publisher.sh $jobuuid
 echo 'Copying new build'
-sh copy-file-to-data-publisher.sh ../../data-publisher/build/libs/data-publisher.jar
+sh copy-file-to-data-publisher.sh ../lib/data-publisher.jar $jobuuid

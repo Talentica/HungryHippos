@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+
 
 apply plugin: 'java'
 
@@ -18,6 +17,10 @@ task fatJar(type: Jar) {
     baseName = project.name + '-all'
     from { configurations.compile.filter {!it.name.contains("hadoop")}.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+jar{
+	version=null
 }
 
 dependencies {

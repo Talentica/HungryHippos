@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
+import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Created by debasishc on 9/9/15.

@@ -1,0 +1,39 @@
+
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+	mavenCentral()
+}
+
+sourceCompatibility = 1.8
+
+sourceSets {
+    main {
+       output.resourcesDir = "build/classes/main"
+     }
+  }
+  
+jar {
+	version=null
+	archiveName='digital-ocean.jar'
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+	manifest {
+        attributes("Main-Class": "com.talentica.hungryHippos.droplet.main.DigitalOceanManager" )
+    }
+}
+
+dependencies {
+	compile project (':coordination')
+	compile project (':hungryhippos_tester-services-client')
+	compile 'com.myjeeva.digitalocean:digitalocean-api-client:2.3'
+	compile 'org.slf4j:slf4j-simple:1.7.19'
+	compile 'org.slf4j:slf4j-api:1.7.12'
+	compile 'log4j:log4j:1.2.17'
+	testCompile 'junit:junit:4.12'
+}

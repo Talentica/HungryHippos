@@ -122,3 +122,10 @@ hs_err_pid*
 
 
 /build/
+
+installation
+*~
+*orig
+.gitignore
+*.tar.gz
+/67CFF2F1-9A8A-4CD9-A23C-A5354492DCA9/

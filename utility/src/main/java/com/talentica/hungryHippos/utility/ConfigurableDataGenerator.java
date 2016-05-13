@@ -74,8 +74,6 @@ public class ConfigurableDataGenerator {
 
 		String filename = args[1];
 
-		long HUNDRED_MBS = 1024 * 1024 * 100;
-
 		ColumnConfig[] configs = new ColumnConfig[args.length - 2];
 
 		for (int i = 0; i < args.length - 2; i++) {

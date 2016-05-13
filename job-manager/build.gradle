@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+
 
 apply plugin: 'java'
 
@@ -10,7 +9,7 @@ repositories {
 }
 
 jar {
-	archiveName='job-manager.jar'
+	version=null
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)
@@ -20,7 +19,6 @@ jar {
 
 dependencies {
     compile project (':common')
-    compile project (':test-hungry-hippos')
     compile project (':coordination')
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

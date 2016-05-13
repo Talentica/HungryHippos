@@ -1,2 +1,2 @@
-job_manager_ip:192.241.169.102
-sharding_node_ip:192.241.169.102
+job_manager_ip:192.241.162.60
+sharding_node_ip:192.241.162.60

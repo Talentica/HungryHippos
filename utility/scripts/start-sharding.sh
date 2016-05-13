@@ -1,9 +1,22 @@
 #!/bin/bash
-sh start-zk-server.sh
-sharding_node_ip=`cat ./node_pwd_file.txt|grep "sharding_node_ip"|awk -F":" '{print $2}'`
+jobUuid=$1
+sh start-zk-server.sh $jobUuid
+sharding_node_ip=`cat ../$jobUuid/master_ip_file`
 
 for node in `echo $sharding_node_ip`
 do
+   echo "Starting script to copy logs file if any error/exception/success occurs.."
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.StartCopyLogsMain $jobUuid > ./system_copy_logs.out 2>./system_copy_logs.err &"
+   echo "Started.."
+   
+   echo "Starting process db entry script"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.StartProcessDBEntryMain $jobUuid > ./system_db_process_entry.out 2>./system_db_process_entry.err &"
+   echo "Started process db entry"
+
+   echo "Starting kazoo server"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.StartKazooScriptMain $jobUuid > ./system_kazoo_server.out 2>./system_kazoo_server.err &"
+   echo "Kazoo Server started"
+
    echo "Starting sharding on $node"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./ -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter > ./system.out 2>./system.err &"
-done	
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter $jobUuid > ./sharding_system.out 2>./sharding_system.err &"
+done

@@ -1,7 +1,8 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +11,12 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -33,12 +33,11 @@ public class DataReceiver {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
-	private NodesManager nodesManager;
-
 	private DataStore dataStore;
+	
+	private static NodesManager nodesManager;
 
 	public DataReceiver(DataDescription dataDescription) throws Exception {
-		nodesManager = ServerHeartBeat.init();
 		this.dataDescription = dataDescription;
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(),
 				dataDescription);
@@ -81,13 +80,23 @@ public class DataReceiver {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			validateArguments(args);
+			String jobUUId = args[0];
+			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
+			DataReceiver.nodesManager = Property.getNodesManagerIntances();
+			CountDownLatch signal = new CountDownLatch(1);
+			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
+					CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+			signal.await();
+
 			DataReceiver dataReceiver = getNodeInitializer();
-			dataReceiver.nodesManager.startup();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
-			String server = serverConfig.getFileData().getProperty("server." + nodeId);
+			Properties serverConfigProps = Property.loadServerProperties();
+			if (serverConfig != null) {
+				serverConfigProps = serverConfig.getFileData();
+			}
+			String server = serverConfigProps.getProperty("server." + nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);
 			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);
@@ -96,21 +105,22 @@ public class DataReceiver {
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occured while executing node starter program.", exception);
+			handleError();
 		}
 	}
 
 	/**
-	 * To validate the argument command line.
 	 * 
-	 * @param args
-	 * @throws IOException
 	 */
-	private static void validateArguments(String[] args) throws IOException, FileNotFoundException {
-		if (args.length == 1) {
-			Property.overrideConfigurationProperties(args[0]);
-		} else {
-			System.out.println("Please provide the zookeeper configuration file");
-			System.exit(1);
+	private static void handleError() {
+		String alertErrorEncounterDataReciever = DataReceiver.nodesManager
+				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			DataReceiver.nodesManager.createPersistentNode(alertErrorEncounterDataReciever, signal);
+			signal.await();
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the sharding failure path");
 		}
 	}
 
@@ -123,7 +133,7 @@ public class DataReceiver {
 	 */
 	private static DataReceiver getNodeInitializer() throws Exception {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		return new DataReceiver(dataDescription);
 	}
 

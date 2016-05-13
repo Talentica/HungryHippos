@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
-import com.talentica.hungryHippos.utility.server.ServerUtils;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;

@@ -10,15 +10,17 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.utility.Property;
 
+@Ignore
 public class NodeDataStoreIdCalculatorTest {
 
 	private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
@@ -69,7 +71,7 @@ public class NodeDataStoreIdCalculatorTest {
 			dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
 					Integer.valueOf(datatype.split("-")[1]));
 		}
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		return dataDescription;
 	}
 

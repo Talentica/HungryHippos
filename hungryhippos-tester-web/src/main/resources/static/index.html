@@ -1,3 +1,98 @@
-<!doctype html> <html> <head> <meta charset="utf-8"> <title></title> <meta name="description" content=""> <meta name="viewport" content="width=device-width"> <!-- Place favicon.ico and apple-touch-icon.png in the root directory --> <link rel="stylesheet" href="styles/vendor.2ac5f564.css"> <link rel="stylesheet" href="styles/main.16c86e60.css"> </head> <body ng-app="hungryhipposTesterWebappAngularApp"> <!--[if lte IE 8]>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hungry Hippos</title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width">
+<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+<!-- build:css(.) styles/vendor.css -->
+<!-- bower:css -->
+<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+<!-- endbower -->
+<!-- endbuild -->
+<!-- build:css(.tmp) styles/main.css -->
+<link rel="stylesheet" href="app.css">
+
+<!-- endbuild -->
+
+<!-- build:js(.) scripts/vendor.js -->
+	<!-- bower:js -->
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/angular/angular.min.js"></script>
+	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="bower_components/angular-resource/angular-resource.min.js"></script>
+	<script src="bower_components/angular-route/angular-route.min.js"></script>
+	<!-- endbower -->
+	<!-- endbuild -->
+	<!-- build:js({.tmp,app}) scripts/scripts.js -->
+	<!-- endbuild -->
+	<script src="loginCtrl.js"></script>
+	<script src="loginSrvc.js"></script>
+	<script src="main/common.js"></script>
+	<script src="bower_components/bootstrapvalidator/dist/js/bootstrapValidator.min.js"></script>
+	<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+	<script src="bower_components/angular-filter/dist/angular-filter.min.js"></script>
+	<script src="bower_components/spin.js/spin.min.js"></script>
+	<script src="bower_components/angular-spinner/angular-spinner.min.js"></script>
+</head>
+<body ng-app="loginApp" ng-controller="LoginCtrl">
+	<!--[if lte IE 8]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]--> <!-- Add your site or application content here --> <div class="header"> </div> <div class="container"> <div ng-include="'views/main.html'" ng-controller="MainCtrl"></div> </div> <div class="footer"> <div class="container"> </div> </div> <script src="scripts/vendor.d50c2517.js"></script> <script src="scripts/scripts.36b6fe88.js"></script> </body> </html>
+    <![endif]-->
+
+	<!-- Add your site or application content here -->
+	<div class="container-fluid">
+	  <div class="row">
+	  	  <div class="col-md-1" ></div>
+	  	  <div class="col-md-2" >
+
+	  	  </div>
+      </div>
+	  <div class="row">
+	  	  <div class="col-md-3" ></div>
+	      <div class="col-md-6">
+	        <h1>Welcome to Hungry Hippos</h1>
+          </div>
+	  </div>
+		<div class="row">
+			<div class="container">
+			    <div class="col-md-6">
+			    <div id="logbox">
+			      <form id="signup" ng-submit="register()">
+			        <h4 class="centerAlignedText">Create an account</h4>
+			
+			      	<div class="alert alert-danger" ng-show="errorDetails">{{errorDetails.message}}</div>
+					<div class="alert alert-success" ng-show="successDetails">{{successDetails.message}}</div>
+			        
+			        <input ng-model="user.firstName" type="text" limit-to="45" placeholder="What's your first name?" autofocus="autofocus" required="required" class="input pass"/>
+			        <input ng-model="user.lastName" type="text" limit-to="45" placeholder="What's your last name?" autofocus="autofocus" required="required" class="input pass"/>
+			        <input ng-model="user.emailAddress" type="email" limit-to="45" placeholder="Email address" required="required" class="input pass"/>
+					<input ng-model="user.password" type="password" limit-to="15"  placeholder="Choose a password" required="required" class="input pass"/>
+			        <input ng-model="confirmPassword" type="password" limit-to="15" placeholder="Confirm password" required="required" class="input pass"/>
+			        <input type="submit" value="Sign me up!" class="inputButton"/>
+			      </form>
+			    </div>
+			   </div>
+			   <div class="col-md-6">
+			    <div id="logbox">
+			    	<form id="signup" action="#" name="loginForm" method="post">
+				        <h4 class="centerAlignedText">Already have an account?</h4>
+				        <div class="alert alert-danger" ng-show="loginErrorDetails.message">{{loginErrorDetails.message}}</div>
+				        <input ng-model="loginUserName" limit-to="45" required="required" type="email" placeholder="Please enter your email" class="input pass" name="username"/>
+				        <input ng-model="loginPassword" min="8" limit-to="15" name="password" type="password" placeholder="Please enter your password" required="required" class="input pass"/>
+				        <input type="button" ng-click="login();" value="Sign me in!" class="inputButton"/>
+				    </form>
+			    </div>
+			   </div>
+			</div>   
+		</div> 
+		
+	</div>
+
+	<div class="footer">
+		<div class="container"></div>
+	</div>
+	<span us-spinner="{radius:30, width:8, length: 16}" spinner-key="spinner-1"></span>
+</body>
+</html>

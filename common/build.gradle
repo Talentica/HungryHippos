@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
@@ -11,6 +10,10 @@ sourceSets {
        output.resourcesDir = "build/classes/main"
      }
   }
+
+jar{
+	version=null
+}
 
 dependencies {	
 	compile project (':client-api')

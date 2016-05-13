@@ -22,7 +22,7 @@ public interface NodesJobsRunnable {
 	
 	void createNodeJobService() throws IOException, InterruptedException, KeeperException, ClassNotFoundException;
 	
-	void scheduleTaskManager() throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
+	void scheduleTaskManager(String jobUUId) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 	
 	public void addJob(JobEntity jobEntity);
 	
@@ -30,7 +30,7 @@ public interface NodesJobsRunnable {
 	
 	TaskManager getTaskManager();
 	
-	boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,CountDownLatch signal) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
+	boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,CountDownLatch signal,String jobUUId) throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 	
 	Set<LeafBean> receiveJobSucceedNotificationFromNode() throws InterruptedException, KeeperException, ClassNotFoundException, IOException;
 }

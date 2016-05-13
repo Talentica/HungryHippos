@@ -18,18 +18,19 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.ZKNodeName;
 
 public class JobManager {
 
-	private NodesManager nodesManager;
+	public static NodesManager nodesManager;
 
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 
@@ -50,15 +51,19 @@ public class JobManager {
 	 * 
 	 * @throws Exception
 	 */
-	public void start() throws Exception {
+	public void start(String jobUUId) throws Exception {
 		setBucketToNodeNumberMap();
 		LOGGER.info("Initializing nodes manager.");
-		(nodesManager = ServerHeartBeat.init()).startup();
 		LOGGER.info("SEND TASKS TO NODES");
-		sendJobsToNodes();
+		sendJobsToNodes(jobUUId);
 		LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
-		getFinishNodeJobsSignal();
+		sendSignalToAllNodesToStartJobMatrix();
+		LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
+		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name());
 		LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
+		LOGGER.info("SEND SIGNAL TO END JOB MATRIX");
+		sendSignalEndJobMatrix();
+		LOGGER.info("SIGNAL IS SENT");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -77,18 +82,40 @@ public class JobManager {
 	/**
 	 * Get finish jobs matrix signal.
 	 */
-	private void getFinishNodeJobsSignal() {
+	private void getFinishNodeJobsSignal(String nodeName) {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
 		Iterator<Node> nodesItr = nodeIdNodeMap.values().iterator();
 		while (nodesItr.hasNext()) {
 			Node node = nodesItr.next();
-			if (!getFinishSignal(node.getNodeId(), CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name())) {
+			if (!getSignalFromZk(node.getNodeId(), nodeName)) {
 				continue;
 			} 
 		}
 		LOGGER.info("ALL NODES FINISHED THE JOBS");
 	}
 
+	private void sendSignalToAllNodesToStartJobMatrix() throws InterruptedException{
+		CountDownLatch signal = new CountDownLatch(1);
+			try {
+				nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode()), signal);
+			} catch (IOException e) {
+				LOGGER.info("Unable to send the signal node on zk due to {}",e);
+			}
+		signal.await();
+	
+	}
+	
+	private void sendSignalEndJobMatrix() throws InterruptedException{
+		CountDownLatch signal = new CountDownLatch(1);
+		String basePath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH;
+			try {
+				nodesManager.createPersistentNode(basePath + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode(), signal);
+			} catch (IOException e) {
+				LOGGER.info("Unable to send the signal node on zk due to {}",e);
+			}
+		signal.await();
+	
+	}
 	/**
 	 * Get NodeId and Node Map.
 	 * 
@@ -113,7 +140,7 @@ public class JobManager {
 	 * @param finishNode
 	 * @return boolean
 	 */
-	private boolean getFinishSignal(Integer nodeId, String finishNode) {
+	private boolean getSignalFromZk(Integer nodeId, String finishNode) {
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
 		try {
@@ -133,15 +160,25 @@ public class JobManager {
 	 * @throws InterruptedException
 	 * @throws KeeperException
 	 */
-	private void sendJobsToNodes() throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
+	private void sendJobsToNodes(String jobUUId) throws ClassNotFoundException, IOException, InterruptedException, KeeperException {
 		Map<Integer, Node> nodeIdNodeMap = getNodeIdNodesMap();
+		
 		for (Integer nodeId : nodeIdNodeMap.keySet()) {
 			if (jobEntities == null || jobEntities.isEmpty())
 				continue;
+			CountDownLatch signal = new CountDownLatch(1);
+			String buildPath = ZKUtils.buildNodePath(nodeId)
+					+ PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+			/*nodesManager.createPersistentNode(buildPath, signal);
+			signal.await();
+			signal = new CountDownLatch(1);*/
+			String buildZkNotificationPath =  buildPath + PathUtil.FORWARD_SLASH + CommonUtil.getJobUUIdInBase64(jobUUId);
+			nodesManager.createPersistentNode(buildZkNotificationPath, signal);
+			signal.await();
 			NodeJobsService nodeJobsService = new NodeJobsService(nodeIdNodeMap.get(nodeId), nodesManager);
 			nodeJobsService.addJobs(jobEntities);
 			nodeJobsService.createNodeJobService();
-			nodeJobsService.scheduleTaskManager();
+			nodeJobsService.scheduleTaskManager(jobUUId);
 		}
 		LOGGER.info("Now start the all nodes");
 	}

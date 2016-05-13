@@ -1,5 +1,4 @@
-group 'com.talentica.hungry-hippos'
-version '1.0-SNAPSHOT'
+
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
@@ -12,9 +11,12 @@ sourceSets {
      }
   }
 
+jar{
+	version=null
+}
+
 dependencies {	
     testCompile 'junit:junit:4.12'
     compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'log4j:log4j:1.2.17'    
+    compile 'log4j:log4j:1.2.17'
 }
-

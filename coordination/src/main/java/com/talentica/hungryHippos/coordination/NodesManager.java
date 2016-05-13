@@ -15,6 +15,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.netflix.curator.utils.ZKPaths;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerAddress;
@@ -36,10 +38,11 @@ import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.listeners.AlertManager;
 import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.Property;
 
 /**
  * To manage the different nodes of the server
@@ -87,25 +90,29 @@ public class NodesManager implements Watcher {
 		servers = new ArrayList<Server>();
 		serverNameMap = new HashMap<String, Server>();
 		pathMap = new HashMap<String,String>();
-		pathMap.put(PathEnum.NAMESPACE.name(), Property.getPropertyValue("zookeeper.namespace_path"));
-		pathMap.put(PathEnum.BASEPATH.name(), Property.getPropertyValue("zookeeper.base_path"));
-		pathMap.put(PathEnum.ZKIPTPATH.name(), Property.getPropertyValue("zookeeper.server.ips"));
-		pathMap.put(PathEnum.ALERTPATH.name(), Property.getPropertyValue("zookeeper.alerts_path"));
-		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getPropertyValue("zookeeper.config_path"));
-		Integer sessionTimeOut = Integer.valueOf(Property.getPropertyValue("zookeeper.session_timeout"));
+		pathMap.put(PathEnum.NAMESPACE.name(), Property.getZkPropertyValue("zookeeper.namespace_path"));
+		pathMap.put(PathEnum.BASEPATH.name(), Property.getZkPropertyValue("zookeeper.base_path"));
+		pathMap.put(PathEnum.ZKIPTPATH.name(), Property.getZkPropertyValue("zookeeper.server.ips"));
+		pathMap.put(PathEnum.ALERTPATH.name(), Property.getZkPropertyValue("zookeeper.alerts_path"));
+		pathMap.put(PathEnum.CONFIGPATH.name(), Property.getZkPropertyValue("zookeeper.config_path"));
+		Integer sessionTimeOut = Integer.valueOf(Property.getZkPropertyValue("zookeeper.session_timeout"));
 		zkConfiguration = new ZookeeperConfiguration(pathMap,sessionTimeOut);
-		connectZookeeper();
 	}
 
-	public void connectZookeeper() {
-		LOGGER.info("Node Manager started, connecting to ZK hosts: "
-				+ zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+	public NodesManager connectZookeeper(String zkIP) {
 		try {
-			connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+			if(zkIP == null){
+				LOGGER.info("Node Manager started, connecting to ZK hosts: "
+						+ zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+				connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+			}else{
+				connect(zkIP);
+			}
 			LOGGER.info("Connected - Session ID: " + zk.getSessionId());
 		} catch (Exception e) {
 			LOGGER.info("Could not connect to Zookeper instance" + e);
 		}
+		return this;
 	}
 	 
 	/**
@@ -129,13 +136,12 @@ public class NodesManager implements Watcher {
 	     * @throws Exception
 	     */
 	public void startup() throws Exception {
-	    	formatFlag = Property.getPropertyValue("cleanup.zookeeper.nodes").toString();
+		formatFlag = Property.getPropertyValue(Property.getNamespace().toString().toLowerCase()+"."+"cleanup.zookeeper.nodes").toString();
 	    	if(formatFlag.equals("Y")){
 	    		CountDownLatch signal = new CountDownLatch(1);
 	    		ZKUtils.deleteRecursive(PathUtil.FORWARD_SLASH + pathMap.get(PathEnum.NAMESPACE.name()),signal);
 	    		signal.await();
 	    	}
-	    	
 	        defaultNodesOnStart();
 		try {
 			List<String> serverNames = getMonitoredServers();			
@@ -177,8 +183,8 @@ public class NodesManager implements Watcher {
 	     * @param data
 	     * @throws IOException 
 	     */
-	    public void createPersistentNode(final String node,CountDownLatch signal ,Object ...data) throws IOException {
-		createNode(node, signal, CreateMode.PERSISTENT, data);
+	public void createPersistentNode(final String node, CountDownLatch signal, Object... data) throws IOException {
+	    	createNode(node, signal, CreateMode.PERSISTENT, data);
 	    }
 
 	private void createNode(final String node, CountDownLatch signal, CreateMode createMode, Object... data)
@@ -187,37 +193,64 @@ public class NodesManager implements Watcher {
 				ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
 					@Override
 					public void processResult(int rc, String path, Object ctx, String name) {
-						switch (KeeperException.Code.get(rc)) {
-						case CONNECTIONLOSS:
-							try {
-								createNode(path, signal,createMode, data);
-							} catch (IOException e) {
-								LOGGER.warn("Unable to redirect to create node");
+						try {
+							switch (KeeperException.Code.get(rc)) {
+							case CONNECTIONLOSS:
+								retryCreationOfNode(signal, createMode, path, data);
+								break;
+							case OK:
+								LOGGER.info("Server Monitoring Path [" + path + "] is created");
+								if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
+										&& path.contains("_job")) {
+									LOGGER.info("DELETE THE PULL/PUSH NODES");
+									deleteNode(path);
+									String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+									String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+									deleteNode(path.replace(oldString, newString));
+								}
+								countDown(signal);
+								break;
+							case NODEEXISTS:
+								LOGGER.warn("Server Monitoring Path [" + path + "] already exists");
+								countDown(signal);
+								break;
+							case NONODE:
+								createParentNode(node);
+								retryCreationOfNode(signal, createMode, path, data);
+								break;
+							default:
+								LOGGER.error("Unexpected result while trying to create node " + node + ": "
+										+ KeeperException.create(KeeperException.Code.get(rc), path));
+								countDown(signal);
 							}
-							break;
-						case OK:
-							LOGGER.info("Server Monitoring Path [" + path + "] is created");
-							if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
-									&& path.contains("_job")) {
-								LOGGER.info("DELETE THE PULL/PUSH NODES");
-								deleteNode(path);
-								String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-								String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-								deleteNode(path.replace(oldString, newString));
-							}
-							if (signal != null)
-								signal.countDown();
-							if (getSignal != null)
-								getSignal.countDown();
-							break;
-						case NODEEXISTS:
-							LOGGER.info("Server Monitoring Path [" + path + "] already exists");
-							if (getSignal != null)
-								getSignal.countDown();
-							break;
-						default:
-							LOGGER.info("Unexpected result while trying to create node " + node + ": "
-									+ KeeperException.create(KeeperException.Code.get(rc), path));
+						} catch (KeeperException | InterruptedException exception) {
+							LOGGER.error("Unexpected result while trying to create node {} ", node);
+							throw new RuntimeException(exception);
+						}
+					}
+
+					private void createParentNode(final String node) throws InterruptedException, KeeperException {
+						String parent = node.substring(0, node.lastIndexOf("/"));
+						if (StringUtils.isNotBlank(parent)) {
+							ZKPaths.mkdirs(zk, parent);
+						}
+					}
+
+					private void retryCreationOfNode(CountDownLatch signal, CreateMode createMode, String path,
+							Object... data) {
+						try {
+							createNode(path, signal, createMode, data);
+						} catch (IOException e) {
+							LOGGER.warn("Unable to redirect to create node");
+						}
+					}
+
+					private void countDown(CountDownLatch signal) {
+						if (getSignal != null) {
+							getSignal.countDown();
+						}
+						if (signal != null) {
+							signal.countDown();
 						}
 					}
 				}, null);
@@ -455,6 +488,10 @@ public class NodesManager implements Watcher {
 	    protected String buildAlertPathForServer(String serverHostname) {
 	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.FORWARD_SLASH + serverHostname;
 	    }
+	    
+	    public String buildAlertPathByName(String nodeName){
+	    	return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.FORWARD_SLASH + nodeName;
+	    }
 
 	    /**
 	     * Build path for Server
@@ -514,8 +551,9 @@ public class NodesManager implements Watcher {
 			List<String> checkUnique = new ArrayList<String>();
 			Properties property = Property.loadServerProperties();
 			int nodeIndex = 0;
-			for(Object key : property.keySet()){
-			String srv = property.getProperty((String)key);
+			int size = property.keySet().size();
+			for (int index = 0 ; index < size ; index++) {
+				String srv = property.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT +index);
 			String IP = null;
 			String PORT = null;
 			
@@ -535,7 +573,7 @@ public class NodesManager implements Watcher {
 				checkUnique.add(IP);
 				serverNameMap.put(server.getServerAddress().getHostname(), server);
 				nodeIndex++;
-				LOGGER.info("\tSERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
+				LOGGER.info("SERVER NAME AND IP :: ["+server.getName()+" , "+server.getServerAddress().getIp()+"]");				
 				}
 			 getSignal = new CountDownLatch(this.servers.size()+DEFAULT_NODES);// additional 3 is added because of namesapce,alert and basepath node is also created
 			}

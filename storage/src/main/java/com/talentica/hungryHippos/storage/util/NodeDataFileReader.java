@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.CommonUtil;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.marshaling.DynamicMarshal;
 
 /**
  * Utility class to read data files generated on nodes after sharding process is
@@ -36,7 +36,7 @@ public class NodeDataFileReader {
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
-		int noOfKeys = Property.getKeyOrder().length;
+		int noOfKeys = Property.getShardingDimensions().length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
 			String dataFileName = args[0] + FileDataStore.DATA_FILE_BASE_NAME + i;
 			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
@@ -70,7 +70,7 @@ public class NodeDataFileReader {
 
 	private static DynamicMarshal getDynamicMarshal() {
 		dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getKeyOrder());
+		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

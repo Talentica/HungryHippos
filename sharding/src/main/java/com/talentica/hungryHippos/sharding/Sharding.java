@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
-import com.talentica.hungryHippos.utility.Property;
-import com.talentica.hungryHippos.utility.marshaling.Reader;
 
 /**
  * Created by debasishc on 14/8/15.
@@ -30,6 +30,9 @@ public class Sharding {
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
 	private Map<String, Map<MutableCharArrayString, Long>> keyValueFrequencyMap = new HashMap<>();
+
+	private Map<String, Integer> keyToIndexMap = new HashMap<>();
+
 	// Map<Key1,Map<value1,Node(1)>
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 	PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
@@ -56,6 +59,7 @@ public class Sharding {
 		LOGGER.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
+			sharding.setKeysToIndexes();
 			sharding.populateFrequencyFromData(input);
 			sharding.populateKeysToListOfBucketsMap();
 			sharding.updateBucketToNodeNumbersMap(input);
@@ -69,15 +73,17 @@ public class Sharding {
 				LOGGER.debug("bucketCombinationToNodeNumbersMap: "
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
+			
 		} catch (IOException | NodeOverflowException e) {
 			LOGGER.error("Error occurred during sharding process.", e);
 		}
 	}
 
+	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
 		LOGGER.info("Calculating buckets to node numbers map started");
 		data.reset();
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
@@ -85,14 +91,14 @@ public class Sharding {
 				data.close();
 				break;
 			}
-			MutableCharArrayString[] values = new MutableCharArrayString[3];
-			values[0] = parts[0].clone();
-			values[1] = parts[1].clone();
-			values[2] = parts[2].clone();
+			MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
 			Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
 			for (int i = 0; i < keys.length; i++) {
-				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(keys[i]).get(values[i]);
-				bucketCombinationMap.put(keys[i], bucket);
+				String key = keys[i];
+				int keyIndex = keyToIndexMap.get(key);
+				values[i] = parts[keyIndex].clone();
+				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
+				bucketCombinationMap.put(key, bucket);
 			}
 			BucketCombination keyCombination = new BucketCombination(bucketCombinationMap);
 			Long count = bucketCombinationFrequencyMap.get(keyCombination);
@@ -105,25 +111,35 @@ public class Sharding {
 		LOGGER.info("Calculating buckets to node numbers map finished");
 	}
 
+	private void setKeysToIndexes() {
+		String[] keys = Property.getColumnsConfiguration();
+		int index = 0;
+		for (String key : keys) {
+			keyToIndexMap.put(key, index);
+			index++;
+		}
+	}
+
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
 		LOGGER.info("Populating frequency map from data started");
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {
 				break;
 			}
-			MutableCharArrayString[] values = new MutableCharArrayString[3];
-			values[0] = parts[0].clone();
-			values[1] = parts[1].clone();
-			values[2] = parts[2].clone();
+			MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
+
 			for (int i = 0; i < keys.length; i++) {
-				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+				String key = keys[i];
+				int keyIndex = keyToIndexMap.get(key);
+				values[i] = parts[keyIndex].clone();
+				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
 				if (frequencyPerValue == null) {
 					frequencyPerValue = new HashMap<>();
-					keyValueFrequencyMap.put(keys[i], frequencyPerValue);
+					keyValueFrequencyMap.put(key, frequencyPerValue);
 				}
 				Long frequency = frequencyPerValue.get(values[i]);
 				if (frequency == null) {
@@ -138,7 +154,7 @@ public class Sharding {
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
 		LOGGER.info("Calculating keys to list of buckets map started");
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		LOGGER.info("Total no. of buckets: {}", totalNoOfBuckets);
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
@@ -148,7 +164,7 @@ public class Sharding {
 			long frequencyOfAlreadyAddedValues = 0;
 			int bucketCount = 0;
 			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
-			long idealAverageSizeOfOneBucket = getSizeOfOnBucket(frequencyPerValue, totalNoOfBuckets);
+			long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
 			LOGGER.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
 			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
 			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
@@ -185,7 +201,7 @@ public class Sharding {
 
 	public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap() {
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
-		String[] keys = Property.getKeyOrder();
+		String[] keys = Property.getShardingDimensions();
 		for (String key : keys) {
 			List<KeyValueFrequency> frequencies = new ArrayList<>();
 			Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
@@ -198,7 +214,7 @@ public class Sharding {
 		return keyToListOfKeyValueFrequency;
 	}
 
-	private long getSizeOfOnBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
+	private long getSizeOfOneBucket(Map<MutableCharArrayString, Long> frequencyPerValue, int noOfBuckets) {
 		long sizeOfOneBucket = 0;
 		long totalofAllKeyValueFrequencies = 0;
 		for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
@@ -214,7 +230,12 @@ public class Sharding {
 		Map<Bucket<KeyValueFrequency>, Node> bucketToNodeNumber = new HashMap<>();
 		bucketToNodeNumberMap.put(keyName, bucketToNodeNumber);
 		Collections.sort(buckets);
+		int counter = 0;
 		for (Bucket<KeyValueFrequency> bucket : buckets) {
+			counter++;
+			if (counter % 100 == 0) {
+				LOGGER.info("Buckets processed: {}", counter);
+			}
 			Node mostEmptyNode = fillupQueue.poll();
 			List<BucketCombination> currentKeys = nodeToKeyMap.get(mostEmptyNode);
 			if (currentKeys == null) {

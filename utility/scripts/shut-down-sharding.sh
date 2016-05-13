@@ -1,6 +1,7 @@
 #!/bin/bash
+jobuuid=$1
 echo 'Shutting down all java processes on sharding node'
-sharding_node_ip=`cat ./node_pwd_file.txt|grep "sharding_node_ip"|awk -F":" '{print $2}'`
+sharding_node_ip=`cat ../$jobuuid/master_ip_file`
 
 
 for node in `echo $sharding_node_ip`

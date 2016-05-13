@@ -1,11 +1,11 @@
 #!/bin/bash
 
-zk_node_ip=`cat ./../../utility/src/main/resources/config.properties|grep "zookeeper.server.ips"| awk -F"=" '{print $2}'| awk -F":" '{print $1}'`
-
+zk_node_ip=`cat ../tmp/master_ip_file`
 
 
 for node in `echo $zk_node_ip`
 do
    echo "Stopping zookeeper server on $node"
    ssh -o StrictHostKeyChecking=no root@$node "zkServer.sh stop"
+   break
 done

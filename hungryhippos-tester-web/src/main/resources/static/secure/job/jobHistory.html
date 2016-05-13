@@ -1,0 +1,195 @@
+<h1 class="centerAlignedText">
+				Job History 
+</h1>
+<div ng-show="jobsPresent">
+	<div ng-repeat="(key, value) in recentJobs">
+		<div>
+			<h4>{{key | date:'medium'}}</h4>
+			<uib-accordion close-others="false">
+				<uib-accordion-group heading="{{job.uuid}}" panel-class="panel-info" ng-repeat="job in value">
+						
+						<div class="row">
+							<div class="bold col-md-3">
+								Job Id:
+							</div>
+							<div class="col-md-6">
+								{{job.uuid}}
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="bold col-md-3">
+								Submitted on:
+							</div>
+							<div class="col-md-6">
+								{{job.dateTimeSubmitted|date:'medium'}}
+							</div>
+						</div>
+					
+						<div class="row">
+							<div class="bold col-md-3">
+								Job Matrix:
+							</div>
+							<div class="col-md-6">
+								{{job.jobInput.jobMatrixClass}}
+							</div>
+						</div>
+						<div class="row">
+							<div class="bold col-md-3">
+								Sharding Dimensions:
+							</div>
+							<div class="col-md-6">
+								{{job.jobInput.shardingDimensions}}
+							</div>
+						</div>
+						
+						<div class="row" ng-show="job.jobInput.dataSize">
+							<div class="bold col-md-3">Input Data File Size:</div>
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize<1024}}">
+								{{job.jobInput.dataSize | number:2}} KB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
+								{{job.jobInput.dataSize/1024 | number:2}} MB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobInput.dataSize>=1048576}}">
+								{{job.jobInput.dataSize/1048576 | number:2}} GB
+							</div>
+						</div>
+						<div class="row" ng-show="job.jobOutput.dataSize">
+							<div class="bold col-md-3">
+								Output File Size:
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize<1024}}">
+								{{job.jobOutput.dataSize | number:2}} KB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1024 && job.jobInput.dataSize<1048576}}">
+								{{job.jobOutput.dataSize/1024 | number:2}} MB
+							</div>
+							<div class="col-md-6" ng-show="{{job.jobOutput.dataSize>=1048576}}">
+								{{job.jobOutput.dataSize/1048576 | number:2}} GB
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="bold col-md-3">
+								Status:
+							</div>
+							<div class="col-md-6">
+								{{job.status}}
+							</div>
+						</div>
+						
+						<div class="row" ng-show="job.jobOutput">
+							<div class="bold col-md-3" >
+								Finished on:
+							</div>
+							<div class="col-md-6">
+								{{job.dateTimeFinished| date:'medium'}}
+							</div>
+						</div>
+					
+						<div class="row">
+							<div class="bold col-md-3">
+								Data Type Configuration:
+							</div>
+							<div  class="col-md-6">
+								{{job.jobInput.dataTypeConfiguration}}
+							</div>
+						</div>
+					
+						<div class="row">
+							<div class="bold col-md-3">
+								Input Data File Location:
+							</div>
+							<div class="col-md-6">
+								<a href="{{job.jobInput.dataLocation}}">{{job.jobInput.dataLocation}}</a>
+							</div>
+						</div>
+						
+						<div class="row" ng-show="job.jobOutput">
+							<div class="bold col-md-3">
+								<a tooltips tooltip-template="Available for download till {{downloadAvailableTill[job.uuid] | date:'short'}}." tooltip-size="large" tooltip-smart="true">Output File Location:</a>
+							</div>
+							<div class="col-md-6">
+								<a href="{{job.jobOutput.dataLocation}}" ng-show="jobsDownloadAvailable(job)" >Download</a>
+								<span ng-hide="jobsDownloadAvailable(job)" >Not available</span>
+							</div>
+						</div>
+					
+						<div class="row" ng-show="job.executionTimeInSeconds">
+							<div class="bold col-md-3">
+								<a tooltips tooltip-template="Time measured for 'Sampling' to 'Finishing of jobs execution' steps" tooltip-size="large" tooltip-smart="true"> Time Taken for Jobs Execution:</a>
+							</div>
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds<60 && job.executionTimeInSeconds>=0}}">
+								{{job.executionTimeInSeconds}} second(s)
+							</div>
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds>=60 && job.executionTimeInSeconds<3600}}">
+								{{(job.executionTimeInSeconds/60) | number:2}} minute(s)
+							</div>
+							<div class="col-md-6" ng-show="{{job.executionTimeInSeconds>=3600}}">
+								{{(job.executionTimeInSeconds/3600) | number:2}} hour(s)
+							</div>
+						</div>
+					
+					<br/>
+					
+					<uib-accordion close-others="false">
+						<uib-accordion-group panel-class="accordinInsideAccordian" heading="Stepwise Time Details" ng-click="getJobStatusDetail(job.uuid)" >
+								<div class="container-fluid" ng-show="jobStepInformation[job.uuid].processInstances.length">
+									<div class="row">
+										<div class="col-md-2 bold">Process</div>					
+										<div class="col-md-10">
+											<div class="container-fluid">
+												<div class="row">				
+													<div class="col-md-2  bold">Node Id</div>
+													<div class="col-md-2  bold">Node IP</div>
+													<div class="col-md-2  bold">Status</div>
+													<div class="col-md-2  bold">Time Taken</div>
+												</div>
+											</div>
+										</div>
+									</div>
+															
+									<div class="row" ng-repeat="processInstance in jobStepInformation[job.uuid].processInstances | orderBy:'process.processId'">
+											<hr/>													
+											<div class="col-md-2">{{processInstance.process.name}}</div>
+											<div class="col-md-10">
+												<div class="container-fluid">
+													<div class="row" ng-repeat="step in processInstance.processInstanceDetails">
+														<div>
+															<div class="col-md-2">{{step.nodeId}}</div>
+															<div class="col-md-2">{{step.nodeIp}}</div>
+															<div class="col-md-2">{{step.status}}</div>
+															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds<60  && step.executionTimeInSeconds>=0}}">
+																{{step.executionTimeInSeconds}} second(s)
+															</div>
+															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds>=60 && step.executionTimeInSeconds<3600}}">
+																{{(step.executionTimeInSeconds/60) | number:2}} minute(s)
+															</div>
+															<div class="col-md-2" ng-show="{{step.executionTimeInSeconds>=3600}}">
+																{{(step.executionTimeInSeconds/3600) | number:2}} hour(s)
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+									</div>
+								</div>
+								<div class="container-fluid" ng-show="!jobStepInformation[job.uuid].processInstances.length">
+									<div class="row">
+										<div class="col-md-12">No information available.</div>
+									</div>
+								</div>										
+						</uib-accordion-group>
+					</uib-accordion>
+					
+					<br/>																						
+		</div>
+	</div>
+</div>
+<div ng-show="{{jobsLoaded && !jobsPresent}}">
+	<br/>
+		<div class="alert alert-info">
+		  <strong>There are no jobs to display.</strong>
+		</div>	
+</div>

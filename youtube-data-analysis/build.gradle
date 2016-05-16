@@ -1,9 +1,14 @@
+group = 'com.talentica.test'
+version = '0.1.0 SNAPSHOT'
 
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    flatDir {
+       dirs 'libs'
+   }
 }
 sourceSets {
     main {
@@ -12,19 +17,14 @@ sourceSets {
   }
 
 dependencies {	
-	 compile project (':client-api')
+	 compile name: 'client-api-1.0'
 	 compile 'org.apache.commons:commons-math3:3.5'
 	 testCompile 'junit:junit:4.12'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
-	from sourceSets.main.allSource
-}
-
   
 jar {
-	archiveName='test-jobs.jar'
+	archiveName='youtube-analytics.jar'
 	version=null
     from {
         (configurations.runtime).collect {
@@ -34,5 +34,3 @@ jar {
     manifest {
     }
 }
-  
-

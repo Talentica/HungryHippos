@@ -39,7 +39,6 @@ public class MedianJob implements Job,Serializable{
         return primaryDimension;
     }
 
-	@Override
 	public long getMemoryFootprint(long rowCount) {
 		return 58 * rowCount;
 	}
@@ -53,7 +52,6 @@ public class MedianJob implements Job,Serializable{
 		return super.toString();
 	}
 
-	@Override
 	public int getIndex() {
 		return valueIndex;
 	}

@@ -36,22 +36,4 @@ public interface Job {
 	 */
 	int getPrimaryDimension();
 
-	/**
-	 * This method provides index number or column number of the given data set.
-	 * 
-	 * @return The column number of the data set. Index numbering start from
-	 *         zero (0).
-	 */
-	int getIndex();
-
-	/**
-	 * This method provides us the memory footprint which is required for
-	 * resource manager later on. However, this method is not in use now.
-	 * 
-	 * @param rowCount
-	 *            of particular job matrix
-	 * @return the memory foot print.
-	 * @deprecated
-	 */
-	long getMemoryFootprint(long rowCount);
 }

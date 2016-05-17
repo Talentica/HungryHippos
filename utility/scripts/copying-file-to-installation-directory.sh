@@ -1,5 +1,7 @@
 #!/lib/bash
 echo '####Copying jars to installation directory####'
+mkdir -p ../../installation/lib ../../installation/conf/ ../../installation/bin/ ../../installation/json/
+
 cp ../../digital-ocean-manager/build/libs/*.jar ../../installation/lib/
 cp ../../data-publisher/build/libs/*.jar ../../installation/lib/
 cp ../../job-manager/build/libs/*.jar ../../installation/lib/

@@ -217,9 +217,9 @@ public class CommonUtil {
 		try {
 			Runtime rt = Runtime.getRuntime();
 			Process pr = rt.exec(strArr, null, null);
+			pr.waitFor();
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					pr.getInputStream()));
-			pr.waitFor();
 			while ((line = input.readLine()) != null) {
 				retResult = retResult + line;
 				LOGGER.info(line);

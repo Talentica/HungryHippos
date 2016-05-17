@@ -69,7 +69,7 @@ public class DataProvider {
 
     @SuppressWarnings({"unchecked"})
     public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
-		sendSignalToNodes(nodesManager);
+    	sendSignalToNodes(nodesManager);
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();

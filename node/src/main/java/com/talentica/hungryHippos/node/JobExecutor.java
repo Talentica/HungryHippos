@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -62,12 +63,7 @@ public class JobExecutor {
 						loggerJobArgument);
 			}
 			jobEntities.clear();
-			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
-					+ PathUtil.FORWARD_SLASH
-					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-			CountDownLatch signal = new CountDownLatch(1);
-			nodesManager.createPersistentNode(buildStartPath, signal);
-			signal.await();
+			sendFinishJobMatrixSignal();
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to execute all jobs.",
 					((endTime - startTime) / 1000));
@@ -82,6 +78,20 @@ public class JobExecutor {
 						e);
 			}
 		}
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static void sendFinishJobMatrixSignal() throws IOException,
+			InterruptedException {
+		String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
+				+ PathUtil.FORWARD_SLASH
+				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
+		CountDownLatch signal = new CountDownLatch(1);
+		nodesManager.createPersistentNode(buildStartPath, signal);
+		signal.await();
 	}
 
 	/**

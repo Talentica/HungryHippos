@@ -1,8 +1,6 @@
 package com.talentica.hungryHippos.sharding.main;
 
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -11,11 +9,13 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 public class ShardingStarter {
 
@@ -25,7 +25,7 @@ public class ShardingStarter {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(ShardingStarter.class);
 	private static NodesManager nodesManager;
-	private static final String sampleInputFile = "sample_input.txt";
+	private static final String sampleInputFile = "sisample1mw.txt";
 
 	public static void main(String[] args) {
 		try {
@@ -33,156 +33,70 @@ public class ShardingStarter {
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+			ZKUtils.createDefaultNodes(jobUUId);
 			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
-			callDownloadShellScript();
-			LOGGER.info("WATING FOR THE SIGNAL OF DOWNLOAD COMPLETION.");
-			waitForDownloadSinal();
-			LOGGER.info("SIGNAL RECIEVED, DOWNLOAD IS COMPLETED.");
-			callSamplingShellScript();
-			LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
-			waitForSamplingSinal();
-			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
+			callShellScriptBeforeSharding();
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());
 			LOGGER.info("SHARDING DONE!!");
-			callCopyScriptForMapFiles();
 			long endTime = System.currentTimeMillis();
-			sendSignal(nodesManager);
-			LOGGER.info("STARTED...");
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
+			callShellScriptAfterSharding();
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while sharding.", exception);
-			shardingFailed(exception);
+			sendShardingFailSignal();
 		}
-	}
-
-	/**
-	 * @param exception
-	 */
-	private static void shardingFailed(Exception exception) {
-		CountDownLatch signal;
-		LOGGER.error("Error occured while executing sharding program.", exception);
-		String alertPathForShardingFailure = ShardingStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_FAILED.getZKJobNode());
-		signal = new CountDownLatch(1);
-		try {
-			nodesManager.createPersistentNode(alertPathForShardingFailure, signal);
-			signal.await();
-		} catch (IOException | InterruptedException e) {
-			LOGGER.info("Unable to create the sharding failure path");
-		}
-		createErrorEncounterSignal();
 	}
 
 	/**
 	 * 
 	 */
-	private static void createErrorEncounterSignal() {
-		String alertErrorEncounter = ShardingStarter.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
-						.getZKJobNode());
-		CountDownLatch signal = new CountDownLatch(1);
+	private static void sendShardingFailSignal() {
 		try {
-			nodesManager.createPersistentNode(alertErrorEncounter, signal);
-			signal.await();
+			ZkSignalListener.shardingFailed(nodesManager,
+					CommonUtil.ZKJobNodeEnum.SHARDING_FAILED.getZKJobNode());
 		} catch (IOException | InterruptedException e) {
-			LOGGER.info("Unable to create the ERROR_ENCOUNTERED path");
+			LOGGER.info("Unable to create the node on zk.");
 		}
-		LOGGER.info("ERROR_ENCOUNTERED node is created");
-	}
-
-	public static void callCopyScriptForMapFiles() {
-		LOGGER.info("Calling script file to copy map file across all nodes");
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String[] strArr = new String[] { "/bin/sh",
-				"copy-shard-files-to-all-nodes.sh", jobuuid };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Done.");
-
 	}
 
 	/**
-	 * Send signal to data publisher node that sharding is completed.
-	 * 
-	 * @param nodesManager
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private static void sendSignal(NodesManager nodesManager)
-			throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED
-						.getZKJobNode());
-		CountDownLatch signal = new CountDownLatch(1);
-		nodesManager.createPersistentNode(shardingNodeName, signal);
-		signal.await();
+	private static void callShellScriptAfterSharding() throws IOException,
+			InterruptedException {
+		ScriptExecutionUtil.callCopyScriptForMapFiles();
+		ZkSignalListener.sendSignal(nodesManager,
+				CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
 	}
 
 	/**
-	 * 
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
 	 */
-	private static void callDownloadShellScript() {
-		String webserverIp = Property.getProperties().getProperty(
-				"common.webserver.ip");
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String downloadUrlLink = Property.getProperties().getProperty(
-				"input.file.url.link");
-		LOGGER.info(
-				"Calling shell script to download the input file from url link {} for jobuuid {} and webserver ip {}",
-				downloadUrlLink, jobuuid, webserverIp);
-		String downloadScriptPath = Paths
-				.get("/root/hungryhippos/scripts/bash_scripts")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/bin/sh",
-				downloadScriptPath + "download-file-from-url.sh",
-				downloadUrlLink, jobuuid, webserverIp };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Downloading is initiated.");
-	}
-
-	private static void callSamplingShellScript() {
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String webserverIp = Property.getProperties().getProperty(
-				"common.webserver.ip");
-		LOGGER.info(
-				"Calling sampling python script and uuid {} webserver ip {}",
-				jobuuid, webserverIp);
-		String samplingScriptPath = Paths
-				.get("/root/hungryhippos/scripts/python_scripts")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/usr/bin/python",
-				samplingScriptPath + "sampling-input-file.py", jobuuid,
-				webserverIp };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Sampling is initiated.");
+	private static void callShellScriptBeforeSharding() throws Exception,
+			KeeperException, InterruptedException {
+		ScriptExecutionUtil.callDownloadShellScript();
+		LOGGER.info("WATING FOR THE SIGNAL OF DOWNLOAD COMPLETION.");
+		if (ENVIRONMENT.getCurrentEnvironment() != ENVIRONMENT.LOCAL)
+			ZkSignalListener.waitForDownloadSinal(ShardingStarter.nodesManager,
+					CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED
+							.getZKJobNode());
+		LOGGER.info("SIGNAL RECIEVED, DOWNLOAD IS COMPLETED.");
+		ScriptExecutionUtil.callSamplingShellScript();
+		LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
+		if (ENVIRONMENT.getCurrentEnvironment() != ENVIRONMENT.LOCAL)
+			ZkSignalListener.waitForSamplingSinal(ShardingStarter.nodesManager,
+					CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED.getZKJobNode());
+		LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 	}
 
 	private static Reader getInputReaderForSharding() throws IOException {
 		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				sampleInputFile);
-	}
-
-	private static void waitForSamplingSinal() throws Exception,
-			KeeperException, InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(
-				ShardingStarter.nodesManager
-						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED
-								.getZKJobNode()), signal);
-		signal.await();
-	}
-
-	private static void waitForDownloadSinal() throws Exception,
-			KeeperException, InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(
-				ShardingStarter.nodesManager
-						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED
-								.getZKJobNode()), signal);
-		signal.await();
 	}
 
 }

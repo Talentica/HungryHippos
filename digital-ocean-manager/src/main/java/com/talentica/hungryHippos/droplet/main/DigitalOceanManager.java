@@ -14,6 +14,7 @@ import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
@@ -51,13 +52,13 @@ public class DigitalOceanManager {
 			DigitalOceanServiceUtil.performServices(dropletService,
 					dropletEntity, jobUUId);
 			if(dropletEntity.getRequest().getRequest().toUpperCase().equals("CREATE")){
-				DigitalOceanServiceUtil.callCopySuccessShellScript(jobUUId);
+				ScriptExecutionUtil.callCopySuccessShellScript(jobUUId);
 			}
 		} catch (InstantiationException | IllegalAccessException
 				| ClassNotFoundException | RequestUnsuccessfulException
 				| DigitalOceanException | IOException | InterruptedException e) {
 			LOGGER.info("Unable to perform the operations {}", e);
-			DigitalOceanServiceUtil.callCopyFailureShellScript(jobUUId);
+			ScriptExecutionUtil.callCopyFailureShellScript(jobUUId);
 		}
 	}
 

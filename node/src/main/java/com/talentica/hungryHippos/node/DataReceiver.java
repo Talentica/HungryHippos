@@ -1,9 +1,19 @@
 package com.talentica.hungryHippos.node;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,15 +27,6 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
@@ -84,11 +85,7 @@ public class DataReceiver {
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			DataReceiver.nodesManager = Property.getNodesManagerIntances();
-			CountDownLatch signal = new CountDownLatch(1);
-			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
-					CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
-			signal.await();
-
+			waitForStartDataReciever();
 			DataReceiver dataReceiver = getNodeInitializer();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
@@ -107,6 +104,18 @@ public class DataReceiver {
 			LOGGER.error("Error occured while executing node starter program.", exception);
 			handleError();
 		}
+	}
+
+	/**
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	private static void waitForStartDataReciever() throws KeeperException,
+			InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
+				CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+		signal.await();
 	}
 
 	/**

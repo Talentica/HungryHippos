@@ -1,17 +1,24 @@
 package com.talentica.test.youtube;
 
+import java.io.Serializable;
+import java.util.Arrays;
+
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.client.job.Job;
 
-public class TopVideosByRatingJob implements Job {
+public class TopVideosByRatingJob implements Job, Serializable {
 
-	protected int[] dimensions;
-	protected int primaryDimension;
-	private int valueIndex;
+	private static final long serialVersionUID = -8299385914889558642L;
+
+	protected int[] dimensions = new int[] { 2, 3 };
+
+	protected int primaryDimension = 3;
+
+	private int valueIndex = 6;
 
 	@Override
 	public Work createNewWork() {
-		return new TopVideosWork(dimensions, primaryDimension, valueIndex);
+		return new TopVideosWork(dimensions, primaryDimension);
 	}
 
 	@Override
@@ -32,6 +39,15 @@ public class TopVideosByRatingJob implements Job {
 	@Override
 	public int getPrimaryDimension() {
 		return primaryDimension;
+	}
+
+	@Override
+	public String toString() {
+		if (dimensions != null) {
+			return "\nTopVideosByRatingJob{{primary dim:" + primaryDimension + ",dimensions"
+					+ Arrays.toString(dimensions) + ", valueIndex:" + valueIndex + "}}";
+		}
+		return super.toString();
 	}
 
 }

@@ -37,6 +37,10 @@ hours=6
 sh scheduler-to-cleanup.sh $jobUuid $mysqlIp $hours
 echo '################  		Scheduler started   	 ################'
 
+echo "Starting zookeeper sever on master node."
+sh start-zk-server.sh $jobUuid
+echo "Done."
+
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
 sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid
 echo '################          PROCESS INITIATED      ################'

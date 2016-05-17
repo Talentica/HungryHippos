@@ -86,6 +86,8 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 	public void setValue(Object value, int index) {
 		if (value instanceof MutableCharArrayString) {
 			this.values[index] = ((MutableCharArrayString) value).clone();
+		} else {
+			this.values[index] = (Comparable) value;
 		}
 	}
 

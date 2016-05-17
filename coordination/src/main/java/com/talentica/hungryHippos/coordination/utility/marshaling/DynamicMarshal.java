@@ -1,12 +1,12 @@
 package com.talentica.hungryHippos.coordination.utility.marshaling;
 
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
-
-import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -54,7 +54,10 @@ public class DynamicMarshal implements Serializable {
         MutableCharArrayString charArrayString = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(size);
         for (int i = offset; i < offset + size; i++) {
             byte ch = source.get(i);
-            charArrayString.addCharacter((char) ch);
+			if (ch == 0) {
+				break;
+			}
+			charArrayString.addCharacter((char) ch);
         }
         return charArrayString;
     }

@@ -170,7 +170,7 @@ public class CommonUtil {
 			LOGGER.info("Master ip file path {}",
 					MASTER_IP_FILE_NAME_ABSOLUTE_PATH);
 			return readFile(new File(MASTER_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOGGER.info("Unable to read the file zk ip file.");
 		}
 		return StringUtils.EMPTY;

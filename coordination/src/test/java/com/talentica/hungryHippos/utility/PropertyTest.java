@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.utility;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
@@ -15,7 +14,6 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  * @author nitink
  *
  */
-@Ignore
 public class PropertyTest{
 	
 	@Test
@@ -23,7 +21,7 @@ public class PropertyTest{
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		Object cleanupZookeeperNodesPropValue = Property.getPropertyValue("cleanup.zookeeper.nodes");
 		Assert.assertNotNull(cleanupZookeeperNodesPropValue);
-		Assert.assertEquals("Y", cleanupZookeeperNodesPropValue);
+		Assert.assertEquals("N", cleanupZookeeperNodesPropValue);
 	}
 
 	@Test
@@ -74,4 +72,21 @@ public class PropertyTest{
 		ENVIRONMENT.setCurrentEnvironment("LOCAL");
 		Assert.assertEquals(1, Property.getShardingDimensions().length);
 	}
+
+	@Test
+	public void testGetShardingIndexes() {
+		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+		int[] shardingKeyIndexes = Property.getShardingIndexes();
+		Assert.assertNotNull(shardingKeyIndexes);
+		Assert.assertEquals(2, shardingKeyIndexes.length);
+		Assert.assertEquals(3, shardingKeyIndexes[0]);
+		Assert.assertEquals(4, shardingKeyIndexes[1]);
+	}
+
+	@Test
+	public void testGetShardingIndexSequence(){
+		Assert.assertEquals(0, Property.getShardingIndexSequence(3));
+		Assert.assertEquals(1, Property.getShardingIndexSequence(4));
+	}
+
 }

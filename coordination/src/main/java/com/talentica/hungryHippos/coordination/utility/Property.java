@@ -268,14 +268,14 @@ public class Property {
 
 	public static final void initialize(PROPERTIES_NAMESPACE appNamespace) {
 		ENVIRONMENT.setCurrentEnvironment(getPropertyValue("environment").toString());
+		namespace = appNamespace;
+		environmentPropertiesPrefix = ENVIRONMENT.getCurrentEnvironment().getConfigurationPropertiesPrefix();
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
 			localEnvironmentServerproperties = new Properties();
 			for (int i = 0; i < getShardingDimensions().length; i++) {
 				localEnvironmentServerproperties.put(SERVER_CONFIGURATION_KEY_PREFIX + i, "localhost:2324");
 			}
 		}
-		environmentPropertiesPrefix = ENVIRONMENT.getCurrentEnvironment().getConfigurationPropertiesPrefix();
-		namespace = appNamespace;
 	}
 
 	public static String[] getShardingDimensions() {

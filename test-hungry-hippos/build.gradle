@@ -19,6 +19,8 @@ dependencies {
 
   
 jar {
+	archiveName='test-jobs.jar'
+	version=null
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

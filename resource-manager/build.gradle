@@ -11,6 +11,10 @@ sourceSets {
      }
   }
 
+jar{
+	version=null
+}
+
 ext {
   slf4jVersion = '1.7.10'
 }

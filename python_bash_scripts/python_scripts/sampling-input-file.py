@@ -36,6 +36,14 @@ zk.start()
 ## Path of Zookeeper node
 zk_path='/rootnode/alertsnode/'
 
+## Watcher on Zookeeper  for above path
+child=set()
+
+@zk.ChildrenWatch(zk_path)
+def watch_hosts(c):
+    for i in c:
+        child.add(i)
+
 def calc_file_size(filename):
     statinfo= os.stat(filename)
     size_in_bytes= statinfo.st_size
@@ -95,7 +103,7 @@ def in_progress():
 
     sql_begin="""
     update job a
-    set date_time_submitted=now()
+    set date_time_started=now()
     where a.job_uuid= %s"""
 
     sql= """
@@ -160,8 +168,17 @@ tot_chunks=y['chunks']
 lines_per_chunk = int(total_output_lines)/tot_chunks
 
 f = open(f_input)
+f1 = open(f_output,'a')
 
-in_progress()
+while True:
+    if 'INPUT_DOWNLOAD_COMPLETED' in child:
+        print "Input File downloaded. Start Sampling!!"
+	in_progress()
+        break
+    else:
+        time.sleep(5)
+        count=count+1
+        print "count:",count
 
 try:
     for piece in read_in_chunks(f):
@@ -172,7 +189,6 @@ try:
             remaining_chunk= int(total_output_lines) - calc_recs_in_file(f_output)
             lines = random.sample(piece,int(remaining_chunk))
         for i in lines:
-                f1 = open(f_output,'a')
                 f1.write(i)
 
     completed_status()
@@ -180,6 +196,9 @@ try:
     zk.create(sampling_znode)
 except:
     failed_status()
+    print "exception"
+finally:
+    db.close()
 
 f.close()
 f1.close()

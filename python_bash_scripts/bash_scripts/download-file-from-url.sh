@@ -61,6 +61,10 @@ EOF
 }
 
 in_progress
+if [ $? != 0 ]
+then 
+	python /root/hungryhippos/scripts/python_scripts/create-error-node-on-zk.py $job_uuid
+fi
 
 curl $url_link -o /root/hungryhippos/input/input.txt -s
 if [ $? = 0 ]
@@ -69,5 +73,5 @@ then
 	python /root/hungryhippos/scripts/python_scripts/input-download-complete.py $job_uuid
 else
         failed_status
+	python /root/hungryhippos/scripts/python_scripts/create-error-node-on-zk.py $job_uuid
 fi
-

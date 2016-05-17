@@ -20,6 +20,11 @@ f=open(master_ip_file_path)
 for line in f:
     hostname=line.strip()
 
+## Reading nginx ip
+
+cmd_nginx="sh /root/hungryhippos/scripts/bash_scripts/copying-rsa-keys-to-nginx.sh"
+os.system(cmd_nginx)
+
 #zk = KazooClient(hosts='127.0.0.1:2181')
 zk = KazooClient(hosts=hostname)
 zk.start()
@@ -57,18 +62,56 @@ else:
 
 print "children:",nodes
 
-node_path=list()
+pattern='_node'
+actual_children=list()
 
 for i in nodes:
+    if pattern in i:
+        actual_children.append(i) 
+
+node_path=list()
+
+for i in actual_children:
     newpath=path+"/"+i
     node_path.append(newpath)
 
 print "full paths:",node_path
 
+path_alert="/rootnode/alertsnode"
+## Watcher on Zookeeper for above path
+child_alert=set()
+
+@zk.ChildrenWatch(path_alert)
+def watch_alert(c):
+    for i in c:
+        child_alert.add(i)
+
+
 ## Connection to MySql Database 
 db = MySQLdb.connect(host=mysql_server_ip,user="mysql_admin",passwd="password123",db="hungryhippos_tester")
-in_progress()
 
-for i in node_path:
-    cmd="python watcher.py "+i+" "+uuid+" "+mysql_server_ip
-    subprocess.Popen(cmd, shell=True)
+count=0
+
+try:
+    while True:
+        print "in loop"
+        if 'JOB_EXEC_ENTRY_DONE' in child_alert:
+	    in_progress()
+            break
+
+        else:
+            time.sleep(5)
+            count=count+1
+            print "count:",count
+
+
+    for i in node_path:
+        cmd="python watcher.py "+i+" "+uuid+" "+mysql_server_ip
+        print "before call"
+        subprocess.Popen(cmd, shell=True)
+        print "after call"
+except:
+    error_node="/rootnode/alertsnode/ERROR_ENCOUNTERED"
+    zk.create(error_node)
+finally:
+    db.close()

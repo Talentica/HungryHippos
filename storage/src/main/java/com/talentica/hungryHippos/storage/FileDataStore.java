@@ -65,9 +65,10 @@ public class FileDataStore implements DataStore, Serializable {
 
 	@Override
 	public StoreAccess getStoreAccess(int keyId) {
-		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(keyId);
+		int shardingIndexSequence = Property.getShardingIndexSequence(keyId);
+		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
 		if (storeAccess == null) {
-			storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, keyId, numFiles, dataDescription);
+			storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
 			primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
 		}
 		storeAccess.clear();

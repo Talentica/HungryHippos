@@ -101,7 +101,7 @@ public class Property {
 					}
 				} else {
 					try {
-						if (!isConnected) {
+						if (!isConnected && StringUtils.isNotBlank(zkIp)) {
 							if (nodesManager == null && (nodesManager= ServerHeartBeat.init().connectZookeeper(
 									zkIp)) != null) {
 								isConnected = true;
@@ -282,6 +282,30 @@ public class Property {
 		String keyOrderString = getPropertyValue("common.sharding_dimensions")
 				.toString();
 		return keyOrderString.split(",");
+	}
+
+	public static int[] getShardingIndexes() {
+		String keyOrderString = getPropertyValue("common.sharding_dimensions").toString();
+		String[] shardingKeys= keyOrderString.split(",");
+		int[] shardingKeyIndexes = new int[shardingKeys.length];
+		String keysNamingPrefix = getPropertyValue("keys.prefix");
+		int keysNamingPrefixLength = keysNamingPrefix.length();
+		for (int i = 0; i < shardingKeys.length; i++) {
+			shardingKeyIndexes[i] = Integer.parseInt(shardingKeys[i].substring(keysNamingPrefixLength));
+		}
+		return shardingKeyIndexes;
+	}
+
+	public static int getShardingIndexSequence(int keyId) {
+		int[] shardingIndexes = getShardingIndexes();
+		int index = -1;
+		for (int i = 0; i < shardingIndexes.length; i++) {
+			if (shardingIndexes[i] == keyId) {
+				index = i;
+				break;
+			}
+		}
+		return index;
 	}
 
 	public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {

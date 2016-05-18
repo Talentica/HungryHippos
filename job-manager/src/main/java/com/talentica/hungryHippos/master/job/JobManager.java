@@ -182,12 +182,10 @@ public class JobManager {
 			if (jobEntities == null || jobEntities.isEmpty())
 				continue;
 			CountDownLatch signal = new CountDownLatch(1);
-			String buildPath = ZKUtils.buildNodePath(nodeId)
-					+ PathUtil.FORWARD_SLASH
+			String buildPath = ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
+					+ PathUtil.FORWARD_SLASH + ("_node"+nodeId) + PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-			String buildZkNotificationPath = buildPath + PathUtil.FORWARD_SLASH
-					+ CommonUtil.getJobUUIdInBase64(jobUUId);
-			nodesManager.createPersistentNode(buildZkNotificationPath, signal);
+			nodesManager.createPersistentNode(buildPath, signal);
 			signal.await();
 			NodeJobsService nodeJobsService = new NodeJobsService(
 					nodeIdNodeMap.get(nodeId), nodesManager);

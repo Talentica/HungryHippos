@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * This class is listener on the zookeeper node and also creates the nodes to
@@ -24,6 +25,7 @@ import com.talentica.hungryHippos.coordination.ZKUtils;
 public class ZkSignalListener {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(ZkSignalListener.class);
+	public static String jobuuidInBase64;
 
 	/**
 	 * @param nodesManager
@@ -145,7 +147,7 @@ public class ZkSignalListener {
 	private static void listenerOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(nodeName),
+		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.FORWARD_SLASH + nodeName),
 				signal);
 		signal.await();
 	}
@@ -158,7 +160,7 @@ public class ZkSignalListener {
 	 */
 	private static void createOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(nodeName);
+		String shardingNodeName = nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.FORWARD_SLASH + nodeName);
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();

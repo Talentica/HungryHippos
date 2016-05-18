@@ -44,6 +44,8 @@ public class JobExecutor {
 
 	private static String PRIFIX_NODE_NAME = "_node";
 
+	private static String jobUUId;
+
 	public static void main(String[] args) {
 		try {
 			LOGGER.info("Start Node initialize");
@@ -94,7 +96,7 @@ public class JobExecutor {
 	 * @param args
 	 */
 	private static void initialize(String[] args) {
-		String jobUUId = args[0];
+		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		nodesManager = Property.getNodesManagerIntances();
@@ -160,7 +162,11 @@ public class JobExecutor {
 	 */
 	private static List<JobEntity> getJobsFromZKNode() throws IOException,
 			ClassNotFoundException, InterruptedException, KeeperException {
-		String buildPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
+
+		String buildPath = ZKUtils.buildNodePath(CommonUtil
+				.getJobUUIdInBase64(jobUUId))
+				+ PathUtil.FORWARD_SLASH
+				+ ("_node" + NodeUtil.getNodeId())
 				+ PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);

@@ -79,7 +79,6 @@ public class DataReceiver {
 
 	public static void main(String[] args) {
 		try {
-			long startTime = System.currentTimeMillis();
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
@@ -88,7 +87,7 @@ public class DataReceiver {
 			ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
 					CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
 			signal.await();
-
+			long startTime = System.currentTimeMillis();
 			DataReceiver dataReceiver = getNodeInitializer();
 			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();

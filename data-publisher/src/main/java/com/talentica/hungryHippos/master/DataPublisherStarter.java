@@ -28,7 +28,6 @@ public class DataPublisherStarter {
 	private static DataPublisherStarter dataPublisherStarter;
 	public static void main(String[] args) {
 		try {
-			long startTime = System.currentTimeMillis();
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			dataPublisherStarter = new DataPublisherStarter();
@@ -36,6 +35,7 @@ public class DataPublisherStarter {
 			dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
 			LOGGER.info("Initializing nodes manager.");
 			waitForSinal(dataPublisherStarter);
+			long startTime = System.currentTimeMillis();
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));

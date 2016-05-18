@@ -30,13 +30,13 @@ public class JobManagerStarter {
 
 	public static void main(String[] args) {
 		try {
-			long startTime = System.currentTimeMillis();
 			validateProgramArguments(args);
 			String jobUUId = args[1];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
 			waitForCompletion();
+			long startTime = System.currentTimeMillis();
 			JobManager jobManager = new JobManager();
 			JobManager.nodesManager = nodesManager;
 			jobManager.addJobList(((JobMatrix) getJobMatrix(args))

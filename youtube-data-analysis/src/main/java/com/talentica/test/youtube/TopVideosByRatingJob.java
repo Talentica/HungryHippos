@@ -10,7 +10,7 @@ public class TopVideosByRatingJob implements Job, Serializable {
 
 	private static final long serialVersionUID = -8299385914889558642L;
 
-	protected int[] dimensions = new int[] { 2, 3 };
+	protected int[] dimensions = new int[] { 3 };
 
 	protected int primaryDimension = 3;
 

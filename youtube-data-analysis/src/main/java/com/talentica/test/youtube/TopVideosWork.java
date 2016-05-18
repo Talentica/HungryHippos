@@ -1,5 +1,8 @@
 package com.talentica.test.youtube;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
@@ -14,7 +17,7 @@ public class TopVideosWork implements Work, Serializable {
 
 	protected int primaryDimension;
 
-	private TreeMap<Double, YoutubeVideo> topRatedVideos = new TreeMap<>();
+	private TreeMap<Double, List<YoutubeVideo>> topRatedVideos = new TreeMap<>();
 
 	private double topRating = -1;
 
@@ -29,25 +32,36 @@ public class TopVideosWork implements Work, Serializable {
 		if (topRating == -1) {
 			addNewHighlyRatedVideo(executionContext, rating);
 		} else if (rating > topRating) {
-			if (topRatedVideos.size() >= 10) {
-				Double largestVideo = topRatedVideos.lastKey();
-				topRatedVideos.remove(largestVideo);
+			if (getAllVideos().size() >= 10) {
+				List<YoutubeVideo> smallestVideos = topRatedVideos.firstEntry().getValue();
+				smallestVideos.remove(0);
 			}
 			addNewHighlyRatedVideo(executionContext, rating);
 		}
+	}
+
+	private List<YoutubeVideo> getAllVideos() {
+		List<YoutubeVideo> allvideos = new ArrayList<>();
+		topRatedVideos.forEach((rating, videos) -> allvideos.addAll(videos));
+		return allvideos;
 	}
 
 	private void addNewHighlyRatedVideo(ExecutionContext executionContext, double rating) {
 		String videoId = ((MutableCharArrayString) executionContext.getValue(0)).toString();
 		String uploader = ((MutableCharArrayString) executionContext.getValue(1)).toString();
 		String category = ((MutableCharArrayString) executionContext.getValue(3)).toString();
-		topRatedVideos.put(rating, new YoutubeVideo(videoId, uploader, category, rating));
+		List<YoutubeVideo> videos = topRatedVideos.get(rating);
+		if (videos == null) {
+			videos = new ArrayList<YoutubeVideo>();
+			topRatedVideos.put(rating, videos);
+		}
+		videos.add(new YoutubeVideo(videoId, uploader, category, rating));
 		topRating = rating;
 	}
 
 	@Override
 	public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(6, topRatedVideos);
+		executionContext.saveValue(6, getAllVideos());
 	}
 
 	@Override

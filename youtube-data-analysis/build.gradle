@@ -17,7 +17,7 @@ sourceSets {
   }
 
 dependencies {	
-	 compile name: 'client-api-1.0'
+	 compile name: 'client-api'
 	 compile 'org.apache.commons:commons-math3:3.5'
 	 testCompile 'junit:junit:4.12'
 }

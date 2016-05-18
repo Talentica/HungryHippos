@@ -43,13 +43,13 @@ public class JobExecutor {
 
 	public static void main(String[] args) {
 		try {
-			long startTime = System.currentTimeMillis();
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.NODE);
 			nodesManager = Property.getNodesManagerIntances();
 			waitForSignal();
 			LOGGER.info("Start Node initialize");
+			long startTime = System.currentTimeMillis();
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
 

@@ -29,7 +29,6 @@ public class ShardingStarter {
 
 	public static void main(String[] args) {
 		try {
-			long startTime = System.currentTimeMillis();
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
@@ -43,6 +42,7 @@ public class ShardingStarter {
 			waitForSamplingSinal();
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 			LOGGER.info("SHARDING STARTED");
+			long startTime = System.currentTimeMillis();
 			Sharding.doSharding(getInputReaderForSharding());
 			LOGGER.info("SHARDING DONE!!");
 			callCopyScriptForMapFiles();

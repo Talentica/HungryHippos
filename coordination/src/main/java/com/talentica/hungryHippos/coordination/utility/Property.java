@@ -291,7 +291,7 @@ public class Property {
 		String keysNamingPrefix = getPropertyValue("keys.prefix");
 		int keysNamingPrefixLength = keysNamingPrefix.length();
 		for (int i = 0; i < shardingKeys.length; i++) {
-			shardingKeyIndexes[i] = Integer.parseInt(shardingKeys[i].substring(keysNamingPrefixLength));
+			shardingKeyIndexes[i] = Integer.parseInt(shardingKeys[i].substring(keysNamingPrefixLength)) - 1;
 		}
 		return shardingKeyIndexes;
 	}

@@ -21,6 +21,7 @@ import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
@@ -41,18 +42,16 @@ public class JobExecutor {
 
 	private static DataStore dataStore;
 
+	private static String PRIFIX_NODE_NAME = "_node";
+
 	public static void main(String[] args) {
 		try {
-			String jobUUId = args[0];
-			CommonUtil.loadDefaultPath(jobUUId);
-			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			nodesManager = Property.getNodesManagerIntances();
-			waitForSignal();
 			LOGGER.info("Start Node initialize");
+			initialize(args);
 			long startTime = System.currentTimeMillis();
+			listenerOnJobMatrix();
 			JobRunner jobRunner = createJobRunner();
 			List<JobEntity> jobEntities = getJobsFromZKNode();
-
 			for (JobEntity jobEntity : jobEntities) {
 				Object[] loggerJobArgument = new Object[] { jobEntity
 						.getJobId() };
@@ -62,18 +61,14 @@ public class JobExecutor {
 						loggerJobArgument);
 			}
 			jobEntities.clear();
-			String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
-					+ PathUtil.FORWARD_SLASH
-					+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-			CountDownLatch signal = new CountDownLatch(1);
-			nodesManager.createPersistentNode(buildStartPath, signal);
-			signal.await();
+			sendFinishJobMatrixSignal();
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to execute all jobs.",
 					((endTime - startTime) / 1000));
 			LOGGER.info("ALL JOBS ARE FINISHED");
 		} catch (Exception exception) {
-			LOGGER.error("Error occured while executing node starter program.", exception);
+			LOGGER.error("Error occured while executing node starter program.",
+					exception);
 			try {
 				sendFailureSignal(nodesManager);
 			} catch (IOException | InterruptedException e) {
@@ -85,21 +80,38 @@ public class JobExecutor {
 	}
 
 	/**
-	 * 
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
 	 */
-	private static void createErrorEncounterSignal() {
-		String alertErrorEncounterJobExecution = JobExecutor.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
-						.getZKJobNode());
+	private static void listenerOnJobMatrix() throws Exception,
+			KeeperException, InterruptedException {
+		ZkSignalListener.waitForSignal(JobExecutor.nodesManager,
+				CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
+	}
+
+	/**
+	 * @param args
+	 */
+	private static void initialize(String[] args) {
+		String jobUUId = args[0];
+		CommonUtil.loadDefaultPath(jobUUId);
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		nodesManager = Property.getNodesManagerIntances();
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static void sendFinishJobMatrixSignal() throws IOException,
+			InterruptedException {
+		String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
+				+ PathUtil.FORWARD_SLASH
+				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 		CountDownLatch signal = new CountDownLatch(1);
-		try {
-			JobExecutor.nodesManager.createPersistentNode(
-					alertErrorEncounterJobExecution, signal);
-			signal.await();
-		} catch (IOException | InterruptedException e) {
-			LOGGER.info("Unable to create the sharding failure path");
-		}
-		LOGGER.info("ERROR_ENCOUNTERED path is created");
+		nodesManager.createPersistentNode(buildStartPath, signal);
+		signal.await();
 	}
 
 	/**
@@ -112,30 +124,14 @@ public class JobExecutor {
 		String basePathPerNode = Property
 				.getPropertyValue("zookeeper.base_path")
 				+ PathUtil.FORWARD_SLASH
-				+ "_node"+NodeUtil.getNodeId()
-				+ PathUtil.FORWARD_SLASH;
+				+ PRIFIX_NODE_NAME
+				+ NodeUtil.getNodeId() + PathUtil.FORWARD_SLASH;
 		String shardingNodeName = basePathPerNode
 				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();
-		createErrorEncounterSignal();
-	}
-
-	/**
-	 * Await for the signal of the job manager. Once job is submitted, it start
-	 * execution on respective servers.
-	 * 
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	private static void waitForSignal() throws KeeperException,
-			InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(JobExecutor.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX
-						.getZKJobNode()), signal);
-		signal.await();
+		ZkSignalListener.createErrorEncounterSignal(nodesManager);
 	}
 
 	/**

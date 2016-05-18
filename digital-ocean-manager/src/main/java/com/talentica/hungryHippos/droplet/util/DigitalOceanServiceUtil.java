@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.httpclient.HttpException;
+import org.apache.zookeeper.ZKUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +31,12 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.query.JobRequest;
@@ -352,29 +355,23 @@ public class DigitalOceanServiceUtil {
 			writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
 			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
-			startZookeeperServer(jobUUId[0]);
+			ZKUtils.startZookeeperServer(jobUUId[0]);
 			LOGGER.info("Checking zookeeper running status on master server...");
-			String zkStatus = checkZookeeperServerStatus(jobUUId[0]);
+			String zkStatus = ZKUtils.checkZookeeperServerStatus(jobUUId[0]);
 			while (!zkStatus.toLowerCase().contains("Mode".toLowerCase())) {
-					startZookeeperServer(jobUUId[0]);
-					zkStatus = checkZookeeperServerStatus(jobUUId[0]);
+				ZKUtils.startZookeeperServer(jobUUId[0]);
+					zkStatus = ZKUtils.checkZookeeperServerStatus(jobUUId[0]);
 					retryCounter--;
 					if(retryCounter == 0){
 						LOGGER.info("Unable to start the zookeeper server. Now copying the logs file to ngnix server.");
-						callCopyFailureShellScript(jobUUId[0]);
-						callCopySuccessShellScript(jobUUId[0]);
+						ScriptExecutionUtil.callCopyFailureShellScript(jobUUId[0]);
+						ScriptExecutionUtil.callCopySuccessShellScript(jobUUId[0]);
 						break;
 					}
 				}
 			LOGGER.info("Zookeeper server started and status is {}...",zkStatus);
 			LOGGER.info("Creating default nodes");
-			if (nodesManager == null) {
-				CommonUtil.loadDefaultPath(jobUUId[0]);
-				String zkIp = CommonUtil.getZKIp();
-				LOGGER.info("zk ip is {}",zkIp);
-				nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
-			} 
-			nodesManager.startup();
+			ZKUtils.createDefaultNodes(jobUUId);
 			LOGGER.info("Default nodes are created...");
 			LOGGER.info("Uploading server conf file to zk node");
 			uploadServerConfigFileToZK();
@@ -387,7 +384,7 @@ public class DigitalOceanServiceUtil {
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 		}
 	}
-	
+
 	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId)
 			throws HttpException, IOException {
 		Map<String,String> keyValue = new HashMap<String, String>();
@@ -448,30 +445,6 @@ public class DigitalOceanServiceUtil {
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
 
-	/**
-	 * @throws IOException
-	 */
-	private static void startZookeeperServer(String jobuuid) throws IOException {
-		LOGGER.info("Executing shell command to start the zookeeper");
-		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh",jobuuid};
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Shell command is executed");
-	}
-	
-	
-	/**
-	 * @throws IOException
-	 */
-	private static String checkZookeeperServerStatus(String jobuuid) throws IOException {
-		LOGGER.info("Executing shell command to check the zookeeper server status");
-		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"zk-server-status.sh",jobuuid};
-		String retStatus = CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Shell command is executed");
-		return retStatus;
-	}
-	
 	/**
 	 * @param dropletService
 	 * @param droplets
@@ -610,24 +583,5 @@ public class DigitalOceanServiceUtil {
 		return dropletIds;
 	}
 	
-	public static void callCopySuccessShellScript(String jobuuid) {
-		String downloadScriptPath = Paths.get("../bin")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/bin/sh",
-				downloadScriptPath + "copy-logs-success.sh", jobuuid };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Copying success logs are initiated");
-	}
-	
-	public static void callCopyFailureShellScript(String jobuuid) {
-		String downloadScriptPath = Paths.get("../bin")
-				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
-		String[] strArr = new String[] { "/bin/sh",
-				downloadScriptPath + "copy-log-failure.sh", jobuuid };
-		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Copying failure logs are initiated");
-	}
 
 }

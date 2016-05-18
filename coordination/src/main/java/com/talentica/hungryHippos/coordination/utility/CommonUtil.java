@@ -214,6 +214,9 @@ public class CommonUtil {
 	public static String executeScriptCommand(String[] strArr) {
 		String line = "";
 		String retResult = "";
+		if(ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL) {
+			return line;
+		}
 		try {
 			Runtime rt = Runtime.getRuntime();
 			Process pr = rt.exec(strArr, null, null);

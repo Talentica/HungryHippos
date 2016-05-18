@@ -221,6 +221,10 @@ public class ZKUtils {
 		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node" + nodeId);
 		}
 	 
+	 public static String buildNodePath(String jobuuid){
+			return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + (jobuuid);
+			}
+	 
 	/**
 	 * Delete all the nodes of zookeeper recursively
 	 * 

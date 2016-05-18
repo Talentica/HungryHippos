@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.job.main;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -9,11 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.master.job.JobManager;
 
 /**
@@ -67,6 +65,8 @@ public class JobManagerStarter {
 	 */
 	private static void initialize(String[] args) {
 		String jobUUId = args[1];
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
 		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		JobManagerStarter.nodesManager = Property.getNodesManagerIntances();

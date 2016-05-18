@@ -51,6 +51,7 @@ public class ShardingStarter {
 	 */
 	private static void initialize(String[] args) throws Exception {
 		String jobUUId = args[0];
+		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
 		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL)

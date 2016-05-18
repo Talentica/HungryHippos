@@ -27,16 +27,6 @@ public class TopVideosByRatingJob implements Job, Serializable {
 	}
 
 	@Override
-	public int getIndex() {
-		return valueIndex;
-	}
-
-	@Override
-	public long getMemoryFootprint(long arg0) {
-		return 0;
-	}
-
-	@Override
 	public int getPrimaryDimension() {
 		return primaryDimension;
 	}

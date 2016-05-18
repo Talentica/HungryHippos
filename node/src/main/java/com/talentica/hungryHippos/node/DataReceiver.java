@@ -11,7 +11,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 
@@ -32,16 +32,17 @@ public class DataReceiver {
 
 	private DataDescription dataDescription;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(DataReceiver.class.getName());
 
 	private DataStore dataStore;
-	
+
 	private static NodesManager nodesManager;
 
 	public DataReceiver(DataDescription dataDescription) throws Exception {
 		this.dataDescription = dataDescription;
-		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(),
-				dataDescription);
+		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap()
+				.size(), dataDescription);
 	}
 
 	/**
@@ -63,7 +64,8 @@ public class DataReceiver {
 			b.childHandler(new ChannelInitializer<SocketChannel>() {
 				@Override
 				protected void initChannel(SocketChannel ch) throws Exception {
-					ch.pipeline().addLast(new DataReadHandler(dataDescription, dataStore));
+					ch.pipeline().addLast(
+							new DataReadHandler(dataDescription, dataStore));
 				}
 			});
 			LOGGER.info("binding to port " + port);
@@ -81,13 +83,12 @@ public class DataReceiver {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			String jobUUId = args[0];
-			CommonUtil.loadDefaultPath(jobUUId);
-			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			DataReceiver.nodesManager = Property.getNodesManagerIntances();
-			waitForStartDataReciever();
+			initialize(args);
+			listenerDataReciever();
+			LOGGER.info("Start Node initialize");
 			DataReceiver dataReceiver = getNodeInitializer();
-			ZKNodeFile serverConfig = ZKUtils.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
+			ZKNodeFile serverConfig = ZKUtils
+					.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
 			Properties serverConfigProps = Property.loadServerProperties();
 			if (serverConfig != null) {
@@ -95,14 +96,13 @@ public class DataReceiver {
 			}
 			String server = serverConfigProps.getProperty("server." + nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);
-			LOGGER.info("Start Node initialize");
 			dataReceiver.startServer(PORT, nodeId);
 			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
+			LOGGER.info(
+					"It took {} seconds of time to for receiving all data on this node.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error("Error occured while executing node starter program.", exception);
-			handleError();
+			errorHandler(exception);
 		}
 	}
 
@@ -110,27 +110,21 @@ public class DataReceiver {
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	private static void waitForStartDataReciever() throws KeeperException,
+	private static void listenerDataReciever() throws KeeperException,
 			InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(DataReceiver.nodesManager.buildAlertPathByName(
-				CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
-		signal.await();
+		ZkSignalListener.waitForStartDataReciever(DataReceiver.nodesManager,
+				CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER
+						.getZKJobNode());
 	}
 
 	/**
-	 * 
+	 * @param args
 	 */
-	private static void handleError() {
-		String alertErrorEncounterDataReciever = DataReceiver.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
-		CountDownLatch signal = new CountDownLatch(1);
-		try {
-			DataReceiver.nodesManager.createPersistentNode(alertErrorEncounterDataReciever, signal);
-			signal.await();
-		} catch (IOException | InterruptedException e) {
-			LOGGER.info("Unable to create the sharding failure path");
-		}
+	private static void initialize(String[] args) {
+		String jobUUId = args[0];
+		CommonUtil.loadDefaultPath(jobUUId);
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		DataReceiver.nodesManager = Property.getNodesManagerIntances();
 	}
 
 	/**
@@ -141,9 +135,25 @@ public class DataReceiver {
 	 * @throws Exception
 	 */
 	private static DataReceiver getNodeInitializer() throws Exception {
-		FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+		FieldTypeArrayDataDescription dataDescription = CommonUtil
+				.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(Property.getShardingDimensions());
 		return new DataReceiver(dataDescription);
+	}
+
+	/**
+	 * @param exception
+	 */
+	private static void errorHandler(Exception exception) {
+		LOGGER.error("Error occured while executing node starter program.",
+				exception);
+		try {
+			ZkSignalListener
+					.createErrorEncounterSignal(DataReceiver.nodesManager);
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the node on zk due to {}",
+					e.getMessage());
+		}
 	}
 
 }

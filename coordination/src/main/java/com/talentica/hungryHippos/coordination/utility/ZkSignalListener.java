@@ -14,19 +14,37 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 
 /**
+ * This class is listener on the zookeeper node and also creates the nodes to
+ * broadcast the signal in distributed system.
+ * 
  * @author PooshanS
- *
+ * @since 2016-05-18
+ * @version 0.6.0
  */
 public class ZkSignalListener {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(ZkSignalListener.class);
 
+	/**
+	 * @param nodesManager
+	 * @param nodeName
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
 	public static void waitForDownloadSinal(NodesManager nodesManager,
 			String nodeName) throws Exception, KeeperException,
 			InterruptedException {
 		listenerOnAlertNode(nodesManager, nodeName);
 	}
 
+	/**
+	 * @param nodesManager
+	 * @param nodeName
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
 	public static void waitForSamplingSinal(NodesManager nodesManager,
 			String nodeName) throws Exception, KeeperException,
 			InterruptedException {
@@ -53,8 +71,7 @@ public class ZkSignalListener {
 	public static void shardingFailed(NodesManager nodesManager, String nodeName)
 			throws IOException, InterruptedException {
 		createOnAlertNode(nodesManager, nodeName);
-		createErrorEncounterSignal(nodesManager,
-				CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
+		createErrorEncounterSignal(nodesManager);
 	}
 
 	/**
@@ -62,10 +79,62 @@ public class ZkSignalListener {
 	 * @throws IOException
 	 * 
 	 */
-	private static void createErrorEncounterSignal(NodesManager nodesManager,
+	public static void createErrorEncounterSignal(NodesManager nodesManager)
+			throws IOException, InterruptedException {
+		createOnAlertNode(nodesManager,
+				CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
+		LOGGER.info("ERROR_ENCOUNTERED node is created");
+	}
+
+	/**
+	 * Await for the signal of the sharding. Once sharding is completed, it
+	 * start execution for the data publishing.
+	 * 
+	 * @param dataPublisherStarter
+	 * @throws Exception
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public static void waitForSignal(NodesManager nodesManager, String nodeName)
+			throws Exception, KeeperException, InterruptedException {
+		listenerOnAlertNode(nodesManager, nodeName);
+	}
+
+	/**
+	 * @throws InterruptedException
+	 * @throws IOException
+	 * 
+	 */
+	public static void dataPublishingFailed(NodesManager nodesManager,
 			String nodeName) throws IOException, InterruptedException {
 		createOnAlertNode(nodesManager, nodeName);
-		LOGGER.info("ERROR_ENCOUNTERED node is created");
+		createErrorEncounterSignal(nodesManager);
+	}
+
+	public static void sendSignalToNodes(NodesManager nodesManager,
+			String nodeName) throws InterruptedException, IOException {
+		createOnAlertNode(nodesManager, nodeName);
+	}
+
+	/**
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public static void waitForStartDataReciever(NodesManager nodesManager,
+			String nodeName) throws KeeperException, InterruptedException {
+		listenerOnAlertNode(nodesManager, nodeName);
+	}
+
+	/**
+	 * Await for the data publishing to be completed. Once completed, it start
+	 * the execution of the job manager.
+	 * 
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public static void waitForCompletion(NodesManager nodesManager,
+			String nodeName) throws KeeperException, InterruptedException {
+		listenerOnAlertNode(nodesManager, nodeName);
 	}
 
 	/**
@@ -81,6 +150,12 @@ public class ZkSignalListener {
 		signal.await();
 	}
 
+	/**
+	 * @param nodesManager
+	 * @param nodeName
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private static void createOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws IOException, InterruptedException {
 		String shardingNodeName = nodesManager.buildAlertPathByName(nodeName);

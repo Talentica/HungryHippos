@@ -30,11 +30,7 @@ public class ShardingStarter {
 	public static void main(String[] args) {
 		try {
 			long startTime = System.currentTimeMillis();
-			String jobUUId = args[0];
-			CommonUtil.loadDefaultPath(jobUUId);
-			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			ZKUtils.createDefaultNodes(jobUUId);
-			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
+			initialize(args);
 			callShellScriptBeforeSharding();
 			LOGGER.info("SHARDING STARTED");
 			Sharding.doSharding(getInputReaderForSharding());
@@ -47,6 +43,19 @@ public class ShardingStarter {
 			LOGGER.error("Error occurred while sharding.", exception);
 			sendShardingFailSignal();
 		}
+	}
+
+	/**
+	 * @param args
+	 * @throws Exception
+	 */
+	private static void initialize(String[] args) throws Exception {
+		String jobUUId = args[0];
+		CommonUtil.loadDefaultPath(jobUUId);
+		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL)
+			ZKUtils.createDefaultNodes(jobUUId);
+		ShardingStarter.nodesManager = Property.getNodesManagerIntances();
 	}
 
 	/**

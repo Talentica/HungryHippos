@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.sharding.main;
 
 import java.io.IOException;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
@@ -30,7 +28,6 @@ public class ShardingStarter {
 	public static void main(String[] args) {
 		try {
 			initialize(args);
-			callShellScriptBeforeSharding();
 			LOGGER.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
 			Sharding.doSharding(getInputReaderForSharding());
@@ -38,7 +35,7 @@ public class ShardingStarter {
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
-			callShellScriptAfterSharding();
+			sendSignalShardingCompleted();
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while sharding.", exception);
 			sendShardingFailSignal();
@@ -51,7 +48,8 @@ public class ShardingStarter {
 	 */
 	private static void initialize(String[] args) throws Exception {
 		String jobUUId = args[0];
-		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
 		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL)
@@ -75,33 +73,10 @@ public class ShardingStarter {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private static void callShellScriptAfterSharding() throws IOException,
+	private static void sendSignalShardingCompleted() throws IOException,
 			InterruptedException {
-		ScriptExecutionUtil.callCopyScriptForMapFiles();
 		ZkSignalListener.sendSignal(nodesManager,
 				CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
-	}
-
-	/**
-	 * @throws Exception
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	private static void callShellScriptBeforeSharding() throws Exception,
-			KeeperException, InterruptedException {
-		ScriptExecutionUtil.callDownloadShellScript();
-		LOGGER.info("WATING FOR THE SIGNAL OF DOWNLOAD COMPLETION.");
-		if (ENVIRONMENT.getCurrentEnvironment() != ENVIRONMENT.LOCAL)
-			ZkSignalListener.waitForDownloadSinal(ShardingStarter.nodesManager,
-					CommonUtil.ZKJobNodeEnum.INPUT_DOWNLOAD_COMPLETED
-							.getZKJobNode());
-		LOGGER.info("SIGNAL RECIEVED, DOWNLOAD IS COMPLETED.");
-		ScriptExecutionUtil.callSamplingShellScript();
-		LOGGER.info("WATING FOR THE SIGNAL OF SMAPLING COMPLETION.");
-		if (ENVIRONMENT.getCurrentEnvironment() != ENVIRONMENT.LOCAL)
-			ZkSignalListener.waitForSamplingSinal(ShardingStarter.nodesManager,
-					CommonUtil.ZKJobNodeEnum.SAMPLING_COMPLETED.getZKJobNode());
-		LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 	}
 
 	private static Reader getInputReaderForSharding() throws IOException {

@@ -98,6 +98,8 @@ public class JobExecutor {
 	private static void initialize(String[] args) {
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		nodesManager = Property.getNodesManagerIntances();
 	}
@@ -125,13 +127,11 @@ public class JobExecutor {
 			throws IOException, InterruptedException {
 		String basePathPerNode = Property
 				.getPropertyValue("zookeeper.base_path")
-				+ PathUtil.FORWARD_SLASH
-				+ PRIFIX_NODE_NAME
-				+ NodeUtil.getNodeId() + PathUtil.FORWARD_SLASH;
-		String shardingNodeName = basePathPerNode
-				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
+				+ PathUtil.FORWARD_SLASH + ZkSignalListener.jobuuidInBase64 + PathUtil.FORWARD_SLASH
+				+ (PRIFIX_NODE_NAME
+				+ NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode() ;
 		CountDownLatch signal = new CountDownLatch(1);
-		nodesManager.createPersistentNode(shardingNodeName, signal);
+		nodesManager.createPersistentNode(basePathPerNode, signal);
 		signal.await();
 		ZkSignalListener.createErrorEncounterSignal(nodesManager);
 	}

@@ -38,6 +38,8 @@ public class DataReceiver {
 	private DataStore dataStore;
 
 	private static NodesManager nodesManager;
+	
+	private static String jobUUId;
 
 	public DataReceiver(DataDescription dataDescription) throws Exception {
 		this.dataDescription = dataDescription;
@@ -121,8 +123,10 @@ public class DataReceiver {
 	 * @param args
 	 */
 	private static void initialize(String[] args) {
-		String jobUUId = args[0];
+		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		DataReceiver.nodesManager = Property.getNodesManagerIntances();
 	}

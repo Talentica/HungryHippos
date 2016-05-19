@@ -27,11 +27,11 @@ public class DataPublisherStarter {
 			.getLogger(DataPublisherStarter.class);
 	private static DataPublisherStarter dataPublisherStarter;
 
+	private static String jobUUId;
 	public static void main(String[] args) {
 		try {
 			LOGGER.info("Initializing nodes manager.");
 			initialize(args);
-			listenerForShardingCompletion();
 			long startTime = System.currentTimeMillis();
 			broadcastSignal();
 			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
@@ -60,22 +60,13 @@ public class DataPublisherStarter {
 	}
 
 	/**
-	 * @throws Exception
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	private static void listenerForShardingCompletion() throws Exception,
-			KeeperException, InterruptedException {
-		ZkSignalListener.waitForSignal(dataPublisherStarter.nodesManager,
-				CommonUtil.ZKJobNodeEnum.SHARDING_COMPLETED.getZKJobNode());
-	}
-
-	/**
 	 * @param args
 	 */
 	private static void initialize(String[] args) {
-		String jobUUId = args[0];
+		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
 		dataPublisherStarter = new DataPublisherStarter();
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();

@@ -20,6 +20,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -99,18 +100,12 @@ public class JobManager {
 
 	private void sendSignalToAllNodesToStartJobMatrix()
 			throws InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
 		try {
-			nodesManager
-					.createPersistentNode(
-							nodesManager
-									.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX
-											.getZKJobNode()), signal);
+			ZkSignalListener.sendSignal(nodesManager,CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX
+												.getZKJobNode());
 		} catch (IOException e) {
 			LOGGER.info("Unable to send the signal node on zk due to {}", e);
 		}
-		signal.await();
-
 	}
 
 	private void sendSignalEndJobMatrix() throws InterruptedException {

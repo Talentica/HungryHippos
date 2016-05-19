@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.job.main;
 
 import java.io.IOException;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +25,12 @@ public class JobManagerStarter {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(JobManagerStarter.class);
 	private static NodesManager nodesManager;
+	private static String jobUUId;
 
 	public static void main(String[] args) {
 		try {
 			validateProgramArguments(args);
 			initialize(args);
-			listenerOnDataPublishCompletion();
 			long startTime = System.currentTimeMillis();
 			JobManager jobManager = new JobManager();
 			JobManager.nodesManager = nodesManager;
@@ -64,23 +63,12 @@ public class JobManagerStarter {
 	 * @param args
 	 */
 	private static void initialize(String[] args) {
-		String jobUUId = args[1];
+		jobUUId = args[1];
+		CommonUtil.loadDefaultPath(jobUUId);
 		ZkSignalListener.jobuuidInBase64 = CommonUtil
 				.getJobUUIdInBase64(jobUUId);
-		CommonUtil.loadDefaultPath(jobUUId);
 		Property.initialize(PROPERTIES_NAMESPACE.NODE);
 		JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
-	}
-
-	/**
-	 * @throws KeeperException
-	 * @throws InterruptedException
-	 */
-	private static void listenerOnDataPublishCompletion()
-			throws KeeperException, InterruptedException {
-		ZkSignalListener.waitForCompletion(JobManager.nodesManager,
-				CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED
-						.getZKJobNode());
 	}
 
 	private static void validateProgramArguments(String[] args)

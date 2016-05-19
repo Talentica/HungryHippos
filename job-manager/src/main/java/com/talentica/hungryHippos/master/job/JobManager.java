@@ -19,7 +19,6 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -101,8 +100,8 @@ public class JobManager {
 	private void sendSignalToAllNodesToStartJobMatrix()
 			throws InterruptedException {
 		try {
-			ZkSignalListener.sendSignal(nodesManager,CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX
-												.getZKJobNode());
+			ZkSignalListener.sendSignal(nodesManager,
+					CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
 		} catch (IOException e) {
 			LOGGER.info("Unable to send the signal node on zk due to {}", e);
 		}
@@ -110,12 +109,10 @@ public class JobManager {
 
 	private void sendSignalEndJobMatrix() throws InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		String basePath = Property.getPropertyValue("zookeeper.base_path")
-				+ PathUtil.FORWARD_SLASH;
+		String buildFinishPath = ZKUtils
+				.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode();
 		try {
-			nodesManager.createPersistentNode(basePath
-					+ CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode(),
-					signal);
+			nodesManager.createPersistentNode(buildFinishPath,signal);
 		} catch (IOException e) {
 			LOGGER.info("Unable to send the signal node on zk due to {}", e);
 		}
@@ -150,10 +147,15 @@ public class JobManager {
 	 */
 	private boolean getSignalFromZk(Integer nodeId, String finishNode) {
 		CountDownLatch signal = new CountDownLatch(1);
-		String buildPath = ZKUtils.buildNodePath(nodeId)
+
+		String buildFinishPath = ZKUtils
+				.buildNodePath(ZkSignalListener.jobuuidInBase64)
+				+ PathUtil.FORWARD_SLASH
+				+ ("_node" + nodeId)
 				+ PathUtil.FORWARD_SLASH + finishNode;
+
 		try {
-			ZKUtils.waitForSignal(buildPath, signal);
+			ZKUtils.waitForSignal(buildFinishPath, signal);
 			signal.await();
 		} catch (KeeperException | InterruptedException e) {
 			return false;
@@ -177,8 +179,11 @@ public class JobManager {
 			if (jobEntities == null || jobEntities.isEmpty())
 				continue;
 			CountDownLatch signal = new CountDownLatch(1);
-			String buildPath = ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
-					+ PathUtil.FORWARD_SLASH + ("_node"+nodeId) + PathUtil.FORWARD_SLASH
+			String buildPath = ZKUtils.buildNodePath(CommonUtil
+					.getJobUUIdInBase64(jobUUId))
+					+ PathUtil.FORWARD_SLASH
+					+ ("_node" + nodeId)
+					+ PathUtil.FORWARD_SLASH
 					+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 			nodesManager.createPersistentNode(buildPath, signal);
 			signal.await();

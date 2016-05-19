@@ -110,11 +110,11 @@ public class JobExecutor {
 	 */
 	private static void sendFinishJobMatrixSignal() throws IOException,
 			InterruptedException {
-		String buildStartPath = ZKUtils.buildNodePath(NodeUtil.getNodeId())
-				+ PathUtil.FORWARD_SLASH
+		String buildFinishPath = ZKUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
+				+ PathUtil.FORWARD_SLASH + ("_node"+NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
 				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 		CountDownLatch signal = new CountDownLatch(1);
-		nodesManager.createPersistentNode(buildStartPath, signal);
+		nodesManager.createPersistentNode(buildFinishPath, signal);
 		signal.await();
 	}
 

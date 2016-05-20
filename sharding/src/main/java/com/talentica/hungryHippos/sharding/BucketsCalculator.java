@@ -81,7 +81,8 @@ public final class BucketsCalculator {
 			List<Bucket<KeyValueFrequency>> bucketsForKey = keyToBucketNumbersCollectionMap.get(key);
 			int totalNumberOfBuckets = bucketsForKey.size();
 			if (totalNumberOfBuckets > 1) {
-				int bucketNumber = value.hashCode() % totalNumberOfBuckets + 1;
+				int hashCode = calculateHashCode(value);
+				int bucketNumber = hashCode % totalNumberOfBuckets + 1;
 				Bucket<KeyValueFrequency> bucketToBeAllotted = new Bucket<KeyValueFrequency>(bucketNumber);
 				if (bucketsForKey.contains(bucketToBeAllotted)) {
 					bucket = bucketsForKey.get(bucketsForKey.indexOf(bucketToBeAllotted));
@@ -93,4 +94,13 @@ public final class BucketsCalculator {
 		return bucket;
 	}
 
+	private static int calculateHashCode(Object value) {
+		int hashCode = value.hashCode();
+		if (hashCode == Integer.MIN_VALUE) {
+			hashCode = Integer.MAX_VALUE;
+		} else {
+			hashCode = Math.abs(hashCode);
+		}
+		return hashCode;
+	}
 }

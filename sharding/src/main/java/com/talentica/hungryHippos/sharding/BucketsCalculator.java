@@ -72,6 +72,9 @@ public final class BucketsCalculator {
 				}
 			}
 		}
+		if (bucket == null) {
+			bucket = new Bucket<>(0);
+		}
 		return bucket;
 	}
 

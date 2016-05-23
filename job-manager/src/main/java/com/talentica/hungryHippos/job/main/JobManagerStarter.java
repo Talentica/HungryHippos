@@ -1,18 +1,16 @@
 package com.talentica.hungryHippos.job.main;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.master.job.JobManager;
 
 /**
@@ -27,15 +25,12 @@ public class JobManagerStarter {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(JobManagerStarter.class);
 	private static NodesManager nodesManager;
+	private static String jobUUId;
 
 	public static void main(String[] args) {
 		try {
 			validateProgramArguments(args);
-			String jobUUId = args[1];
-			CommonUtil.loadDefaultPath(jobUUId);
-			Property.initialize(PROPERTIES_NAMESPACE.NODE);
-			JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
-			waitForCompletion();
+			initialize(args);
 			long startTime = System.currentTimeMillis();
 			JobManager jobManager = new JobManager();
 			JobManager.nodesManager = nodesManager;
@@ -46,46 +41,34 @@ public class JobManagerStarter {
 			LOGGER.info("It took {} seconds of time to for running all jobs.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error(
-					"Error occured while executing master starter program.",
-					exception);
-			createErrorEncounterSignal();
+			errorHandler(exception);
 		}
 	}
 
-
 	/**
-	 * 
+	 * @param exception
 	 */
-	private static void createErrorEncounterSignal() {
-		String alertErrorEncounterJobManager = JobManager.nodesManager
-				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED
-						.getZKJobNode());
-				CountDownLatch signal = new CountDownLatch(1);
-				try {
-					JobManager.nodesManager.createPersistentNode(alertErrorEncounterJobManager, signal);
-					signal.await();
-				} catch (IOException | InterruptedException e) {
-					LOGGER.info("Unable to create the sharding failure path");
-				}
+	private static void errorHandler(Exception exception) {
+		LOGGER.error("Error occured while executing master starter program.",
+				exception);
+		try {
+			ZkSignalListener.createErrorEncounterSignal(nodesManager);
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the node on zk due to {}",
+					e.getMessage());
+		}
 	}
 
-
 	/**
-	 * Await for the data publishing to be completed. Once completed, it start
-	 * the execution of the job manager.
-	 * 
-	 * @throws KeeperException
-	 * @throws InterruptedException
+	 * @param args
 	 */
-	private static void waitForCompletion() throws KeeperException,
-			InterruptedException {
-		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(
-				nodesManager
-						.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED
-								.getZKJobNode()), signal);
-		signal.await();
+	private static void initialize(String[] args) {
+		jobUUId = args[1];
+		CommonUtil.loadDefaultPath(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil
+				.getJobUUIdInBase64(jobUUId);
+		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		JobManagerStarter.nodesManager = Property.getNodesManagerIntances();
 	}
 
 	private static void validateProgramArguments(String[] args)

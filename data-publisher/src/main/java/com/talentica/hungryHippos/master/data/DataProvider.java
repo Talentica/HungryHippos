@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.master.data;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -69,7 +68,6 @@ public class DataProvider {
 
     @SuppressWarnings({"unchecked"})
     public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
-		sendSignalToNodes(nodesManager);
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
@@ -163,14 +161,4 @@ public class DataProvider {
 
     }
 
-    private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
-        CountDownLatch signal = new CountDownLatch(1);
-        try {
-            nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
-        } catch (IOException e) {
-            LOGGER.info("Unable to send the signal node on zk due to {}", e);
-        }
-
-        signal.await();
-    }
 }

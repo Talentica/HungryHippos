@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.coordination;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.Server;
+import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -217,6 +220,10 @@ public class ZKUtils {
 	 public static String buildNodePath(int nodeId){
 		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node" + nodeId);
 		}
+	 
+	 public static String buildNodePath(String jobuuid){
+			return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + (jobuuid);
+			}
 	 
 	/**
 	 * Delete all the nodes of zookeeper recursively
@@ -458,6 +465,43 @@ public class ZKUtils {
 				LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: "+ e.getMessage());
 				LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
 			}
+	}
+	
+	/**
+	 * @throws IOException
+	 */
+	public static void startZookeeperServer(String jobuuid) throws IOException {
+		LOGGER.info("Executing shell command to start the zookeeper");
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh",jobuuid};
+		CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Shell command is executed");
+	}
+	
+	/**
+	 * @throws IOException
+	 */
+	public static String checkZookeeperServerStatus(String jobuuid) throws IOException {
+		LOGGER.info("Executing shell command to check the zookeeper server status");
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"zk-server-status.sh",jobuuid};
+		String retStatus = CommonUtil.executeScriptCommand(strArr);
+		LOGGER.info("Shell command is executed");
+		return retStatus;
+	}
+	
+	/**
+	 * @param jobUUId
+	 * @throws Exception
+	 */
+	public static void createDefaultNodes(String... jobUUId) throws Exception {
+		if (nodesManager == null) {
+			CommonUtil.loadDefaultPath(jobUUId[0]);
+			String zkIp = CommonUtil.getZKIp();
+			LOGGER.info("zk ip is {}",zkIp);
+			nodesManager= ServerHeartBeat.init().connectZookeeper(zkIp);
+		} 
+		nodesManager.startup();
 	}
 	
 }

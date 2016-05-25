@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.zookeeper.ZKUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,6 @@ import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -42,7 +39,6 @@ import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.query.JobRequest;
 import com.talentica.hungryHippos.tester.api.job.Job;
 import com.talentica.hungryHippos.tester.api.job.JobInput;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * @author PooshanS

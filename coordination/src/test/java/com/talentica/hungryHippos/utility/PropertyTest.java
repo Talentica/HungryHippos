@@ -15,7 +15,6 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  *
  */
 public class PropertyTest{
-	
 	@Test
 	public void testGetPropertyValueForMaster() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
@@ -79,8 +78,8 @@ public class PropertyTest{
 		int[] shardingKeyIndexes = Property.getShardingIndexes();
 		Assert.assertNotNull(shardingKeyIndexes);
 		Assert.assertEquals(2, shardingKeyIndexes.length);
-		Assert.assertEquals(3, shardingKeyIndexes[0]);
-		Assert.assertEquals(4, shardingKeyIndexes[1]);
+		Assert.assertEquals(2, shardingKeyIndexes[0]);
+		Assert.assertEquals(3, shardingKeyIndexes[1]);
 	}
 
 	@Test

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Some modules of HH</comment>
+<entry key="First Step">Sampling</entry>
+<entry key="Second Step">Sharding</entry>
+<entry key="Third Step">Data Publishing</entry>
+<entry key="Fourth Step">Job Manager</entry>
+</properties>

@@ -79,15 +79,17 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
 		String[] datatype_size;
 		String datatype;
-		int size;
 		if (dataTypeConfiguration == null || dataTypeConfiguration.length == 0) {
 			LOGGER.warn("\n\t No data type is specified in the configuration file");
 			return dataDescription;
 		}
 		for (int index = 0; index < dataTypeConfiguration.length; index++) {
+			int size=0;
 			datatype_size = dataTypeConfiguration[index].split("-");
 			datatype = datatype_size[0];
-			size = Integer.valueOf(datatype_size[1]);
+			if(datatype_size.length>1){
+				size = Integer.valueOf(datatype_size[1]);
+			}
 			switch (datatype) {
 			case "STRING":
 				dataDescription.addFieldType(DataLocator.DataType.STRING, size);

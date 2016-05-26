@@ -51,6 +51,33 @@ app.directive('fileModel', ['$parse', function ($parse) {
     };
 }]);
 
+
+app.filter('dataTypeFormatter',function(){
+	return function(valueToFormat){
+		var formattedValue='';
+		if(valueToFormat){
+			var dataTypes= valueToFormat.split(',');
+			for(var i=0;i<dataTypes.length;i++){
+				if(dataTypes[i]){
+					 var dataType=dataTypes[i].split('-');
+					 if(i>0){
+						 formattedValue=formattedValue+',';
+					 }
+					 if(dataType.length==2 && dataType[1]){
+						 formattedValue=formattedValue+dataType[0]+'['+dataType[1]+']';
+					 }else{
+						 formattedValue=formattedValue+dataType[0];
+					 }
+				}
+			}
+		}else{
+			formattedValue=valueToFormat;
+		}
+		return formattedValue;
+	}
+});
+
+
 app.directive('fileSelect', function() {
 	  var template = '<input type="file" name="files"/>';
 	  return function( scope, elem, attrs ) {

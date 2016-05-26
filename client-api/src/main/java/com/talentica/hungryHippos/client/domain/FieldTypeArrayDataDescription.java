@@ -98,7 +98,7 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 				dataDescription.addFieldType(DataLocator.DataType.DOUBLE, size);
 				break;
 			case "FLOAT":
-				dataDescription.addFieldType(DataLocator.DataType.DOUBLE, size);
+				dataDescription.addFieldType(DataLocator.DataType.FLOAT, size);
 				break;
 			case "CHAR":
 				dataDescription.addFieldType(DataLocator.DataType.CHAR, size);

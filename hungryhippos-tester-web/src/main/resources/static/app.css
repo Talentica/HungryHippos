@@ -179,3 +179,7 @@ a.tooltip:hover span{
 	border:0;
 	left:-12px;
 }
+
+.non-primary-button{
+    margin-right: 10px;
+}

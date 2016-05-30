@@ -1,16 +1,67 @@
 'use strict';
 
-app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUploader) {
-	$scope.jobDetail={};
-	$scope.error={};
-	$scope.numberOfColumnsInDataFile=1;
-	$scope.notification={};
-	$scope.jobJarFile=new FileUploader();
+app.controller('NewJobCtrl',function ($rootScope,$scope,JobService,usSpinnerService,FileUploader) {
 
+	$scope.jobJarFile=new FileUploader();
+	
+    $(".nav").find(".active").removeClass("active");
+    $("#newjobLink").parent().addClass("active");
+    $scope.numberOfColumnsInDataFile=1;
+	
 	$scope.getArrayOfSize=function(size){
 		return new Array(size);
 	}
-	$scope.dataTypeConfiguration= $scope.getArrayOfSize(1);
+
+	$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+	
+	$scope.reset=function(){
+		$scope.error={};
+		$scope.numberOfColumnsInDataFile=1;
+		$scope.notification={};
+		$scope.jobDetail={};
+		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+		usSpinnerService.stop('spinner-1');
+		$("#jobJarFile").value=null;
+	}
+	
+	$scope.resetSavedForm=function(){
+		$rootScope.error={};
+		$rootScope.numberOfColumnsInDataFile=1;
+		$rootScope.notification={};
+		$rootScope.jobDetail={};
+		$rootScope.dataTypeConfiguration=$scope.getArrayOfSize(1);
+		$rootScope.jobJarFile=null;
+	}
+	
+	$scope.restoreJobForm=function(){
+		$scope.error=$rootScope.error;
+		if($rootScope.numberOfColumnsInDataFile){
+			$scope.numberOfColumnsInDataFile=$rootScope.numberOfColumnsInDataFile;
+			$scope.dataTypeConfiguration=$rootScope.dataTypeConfiguration;
+		}
+		$scope.notification=$rootScope.notification;
+		$scope.jobDetail=$rootScope.jobDetail;
+		
+        var file = $rootScope.jobJarFile;
+        if(file && file.queue && file.queue.length>0 && file.queue[file.queue.length-1] && file.queue[file.queue.length-1]._file){
+        	$("#jobJarFile").value=file.queue[file.queue.length-1]._file;
+        }
+	}
+	
+	$scope.saveNewJobForm=function(){
+		$rootScope.error=$scope.error;
+		$rootScope.numberOfColumnsInDataFile=$scope.numberOfColumnsInDataFile;
+		$rootScope.notification=$scope.notification;
+		$rootScope.jobDetail=$scope.jobDetail;
+		$rootScope.dataTypeConfiguration=$scope.dataTypeConfiguration;
+		$rootScope.jobJarFile=$scope.jobJarFile;
+		$scope.notification={};
+		$scope.notification.message="Job saved successfully.";
+	}
+	
+	$scope.reset();
+	$scope.restoreJobForm();
+	
 	$scope.updateDataTypeConfiguration=function(){
 		$scope.dataTypeConfiguration= $scope.getArrayOfSize($scope.numberOfColumnsInDataFile);
 	}
@@ -75,6 +126,7 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUpl
 		        					}else{
 		        						var jobuuid= $scope.jobDetail.uuid;
 		        						$scope.reset();
+		        						$scope.resetSavedForm();
 		        						$scope.notification.message="Job with id: "+jobuuid+" submitted successfully.";
 		        					}
 		        					usSpinnerService.stop('spinner-1');
@@ -102,20 +154,14 @@ app.controller('NewJobCtrl',function ($scope,JobService,usSpinnerService,FileUpl
 	        }
 	};
 	
-	$scope.reset=function(){
-		$scope.error={};
-		$scope.numberOfColumnsInDataFile=1;
-		$scope.notification={};
-		$scope.jobDetail={};
-		$scope.dataTypeConfiguration=$scope.getArrayOfSize(1);
-		usSpinnerService.stop('spinner-1');
-		$("#jobJarFile").value=null;
-	}
-	
 });
 
 
 app.controller('JobHistoryCtrl',function ($scope,JobService,usSpinnerService) {
+	
+    $(".nav").find(".active").removeClass("active");
+    $("#historyLink").parent().addClass("active");
+	
 	$scope.jobsPresent=false;
 	$scope.jobsLoaded=false;
 	$scope.groupByDayWise = function (arr, key) {

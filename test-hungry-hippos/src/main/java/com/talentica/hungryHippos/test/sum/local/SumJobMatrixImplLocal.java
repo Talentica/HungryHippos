@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.test.sum;
+package com.talentica.hungryHippos.test.sum.local;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class SumJobMatrixImplLocal implements JobMatrix {
 		for (int i = 0; i < 1; i++) {
 			for (int j = i + 1; j < 4; j++) {
 				for (int k = j + 2; k < 4; k++) {
-					jobList.add(new SumJob(new int[] { i, j, k }, i, 6));
+					jobList.add(new SumJobLocal(new int[] { i, j, k }, i));
 				}
 			}
 		}

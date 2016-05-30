@@ -2,6 +2,9 @@
 
 app.controller('FaqCtrl',function ($scope,EnvironmentSrvc) {
 	
+	$(".nav").find(".active").removeClass("active");
+	$("#faqLink").parent().addClass("active");
+	
 	EnvironmentSrvc.getvalueof("clientapidownloadlocation",
 			function(response){
 				if(response && response.value){

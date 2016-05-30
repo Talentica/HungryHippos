@@ -90,7 +90,8 @@ app.controller('LoginCtrl',function ($scope,UserAccountService,$location,$window
 			  	}
 		  );
 	    }else{
-	    	$scope.loginErrorDetails.message="Please enter username and password both."
+	    	$scope.loginErrorDetails.message="Please enter username and password both.";
+	    	usSpinnerService.stop('spinner-1');
 	    }
 	  }
 	  

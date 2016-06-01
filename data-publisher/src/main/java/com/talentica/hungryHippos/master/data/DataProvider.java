@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.data.DataParser;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
@@ -68,7 +69,7 @@ public class DataProvider {
     }
 
     @SuppressWarnings({"unchecked"})
-    public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
+	public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser) throws Exception {
 		sendSignalToNodes(nodesManager);
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
@@ -109,7 +110,7 @@ public class DataProvider {
 
         LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
         Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-                Property.getPropertyValue("input.file").toString());
+				Property.getPropertyValue("input.file").toString(), dataParser);
         long timeForEncoding = 0;
         long timeForLookup = 0;
 

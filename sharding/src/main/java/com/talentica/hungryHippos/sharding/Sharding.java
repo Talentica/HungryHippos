@@ -59,7 +59,6 @@ public class Sharding {
 		LOGGER.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
-			sharding.setKeysToIndexes();
 			sharding.populateFrequencyFromData(input);
 			sharding.populateKeysToListOfBucketsMap();
 			sharding.updateBucketToNodeNumbersMap(input);
@@ -123,8 +122,8 @@ public class Sharding {
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
 		LOGGER.info("Populating frequency map from data started");
+		setKeysToIndexes();
 		String[] keys = Property.getShardingDimensions();
-		// Map<key1,Map<value1,count>>
 		while (true) {
 			MutableCharArrayString[] parts = data.read();
 			if (parts == null) {

@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.utility.CsvDataParser;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -25,7 +26,7 @@ public class DynamicMarshalTest {
 	
 	@Before
 	public void setUp() throws IOException {
-		dataDescription = new FieldTypeArrayDataDescription();
+		dataDescription = new FieldTypeArrayDataDescription(50);
 		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
 		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
 		dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
@@ -53,10 +54,10 @@ public class DynamicMarshalTest {
 
 	@Test
 	public void testreadvalue() throws IOException {
-
+		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		//Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("testSampleInput_1.txt");
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				"src/test/resources/testSampleInputWithBlankLineAtEOF.txt");
+				"src/test/resources/testSampleInputWithBlankLineAtEOF.txt", csvDataPreprocessor);
 		Assert.assertNotNull(input);
 		int noOfLines=0;
 		while (true) {
@@ -113,8 +114,9 @@ public class DynamicMarshalTest {
 	
 	@Test
 	public void testreadvalueWithBlankLines() throws IOException {
-
-		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader("src/test/resources/testSampleInputWithBlankLines.txt");
+		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
+		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
+				"src/test/resources/testSampleInputWithBlankLines.txt", csvDataPreprocessor);
 		Assert.assertNotNull(input);
 		int noOfLines=0;
 		while (true) {
@@ -170,8 +172,9 @@ public class DynamicMarshalTest {
 	
 	@Test
 	public void testreadvalueWithBlankFile() throws IOException {
-
-		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader("src/test/resources/testSampleInput_2.txt");
+		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
+		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
+				"src/test/resources/testSampleInput_2.txt", csvDataPreprocessor);
 		Assert.assertNotNull(input);
 		int noOfLines=0;
 		while (true) {

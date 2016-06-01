@@ -20,7 +20,7 @@ public class MutableCharArrayStringTest {
 
 	@Before
 	public void setUp() {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
 		dataDescription.addFieldType(DataType.STRING, 1);
 		stringL1 = new MutableCharArrayString(1);
 		stringL1.addCharacter('l');

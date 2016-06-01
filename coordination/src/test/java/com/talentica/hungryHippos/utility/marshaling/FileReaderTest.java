@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.utility.CsvDataParser;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 
 public class FileReaderTest {
@@ -29,21 +30,25 @@ public class FileReaderTest {
 	public void setUp() throws IOException {
 		ClassLoader classLoader = this.getClass().getClassLoader();
 		DataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(
-				"STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,DOUBLE-0,DOUBLE-0,STRING-3".split(","));
+				"STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,DOUBLE-0,DOUBLE-0,STRING-3".split(","), 100);
+		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		fileReader = new FileReader(
 				new File(classLoader.getResource("testSampleInputWithNoBlankLineAtEOF.txt").getPath()),
-				dataDescription);
+				csvDataPreprocessor);
 		fileReaderBlankLinesFile = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), csvDataPreprocessor);
 		fileReaderBlankLineAtEofFile = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), csvDataPreprocessor);
 		fileReaderWithBlankLineAtEOF = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLineAtEOF.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLineAtEOF.txt").getPath()),
+				csvDataPreprocessor);
 		DataDescription dataDescriptionWindowsTestFile = FieldTypeArrayDataDescription
-				.createDataDescription("STRING-3,LONG-0".split(","));
+				.createDataDescription("STRING-3,LONG-0".split(","), 100);
+		CsvDataParser csvDataPreprocessorForWindowsTestFile = new CsvDataParser(
+				dataDescriptionWindowsTestFile);
 		testSampleFileGeneratedOnWindows = new FileReader(
 				new File(classLoader.getResource("testSampleFileGeneratedOnWindows.txt").getPath()),
-				dataDescriptionWindowsTestFile);
+				csvDataPreprocessorForWindowsTestFile);
 	}
 
 	@Test

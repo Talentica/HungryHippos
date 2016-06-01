@@ -8,6 +8,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.data.DataParser;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -29,8 +30,11 @@ public class ShardingStarter {
 
 	public static void main(String[] args) {
 		try {
+			validateArguments(args);
 			String jobUUId = args[0];
 			CommonUtil.loadDefaultPath(jobUUId);
+			String dataParserClassName = args[1];
+			DataParser dataParser = (DataParser) Class.forName(dataParserClassName).newInstance();
 			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 			ShardingStarter.nodesManager = Property.getNodesManagerIntances();
 			callDownloadShellScript();
@@ -43,7 +47,7 @@ public class ShardingStarter {
 			LOGGER.info("SIGNAL RECIEVED, SAMPLING IS COMPLETED.");
 			LOGGER.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
-			Sharding.doSharding(getInputReaderForSharding());
+			Sharding.doSharding(getInputReaderForSharding(dataParser));
 			LOGGER.info("SHARDING DONE!!");
 			callCopyScriptForMapFiles();
 			long endTime = System.currentTimeMillis();
@@ -54,6 +58,12 @@ public class ShardingStarter {
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while sharding.", exception);
 			shardingFailed(exception);
+		}
+	}
+
+	private static void validateArguments(String[] args) {
+		if (args.length < 2) {
+			throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
 		}
 	}
 
@@ -160,9 +170,8 @@ public class ShardingStarter {
 		LOGGER.info("Sampling is initiated.");
 	}
 
-	private static Reader getInputReaderForSharding() throws IOException {
-		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				sampleInputFile);
+	private static Reader getInputReaderForSharding(DataParser dataParser) throws IOException {
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(sampleInputFile, dataParser);
 	}
 
 	private static void waitForSamplingSinal() throws Exception,

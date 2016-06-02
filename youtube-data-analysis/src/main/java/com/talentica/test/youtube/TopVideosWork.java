@@ -28,7 +28,7 @@ public class TopVideosWork implements Work, Serializable {
 	}
 
 	@Override
-	public void processRow(ExecutionContext executionContext) throws InvalidRowExeption {
+	public void processRow(ExecutionContext executionContext) {
 		double rating = ((Double) executionContext.getValue(6));
 		if (topRating == -1) {
 			addNewHighlyRatedVideo(executionContext, rating);
@@ -47,7 +47,7 @@ public class TopVideosWork implements Work, Serializable {
 		return allvideos;
 	}
 
-	private void addNewHighlyRatedVideo(ExecutionContext executionContext, double rating) throws InvalidRowExeption {
+	private void addNewHighlyRatedVideo(ExecutionContext executionContext, double rating){
 		String videoId = ((MutableCharArrayString) executionContext.getValue(0)).toString();
 		String uploader = ((MutableCharArrayString) executionContext.getValue(1)).toString();
 		String category = ((MutableCharArrayString) executionContext.getValue(3)).toString();

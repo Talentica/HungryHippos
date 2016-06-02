@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CsvDataParser;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
@@ -52,7 +53,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testRead() throws IOException {
+	public void testRead() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReader.read();
@@ -67,7 +68,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException {
+	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderBlankLineAtEofFile.read();
@@ -82,7 +83,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFromFileHavingBlankLines() throws IOException {
+	public void testReadFromFileHavingBlankLines() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderBlankLinesFile.read();
@@ -97,7 +98,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFromBigFile() throws IOException {
+	public void testReadFromBigFile() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderWithBlankLineAtEOF.read();
@@ -112,7 +113,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFileCreatedOnWindows() throws IOException {
+	public void testReadFileCreatedOnWindows() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = testSampleFileGeneratedOnWindows.read();

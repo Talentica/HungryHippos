@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +15,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
 
@@ -85,7 +88,12 @@ public class Sharding {
 		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
-			MutableCharArrayString[] parts = data.read();
+			MutableCharArrayString[] parts = null;
+			try {
+				parts = data.read();
+			} catch (InvalidRowExeption e) {
+				continue;
+			}
 			if (parts == null) {
 				data.close();
 				break;
@@ -124,8 +132,16 @@ public class Sharding {
 		LOGGER.info("Populating frequency map from data started");
 		setKeysToIndexes();
 		String[] keys = Property.getShardingDimensions();
+		int lineNo = 0;
+		FileWriter.openFile("/home/pooshans/input/bad_data");
 		while (true) {
-			MutableCharArrayString[] parts = data.read();
+			MutableCharArrayString[] parts = null;
+			try {
+				parts = data.read();
+			} catch (InvalidRowExeption e) {
+				lineNo = flushData(lineNo, e);
+				continue;
+			}
 			if (parts == null) {
 				break;
 			}
@@ -147,6 +163,7 @@ public class Sharding {
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
 		}
+		FileWriter.close();
 		LOGGER.info("Populating frequency map from data finished");
 		return keyValueFrequencyMap;
 	}
@@ -326,5 +343,13 @@ public class Sharding {
 				makeShardingTable(nextSource, restOfKeyNames);
 			}
 		}
+	}
+	
+	private int flushData(int lineNo, InvalidRowExeption e) {
+		FileWriter.write("Error in line :: [" + (lineNo++)
+				+ "]  and columns(true are bad columns) :: "
+				+ Arrays.toString(e.getColumns()) + "and row :: ["
+				+ e.getBadRow().toString() + "]");
+		return lineNo;
 	}
 }

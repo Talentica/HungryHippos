@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel;
 
 import com.talentica.hungryHippos.client.data.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.utility.OsUtils;
 
@@ -59,7 +60,8 @@ public class FileReader implements Reader {
 	}
 
 	@Override
-	public MutableCharArrayString[] read() throws IOException {
+	public MutableCharArrayString[] read() throws IOException,
+	InvalidRowExeption  {
 		buffer.reset();
 		while (true) {
 			if (readCount <= 0) {
@@ -122,6 +124,10 @@ public class FileReader implements Reader {
 		channel.position(0);
 		buf.clear();
 		readCount = -1;
+	}
+	
+	public MutableCharArrayString getBadRecord(){
+		return buffer;
 	}
 
 }

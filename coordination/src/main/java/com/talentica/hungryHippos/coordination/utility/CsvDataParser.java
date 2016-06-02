@@ -5,6 +5,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 public class CsvDataParser implements DataParser {
@@ -26,7 +27,9 @@ public class CsvDataParser implements DataParser {
 	}
 
 	@Override
-	public MutableCharArrayString[] preprocess(MutableCharArrayString data) {
+	public MutableCharArrayString[] preprocess(MutableCharArrayString data) throws InvalidRowExeption {
+		InvalidRowExeption invalidRow = null;
+		boolean[] columns = null;
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}
@@ -37,8 +40,21 @@ public class CsvDataParser implements DataParser {
 			if (nextChar == ',') {
 				fieldIndex++;
 			} else {
+				try{
 				buffer[fieldIndex].addCharacter(nextChar);
+				}catch(ArrayIndexOutOfBoundsException ex){
+					if(invalidRow == null){
+						columns = new boolean[buffer.length];
+						invalidRow = new InvalidRowExeption("Invalid Row");
+					}
+					columns[fieldIndex] = true;
+				}
 			}
+		}
+		if(invalidRow != null){
+		invalidRow.setColumns(columns);
+		invalidRow.setBadRow(data);
+		throw invalidRow;
 		}
 		return buffer;
 	}

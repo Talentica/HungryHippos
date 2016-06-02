@@ -7,13 +7,14 @@ import java.util.Set;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 
 public class UniqueCombinationsCalculator {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InvalidRowExeption {
 		int[] uniqueCombinationIndexes = new int[args.length - 1];
 		for (int i = 1; i < args.length; i++) {
 			uniqueCombinationIndexes[i - 1] = Integer.valueOf(args[i]);

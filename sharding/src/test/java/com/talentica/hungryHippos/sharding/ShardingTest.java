@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CsvDataParser;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -36,7 +37,7 @@ public class ShardingTest {
 	}
 
 	@Test
-	public void testPopulateFrequencyFromData() throws IOException {
+	public void testPopulateFrequencyFromData() throws IOException, InvalidRowExeption {
 		Map<String, Map<MutableCharArrayString, Long>> frequencyData = sharding
 				.populateFrequencyFromData(shardingInputFileReader);
 		Assert.assertNotNull(frequencyData);

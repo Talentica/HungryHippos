@@ -45,7 +45,7 @@ public class ValueSetTest {
 	}
 
 	@Test
-	public void testCompareToOfValueSetsOfSameSize() {
+	public void testCompareToOfValueSetsOfSameSize() throws InvalidRowExeption {
 		MutableCharArrayString country1 = new MutableCharArrayString(3);
 		country1.addCharacter('I').addCharacter('n').addCharacter('d');
 		MutableCharArrayString device1 = new MutableCharArrayString(3);

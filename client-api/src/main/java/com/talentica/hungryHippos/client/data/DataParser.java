@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.client.data;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
@@ -22,8 +23,9 @@ public interface DataParser {
 	 * 
 	 * @param data
 	 * @return
+	 * @throws InvalidRowExeption 
 	 */
-	public MutableCharArrayString[] preprocess(MutableCharArrayString data);
+	public MutableCharArrayString[] preprocess(MutableCharArrayString data) throws InvalidRowExeption;
 
 	/**
 	 * Returns the data description detail of block of data being processed.

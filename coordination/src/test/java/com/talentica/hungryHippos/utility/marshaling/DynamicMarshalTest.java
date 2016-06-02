@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CsvDataParser;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
@@ -53,7 +54,7 @@ public class DynamicMarshalTest {
 
 
 	@Test
-	public void testreadvalue() throws IOException {
+	public void testreadvalue() throws IOException, InvalidRowExeption {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		//Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("testSampleInput_1.txt");
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
@@ -113,7 +114,7 @@ public class DynamicMarshalTest {
 	
 	
 	@Test
-	public void testreadvalueWithBlankLines() throws IOException {
+	public void testreadvalueWithBlankLines() throws IOException, InvalidRowExeption {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				"src/test/resources/testSampleInputWithBlankLines.txt", csvDataPreprocessor);
@@ -171,7 +172,7 @@ public class DynamicMarshalTest {
 		}
 	
 	@Test
-	public void testreadvalueWithBlankFile() throws IOException {
+	public void testreadvalueWithBlankFile() throws IOException, InvalidRowExeption {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				"src/test/resources/testSampleInput_2.txt", csvDataPreprocessor);

@@ -4,8 +4,6 @@ public final class OsUtils {
 
 	public static final char[] UNIX_LINE_SEPARATOR_CHARS = { 10 };
 
-	public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = { 13, 10 };
-
 	private static String OS = null;
 
 	public static String getOsName() {

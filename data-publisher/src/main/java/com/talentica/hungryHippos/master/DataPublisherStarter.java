@@ -10,7 +10,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.data.DataParser;
+import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;

@@ -9,7 +9,8 @@ import java.util.Arrays;
  * @author pooshans
  *
  */
-public class InvalidRowExeption extends Exception{
+public class InvalidRowExeption extends RuntimeException {
+
 	private static final long serialVersionUID = 1L;
 	private String message;
 	private MutableCharArrayString row;

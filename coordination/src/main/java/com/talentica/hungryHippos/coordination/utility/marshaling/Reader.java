@@ -7,8 +7,6 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 public interface Reader {
 
-	String readLine() throws IOException;
-
 	MutableCharArrayString[] read() throws IOException, InvalidRowExeption;
 	
 	void close() throws IOException;

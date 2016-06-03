@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +48,7 @@ public class Sharding {
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-	private final static String BAD_RECORDS_FILE = "badrecords";
+	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")+"_sharding.err";
 	public Sharding(int numNodes) {
 		for (int i = 0; i < numNodes; i++) {
 			Node node = new Node(300000, i);
@@ -139,7 +138,7 @@ public class Sharding {
 			try {
 				parts = data.read();
 			} catch (InvalidRowExeption e) {
-				lineNo = flushData(lineNo, e);
+				FileWriter.flushData(lineNo++, e);
 				continue;
 			}
 			if (parts == null) {
@@ -345,11 +344,4 @@ public class Sharding {
 		}
 	}
 	
-	private int flushData(int lineNo, InvalidRowExeption e) {
-		FileWriter.write("Error in line :: [" + (lineNo++)
-				+ "]  and columns(true are bad values) :: "
-				+ Arrays.toString(e.getColumns()) + " and row :: ["
-				+ e.getBadRow().toString() + "]");
-		return lineNo;
-	}
 }

@@ -49,7 +49,7 @@ public class Sharding {
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-
+	private final static String BAD_RECORDS_FILE = "badrecords";
 	public Sharding(int numNodes) {
 		for (int i = 0; i < numNodes; i++) {
 			Node node = new Node(300000, i);
@@ -133,7 +133,7 @@ public class Sharding {
 		setKeysToIndexes();
 		String[] keys = Property.getShardingDimensions();
 		int lineNo = 0;
-		FileWriter.openFile("/home/pooshans/input/bad_data");
+		FileWriter.openFile(BAD_RECORDS_FILE);
 		while (true) {
 			MutableCharArrayString[] parts = null;
 			try {
@@ -347,8 +347,8 @@ public class Sharding {
 	
 	private int flushData(int lineNo, InvalidRowExeption e) {
 		FileWriter.write("Error in line :: [" + (lineNo++)
-				+ "]  and columns(true are bad columns) :: "
-				+ Arrays.toString(e.getColumns()) + "and row :: ["
+				+ "]  and columns(true are bad values) :: "
+				+ Arrays.toString(e.getColumns()) + " and row :: ["
 				+ e.getBadRow().toString() + "]");
 		return lineNo;
 	}

@@ -31,7 +31,6 @@ public class CsvDataParser implements DataParser {
 	@Override
 	public MutableCharArrayString[] preprocess(MutableCharArrayString data) throws InvalidRowExeption {
 		InvalidRowExeption invalidRow = null;
-		resetRowStatusField();
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}
@@ -45,6 +44,7 @@ public class CsvDataParser implements DataParser {
 				try{
 				buffer[fieldIndex].addCharacter(nextChar);
 				}catch(ArrayIndexOutOfBoundsException ex){
+					resetRowStatusField();
 					if(invalidRow == null){
 						invalidRow = new InvalidRowExeption("Invalid Row");
 					}

@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -17,7 +18,9 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
@@ -25,6 +28,7 @@ import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
@@ -47,6 +51,7 @@ public class DataProvider {
     private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
 
 	private static BucketsCalculator bucketsCalculator;
+	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")+"_datapublish.err";
 
     private static String[] loadServers(NodesManager nodesManager) throws Exception {
         LOGGER.info("Load the server form the configuration file");
@@ -67,7 +72,7 @@ public class DataProvider {
     }
 
     @SuppressWarnings({"unchecked"})
-    public static void publishDataToNodes(NodesManager nodesManager) throws Exception {
+	public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser) throws Exception {
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
@@ -107,12 +112,19 @@ public class DataProvider {
 
         LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
         Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-                Property.getPropertyValue("input.file").toString());
+				Property.getPropertyValue("input.file").toString(), dataParser);
         long timeForEncoding = 0;
         long timeForLookup = 0;
-
+        int lineNo = 0;
+        FileWriter.openFile(BAD_RECORDS_FILE);
         while (true) {
-            MutableCharArrayString[] parts = input.read();
+        	MutableCharArrayString[] parts = null;
+			try {
+				parts = input.read();
+			} catch (InvalidRowExeption e) {
+				FileWriter.flushData(lineNo++, e);
+				continue;
+			}
             if (parts == null) {
                 input.close();
                 break;
@@ -141,6 +153,7 @@ public class DataProvider {
             }
 
         }
+        FileWriter.close();
         for (int j = 0; j < targets.length; j++) {
             targets[j].flush();
             targets[j].close();
@@ -161,4 +174,12 @@ public class DataProvider {
 
     }
 
+    
+    private int flushData(int lineNo, InvalidRowExeption e) {
+		FileWriter.write("Error in line :: [" + (lineNo++)
+				+ "]  and columns(true are bad values) :: "
+				+ Arrays.toString(e.getColumns()) + " and row :: ["
+				+ e.getBadRow().toString() + "]");
+		return lineNo;
+	}
 }

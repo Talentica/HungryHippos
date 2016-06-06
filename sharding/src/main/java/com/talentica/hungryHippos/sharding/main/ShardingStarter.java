@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
@@ -26,15 +27,23 @@ public class ShardingStarter {
 	public static void main(String[] args) {
 		try {
 			initialize(args);
+			String dataParserClassName = args[1];
+			DataParser dataParser = (DataParser) Class.forName(dataParserClassName).newInstance();
 			LOGGER.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
-			Sharding.doSharding(getInputReaderForSharding());
+			Sharding.doSharding(getInputReaderForSharding(dataParser));
 			LOGGER.info("SHARDING DONE!!");
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while sharding.", exception);
+		}
+	}
+
+	private static void validateArguments(String[] args) {
+		if (args.length < 2) {
+			throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
 		}
 	}
 
@@ -52,10 +61,8 @@ public class ShardingStarter {
 			ZKUtils.createDefaultNodes(jobUUId);
 	}
 
-	private static Reader getInputReaderForSharding() throws IOException {
+	private static Reader getInputReaderForSharding(DataParser dataParser) throws IOException {
 		sampleInputFile = Property.getPropertyValue("input.file").toString();
-		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				sampleInputFile);
 	}
 
 }

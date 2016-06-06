@@ -39,4 +39,13 @@ public interface DataDescription {
 	 * @return the number of the data fields.
 	 */
 	public int getNumberOfDataFields();
+
+	/**
+	 * Returns maximum size of data in number of bytes which can be present in
+	 * single processing block e.g. single line in csv file.
+	 * 
+	 * @return
+	 */
+	public int getMaximumSizeOfSingleBlockOfData();
+
 }

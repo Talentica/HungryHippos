@@ -1,14 +1,8 @@
-group = 'com.talentica.test'
-version = '0.1.0 SNAPSHOT'
-
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    flatDir {
-       dirs '../client-api/build/libs'
-   }
 }
 sourceSets {
     main {

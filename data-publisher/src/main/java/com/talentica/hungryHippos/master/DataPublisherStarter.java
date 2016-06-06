@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -29,16 +30,24 @@ public class DataPublisherStarter {
 	private static String jobUUId;
 	public static void main(String[] args) {
 		try {
+			validateArguments(args);
+			String dataParserClassName = args[1];
+			DataParser dataParser = (DataParser) Class.forName(dataParserClassName).newInstance();
 			LOGGER.info("Initializing nodes manager.");
 			initialize(args);
 			long startTime = System.currentTimeMillis();
 			broadcastSignal();
-			DataProvider.publishDataToNodes(dataPublisherStarter.nodesManager);
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("It took {} seconds of time to for publishing.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
 			errorHandler(exception);
+		}
+	}
+
+	private static void validateArguments(String[] args) {
+		if (args.length < 2) {
+			throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
 		}
 	}
 

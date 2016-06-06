@@ -45,8 +45,4 @@ public class FileReader implements Reader {
 		}
 	}
 
-	@Override
-	public void reset() throws IOException {
-	}
-
 }

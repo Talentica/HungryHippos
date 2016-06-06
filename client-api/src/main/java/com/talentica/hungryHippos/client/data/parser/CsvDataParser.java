@@ -14,6 +14,9 @@ public class CsvDataParser extends LineByLineDataParser {
 
 	private DataDescription dataDescription;
 
+	public CsvDataParser() {
+	}
+
 	public CsvDataParser(DataDescription dataDescription) {
 		setDataDescription(dataDescription);
 	}
@@ -69,7 +72,8 @@ public class CsvDataParser extends LineByLineDataParser {
 	}
 
 	@Override
-	protected int getMaximumSizeOfSingleBlockOfDataInBytes() {
+	protected int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription) {
+		setDataDescription(dataDescription);
 		return dataDescription.getMaximumSizeOfSingleBlockOfData();
 	}
 

@@ -83,7 +83,6 @@ public class Sharding {
 	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
 		LOGGER.info("Calculating buckets to node numbers map started");
-		data.reset();
 		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {

@@ -29,7 +29,7 @@ public abstract class LineByLineDataParser implements DataParser {
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
 			throws InvalidRowExeption {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getMaximumSizeOfSingleBlockOfDataInBytes());
+			buffer = new MutableCharArrayString(getMaximumSizeOfSingleBlockOfDataInBytes(dataDescription));
 		}
 
 		return new Iterator<MutableCharArrayString[]>() {
@@ -58,6 +58,7 @@ public abstract class LineByLineDataParser implements DataParser {
 					if (readCount <= 0) {
 						buf.clear();
 						readCount = dataStream.read(dataBytes);
+						buf.limit(readCount);
 						if (readCount < 0 && buffer.length() > 0) {
 							return processLine(buffer, dataDescription);
 						} else if (readCount < 0 && buffer.length() <= 0) {
@@ -107,6 +108,6 @@ public abstract class LineByLineDataParser implements DataParser {
 	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line,
 			DataDescription dataDescription);
 
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes();
+	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
 
 }

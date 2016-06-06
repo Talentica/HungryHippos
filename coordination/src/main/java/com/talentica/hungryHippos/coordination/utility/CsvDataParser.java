@@ -15,6 +15,8 @@ public class CsvDataParser implements DataParser {
 	private int numfields;
 
 	private DataDescription dataDescription;
+	
+	private boolean[] columns = null;
 
 	public CsvDataParser() {
 		this(FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration(),
@@ -29,7 +31,7 @@ public class CsvDataParser implements DataParser {
 	@Override
 	public MutableCharArrayString[] preprocess(MutableCharArrayString data) throws InvalidRowExeption {
 		InvalidRowExeption invalidRow = null;
-		boolean[] columns = null;
+		resetRowStatusField();
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}
@@ -44,7 +46,6 @@ public class CsvDataParser implements DataParser {
 				buffer[fieldIndex].addCharacter(nextChar);
 				}catch(ArrayIndexOutOfBoundsException ex){
 					if(invalidRow == null){
-						columns = new boolean[buffer.length];
 						invalidRow = new InvalidRowExeption("Invalid Row");
 					}
 					columns[fieldIndex] = true;
@@ -72,11 +73,18 @@ public class CsvDataParser implements DataParser {
 			}
 			buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
 		}
+		columns = new boolean[buffer.length];
 	}
 
 	@Override
 	public DataDescription getDataDescription() {
 		return dataDescription;
+	}
+	
+	private void resetRowStatusField(){
+		for(int fieldNum = 0  ;  fieldNum < columns.length ; fieldNum++){
+			columns[fieldNum] = false;
+		}
 	}
 
 }

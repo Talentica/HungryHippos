@@ -37,6 +37,7 @@ public class JobJarFileUploadService {
 
 	@RequestMapping(method = RequestMethod.POST, value = "jar/upload")
 	public @ResponseBody JobJarFileUploadServiceResponse uploadJobJarFile(
+			@RequestParam("dataParserClassName") String dataParserClassName,
 			@RequestParam("jobMatrixClassName") String jobMatrixClassName, @RequestParam("file") MultipartFile file) {
 		JobJarFileUploadServiceResponse fileUploadServiceResponse = new JobJarFileUploadServiceResponse();
 		try {
@@ -78,9 +79,10 @@ public class JobJarFileUploadService {
 			FileCopyUtils.copy(file.getInputStream(), stream);
 			stream.close();
 
-			ServiceError error = validateIfClassPresentInUploadedJobJarFile(uploadedJarFilePath, jobMatrixClassName);
-			if (error != null) {
-				fileUploadServiceResponse.setError(error);
+			ServiceError error1 = validateIfClassPresentInUploadedJobJarFile(uploadedJarFilePath, jobMatrixClassName);
+			ServiceError error2 = validateDataParserClass(uploadedJarFilePath, dataParserClassName);
+			if (error1 != null || error2 != null) {
+				fileUploadServiceResponse.setError(error1 != null ? error1 : error2);
 				new File(uploadedJarFilePath).delete();
 				new File(directoryPath).delete();
 				return fileUploadServiceResponse;
@@ -97,6 +99,13 @@ public class JobJarFileUploadService {
 		return fileUploadServiceResponse;
 	}
 
+	private ServiceError validateDataParserClass(String jobJarFilePath, String dataparserClassName) {
+		if (DEFAULT_DATA_PARSER.contains(dataparserClassName)) {
+			return null;
+		}
+		return validateIfClassPresentInUploadedJobJarFile(jobJarFilePath, dataparserClassName);
+	}
+
 	private ServiceError validateIfClassPresentInUploadedJobJarFile(String jobJarFilePath, String jobMatrixClassName) {
 		ServiceError error = null;
 		ZipFile zipFile = null;
@@ -105,17 +114,39 @@ public class JobJarFileUploadService {
 			zipFile = new ZipFile(jobJarFilePath);
 			ZipArchiveEntry entry = zipFile.getEntry(jobMatrixClassEntryPathInZip);
 			if (entry == null) {
-				error = new ServiceError(
-						"Job matrix class: " + jobMatrixClassName + " does not exist in uploaded jar file.",
-						"Job class not present.");
+				error = new ServiceError("Class: " + jobMatrixClassName + " does not exist in uploaded jar file.",
+						"Class missing.");
 			}
 		} catch (Exception exception) {
-			error = new ServiceError("Please provide with valid job jar file.",
-					"Job JAR file uploaded is invalid." + exception.getMessage());
+			error = new ServiceError(
+					"Please provide with valid jar file containing job matrix and data parser class if any.",
+					"JAR file uploaded is invalid." + exception.getMessage());
 		} finally {
 			ZipFile.closeQuietly(zipFile);
 		}
 		return error;
+	}
+
+	private enum DEFAULT_DATA_PARSER {
+
+		CSV("com.talentica.hungryHippos.client.data.parser.CsvDataParser");
+
+		private String className;
+
+		private DEFAULT_DATA_PARSER(String className) {
+			this.className = className;
+		}
+
+		public static boolean contains(String className) {
+			boolean present = false;
+			for (DEFAULT_DATA_PARSER parser : values()) {
+				if (parser.className.equals(className)) {
+					present = true;
+					break;
+				}
+			}
+			return present;
+		}
 	}
 
 }

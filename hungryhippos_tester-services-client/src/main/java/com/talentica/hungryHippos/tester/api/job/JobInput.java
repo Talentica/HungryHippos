@@ -21,6 +21,8 @@ public class JobInput {
 
 	private String jobMatrixClass;
 
+	private String dataParserClass;
+
 	public Integer getJobInputId() {
 		return jobInputId;
 	}
@@ -95,6 +97,14 @@ public class JobInput {
 			return jobInputId.hashCode();
 		}
 		return 0;
+	}
+
+	public String getDataParserClass() {
+		return dataParserClass;
+	}
+
+	public void setDataParserClass(String dataParserClass) {
+		this.dataParserClass = dataParserClass;
 	}
 
 }

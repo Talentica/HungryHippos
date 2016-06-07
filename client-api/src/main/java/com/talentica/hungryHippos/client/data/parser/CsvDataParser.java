@@ -30,7 +30,6 @@ public class CsvDataParser extends LineByLineDataParser {
 			throws InvalidRowExeption {
 		boolean isInvalidRow = false; 
 		setDataDescription(dataDescription);
-		resetRowStatus();
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}

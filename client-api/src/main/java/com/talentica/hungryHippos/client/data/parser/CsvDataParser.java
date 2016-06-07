@@ -44,7 +44,10 @@ public class CsvDataParser extends LineByLineDataParser {
 				try {
 					buffer[fieldIndex].addCharacter(nextChar);
 				} catch (ArrayIndexOutOfBoundsException ex) {
-					isInvalidRow = true;
+					if(!isInvalidRow){ 
+						resetRowStatus();
+						isInvalidRow = true;
+						}
 					columns[fieldIndex] = true;
 				}
 			}

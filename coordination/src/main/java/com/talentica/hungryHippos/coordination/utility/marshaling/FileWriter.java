@@ -13,7 +13,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 
 /**
  * @author pooshans
@@ -65,7 +65,7 @@ public class FileWriter {
 			}
 	}
 	
-	public static void flushData(int lineNo, InvalidRowExeption e) {
+	public static void flushData(int lineNo, InvalidRowException e) {
 		write("Error in line :: [" + (lineNo)
 				+ "]  and columns(true are bad values) :: "
 				+ Arrays.toString(e.getColumns()) + " and row :: ["

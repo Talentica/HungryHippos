@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
@@ -47,12 +47,12 @@ public abstract class LineByLineDataParser implements DataParser {
 			public MutableCharArrayString[] next() {
 				try {
 					return read();
-				} catch (InvalidRowExeption | IOException e) {
+				} catch (InvalidRowException | IOException e) {
 					throw new RuntimeException(e);
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException, InvalidRowExeption {
+			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {

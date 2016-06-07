@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.talentica.hungryHippos.client.data.parser.CsvDataParser;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -54,7 +54,7 @@ public class DynamicMarshalTest {
 
 
 	@Test
-	public void testreadvalue() throws IOException, InvalidRowExeption {
+	public void testreadvalue() throws IOException, InvalidRowException {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		//Reader input = new com.talentica.hungryHippos.utility.marshaling.FileReader("testSampleInput_1.txt");
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
@@ -114,7 +114,7 @@ public class DynamicMarshalTest {
 	
 	
 	@Test
-	public void testreadvalueWithBlankLines() throws IOException, InvalidRowExeption {
+	public void testreadvalueWithBlankLines() throws IOException, InvalidRowException {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				"src/test/resources/testSampleInputWithBlankLines.txt", csvDataPreprocessor);
@@ -172,7 +172,7 @@ public class DynamicMarshalTest {
 		}
 	
 	@Test
-	public void testreadvalueWithBlankFile() throws IOException, InvalidRowExeption {
+	public void testreadvalueWithBlankFile() throws IOException, InvalidRowException {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				"src/test/resources/testSampleInput_2.txt", csvDataPreprocessor);

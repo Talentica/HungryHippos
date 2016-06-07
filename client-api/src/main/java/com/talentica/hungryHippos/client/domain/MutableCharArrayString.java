@@ -103,7 +103,7 @@ public class MutableCharArrayString
 		return h;
 	}
 
-	public static MutableCharArrayString from(String value) throws InvalidRowExeption {
+	public static MutableCharArrayString from(String value) throws InvalidRowException {
 		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());
 		for (char character : value.toCharArray()) {
 			mutableCharArrayString.addCharacter(character);

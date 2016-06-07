@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -59,8 +59,8 @@ public class RecordFilterTest {
 			try {
 				parts = data.read();
 			} catch (RuntimeException e) {
-				if(e.getCause() instanceof InvalidRowExeption){
-					InvalidRowExeption invalidRowEx = (InvalidRowExeption) e.getCause();
+				if(e.getCause() instanceof InvalidRowException){
+					InvalidRowException invalidRowEx = (InvalidRowException) e.getCause();
 				FileWriter.flushData(lineNo++, invalidRowEx);
 				actualBadRecords++;
 				}

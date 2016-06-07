@@ -3,7 +3,7 @@ package com.talentica.hungryHippos.client.data.parser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 public class CsvDataParser extends LineByLineDataParser {
@@ -13,10 +13,10 @@ public class CsvDataParser extends LineByLineDataParser {
 	private int numfields;
 
 	private DataDescription dataDescription;
-	
-	private InvalidRowExeption invalidRow = new InvalidRowExeption("Invalid Row");
-	
-	boolean[] columns = null;
+
+	private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
+
+	boolean[] columnsValidationStatus = null;
 
 	public CsvDataParser() {
 	}
@@ -27,10 +27,9 @@ public class CsvDataParser extends LineByLineDataParser {
 
 	@Override
 	public MutableCharArrayString[] processLine(MutableCharArrayString data, DataDescription dataDescription)
-			throws InvalidRowExeption {
-		boolean isInvalidRow = false; 
+			throws InvalidRowException {
+		boolean isInvalidRow = false;
 		setDataDescription(dataDescription);
-		resetRowStatus();
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}
@@ -44,16 +43,16 @@ public class CsvDataParser extends LineByLineDataParser {
 				try {
 					buffer[fieldIndex].addCharacter(nextChar);
 				} catch (ArrayIndexOutOfBoundsException ex) {
-					if(!isInvalidRow){ 
+					if (!isInvalidRow) {
 						resetRowStatus();
 						isInvalidRow = true;
-						}
-					columns[fieldIndex] = true;
+					}
+					columnsValidationStatus[fieldIndex] = true;
 				}
 			}
 		}
 		if (isInvalidRow) {
-			invalidRow.setColumns(columns);
+			invalidRow.setColumns(columnsValidationStatus);
 			invalidRow.setBadRow(data);
 			throw invalidRow;
 		}
@@ -73,7 +72,7 @@ public class CsvDataParser extends LineByLineDataParser {
 			}
 			buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
 		}
-		columns = new boolean[buffer.length];
+		columnsValidationStatus = new boolean[buffer.length];
 	}
 
 	@Override
@@ -89,9 +88,9 @@ public class CsvDataParser extends LineByLineDataParser {
 		}
 	}
 
-	private void  resetRowStatus(){
-		for(int fieldNum = 0 ; fieldNum < columns.length ; fieldNum++){
-			columns[fieldNum] = false;
+	private void resetRowStatus() {
+		for (int fieldNum = 0; fieldNum < columnsValidationStatus.length; fieldNum++) {
+			columnsValidationStatus[fieldNum] = false;
 		}
 	}
 }

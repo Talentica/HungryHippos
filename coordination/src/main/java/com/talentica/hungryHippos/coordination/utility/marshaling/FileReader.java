@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 
@@ -27,7 +27,7 @@ public class FileReader implements Reader {
 		iterator = dataParser.iterator(dataInputStream, CommonUtil.getConfiguredDataDescription());
 	}
 
-	public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowExeption {
+	public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {
 		this(file.getAbsolutePath(), preProcessor);
 	}
 

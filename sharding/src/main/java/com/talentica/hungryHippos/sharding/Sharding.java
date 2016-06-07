@@ -14,7 +14,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -137,8 +137,8 @@ public class Sharding {
 			try {
 				parts = data.read();
 			} catch (RuntimeException e) {
-				if(e.getCause() instanceof InvalidRowExeption){
-					InvalidRowExeption invalidRowEx = (InvalidRowExeption) e.getCause();
+				if(e.getCause() instanceof InvalidRowException){
+					InvalidRowException invalidRowEx = (InvalidRowException) e.getCause();
 					FileWriter.flushData(lineNo++, invalidRowEx);
 					}
 				continue;

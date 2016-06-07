@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
@@ -25,7 +25,7 @@ public interface DataParser {
 	 * 
 	 * @param dataStream
 	 * @return
-	 * @throws InvalidRowExeption
+	 * @throws InvalidRowException
 	 */
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
 			throws RuntimeException;

@@ -55,9 +55,6 @@ public class MutableCharArrayString
 	}
 
 	public MutableCharArrayString addCharacter(char ch){
-		/*if(array.length == stringLength) {
-			throw new InvalidRowExeption("Invalid length of the value");
-		}*/
 		array[stringLength] = ch;
 		stringLength++;
 		return this;

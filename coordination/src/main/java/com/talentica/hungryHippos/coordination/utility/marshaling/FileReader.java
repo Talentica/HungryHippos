@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.coordination.utility.marshaling;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -20,7 +21,7 @@ public class FileReader implements Reader {
 	private DataParser dataParser = null;
 	private Iterator<MutableCharArrayString[]> iterator = null;
 
-	public FileReader(String filepath, DataParser parser) throws IOException {
+	public FileReader(String filepath, DataParser parser) throws RuntimeException, FileNotFoundException {
 		this.dataParser = parser;
 		dataInputStream = new FileInputStream(filepath);
 		iterator = dataParser.iterator(dataInputStream, CommonUtil.getConfiguredDataDescription());
@@ -31,7 +32,7 @@ public class FileReader implements Reader {
 	}
 
 	@Override
-	public MutableCharArrayString[] read() throws IOException, InvalidRowExeption {
+	public MutableCharArrayString[] read() throws RuntimeException {
 		if (iterator.hasNext()) {
 			return iterator.next();
 		}

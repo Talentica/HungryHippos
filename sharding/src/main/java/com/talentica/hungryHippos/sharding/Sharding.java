@@ -89,7 +89,7 @@ public class Sharding {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
+			} catch (RuntimeException e) {
 				continue;
 			}
 			if (parts == null) {
@@ -136,8 +136,11 @@ public class Sharding {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
-				FileWriter.flushData(lineNo++, e);
+			} catch (RuntimeException e) {
+				if(e.getCause() instanceof InvalidRowExeption){
+					InvalidRowExeption invalidRowEx = (InvalidRowExeption) e.getCause();
+					FileWriter.flushData(lineNo++, invalidRowEx);
+					}
 				continue;
 			}
 			if (parts == null) {

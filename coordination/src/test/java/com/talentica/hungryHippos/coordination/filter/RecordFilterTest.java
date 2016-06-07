@@ -37,7 +37,7 @@ public class RecordFilterTest {
 	public void setUp() {
 		CommonUtil.loadDefaultPath(jobuuid);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		dataParserClassName = "com.talentica.hungryHippos.coordination.utility.CsvDataParser";
+		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
 		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "bad_records_data.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
 	}
@@ -58,9 +58,12 @@ public class RecordFilterTest {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
-				FileWriter.flushData(lineNo++, e);
+			} catch (RuntimeException e) {
+				if(e.getCause() instanceof InvalidRowExeption){
+					InvalidRowExeption invalidRowEx = (InvalidRowExeption) e.getCause();
+				FileWriter.flushData(lineNo++, invalidRowEx);
 				actualBadRecords++;
+				}
 				continue;
 			}
 			if (parts == null) {

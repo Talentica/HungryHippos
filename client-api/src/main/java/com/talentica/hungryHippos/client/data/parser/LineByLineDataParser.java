@@ -27,7 +27,7 @@ public abstract class LineByLineDataParser implements DataParser {
 
 	@Override
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws InvalidRowExeption {
+			throws RuntimeException {
 		if (buffer == null) {
 			buffer = new MutableCharArrayString(getMaximumSizeOfSingleBlockOfDataInBytes(dataDescription));
 		}

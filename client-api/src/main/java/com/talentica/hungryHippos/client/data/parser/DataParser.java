@@ -28,6 +28,6 @@ public interface DataParser {
 	 * @throws InvalidRowExeption
 	 */
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws InvalidRowExeption;
+			throws RuntimeException;
 
 }

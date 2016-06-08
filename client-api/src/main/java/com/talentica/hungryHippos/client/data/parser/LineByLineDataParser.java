@@ -20,6 +20,7 @@ public abstract class LineByLineDataParser extends DataParser {
 	private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
+	private Iterator<MutableCharArrayString[]> iterator;
 
 	public LineByLineDataParser(DataDescription dataDescription) {
 		super(dataDescription);
@@ -32,7 +33,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
-		return new Iterator<MutableCharArrayString[]>() {
+		iterator = new Iterator<MutableCharArrayString[]>() {
 
 			@Override
 			public boolean hasNext() {
@@ -103,6 +104,11 @@ public abstract class LineByLineDataParser extends DataParser {
 				return newLine;
 			}
 		};
+		return iterator;
+	}
+
+	protected final Iterator<MutableCharArrayString[]> getIterator() {
+		return iterator;
 	}
 
 	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);

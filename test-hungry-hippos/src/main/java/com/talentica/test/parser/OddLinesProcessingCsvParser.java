@@ -6,6 +6,8 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.validator.CsvParserValidator;
+import com.talentica.hungryHippos.client.validator.CsvValidator;
 
 public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 
@@ -88,6 +90,18 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 		for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
 			columnsStatusForInvalidRow[fieldNum] = false;
 		}
+	}
+
+	@Override
+	protected int getMaximumSizeOfSingleBlockOfDataInBytes(
+			DataDescription dataDescription) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public CsvValidator createDataParserValidator() {
+		return new CsvParserValidator(',', '\0', '\\', false, false);
 	}
 
 }

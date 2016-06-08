@@ -89,8 +89,8 @@ public class CsvDataParser extends LineByLineDataParser {
 	}
 
 	private void resetRowStatus() {
-		for (int fieldNum = 0; fieldNum < columnsValidationStatus.length; fieldNum++) {
-			columnsValidationStatus[fieldNum] = false;
+		for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
+			columnsStatusForInvalidRow[fieldNum] = false;
 		}
 	}
 }

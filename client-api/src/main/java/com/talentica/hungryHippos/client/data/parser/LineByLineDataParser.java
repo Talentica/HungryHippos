@@ -8,6 +8,7 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.validator.CsvValidator;
 
 /**
  * Data parser implementation for line by line reading of data file.
@@ -21,16 +22,19 @@ public abstract class LineByLineDataParser extends DataParser {
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
 	private Iterator<MutableCharArrayString[]> iterator;
+	protected CsvValidator csvValidator;
 
 	public LineByLineDataParser(DataDescription dataDescription) {
 		super(dataDescription);
 		buf.clear();
+		csvValidator = createDataParserValidator();
 	}
 
 	@Override
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
+			buffer = new MutableCharArrayString(getDataDescription()
+					.getMaximumSizeOfSingleBlockOfData());
 		}
 
 		iterator = new Iterator<MutableCharArrayString[]>() {
@@ -48,12 +52,15 @@ public abstract class LineByLineDataParser extends DataParser {
 			public MutableCharArrayString[] next() {
 				try {
 					return read();
-				} catch (InvalidRowException | IOException e) {
+				} catch (InvalidRowException irex) {
+					throw irex;
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
+			public MutableCharArrayString[] read() throws IOException,
+					InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {
@@ -98,7 +105,8 @@ public abstract class LineByLineDataParser extends DataParser {
 							buf.flip();
 						}
 						byte nextChar = readNextChar();
-						newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
+						newLine = newLine
+								&& (windowsLineseparatorChars[i] == nextChar);
 					}
 				}
 				return newLine;
@@ -111,6 +119,12 @@ public abstract class LineByLineDataParser extends DataParser {
 		return iterator;
 	}
 
-	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
+	protected abstract MutableCharArrayString[] processLine(
+			MutableCharArrayString line);
+
+	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(
+			DataDescription dataDescription);
+
+	// protected abstract CsvValidator createDataParserValidator();
 
 }

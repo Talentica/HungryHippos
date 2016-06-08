@@ -46,6 +46,9 @@ public class JobInput implements Serializable{
 	@Column(name = "job_matrix_class")
 	private String jobMatrixClass;
 
+	@Column(name = "data_parser_class")
+	private String dataParserClass;
+
 	public Integer getJobInputId() {
 		return jobInputId;
 	}
@@ -120,6 +123,14 @@ public class JobInput implements Serializable{
 			return jobInputId.hashCode();
 		}
 		return 0;
+	}
+
+	public String getDataParserClass() {
+		return dataParserClass;
+	}
+
+	public void setDataParserClass(String dataParserClass) {
+		this.dataParserClass = dataParserClass;
 	}
 
 }

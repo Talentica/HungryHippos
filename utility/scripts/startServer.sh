@@ -1,8 +1,9 @@
 #!/bin/bash
-# first argument is {job_matrix}, second argument is {jobuuid}
+# first argument is {job_matrix}, second argument is {jobuuid}, third argument is dataparser class
 jobUuid=$1
 jobMatrixClassName=$2
-mysqlIp=$3
+dataparserclass=$3
+mysqlIp=$4
 
 echo '################          Create droplets      ################'
 sh create_droplets.sh $jobUuid
@@ -42,7 +43,7 @@ sh start-zk-server.sh $jobUuid
 echo "Done."
 
 echo '################          START SHARDING,DATA PUBLISHING AND JOB MATRIX SEQUENCIALLY     ################'
-sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid
+sh start-sharding-and-datapublishing-and-jobmatrix.sh $jobMatrixClassName $jobUuid $dataparserclass
 echo '################          PROCESS INITIATED      ################'
 
 echo '################          Start communication for the output file transfer      ################'

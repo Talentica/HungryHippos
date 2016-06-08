@@ -147,7 +147,7 @@ app.controller('NewJobCtrl',function ($rootScope,$scope,JobService,usSpinnerServ
 	 $scope.uploadJobJarFile = function(sucessCallback,errorCallback){
 	        var file = $scope.jobJarFile;
 	        if(file && file.queue && file.queue.length>0 && file.queue[file.queue.length-1] && file.queue[file.queue.length-1]._file){
-	        JobService.uploadJobJarFile(file.queue[file.queue.length-1]._file,$scope.jobDetail.jobInput.jobMatrixClass,sucessCallback,errorCallback);
+	        JobService.uploadJobJarFile(file.queue[file.queue.length-1]._file,$scope.jobDetail.jobInput.jobMatrixClass,$scope.jobDetail.jobInput.dataParserClass,sucessCallback,errorCallback);
 	        }else{
 	        	$scope.error.message="Please select a job jar file.";
 	        	usSpinnerService.stop('spinner-1');

@@ -16,7 +16,7 @@ public class CsvDataParser extends LineByLineDataParser {
 
 	private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
 
-	boolean[] columnsValidationStatus = null;
+	boolean[] columnsStatusForInvalidRow = null;
 
 	public CsvDataParser() {
 	}
@@ -47,12 +47,12 @@ public class CsvDataParser extends LineByLineDataParser {
 						resetRowStatus();
 						isInvalidRow = true;
 					}
-					columnsValidationStatus[fieldIndex] = true;
+					columnsStatusForInvalidRow[fieldIndex] = true;
 				}
 			}
 		}
 		if (isInvalidRow) {
-			invalidRow.setColumns(columnsValidationStatus);
+			invalidRow.setColumns(columnsStatusForInvalidRow);
 			invalidRow.setBadRow(data);
 			throw invalidRow;
 		}
@@ -72,7 +72,7 @@ public class CsvDataParser extends LineByLineDataParser {
 			}
 			buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
 		}
-		columnsValidationStatus = new boolean[buffer.length];
+		columnsStatusForInvalidRow = new boolean[buffer.length];
 	}
 
 	@Override

@@ -52,7 +52,7 @@ public class ConfigurationFileUploadTest {
 		//(nodesManager = ServerHeartBeat.init()).startup();
 		nodesManager = CommonUtil.connectZK();
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
 						+ Sharding.keyToValueToBucketMapFile))) {
 			keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
 					.readObject();
@@ -61,7 +61,7 @@ public class ConfigurationFileUploadTest {
 		}
 
 		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
 						+ Sharding.bucketToNodeNumberMapFile))) {
 			bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
 					.readObject();
@@ -70,7 +70,7 @@ public class ConfigurationFileUploadTest {
 		}
 		
 		try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
 						+ Sharding.bucketCombinationToNodeNumbersMapFile))) {
 			bucketCombinationToNodeNumbersMap = (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapInputStream
 					.readObject();

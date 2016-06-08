@@ -25,7 +25,7 @@ public class FileDataStore implements DataStore, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -7726551156576482829L;
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileDataStore.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
 	private final int numFiles;
 	private OutputStream[] os;
 	private DataDescription dataDescription;
@@ -33,9 +33,10 @@ public class FileDataStore implements DataStore, Serializable {
 	private static final boolean APPEND_TO_DATA_FILES = Boolean
 			.valueOf(Property.getPropertyValue("datareceiver.append.to.data.files"));
 
-	private Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
+	private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
 
-	public static String DATA_FILE_BASE_NAME = "data" + File.separator + "data_";
+	public static final String DATA_FILE_BASE_NAME = File.separator + "data_";
+	public static final String FOLDER_NAME = "data";
 
 	public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
 		this(numDimensions, dataDescription, false);
@@ -45,11 +46,22 @@ public class FileDataStore implements DataStore, Serializable {
 		this.numFiles = 1 << numDimensions;
 		this.dataDescription = dataDescription;
 		os = new OutputStream[numFiles];
+		//check data folder exists , if its not present this logic will create a folder named data.
+		String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + FOLDER_NAME;
+		File file = new File(dirloc);
+		if (!file.exists()) {
+			boolean flag = file.mkdir();
+			if (flag) {
+				logger.info("created data folder");
+			} else {
+				logger.info("Not able to create dataFolder");
+			}
+		}
 		if (!readOnly) {
 			for (int i = 0; i < numFiles; i++) {
 				os[i] = new BufferedOutputStream(
 						new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
-								+ DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
+								+ FOLDER_NAME + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
 			}
 		}
 	}
@@ -59,7 +71,7 @@ public class FileDataStore implements DataStore, Serializable {
 		try {
 			os[storeId].write(raw);
 		} catch (IOException e) {
-			LOGGER.error("Error occurred while writing data received to datastore.", e);
+			logger.error("Error occurred while writing data received to datastore.", e);
 		}
 	}
 
@@ -81,13 +93,13 @@ public class FileDataStore implements DataStore, Serializable {
 			try {
 				os[i].flush();
 			} catch (IOException e) {
-				LOGGER.error("Error occurred while flushing " + i + "th outputstream.", e);
+				logger.error("Error occurred while flushing " + i + "th outputstream.", e);
 			} finally {
 				try {
 					if (os[i] != null)
 						os[i].close();
 				} catch (IOException e) {
-					LOGGER.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+					logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
 				}
 			}
 		}

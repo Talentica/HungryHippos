@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  */
 public class StartKazooScriptMain {
 
-	private static final Logger LOGGER = LoggerFactory
+	private static final Logger logger = LoggerFactory
 			.getLogger(StartKazooScriptMain.class);
 	private static String jobUUId;
 
@@ -28,14 +28,14 @@ public class StartKazooScriptMain {
 	}
 	
 	private static void callCopyScriptToRunKazoo() {
-		LOGGER.info("Calling script file to start kazoo server");
+		logger.info("Calling script file to start kazoo server");
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
 		String webserverIp = Property.getProperties().getProperty(
 				"common.webserver.ip");
 		String[] strArr = new String[] { "/bin/sh", "start-kazoo-server.sh",
 				jobuuid, webserverIp };
 		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("Done.");
+		logger.info("Done.");
 
 	}
 

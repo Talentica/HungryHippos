@@ -91,8 +91,8 @@ public class NodeJobsService implements NodesJobsRunnable {
 			KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
 		String buildPath = ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
-				+ PathUtil.FORWARD_SLASH + ("_node"+node.getNodeId()) + PathUtil.FORWARD_SLASH
-				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.FORWARD_SLASH + ("_job" + jobEntity.getJobId());
+				+ PathUtil.SEPARATOR_CHAR + ("_node"+node.getNodeId()) + PathUtil.SEPARATOR_CHAR
+				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.SEPARATOR_CHAR + ("_job" + jobEntity.getJobId());
 		try {
 			nodesManager.createPersistentNode(buildPath, signal, jobEntity);
 			flag = true;
@@ -108,7 +108,7 @@ public class NodeJobsService implements NodesJobsRunnable {
 			ClassNotFoundException, IOException {
 		Set<LeafBean> jobLeafs = new HashSet<>();
 		String buildpath = ZKUtils.buildNodePath(node.getNodeId())
-				+ PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null, null);
 		for (LeafBean leaf : leafs) {
@@ -116,7 +116,7 @@ public class NodeJobsService implements NodesJobsRunnable {
 					CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {
 				LeafBean jobBean = ZKUtils.getNodeValue(
 						leaf.getPath(),
-						leaf.getPath() + PathUtil.FORWARD_SLASH
+						leaf.getPath() + PathUtil.SEPARATOR_CHAR
 								+ leaf.getName(), leaf.getName(), null);
 				jobLeafs.add(jobBean);
 

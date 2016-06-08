@@ -25,30 +25,29 @@ public class NodeUtil {
 
 	private static final String nodeIdFile = "nodeId";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(NodeUtil.class);
+	private static final Logger logger = LoggerFactory.getLogger(NodeUtil.class);
 
 	private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
 	private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
-	
 
 	static {
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
 						+ Sharding.keyToValueToBucketMapFile))) {
 			keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
 					.readObject();
 		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
+			logger.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
 		}
 
 		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
 						+ Sharding.bucketToNodeNumberMapFile))) {
 			bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
 					.readObject();
 		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
+			logger.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
 		}
 	}
 
@@ -66,87 +65,80 @@ public class NodeUtil {
 	 * @return NodeId
 	 * @throws Exception
 	 */
-	@SuppressWarnings("resource")
 	public static int getNodeId() throws IOException {
 		try {
 			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH + nodeIdFile)));
+					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR + nodeIdFile)));
 			String line = in.readLine();
+			in.close();
 			return Integer.parseInt(line);
 		} catch (IOException exception) {
-			LOGGER.info("Unable to read the file for NODE ID. Exiting..");
+			logger.info("Unable to read the file for NODE ID. Exiting..");
 			throw exception;
 		}
 	}
-	
+
 	public static void createTrieBucketToNodeNumberMap(
-			Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-			NodesManager nodesManager) throws IOException {
+			Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, NodesManager nodesManager)
+			throws IOException {
 		String buildPath = nodesManager.buildConfigPath("bucketToNodeNumberMap");
-		
+
 		for (String keyName : bucketToNodeNumberMap.keySet()) {
-			String keyNodePath = buildPath + PathUtil.FORWARD_SLASH + keyName;
+			String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + keyName;
 			nodesManager.createPersistentNode(keyNodePath, null);
-			LOGGER.info("Path {} is created",keyNodePath);
-			Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap
-					.get(keyName);
+			logger.info("Path {} is created", keyNodePath);
+			Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(keyName);
 			for (Bucket<KeyValueFrequency> bucketKey : bucketToNodeMap.keySet()) {
 				String buildBucketNodePath = keyNodePath;
 				nodesManager.createPersistentNode(buildBucketNodePath, null);
-				String buildBucketKeyPath = buildBucketNodePath + PathUtil.FORWARD_SLASH + bucketKey.toString();
+				String buildBucketKeyPath = buildBucketNodePath + PathUtil.SEPARATOR_CHAR + bucketKey.toString();
 				nodesManager.createPersistentNode(buildBucketKeyPath, null);
-				String buildNodePath = buildBucketKeyPath + PathUtil.FORWARD_SLASH + bucketToNodeMap.get(bucketKey).toString();
+				String buildNodePath = buildBucketKeyPath + PathUtil.SEPARATOR_CHAR
+						+ bucketToNodeMap.get(bucketKey).toString();
 				nodesManager.createPersistentNode(buildNodePath, null);
-				//nodesManager.createPersistentNode(buildBucketNodePath, null);
-				LOGGER.info("Path {} is created",buildBucketNodePath);
+				// nodesManager.createPersistentNode(buildBucketNodePath, null);
+				logger.info("Path {} is created", buildBucketNodePath);
 			}
 		}
 	}
-			
+
 	public static void createTrieKeyToValueToBucketMap(
-			Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
-			NodesManager nodesManager) throws IOException {
-		String buildPath = nodesManager
-				.buildConfigPath("keyToValueToBucketMap");
+			Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap, NodesManager nodesManager)
+			throws IOException {
+		String buildPath = nodesManager.buildConfigPath("keyToValueToBucketMap");
 		for (String keyName : keyToValueToBucketMap.keySet()) {
-			String keyNodePath = buildPath + PathUtil.FORWARD_SLASH + keyName;
+			String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + keyName;
 			nodesManager.createPersistentNode(keyNodePath, null);
-			LOGGER.info("Path {} is created",keyNodePath);
-			Map<Object, Bucket<KeyValueFrequency>> valueBucketMap = keyToValueToBucketMap
-					.get(keyName);
+			logger.info("Path {} is created", keyNodePath);
+			Map<Object, Bucket<KeyValueFrequency>> valueBucketMap = keyToValueToBucketMap.get(keyName);
 			for (Object valueKey : valueBucketMap.keySet()) {
 				String buildValueBucketPath = keyNodePath;
 				nodesManager.createPersistentNode(buildValueBucketPath, null);
-				String buildValueKeyPath = buildValueBucketPath	+ PathUtil.FORWARD_SLASH + valueKey;
+				String buildValueKeyPath = buildValueBucketPath + PathUtil.SEPARATOR_CHAR + valueKey;
 				nodesManager.createPersistentNode(buildValueKeyPath, null);
-				String buildBucketPath = buildValueKeyPath + PathUtil.FORWARD_SLASH	+ valueBucketMap.get(valueKey).toString();
+				String buildBucketPath = buildValueKeyPath + PathUtil.SEPARATOR_CHAR
+						+ valueBucketMap.get(valueKey).toString();
 				nodesManager.createPersistentNode(buildBucketPath, null);
-				//nodesManager.createPersistentNode(buildValueBucketPath, null);
-				
-				LOGGER.info("Path {} is created",buildValueBucketPath);
+				// nodesManager.createPersistentNode(buildValueBucketPath,
+				// null);
+
+				logger.info("Path {} is created", buildValueBucketPath);
 			}
 		}
 	}
-	
+
 	public static void createTrieBucketCombinationToNodeNumbersMap(
-			Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap,
-			NodesManager nodesManager) throws IOException {
-		String buildPath = nodesManager
-				.buildConfigPath("bucketCombinationToNodeNumbersMap");
-		for (BucketCombination bucketCombinationKey : bucketCombinationToNodeNumbersMap
-				.keySet()) {
-			String keyNodePath = buildPath + PathUtil.FORWARD_SLASH
-					+ bucketCombinationKey.toString();
-			Set<Node> nodes = bucketCombinationToNodeNumbersMap
-					.get(bucketCombinationKey);
+			Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap, NodesManager nodesManager)
+			throws IOException {
+		String buildPath = nodesManager.buildConfigPath("bucketCombinationToNodeNumbersMap");
+		for (BucketCombination bucketCombinationKey : bucketCombinationToNodeNumbersMap.keySet()) {
+			String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + bucketCombinationKey.toString();
+			Set<Node> nodes = bucketCombinationToNodeNumbersMap.get(bucketCombinationKey);
 			for (Node node : nodes) {
-				String buildBucketCombinationNodeNumberPath = keyNodePath
-						+ PathUtil.FORWARD_SLASH + node.toString();
+				String buildBucketCombinationNodeNumberPath = keyNodePath + PathUtil.SEPARATOR_CHAR + node.toString();
 				nodesManager.createPersistentNode(buildBucketCombinationNodeNumberPath, null);
-				LOGGER.info("Path {} is created",buildBucketCombinationNodeNumberPath);
+				logger.info("Path {} is created", buildBucketCombinationNodeNumberPath);
 			}
 		}
 	}
 }
-
-

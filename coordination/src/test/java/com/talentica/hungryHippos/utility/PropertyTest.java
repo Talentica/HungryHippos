@@ -14,7 +14,7 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  * @author nitink
  *
  */
-public class PropertyTest{
+public class PropertyTest {
 	@Test
 	public void testGetPropertyValueForMaster() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
@@ -41,9 +41,9 @@ public class PropertyTest{
 	@Test
 	public void testGetKeyOrder() {
 		Property.initialize(null);
-		String[] keyOrder= Property.getShardingDimensions();
+		String[] keyOrder = Property.getShardingDimensions();
 		Assert.assertNotNull(keyOrder);
-		for(String key:keyOrder){
+		for (String key : keyOrder) {
 			Assert.assertNotNull(key);
 			Assert.assertFalse("".equals(key.trim()));
 			Assert.assertFalse(key.contains(","));
@@ -69,7 +69,7 @@ public class PropertyTest{
 	@Test
 	public void testGetEnvironmentSpecificProperty() {
 		ENVIRONMENT.setCurrentEnvironment("LOCAL");
-		Assert.assertEquals(1, Property.getShardingDimensions().length);
+		Assert.assertEquals(2, Property.getShardingDimensions().length);
 	}
 
 	@Test
@@ -83,9 +83,9 @@ public class PropertyTest{
 	}
 
 	@Test
-	public void testGetShardingIndexSequence(){
-		Assert.assertEquals(0, Property.getShardingIndexSequence(3));
-		Assert.assertEquals(1, Property.getShardingIndexSequence(4));
+	public void testGetShardingIndexSequence() {
+		Assert.assertEquals(1, Property.getShardingIndexSequence(3));
+
 	}
 
 }

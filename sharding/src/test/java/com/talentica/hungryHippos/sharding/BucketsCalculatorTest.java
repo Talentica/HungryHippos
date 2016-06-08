@@ -11,8 +11,7 @@ public class BucketsCalculatorTest {
 	@Test
 	public void testCalculateNumberOfBucketsNeeded() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		Property.setOrOverrideConfigurationProperty("common.sharding_dimensions",
-				"key1,key2,key3");
+		Property.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1,key2,key3");
 		Property.setOrOverrideConfigurationProperty("environment", "TEST");
 		Property.setOrOverrideConfigurationProperty("master.maximumShardFileSizeInBytes", "20000000");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();

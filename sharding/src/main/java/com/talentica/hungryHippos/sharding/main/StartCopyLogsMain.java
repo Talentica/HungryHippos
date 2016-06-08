@@ -35,7 +35,7 @@ public class StartCopyLogsMain {
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
 		String sqlServerIp = Property.getProperties().getProperty("common.webserver.ip");
 		String pythonScriptPath = Paths.get("/root/hungryhippos/scripts/python_scripts").toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/usr/bin/python", pythonScriptPath + "copy-all-logs-to-nginx.py", jobuuid,
 				sqlServerIp };
 		CommonUtil.executeScriptCommand(strArr);

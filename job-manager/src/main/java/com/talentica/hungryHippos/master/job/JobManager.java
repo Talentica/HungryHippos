@@ -72,7 +72,7 @@ public class JobManager {
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
 				new FileInputStream(
 						new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-								+ PathUtil.FORWARD_SLASH
+								+ PathUtil.SEPARATOR_CHAR
 								+ Sharding.bucketToNodeNumberMapFile))) {
 			this.bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) inKeyValueNodeNumberMap
 					.readObject();
@@ -110,7 +110,7 @@ public class JobManager {
 	private void sendSignalEndJobMatrix() throws InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
 		String buildFinishPath = ZKUtils
-				.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode();
+				.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode();
 		try {
 			nodesManager.createPersistentNode(buildFinishPath,signal);
 		} catch (IOException e) {
@@ -150,9 +150,9 @@ public class JobManager {
 
 		String buildFinishPath = ZKUtils
 				.buildNodePath(ZkSignalListener.jobuuidInBase64)
-				+ PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR
 				+ ("_node" + nodeId)
-				+ PathUtil.FORWARD_SLASH + finishNode;
+				+ PathUtil.SEPARATOR_CHAR + finishNode;
 
 		try {
 			ZKUtils.waitForSignal(buildFinishPath, signal);
@@ -181,9 +181,9 @@ public class JobManager {
 			CountDownLatch signal = new CountDownLatch(1);
 			String buildPath = ZKUtils.buildNodePath(CommonUtil
 					.getJobUUIdInBase64(jobUUId))
-					+ PathUtil.FORWARD_SLASH
+					+ PathUtil.SEPARATOR_CHAR
 					+ ("_node" + nodeId)
-					+ PathUtil.FORWARD_SLASH
+					+ PathUtil.SEPARATOR_CHAR
 					+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 			nodesManager.createPersistentNode(buildPath, signal);
 			signal.await();

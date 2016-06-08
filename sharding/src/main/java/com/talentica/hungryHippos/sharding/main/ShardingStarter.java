@@ -19,22 +19,22 @@ public class ShardingStarter {
 	/**
 	 * @param args
 	 */
-	private static final Logger LOGGER = LoggerFactory
+	private static final Logger logger = LoggerFactory
 			.getLogger(ShardingStarter.class);
 	private static String sampleInputFile;
 
 	public static void main(String[] args) {
 		try {
 			initialize(args);
-			LOGGER.info("SHARDING STARTED");
+			logger.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
 			Sharding.doSharding(getInputReaderForSharding());
-			LOGGER.info("SHARDING DONE!!");
+			logger.info("SHARDING DONE!!");
 			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to do sharding.",
+			logger.info("It took {} seconds of time to do sharding.",
 					((endTime - startTime) / 1000));
 		} catch (Exception exception) {
-			LOGGER.error("Error occurred while sharding.", exception);
+			logger.error("Error occurred while sharding.", exception);
 		}
 	}
 

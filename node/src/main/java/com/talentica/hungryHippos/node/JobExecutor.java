@@ -111,7 +111,7 @@ public class JobExecutor {
 	private static void sendFinishJobMatrixSignal() throws IOException,
 			InterruptedException {
 		String buildFinishPath = ZKUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
-				+ PathUtil.FORWARD_SLASH + ("_node"+NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR + ("_node"+NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(buildFinishPath, signal);
@@ -127,9 +127,9 @@ public class JobExecutor {
 			throws IOException, InterruptedException {
 		String basePathPerNode = Property
 				.getPropertyValue("zookeeper.base_path")
-				+ PathUtil.FORWARD_SLASH + ZkSignalListener.jobuuidInBase64 + PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64 + PathUtil.SEPARATOR_CHAR
 				+ (PRIFIX_NODE_NAME
-				+ NodeUtil.getNodeId()) + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode() ;
+				+ NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode() ;
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(basePathPerNode, signal);
 		signal.await();
@@ -165,9 +165,9 @@ public class JobExecutor {
 
 		String buildPath = ZKUtils.buildNodePath(CommonUtil
 				.getJobUUIdInBase64(jobUUId))
-				+ PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR
 				+ ("_node" + NodeUtil.getNodeId())
-				+ PathUtil.FORWARD_SLASH
+				+ PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
 		Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
 		LOGGER.info("Leafs size found {}", leafs.size());

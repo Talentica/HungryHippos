@@ -147,7 +147,7 @@ public class ZkSignalListener {
 	private static void listenerOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.FORWARD_SLASH + nodeName),
+		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.SEPARATOR_CHAR + nodeName),
 				signal);
 		signal.await();
 	}
@@ -160,7 +160,7 @@ public class ZkSignalListener {
 	 */
 	private static void createOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws IOException, InterruptedException {
-		String shardingNodeName = nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.FORWARD_SLASH + nodeName);
+		String shardingNodeName = nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.SEPARATOR_CHAR + nodeName);
 		CountDownLatch signal = new CountDownLatch(1);
 		nodesManager.createPersistentNode(shardingNodeName, signal);
 		signal.await();

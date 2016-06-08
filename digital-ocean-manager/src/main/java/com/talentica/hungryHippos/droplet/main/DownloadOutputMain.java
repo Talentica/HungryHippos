@@ -74,7 +74,7 @@ public class DownloadOutputMain {
 	 */
 	private static boolean getSignalFromZk(Integer nodeId, String finishNode) {
 		CountDownLatch signal = new CountDownLatch(1);
-		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.FORWARD_SLASH + finishNode;
+		String buildPath = ZKUtils.buildNodePath(nodeId) + PathUtil.SEPARATOR_CHAR + finishNode;
 		try {
 			ZKUtils.waitForSignal(buildPath, signal);
 			signal.await();
@@ -85,7 +85,7 @@ public class DownloadOutputMain {
 	}
 
 	private static void sendSignalForAllOutputFilesDownloaded(NodesManager nodesManager){
-		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
+		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
 			nodesManager.createPersistentNode(buildPath, signal);
@@ -103,7 +103,7 @@ public class DownloadOutputMain {
 	 * @throws InterruptedException
 	 */
 	private static void waitForSignalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
-		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
+		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
 			ZKUtils.waitForSignal(buildPath, signal);

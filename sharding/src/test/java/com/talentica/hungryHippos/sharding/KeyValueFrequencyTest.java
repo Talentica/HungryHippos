@@ -15,8 +15,7 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 
  @Test
  public void testEquals() {
- FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription
- .createDataDescription(Property.getDataTypeConfiguration());
+ FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration(),1);
  dataDescription.setKeyOrder(Property.getShardingDimensions());
  MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);
  KeyValueFrequency keyValue1frequency1 = new

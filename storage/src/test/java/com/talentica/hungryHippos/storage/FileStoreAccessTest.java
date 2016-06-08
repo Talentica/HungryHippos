@@ -19,7 +19,7 @@ public class FileStoreAccessTest {
 	private String base = "raw";
 	private int keyId = 1;
 	private int numFiles = 1;
-	private DataDescription dataDescription = new FieldTypeArrayDataDescription();
+	private DataDescription dataDescription = new FieldTypeArrayDataDescription(1);
 	private DynamicMarshal dm = new DynamicMarshal(dataDescription);
 	private JobEntity jobEntity = new JobEntity();
 	//private RowProcessor rowProcessor = new DataRowProcessor(dm, jobEntity);

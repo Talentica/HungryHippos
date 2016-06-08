@@ -58,13 +58,16 @@ public abstract class LineByLineDataParser implements DataParser {
 					if (readCount <= 0) {
 						buf.clear();
 						readCount = dataStream.read(dataBytes);
-						buf.limit(readCount);
+						if(readCount != -1 ){
+							buf.limit(readCount);
+						}
 						if (readCount < 0 && buffer.length() > 0) {
 							return processLine(buffer, dataDescription);
 						} else if (readCount < 0 && buffer.length() <= 0) {
 							return null;
 						}
 					}
+					
 					byte nextChar = readNextChar();
 					if (isNewLine(nextChar)) {
 						break;

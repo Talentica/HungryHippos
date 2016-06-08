@@ -136,9 +136,11 @@ public class Sharding {
 		String[] keys = Property.getShardingDimensions();
 		int lineNo = 0;
 		FileWriter.openFile(BAD_RECORDS_FILE);
+		int count = 0;
 		while (true) {
 			MutableCharArrayString[] parts = null;
 			try {
+				System.out.println(++count);
 				parts = data.read();
 			} catch (InvalidRowExeption e) {
 				FileWriter.flushData(lineNo++, e);

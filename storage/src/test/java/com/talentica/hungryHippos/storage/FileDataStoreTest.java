@@ -25,7 +25,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class FileDataStoreTest {
 
 	private static FileDataStore fileDataStore = null;
-	private static final DataDescription dataDescription = new FieldTypeArrayDataDescription();
+	private static final DataDescription dataDescription = new FieldTypeArrayDataDescription(1);
 	private static final int numDimensions = 2;
 
 	@BeforeClass

@@ -14,6 +14,8 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FieldTypeArrayDataDescription.class.getName());
 
+	private int maximumSizeOfSingleBlockOfData = 0;
+
 	private static final long serialVersionUID = 1551866958938738882L;
 	private Map<Integer, DataLocator> dataLocatorMap = new HashMap<>();
     private int nextIndex=0;
@@ -23,8 +25,8 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
         this.keyOrder = keyOrder;
     }
 
-	public FieldTypeArrayDataDescription() {
-
+	public FieldTypeArrayDataDescription(int maximumSizeOfSingleBlockOfData) {
+		this.maximumSizeOfSingleBlockOfData = maximumSizeOfSingleBlockOfData;
 	}
 
     private String[] keyOrder;
@@ -75,8 +77,9 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
         nextOffset+=size;
     }
 
-	public static final FieldTypeArrayDataDescription createDataDescription(String[] dataTypeConfiguration) {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+	public static final FieldTypeArrayDataDescription createDataDescription(String[] dataTypeConfiguration,
+			int totalSize) {
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(totalSize);
 		String[] datatype_size;
 		String datatype;
 		if (dataTypeConfiguration == null || dataTypeConfiguration.length == 0) {
@@ -124,7 +127,7 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 
 	@Override
 	public FieldTypeArrayDataDescription clone() {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(maximumSizeOfSingleBlockOfData);
 		if (dataLocatorMap != null) {
 			dataDescription.dataLocatorMap.putAll(dataLocatorMap);
 			dataDescription.nextIndex = nextIndex;
@@ -137,6 +140,11 @@ public final class FieldTypeArrayDataDescription implements DataDescription, Ser
 	@Override
 	public int getNumberOfDataFields() {
 		return dataLocatorMap.size();
+	}
+
+	@Override
+	public int getMaximumSizeOfSingleBlockOfData() {
+		return maximumSizeOfSingleBlockOfData;
 	}
 
 }

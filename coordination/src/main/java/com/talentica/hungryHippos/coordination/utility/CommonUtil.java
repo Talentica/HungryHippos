@@ -147,8 +147,8 @@ public class CommonUtil {
 
 	public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
 		if (dataDescription == null) {
-			dataDescription = FieldTypeArrayDataDescription
-					.createDataDescription(Property.getDataTypeConfiguration());
+			dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration(),
+					Property.getMaximumSizeOfSingleDataBlock());
 		}
 		return dataDescription;
 	}

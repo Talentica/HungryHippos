@@ -27,7 +27,7 @@ public class MutableCharArrayStringCacheTest {
 	}
 
 	@Test
-	public void testGetMutableStringFromCacheAndChangeCharactersInIt() {
+	public void testGetMutableStringFromCacheAndChangeCharactersInIt() throws InvalidRowExeption {
 		MutableCharArrayString arrayString1 = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(4);
 		Assert.assertNotNull(arrayString1);
 		arrayString1.addCharacter('a');

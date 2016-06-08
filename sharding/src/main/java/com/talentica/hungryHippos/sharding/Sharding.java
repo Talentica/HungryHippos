@@ -14,9 +14,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
 
@@ -25,7 +27,7 @@ import com.talentica.hungryHippos.utility.MapUtils;
  */
 public class Sharding {
 
-	private static final Logger logger = LoggerFactory.getLogger(Sharding.class);	
+	private static final Logger logger = LoggerFactory.getLogger(Sharding.class);
 
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
@@ -46,6 +48,8 @@ public class Sharding {
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
+	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")
+			+ "_sharding.err";
 
 	public Sharding(int numNodes) {
 		for (int i = 0; i < numNodes; i++) {
@@ -59,7 +63,6 @@ public class Sharding {
 		logger.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
-			sharding.setKeysToIndexes();
 			sharding.populateFrequencyFromData(input);
 			sharding.populateKeysToListOfBucketsMap();
 			sharding.updateBucketToNodeNumbersMap(input);
@@ -73,20 +76,25 @@ public class Sharding {
 				logger.debug("bucketCombinationToNodeNumbersMap: "
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
-			
+
 		} catch (IOException | NodeOverflowException e) {
 			logger.error("Error occurred during sharding process.", e);
 		}
 	}
 
-	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
+
 		logger.info("Calculating buckets to node numbers map started");
-		data.reset();
+
 		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
-			MutableCharArrayString[] parts = data.read();
+			MutableCharArrayString[] parts = null;
+			try {
+				parts = data.read();
+			} catch (InvalidRowExeption e) {
+				continue;
+			}
 			if (parts == null) {
 				data.close();
 				break;
@@ -122,11 +130,20 @@ public class Sharding {
 
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
+
 		logger.info("Populating frequency map from data started");
+		setKeysToIndexes();
 		String[] keys = Property.getShardingDimensions();
-		// Map<key1,Map<value1,count>>
+		int lineNo = 0;
+		FileWriter.openFile(BAD_RECORDS_FILE);
 		while (true) {
-			MutableCharArrayString[] parts = data.read();
+			MutableCharArrayString[] parts = null;
+			try {
+				parts = data.read();
+			} catch (InvalidRowExeption e) {
+				FileWriter.flushData(lineNo++, e);
+				continue;
+			}
 			if (parts == null) {
 				break;
 			}
@@ -148,7 +165,11 @@ public class Sharding {
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
 		}
+
 		logger.info("Populating frequency map from data finished");
+
+		FileWriter.close();
+
 		return keyValueFrequencyMap;
 	}
 
@@ -176,8 +197,7 @@ public class Sharding {
 					Long frequency = keyValueFrequency.getFrequency();
 					if (frequency > idealAverageSizeOfOneBucket) {
 						sizeOfCurrentBucket = frequency;
-						logger.info(
-								"Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
+						logger.info("Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
 								new Object[] { keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket });
 					}
 					if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket) {
@@ -328,4 +348,5 @@ public class Sharding {
 			}
 		}
 	}
+
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.Work;
 
@@ -46,7 +47,7 @@ public class TopVideosWork implements Work, Serializable {
 		return allvideos;
 	}
 
-	private void addNewHighlyRatedVideo(ExecutionContext executionContext, double rating) {
+	private void addNewHighlyRatedVideo(ExecutionContext executionContext, double rating){
 		String videoId = ((MutableCharArrayString) executionContext.getValue(0)).toString();
 		String uploader = ((MutableCharArrayString) executionContext.getValue(1)).toString();
 		String category = ((MutableCharArrayString) executionContext.getValue(3)).toString();

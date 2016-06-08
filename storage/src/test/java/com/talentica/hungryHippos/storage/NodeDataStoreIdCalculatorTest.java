@@ -65,7 +65,7 @@ public class NodeDataStoreIdCalculatorTest {
 	}
 
 	private FieldTypeArrayDataDescription getDataDescription() {
-		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription();
+		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
 		String[] datatypes = Property.getPropertyValue("column.datatype-size").toString().split(",");
 		for (String datatype : datatypes) {
 			dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),

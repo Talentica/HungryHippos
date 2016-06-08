@@ -332,6 +332,10 @@ public class Property {
 		return getPropertyValue("column.datatype-size").toString().split(",");
 	}
 
+	public static final int getMaximumSizeOfSingleDataBlock() {
+		return Integer.parseInt(getPropertyValue("maximum.size.of.single.block.data"));
+	}
+
 	public static PROPERTIES_NAMESPACE getNamespace() {
 		return namespace;
 	}

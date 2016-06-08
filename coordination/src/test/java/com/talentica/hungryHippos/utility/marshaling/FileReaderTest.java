@@ -8,8 +8,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.client.data.parser.CsvDataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 
@@ -29,25 +31,29 @@ public class FileReaderTest {
 	public void setUp() throws IOException {
 		ClassLoader classLoader = this.getClass().getClassLoader();
 		DataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(
-				"STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,DOUBLE-0,DOUBLE-0,STRING-3".split(","));
+				"STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,DOUBLE-0,DOUBLE-0,STRING-3".split(","), 100);
+		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 		fileReader = new FileReader(
 				new File(classLoader.getResource("testSampleInputWithNoBlankLineAtEOF.txt").getPath()),
-				dataDescription);
+				csvDataPreprocessor);
 		fileReaderBlankLinesFile = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), csvDataPreprocessor);
 		fileReaderBlankLineAtEofFile = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLines.txt").getPath()), csvDataPreprocessor);
 		fileReaderWithBlankLineAtEOF = new FileReader(
-				new File(classLoader.getResource("testSampleInputWithBlankLineAtEOF.txt").getPath()), dataDescription);
+				new File(classLoader.getResource("testSampleInputWithBlankLineAtEOF.txt").getPath()),
+				csvDataPreprocessor);
 		DataDescription dataDescriptionWindowsTestFile = FieldTypeArrayDataDescription
-				.createDataDescription("STRING-3,LONG-0".split(","));
+				.createDataDescription("STRING-3,LONG-0".split(","), 100);
+		CsvDataParser csvDataPreprocessorForWindowsTestFile = new CsvDataParser(
+				dataDescriptionWindowsTestFile);
 		testSampleFileGeneratedOnWindows = new FileReader(
 				new File(classLoader.getResource("testSampleFileGeneratedOnWindows.txt").getPath()),
-				dataDescriptionWindowsTestFile);
+				csvDataPreprocessorForWindowsTestFile);
 	}
 
 	@Test
-	public void testRead() throws IOException {
+	public void testRead() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReader.read();
@@ -62,7 +68,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException {
+	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderBlankLineAtEofFile.read();
@@ -77,7 +83,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFromFileHavingBlankLines() throws IOException {
+	public void testReadFromFileHavingBlankLines() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderBlankLinesFile.read();
@@ -92,7 +98,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFromBigFile() throws IOException {
+	public void testReadFromBigFile() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = fileReaderWithBlankLineAtEOF.read();
@@ -107,7 +113,7 @@ public class FileReaderTest {
 	}
 
 	@Test
-	public void testReadFileCreatedOnWindows() throws IOException {
+	public void testReadFileCreatedOnWindows() throws IOException, InvalidRowExeption {
 		int numberOfLines = 0;
 		while (true) {
 			MutableCharArrayString[] data = testSampleFileGeneratedOnWindows.read();

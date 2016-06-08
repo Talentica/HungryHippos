@@ -16,7 +16,7 @@ public class SumWorkLocal implements Work, Serializable {
 	protected int[] dimensions;
 	protected int primaryDimension;
 	private float sumFor6thColumn;
-	private long sumFor4thColumn;
+	private long sumFor3rdColumn;
 
 	public SumWorkLocal(int[] dimensions, int primaryDimension) {
 		this.dimensions = dimensions;
@@ -26,18 +26,18 @@ public class SumWorkLocal implements Work, Serializable {
 	@Override
 	public void processRow(ExecutionContext executionContext) {
 		sumFor6thColumn = sumFor6thColumn + ((Float) executionContext.getValue(6));
-		sumFor4thColumn = sumFor4thColumn + ((Integer) executionContext.getValue(3));
+		sumFor3rdColumn = sumFor3rdColumn + ((Integer) executionContext.getValue(3));
 	}
 
 	@Override
 	public void calculate(ExecutionContext executionContext) {
 		executionContext.saveValue(6, sumFor6thColumn, "Sum");
-		executionContext.saveValue(3, sumFor4thColumn, "Sum");
+		executionContext.saveValue(3, sumFor3rdColumn, "Sum");
 	}
 
 	@Override
 	public void reset() {
-		sumFor4thColumn = 0;
+		sumFor3rdColumn = 0;
 		sumFor6thColumn = 0;
 	}
 

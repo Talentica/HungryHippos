@@ -16,7 +16,13 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  * @author nitink
  *
  */
-public interface DataParser {
+public abstract class DataParser {
+
+	private DataDescription dataDescription;
+
+	public DataParser(DataDescription dataDescription) {
+		this.dataDescription = dataDescription;
+	}
 
 	/**
 	 * This method gets called by framework to get data blocks (e.g. a row in
@@ -27,7 +33,10 @@ public interface DataParser {
 	 * @return
 	 * @throws InvalidRowException
 	 */
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws RuntimeException;
+	public abstract Iterator<MutableCharArrayString[]> iterator(InputStream inputStream);
+
+	protected DataDescription getDataDescription() {
+		return dataDescription;
+	}
 
 }

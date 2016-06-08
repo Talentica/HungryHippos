@@ -12,7 +12,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 /**
  * Data parser implementation for line by line reading of data file.
  */
-public abstract class LineByLineDataParser implements DataParser {
+public abstract class LineByLineDataParser extends DataParser {
 
 	public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = { 13, 10 };
 
@@ -21,15 +21,15 @@ public abstract class LineByLineDataParser implements DataParser {
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
 
-	public LineByLineDataParser() {
+	public LineByLineDataParser(DataDescription dataDescription) {
+		super(dataDescription);
 		buf.clear();
 	}
 
 	@Override
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws RuntimeException {
+	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getMaximumSizeOfSingleBlockOfDataInBytes(dataDescription));
+			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
 		return new Iterator<MutableCharArrayString[]>() {
@@ -60,7 +60,7 @@ public abstract class LineByLineDataParser implements DataParser {
 						readCount = dataStream.read(dataBytes);
 						buf.limit(readCount);
 						if (readCount < 0 && buffer.length() > 0) {
-							return processLine(buffer, dataDescription);
+							return processLine(buffer);
 						} else if (readCount < 0 && buffer.length() <= 0) {
 							return null;
 						}
@@ -71,7 +71,7 @@ public abstract class LineByLineDataParser implements DataParser {
 					}
 					buffer.addCharacter((char) nextChar);
 				}
-				return processLine(buffer, dataDescription);
+				return processLine(buffer);
 			}
 
 			private byte readNextChar() {
@@ -105,9 +105,6 @@ public abstract class LineByLineDataParser implements DataParser {
 		};
 	}
 
-	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line,
-			DataDescription dataDescription);
-
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
+	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
 
 }

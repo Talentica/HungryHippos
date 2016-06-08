@@ -12,24 +12,18 @@ public class CsvDataParser extends LineByLineDataParser {
 
 	private int numfields;
 
-	private DataDescription dataDescription;
-
 	private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
 
 	boolean[] columnsStatusForInvalidRow = null;
 
-	public CsvDataParser() {
-	}
-
 	public CsvDataParser(DataDescription dataDescription) {
-		setDataDescription(dataDescription);
+		super(dataDescription);
+		initializeMutableArrayStringBuffer(dataDescription);
 	}
 
 	@Override
-	public MutableCharArrayString[] processLine(MutableCharArrayString data, DataDescription dataDescription)
-			throws InvalidRowException {
+	public MutableCharArrayString[] processLine(MutableCharArrayString data) {
 		boolean isInvalidRow = false;
-		setDataDescription(dataDescription);
 		for (MutableCharArrayString s : buffer) {
 			s.reset();
 		}
@@ -75,22 +69,9 @@ public class CsvDataParser extends LineByLineDataParser {
 		columnsStatusForInvalidRow = new boolean[buffer.length];
 	}
 
-	@Override
-	protected int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription) {
-		setDataDescription(dataDescription);
-		return dataDescription.getMaximumSizeOfSingleBlockOfData();
-	}
-
-	private void setDataDescription(DataDescription dataDescription) {
-		if (this.dataDescription == null) {
-			this.dataDescription = dataDescription;
-			initializeMutableArrayStringBuffer(dataDescription);
-		}
-	}
-
 	private void resetRowStatus() {
-		for (int fieldNum = 0; fieldNum < columnsValidationStatus.length; fieldNum++) {
-			columnsValidationStatus[fieldNum] = false;
+		for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
+			columnsStatusForInvalidRow[fieldNum] = false;
 		}
 	}
 }

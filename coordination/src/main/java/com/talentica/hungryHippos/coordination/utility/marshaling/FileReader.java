@@ -10,7 +10,6 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 
 /**
  * Created by debasishc on 22/6/15.
@@ -24,7 +23,7 @@ public class FileReader implements Reader {
 	public FileReader(String filepath, DataParser parser) throws RuntimeException, FileNotFoundException {
 		this.dataParser = parser;
 		dataInputStream = new FileInputStream(filepath);
-		iterator = dataParser.iterator(dataInputStream, CommonUtil.getConfiguredDataDescription());
+		iterator = dataParser.iterator(dataInputStream);
 	}
 
 	public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {

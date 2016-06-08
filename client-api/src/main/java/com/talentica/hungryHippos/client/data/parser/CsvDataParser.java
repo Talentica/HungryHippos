@@ -16,7 +16,7 @@ public class CsvDataParser extends LineByLineDataParser {
 	
 	private InvalidRowExeption invalidRow = new InvalidRowExeption("Invalid Row");
 	
-	boolean[] columns = null;
+	boolean[] columnsStatusForInvalidRow = null;
 
 	public CsvDataParser() {
 	}
@@ -47,12 +47,12 @@ public class CsvDataParser extends LineByLineDataParser {
 						resetRowStatus();
 						isInvalidRow = true;
 						}
-					columns[fieldIndex] = true;
+					columnsStatusForInvalidRow[fieldIndex] = true;
 				}
 			}
 		}
 		if (isInvalidRow) {
-			invalidRow.setColumns(columns);
+			invalidRow.setColumns(columnsStatusForInvalidRow);
 			invalidRow.setBadRow(data);
 			throw invalidRow;
 		}
@@ -72,7 +72,7 @@ public class CsvDataParser extends LineByLineDataParser {
 			}
 			buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
 		}
-		columns = new boolean[buffer.length];
+		columnsStatusForInvalidRow = new boolean[buffer.length];
 	}
 
 	@Override
@@ -89,8 +89,8 @@ public class CsvDataParser extends LineByLineDataParser {
 	}
 
 	private void  resetRowStatus(){
-		for(int fieldNum = 0 ; fieldNum < columns.length ; fieldNum++){
-			columns[fieldNum] = false;
+		for(int fieldNum = 0 ; fieldNum < columnsStatusForInvalidRow.length ; fieldNum++){
+			columnsStatusForInvalidRow[fieldNum] = false;
 		}
 	}
 }

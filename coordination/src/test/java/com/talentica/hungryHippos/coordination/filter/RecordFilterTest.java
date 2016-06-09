@@ -5,13 +5,15 @@ package com.talentica.hungryHippos.coordination.filter;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -29,7 +31,6 @@ public class RecordFilterTest {
 	private static String jobuuid = "ABCSD12";
 	private static String sampleBadRecordFile;
 	private static String dataParserClassName;
-	private static DataParser dataParser;
 	private static Reader data;
 	private static String badRecordsFile ;
 
@@ -37,17 +38,17 @@ public class RecordFilterTest {
 	public void setUp() {
 		CommonUtil.loadDefaultPath(jobuuid);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		dataParserClassName = "com.talentica.hungryHippos.coordination.utility.CsvDataParser";
+		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
 		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "bad_records_data.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
 	}
 
 	@Test
 	public void testFilterBadRecords() throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException, IOException {
+			IllegalAccessException, ClassNotFoundException, IOException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		CommonUtil.loadDefaultPath(jobuuid);
-		dataParser = (DataParser) Class.forName(dataParserClassName)
-				.newInstance();
+		DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
+				.getConstructor(DataDescription.class).newInstance(CommonUtil.getConfiguredDataDescription());
 		data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				sampleBadRecordFile, dataParser);
 		int actualBadRecords = 0;
@@ -58,7 +59,7 @@ public class RecordFilterTest {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
+			} catch (InvalidRowException e) {
 				FileWriter.flushData(lineNo++, e);
 				actualBadRecords++;
 				continue;

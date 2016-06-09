@@ -14,7 +14,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.Property;
@@ -89,7 +89,7 @@ public class Sharding {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
+			} catch (InvalidRowException e) {
 				continue;
 			}
 			if (parts == null) {
@@ -136,7 +136,7 @@ public class Sharding {
 			MutableCharArrayString[] parts = null;
 			try {
 				parts = data.read();
-			} catch (InvalidRowExeption e) {
+			} catch (InvalidRowException e) {
 				FileWriter.flushData(lineNo++, e);
 				continue;
 			}

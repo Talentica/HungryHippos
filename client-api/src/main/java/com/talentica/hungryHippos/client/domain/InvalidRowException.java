@@ -9,23 +9,23 @@ import java.util.Arrays;
  * @author pooshans
  *
  */
-public class InvalidRowExeption extends RuntimeException {
+public class InvalidRowException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 	private String message;
 	private MutableCharArrayString row;
 	private boolean[] columns;
 
-	public InvalidRowExeption() {
+	public InvalidRowException() {
 		super();
 	}
 
-	public InvalidRowExeption(String message) {
+	public InvalidRowException(String message) {
 		super(message);
 		this.message = message;
 	}
 	
-	public InvalidRowExeption(String message,boolean[] columns) {
+	public InvalidRowException(String message,boolean[] columns) {
 		super(message);
 		this.message = message;
 		this.columns = columns;
@@ -47,7 +47,7 @@ public class InvalidRowExeption extends RuntimeException {
 		this.columns = columns;
 	}
 
-	public InvalidRowExeption(Throwable cause) {
+	public InvalidRowException(Throwable cause) {
 		super(cause);
 	}
 

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
@@ -121,7 +121,7 @@ public class DataProvider {
         	MutableCharArrayString[] parts = null;
 			try {
 				parts = input.read();
-			} catch (InvalidRowExeption e) {
+			} catch (InvalidRowException e) {
 				FileWriter.flushData(lineNo++, e);
 				continue;
 			}
@@ -175,7 +175,7 @@ public class DataProvider {
     }
 
     
-    private int flushData(int lineNo, InvalidRowExeption e) {
+    private int flushData(int lineNo, InvalidRowException e) {
 		FileWriter.write("Error in line :: [" + (lineNo++)
 				+ "]  and columns(true are bad values) :: "
 				+ Arrays.toString(e.getColumns()) + " and row :: ["

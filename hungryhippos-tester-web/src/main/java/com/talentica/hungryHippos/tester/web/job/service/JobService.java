@@ -157,7 +157,8 @@ public class JobService extends Service {
 		String dbConnectionParameters = getDatabaseHost(DB_CONN_URL) + SPACE + DB_CONN_USERNAME + SPACE
 				+ DB_CONN_PASSWORD;
 		String scriptExecutionCommand = JOB_SUBMISSION_SCRIPT_EXECUTION_COMMAND + SPACE + uuid + SPACE
-				+ jobInputEntity.getJobMatrixClass() + SPACE + dbConnectionParameters + "> " + scriptLogFile + SPACE
+				+ jobInputEntity.getJobMatrixClass() + SPACE + jobInputEntity.getDataParserClass() + SPACE
+				+ dbConnectionParameters + "> " + scriptLogFile + SPACE
 				+ "2> " + scriptLogFile + " & ";
 		String command = changeDirCommand + COMMANDS_SEPARATOR + scriptExecutionCommand;
 		LOGGER.info("Script being executed:{}", command);

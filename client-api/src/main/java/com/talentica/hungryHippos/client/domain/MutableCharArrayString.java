@@ -55,9 +55,6 @@ public class MutableCharArrayString
 	}
 
 	public MutableCharArrayString addCharacter(char ch){
-		/*if(array.length == stringLength) {
-			throw new InvalidRowExeption("Invalid length of the value");
-		}*/
 		array[stringLength] = ch;
 		stringLength++;
 		return this;
@@ -106,7 +103,7 @@ public class MutableCharArrayString
 		return h;
 	}
 
-	public static MutableCharArrayString from(String value) throws InvalidRowExeption {
+	public static MutableCharArrayString from(String value) throws InvalidRowException {
 		MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length());
 		for (char character : value.toCharArray()) {
 			mutableCharArrayString.addCharacter(character);

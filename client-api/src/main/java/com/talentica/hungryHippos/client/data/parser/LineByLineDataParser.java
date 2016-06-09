@@ -6,13 +6,14 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 /**
  * Data parser implementation for line by line reading of data file.
  */
-public abstract class LineByLineDataParser implements DataParser {
+public abstract class LineByLineDataParser extends DataParser {
 
 	public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = { 13, 10 };
 
@@ -20,19 +21,23 @@ public abstract class LineByLineDataParser implements DataParser {
 	private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
+	private Iterator<MutableCharArrayString[]> iterator;
+	protected DataParserValidator csvValidator;
 
-	public LineByLineDataParser() {
+	public LineByLineDataParser(DataDescription dataDescription) {
+		super(dataDescription);
 		buf.clear();
+		csvValidator = createDataParserValidator();
 	}
 
 	@Override
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws InvalidRowExeption {
+	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getMaximumSizeOfSingleBlockOfDataInBytes(dataDescription));
+			buffer = new MutableCharArrayString(getDataDescription()
+					.getMaximumSizeOfSingleBlockOfData());
 		}
 
-		return new Iterator<MutableCharArrayString[]>() {
+		iterator = new Iterator<MutableCharArrayString[]>() {
 
 			@Override
 			public boolean hasNext() {
@@ -47,12 +52,15 @@ public abstract class LineByLineDataParser implements DataParser {
 			public MutableCharArrayString[] next() {
 				try {
 					return read();
-				} catch (InvalidRowExeption | IOException e) {
+				} catch (InvalidRowException irex) {
+					throw irex;
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException, InvalidRowExeption {
+			public MutableCharArrayString[] read() throws IOException,
+					InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {
@@ -60,7 +68,7 @@ public abstract class LineByLineDataParser implements DataParser {
 						readCount = dataStream.read(dataBytes);
 						buf.limit(readCount);
 						if (readCount < 0 && buffer.length() > 0) {
-							return processLine(buffer, dataDescription);
+							return processLine(buffer);
 						} else if (readCount < 0 && buffer.length() <= 0) {
 							return null;
 						}
@@ -71,7 +79,7 @@ public abstract class LineByLineDataParser implements DataParser {
 					}
 					buffer.addCharacter((char) nextChar);
 				}
-				return processLine(buffer, dataDescription);
+				return processLine(buffer);
 			}
 
 			private byte readNextChar() {
@@ -97,17 +105,26 @@ public abstract class LineByLineDataParser implements DataParser {
 							buf.flip();
 						}
 						byte nextChar = readNextChar();
-						newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
+						newLine = newLine
+								&& (windowsLineseparatorChars[i] == nextChar);
 					}
 				}
 				return newLine;
 			}
 		};
+		return iterator;
 	}
 
-	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line,
+	protected final Iterator<MutableCharArrayString[]> getIterator() {
+		return iterator;
+	}
+
+	protected abstract MutableCharArrayString[] processLine(
+			MutableCharArrayString line);
+
+	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(
 			DataDescription dataDescription);
 
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
+	// protected abstract CsvValidator createDataParserValidator();
 
 }

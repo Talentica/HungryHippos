@@ -19,7 +19,7 @@ public class MutableCharArrayStringTest {
 	private MutableCharArrayString stringL2;
 
 	@Before
-	public void setUp() throws InvalidRowExeption {
+	public void setUp() throws InvalidRowException {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
 		dataDescription.addFieldType(DataType.STRING, 1);
 		stringL1 = new MutableCharArrayString(1);
@@ -29,7 +29,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testHashCode() throws InvalidRowExeption {
+	public void testHashCode() throws InvalidRowException {
 		Assert.assertEquals(stringL1.hashCode(), stringL2.hashCode());
 		MutableCharArrayString stringForHashCode = new MutableCharArrayString(3);
 		stringForHashCode.addCharacter('t');
@@ -48,7 +48,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testClone() throws InvalidRowExeption {
+	public void testClone() throws InvalidRowException {
 		MutableCharArrayString testString = createTestString();
 		MutableCharArrayString clonedString1 = testString.clone();
 		Assert.assertNotNull(clonedString1);
@@ -59,7 +59,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testPutOfMutableCharArrayStringInMapAsKey() throws InvalidRowExeption {
+	public void testPutOfMutableCharArrayStringInMapAsKey() throws InvalidRowException {
 		MutableCharArrayString testString = createTestString();
 		Map<MutableCharArrayString, Integer> mapOfKeyValueFrequencies = new HashMap<>();
 		mapOfKeyValueFrequencies.put(testString, 0);
@@ -68,7 +68,7 @@ public class MutableCharArrayStringTest {
 		Assert.assertEquals(0, count.intValue());
 	}
 
-	private MutableCharArrayString createTestString() throws InvalidRowExeption {
+	private MutableCharArrayString createTestString() throws InvalidRowException {
 		MutableCharArrayString testString = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(2);
 		testString.addCharacter('l');
 		testString.addCharacter('c');
@@ -76,7 +76,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testRetrievalOfMutableCharArrayStringKeyFromMap() throws InvalidRowExeption {
+	public void testRetrievalOfMutableCharArrayStringKeyFromMap() throws InvalidRowException {
 		MutableCharArrayString testString = createTestString();
 		Map<MutableCharArrayString, Integer> mapOfKeyValueFrequencies = new HashMap<>();
 		mapOfKeyValueFrequencies.put(testString, 0);
@@ -88,7 +88,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testCompareToOfNonEqualSize() throws InvalidRowExeption {
+	public void testCompareToOfNonEqualSize() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(1);
 		string1.addCharacter('a');
 		MutableCharArrayString string2 = new MutableCharArrayString(2);
@@ -99,7 +99,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testCompareToOfEqualSizeStrings() throws InvalidRowExeption {
+	public void testCompareToOfEqualSizeStrings() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(2);
 		string1.addCharacter('a');
 		string1.addCharacter('c');
@@ -111,7 +111,7 @@ public class MutableCharArrayStringTest {
 	}
 
 	@Test
-	public void testCompareToOfEqualStrings() throws InvalidRowExeption {
+	public void testCompareToOfEqualStrings() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(2);
 		string1.addCharacter('a');
 		string1.addCharacter('d');

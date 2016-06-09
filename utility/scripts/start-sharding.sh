@@ -1,5 +1,7 @@
 #!/bin/bash
 jobUuid=$1
+dataparserclass=$2
+
 sh start-zk-server.sh $jobUuid
 sharding_node_ip=`cat ../$jobUuid/master_ip_file`
 
@@ -18,5 +20,5 @@ do
    echo "Kazoo Server started"
 
    echo "Starting sharding on $node"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter $jobUuid > ./sharding_system.out 2>./sharding_system.err &"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar:../job-manager/test-jobs.jar com.talentica.hungryHippos.sharding.main.ShardingStarter $jobUuid $dataparserclass > ./sharding_system.out 2>./sharding_system.err &"
 done

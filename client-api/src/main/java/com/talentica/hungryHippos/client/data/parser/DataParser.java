@@ -4,8 +4,9 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.InvalidRowExeption;
+import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 /**
  * Sometimes data is not in the format required by HungryHippos framework and so
@@ -16,7 +17,13 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  * @author nitink
  *
  */
-public interface DataParser {
+public abstract class DataParser {
+
+	private DataDescription dataDescription;
+
+	public DataParser(DataDescription dataDescription) {
+		this.dataDescription = dataDescription;
+	}
 
 	/**
 	 * This method gets called by framework to get data blocks (e.g. a row in
@@ -25,9 +32,15 @@ public interface DataParser {
 	 * 
 	 * @param dataStream
 	 * @return
-	 * @throws InvalidRowExeption
+	 * @throws InvalidRowException
 	 */
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream, DataDescription dataDescription)
-			throws InvalidRowExeption;
+	public abstract Iterator<MutableCharArrayString[]> iterator(
+			InputStream inputStream);
+
+	protected DataDescription getDataDescription() {
+		return dataDescription;
+	}
+
+	protected abstract DataParserValidator createDataParserValidator();
 
 }

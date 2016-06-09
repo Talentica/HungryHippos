@@ -8,7 +8,7 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.validator.CsvValidator;
+import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 /**
  * Data parser implementation for line by line reading of data file.
@@ -22,7 +22,7 @@ public abstract class LineByLineDataParser extends DataParser {
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
 	private Iterator<MutableCharArrayString[]> iterator;
-	protected CsvValidator csvValidator;
+	protected DataParserValidator csvValidator;
 
 	public LineByLineDataParser(DataDescription dataDescription) {
 		super(dataDescription);

@@ -33,8 +33,7 @@ public abstract class LineByLineDataParser extends DataParser {
 	@Override
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getDataDescription()
-					.getMaximumSizeOfSingleBlockOfData());
+			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
 		iterator = new Iterator<MutableCharArrayString[]>() {
@@ -59,14 +58,15 @@ public abstract class LineByLineDataParser extends DataParser {
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException,
-					InvalidRowException {
+			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {
 						buf.clear();
 						readCount = dataStream.read(dataBytes);
-						buf.limit(readCount);
+						if (readCount != -1) {
+							buf.limit(readCount);
+						}
 						if (readCount < 0 && buffer.length() > 0) {
 							return processLine(buffer);
 						} else if (readCount < 0 && buffer.length() <= 0) {
@@ -105,8 +105,7 @@ public abstract class LineByLineDataParser extends DataParser {
 							buf.flip();
 						}
 						byte nextChar = readNextChar();
-						newLine = newLine
-								&& (windowsLineseparatorChars[i] == nextChar);
+						newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
 					}
 				}
 				return newLine;
@@ -119,11 +118,9 @@ public abstract class LineByLineDataParser extends DataParser {
 		return iterator;
 	}
 
-	protected abstract MutableCharArrayString[] processLine(
-			MutableCharArrayString line);
+	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
 
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(
-			DataDescription dataDescription);
+	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
 
 	// protected abstract CsvValidator createDataParserValidator();
 

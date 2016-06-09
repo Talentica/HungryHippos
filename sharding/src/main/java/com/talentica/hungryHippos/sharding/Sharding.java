@@ -27,7 +27,7 @@ import com.talentica.hungryHippos.utility.MapUtils;
  */
 public class Sharding {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Sharding.class);
+	private static final Logger logger = LoggerFactory.getLogger(Sharding.class);
 
 	// Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
 	private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
@@ -48,7 +48,9 @@ public class Sharding {
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")+"_sharding.err";
+	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")
+			+ "_sharding.err";
+
 	public Sharding(int numNodes) {
 		for (int i = 0; i < numNodes; i++) {
 			Node node = new Node(300000, i);
@@ -58,7 +60,7 @@ public class Sharding {
 	}
 
 	public static void doSharding(Reader input) {
-		LOGGER.info("SHARDING STARTED");
+		logger.info("SHARDING STARTED");
 		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
@@ -69,20 +71,21 @@ public class Sharding {
 					sharding.bucketCombinationToNodeNumbersMap);
 			CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, sharding.bucketToNodeNumberMap);
 			CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, sharding.keyToValueToBucketMap);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
-				LOGGER.debug("bucketCombinationToNodeNumbersMap: "
+			if (logger.isDebugEnabled()) {
+				logger.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(sharding.keyToValueToBucketMap));
+				logger.debug("bucketCombinationToNodeNumbersMap: "
 						+ MapUtils.getFormattedString(sharding.bucketCombinationToNodeNumbersMap));
 			}
-			
+
 		} catch (IOException | NodeOverflowException e) {
-			LOGGER.error("Error occurred during sharding process.", e);
+			logger.error("Error occurred during sharding process.", e);
 		}
 	}
 
-	
 	private void updateBucketToNodeNumbersMap(Reader data) throws IOException {
-		LOGGER.info("Calculating buckets to node numbers map started");
+
+		logger.info("Calculating buckets to node numbers map started");
+
 		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
@@ -113,7 +116,7 @@ public class Sharding {
 				bucketCombinationFrequencyMap.put(keyCombination, count + 1);
 			}
 		}
-		LOGGER.info("Calculating buckets to node numbers map finished");
+		logger.info("Calculating buckets to node numbers map finished");
 	}
 
 	private void setKeysToIndexes() {
@@ -127,14 +130,17 @@ public class Sharding {
 
 	// TODO: This method needs to be generalized
 	Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data) throws IOException {
-		LOGGER.info("Populating frequency map from data started");
+
+		logger.info("Populating frequency map from data started");
 		setKeysToIndexes();
 		String[] keys = Property.getShardingDimensions();
 		int lineNo = 0;
 		FileWriter.openFile(BAD_RECORDS_FILE);
+		int count = 0;
 		while (true) {
 			MutableCharArrayString[] parts = null;
 			try {
+				System.out.println(++count);
 				parts = data.read();
 			} catch (InvalidRowException e) {
 				FileWriter.flushData(lineNo++, e);
@@ -161,16 +167,19 @@ public class Sharding {
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
 		}
+
+		logger.info("Populating frequency map from data finished");
+
 		FileWriter.close();
-		LOGGER.info("Populating frequency map from data finished");
+
 		return keyValueFrequencyMap;
 	}
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
-		LOGGER.info("Calculating keys to list of buckets map started");
+		logger.info("Calculating keys to list of buckets map started");
 		String[] keys = Property.getShardingDimensions();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
-		LOGGER.info("Total no. of buckets: {}", totalNoOfBuckets);
+		logger.info("Total no. of buckets: {}", totalNoOfBuckets);
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
 		for (int i = 0; i < keys.length; i++) {
 			Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
@@ -179,7 +188,7 @@ public class Sharding {
 			int bucketCount = 0;
 			Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
 			long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
-			LOGGER.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
+			logger.info("Ideal size of bucket for {}:{}", new Object[] { keys[i], idealAverageSizeOfOneBucket });
 			Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
 			List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
 			buckets.add(bucket);
@@ -190,8 +199,7 @@ public class Sharding {
 					Long frequency = keyValueFrequency.getFrequency();
 					if (frequency > idealAverageSizeOfOneBucket) {
 						sizeOfCurrentBucket = frequency;
-						LOGGER.info(
-								"Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
+						logger.info("Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
 								new Object[] { keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket });
 					}
 					if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket) {
@@ -206,10 +214,10 @@ public class Sharding {
 				this.keysToListOfBucketsMap.put(keys[i], buckets);
 			}
 		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
+		if (logger.isDebugEnabled()) {
+			logger.debug("keyValueFrequencyMap: " + MapUtils.getFormattedString(keyValueFrequencyMap));
 		}
-		LOGGER.info("Calculating keys to list of buckets map finished");
+		logger.info("Calculating keys to list of buckets map finished");
 		return this.keysToListOfBucketsMap;
 	}
 
@@ -248,7 +256,7 @@ public class Sharding {
 		for (Bucket<KeyValueFrequency> bucket : buckets) {
 			counter++;
 			if (counter % 100 == 0) {
-				LOGGER.info("Buckets processed: {}", counter);
+				logger.info("Buckets processed: {}", counter);
 			}
 			Node mostEmptyNode = fillupQueue.poll();
 			List<BucketCombination> currentKeys = nodeToKeyMap.get(mostEmptyNode);
@@ -280,18 +288,18 @@ public class Sharding {
 
 	public void shardAllKeys() throws NodeOverflowException {
 		for (String key : keysToListOfBucketsMap.keySet()) {
-			LOGGER.info("Sharding on key started: {}", key);
+			logger.info("Sharding on key started: {}", key);
 			shardSingleKey(key);
-			LOGGER.info("Sharding on key finished: {}", key);
+			logger.info("Sharding on key finished: {}", key);
 		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
+		if (logger.isDebugEnabled()) {
+			logger.debug("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
 		}
 		List<String> keyNameList = new ArrayList<>();
 		keyNameList.addAll(keysToListOfBucketsMap.keySet());
-		LOGGER.info("Generating table started");
+		logger.info("Generating table started");
 		makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()), keyNameList);
-		LOGGER.info("Generating table finished");
+		logger.info("Generating table finished");
 	}
 
 	private void makeShardingTable(BucketCombination source, List<String> keyNames) throws NodeOverflowException {
@@ -342,5 +350,5 @@ public class Sharding {
 			}
 		}
 	}
-	
+
 }

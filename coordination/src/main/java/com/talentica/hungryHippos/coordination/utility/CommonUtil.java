@@ -64,11 +64,11 @@ public class CommonUtil {
 		if (OSValidator.isWindows()) {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../" + jobUUIdFolderName)
 					.toAbsolutePath().toString()
-					+ PathUtil.FORWARD_SLASH;
+					+ PathUtil.SEPARATOR_CHAR;
 		} else if (OSValidator.isUnix()) {
 			TEMP_JOBUUID_FOLDER_PATH = Paths.get("../" + jobUUIdFolderName)
 					.toAbsolutePath().toString()
-					+ PathUtil.FORWARD_SLASH;
+					+ PathUtil.SEPARATOR_CHAR;
 		}
 		LOGGER.info("tmp jobuuid directory path is {}",
 				TEMP_JOBUUID_FOLDER_PATH);
@@ -129,7 +129,7 @@ public class CommonUtil {
 		String filePath = null;
 		try {
 			filePath = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-					+ PathUtil.FORWARD_SLASH + fileName;
+					+ PathUtil.SEPARATOR_CHAR + fileName;
 		} catch (IOException e1) {
 			LOGGER.info("Unable to create path for File {}", fileName);
 			return;

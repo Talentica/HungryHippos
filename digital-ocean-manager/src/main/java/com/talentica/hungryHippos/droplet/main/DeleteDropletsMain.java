@@ -38,7 +38,7 @@ public class DeleteDropletsMain {
 		waitForSignalOfDeleteDroplets();
 		LOGGER.info("DROPLET DELETE SIGNAL IS RECIEVED");
 		LOGGER.info("DESTROYING DROPLETS");
-		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String deleteDropletScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] {"/bin/sh",deleteDropletScriptPath+"delete_droplet_nodes.sh",args[0]};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("DROPLET DISTROY IS INITIATED");	

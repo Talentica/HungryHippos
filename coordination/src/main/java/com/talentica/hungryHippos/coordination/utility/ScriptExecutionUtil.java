@@ -33,7 +33,7 @@ public class ScriptExecutionUtil {
 		String downloadScriptPath = Paths
 				.get("/root/hungryhippos/scripts/bash_scripts")
 				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/bin/sh",
 				downloadScriptPath + "download-file-from-url.sh",
 				downloadUrlLink, jobuuid, webserverIp };
@@ -54,7 +54,7 @@ public class ScriptExecutionUtil {
 		String samplingScriptPath = Paths
 				.get("/root/hungryhippos/scripts/python_scripts")
 				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/usr/bin/python",
 				samplingScriptPath + "sampling-input-file.py", jobuuid,
 				webserverIp };
@@ -80,7 +80,7 @@ public class ScriptExecutionUtil {
 	public static void callCopySuccessShellScript(String jobuuid) {
 		String downloadScriptPath = Paths.get("../bin")
 				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/bin/sh",
 				downloadScriptPath + "copy-logs-success.sh", jobuuid };
 		CommonUtil.executeScriptCommand(strArr);
@@ -93,7 +93,7 @@ public class ScriptExecutionUtil {
 	public static void callCopyFailureShellScript(String jobuuid) {
 		String downloadScriptPath = Paths.get("../bin")
 				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/bin/sh",
 				downloadScriptPath + "copy-log-failure.sh", jobuuid };
 		CommonUtil.executeScriptCommand(strArr);

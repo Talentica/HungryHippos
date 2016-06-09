@@ -82,7 +82,7 @@ public class DataProvider {
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 
         try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
-                new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+                new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
                         + Sharding.bucketCombinationToNodeNumbersMapFile))) {
             bucketCombinationNodeMap = (Map<BucketCombination, Set<Node>>) inBucketCombinationNodeMap.readObject();
         } catch (Exception exception) {
@@ -91,7 +91,7 @@ public class DataProvider {
         }
 
         try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
-                new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.FORWARD_SLASH
+                new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
                         + Sharding.keyToValueToBucketMapFile))) {
             keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inBucketCombinationNodeMap
                     .readObject();

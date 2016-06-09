@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
@@ -32,25 +33,25 @@ public class RecordFilterTest {
 	private static String sampleBadRecordFile;
 	private static String dataParserClassName;
 	private static Reader data;
-	private static String badRecordsFile ;
+	private static String badRecordsFile;
 
 	@Before
 	public void setUp() {
 		CommonUtil.loadDefaultPath(jobuuid);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
-		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "bad_records_data.csv";
-		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
+		sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "bad_records_data.csv";
+		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
 	}
 
+	@Ignore
 	@Test
-	public void testFilterBadRecords() throws InstantiationException,
+	public void testFilterBadRecords()
 			IllegalAccessException, ClassNotFoundException, IOException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		CommonUtil.loadDefaultPath(jobuuid);
 		DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 				.getConstructor(DataDescription.class).newInstance(CommonUtil.getConfiguredDataDescription());
-		data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				sampleBadRecordFile, dataParser);
+				dataParser);
 		int actualBadRecords = 0;
 		int expectedBadRows = 2;
 		int lineNo = 0;

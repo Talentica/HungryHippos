@@ -19,7 +19,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
  */
 public class StartProcessDBEntryMain {
 
-	private static final Logger LOGGER = LoggerFactory
+	private static final Logger logger = LoggerFactory
 			.getLogger(StartProcessDBEntryMain.class);
 	private static String jobUUId;
 
@@ -35,23 +35,23 @@ public class StartProcessDBEntryMain {
 		String jobuuid = Property.getProperties().getProperty("job.uuid");
 		String webserverIp = Property.getProperties().getProperty(
 				"common.webserver.ip");
-		LOGGER.info(
+		logger.info(
 				"Calling process db python script and uuid {} webserver ip {}",
 				jobuuid, webserverIp);
 		String pythonScriptPath = Paths
 				.get("/root/hungryhippos/scripts/python_scripts")
 				.toAbsolutePath().toString()
-				+ PathUtil.FORWARD_SLASH;
+				+ PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] { "/usr/bin/python",
 				pythonScriptPath + "processes-db-entries.py", jobuuid,
 				webserverIp};
 		CommonUtil.executeScriptCommand(strArr);
-		LOGGER.info("DB entry is initiated.");
+		logger.info("DB entry is initiated.");
 	}
 
 	private static void validateProgramArguments(String[] args) {
 		if (args.length < 1) {
-			LOGGER.info("please provide  the jobuuid as first argument");
+			logger.info("please provide  the jobuuid as first argument");
 			System.exit(1);
 		}
 	}

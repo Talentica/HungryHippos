@@ -27,7 +27,7 @@ public class NodeDataStoreIdCalculator implements Serializable {
 	private Map<String, Set<Bucket<KeyValueFrequency>>> keyWiseAcceptingBuckets = new HashMap<>();
 	private final String[] keys;
 	private final DynamicMarshal dynamicMarshal;
-	private Logger LOGGER = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class);
+	private static final Logger logger = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class);
 	private BucketsCalculator bucketsCalculator;
 
 	public NodeDataStoreIdCalculator(Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
@@ -51,7 +51,7 @@ public class NodeDataStoreIdCalculator implements Serializable {
 			}
 			this.keyWiseAcceptingBuckets.put(key, keyWiseBuckets);
 		}
-		LOGGER.info("keyWiseAcceptingBuckets:{}", MapUtils.getFormattedString(keyWiseAcceptingBuckets));
+		logger.info("keyWiseAcceptingBuckets:{}", MapUtils.getFormattedString(keyWiseAcceptingBuckets));
 	}
 
 	public int storeId(ByteBuffer row) {

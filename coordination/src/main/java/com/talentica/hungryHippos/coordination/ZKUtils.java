@@ -166,7 +166,7 @@ public class ZKUtils {
         List<String> children = zk.getChildren(path, false);
         if (children != null) {
             for (String child : children) {
-                    List<String> subChildren = zk.getChildren(path + PathUtil.FORWARD_SLASH + child, false);
+                    List<String> subChildren = zk.getChildren(path + PathUtil.SEPARATOR_CHAR + child, false);
                     boolean isFolder = subChildren != null && !subChildren.isEmpty();
                     if (isFolder) {
                         folders.add(child);
@@ -180,7 +180,7 @@ public class ZKUtils {
     }
     
     public static String getNodePath(String path, String name) {
-        return path + PathUtil.FORWARD_SLASH + name;
+        return path + PathUtil.SEPARATOR_CHAR + name;
 
     }
     
@@ -218,11 +218,11 @@ public class ZKUtils {
 	    }
 	 
 	 public static String buildNodePath(int nodeId){
-		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + ("_node" + nodeId);
+		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
 		}
 	 
 	 public static String buildNodePath(String jobuuid){
-			return Property.getPropertyValue("zookeeper.base_path") + PathUtil.FORWARD_SLASH + (jobuuid);
+			return Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + (jobuuid);
 			}
 	 
 	/**
@@ -472,7 +472,7 @@ public class ZKUtils {
 	 */
 	public static void startZookeeperServer(String jobuuid) throws IOException {
 		LOGGER.info("Executing shell command to start the zookeeper");
-		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"start-zk-server.sh",jobuuid};
 		CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Shell command is executed");
@@ -483,7 +483,7 @@ public class ZKUtils {
 	 */
 	public static String checkZookeeperServerStatus(String jobuuid) throws IOException {
 		LOGGER.info("Executing shell command to check the zookeeper server status");
-		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.FORWARD_SLASH;
+		String zkScriptPath = Paths.get("../bin").toAbsolutePath().toString()+PathUtil.SEPARATOR_CHAR;
 		String[] strArr = new String[] {"/bin/sh",zkScriptPath+"zk-server-status.sh",jobuuid};
 		String retStatus = CommonUtil.executeScriptCommand(strArr);
 		LOGGER.info("Shell command is executed");

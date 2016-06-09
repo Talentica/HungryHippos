@@ -20,5 +20,5 @@ do
    echo "Kazoo Server started"
 
    echo "Starting sharding on $node"
-   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar com.talentica.hungryHippos.sharding.main.ShardingStarter $jobUuid $dataparserclass > ./sharding_system.out 2>./sharding_system.err &"
+   ssh -o StrictHostKeyChecking=no root@$node "cd hungryhippos/sharding;java -cp sharding.jar:../job-manager/test-jobs.jar com.talentica.hungryHippos.sharding.main.ShardingStarter $jobUuid $dataparserclass > ./sharding_system.out 2>./sharding_system.err &"
 done

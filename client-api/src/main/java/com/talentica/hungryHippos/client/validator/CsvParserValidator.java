@@ -7,82 +7,113 @@ package com.talentica.hungryHippos.client.validator;
  * @author pooshans
  *
  */
-public class CsvParserValidator implements DataParserValidator{
-	
-	 private char separator ;
-	 private char quotechar ;
-	 private char escapechar ;;
-	 private boolean isTrimWhiteSpace ;
-	 private boolean isRetainOuterQuotes ;
-	 
-	public CsvParserValidator() {
-		this.separator = DEFAULT_SEPARATOR;
-		this.quotechar = DEFAULT_QUOTE_CHAR;
-		this.escapechar = DEFAULT_ESCAPE_CHAR;
-		this.isTrimWhiteSpace = DEFAULT_TRIM_WS;
-		this.isRetainOuterQuotes = isRetainOuterQuotes;
-	}
+public class CsvParserValidator implements DataParserValidator {
 
-	public CsvParserValidator(final char separator, final char quotechar,
-			final char escapechar, final boolean isTrimWhiteSpace,
-			final boolean isRetainOuterQuotes) {
-		this.separator = separator;
-		this.quotechar = quotechar;
-		this.escapechar = escapechar;
-		this.isTrimWhiteSpace = isTrimWhiteSpace;
-		this.isRetainOuterQuotes = isRetainOuterQuotes;
-	}
-	
-	public char getSeparator() {
-		return separator;
-	}
+  private char separator;
+  private char quotechar;
+  private char escapechar;;
+  private boolean isTrimWhiteSpace;
+  private boolean isRetainOuterQuotes;
+  private char[] lineSeperator;
 
-	public void setSeparator(char separator) {
-		this.separator = separator;
-	}
+  public CsvParserValidator() {
+    this.separator = DEFAULT_SEPARATOR;
+    this.quotechar = DEFAULT_QUOTE_CHAR;
+    this.escapechar = DEFAULT_ESCAPE_CHAR;
+    this.isTrimWhiteSpace = DEFAULT_TRIM_WS;
+    this.isRetainOuterQuotes = DEFAULT_RETAIN_OUTER_QUOTES;
+    this.lineSeperator = DEFAULT_LINE_SEPARATOR_CHARS;
+  }
 
-	public char getQuotechar() {
-		return quotechar;
-	}
+  /**
+   * Parameterized Constructor accepting the necessary overriding default values.
+   * 
+   * @param separator is character separator for values in lines. i.e ',' or '\t' etc.
+   * @param quotechar is value token under this character.
+   * @param escapechar is to retain the special character in value.
+   * @param isTrimWhiteSpace is to trim the leading or trailing whitespace while parsing the value
+   *        token.
+   * @param isRetainOuterQuotes
+   * @param lineSeparator can be windows "\r\n" or unix "\n" in terms of char[]{13,10} or char[10]
+   *        which represents the ASCII values. respectively.
+   */
+  public CsvParserValidator(final char separator, final char quotechar, final char escapechar,
+      final boolean isTrimWhiteSpace, final boolean isRetainOuterQuotes) {
+    if (NULL_CHARACTER != separator) {
+      this.separator = separator;
+    } else {
+      this.separator = DEFAULT_SEPARATOR;
+    }
+    if (NULL_CHARACTER != quotechar) {
+      this.quotechar = quotechar;
+    } else {
+      this.quotechar = DEFAULT_QUOTE_CHAR;
+    }
+    if (NULL_CHARACTER != escapechar) {
+      this.escapechar = escapechar;
+    } else {
+      this.escapechar = DEFAULT_ESCAPE_CHAR;
+    }
+    this.isTrimWhiteSpace = isTrimWhiteSpace;
+    this.isRetainOuterQuotes = isRetainOuterQuotes;
+    this.lineSeperator = DEFAULT_LINE_SEPARATOR_CHARS;
+  }
 
-	public void setQuotechar(char quotechar) {
-		this.quotechar = quotechar;
-	}
+  public char getSeparator() {
+    return separator;
+  }
 
-	public char getEscapechar() {
-		return escapechar;
-	}
+  public void setSeparator(char separator) {
+    this.separator = separator;
+  }
 
-	public void setEscapechar(char escapechar) {
-		this.escapechar = escapechar;
-	}
+  public char getQuotechar() {
+    return quotechar;
+  }
 
-	public boolean isTrimWhiteSpace() {
-		return isTrimWhiteSpace;
-	}
+  public void setQuotechar(char quotechar) {
+    this.quotechar = quotechar;
+  }
 
-	public void setTrimWhiteSpace(boolean isTrimWhiteSpace) {
-		this.isTrimWhiteSpace = isTrimWhiteSpace;
-	}
+  public char getEscapechar() {
+    return escapechar;
+  }
 
-	public boolean isRetainOuterQuotes() {
-		return isRetainOuterQuotes;
-	}
+  public void setEscapechar(char escapechar) {
+    this.escapechar = escapechar;
+  }
 
-	public void setRetainOuterQuotes(boolean isRetainOuterQuotes) {
-		this.isRetainOuterQuotes = isRetainOuterQuotes;
-	}
+  public boolean isTrimWhiteSpace() {
+    return isTrimWhiteSpace;
+  }
 
-	public boolean isQuoteChar(char character) {
-		return (character == quotechar);
-	}
+  public void setTrimWhiteSpace(boolean isTrimWhiteSpace) {
+    this.isTrimWhiteSpace = isTrimWhiteSpace;
+  }
 
-	public boolean isSeparator(char character) {
-		return (character == separator);
-	}
+  public boolean isRetainOuterQuotes() {
+    return isRetainOuterQuotes;
+  }
 
-	public boolean isEscapechar(char character) {
-		return (character == escapechar);
-	}
+  public void setRetainOuterQuotes(boolean isRetainOuterQuotes) {
+    this.isRetainOuterQuotes = isRetainOuterQuotes;
+  }
+
+  public boolean isQuoteChar(char character) {
+    return (character == quotechar);
+  }
+
+  public boolean isSeparator(char character) {
+    return (character == separator);
+  }
+
+  public boolean isEscapechar(char character) {
+    return (character == escapechar);
+  }
+
+  @Override
+  public char[] getLineSeparator() {
+    return this.lineSeperator;
+  }
 
 }

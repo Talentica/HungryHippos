@@ -89,7 +89,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			}
 
 			private boolean isNewLine(byte readByte) throws IOException {
-				char[] windowsLineseparatorChars = WINDOWS_LINE_SEPARATOR_CHARS;
+				char[] windowsLineseparatorChars = csvValidator.getLineSeparator();
 				if (windowsLineseparatorChars[1] == readByte) {
 					return true;
 				}
@@ -121,7 +121,5 @@ public abstract class LineByLineDataParser extends DataParser {
 	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
 
 	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
-
-	// protected abstract CsvValidator createDataParserValidator();
 
 }

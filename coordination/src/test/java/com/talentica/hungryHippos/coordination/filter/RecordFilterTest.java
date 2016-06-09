@@ -12,8 +12,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.client.data.parser.DataParser;
-import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -30,7 +28,6 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 public class RecordFilterTest {
 
 	private static String jobuuid = "ABCSD12";
-	private static String sampleBadRecordFile;
 	private static String dataParserClassName;
 	private static Reader data;
 	private static String badRecordsFile;
@@ -40,18 +37,15 @@ public class RecordFilterTest {
 		CommonUtil.loadDefaultPath(jobuuid);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
-		sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "bad_records_data.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
 	}
 
 	@Ignore
 	@Test
-	public void testFilterBadRecords()
-			IllegalAccessException, ClassNotFoundException, IOException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public void testFilterBadRecords() throws IllegalAccessException, ClassNotFoundException, IOException,
+ IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException, InstantiationException {
 		CommonUtil.loadDefaultPath(jobuuid);
-		DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-				.getConstructor(DataDescription.class).newInstance(CommonUtil.getConfiguredDataDescription());
-				dataParser);
 		int actualBadRecords = 0;
 		int expectedBadRows = 2;
 		int lineNo = 0;

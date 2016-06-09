@@ -6,7 +6,7 @@ import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.validator.CsvParserValidator;
-import com.talentica.hungryHippos.client.validator.CsvValidator;
+import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 public class CsvDataParser extends LineByLineDataParser {
 
@@ -127,7 +127,7 @@ public class CsvDataParser extends LineByLineDataParser {
 	}
 
 	@Override
-	public CsvValidator createDataParserValidator() {
+	public DataParserValidator createDataParserValidator() {
 		return new CsvParserValidator(',', '\0', '\\', false, false);
 
 	}

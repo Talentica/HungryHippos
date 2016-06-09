@@ -7,7 +7,7 @@ package com.talentica.hungryHippos.client.validator;
  * @author pooshans
  *
  */
-public class CsvParserValidator implements CsvValidator{
+public class CsvParserValidator implements DataParserValidator{
 	
 	 private char separator ;
 	 private char quotechar ;

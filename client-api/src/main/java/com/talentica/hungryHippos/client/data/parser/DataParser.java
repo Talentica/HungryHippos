@@ -6,7 +6,7 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.validator.CsvValidator;
+import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 /**
  * Sometimes data is not in the format required by HungryHippos framework and so
@@ -41,6 +41,6 @@ public abstract class DataParser {
 		return dataDescription;
 	}
 
-	protected abstract CsvValidator createDataParserValidator();
+	protected abstract DataParserValidator createDataParserValidator();
 
 }

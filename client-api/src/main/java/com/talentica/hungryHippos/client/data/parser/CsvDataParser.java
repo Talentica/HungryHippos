@@ -17,6 +17,7 @@ public class CsvDataParser extends LineByLineDataParser {
   private DataDescription dataDescription;
   boolean[] columnsStatusForInvalidRow = null;
   private int fieldIndex = 0;
+  private int countDoubleQuotesInField = 0;
 
   public CsvDataParser(DataDescription dataDescription) {
     super(dataDescription);
@@ -32,14 +33,45 @@ public class CsvDataParser extends LineByLineDataParser {
     for (MutableCharArrayString s : buffer) {
       s.reset();
     }
+      csvValidator.startFieldValidation();
     char[] characters = data.getUnderlyingArray();
     for (int pointer = 0; pointer < data.length(); pointer++) {
       try {
         char nextChar = getCharacter(characters, pointer);
         if (csvValidator.isSeparator(nextChar)) {
           incrementFieldIndex();
-        } else if (csvValidator.isQuoteChar(nextChar)) {
-          if (csvValidator.isRetainOuterQuotes()) {
+          csvValidator.stopFieldValidation();
+          if (checkDoubleQuotePairsFound()) { // Double quote pairs are found.
+            if (csvValidator.isEnabledDoubleQuoteChar()) {
+              resetDoubleQuoteMonitor();
+            }
+          } else { // Double quote pairs are not found.
+            csvValidator.startFieldValidation();
+          }
+        } else if (csvValidator.isDoubleQuoteChar(nextChar)
+            && csvValidator.isEnabledDoubleQuoteChar()) {
+          countDoubleQuotesInField++;
+          if (!csvValidator.isFieldValidationStarted()) { // 1st double quote is found. Start of the
+                                                          // field token is flaged true.
+            csvValidator.startFieldValidation();
+          } else { // 2nd double quote is found.
+            char nextToNextChar = getCharacter(characters, (pointer + 1)); // check for next char
+                                                                           // after second double
+                                                                           // quote.
+            if (csvValidator.isDoubleQuoteChar(nextToNextChar)) {
+              countDoubleQuotesInField++;
+              fillCharInBuffer(nextToNextChar);
+              pointer++;
+              continue;
+            } else if (csvValidator.isSeparator(nextToNextChar)) {
+              continue;
+            } else {
+              // TODO : handle the invalid double quote char. As per CSV standard value containing
+              // double quote should be preceded by the double quote.
+            }
+
+          }
+          if (csvValidator.isRetainOuterDoubleQuotes()) {
             fillCharInBuffer(nextChar);
           }
           continue;
@@ -62,6 +94,7 @@ public class CsvDataParser extends LineByLineDataParser {
         columnsStatusForInvalidRow[fieldIndex] = true;
       }
     }
+    csvValidator.stopFieldValidation();
     if (isInvalidRow) {
       invalidRow.setColumns(columnsStatusForInvalidRow);
       invalidRow.setBadRow(data);
@@ -84,6 +117,15 @@ public class CsvDataParser extends LineByLineDataParser {
 
   private void resetFieldIndex() {
     fieldIndex = 0;
+  }
+
+  private boolean checkDoubleQuotePairsFound() {
+    return (countDoubleQuotesInField != 0 && countDoubleQuotesInField % 2 == 0 && csvValidator
+        .isEnabledDoubleQuoteChar());
+  }
+
+  private void resetDoubleQuoteMonitor() {
+    countDoubleQuotesInField = 0;
   }
 
   private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
@@ -124,7 +166,7 @@ public class CsvDataParser extends LineByLineDataParser {
 
   @Override
   public DataParserValidator createDataParserValidator() {
-    return new CsvParserValidator(',', '\0', '\\', false, false);
+    return new CsvParserValidator(',', '"', '\\', false, false);
 
   }
 }

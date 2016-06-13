@@ -15,7 +15,6 @@ public interface DataParserValidator extends DataParserValidationContext{
   boolean DEFAULT_RETAIN_OUTER_QUOTES = false;
   char NULL_CHARACTER = '\0';
   char[] DEFAULT_LINE_SEPARATOR_CHARS = {13, 10};
-  //boolean DEFAULT_ENABLE_DOUBLE_QUOTE_CHAR = true;
   
   boolean isDoubleQuoteChar(char character);
 

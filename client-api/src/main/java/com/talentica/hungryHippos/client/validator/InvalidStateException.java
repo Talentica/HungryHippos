@@ -10,6 +10,10 @@ package com.talentica.hungryHippos.client.validator;
  */
 public class InvalidStateException extends RuntimeException {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
   private String message;
 
   public InvalidStateException(String message) {

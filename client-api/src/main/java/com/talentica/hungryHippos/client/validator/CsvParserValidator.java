@@ -3,6 +3,9 @@
  */
 package com.talentica.hungryHippos.client.validator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parsing of the CSV file is performed by providing different element of the validator which is
  * required to filter the values.
@@ -20,6 +23,11 @@ public class CsvParserValidator implements DataParserValidator {
   private char[] lineSeperator;
   boolean isFieldValidationStarted = false;
   boolean isEnableDoubleQuoteChar;
+  private static Map<ExceptionEnum, InvalidStateException> exceptionObjPool;
+
+  enum ExceptionEnum {
+    START_EXCEPTION, STOP_EXCEPTION;
+  }
 
   public CsvParserValidator() {
     this.separator = DEFAULT_SEPARATOR;
@@ -52,7 +60,7 @@ public class CsvParserValidator implements DataParserValidator {
     }
     if (NULL_CHARACTER != quotechar) {
       this.doubleQuotechar = quotechar;
-    } 
+    }
     if (NULL_CHARACTER != escapechar) {
       this.escapechar = escapechar;
     } else {
@@ -123,8 +131,8 @@ public class CsvParserValidator implements DataParserValidator {
 
   @Override
   public void startFieldValidation() {
-    if(isFieldValidationStarted){
-      throw new InvalidStateException("Field validation on current token is still in progess");
+    if (isFieldValidationStarted) {
+      throw exceptionObjectPool(ExceptionEnum.START_EXCEPTION);
     }
     isFieldValidationStarted = true;
 
@@ -132,10 +140,10 @@ public class CsvParserValidator implements DataParserValidator {
 
   @Override
   public void stopFieldValidation() {
-    if(!isFieldValidationStarted){
-      throw new InvalidStateException("Field validation on current field is already stopped.");
+    if (!isFieldValidationStarted) {
+      throw exceptionObjectPool(ExceptionEnum.STOP_EXCEPTION);
     }
-      isFieldValidationStarted = false;
+    isFieldValidationStarted = false;
   }
 
   @Override
@@ -145,7 +153,32 @@ public class CsvParserValidator implements DataParserValidator {
 
   @Override
   public boolean isEnabledDoubleQuoteChar() {
-   return (doubleQuotechar != NULL_CHARACTER);
+    return (doubleQuotechar != NULL_CHARACTER);
   }
 
+  private InvalidStateException exceptionObjectPool(ExceptionEnum exception) {
+
+    if (exceptionObjPool == null) {
+      exceptionObjPool = new HashMap<ExceptionEnum, InvalidStateException>();
+    }
+
+    InvalidStateException invalidStateException = exceptionObjPool.get(exception);
+    if (invalidStateException == null) {
+      switch (exception) {
+        case START_EXCEPTION:
+          invalidStateException =
+              new InvalidStateException("Field validation on current token is still in progess");
+          exceptionObjPool.put(exception, invalidStateException);
+          break;
+        case STOP_EXCEPTION:
+          invalidStateException =
+              new InvalidStateException("Field validation on current field is already stopped.");
+          exceptionObjPool.put(exception, invalidStateException);
+          break;
+        default:
+          break;
+      }
+    }
+    return invalidStateException;
+  }
 }

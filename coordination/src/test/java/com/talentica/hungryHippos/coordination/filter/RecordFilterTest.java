@@ -37,7 +37,7 @@ public class RecordFilterTest {
 	public void setUp() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
-		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "bad_records_data.csv";
+		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "temp.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
 	}
 
@@ -49,7 +49,7 @@ public class RecordFilterTest {
 		data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
 				sampleBadRecordFile, dataParser);
 		int actualBadRecords = 0;
-		int expectedBadRows = 2;
+		int expectedBadRows = 1;
 		int lineNo = 0;
 		FileWriter.openFile(badRecordsFile);
 		while (true) {

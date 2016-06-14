@@ -81,17 +81,11 @@ public class CsvDataParser extends LineByLineDataParser {
             csvValidator.stopFieldValidation();
           }
         }
-      } catch (ArrayIndexOutOfBoundsException ex) {
-        if (!isInvalidRow) {
-          resetRowStatus();
-          isInvalidRow = true;
-        }
-        columnsStatusForInvalidRow[fieldIndex] = true;
-        pointer = skipNextChars(characters, pointer);
-      } catch (InvalidStateException ex) {
+      } catch (ArrayIndexOutOfBoundsException | InvalidStateException ex) {
         resetDoubleQuoteCount();
         csvValidator.stopFieldValidation();
-        pointer--;
+        isInvalidRow = setInvalidRow(isInvalidRow);
+        pointer = markFieldAndSkip(characters, pointer);
       }
     }
     csvValidator.stopFieldValidation();
@@ -101,6 +95,20 @@ public class CsvDataParser extends LineByLineDataParser {
       throw invalidRow;
     }
     return buffer;
+  }
+
+  private boolean setInvalidRow(boolean isInvalidRow) {
+    if (!isInvalidRow) {
+      resetRowStatus();
+      isInvalidRow = true;
+    }
+    return isInvalidRow;
+  }
+
+  private int markFieldAndSkip(char[] characters, int pointer) {
+    columnsStatusForInvalidRow[fieldIndex] = true;
+    pointer = skipNextChars(characters, pointer);
+    return pointer-1;
   }
 
   private int skipNextChars(char[] characters, int pointer) {
@@ -134,7 +142,8 @@ public class CsvDataParser extends LineByLineDataParser {
   }
 
   private void resetDoubleQuoteCount() {
-    countDoubleQuotesInField = 0;
+    if (csvValidator.isEnabledDoubleQuoteChar())
+      countDoubleQuotesInField = 0;
   }
 
   private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
@@ -175,7 +184,7 @@ public class CsvDataParser extends LineByLineDataParser {
 
   @Override
   public DataParserValidator createDataParserValidator() {
-    return new CsvParserValidator(',', '\0', '\\', false, false);
+    return new CsvParserValidator(',', '"', '\\', false, false);
 
   }
 }

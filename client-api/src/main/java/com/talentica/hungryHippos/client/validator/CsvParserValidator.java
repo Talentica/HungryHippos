@@ -167,7 +167,7 @@ public class CsvParserValidator implements DataParserValidator {
       switch (exception) {
         case START_EXCEPTION:
           invalidStateException =
-              new InvalidStateException("Field validation on current field is still in progess");
+              new InvalidStateException("Field validation on current field is still in progress");
           exceptionObjPool.put(exception, invalidStateException);
           break;
         case STOP_EXCEPTION:

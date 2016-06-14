@@ -26,7 +26,7 @@ public class CsvParserValidator implements DataParserValidator {
   private static Map<ExceptionEnum, InvalidStateException> exceptionObjPool;
 
   enum ExceptionEnum {
-    START_EXCEPTION, STOP_EXCEPTION;
+    EXCEPTION_START_FIELD, EXCEPTION_STOP_FIELD;
   }
 
   public CsvParserValidator() {
@@ -132,7 +132,7 @@ public class CsvParserValidator implements DataParserValidator {
   @Override
   public void startFieldValidation() {
     if (isFieldValidationStarted) {
-      throw exceptionObjectPool(ExceptionEnum.START_EXCEPTION);
+      throw exceptionObjectPool(ExceptionEnum.EXCEPTION_START_FIELD);
     }
     isFieldValidationStarted = true;
 
@@ -141,7 +141,7 @@ public class CsvParserValidator implements DataParserValidator {
   @Override
   public void stopFieldValidation() {
     if (!isFieldValidationStarted) {
-      throw exceptionObjectPool(ExceptionEnum.STOP_EXCEPTION);
+      throw exceptionObjectPool(ExceptionEnum.EXCEPTION_STOP_FIELD);
     }
     isFieldValidationStarted = false;
   }
@@ -165,12 +165,12 @@ public class CsvParserValidator implements DataParserValidator {
     InvalidStateException invalidStateException = exceptionObjPool.get(exception);
     if (invalidStateException == null) {
       switch (exception) {
-        case START_EXCEPTION:
+        case EXCEPTION_START_FIELD:
           invalidStateException =
               new InvalidStateException("Field validation on current field is still in progress");
           exceptionObjPool.put(exception, invalidStateException);
           break;
-        case STOP_EXCEPTION:
+        case EXCEPTION_STOP_FIELD:
           invalidStateException =
               new InvalidStateException("Field validation on current field is already stopped.");
           exceptionObjPool.put(exception, invalidStateException);

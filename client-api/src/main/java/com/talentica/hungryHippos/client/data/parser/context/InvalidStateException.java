@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.client.validator;
+package com.talentica.hungryHippos.client.data.parser.context;
 
 
 /**

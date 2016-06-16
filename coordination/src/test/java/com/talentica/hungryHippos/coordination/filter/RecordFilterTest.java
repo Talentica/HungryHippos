@@ -37,7 +37,7 @@ public class RecordFilterTest {
 	public void setUp() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
-		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "temp.csv";
+		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "bad_records_data.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
 	}
 

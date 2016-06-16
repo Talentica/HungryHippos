@@ -1,19 +1,22 @@
 package com.talentica.test.parser;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 import com.talentica.hungryHippos.client.data.parser.LineByLineDataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.validator.CsvParserValidator;
-import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 
 	private int lineNumber = 0;
 
 	private MutableCharArrayString[] buffer;
+	
+	FileInputStream dataInputStream ;
 
 	private int numfields;
 
@@ -21,9 +24,10 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 
 	boolean[] columnsStatusForInvalidRow = null;
 
-	public OddLinesProcessingCsvParser(DataDescription dataDescription) {
+	public OddLinesProcessingCsvParser(DataDescription dataDescription) throws FileNotFoundException {
 		super(dataDescription);
 		initializeMutableArrayStringBuffer(dataDescription);
+		dataInputStream = new FileInputStream("File Path");
 	}
 
 	private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
@@ -46,8 +50,8 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 	protected MutableCharArrayString[] processLine(MutableCharArrayString line) {
 		lineNumber++;
 		if (lineNumber % 2 == 0) {
-			if (getIterator().hasNext()) {
-				return getIterator().next();
+			if (iterator(dataInputStream).hasNext()) {
+				return iterator(dataInputStream).next();
 			}
 		} else {
 			return processOddLine(line);
@@ -90,18 +94,6 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 		for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
 			columnsStatusForInvalidRow[fieldNum] = false;
 		}
-	}
-
-	@Override
-	protected int getMaximumSizeOfSingleBlockOfDataInBytes(
-			DataDescription dataDescription) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public DataParserValidator createDataParserValidator() {
-		return new CsvParserValidator(',', '\0', '\\', false, false);
 	}
 
 }

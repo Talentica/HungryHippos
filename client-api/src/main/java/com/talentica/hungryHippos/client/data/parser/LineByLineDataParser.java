@@ -8,7 +8,6 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.validator.DataParserValidator;
 
 /**
  * Data parser implementation for line by line reading of data file.
@@ -21,13 +20,10 @@ public abstract class LineByLineDataParser extends DataParser {
 	private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
-	private Iterator<MutableCharArrayString[]> iterator;
-	protected DataParserValidator csvValidator;
 
 	public LineByLineDataParser(DataDescription dataDescription) {
 		super(dataDescription);
 		buf.clear();
-		csvValidator = createDataParserValidator();
 	}
 
 	@Override
@@ -36,7 +32,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
-		iterator = new Iterator<MutableCharArrayString[]>() {
+		return new Iterator<MutableCharArrayString[]>() {
 
 			@Override
 			public boolean hasNext() {
@@ -51,11 +47,11 @@ public abstract class LineByLineDataParser extends DataParser {
 			public MutableCharArrayString[] next() {
 				try {
 					return read();
-				} catch (InvalidRowException irex) {
-					throw irex;
 				} catch (IOException e) {
 					throw new RuntimeException(e);
-				}
+				}catch (InvalidRowException e) {
+                  throw e;
+                }
 			}
 
 			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
@@ -64,9 +60,7 @@ public abstract class LineByLineDataParser extends DataParser {
 					if (readCount <= 0) {
 						buf.clear();
 						readCount = dataStream.read(dataBytes);
-						if (readCount != -1) {
-							buf.limit(readCount);
-						}
+						buf.limit(readCount);
 						if (readCount < 0 && buffer.length() > 0) {
 							return processLine(buffer);
 						} else if (readCount < 0 && buffer.length() <= 0) {
@@ -75,6 +69,7 @@ public abstract class LineByLineDataParser extends DataParser {
 					}
 					byte nextChar = readNextChar();
 					if (isNewLine(nextChar)) {
+					  buffer.addCharacter((char) nextChar);
 						break;
 					}
 					buffer.addCharacter((char) nextChar);
@@ -89,7 +84,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			}
 
 			private boolean isNewLine(byte readByte) throws IOException {
-				char[] windowsLineseparatorChars = csvValidator.getLineSeparator();
+				char[] windowsLineseparatorChars = WINDOWS_LINE_SEPARATOR_CHARS;
 				if (windowsLineseparatorChars[1] == readByte) {
 					return true;
 				}
@@ -111,15 +106,8 @@ public abstract class LineByLineDataParser extends DataParser {
 				return newLine;
 			}
 		};
-		return iterator;
-	}
-
-	protected final Iterator<MutableCharArrayString[]> getIterator() {
-		return iterator;
 	}
 
 	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
-
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
 
 }

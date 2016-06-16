@@ -1,149 +1,260 @@
 package com.talentica.hungryHippos.client.data.parser;
 
+import com.talentica.hungryHippos.client.data.parser.context.CSVParseException;
+import com.talentica.hungryHippos.client.data.parser.context.Context;
+import com.talentica.hungryHippos.client.data.parser.context.ParseState;
+import com.talentica.hungryHippos.client.data.parser.context.SpecialCharacter;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.validator.CsvParserValidator;
-import com.talentica.hungryHippos.client.validator.DataParserValidator;
-import com.talentica.hungryHippos.client.validator.InvalidStateException;
 
+/**
+ * 
+ * A CsvDataParser builds for representation of a CSV file by ingesting one character at a time from
+ * row under process. This representation is stored in the context. A csv data parser maintains the
+ * state and performs the transitions of the DFA which accepts the CSV language.
+ * 
+ * @author nitink
+ * @author pooshans
+ *
+ */
 public class CsvDataParser extends LineByLineDataParser {
 
   private MutableCharArrayString[] buffer;
+
   private int numfields;
+
   private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
 
-  private DataDescription dataDescription;
   boolean[] columnsStatusForInvalidRow = null;
-  private int fieldIndex = 0;
-  private int countDoubleQuotesInField = 0;
+
+  private final Context pContext;
+
+  private ParseState pState;
+
+  private int pLine = 1;
+
+  private int columnPosition = 1;
+
+  private char[] characters;
+
+  private int columnPointer = 0;
 
   public CsvDataParser(DataDescription dataDescription) {
     super(dataDescription);
     initializeMutableArrayStringBuffer(dataDescription);
-    setDataDescription(dataDescription);
+    pContext = new Context(buffer);
   }
 
   @Override
   public MutableCharArrayString[] processLine(MutableCharArrayString data) {
+    pState = ParseState.START;
+    pContext.resetBuffer();
     boolean isInvalidRow = false;
-    resetFieldIndex();
-    setDataDescription(dataDescription);
-    for (MutableCharArrayString s : buffer) {
-      s.reset();
-    }
-    csvValidator.startFieldValidation(); // Start the field validation.
-    char[] characters = data.getUnderlyingArray();
+    int fieldIndex = 0;
+    columnPointer = 0;
+    characters = data.getUnderlyingArray();
     for (int pointer = 0; pointer < data.length(); pointer++) {
-      char nextChar = getCharacter(characters, pointer);
+      columnPointer = pointer;
       try {
-        if (csvValidator.isSeparator(nextChar)) {
-          csvValidator.startFieldValidation();
-          incrementFieldIndex();
-          if (csvValidator.isEnabledDoubleQuoteChar()) {
-            resetDoubleQuoteCount();
-          }
-        } else if (csvValidator.isDoubleQuoteChar(nextChar)
-            && csvValidator.isEnabledDoubleQuoteChar()) {
-          countDoubleQuotesInField++;
-          char nextToNextChar = getCharacter(characters, (pointer + 1)); // check for next char
-                                                                         // after second double
-                                                                         // quote.
-          if (csvValidator.isDoubleQuoteChar(nextToNextChar)) {
-            countDoubleQuotesInField++;
-            fillCharInBuffer(nextToNextChar);
-            pointer++;
-            continue;
-          } else if (csvValidator.isSeparator(nextToNextChar)) {
-            if (checkDoubleQuotePairsFound()) {
-              csvValidator.stopFieldValidation();
-            }
-            continue;
-          }
-          if (csvValidator.isRetainOuterDoubleQuotes()) {
-            fillCharInBuffer(nextChar);
-          }
-          continue;
-        } else if (csvValidator.isEscapechar(nextChar)) {
-          pointer++;
-          nextChar = getCharacter(characters, pointer);
-          fillCharInBuffer(nextChar);
-          continue;
-        } else if (csvValidator.isTrimWhiteSpace()) {
-          pointer++;
-          continue;
-        } else {
-          fillCharInBuffer(nextChar);
-          char nextToNextChar = getCharacter(characters, (pointer + 1));
-          if (csvValidator.isSeparator(nextToNextChar)) {
-            csvValidator.stopFieldValidation();
-          }
+        char nextChar = characters[pointer];
+        if (nextChar == SpecialCharacter.COMMA.getRepresentation()) {
+          pContext.pushToken();
+          fieldIndex++;
         }
-      } catch (ArrayIndexOutOfBoundsException | InvalidStateException ex) {
-        resetDoubleQuoteCount();
-        csvValidator.stopFieldValidation();
-        isInvalidRow = setInvalidRow(isInvalidRow);
-        pointer = markFieldAndSkip(characters, pointer);
+        parseCharacter(nextChar);
+      } catch (ArrayIndexOutOfBoundsException | CSVParseException ex) {
+        pContext.clearTokenBuffer();
+        if (!isInvalidRow) {
+          resetRowStatus();
+          isInvalidRow = true;
+        }
+        columnsStatusForInvalidRow[fieldIndex] = true;
       }
     }
-    csvValidator.stopFieldValidation();
     if (isInvalidRow) {
       invalidRow.setColumns(columnsStatusForInvalidRow);
       invalidRow.setBadRow(data);
       throw invalidRow;
     }
-    return buffer;
+    return pContext.getParsedRow();
   }
 
-  private boolean setInvalidRow(boolean isInvalidRow) {
-    if (!isInvalidRow) {
-      resetRowStatus();
-      isInvalidRow = true;
+  /**
+   * Accept character of the row under process to get validated/interpreted in CSV language.
+   * 
+   * @param character
+   * @throws CSVParseException
+   * @throws ArrayIndexOutOfBoundsException
+   */
+  public void parseCharacter(final char character) throws CSVParseException,
+      ArrayIndexOutOfBoundsException {
+    switch (pState) {
+      case START:
+        start(character);
+        break;
+      case END:
+        end(character);
+        break;
+      case UNQUOTED_TOKEN:
+        unquotedToken(character);
+        break;
+      case QUOTED_TOKEN:
+        quotedToken(character);
+        break;
+      case ESCAPED_QUOTE:
+        escapedQuote(character);
+        break;
+      case QUOTED_TOKEN_SPACE_TRAIL:
+        quotedTokenSpaceTrail(character);
+        break;
+      default:
+        throw new RuntimeException("Unexpected state");
     }
-    return isInvalidRow;
   }
 
-  private int markFieldAndSkip(char[] characters, int pointer) {
-    columnsStatusForInvalidRow[fieldIndex] = true;
-    pointer = skipNextChars(characters, pointer);
-    return pointer-1;
-  }
 
-  private int skipNextChars(char[] characters, int pointer) {
-    char skipChar = getCharacter(characters, pointer);
-    while (!csvValidator.isSeparator(skipChar)) {
-      pointer++;
-      skipChar = getCharacter(characters, pointer);
+  /**
+   * Transition from the ESCAPED_QUOTE state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   * @throws CSVParseException if character can not be correctly parsed.
+   */
+  private void escapedQuote(char character) throws CSVParseException {
+    columnPosition++;
+    if ((SpecialCharacter.SPACE.getRepresentation() == character)
+        || (SpecialCharacter.TAB.getRepresentation() == character)) {
+      pState = ParseState.QUOTED_TOKEN_SPACE_TRAIL;
+    } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+        || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
+      pContext.pushToken();
+      pState = ParseState.END;
+    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pState = ParseState.START;
+    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character && characters[columnPointer + 1] != SpecialCharacter.COMMA
+        .getRepresentation())) {
+      pContext.pushTokenChar(SpecialCharacter.QUOTE.getRepresentation());
+      pState = ParseState.QUOTED_TOKEN;
+    } else {
+      pState = ParseState.START;
+      throw new CSVParseException("Unexpected character after end quote.", pLine, columnPosition,
+          character);
     }
-    return pointer - 1;
   }
 
-  private char getCharacter(char[] characters, int pointer) {
-    return characters[pointer];
+  /**
+   * Transition from the QUOTED_TOKEN_SPACE_TRAIL state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   */
+  private void quotedTokenSpaceTrail(char character) {
+    columnPosition++;
+    if ((SpecialCharacter.SPACE.getRepresentation() == character)
+        || (SpecialCharacter.TAB.getRepresentation() == character)) {
+      pState = ParseState.QUOTED_TOKEN_SPACE_TRAIL;
+    } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+        || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
+      pState = ParseState.END;
+    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pState = ParseState.START;
+    } else {
+      pState = ParseState.START;
+      throw new IllegalArgumentException("Unexpected letter after end quote: " + character);
+    }
   }
 
-  private void fillCharInBuffer(char nextChar) {
-    buffer[fieldIndex].addCharacter(nextChar);
+  /**
+   * Transition from the QUOTED_TOKEN state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   */
+  private void quotedToken(char character) {
+    columnPosition++;
+    if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
+      pState = ParseState.ESCAPED_QUOTE;
+    } else {
+      pContext.pushTokenChar(character);
+      pState = ParseState.QUOTED_TOKEN;
+    }
   }
 
-  private void incrementFieldIndex() {
-    fieldIndex++;
+  /**
+   * Transition from the UNQUOTED_TOKEN state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   * @throws CSVParseException if character can not be correctly parsed.
+   */
+  private void unquotedToken(char character) throws CSVParseException {
+    columnPosition++;
+    if ((SpecialCharacter.SPACE.getRepresentation() == character)
+        || (SpecialCharacter.TAB.getRepresentation() == character)) {
+      pContext.pushSpace(character);
+      pState = ParseState.UNQUOTED_TOKEN;
+    } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+        || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
+      pContext.pushToken();
+      pState = ParseState.END;
+    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pState = ParseState.START;
+    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
+      pState = ParseState.START;
+      throw new CSVParseException("Unexpected quote in the middle of an unquoted token.", pLine,
+          columnPosition, character);
+    } else {
+      pContext.pushSpaceTrail();
+      pContext.pushTokenChar(character);
+      pState = ParseState.UNQUOTED_TOKEN;
+    }
   }
 
-  private void resetFieldIndex() {
-    fieldIndex = 0;
+  /**
+   * Transition from the END state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   */
+  private void end(char character) {
+    if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+        || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
+      pState = ParseState.END;
+    } else {
+      pLine++;
+      columnPosition = 0;
+      start(character);
+    }
   }
 
-  private boolean checkDoubleQuotePairsFound() {
-    return (countDoubleQuotesInField != 0 && countDoubleQuotesInField % 2 == 0 && csvValidator
-        .isEnabledDoubleQuoteChar());
+  /**
+   * Transition from the START state to other states, per the DFA.
+   *
+   * @param character in the CSV file.
+   */
+  private void start(char character) {
+    columnPosition++;
+    if ((SpecialCharacter.SPACE.getRepresentation() == character)
+        || (SpecialCharacter.TAB.getRepresentation() == character)) {
+      pState = ParseState.START;
+    } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+        || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
+      pContext.pushToken();
+      pState = ParseState.END;
+    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pState = ParseState.START;
+    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
+      pState = ParseState.QUOTED_TOKEN;
+    } else {
+      pContext.pushTokenChar(character);
+      pState = ParseState.UNQUOTED_TOKEN;
+    }
   }
 
-  private void resetDoubleQuoteCount() {
-    if (csvValidator.isEnabledDoubleQuoteChar())
-      countDoubleQuotesInField = 0;
+  public Context getContext() {
+    return pContext;
+  }
+
+  public ParseState getParserState() {
+    return pState;
   }
 
   private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
@@ -163,28 +274,9 @@ public class CsvDataParser extends LineByLineDataParser {
     columnsStatusForInvalidRow = new boolean[buffer.length];
   }
 
-  @Override
-  protected int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription) {
-    setDataDescription(dataDescription);
-    return dataDescription.getMaximumSizeOfSingleBlockOfData();
-  }
-
-  private void setDataDescription(DataDescription dataDescription) {
-    if (this.dataDescription == null) {
-      this.dataDescription = dataDescription;
-      initializeMutableArrayStringBuffer(dataDescription);
-    }
-  }
-
   private void resetRowStatus() {
     for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
       columnsStatusForInvalidRow[fieldNum] = false;
     }
-  }
-
-  @Override
-  public DataParserValidator createDataParserValidator() {
-    return new CsvParserValidator(',', '"', '\\', false, false);
-
   }
 }

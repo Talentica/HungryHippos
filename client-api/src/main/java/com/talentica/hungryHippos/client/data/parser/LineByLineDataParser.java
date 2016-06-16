@@ -33,8 +33,7 @@ public abstract class LineByLineDataParser extends DataParser {
 	@Override
 	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
-			buffer = new MutableCharArrayString(getDataDescription()
-					.getMaximumSizeOfSingleBlockOfData());
+			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
 		iterator = new Iterator<MutableCharArrayString[]>() {
@@ -59,8 +58,7 @@ public abstract class LineByLineDataParser extends DataParser {
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException,
-					InvalidRowException {
+			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {
@@ -92,7 +90,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			}
 
 			private boolean isNewLine(byte readByte) throws IOException {
-				char[] windowsLineseparatorChars = WINDOWS_LINE_SEPARATOR_CHARS;
+				char[] windowsLineseparatorChars = csvValidator.getLineSeparator();
 				if (windowsLineseparatorChars[1] == readByte) {
 					return true;
 				}
@@ -108,8 +106,7 @@ public abstract class LineByLineDataParser extends DataParser {
 							buf.flip();
 						}
 						byte nextChar = readNextChar();
-						newLine = newLine
-								&& (windowsLineseparatorChars[i] == nextChar);
+						newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
 					}
 				}
 				return newLine;
@@ -122,12 +119,8 @@ public abstract class LineByLineDataParser extends DataParser {
 		return iterator;
 	}
 
-	protected abstract MutableCharArrayString[] processLine(
-			MutableCharArrayString line);
+	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
 
-	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(
-			DataDescription dataDescription);
-
-	// protected abstract CsvValidator createDataParserValidator();
+	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
 
 }

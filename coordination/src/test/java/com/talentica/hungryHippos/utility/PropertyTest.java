@@ -15,6 +15,7 @@ import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMES
  *
  */
 public class PropertyTest {
+
 	@Test
 	public void testGetPropertyValueForMaster() {
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);

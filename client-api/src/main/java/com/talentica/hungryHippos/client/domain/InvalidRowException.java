@@ -16,10 +16,6 @@ public class InvalidRowException extends RuntimeException {
 	private MutableCharArrayString row;
 	private boolean[] columns;
 
-	public InvalidRowException() {
-		super();
-	}
-
 	public InvalidRowException(String message) {
 		super(message);
 		this.message = message;

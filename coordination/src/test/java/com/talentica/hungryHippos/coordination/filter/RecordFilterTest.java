@@ -27,17 +27,17 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
 public class RecordFilterTest {
 
-	private static String jobuuid = "ABCSD12";
 	private static String dataParserClassName;
 	private static Reader data;
 	private static String badRecordsFile;
 
 	@Before
 	public void setUp() {
-		CommonUtil.loadDefaultPath(jobuuid);
 		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
 		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
+		sampleBadRecordFile =new File("").getAbsolutePath() + File.separator +  "temp.csv";
 		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
+		badRecordsFile = new File("").getAbsolutePath() + File.separator+"test.err";
 	}
 
 	@Ignore
@@ -45,9 +45,8 @@ public class RecordFilterTest {
 	public void testFilterBadRecords() throws IllegalAccessException, ClassNotFoundException, IOException,
  IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException, InstantiationException {
-		CommonUtil.loadDefaultPath(jobuuid);
 		int actualBadRecords = 0;
-		int expectedBadRows = 2;
+		int expectedBadRows = 1;
 		int lineNo = 0;
 		FileWriter.openFile(badRecordsFile);
 		while (true) {

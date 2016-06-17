@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.client.data.parser.context;
 
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 
@@ -11,9 +12,9 @@ public class Context {
 
   public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = {13, 10};
 
-  private MutableCharArrayString[] buffer;
+  private DataTypes[] buffer;
 
-  public Context(MutableCharArrayString[] buffer) {
+  public Context(DataTypes[] buffer) {
     this.buffer = buffer;
   }
 
@@ -41,7 +42,7 @@ public class Context {
 
   public void pushToken() {
     for (char tokenChar : mTokenBuffer.toCharArray()) {
-      buffer[fieldIndex].addCharacter(tokenChar);
+      buffer[fieldIndex].addByte((byte)tokenChar);
     }
     clearTokenBuffer();
     fieldIndex++;
@@ -84,12 +85,12 @@ public class Context {
     return mTokenBuffer;
   }
 
-  public MutableCharArrayString[] getParsedRow() {
+  public DataTypes[] getParsedRow() {
     return buffer;
   }
 
   public void resetBuffer() {
-    for (MutableCharArrayString s : buffer) {
+    for (DataTypes s : buffer) {
       s.reset();
     }
     fieldIndex = 0;

@@ -7,6 +7,7 @@ import com.talentica.hungryHippos.client.data.parser.LineByLineDataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
@@ -47,7 +48,7 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 	}
 
 	@Override
-	protected MutableCharArrayString[] processLine(MutableCharArrayString line) {
+	protected DataTypes[] processLine(MutableCharArrayString line) {
 		lineNumber++;
 		if (lineNumber % 2 == 0) {
 			if (iterator(dataInputStream).hasNext()) {
@@ -65,7 +66,7 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 			s.reset();
 		}
 		int fieldIndex = 0;
-		char[] characters = oddLine.getUnderlyingArray();
+		char[] characters = oddLine.getUnderlyingCharArray();
 		for (int i = 0; i < oddLine.length(); i++) {
 			char nextChar = characters[i];
 			if (nextChar == ',') {

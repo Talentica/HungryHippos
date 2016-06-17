@@ -11,10 +11,12 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.data.parser.CsvDataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
+import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 
 public class FileReaderTest {
 
@@ -27,6 +29,8 @@ public class FileReaderTest {
 	private FileReader fileReaderWithBlankLineAtEOF;
 
 	private FileReader testSampleFileGeneratedOnWindows;
+	
+	private String badRecordsFile;
 
 	@Before
 	public void setUp() throws IOException {
@@ -51,6 +55,7 @@ public class FileReaderTest {
 		testSampleFileGeneratedOnWindows = new FileReader(
 				new File(classLoader.getResource("testSampleFileGeneratedOnWindows.txt").getPath()),
 				csvDataPreprocessorForWindowsTestFile);
+		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
 	}
 
 	@Ignore
@@ -58,12 +63,12 @@ public class FileReaderTest {
 	public void testRead() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
 		while (true) {
-			MutableCharArrayString[] data = fileReader.read();
+			DataTypes[] data = fileReader.read();
 			if (data == null) {
 				break;
 			}
 			Assert.assertNotEquals(0, data.length);
-			Assert.assertNotEquals(0, data[0].length());
+			Assert.assertNotEquals(0, data[0].getLength());
 			numberOfLines++;
 		}
 		Assert.assertEquals(2, numberOfLines);
@@ -74,12 +79,12 @@ public class FileReaderTest {
 	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
 		while (true) {
-			MutableCharArrayString[] data = fileReaderBlankLineAtEofFile.read();
+			DataTypes[] data = fileReaderBlankLineAtEofFile.read();
 			if (data == null) {
 				break;
 			}
 			Assert.assertNotEquals(0, data.length);
-			Assert.assertNotEquals(0, data[0].length());
+			Assert.assertNotEquals(0, data[0].getLength());
 			numberOfLines++;
 		}
 		Assert.assertEquals(4, numberOfLines);
@@ -90,12 +95,12 @@ public class FileReaderTest {
 	public void testReadFromFileHavingBlankLines() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
 		while (true) {
-			MutableCharArrayString[] data = fileReaderBlankLinesFile.read();
+			DataTypes[] data = fileReaderBlankLinesFile.read();
 			if (data == null) {
 				break;
 			}
 			Assert.assertNotEquals(0, data.length);
-			Assert.assertNotEquals(0, data[0].length());
+			Assert.assertNotEquals(0, data[0].getLength());
 			numberOfLines++;
 		}
 		Assert.assertEquals(4, numberOfLines);
@@ -105,12 +110,21 @@ public class FileReaderTest {
 	public void testReadFromBigFile() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
 		while (true) {
-			MutableCharArrayString[] data = fileReaderWithBlankLineAtEOF.read();
+			
+		  DataTypes[] data = null;
+            try {
+              data = fileReaderWithBlankLineAtEOF.read();
+            } catch (InvalidRowException e) {
+                FileWriter.openFile(badRecordsFile);
+                FileWriter.flushData(numberOfLines++, e);
+                continue;
+            }
+			
 			if (data == null) {
 				break;
 			}
 			Assert.assertNotEquals(0, data.length);
-			Assert.assertNotEquals(0, data[0].length());
+			Assert.assertNotEquals(0, data[0].getLength());
 			numberOfLines++;
 		}
 		Assert.assertEquals(999993, numberOfLines);
@@ -120,12 +134,12 @@ public class FileReaderTest {
 	public void testReadFileCreatedOnWindows() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
 		while (true) {
-			MutableCharArrayString[] data = testSampleFileGeneratedOnWindows.read();
+			DataTypes[] data = testSampleFileGeneratedOnWindows.read();
 			if (data == null) {
 				break;
 			}
-			Assert.assertEquals(1, data[0].length());
-			Assert.assertEquals(2, data[1].length());
+			Assert.assertEquals(1, data[0].getLength());
+			Assert.assertEquals(2, data[1].getLength());
 			numberOfLines++;
 		}
 		Assert.assertEquals(5, numberOfLines);

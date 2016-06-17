@@ -7,8 +7,13 @@ import com.talentica.hungryHippos.client.data.parser.context.SpecialCharacter;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
+import com.talentica.hungryHippos.client.domain.MutableFloat;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
+import com.talentica.hungryHippos.client.domain.MutableLong;
 
 /**
  * 
@@ -22,7 +27,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  */
 public class CsvDataParser extends LineByLineDataParser {
 
-  private MutableCharArrayString[] buffer;
+  private DataTypes[] buffer;
 
   private int numfields;
 
@@ -49,13 +54,13 @@ public class CsvDataParser extends LineByLineDataParser {
   }
 
   @Override
-  public MutableCharArrayString[] processLine(MutableCharArrayString data) {
+  public DataTypes[] processLine(MutableCharArrayString data) {
     pState = ParseState.START;
     pContext.resetBuffer();
     boolean isInvalidRow = false;
     int fieldIndex = 0;
     columnPointer = 0;
-    characters = data.getUnderlyingArray();
+    characters = data.getUnderlyingCharArray();
     for (int pointer = 0; pointer < data.length(); pointer++) {
       columnPointer = pointer;
       try {
@@ -89,8 +94,8 @@ public class CsvDataParser extends LineByLineDataParser {
    * @throws CSVParseException
    * @throws ArrayIndexOutOfBoundsException
    */
-  public void parseCharacter(final char character) throws CSVParseException,
-      ArrayIndexOutOfBoundsException {
+  public void parseCharacter(final char character)
+      throws CSVParseException, ArrayIndexOutOfBoundsException {
     switch (pState) {
       case START:
         start(character);
@@ -133,8 +138,8 @@ public class CsvDataParser extends LineByLineDataParser {
       pState = ParseState.END;
     } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
       pState = ParseState.START;
-    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character && characters[columnPointer + 1] != SpecialCharacter.COMMA
-        .getRepresentation())) {
+    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character
+        && characters[columnPointer + 1] != SpecialCharacter.COMMA.getRepresentation())) {
       pContext.pushTokenChar(SpecialCharacter.QUOTE.getRepresentation());
       pState = ParseState.QUOTED_TOKEN;
     } else {
@@ -259,17 +264,16 @@ public class CsvDataParser extends LineByLineDataParser {
 
   private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
     numfields = dataDescription.getNumberOfDataFields();
-    buffer = new MutableCharArrayString[numfields];
+    buffer = new DataTypes[numfields];
     for (int i = 0; i < numfields; i++) {
       DataLocator dataLocator = dataDescription.locateField(i);
       int numberOfCharsDataTypeTakes = dataLocator.getSize();
-      // TODO: Need to fix hard coding later.
-      if (dataLocator.getDataType() == DataType.DOUBLE || dataLocator.getDataType() == DataType.INT
-          || dataLocator.getDataType() == DataType.LONG
-          || dataLocator.getDataType() == DataType.FLOAT) {
-        numberOfCharsDataTypeTakes = 25;
-      }
-      buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
+      /*
+       * // TODO: Need to fix hard coding later. if (dataLocator.getDataType() == DataType.DOUBLE ||
+       * dataLocator.getDataType() == DataType.INT || dataLocator.getDataType() == DataType.LONG ||
+       * dataLocator.getDataType() == DataType.LONG) { numberOfCharsDataTypeTakes = 25; }
+       */
+      createBuffer(dataLocator.getDataType(), i, numberOfCharsDataTypeTakes);
     }
     columnsStatusForInvalidRow = new boolean[buffer.length];
   }
@@ -277,6 +281,42 @@ public class CsvDataParser extends LineByLineDataParser {
   private void resetRowStatus() {
     for (int fieldNum = 0; fieldNum < columnsStatusForInvalidRow.length; fieldNum++) {
       columnsStatusForInvalidRow[fieldNum] = false;
+    }
+  }
+
+  /**
+   * This method is used for creating buffer on the basis of dataType. The values are hardcoded as
+   * Double can store almost 308 byte of data float can store 38 byte of data.
+   *
+   * @param type
+   * @param i
+   * @param size
+   */
+  private void createBuffer(DataType type, int i, int size) {
+    switch (type) {
+      // 308
+      case DOUBLE:
+        size = 30;
+        buffer[i] = new MutableDouble(size);
+        break;
+      // 38
+      case FLOAT:
+        size = 25;
+        buffer[i] = new MutableFloat(size);
+        break;
+      case INT:
+        size = 10;
+        buffer[i] = new MutableInteger(size);
+        break;
+      case LONG:
+        size = 19;
+        buffer[i] = new MutableLong(size);
+        break;
+      // default String
+      default:
+        buffer[i] = new MutableCharArrayString(size);
+        break;
+
     }
   }
 }

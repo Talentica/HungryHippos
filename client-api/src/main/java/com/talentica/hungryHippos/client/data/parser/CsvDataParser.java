@@ -45,7 +45,9 @@ public class CsvDataParser extends LineByLineDataParser {
 
   private char[] characters;
 
-  private int columnPointer = 0;
+  private boolean isInvalidRow = false;
+
+  private int fieldIndex = 0;
 
   public CsvDataParser(DataDescription dataDescription) {
     super(dataDescription);
@@ -55,20 +57,11 @@ public class CsvDataParser extends LineByLineDataParser {
 
   @Override
   public DataTypes[] processLine(MutableCharArrayString data) {
-    pState = ParseState.START;
-    pContext.resetBuffer();
-    boolean isInvalidRow = false;
-    int fieldIndex = 0;
-    columnPointer = 0;
+    reset();
     characters = data.getUnderlyingCharArray();
     for (int pointer = 0; pointer < data.length(); pointer++) {
-      columnPointer = pointer;
       try {
         char nextChar = characters[pointer];
-        if (nextChar == SpecialCharacter.COMMA.getRepresentation()) {
-          pContext.pushToken();
-          fieldIndex++;
-        }
         parseCharacter(nextChar);
       } catch (ArrayIndexOutOfBoundsException | CSVParseException ex) {
         pContext.clearTokenBuffer();
@@ -85,6 +78,13 @@ public class CsvDataParser extends LineByLineDataParser {
       throw invalidRow;
     }
     return pContext.getParsedRow();
+  }
+
+  private void reset() {
+    pState = ParseState.START;
+    pContext.resetBuffer();
+    isInvalidRow = false;
+    fieldIndex = 0;
   }
 
   /**
@@ -109,8 +109,8 @@ public class CsvDataParser extends LineByLineDataParser {
       case QUOTED_TOKEN:
         quotedToken(character);
         break;
-      case ESCAPED_QUOTE:
-        escapedQuote(character);
+      case ESCAPE_OR_TOKEN_ENDING_QUOTE:
+        escapeOrTokenEndingQuote(character);
         break;
       case QUOTED_TOKEN_SPACE_TRAIL:
         quotedTokenSpaceTrail(character);
@@ -122,12 +122,12 @@ public class CsvDataParser extends LineByLineDataParser {
 
 
   /**
-   * Transition from the ESCAPED_QUOTE state to other states, per the DFA.
+   * Transition from the ESCAPE_QUOTE state to other states, per the DFA.
    *
    * @param character in the CSV file.
    * @throws CSVParseException if character can not be correctly parsed.
    */
-  private void escapedQuote(char character) throws CSVParseException {
+  private void escapeOrTokenEndingQuote(char character) throws CSVParseException {
     columnPosition++;
     if ((SpecialCharacter.SPACE.getRepresentation() == character)
         || (SpecialCharacter.TAB.getRepresentation() == character)) {
@@ -137,9 +137,9 @@ public class CsvDataParser extends LineByLineDataParser {
       pContext.pushToken();
       pState = ParseState.END;
     } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pContext.pushToken();
+      fieldIndex++;
       pState = ParseState.START;
-    } else if ((SpecialCharacter.QUOTE.getRepresentation() == character
-        && characters[columnPointer + 1] != SpecialCharacter.COMMA.getRepresentation())) {
       pContext.pushTokenChar(SpecialCharacter.QUOTE.getRepresentation());
       pState = ParseState.QUOTED_TOKEN;
     } else {
@@ -163,6 +163,8 @@ public class CsvDataParser extends LineByLineDataParser {
         || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
       pState = ParseState.END;
     } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pContext.pushToken();
+      fieldIndex++;
       pState = ParseState.START;
     } else {
       pState = ParseState.START;
@@ -178,7 +180,7 @@ public class CsvDataParser extends LineByLineDataParser {
   private void quotedToken(char character) {
     columnPosition++;
     if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
-      pState = ParseState.ESCAPED_QUOTE;
+      pState = ParseState.ESCAPE_OR_TOKEN_ENDING_QUOTE;
     } else {
       pContext.pushTokenChar(character);
       pState = ParseState.QUOTED_TOKEN;
@@ -202,6 +204,8 @@ public class CsvDataParser extends LineByLineDataParser {
       pContext.pushToken();
       pState = ParseState.END;
     } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pContext.pushToken();
+      fieldIndex++;
       pState = ParseState.START;
     } else if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
       pState = ParseState.START;
@@ -245,6 +249,8 @@ public class CsvDataParser extends LineByLineDataParser {
       pContext.pushToken();
       pState = ParseState.END;
     } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+      pContext.pushToken();
+      fieldIndex++;
       pState = ParseState.START;
     } else if ((SpecialCharacter.QUOTE.getRepresentation() == character)) {
       pState = ParseState.QUOTED_TOKEN;
@@ -268,11 +274,6 @@ public class CsvDataParser extends LineByLineDataParser {
     for (int i = 0; i < numfields; i++) {
       DataLocator dataLocator = dataDescription.locateField(i);
       int numberOfCharsDataTypeTakes = dataLocator.getSize();
-      /*
-       * // TODO: Need to fix hard coding later. if (dataLocator.getDataType() == DataType.DOUBLE ||
-       * dataLocator.getDataType() == DataType.INT || dataLocator.getDataType() == DataType.LONG ||
-       * dataLocator.getDataType() == DataType.LONG) { numberOfCharsDataTypeTakes = 25; }
-       */
       createBuffer(dataLocator.getDataType(), i, numberOfCharsDataTypeTakes);
     }
     columnsStatusForInvalidRow = new boolean[buffer.length];

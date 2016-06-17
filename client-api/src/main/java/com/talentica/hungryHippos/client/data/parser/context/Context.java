@@ -7,6 +7,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 /**
  * A Context represents a partially parsed CSV file in memory. It can build tokens by pushing
  * characters. It can build rows by pushing tokens. It can build a list of rows by pushing rows.
+ * @author pooshans
  */
 public class Context {
 

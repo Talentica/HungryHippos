@@ -240,5 +240,7 @@ public class CommonUtil {
 	private static String uuidToBase64(String str) {
 		return Base64.getUrlEncoder().encodeToString(str.getBytes());
 	}
+	
+	
 
 }

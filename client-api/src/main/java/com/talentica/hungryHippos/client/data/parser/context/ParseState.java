@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.client.data.parser.context;
 
 /**
  * States of the DataParser which acknowledge the CSV file language.
+ * @author pooshans
  */
 public enum ParseState {
   /**
@@ -28,7 +29,7 @@ public enum ParseState {
    * Double quotes are used to escape themselves. Is the encountered quote an escape quote or a
    * token end quote?
    */
-  ESCAPED_QUOTE,
+  ESCAPE_OR_TOKEN_ENDING_QUOTE,
 
   /**
    * Trailing spaces after a quoted token has terminated.

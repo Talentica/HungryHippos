@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.validator.DataParserValidator;
@@ -21,7 +22,7 @@ public abstract class LineByLineDataParser extends DataParser {
 	private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
 	private int readCount = -1;
 	private MutableCharArrayString buffer;
-	private Iterator<MutableCharArrayString[]> iterator;
+	private Iterator<DataTypes[]> iterator;
 	protected DataParserValidator csvValidator;
 
 	public LineByLineDataParser(DataDescription dataDescription) {
@@ -31,12 +32,12 @@ public abstract class LineByLineDataParser extends DataParser {
 	}
 
 	@Override
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
+	public Iterator<DataTypes[]> iterator(InputStream dataStream) {
 		if (buffer == null) {
 			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
 		}
 
-		iterator = new Iterator<MutableCharArrayString[]>() {
+		iterator = new Iterator<DataTypes[]>() {
 
 			@Override
 			public boolean hasNext() {
@@ -48,7 +49,7 @@ public abstract class LineByLineDataParser extends DataParser {
 			}
 
 			@Override
-			public MutableCharArrayString[] next() {
+			public DataTypes[] next() {
 				try {
 					return read();
 				} catch (InvalidRowException irex) {
@@ -58,7 +59,7 @@ public abstract class LineByLineDataParser extends DataParser {
 				}
 			}
 
-			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
+			public DataTypes[] read() throws IOException, InvalidRowException {
 				buffer.reset();
 				while (true) {
 					if (readCount <= 0) {
@@ -77,7 +78,7 @@ public abstract class LineByLineDataParser extends DataParser {
 					if (isNewLine(nextChar)) {
 						break;
 					}
-					buffer.addCharacter((char) nextChar);
+					buffer.addByte(nextChar);
 				}
 				return processLine(buffer);
 			}
@@ -114,11 +115,11 @@ public abstract class LineByLineDataParser extends DataParser {
 		return iterator;
 	}
 
-	protected final Iterator<MutableCharArrayString[]> getIterator() {
+	protected final Iterator<DataTypes[]> getIterator() {
 		return iterator;
 	}
 
-	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
+	protected abstract DataTypes[] processLine(MutableCharArrayString line);
 
 	protected abstract int getMaximumSizeOfSingleBlockOfDataInBytes(DataDescription dataDescription);
 

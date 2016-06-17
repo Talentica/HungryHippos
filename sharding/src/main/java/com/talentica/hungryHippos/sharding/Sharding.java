@@ -14,6 +14,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -86,7 +87,7 @@ public class Sharding {
 		String[] keys = Property.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
-			MutableCharArrayString[] parts = null;
+			DataTypes[] parts = null;
 			try {
 				parts = data.read();
 			} catch (InvalidRowException e) {
@@ -101,7 +102,7 @@ public class Sharding {
 			for (int i = 0; i < keys.length; i++) {
 				String key = keys[i];
 				int keyIndex = keyToIndexMap.get(key);
-				values[i] = parts[keyIndex].clone();
+				values[i] = (MutableCharArrayString) parts[keyIndex].clone();
 				Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
 				bucketCombinationMap.put(key, bucket);
 			}
@@ -133,7 +134,7 @@ public class Sharding {
 		int lineNo = 0;
 		FileWriter.openFile(BAD_RECORDS_FILE);
 		while (true) {
-			MutableCharArrayString[] parts = null;
+			DataTypes[] parts = null;
 			try {
 				parts = data.read();
 			} catch (InvalidRowException e) {
@@ -148,7 +149,7 @@ public class Sharding {
 			for (int i = 0; i < keys.length; i++) {
 				String key = keys[i];
 				int keyIndex = keyToIndexMap.get(key);
-				values[i] = parts[keyIndex].clone();
+				values[i] = (MutableCharArrayString) parts[keyIndex].clone();
 				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
 				if (frequencyPerValue == null) {
 					frequencyPerValue = new HashMap<>();

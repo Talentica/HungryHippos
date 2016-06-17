@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
@@ -120,7 +121,7 @@ public class DataProvider {
         int lineNo = 0;
         FileWriter.openFile(BAD_RECORDS_FILE);
         while (true) {
-        	MutableCharArrayString[] parts = null;
+        	DataTypes[] parts = null;
 			try {
 				parts = input.read();
 			} catch (InvalidRowException e) {

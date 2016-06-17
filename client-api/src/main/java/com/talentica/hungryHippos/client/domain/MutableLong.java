@@ -8,13 +8,13 @@ import java.util.Arrays;
  * @author sudarshans
  *
  */
-public class MutableLongByteArray implements Comparable<MutableLongByteArray>, DataType {
+public class MutableLong implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
 
-  public MutableLongByteArray(int length) {
+  public MutableLong(int length) {
     array = new byte[length];
     stringLength = 0;
   }
@@ -32,7 +32,7 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
   }
 
 
-  private void copyCharacters(int start, int end, MutableLongByteArray newArray) {
+  private void copyCharacters(int start, int end, MutableLong newArray) {
     for (int i = start, j = 0; i < end; i++, j++) {
       newArray.array[j] = array[i];
     }
@@ -43,7 +43,7 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
     return new String(Arrays.copyOf(array, stringLength));
   }
 
-  public MutableLongByteArray addByte(byte ch) {
+  public MutableLong addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
@@ -54,8 +54,8 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
   }
 
   @Override
-  public MutableLongByteArray clone() {
-    MutableLongByteArray newArray = new MutableLongByteArray(stringLength);
+  public MutableLong clone() {
+    MutableLong newArray = new MutableLong(stringLength);
     copyCharacters(0, stringLength, newArray);
     newArray.stringLength = stringLength;
     return newArray;
@@ -65,10 +65,10 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || !(o instanceof MutableLongByteArray)) {
+    if (o == null || !(o instanceof MutableLong)) {
       return false;
     }
-    MutableLongByteArray that = (MutableLongByteArray) o;
+    MutableLong that = (MutableLong) o;
     if (stringLength == that.stringLength) {
       for (int i = 0; i < stringLength; i++) {
         if (array[i] != that.array[i]) {
@@ -92,8 +92,8 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
     return h;
   }
 
-  public static MutableIntegerByteArray from(String value) throws InvalidRowException {
-    MutableIntegerByteArray mutableLongByteArray = new MutableIntegerByteArray(value.length());
+  public static MutableInteger from(String value) throws InvalidRowException {
+    MutableInteger mutableLongByteArray = new MutableInteger(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
       mutableLongByteArray.addByte(character);
     }
@@ -101,7 +101,13 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
   }
 
   @Override
-  public int compareTo(MutableLongByteArray otherMutableLongByteArray) {
+  public int compareTo(DataTypes dataType) {
+    MutableLong otherMutableLongByteArray = null;
+    if(dataType instanceof MutableLong ){
+      otherMutableLongByteArray = (MutableLong) dataType;
+    } else {
+      return -1;
+    }
     if (equals(otherMutableLongByteArray)) {
       return 0;
     }
@@ -118,10 +124,5 @@ public class MutableLongByteArray implements Comparable<MutableLongByteArray>, D
   }
 
 
-
-  @Override
-  public DataType addCharacter(char ch) {
-    throw new UnsupportedOperationException("This operation is not supported for this class");
-  }
 
 }

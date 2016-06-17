@@ -3,15 +3,20 @@ package com.talentica.hungryHippos.client.data.parser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
+import com.talentica.hungryHippos.client.domain.MutableFloat;
+import com.talentica.hungryHippos.client.domain.MutableLong;
 import com.talentica.hungryHippos.client.validator.CsvParserValidator;
 import com.talentica.hungryHippos.client.validator.DataParserValidator;
 import com.talentica.hungryHippos.client.validator.InvalidStateException;
 
 public class CsvDataParser extends LineByLineDataParser {
 
-  private MutableCharArrayString[] buffer;
+  private DataTypes[] buffer;
   private int numfields;
   private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
 
@@ -27,15 +32,15 @@ public class CsvDataParser extends LineByLineDataParser {
   }
 
   @Override
-  public MutableCharArrayString[] processLine(MutableCharArrayString data) {
+  public DataTypes[] processLine(MutableCharArrayString data) {
     boolean isInvalidRow = false;
     resetFieldIndex();
     setDataDescription(dataDescription);
-    for (MutableCharArrayString s : buffer) {
+    for (DataTypes s : buffer) {
       s.reset();
     }
     csvValidator.startFieldValidation(); // Start the field validation.
-    char[] characters = data.getUnderlyingArray();
+    char[] characters = data.getUnderlyingCharArray();
     for (int pointer = 0; pointer < data.length(); pointer++) {
       char nextChar = getCharacter(characters, pointer);
       try {
@@ -88,7 +93,13 @@ public class CsvDataParser extends LineByLineDataParser {
         pointer = markFieldAndSkip(characters, pointer);
       }
     }
-    csvValidator.stopFieldValidation();
+    try {
+      csvValidator.stopFieldValidation();
+    } catch (InvalidStateException ex) {
+      resetDoubleQuoteCount();
+      isInvalidRow = setInvalidRow(isInvalidRow);
+    }
+
     if (isInvalidRow) {
       invalidRow.setColumns(columnsStatusForInvalidRow);
       invalidRow.setBadRow(data);
@@ -108,7 +119,7 @@ public class CsvDataParser extends LineByLineDataParser {
   private int markFieldAndSkip(char[] characters, int pointer) {
     columnsStatusForInvalidRow[fieldIndex] = true;
     pointer = skipNextChars(characters, pointer);
-    return pointer-1;
+    return pointer;
   }
 
   private int skipNextChars(char[] characters, int pointer) {
@@ -125,7 +136,7 @@ public class CsvDataParser extends LineByLineDataParser {
   }
 
   private void fillCharInBuffer(char nextChar) {
-    buffer[fieldIndex].addCharacter(nextChar);
+    buffer[fieldIndex].addByte((byte) nextChar);
   }
 
   private void incrementFieldIndex() {
@@ -137,8 +148,8 @@ public class CsvDataParser extends LineByLineDataParser {
   }
 
   private boolean checkDoubleQuotePairsFound() {
-    return (countDoubleQuotesInField != 0 && countDoubleQuotesInField % 2 == 0 && csvValidator
-        .isEnabledDoubleQuoteChar());
+    return (countDoubleQuotesInField != 0 && countDoubleQuotesInField % 2 == 0
+        && csvValidator.isEnabledDoubleQuoteChar());
   }
 
   private void resetDoubleQuoteCount() {
@@ -148,17 +159,16 @@ public class CsvDataParser extends LineByLineDataParser {
 
   private void initializeMutableArrayStringBuffer(DataDescription dataDescription) {
     numfields = dataDescription.getNumberOfDataFields();
-    buffer = new MutableCharArrayString[numfields];
+    buffer = new DataTypes[numfields];
     for (int i = 0; i < numfields; i++) {
       DataLocator dataLocator = dataDescription.locateField(i);
       int numberOfCharsDataTypeTakes = dataLocator.getSize();
-      // TODO: Need to fix hard coding later.
-      if (dataLocator.getDataType() == DataType.DOUBLE || dataLocator.getDataType() == DataType.INT
-          || dataLocator.getDataType() == DataType.LONG
-          || dataLocator.getDataType() == DataType.FLOAT) {
-        numberOfCharsDataTypeTakes = 25;
-      }
-      buffer[i] = new MutableCharArrayString(numberOfCharsDataTypeTakes);
+      /*
+       * // TODO: Need to fix hard coding later. if (dataLocator.getDataType() == DataType.DOUBLE ||
+       * dataLocator.getDataType() == DataType.INT || dataLocator.getDataType() == DataType.LONG ||
+       * dataLocator.getDataType() == DataType.LONG) { numberOfCharsDataTypeTakes = 25; }
+       */
+      createBuffer(dataLocator.getDataType(), i, numberOfCharsDataTypeTakes);
     }
     columnsStatusForInvalidRow = new boolean[buffer.length];
   }
@@ -184,7 +194,44 @@ public class CsvDataParser extends LineByLineDataParser {
 
   @Override
   public DataParserValidator createDataParserValidator() {
-    return new CsvParserValidator(',', '"', '\\', false, false);
+    return new CsvParserValidator(',', '\0', '\\', false, false);
+
+  }
+
+  /**
+   * This method is used for creating buffer on the basis of dataType. The values are hardcoded as
+   * Double can store almost 308 byte of data float can store 38 byte of data.
+   * 
+   * @param type
+   * @param i
+   * @param size
+   */
+  private void createBuffer(DataType type, int i, int size) {
+    switch (type) {
+      // 308
+      case DOUBLE:
+        size = 30;
+        buffer[i] = new MutableDouble(size);
+        break;
+      // 38
+      case FLOAT:
+        size = 25;
+        buffer[i] = new MutableFloat(size);
+        break;
+      case INT:
+        size = 10;
+        buffer[i] = new MutableInteger(size);
+        break;
+      case LONG:
+        size = 19;
+        buffer[i] = new MutableLong(size);
+        break;
+      // default String
+      default:
+        buffer[i] = new MutableCharArrayString(size);
+        break;
+
+    }
 
   }
 }

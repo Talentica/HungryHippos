@@ -23,18 +23,18 @@ public class MutableCharArrayStringTest {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
 		dataDescription.addFieldType(DataType.STRING, 1);
 		stringL1 = new MutableCharArrayString(1);
-		stringL1.addCharacter('l');
+		stringL1.addByte((byte)'l');
 		stringL2 = new MutableCharArrayString(1);
-		stringL2.addCharacter('l');
+		stringL2.addByte((byte)'l');
 	}
 
 	@Test
 	public void testHashCode() throws InvalidRowException {
 		Assert.assertEquals(stringL1.hashCode(), stringL2.hashCode());
 		MutableCharArrayString stringForHashCode = new MutableCharArrayString(3);
-		stringForHashCode.addCharacter('t');
-		stringForHashCode.addCharacter('e');
-		stringForHashCode.addCharacter('s');
+		stringForHashCode.addByte((byte)'t');
+		stringForHashCode.addByte((byte)'e');
+		stringForHashCode.addByte((byte)'s');
 		int hashcode = stringForHashCode.hashCode();
 		Assert.assertTrue(hashcode >= 0);
 	}
@@ -53,8 +53,8 @@ public class MutableCharArrayStringTest {
 		MutableCharArrayString clonedString1 = testString.clone();
 		Assert.assertNotNull(clonedString1);
 		MutableCharArrayString expectedString1 = new MutableCharArrayString(2);
-		expectedString1.addCharacter('l');
-		expectedString1.addCharacter('c');
+		expectedString1.addByte((byte)'l');
+		expectedString1.addByte((byte)'c');
 		Assert.assertEquals(expectedString1, clonedString1);
 	}
 
@@ -70,8 +70,8 @@ public class MutableCharArrayStringTest {
 
 	private MutableCharArrayString createTestString() throws InvalidRowException {
 		MutableCharArrayString testString = MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(2);
-		testString.addCharacter('l');
-		testString.addCharacter('c');
+		testString.addByte((byte)'l');
+		testString.addByte((byte)'c');
 		return testString;
 	}
 
@@ -90,10 +90,10 @@ public class MutableCharArrayStringTest {
 	@Test
 	public void testCompareToOfNonEqualSize() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(1);
-		string1.addCharacter('a');
+		string1.addByte((byte)'a');
 		MutableCharArrayString string2 = new MutableCharArrayString(2);
-		string2.addCharacter('a');
-		string2.addCharacter('b');
+		string2.addByte((byte)'a');
+		string2.addByte((byte)'b');
 		Assert.assertTrue(string1.compareTo(string2) < 0);
 		Assert.assertTrue(string2.compareTo(string1) > 0);
 	}
@@ -101,11 +101,11 @@ public class MutableCharArrayStringTest {
 	@Test
 	public void testCompareToOfEqualSizeStrings() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(2);
-		string1.addCharacter('a');
-		string1.addCharacter('c');
+		string1.addByte((byte)'a');
+		string1.addByte((byte)'c');
 		MutableCharArrayString string2 = new MutableCharArrayString(2);
-		string2.addCharacter('a');
-		string2.addCharacter('d');
+		string2.addByte((byte)'a');
+		string2.addByte((byte)'d');
 		Assert.assertTrue(string1.compareTo(string2) < 0);
 		Assert.assertTrue(string2.compareTo(string1) > 0);
 	}
@@ -113,11 +113,11 @@ public class MutableCharArrayStringTest {
 	@Test
 	public void testCompareToOfEqualStrings() throws InvalidRowException {
 		MutableCharArrayString string1 = new MutableCharArrayString(2);
-		string1.addCharacter('a');
-		string1.addCharacter('d');
+		string1.addByte((byte)'a');
+		string1.addByte((byte)'d');
 		MutableCharArrayString string2 = new MutableCharArrayString(2);
-		string2.addCharacter('a');
-		string2.addCharacter('d');
+		string2.addByte((byte)'a');
+		string2.addByte((byte)'d');
 		Assert.assertTrue(string1.compareTo(string2) == 0);
 		Assert.assertTrue(string2.compareTo(string1) == 0);
 	}

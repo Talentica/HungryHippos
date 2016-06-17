@@ -8,13 +8,13 @@ import java.util.Arrays;
  * @author sudarshans
  *
  */
-public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArray>, DataType {
+public class MutableInteger implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
 
-  public MutableIntegerByteArray(int length) {
+  public MutableInteger(int length) {
     array = new byte[length];
     stringLength = 0;
   }
@@ -34,7 +34,7 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
   }
 
 
-  private void copyCharacters(int start, int end, MutableIntegerByteArray newArray) {
+  private void copyCharacters(int start, int end, MutableInteger newArray) {
     for (int i = start, j = 0; i < end; i++, j++) {
       newArray.array[j] = array[i];
     }
@@ -45,7 +45,7 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
     return new String(Arrays.copyOf(array, stringLength));
   }
 
-  public MutableIntegerByteArray addByte(byte ch) {
+  public MutableInteger addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
@@ -56,8 +56,8 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
   }
 
   @Override
-  public MutableIntegerByteArray clone() {
-    MutableIntegerByteArray newArray = new MutableIntegerByteArray(stringLength);
+  public MutableInteger clone() {
+    MutableInteger newArray = new MutableInteger(stringLength);
     copyCharacters(0, stringLength, newArray);
     newArray.stringLength = stringLength;
     return newArray;
@@ -67,10 +67,10 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || !(o instanceof MutableIntegerByteArray)) {
+    if (o == null || !(o instanceof MutableInteger)) {
       return false;
     }
-    MutableIntegerByteArray that = (MutableIntegerByteArray) o;
+    MutableInteger that = (MutableInteger) o;
     if (stringLength == that.stringLength) {
       for (int i = 0; i < stringLength; i++) {
         if (array[i] != that.array[i]) {
@@ -94,8 +94,8 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
     return h;
   }
 
-  public static MutableIntegerByteArray from(String value) throws InvalidRowException {
-    MutableIntegerByteArray mutableLongByteArray = new MutableIntegerByteArray(value.length());
+  public static MutableInteger from(String value) throws InvalidRowException {
+    MutableInteger mutableLongByteArray = new MutableInteger(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
       mutableLongByteArray.addByte(character);
     }
@@ -103,7 +103,13 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
   }
 
   @Override
-  public int compareTo(MutableIntegerByteArray otherMutableIntegerByteArray) {
+  public int compareTo(DataTypes dataType) {
+    MutableInteger otherMutableIntegerByteArray = null;
+    if(dataType instanceof MutableInteger){
+      otherMutableIntegerByteArray = (MutableInteger)dataType;
+    }else {
+      return -1;
+    }
     if (equals(otherMutableIntegerByteArray)) {
       return 0;
     }
@@ -119,9 +125,5 @@ public class MutableIntegerByteArray implements Comparable<MutableIntegerByteArr
     return 0;
   }
 
-  @Override
-  public DataType addCharacter(char ch) {
-    throw new UnsupportedOperationException("This operation is not supported for this class");
-  }
 
 }

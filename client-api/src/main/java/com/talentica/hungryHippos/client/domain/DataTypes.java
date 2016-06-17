@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author sudarshans
  *
  */
-public interface DataType extends Cloneable, Serializable {
+public interface DataTypes extends Comparable<DataTypes>, Cloneable, Serializable {
 
   /**
    * for getting the length of unferlying array.
@@ -38,20 +38,13 @@ public interface DataType extends Cloneable, Serializable {
    * @param ch
    * @return
    */
-  DataType addByte(byte ch);
-
-  /**
-   * for adding a char in the array. use this method only if you want to convert the byte
-   * representation to character
-   * 
-   * @param ch
-   * @return
-   */
-  DataType addCharacter(char ch);
+  DataTypes addByte(byte ch);
 
   /**
    * for reseting the array length.
    */
   void reset();
+
+  DataTypes clone();
 
 }

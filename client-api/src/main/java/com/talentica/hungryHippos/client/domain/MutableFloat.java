@@ -8,13 +8,13 @@ import java.util.Arrays;
  * @author sudarshans
  *
  */
-public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>, DataType {
+public class MutableFloat implements  DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
 
-  public MutableFloatByteArray(int length) {
+  public MutableFloat(int length) {
     array = new byte[length];
     stringLength = 0;
   }
@@ -32,7 +32,7 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
   }
 
 
-  private void copyCharacters(int start, int end, MutableFloatByteArray newArray) {
+  private void copyCharacters(int start, int end, MutableFloat newArray) {
     for (int i = start, j = 0; i < end; i++, j++) {
       newArray.array[j] = array[i];
     }
@@ -43,7 +43,7 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
     return new String(Arrays.copyOf(array, stringLength));
   }
 
-  public MutableFloatByteArray addByte(byte ch) {
+  public MutableFloat addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
@@ -54,8 +54,8 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
   }
 
   @Override
-  public MutableFloatByteArray clone() {
-    MutableFloatByteArray newArray = new MutableFloatByteArray(stringLength);
+  public MutableFloat clone() {
+    MutableFloat newArray = new MutableFloat(stringLength);
     copyCharacters(0, stringLength, newArray);
     newArray.stringLength = stringLength;
     return newArray;
@@ -65,10 +65,10 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || !(o instanceof MutableFloatByteArray)) {
+    if (o == null || !(o instanceof MutableFloat)) {
       return false;
     }
-    MutableFloatByteArray that = (MutableFloatByteArray) o;
+    MutableFloat that = (MutableFloat) o;
     if (stringLength == that.stringLength) {
       for (int i = 0; i < stringLength; i++) {
         if (array[i] != that.array[i]) {
@@ -92,8 +92,8 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
     return h;
   }
 
-  public static MutableFloatByteArray from(String value) throws InvalidRowException {
-    MutableFloatByteArray mutableFloatByteArray = new MutableFloatByteArray(value.length());
+  public static MutableFloat from(String value) throws InvalidRowException {
+    MutableFloat mutableFloatByteArray = new MutableFloat(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
       mutableFloatByteArray.addByte(character);
     }
@@ -101,7 +101,13 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
   }
 
   @Override
-  public int compareTo(MutableFloatByteArray otherMutableShortByteArray) {
+  public int compareTo(DataTypes dataType) {
+    MutableFloat otherMutableShortByteArray = null;
+    if(dataType instanceof MutableFloat){
+      otherMutableShortByteArray = (MutableFloat) dataType;
+    } else {
+      return -1;
+    }
     if (equals(otherMutableShortByteArray)) {
       return 0;
     }
@@ -117,9 +123,5 @@ public class MutableFloatByteArray implements Comparable<MutableFloatByteArray>,
     return 0;
   }
 
-  @Override
-  public DataType addCharacter(char ch) {
-    throw new UnsupportedOperationException("This operation is not supported for this class");
-  }
 
 }

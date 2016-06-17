@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
@@ -14,100 +15,102 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  */
 public abstract class LineByLineDataParser extends DataParser {
 
-	public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = { 13, 10 };
+  public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = {13, 10};
 
-	private byte[] dataBytes = new byte[65536];
-	private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
-	private int readCount = -1;
-	private MutableCharArrayString buffer;
+  private byte[] dataBytes = new byte[65536];
+  private ByteBuffer buf = ByteBuffer.wrap(dataBytes);
+  private int readCount = -1;
+  private MutableCharArrayString buffer;
 
-	public LineByLineDataParser(DataDescription dataDescription) {
-		super(dataDescription);
-		buf.clear();
-	}
+  public LineByLineDataParser(DataDescription dataDescription) {
+    super(dataDescription);
+    buf.clear();
+  }
 
-	@Override
-	public Iterator<MutableCharArrayString[]> iterator(InputStream dataStream) {
-		if (buffer == null) {
-			buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
-		}
+  @Override
+  public Iterator<DataTypes[]> iterator(InputStream dataStream) {
+    if (buffer == null) {
+      buffer = new MutableCharArrayString(getDataDescription().getMaximumSizeOfSingleBlockOfData());
+    }
 
-		return new Iterator<MutableCharArrayString[]>() {
+    return new Iterator<DataTypes[]>() {
 
-			@Override
-			public boolean hasNext() {
-				try {
-					return dataStream.available() > 0 || readCount > 0;
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
+      @Override
+      public boolean hasNext() {
+        try {
+          return dataStream.available() > 0 || readCount > 0;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
 
-			@Override
-			public MutableCharArrayString[] next() {
-				try {
-					return read();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}catch (InvalidRowException e) {
-                  throw e;
-                }
-			}
+      @Override
+      public DataTypes[] next() {
+        try {
+          return read();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        } catch (InvalidRowException e) {
+          throw e;
+        }
+      }
 
-			public MutableCharArrayString[] read() throws IOException, InvalidRowException {
-				buffer.reset();
-				while (true) {
-					if (readCount <= 0) {
-						buf.clear();
-						readCount = dataStream.read(dataBytes);
-						buf.limit(readCount);
-						if (readCount < 0 && buffer.length() > 0) {
-							return processLine(buffer);
-						} else if (readCount < 0 && buffer.length() <= 0) {
-							return null;
-						}
-					}
-					byte nextChar = readNextChar();
-					if (isNewLine(nextChar)) {
-					  buffer.addCharacter((char) nextChar);
-						break;
-					}
-					buffer.addCharacter((char) nextChar);
-				}
-				return processLine(buffer);
-			}
+      public DataTypes[] read() throws IOException, InvalidRowException {
+        buffer.reset();
+        while (true) {
+          if (readCount <= 0) {
+            buf.clear();
+            readCount = dataStream.read(dataBytes);
+            if (readCount != -1) {
+              buf.limit(readCount);
+            }
+            if (readCount < 0 && buffer.length() > 0) {
+              return processLine(buffer);
+            } else if (readCount < 0 && buffer.length() <= 0) {
+              return null;
+            }
+          }
+          byte nextChar = readNextChar();
+          if (isNewLine(nextChar)) {
+            buffer.addCharacter((char) nextChar);
+            break;
+          }
+          buffer.addCharacter((char) nextChar);
+        }
+        return processLine(buffer);
+      }
 
-			private byte readNextChar() {
-				byte nextChar = buf.get();
-				readCount--;
-				return nextChar;
-			}
+      private byte readNextChar() {
+        byte nextChar = buf.get();
+        readCount--;
+        return nextChar;
+      }
 
-			private boolean isNewLine(byte readByte) throws IOException {
-				char[] windowsLineseparatorChars = WINDOWS_LINE_SEPARATOR_CHARS;
-				if (windowsLineseparatorChars[1] == readByte) {
-					return true;
-				}
-				boolean newLine = (windowsLineseparatorChars[0] == readByte);
-				if (newLine) {
-					for (int i = 1; i < windowsLineseparatorChars.length; i++) {
-						if (readCount <= 0) {
-							buf.clear();
-							readCount = dataStream.read(dataBytes);
-							if (readCount < 0) {
-								return newLine;
-							}
-							buf.flip();
-						}
-						byte nextChar = readNextChar();
-						newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
-					}
-				}
-				return newLine;
-			}
-		};
-	}
+      private boolean isNewLine(byte readByte) throws IOException {
+        char[] windowsLineseparatorChars = WINDOWS_LINE_SEPARATOR_CHARS;
+        if (windowsLineseparatorChars[1] == readByte) {
+          return true;
+        }
+        boolean newLine = (windowsLineseparatorChars[0] == readByte);
+        if (newLine) {
+          for (int i = 1; i < windowsLineseparatorChars.length; i++) {
+            if (readCount <= 0) {
+              buf.clear();
+              readCount = dataStream.read(dataBytes);
+              if (readCount < 0) {
+                return newLine;
+              }
+              buf.flip();
+            }
+            byte nextChar = readNextChar();
+            newLine = newLine && (windowsLineseparatorChars[i] == nextChar);
+          }
+        }
+        return newLine;
+      }
+    };
+  }
 
-	protected abstract MutableCharArrayString[] processLine(MutableCharArrayString line);
+  protected abstract DataTypes[] processLine(MutableCharArrayString line);
 
 }

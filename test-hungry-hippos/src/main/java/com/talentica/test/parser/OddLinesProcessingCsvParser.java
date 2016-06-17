@@ -47,7 +47,7 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 	}
 
 	@Override
-	protected MutableCharArrayString[] processLine(MutableCharArrayString line) {
+	protected com.talentica.hungryHippos.client.domain.DataTypes[] processLine(MutableCharArrayString line) {
 		lineNumber++;
 		if (lineNumber % 2 == 0) {
 			if (iterator(dataInputStream).hasNext()) {
@@ -65,7 +65,7 @@ public class OddLinesProcessingCsvParser extends LineByLineDataParser {
 			s.reset();
 		}
 		int fieldIndex = 0;
-		char[] characters = oddLine.getUnderlyingArray();
+		char[] characters = oddLine.getUnderlyingCharArray();
 		for (int i = 0; i < oddLine.length(); i++) {
 			char nextChar = characters[i];
 			if (nextChar == ',') {

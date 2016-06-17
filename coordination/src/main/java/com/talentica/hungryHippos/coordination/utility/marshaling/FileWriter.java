@@ -46,6 +46,9 @@ public class FileWriter {
 	}
 
 	public static void write(String data) {
+	  if(fileOutputWriter == null){
+	    throw new RuntimeException("Please use openfile  before write");
+	  }
 		try {
 			fileOutputWriter.write(data);
 			fileOutputWriter.write("\n");

@@ -19,78 +19,72 @@ import com.talentica.hungryHippos.master.data.DataProvider;
 
 public class DataPublisherStarter {
 
-	private NodesManager nodesManager;
+  private NodesManager nodesManager;
 
-	/**
-	 * @param args
-	 */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(DataPublisherStarter.class);
-	private static DataPublisherStarter dataPublisherStarter;
+  /**
+   * @param args
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
+  private static DataPublisherStarter dataPublisherStarter;
 
-	private static String jobUUId;
-	public static void main(String[] args) {
-		try {
-			validateArguments(args);
-			String dataParserClassName = args[1];
-			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-					.getConstructor(DataDescription.class).newInstance(CommonUtil.getConfiguredDataDescription());
-			LOGGER.info("Initializing nodes manager.");
-			initialize(args);
-			long startTime = System.currentTimeMillis();
-			broadcastSignal();
-			long endTime = System.currentTimeMillis();
-			LOGGER.info("It took {} seconds of time to for publishing.",
-					((endTime - startTime) / 1000));
-		} catch (Exception exception) {
-			errorHandler(exception);
-		}
-	}
+  private static String jobUUId;
 
-	private static void validateArguments(String[] args) {
-		if (args.length < 2) {
-			throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
-		}
-	}
+  public static void main(String[] args) {
+    try {
+      validateArguments(args);
+      String dataParserClassName = args[1];
+      DataParser dataParser =
+          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
+              .newInstance(CommonUtil.getConfiguredDataDescription());
+      LOGGER.info("Initializing nodes manager.");
+      initialize(args);
+      long startTime = System.currentTimeMillis();
+      broadcastSignal();
+      long endTime = System.currentTimeMillis();
+      LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
+    } catch (Exception exception) {
+      errorHandler(exception);
+    }
+  }
 
-	/**
-	 * @param exception
-	 */
-	private static void errorHandler(Exception exception) {
-		LOGGER.error("Error occured while executing publishing data on nodes.",
-				exception);
-		try {
-			ZkSignalListener.dataPublishingFailed(
-					dataPublisherStarter.nodesManager,
-					CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
-							.getZKJobNode());
-		} catch (IOException | InterruptedException e) {
-			LOGGER.info("Unable to create the node on zk.");
-		}
-	}
+  private static void validateArguments(String[] args) {
+    if (args.length < 2) {
+      throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
+    }
+  }
 
-	/**
-	 * @param args
-	 */
-	private static void initialize(String[] args) {
-		jobUUId = args[0];
-		CommonUtil.loadDefaultPath(jobUUId);
-		ZkSignalListener.jobuuidInBase64 = CommonUtil
-				.getJobUUIdInBase64(jobUUId);
-		dataPublisherStarter = new DataPublisherStarter();
-		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
-	}
+  /**
+   * @param exception
+   */
+  private static void errorHandler(Exception exception) {
+    LOGGER.error("Error occured while executing publishing data on nodes.", exception);
+    try {
+      ZkSignalListener.dataPublishingFailed(dataPublisherStarter.nodesManager,
+          CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
+    } catch (IOException | InterruptedException e) {
+      LOGGER.info("Unable to create the node on zk.");
+    }
+  }
 
-	/**
-	 * @throws InterruptedException
-	 * @throws IOException
-	 */
-	private static void broadcastSignal() throws InterruptedException,
-			IOException {
-		ZkSignalListener.sendSignalToNodes(dataPublisherStarter.nodesManager,
-				CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER
-						.getZKJobNode());
-	}
+  /**
+   * @param args
+   */
+  private static void initialize(String[] args) {
+    jobUUId = args[0];
+    CommonUtil.loadDefaultPath(jobUUId);
+    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+    dataPublisherStarter = new DataPublisherStarter();
+    Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+    dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
+  }
+
+  /**
+   * @throws InterruptedException
+   * @throws IOException
+   */
+  private static void broadcastSignal() throws InterruptedException, IOException {
+    ZkSignalListener.sendSignalToNodes(dataPublisherStarter.nodesManager,
+        CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode());
+  }
 
 }

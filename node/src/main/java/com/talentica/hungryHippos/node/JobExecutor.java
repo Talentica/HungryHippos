@@ -19,8 +19,8 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
@@ -100,8 +100,8 @@ public class JobExecutor {
 		CommonUtil.loadDefaultPath(jobUUId);
 		ZkSignalListener.jobuuidInBase64 = CommonUtil
 				.getJobUUIdInBase64(jobUUId);
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
-		nodesManager = Property.getNodesManagerIntances();
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
+		nodesManager = PropertyOld.getNodesManagerIntances();
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class JobExecutor {
 	 */
 	private static void sendFailureSignal(NodesManager nodesManager)
 			throws IOException, InterruptedException {
-		String basePathPerNode = Property
+		String basePathPerNode = PropertyOld
 				.getPropertyValue("zookeeper.base_path")
 				+ PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64 + PathUtil.SEPARATOR_CHAR
 				+ (PRIFIX_NODE_NAME
@@ -145,7 +145,7 @@ public class JobExecutor {
 	private static JobRunner createJobRunner() throws IOException {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil
 				.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getShardingDimensions());
+		dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
 		dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap()
 				.size(), dataDescription, true);
 		return new JobRunner(dataDescription, dataStore);

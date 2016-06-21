@@ -22,10 +22,10 @@ public class ScriptExecutionUtil {
 	 * 
 	 */
 	public static void callDownloadShellScript() {
-		String webserverIp = Property.getProperties().getProperty(
+		String webserverIp = PropertyOld.getProperties().getProperty(
 				"common.webserver.ip");
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String downloadUrlLink = Property.getProperties().getProperty(
+		String jobuuid = PropertyOld.getProperties().getProperty("job.uuid");
+		String downloadUrlLink = PropertyOld.getProperties().getProperty(
 				"input.file.url.link");
 		LOGGER.info(
 				"Calling shell script to download the input file from url link {} for jobuuid {} and webserver ip {}",
@@ -45,8 +45,8 @@ public class ScriptExecutionUtil {
 	 * 
 	 */
 	public static void callSamplingShellScript() {
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String webserverIp = Property.getProperties().getProperty(
+		String jobuuid = PropertyOld.getProperties().getProperty("job.uuid");
+		String webserverIp = PropertyOld.getProperties().getProperty(
 				"common.webserver.ip");
 		LOGGER.info(
 				"Calling sampling python script and uuid {} webserver ip {}",
@@ -67,7 +67,7 @@ public class ScriptExecutionUtil {
 	 */
 	public static void callCopyScriptForMapFiles() {
 		LOGGER.info("Calling script file to copy map file across all nodes");
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
+		String jobuuid = PropertyOld.getProperties().getProperty("job.uuid");
 		String[] strArr = new String[] { "/bin/sh",
 				"copy-shard-files-to-all-nodes.sh", jobuuid };
 		CommonUtil.executeScriptCommand(strArr);

@@ -30,7 +30,7 @@ import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -218,11 +218,11 @@ public class ZKUtils {
 	    }
 	 
 	 public static String buildNodePath(int nodeId){
-		return Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
+		return PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
 		}
 	 
 	 public static String buildNodePath(String jobuuid){
-			return Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + (jobuuid);
+			return PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + (jobuuid);
 			}
 	 
 	/**

@@ -147,8 +147,8 @@ public class CommonUtil {
 
 	public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
 		if (dataDescription == null) {
-			dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration(),
-					Property.getMaximumSizeOfSingleDataBlock());
+			dataDescription = FieldTypeArrayDataDescription.createDataDescription(PropertyOld.getDataTypeConfiguration(),
+					PropertyOld.getMaximumSizeOfSingleDataBlock());
 		}
 		return dataDescription;
 	}
@@ -193,7 +193,7 @@ public class CommonUtil {
 	public static Properties getMergedConfigurationPropertyFromZk()
 			throws Exception {
 		ZKNodeFile configProp = ZKUtils
-				.getConfigZKNodeFile(Property.MERGED_CONFIG_PROP_FILE);
+				.getConfigZKNodeFile(PropertyOld.MERGED_CONFIG_PROP_FILE);
 		if (configProp == null)
 			return null;
 		return configProp.getFileData();
@@ -202,7 +202,7 @@ public class CommonUtil {
 	public static Properties getServerConfigurationPropertyFromZk()
 			throws Exception {
 		ZKNodeFile serverConfig = ZKUtils
-				.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
+				.getConfigZKNodeFile(PropertyOld.SERVER_CONF_FILE);
 		return (serverConfig == null) ? null : serverConfig.getFileData();
 	}
 

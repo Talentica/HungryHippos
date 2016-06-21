@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 
 /**
  * @author PooshanS
@@ -27,7 +27,7 @@ import com.talentica.hungryHippos.coordination.utility.Property;
 public class StartZookeeperTest {
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(StartZookeeperTest.class);
-	Properties startupProperties = Property.getProperties();
+	Properties startupProperties = PropertyOld.getProperties();
 
 	@Before
 	public void start() {

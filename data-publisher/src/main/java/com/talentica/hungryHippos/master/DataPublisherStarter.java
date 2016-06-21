@@ -14,8 +14,8 @@ import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.master.data.DataProvider;
 
 public class DataPublisherStarter {
@@ -36,8 +36,8 @@ public class DataPublisherStarter {
 			String dataParserClassName = args[1];
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName).newInstance();
 			dataPublisherStarter = new DataPublisherStarter();
-			Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-			dataPublisherStarter.nodesManager = Property.getNodesManagerIntances();
+			PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
+			dataPublisherStarter.nodesManager = PropertyOld.getNodesManagerIntances();
 			LOGGER.info("Initializing nodes manager.");
 			waitForSinal(dataPublisherStarter);
 			long startTime = System.currentTimeMillis();

@@ -18,7 +18,7 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
@@ -49,7 +49,7 @@ public class Sharding {
 	public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 	public final static String bucketCombinationToNodeNumbersMapFile = "bucketCombinationToNodeNumbersMap";
 	public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")
+	private final static String BAD_RECORDS_FILE = PropertyOld.getPropertyValue("common.bad.records.file.out")
 			+ "_sharding.err";
 
 	public Sharding(int numNodes) {
@@ -62,7 +62,7 @@ public class Sharding {
 
 	public static void doSharding(Reader input) {
 		logger.info("SHARDING STARTED");
-		Sharding sharding = new Sharding(Property.getTotalNumberOfNodes());
+		Sharding sharding = new Sharding(PropertyOld.getTotalNumberOfNodes());
 		try {
 			sharding.populateFrequencyFromData(input);
 			sharding.populateKeysToListOfBucketsMap();
@@ -87,7 +87,7 @@ public class Sharding {
 
 		logger.info("Calculating buckets to node numbers map started");
 
-		String[] keys = Property.getShardingDimensions();
+		String[] keys = PropertyOld.getShardingDimensions();
 		// Map<key1,Map<value1,count>>
 		while (true) {
 			DataTypes[] parts = null;
@@ -121,7 +121,7 @@ public class Sharding {
 	}
 
 	private void setKeysToIndexes() {
-		String[] keys = Property.getColumnsConfiguration();
+		String[] keys = PropertyOld.getColumnsConfiguration();
 		int index = 0;
 		for (String key : keys) {
 			keyToIndexMap.put(key, index);
@@ -134,7 +134,7 @@ public class Sharding {
 
 		logger.info("Populating frequency map from data started");
 		setKeysToIndexes();
-		String[] keys = Property.getShardingDimensions();
+		String[] keys = PropertyOld.getShardingDimensions();
 		int lineNo = 0;
 		FileWriter.openFile(BAD_RECORDS_FILE);
 		int count = 0;
@@ -178,7 +178,7 @@ public class Sharding {
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() {
 		logger.info("Calculating keys to list of buckets map started");
-		String[] keys = Property.getShardingDimensions();
+		String[] keys = PropertyOld.getShardingDimensions();
 		int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		logger.info("Total no. of buckets: {}", totalNoOfBuckets);
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = getSortedKeyToListOfKeyValueFrequenciesMap();
@@ -224,7 +224,7 @@ public class Sharding {
 
 	public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap() {
 		Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
-		String[] keys = Property.getShardingDimensions();
+		String[] keys = PropertyOld.getShardingDimensions();
 		for (String key : keys) {
 			List<KeyValueFrequency> frequencies = new ArrayList<>();
 			Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);

@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -31,8 +31,8 @@ public class DownloadOutputMain {
 		validateProgramArguments(args);
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
-		NodesManager nodesManager = Property.getNodesManagerIntances();
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
+		NodesManager nodesManager = PropertyOld.getNodesManagerIntances();
 		LOGGER.info("WAITING FOR DOWNLOAD FINISH SIGNAL");
 		getFinishNodeJobsSignal(CommonUtil.ZKJobNodeEnum.DOWNLOAD_FINISHED.name());
 		LOGGER.info("DOWNLOAD OF OUTPUT FILE IS COMPLETED");
@@ -48,7 +48,7 @@ public class DownloadOutputMain {
 	 * Get download finish signal.
 	 */
 	private static void getFinishNodeJobsSignal(String nodeName) {
-		int totalCluster = Integer.valueOf(Property.getProperties()
+		int totalCluster = Integer.valueOf(PropertyOld.getProperties()
 				.get("common.no.of.droplets").toString());
 		for (int nodeId = 0; nodeId < totalCluster; nodeId++) {
 			if (!getSignalFromZk(nodeId, nodeName)) {
@@ -85,7 +85,7 @@ public class DownloadOutputMain {
 	}
 
 	private static void sendSignalForAllOutputFilesDownloaded(NodesManager nodesManager){
-		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
+		String buildPath = PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
 			nodesManager.createPersistentNode(buildPath, signal);
@@ -103,7 +103,7 @@ public class DownloadOutputMain {
 	 * @throws InterruptedException
 	 */
 	private static void waitForSignalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
-		String buildPath = Property.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
+		String buildPath = PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
 			ZKUtils.waitForSignal(buildPath, signal);

@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.FileDataStore;
 
@@ -30,13 +30,13 @@ public class NodeDataFileReader {
 	private static FieldTypeArrayDataDescription dataDescription;
 
 	public static void main(String[] args) throws IOException {
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
 		if (args.length != 1) {
 			System.out.println(
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
-		int noOfKeys = Property.getShardingDimensions().length;
+		int noOfKeys = PropertyOld.getShardingDimensions().length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
 			String dataFileName = args[0] + FileDataStore.DATA_FILE_BASE_NAME + i;
 			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
@@ -70,7 +70,7 @@ public class NodeDataFileReader {
 
 	private static DynamicMarshal getDynamicMarshal() {
 		dataDescription = CommonUtil.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getShardingDimensions());
+		dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

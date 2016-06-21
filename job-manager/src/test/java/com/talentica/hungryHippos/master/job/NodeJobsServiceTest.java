@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.master.job;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -12,6 +13,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.CommonProperty;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.JobEntity;
 
@@ -73,5 +76,6 @@ public class NodeJobsServiceTest {
 	public void testReceiveJobSucceedNotificationFromNode() {
 		fail("Not yet implemented");
 	}
+	
 
 }

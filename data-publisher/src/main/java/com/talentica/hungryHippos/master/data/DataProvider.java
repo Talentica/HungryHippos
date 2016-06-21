@@ -27,7 +27,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -45,21 +45,21 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class DataProvider {
 
     private static final int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer
-            .valueOf(Property.getPropertyValue("no.of.attempts.to.connect.to.node").toString());
+            .valueOf(PropertyOld.getPropertyValue("no.of.attempts.to.connect.to.node").toString());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
     private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
     private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
 
 	private static BucketsCalculator bucketsCalculator;
-	private final static String BAD_RECORDS_FILE = Property.getPropertyValue("common.bad.records.file.out")+"_datapublish.err";
+	private final static String BAD_RECORDS_FILE = PropertyOld.getPropertyValue("common.bad.records.file.out")+"_datapublish.err";
 
     private static String[] loadServers(NodesManager nodesManager) throws Exception {
         LOGGER.info("Load the server form the configuration file");
         ArrayList<String> servers = new ArrayList<>();
-        Object obj = nodesManager.getConfigFileFromZNode(Property.SERVER_CONF_FILE);
+        Object obj = nodesManager.getConfigFileFromZNode(PropertyOld.SERVER_CONF_FILE);
         ZKNodeFile serverConfig = (obj == null) ? null : (ZKNodeFile) obj;
-		Properties prop = Property.loadServerProperties();
+		Properties prop = PropertyOld.loadServerProperties();
 		if (serverConfig != null) {
 			prop = serverConfig.getFileData();
 		}
@@ -77,7 +77,7 @@ public class DataProvider {
         long start = System.currentTimeMillis();
         String[] servers = loadServers(nodesManager);
         FieldTypeArrayDataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
-        dataDescription.setKeyOrder(Property.getShardingDimensions());
+        dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
         byte[] buf = new byte[dataDescription.getSize()];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -113,7 +113,7 @@ public class DataProvider {
 
         LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
         Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-				Property.getPropertyValue("input.file").toString(), dataParser);
+				PropertyOld.getPropertyValue("input.file").toString(), dataParser);
         long timeForEncoding = 0;
         long timeForLookup = 0;
         int lineNo = 0;
@@ -132,7 +132,7 @@ public class DataProvider {
             }
 
             Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
-            String[] keyOrder = Property.getShardingDimensions();
+            String[] keyOrder = PropertyOld.getShardingDimensions();
 
 			for (int i = 0; i < keyOrder.length; i++) {
 				String key = keyOrder[i];

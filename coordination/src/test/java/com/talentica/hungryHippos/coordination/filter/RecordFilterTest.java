@@ -16,8 +16,8 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -35,7 +35,7 @@ public class RecordFilterTest {
 
   @Before
   public void setUp() {
-    Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+    PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
     dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
     sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "temp.csv";
     badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";

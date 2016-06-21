@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -31,7 +31,7 @@ public class FileDataStore implements DataStore, Serializable {
 	private DataDescription dataDescription;
 
 	private static final boolean APPEND_TO_DATA_FILES = Boolean
-			.valueOf(Property.getPropertyValue("datareceiver.append.to.data.files"));
+			.valueOf(PropertyOld.getPropertyValue("datareceiver.append.to.data.files"));
 
 	private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
 
@@ -77,7 +77,7 @@ public class FileDataStore implements DataStore, Serializable {
 
 	@Override
 	public StoreAccess getStoreAccess(int keyId) {
-		int shardingIndexSequence = Property.getShardingIndexSequence(keyId);
+		int shardingIndexSequence = PropertyOld.getShardingIndexSequence(keyId);
 		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
 		if (storeAccess == null) {
 			storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);

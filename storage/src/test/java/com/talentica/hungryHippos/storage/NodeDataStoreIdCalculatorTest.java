@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -66,12 +66,12 @@ public class NodeDataStoreIdCalculatorTest {
 
 	private FieldTypeArrayDataDescription getDataDescription() {
 		FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
-		String[] datatypes = Property.getPropertyValue("column.datatype-size").toString().split(",");
+		String[] datatypes = PropertyOld.getPropertyValue("column.datatype-size").toString().split(",");
 		for (String datatype : datatypes) {
 			dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
 					Integer.valueOf(datatype.split("-")[1]));
 		}
-		dataDescription.setKeyOrder(Property.getShardingDimensions());
+		dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
 		return dataDescription;
 	}
 

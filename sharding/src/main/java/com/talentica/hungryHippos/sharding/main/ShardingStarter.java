@@ -10,8 +10,8 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
@@ -57,13 +57,13 @@ public class ShardingStarter {
 		String jobUUId = args[0];
 		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
 		CommonUtil.loadDefaultPath(jobUUId);
-		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
 		if (ENVIRONMENT.getCurrentEnvironment() == ENVIRONMENT.LOCAL)
 			ZKUtils.createDefaultNodes(jobUUId);
 	}
 
 	private static Reader getInputReaderForSharding(DataParser dataParser) throws IOException {
-		sampleInputFile = Property.getPropertyValue("input.file").toString();
+		sampleInputFile = PropertyOld.getPropertyValue("input.file").toString();
 		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(sampleInputFile, dataParser);
 	}
 

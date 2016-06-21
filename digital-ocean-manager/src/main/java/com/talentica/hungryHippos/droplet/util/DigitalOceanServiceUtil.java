@@ -32,7 +32,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
 import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
@@ -47,7 +47,7 @@ import com.talentica.hungryHippos.tester.api.job.JobInput;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static NodesManager nodesManager = Property.getNodesManagerIntances();
+	private static NodesManager nodesManager = PropertyOld.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
 	private static int MAXIMUM_DROPLETS_IN_BATCH = 10;
@@ -283,7 +283,7 @@ public class DigitalOceanServiceUtil {
 			throws DigitalOceanException, RequestUnsuccessfulException {
 		Droplets droplets;
 		List<String> newNames = new ArrayList<>();
-		int onOfDroplets = Integer.valueOf(Property.getProperties().getProperty("common.no.of.droplets"));
+		int onOfDroplets = Integer.valueOf(PropertyOld.getProperties().getProperty("common.no.of.droplets"));
 		String PRIFIX = "hh";
 		String HYPHEN = "-";
 		List<String> names = dropletEntity.getDroplet().getNames();
@@ -335,11 +335,11 @@ public class DigitalOceanServiceUtil {
 			throws DigitalOceanException, RequestUnsuccessfulException,
 			InterruptedException, IOException, Exception {
 		
-		String formatFlag = Property.getZkPropertyValue(
+		String formatFlag = PropertyOld.getZkPropertyValue(
 				"zk.cleanup.zookeeper.nodes").toString();
-		int retryCounter = Integer.valueOf(Property.getZkPropertyValue(
+		int retryCounter = Integer.valueOf(PropertyOld.getZkPropertyValue(
 				"zk.zookeeper.retry").toString());
-		if (Property.getNamespace().name().equalsIgnoreCase("zk")
+		if (PropertyOld.getNamespace().name().equalsIgnoreCase("zk")
 				&& formatFlag.equals("Y")) {
 			List<Droplet> dropletFill = getActiveDroplets(dropletService,
 					droplets,jobUUId[0]);
@@ -348,7 +348,7 @@ public class DigitalOceanServiceUtil {
 			List<String> ipv4AddrsList = generateServerConfigFile(dropletFill,jobUUId[0]);
 			LOGGER.info("IP Address {}",ipv4AddrsList);
 			LOGGER.info("Generating server config file");
-			writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH+Property.SERVER_CONF_FILE, ipv4AddrsList);
+			writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH+PropertyOld.SERVER_CONF_FILE, ipv4AddrsList);
 			LOGGER.info("Server config file is created...");
 			LOGGER.info("Start zookeeper server");
 			ZKUtils.startZookeeperServer(jobUUId[0]);
@@ -376,7 +376,7 @@ public class DigitalOceanServiceUtil {
 			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			LOGGER.info("Conf file is uploaded...");
 			List<String> webServerIp = new ArrayList<String>();
-			webServerIp.add(Property.getProperties().get("common.webserver.ip").toString());
+			webServerIp.add(PropertyOld.getProperties().get("common.webserver.ip").toString());
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 		}
 	}
@@ -419,12 +419,12 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadDynamicConfigFileToZk(Map<String, String> keyValue)
 			throws IOException {
-		Properties properties = Property.getProperties();
+		Properties properties = PropertyOld.getProperties();
 		properties.setProperty("zookeeper.server.ips", ZK_IP + ":2181");
 		for (Entry<String, String> entry : keyValue.entrySet()) {
 			properties.setProperty(entry.getKey(), entry.getValue());
 		}
-		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(Property.MERGED_CONFIG_PROP_FILE, properties);
+		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(PropertyOld.MERGED_CONFIG_PROP_FILE, properties);
 		nodesManager.saveConfigFileToZNode(mergedConfigNodeFile, null);
 		
 	}
@@ -435,8 +435,8 @@ public class DigitalOceanServiceUtil {
 	 */
 	private static void uploadServerConfigFileToZK() throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(Property.SERVER_CONF_FILE,
-				Property.loadServerProperties());
+		ZKNodeFile serverConfigFile = new ZKNodeFile(PropertyOld.SERVER_CONF_FILE,
+				PropertyOld.loadServerProperties());
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}

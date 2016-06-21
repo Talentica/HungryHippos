@@ -8,15 +8,15 @@ import org.junit.Assert;
 
  import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
  import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
  
 
  public class KeyValueFrequencyTest {
 
  @Test
  public void testEquals() {
- FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(Property.getDataTypeConfiguration(),1);
- dataDescription.setKeyOrder(Property.getShardingDimensions());
+ FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(PropertyOld.getDataTypeConfiguration(),1);
+ dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
  MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);
  KeyValueFrequency keyValue1frequency1 = new
  KeyValueFrequency(mutableCharArrayStringL1, 10);

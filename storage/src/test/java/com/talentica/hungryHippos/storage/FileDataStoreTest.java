@@ -13,8 +13,8 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -30,7 +30,7 @@ public class FileDataStoreTest {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
 		fileDataStore = new FileDataStore(numDimensions, dataDescription);
 	}
 

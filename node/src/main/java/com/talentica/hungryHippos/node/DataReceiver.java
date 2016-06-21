@@ -22,8 +22,8 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
@@ -90,9 +90,9 @@ public class DataReceiver {
 			long startTime = System.currentTimeMillis();
 			DataReceiver dataReceiver = getNodeInitializer();
 			ZKNodeFile serverConfig = ZKUtils
-					.getConfigZKNodeFile(Property.SERVER_CONF_FILE);
+					.getConfigZKNodeFile(PropertyOld.SERVER_CONF_FILE);
 			int nodeId = NodeUtil.getNodeId();
-			Properties serverConfigProps = Property.loadServerProperties();
+			Properties serverConfigProps = PropertyOld.loadServerProperties();
 			if (serverConfig != null) {
 				serverConfigProps = serverConfig.getFileData();
 			}
@@ -127,8 +127,8 @@ public class DataReceiver {
 		CommonUtil.loadDefaultPath(jobUUId);
 		ZkSignalListener.jobuuidInBase64 = CommonUtil
 				.getJobUUIdInBase64(jobUUId);
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
-		DataReceiver.nodesManager = Property.getNodesManagerIntances();
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
+		DataReceiver.nodesManager = PropertyOld.getNodesManagerIntances();
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class DataReceiver {
 	private static DataReceiver getNodeInitializer() throws Exception {
 		FieldTypeArrayDataDescription dataDescription = CommonUtil
 				.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(Property.getShardingDimensions());
+		dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
 		return new DataReceiver(dataDescription);
 	}
 

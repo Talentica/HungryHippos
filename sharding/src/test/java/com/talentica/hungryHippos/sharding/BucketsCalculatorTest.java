@@ -3,17 +3,17 @@ package com.talentica.hungryHippos.sharding;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 
 public class BucketsCalculatorTest {
 
 	@Test
 	public void testCalculateNumberOfBucketsNeeded() {
-		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		Property.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1,key2,key3");
-		Property.setOrOverrideConfigurationProperty("environment", "TEST");
-		Property.setOrOverrideConfigurationProperty("master.maximumShardFileSizeInBytes", "20000000");
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
+		PropertyOld.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1,key2,key3");
+		PropertyOld.setOrOverrideConfigurationProperty("environment", "TEST");
+		PropertyOld.setOrOverrideConfigurationProperty("master.maximumShardFileSizeInBytes", "20000000");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		Assert.assertEquals(50, numberOfBucketsNeeded);
 		Assert.assertTrue(numberOfBucketsNeeded <= 1000);
@@ -21,9 +21,9 @@ public class BucketsCalculatorTest {
 
 	@Test
 	public void testCalculateNumberOfBucketsNeededIfBucketsCountIsExceeding() {
-		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
-		Property.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1");
-		Property.setOrOverrideConfigurationProperty("environment", "TEST");
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
+		PropertyOld.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1");
+		PropertyOld.setOrOverrideConfigurationProperty("environment", "TEST");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		Assert.assertEquals(50, numberOfBucketsNeeded);
 	}

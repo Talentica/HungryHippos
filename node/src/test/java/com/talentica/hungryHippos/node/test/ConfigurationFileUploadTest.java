@@ -21,8 +21,8 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.node.NodeUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
@@ -48,7 +48,7 @@ public class ConfigurationFileUploadTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception{
-		Property.initialize(PROPERTIES_NAMESPACE.MASTER);
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
 		//(nodesManager = ServerHeartBeat.init()).startup();
 		nodesManager = CommonUtil.connectZK();
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(

@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.Property.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -27,13 +27,13 @@ public class StartProcessDBEntryMain {
 		validateProgramArguments(args);
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
-		Property.initialize(PROPERTIES_NAMESPACE.NODE);
+		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
 		callProcessAfterShardingScript();
 	}
 	
 	private static void callProcessAfterShardingScript() {
-		String jobuuid = Property.getProperties().getProperty("job.uuid");
-		String webserverIp = Property.getProperties().getProperty(
+		String jobuuid = PropertyOld.getProperties().getProperty("job.uuid");
+		String webserverIp = PropertyOld.getProperties().getProperty(
 				"common.webserver.ip");
 		logger.info(
 				"Calling process db python script and uuid {} webserver ip {}",

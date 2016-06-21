@@ -18,4 +18,8 @@ public class ZkProperty extends CommonProperty<ZkProperty> {
     super(propFileName);
   }
 
+  public ZkProperty() {
+
+  }
+
 }

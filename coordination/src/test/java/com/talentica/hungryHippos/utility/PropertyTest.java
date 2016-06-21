@@ -105,9 +105,26 @@ public class PropertyTest {
   }
 
   @Test
-  public void testProperty() throws IOException {
+  public void testPropertyByOverriding() throws IOException {
+    Property<ZkProperty> property =
+        new ZkProperty()
+            .overrideProperty("/home/pooshans/HungryHippos/coordination/src/main/resources/zookeeper.properties");
+    Properties properties = property.getProperties();
+    Assert.assertNotNull(properties);
+  }
+
+  @Test
+  public void testPropertyByConstructor() throws IOException {
     Property<ZkProperty> property = new ZkProperty("zookeeper.properties");
     Properties properties = property.getProperties();
+    Assert.assertNotNull(properties);
+  }
+
+  @Test
+  public void testPropertyBySetproperty() throws IOException {
+    Property<ZkProperty> property = new ZkProperty().setPropertyFileName("zookeeper.properties");
+    Properties properties = property.getProperties();
+    Assert.assertNotNull(properties);
   }
 
 }

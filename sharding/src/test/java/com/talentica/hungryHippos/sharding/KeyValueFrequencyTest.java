@@ -3,20 +3,19 @@
 
 
 import org.junit.Assert;
- import org.junit.Test;
+import org.junit.Test;
 
-
- import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
- import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
  
 
  public class KeyValueFrequencyTest {
 
  @Test
  public void testEquals() {
- FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(PropertyOld.getDataTypeConfiguration(),1);
- dataDescription.setKeyOrder(PropertyOld.getShardingDimensions());
+ FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(CoordinationApplicationContext.getDataTypeConfiguration(),1);
+ dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
  MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);
  KeyValueFrequency keyValue1frequency1 = new
  KeyValueFrequency(mutableCharArrayStringL1, 10);

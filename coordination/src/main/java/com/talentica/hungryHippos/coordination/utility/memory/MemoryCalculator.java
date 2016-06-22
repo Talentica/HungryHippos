@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 
 /**
  * @author PooshanS
@@ -31,7 +31,7 @@ public class MemoryCalculator implements Memory{
 	}
 
 	private long getObjectSize(Long rowCount) {
-		DataDescription dataDescription = CommonUtil.getConfiguredDataDescription();
+		DataDescription dataDescription = CoordinationApplicationContext.getConfiguredDataDescription();
 		return (rowCount * dataDescription.getSize());
 	}
 

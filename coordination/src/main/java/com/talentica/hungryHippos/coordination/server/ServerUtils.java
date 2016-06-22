@@ -8,8 +8,6 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-
 /**
  * @author PooshanS
  *
@@ -18,9 +16,6 @@ public class ServerUtils {
 
 	public static final String PRIFIX_SERVER_NAME = "server";
 	public static final String DOT = ".";
-	public static final int SERVER_CONNECT_RETRY_INTERVAL = Integer
-			.valueOf(PropertyOld.getPropertyValue("servers.connect.retry.interval.in.ms"));
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerUtils.class
 			.getName());
 

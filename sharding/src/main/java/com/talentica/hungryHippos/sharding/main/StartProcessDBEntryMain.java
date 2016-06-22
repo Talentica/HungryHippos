@@ -3,21 +3,12 @@
  */
 package com.talentica.hungryHippos.sharding.main;
 
-import java.nio.file.Paths;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * @author PooshanS
  *
  */
-public class StartProcessDBEntryMain {
+public class StartProcessDBEntryMain {/*
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StartProcessDBEntryMain.class);
@@ -57,4 +48,4 @@ public class StartProcessDBEntryMain {
 	}
 
 
-}
+*/}

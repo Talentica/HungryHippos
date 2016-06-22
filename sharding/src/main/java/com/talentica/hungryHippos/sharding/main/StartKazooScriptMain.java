@@ -3,18 +3,12 @@
  */
 package com.talentica.hungryHippos.sharding.main;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 
 /**
  * @author PooshanS
  *
  */
-public class StartKazooScriptMain {
+public class StartKazooScriptMain {/*
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StartKazooScriptMain.class);
@@ -39,4 +33,4 @@ public class StartKazooScriptMain {
 
 	}
 
-}
+*/}

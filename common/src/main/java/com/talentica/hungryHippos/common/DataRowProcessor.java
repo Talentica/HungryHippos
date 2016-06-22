@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
@@ -27,20 +27,20 @@ public class DataRowProcessor implements RowProcessor {
 	private static final String BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS = "Before garbage collection free memory available is: ";
 
 	private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR = Long
-			.parseLong(PropertyOld.getPropertyValue("node.no.of.rows.to.check.memory.consumption.after").toString());
+			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("node.no.of.rows.to.check.memory.consumption.after").toString());
 
 	private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = Long
-			.parseLong(PropertyOld.getPropertyValue("no.of.rows.to.log.progress.after").toString());
+			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("no.of.rows.to.log.progress.after").toString());
 
 	private static final long NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER = Long
-			.parseLong(PropertyOld.getPropertyValue("no.of.rows.to.check.available.memory.after").toString());
+			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("no.of.rows.to.check.available.memory.after").toString());
 
 	private static final long WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS = Long.parseLong(
-			PropertyOld.getPropertyValue("wait.time.in.ms.after.gc.is.requested.for.single.valueset.is.in.process")
+	    CoordinationApplicationContext.getProperty().getValueByKey("wait.time.in.ms.after.gc.is.requested.for.single.valueset.is.in.process")
 					.toString());
 
 	private static final int MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS = Integer
-			.parseInt(PropertyOld.getPropertyValue("max.no.of.gc.retries.when.single.valueset.is.in.process").toString());
+			.parseInt(CoordinationApplicationContext.getProperty().getValueByKey("max.no.of.gc.retries.when.single.valueset.is.in.process").toString());
 
 	private DynamicMarshal dynamicMarshal;
 
@@ -73,7 +73,7 @@ public class DataRowProcessor implements RowProcessor {
 	private int totalNoOfRowsProcessed = 0;
 
 	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
-			.valueOf(PropertyOld.getPropertyValue("node.min.free.memory.in.mbs"));
+			.valueOf(CoordinationApplicationContext.getProperty().getValueByKey("node.min.free.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
 

@@ -10,10 +10,8 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.ZkProperty;
 
 /**
@@ -25,8 +23,7 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetPropertyValueForMaster() {
-    PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
-    Object cleanupZookeeperNodesPropValue = PropertyOld.getPropertyValue("cleanup.zookeeper.nodes");
+    Object cleanupZookeeperNodesPropValue = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
     Assert.assertNotNull(cleanupZookeeperNodesPropValue);
     Assert.assertEquals("N", cleanupZookeeperNodesPropValue);
   }
@@ -34,8 +31,7 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetPropertyValueForNode() {
-    PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
-    Object cleanupZookeeperNodesPropValue = PropertyOld.getPropertyValue("cleanup.zookeeper.nodes");
+    Object cleanupZookeeperNodesPropValue = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
     Assert.assertNotNull(cleanupZookeeperNodesPropValue);
     Assert.assertEquals("N", cleanupZookeeperNodesPropValue);
   }
@@ -43,16 +39,14 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetPropertyValueWithoutNamespace() {
-    PropertyOld.initialize(null);
-    Object zookeeperServerIps = PropertyOld.getPropertyValue("zookeeper.server.ips");
+    Object zookeeperServerIps = CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.server.ips");
     Assert.assertNotNull(zookeeperServerIps);
   }
 
   @Test
   @Ignore
   public void testGetKeyOrder() {
-    PropertyOld.initialize(null);
-    String[] keyOrder = PropertyOld.getShardingDimensions();
+    String[] keyOrder = CoordinationApplicationContext.getShardingDimensions();
     Assert.assertNotNull(keyOrder);
     for (String key : keyOrder) {
       Assert.assertNotNull(key);
@@ -64,7 +58,7 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetKeyNamesFromIndexes() {
-    String[] keyNames = PropertyOld.getKeyNamesFromIndexes(new int[] {1, 2});
+    String[] keyNames = CoordinationApplicationContext.getKeyNamesFromIndexes(new int[] {1, 2});
     Assert.assertNotNull(keyNames);
     Assert.assertEquals(2, keyNames.length);
     Assert.assertEquals("key2", keyNames[0]);
@@ -74,7 +68,7 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetKeyNamesFromIndexesWithEmptyArray() {
-    String[] keyNames = PropertyOld.getKeyNamesFromIndexes(new int[] {});
+    String[] keyNames = CoordinationApplicationContext.getKeyNamesFromIndexes(new int[] {});
     Assert.assertNotNull(keyNames);
     Assert.assertEquals(0, keyNames.length);
   }
@@ -82,15 +76,13 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetEnvironmentSpecificProperty() {
-    ENVIRONMENT.setCurrentEnvironment("LOCAL");
-    Assert.assertEquals(2, PropertyOld.getShardingDimensions().length);
+    Assert.assertEquals(2, CoordinationApplicationContext.getShardingDimensions().length);
   }
 
   @Test
   @Ignore
   public void testGetShardingIndexes() {
-    PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
-    int[] shardingKeyIndexes = PropertyOld.getShardingIndexes();
+    int[] shardingKeyIndexes = CoordinationApplicationContext.getShardingIndexes();
     Assert.assertNotNull(shardingKeyIndexes);
     Assert.assertEquals(2, shardingKeyIndexes.length);
     Assert.assertEquals(2, shardingKeyIndexes[0]);
@@ -100,7 +92,7 @@ public class PropertyTest {
   @Test
   @Ignore
   public void testGetShardingIndexSequence() {
-    Assert.assertEquals(1, PropertyOld.getShardingIndexSequence(3));
+    Assert.assertEquals(1, CoordinationApplicationContext.getShardingIndexSequence(3));
 
   }
 

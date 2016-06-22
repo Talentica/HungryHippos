@@ -12,9 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myjeeva.digitalocean.exception.DigitalOceanException;
 import com.myjeeva.digitalocean.exception.RequestUnsuccessfulException;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
-import com.talentica.hungryHippos.coordination.utility.ScriptExecutionUtil;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
 import com.talentica.hungryHippos.droplet.util.DigitalOceanServiceUtil;
@@ -31,7 +29,7 @@ public class DigitalOceanManager {
 	private static ObjectMapper mapper = new ObjectMapper();
 	private static String jobUUId;
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {/*
 		try {
 			if (args.length == 2) {
 				PropertyOld.overrideConfigurationProperties(args[1]);
@@ -43,9 +41,8 @@ public class DigitalOceanManager {
 				LOGGER.info("Please provide the argument.First argument is json,second argument is config file and third argument is optional for jobUUId");
 				return;
 			}
-			PropertyOld.initialize(PROPERTIES_NAMESPACE.ZK);
 			validateProgramArguments(args);
-			PropertyOld.getProperties().get("common.webserver.ip").toString();
+			CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip").toString();
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());
@@ -60,7 +57,7 @@ public class DigitalOceanManager {
 			LOGGER.info("Unable to perform the operations {}", e);
 			ScriptExecutionUtil.callCopyFailureShellScript(jobUUId);
 		}
-	}
+	*/}
 
 	/**
 	 * @param args

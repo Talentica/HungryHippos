@@ -14,9 +14,8 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -70,8 +69,6 @@ public class ShardingTest {
 	 */
 	@Test
 	public void testDoSharding() {
-		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
-		ENVIRONMENT.setCurrentEnvironment("LOCAL");
 		Sharding.doSharding(shardingInputFileReader);
 	}
 
@@ -89,7 +86,7 @@ public class ShardingTest {
 		Map<String, Map<MutableCharArrayString, Long>> frequencyData = sharding
 				.populateFrequencyFromData(shardingInputFileReader);
 		Assert.assertNotNull(frequencyData);
-		int noOfKeys = PropertyOld.getShardingDimensions().length;
+		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
 		Assert.assertEquals(noOfKeys, frequencyData.size());
 		Map<MutableCharArrayString, Long> keyValueFrequencyList = frequencyData.get("key3");
 		Assert.assertNotNull(keyValueFrequencyList);

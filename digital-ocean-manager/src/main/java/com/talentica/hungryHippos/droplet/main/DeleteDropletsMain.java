@@ -13,8 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -32,8 +31,7 @@ public class DeleteDropletsMain {
 		validateProgramArguments(args);
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
-		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
-		DeleteDropletsMain.nodesManager = PropertyOld.getNodesManagerIntances();
+		DeleteDropletsMain.nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
 		LOGGER.info("WAITING FOR THE SIGNAL OF THE DELETE DROPLET");
 		waitForSignalOfDeleteDroplets();
 		LOGGER.info("DROPLET DELETE SIGNAL IS RECIEVED");

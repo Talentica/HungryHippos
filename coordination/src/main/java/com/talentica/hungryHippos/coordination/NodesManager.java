@@ -40,9 +40,8 @@ import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.CommonProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkProperty;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -65,6 +64,7 @@ public class NodesManager implements Watcher {
   private ZookeeperConfiguration zkConfiguration;
   private List<Server> servers;
   private Map<String, Server> serverNameMap;
+  private CoordinationApplicationContext applicationContext = new CoordinationApplicationContext();
   private Property<ZkProperty> zkproperty;
   private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
 
@@ -100,7 +100,7 @@ public class NodesManager implements Watcher {
     servers = new ArrayList<Server>();
     serverNameMap = new HashMap<String, Server>();
     pathMap = new HashMap<String, String>();
-    zkproperty = new ZkProperty("zookeeper.properties");
+    zkproperty = applicationContext.getZkProperty();
     pathMap.put(PathEnum.NAMESPACE.name(), zkproperty.getValueByKey("zookeeper.namespace_path"));
     pathMap.put(PathEnum.BASEPATH.name(), zkproperty.getValueByKey("zookeeper.base_path"));
     pathMap.put(PathEnum.ZKIPTPATH.name(), zkproperty.getValueByKey("zookeeper.server.ips"));
@@ -110,6 +110,12 @@ public class NodesManager implements Watcher {
     zkConfiguration = new ZookeeperConfiguration(pathMap, sessionTimeOut);
   }
 
+  /**
+   * To connect to the zookeeper.
+   * 
+   * @param zkIP is the zookeeper ip that will be used to connected.
+   * @return NodesManager
+   */
   public NodesManager connectZookeeper(String zkIP) {
     try {
       if (zkIP == null) {
@@ -127,7 +133,7 @@ public class NodesManager implements Watcher {
   }
 
   /**
-   * To connect the with zookeeper host
+   * To connect the with zookeeper host.
    * 
    * @param hosts
    * @throws Exception
@@ -140,12 +146,13 @@ public class NodesManager implements Watcher {
   }
 
   /**
-   * To start the application
+   * To start the application. Once the connection is established, this method register the servers
+   * on the zookeeper nodes which will be under monitoring throughout the live application.
    * 
    * @throws Exception
    */
   public void startup() throws Exception {
-    formatFlag = PropertyOld.getPropertyValue("cleanup.zookeeper.nodes");
+    formatFlag = zkproperty.getValueByKey("cleanup.zookeeper.nodes");
     if (formatFlag != null && formatFlag.equals("Y")) {
       CountDownLatch signal = new CountDownLatch(1);
       ZKUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
@@ -572,7 +579,7 @@ public class NodesManager implements Watcher {
    */
   private void createServersMap() {
     List<String> checkUnique = new ArrayList<String>();
-    Properties property = PropertyOld.loadServerProperties();
+    Properties property = CoordinationApplicationContext.loadServerProperties();
     int nodeIndex = 0;
     int size = property.keySet().size();
     for (int index = 0; index < size; index++) {
@@ -599,19 +606,9 @@ public class NodesManager implements Watcher {
         LOGGER.info("SERVER NAME AND IP :: [" + server.getName() + " , "
             + server.getServerAddress().getIp() + "]");
       }
-      getSignal = new CountDownLatch(this.servers.size() + DEFAULT_NODES);// additional
-      // 3
-      // is
-      // added
-      // because
-      // of
-      // namesapce,alert
-      // and
-      // basepath
-      // node
-      // is
-      // also
-      // created
+
+      // additional 3 is added because of namesapce,alert and basepath node is also created
+      getSignal = new CountDownLatch(this.servers.size() + DEFAULT_NODES);
     }
   }
 

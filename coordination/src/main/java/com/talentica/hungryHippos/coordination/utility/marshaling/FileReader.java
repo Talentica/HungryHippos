@@ -10,7 +10,6 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
  * Created by debasishc on 22/6/15.

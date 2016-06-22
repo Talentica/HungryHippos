@@ -14,95 +14,101 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * Created by debasishc on 31/8/15.
  */
 public class FileDataStore implements DataStore, Serializable {
-	/**
+  /**
 	 * 
 	 */
-	private static final long serialVersionUID = -7726551156576482829L;
-	private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
-	private final int numFiles;
-	private OutputStream[] os;
-	private DataDescription dataDescription;
+  private static final long serialVersionUID = -7726551156576482829L;
+  private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
+  private final int numFiles;
+  private OutputStream[] os;
+  private DataDescription dataDescription;
 
-	private static final boolean APPEND_TO_DATA_FILES = Boolean
-			.valueOf(PropertyOld.getPropertyValue("datareceiver.append.to.data.files"));
+  private static final boolean APPEND_TO_DATA_FILES = Boolean
+      .valueOf(CoordinationApplicationContext.getProperty().getValueByKey(
+          "datareceiver.append.to.data.files"));
 
-	private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
+  private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
+      new HashMap<>();
 
-	public static final String DATA_FILE_BASE_NAME = File.separator + "data_";
-	public static final String FOLDER_NAME = "data";
+  public static final String DATA_FILE_BASE_NAME = File.separator + "data_";
+  public static final String FOLDER_NAME = "data";
 
-	public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
-		this(numDimensions, dataDescription, false);
-	}
+  public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
+    this(numDimensions, dataDescription, false);
+  }
 
-	public FileDataStore(int numDimensions, DataDescription dataDescription, boolean readOnly) throws IOException {
-		this.numFiles = 1 << numDimensions;
-		this.dataDescription = dataDescription;
-		os = new OutputStream[numFiles];
-		//check data folder exists , if its not present this logic will create a folder named data.
-		String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + FOLDER_NAME;
-		File file = new File(dirloc);
-		if (!file.exists()) {
-			boolean flag = file.mkdir();
-			if (flag) {
-				logger.info("created data folder");
-			} else {
-				logger.info("Not able to create dataFolder");
-			}
-		}
-		if (!readOnly) {
-			for (int i = 0; i < numFiles; i++) {
-				os[i] = new BufferedOutputStream(
-						new FileOutputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
-								+ FOLDER_NAME + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
-			}
-		}
-	}
+  public FileDataStore(int numDimensions, DataDescription dataDescription, boolean readOnly)
+      throws IOException {
+    this.numFiles = 1 << numDimensions;
+    this.dataDescription = dataDescription;
+    os = new OutputStream[numFiles];
+    // check data folder exists , if its not present this logic will create a folder named data.
+    String dirloc =
+        new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + FOLDER_NAME;
+    File file = new File(dirloc);
+    if (!file.exists()) {
+      boolean flag = file.mkdir();
+      if (flag) {
+        logger.info("created data folder");
+      } else {
+        logger.info("Not able to create dataFolder");
+      }
+    }
+    if (!readOnly) {
+      for (int i = 0; i < numFiles; i++) {
+        os[i] =
+            new BufferedOutputStream(new FileOutputStream(
+                new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
+                    + FOLDER_NAME + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
+      }
+    }
+  }
 
-	@Override
-	public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
-		try {
-			os[storeId].write(raw);
-		} catch (IOException e) {
-			logger.error("Error occurred while writing data received to datastore.", e);
-		}
-	}
+  @Override
+  public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
+    try {
+      os[storeId].write(raw);
+    } catch (IOException e) {
+      logger.error("Error occurred while writing data received to datastore.", e);
+    }
+  }
 
-	@Override
-	public StoreAccess getStoreAccess(int keyId) {
-		int shardingIndexSequence = PropertyOld.getShardingIndexSequence(keyId);
-		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
-		if (storeAccess == null) {
-			storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
-			primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
-		}
-		storeAccess.clear();
-		return storeAccess;
-	}
+  @Override
+  public StoreAccess getStoreAccess(int keyId) {
+    int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
+    FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
+    if (storeAccess == null) {
+      storeAccess =
+          new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
+      primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
+    }
+    storeAccess.clear();
+    return storeAccess;
+  }
 
-	@Override
-	public void sync() {
-		for (int i = 0; i < numFiles; i++) {
-			try {
-				os[i].flush();
-			} catch (IOException e) {
-				logger.error("Error occurred while flushing " + i + "th outputstream.", e);
-			} finally {
-				try {
-					if (os[i] != null)
-						os[i].close();
-				} catch (IOException e) {
-					logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
-				}
-			}
-		}
-	}
+  @Override
+  public void sync() {
+    for (int i = 0; i < numFiles; i++) {
+      try {
+        os[i].flush();
+      } catch (IOException e) {
+        logger.error("Error occurred while flushing " + i + "th outputstream.", e);
+      } finally {
+        try {
+          if (os[i] != null)
+            os[i].close();
+        } catch (IOException e) {
+          logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+        }
+      }
+    }
+  }
 
 }

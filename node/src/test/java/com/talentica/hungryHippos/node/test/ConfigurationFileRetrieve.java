@@ -18,9 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
-import com.talentica.hungryHippos.coordination.domain.ServerHeartBeat;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 /**
@@ -40,8 +38,7 @@ public class ConfigurationFileRetrieve {
 	
 	@Before
 	public void setUp() throws Exception{
-		PropertyOld.initialize(PROPERTIES_NAMESPACE.NODE);
-		(nodesManager = ServerHeartBeat.init()).startup();
+		(nodesManager = NodesManagerContext.getNodesManagerInstance()).startup();
 		keyToValueToBucketMap = new HashMap<String, Map<Object, Bucket<KeyValueFrequency>>>();
 	}
 	

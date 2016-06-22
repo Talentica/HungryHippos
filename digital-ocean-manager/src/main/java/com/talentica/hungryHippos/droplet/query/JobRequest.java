@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.tester.api.job.Job;
 import com.talentica.hungryHippos.tester.api.job.JobServiceResponse;
 
@@ -27,8 +27,8 @@ public class JobRequest {
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public Job getJobDetails(String uuid) throws HttpException, IOException {
-		final String WEBSERVER_IP = PropertyOld.getProperties().getProperty("common.webserver.ip");
-		final String WEBSERVER_PORT = PropertyOld.getProperties().getProperty("common.webserver.port");
+		final String WEBSERVER_IP = CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip");
+		final String WEBSERVER_PORT = CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.port");
 		final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
 		String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
 		LOGGER.info("Getting details of job:{}", uri);

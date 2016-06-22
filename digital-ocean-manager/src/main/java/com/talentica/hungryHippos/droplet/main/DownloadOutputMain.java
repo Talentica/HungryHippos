@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.droplet.main;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -13,9 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -27,7 +23,7 @@ public class DownloadOutputMain {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DownloadOutputMain.class);
 	private static String jobUUId;
-	public static void main(String[] args) throws FileNotFoundException{
+	public static void main(String[] args) throws FileNotFoundException{/*
 		validateProgramArguments(args);
 		jobUUId = args[0];
 		CommonUtil.loadDefaultPath(jobUUId);
@@ -39,15 +35,15 @@ public class DownloadOutputMain {
 		LOGGER.info("SEND SIGNAL TO OUTPUT SERVER THAT ALL FILES ARE DOWNLOAED");
 		sendSignalForAllOutputFilesDownloaded(nodesManager);
 		LOGGER.info("SIGNAL SENT");
-		/*LOGGER.info("WAITING FOR THE SIGNAL OF TRANSFER AND ZIPPED FROM OUTPUT SERVER");
+		LOGGER.info("WAITING FOR THE SIGNAL OF TRANSFER AND ZIPPED FROM OUTPUT SERVER");
 		waitForSignalOfOutputFileZippedAndTransferred(nodesManager);
-		LOGGER.info("ALL OUTPUT FILE IS TRANSFFERED AND ZIPPED.");*/
-	}
+		LOGGER.info("ALL OUTPUT FILE IS TRANSFFERED AND ZIPPED.");
+	*/}
 	
 	/**
 	 * Get download finish signal.
 	 */
-	private static void getFinishNodeJobsSignal(String nodeName) {
+	private static void getFinishNodeJobsSignal(String nodeName) {/*
 		int totalCluster = Integer.valueOf(PropertyOld.getProperties()
 				.get("common.no.of.droplets").toString());
 		for (int nodeId = 0; nodeId < totalCluster; nodeId++) {
@@ -56,7 +52,7 @@ public class DownloadOutputMain {
 			}
 		}
 		LOGGER.info("DOWNLOADED ALL RESULTS");
-	}
+	*/}
 	
 	private static void validateProgramArguments(String[] args) {
 		if (args.length < 1) {
@@ -84,7 +80,7 @@ public class DownloadOutputMain {
 		return true;
 	}
 
-	private static void sendSignalForAllOutputFilesDownloaded(NodesManager nodesManager){
+	private static void sendSignalForAllOutputFilesDownloaded(NodesManager nodesManager){/*
 		String buildPath = PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.ALL_OUTPUT_FILES_DOWNLOADED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
@@ -93,7 +89,7 @@ public class DownloadOutputMain {
 		} catch (IOException | InterruptedException e) {
 			LOGGER.info("Unable to create the path on zk node {}",buildPath);
 		}
-	}
+	*/}
 	
 	/**
 	 * Await for the signal of the sharding. Once sharding is completed, it start execution for the data publishing.
@@ -102,7 +98,7 @@ public class DownloadOutputMain {
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	private static void waitForSignalOfOutputFileZippedAndTransferred(NodesManager nodesManager){
+	private static void waitForSignalOfOutputFileZippedAndTransferred(NodesManager nodesManager){/*
 		String buildPath = PropertyOld.getPropertyValue("zookeeper.base_path") + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.OUTPUT_FILES_ZIPPED_AND_TRANSFERRED.getZKJobNode();
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
@@ -112,7 +108,7 @@ public class DownloadOutputMain {
 			LOGGER.info("Unable to wait for the signal of output zip and transfer signal");
 		}
 		
-	}
+	*/}
 	
 	
 }

@@ -16,8 +16,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld;
-import com.talentica.hungryHippos.coordination.utility.PropertyOld.PROPERTIES_NAMESPACE;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -35,7 +34,6 @@ public class RecordFilterTest {
 
   @Before
   public void setUp() {
-    PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
     dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
     sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "temp.csv";
     badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
@@ -48,7 +46,7 @@ public class RecordFilterTest {
       NoSuchMethodException, SecurityException {
     DataParser dataParser =
         (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-            .newInstance(CommonUtil.getConfiguredDataDescription());
+            .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
     data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
         sampleBadRecordFile, dataParser);
     int actualBadRecords = 0;

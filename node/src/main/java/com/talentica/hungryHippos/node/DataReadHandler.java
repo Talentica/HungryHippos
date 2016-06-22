@@ -1,5 +1,10 @@
 package com.talentica.hungryHippos.node;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -7,14 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
-import com.talentica.hungryHippos.coordination.server.ServerUtils;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -67,7 +67,10 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	}
 
 	private void waitForDataPublishersServerConnectRetryInterval() throws InterruptedException {
-		Thread.sleep(ServerUtils.SERVER_CONNECT_RETRY_INTERVAL * 2);
+	  int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE =
+	        Integer.valueOf(CoordinationApplicationContext.getProperty()
+	            .getValueByKey("no.of.attempts.to.connect.to.node").toString());
+		Thread.sleep(NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE * 2);
 	}
 
 	@Override

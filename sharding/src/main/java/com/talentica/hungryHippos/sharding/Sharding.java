@@ -145,7 +145,6 @@ public class Sharding {
     while (true) {
       DataTypes[] parts = null;
       try {
-        System.out.println(++count);
         parts = data.read();
       } catch (InvalidRowException e) {
         FileWriter.flushData(lineNo++, e);

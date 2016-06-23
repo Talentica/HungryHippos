@@ -10,7 +10,6 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
@@ -57,7 +56,6 @@ public class ShardingStarter {
     String jobUUId = args[0];
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     CommonUtil.loadDefaultPath(jobUUId);
-    ZKUtils.createDefaultNodes(jobUUId);
   }
 
   private static Reader getInputReaderForSharding(DataParser dataParser) throws IOException {

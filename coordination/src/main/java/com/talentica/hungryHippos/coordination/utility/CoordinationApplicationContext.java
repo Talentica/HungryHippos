@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
  * @author pooshans
@@ -27,17 +28,16 @@ public class CoordinationApplicationContext {
 
   private static Property<CoordinationProperty> property;
   private static Property<ZkProperty> zkProperty;
+  private static Property<ServerProperty> serverProperty;
   private static NodesManager nodesManager;
   private static FieldTypeArrayDataDescription dataDescription;
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
 
   public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
 
-  private static Properties serverProp = null;
-
   public static Property<CoordinationProperty> getProperty() {
     if (property == null) {
-      property = new CoordinationProperty("config.properties");
+      property = new CoordinationProperty("coordination-config.properties");
     }
     return property;
   }
@@ -48,20 +48,18 @@ public class CoordinationApplicationContext {
     }
     return zkProperty;
   }
-
-  public static void setProperty(Property<CoordinationProperty> property) {
-    CoordinationApplicationContext.property = property;
-  }
-
-  public static NodesManager getNodesManager() {
-    return nodesManager;
-  }
-
-  public static void setNodesManager(NodesManager nodesManager) {
-    CoordinationApplicationContext.nodesManager = nodesManager;
+  
+  public static Property<ServerProperty> getServerProperty(){
+    if (serverProperty == null) {
+      serverProperty = new ServerProperty("server-config.properties");
+    }
+    return serverProperty;
   }
 
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
+    if (property == null) {
+      getProperty();
+    }
     if (dataDescription == null) {
       dataDescription =
           FieldTypeArrayDataDescription.createDataDescription(
@@ -71,24 +69,24 @@ public class CoordinationApplicationContext {
     return dataDescription;
   }
 
-  public static Properties loadServerProperties() {
-    if (serverProp == null) {
-      serverProp = new Properties();
+  /*public static Properties loadServerProperties() {
+    if (serverProperty == null) {
+      serverProperty = new ServerProperty();
       try {
         InputStream is =
             new FileInputStream(CommonUtil.TEMP_JOBUUID_FOLDER_PATH + SERVER_CONF_FILE);
-        serverProp.load(is);
-        PropertyConfigurator.configure(serverProp);
+        serverProperty.load(is);
+        PropertyConfigurator.configure(serverProperty);
         LOGGER.info("serverConfigFile.properties file is loaded");
       } catch (IOException e) {
         LOGGER.warn("Unable to load serverConfigFile.properties file");
       }
     }
     return serverProp;
-  }
+  }*/
 
   public static String[] getShardingDimensions() {
-    if (property == null){
+    if (property == null) {
       getProperty();
     }
     String keyOrderString = property.getValueByKey("common.sharding_dimensions").toString();
@@ -96,13 +94,13 @@ public class CoordinationApplicationContext {
   }
 
   public static int[] getShardingIndexes() {
-    if (property == null){
+    if (property == null) {
       getProperty();
     }
     String keyOrderString = property.getValueByKey("common.sharding_dimensions").toString();
     String[] shardingKeys = keyOrderString.split(",");
     int[] shardingKeyIndexes = new int[shardingKeys.length];
-    String keysNamingPrefix = property.getValueByKey("keys.prefix");
+    String keysNamingPrefix = property.getValueByKey("common.keys.prefix");
     int keysNamingPrefixLength = keysNamingPrefix.length();
     for (int i = 0; i < shardingKeys.length; i++) {
       shardingKeyIndexes[i] =
@@ -138,26 +136,31 @@ public class CoordinationApplicationContext {
   }
 
   public static final String[] getDataTypeConfiguration() {
-    if (property == null){
+    if (property == null) {
       getProperty();
     }
     return property.getValueByKey("column.datatype-size").toString().split(",");
   }
 
   public static final int getMaximumSizeOfSingleDataBlock() {
-    if (property == null){
+    if (property == null) {
       getProperty();
     }
     return Integer.parseInt(property.getValueByKey("maximum.size.of.single.block.data"));
   }
 
   public static NodesManager getNodesManagerIntances() {
+    try {
+      nodesManager = NodesManagerContext.getNodesManagerInstance();
+    } catch (Exception e) {
+      LOGGER.warn("Unable to connect to zookeeper");
+    }
     return nodesManager;
   }
 
   public static int getTotalNumberOfNodes() {
     int totalNumberOfNodes = 0;
-    for (Object key : loadServerProperties().keySet()) {
+    for (Object key : getServerProperty().getProperties().keySet()) {
       if (StringUtils.startsWith(key.toString(), SERVER_CONFIGURATION_KEY_PREFIX)) {
         totalNumberOfNodes++;
       }

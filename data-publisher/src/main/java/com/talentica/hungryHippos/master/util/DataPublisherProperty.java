@@ -25,11 +25,4 @@ public class DataPublisherProperty extends CommonProperty<DataPublisherProperty>
 
   }
 
-  public final String[] getDataTypeConfiguration() {
-    return getValueByKey("column.datatype-size").toString().split(",");
-  }
-
-  public final int getMaximumSizeOfSingleDataBlock() {
-    return Integer.parseInt(getValueByKey("maximum.size.of.single.block.data"));
-  }
 }

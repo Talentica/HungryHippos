@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.master.util.DataPublisherApplicationContext;
 
@@ -33,17 +34,20 @@ public class DataPublisherStarter {
       String jobUUId = args[0];
       CommonUtil.loadDefaultPath(jobUUId);
       DataPublisherApplicationContext.getProperty();
+      nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
+      String isCleanUpFlagString = CoordinationApplicationContext.getProperty().getValueByKey("cleanup.zookeeper.nodes");
+      if("Y".equals(isCleanUpFlagString)){
+        CoordinationApplicationContext.getNodesManagerIntances().startup();
+      }
+      uploadServerConfigFileToZK();
       String dataParserClassName = args[1];
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(DataPublisherApplicationContext.getConfiguredDataDescription());
-      //dataPublisherStarter = new DataPublisherStarter();
-      String zkIp = CommonUtil.getZKIp();
-      nodesManager = NodesManagerContext.getNodesManagerInstance().connectZookeeper(zkIp);
-      DataPublisherApplicationContext.setNodesManager(nodesManager);
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser);
+      sendSignalToNodes(nodesManager);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
@@ -95,5 +99,24 @@ public class DataPublisherStarter {
       LOGGER.info("Unable to create the sharding failure path");
     }
   }
+  
+  private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
+    CountDownLatch signal = new CountDownLatch(1);
+    try {
+        nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+    } catch (IOException e) {
+        LOGGER.info("Unable to send the signal node on zk due to {}", e);
+    }
+
+    signal.await();
+}
+  
+  private static void uploadServerConfigFileToZK() throws Exception {
+    LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
+    ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
+        CoordinationApplicationContext.getServerProperty().getProperties());
+    CoordinationApplicationContext.getNodesManagerIntances().saveConfigFileToZNode(serverConfigFile, null);
+    LOGGER.info("serverConfigFile file successfully put on zk node.");
+}
 
 }

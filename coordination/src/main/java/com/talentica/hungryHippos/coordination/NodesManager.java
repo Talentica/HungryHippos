@@ -42,6 +42,7 @@ import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkProperty;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -152,13 +153,13 @@ public class NodesManager implements Watcher {
    * @throws Exception
    */
   public void startup() throws Exception {
-    formatFlag = zkproperty.getValueByKey("cleanup.zookeeper.nodes");
-    if (formatFlag != null && formatFlag.equals("Y")) {
+    //formatFlag = zkproperty.getValueByKey("cleanup.zookeeper.nodes");
+   /* if (formatFlag != null && formatFlag.equals("Y")) {*/
       CountDownLatch signal = new CountDownLatch(1);
       ZKUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
           signal);
       signal.await();
-    }
+    //}
     defaultNodesOnStart();
     try {
       List<String> serverNames = getMonitoredServers();
@@ -579,11 +580,13 @@ public class NodesManager implements Watcher {
    */
   private void createServersMap() {
     List<String> checkUnique = new ArrayList<String>();
-    Properties property = CoordinationApplicationContext.loadServerProperties();
+    Property<ServerProperty> serverProperty = CoordinationApplicationContext.getServerProperty();
+    Properties property = serverProperty.getProperties();
     int nodeIndex = 0;
     int size = property.keySet().size();
     for (int index = 0; index < size; index++) {
       String srv = property.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index);
+      if(srv == null) break;
       String IP = null;
       String PORT = null;
 

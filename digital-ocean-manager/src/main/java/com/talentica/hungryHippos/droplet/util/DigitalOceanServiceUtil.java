@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.apache.commons.httpclient.HttpException;
 import org.slf4j.Logger;
@@ -434,7 +432,7 @@ public class DigitalOceanServiceUtil {
 	private static void uploadServerConfigFileToZK() throws IOException {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
 		ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
-		    CoordinationApplicationContext.loadServerProperties());
+		    CoordinationApplicationContext.getServerProperty().getProperties());
 		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}

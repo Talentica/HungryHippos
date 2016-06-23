@@ -41,3 +41,82 @@ release {
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.12'
 }
+
+def cleanupAndMakeDirs(path){
+	File file= new File(path)
+	file.mkdirs();
+	file.list().each { new File(file.getPath(),it).delete() }
+}
+
+
+subprojects{
+	
+	if (JavaVersion.current().isJava8Compatible()) {
+		allprojects {
+		  tasks.withType(Javadoc) {
+			options.addStringOption('Xdoclint:none', '-quiet')
+			  }
+		}
+	}
+	
+	ext.outputLibsDir="build/libs"
+	ext.outputScriptsDir="scripts"
+	ext.javaodcDir="build/docs/javadoc"
+	ext.configDir="src/main/resources"
+	ext.distributionHome="../build/distribution/HungryHippos-"+project.version+"/"
+
+	ext.apiDir=distributionHome +"docs"
+	ext.destDir= apiDir+"/"+project.name
+	ext.librariesDir= distributionHome+"lib"
+	ext.mapredLibrariesDir=distributionHome +"mapreduce/lib"
+	ext.mapredApi=distributionHome +"mapreduce/docs"
+	ext.binDir=distributionHome +"bin"
+	ext.destConfigDir=distributionHome +"config"+"/"+project.name
+	
+	task makeRequiredDirs() {
+		cleanupAndMakeDirs(librariesDir)
+		cleanupAndMakeDirs(mapredLibrariesDir)
+		cleanupAndMakeDirs(mapredApi)
+		cleanupAndMakeDirs(binDir)
+		cleanupAndMakeDirs(destConfigDir)
+		cleanupAndMakeDirs(apiDir)
+		
+	}
+	
+	task copyOtherThanMapReduceLibs(dependsOn:[makeRequiredDirs],type:Copy){
+		from outputLibsDir into librariesDir
+		exclude { details -> details.file.name.equals('client-api.jar') || details.file.name.contains('orig')}
+	}
+
+	task copyMapReduceLib(dependsOn:[makeRequiredDirs],type:Copy){
+		from outputLibsDir into mapredLibrariesDir
+		include 'client-api.jar'
+	}
+	
+	task copyShellScripts(dependsOn:[makeRequiredDirs],type:Copy){
+		from outputScriptsDir into binDir
+		include "*.sh"
+	}
+
+	task copyMapredApi(dependsOn:[makeRequiredDirs,javadoc],type:Copy){
+		if(project.name.equals("client-api")){
+			from javaodcDir into mapredApi
+		}
+	}
+	
+	task copyApi(dependsOn:[makeRequiredDirs,javadoc],type:Copy){
+		if(!project.name.equals("client-api")){
+			cleanupAndMakeDirs(destDir)
+			from javaodcDir into destDir
+		}
+	}
+	
+	task copyConfigurations(dependsOn:[makeRequiredDirs],type:Copy){
+			from configDir into destConfigDir
+	}
+	
+	task buildDistribution(dependsOn:[build,jar,copyConfigurations,copyOtherThanMapReduceLibs,copyMapReduceLib,copyShellScripts,copyMapredApi,copyApi],type:Copy){
+		
+	}
+	
+}

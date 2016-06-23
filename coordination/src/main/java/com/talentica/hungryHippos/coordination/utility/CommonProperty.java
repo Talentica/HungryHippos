@@ -51,12 +51,12 @@ public class CommonProperty<T> implements Property<T> {
 
 
   private void loadProperties(String propFileName) throws IOException {
-    if (properties == null) {
-      properties = new Properties();
-    }
-    if (loader == null) {
-      loader = getClassLoader();
-    }
+     if (properties == null) { 
+    properties = new Properties();
+     }
+     if (loader == null) {
+    loader = getClassLoader();
+     }
     properties.load(loader.getResourceAsStream(propFileName));
     LOGGER.info(" {} property file is loaded.", propFileName);
   }

@@ -54,12 +54,7 @@ public class DataProvider {
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
-    // Object obj = nodesManager.getConfigFileFromZNode(PropertyOld.SERVER_CONF_FILE);
-    // ZKNodeFile serverConfig = (obj == null) ? null : (ZKNodeFile) obj;
     Properties prop = DataPublisherApplicationContext.loadServerProperties();
-    /*
-     * if (serverConfig != null) { prop = serverConfig.getFileData(); }
-     */
     int size = prop.keySet().size();
     for (int index = 0; index < size; index++) {
       System.out.println();

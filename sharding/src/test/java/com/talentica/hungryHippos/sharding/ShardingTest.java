@@ -88,7 +88,7 @@ public class ShardingTest {
 		Assert.assertNotNull(frequencyData);
 		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
 		Assert.assertEquals(noOfKeys, frequencyData.size());
-		Map<MutableCharArrayString, Long> keyValueFrequencyList = frequencyData.get("key3");
+		Map<MutableCharArrayString, Long> keyValueFrequencyList = frequencyData.get("key1");
 		Assert.assertNotNull(keyValueFrequencyList);
 		Assert.assertNotEquals(0, keyValueFrequencyList.size());
 		MutableCharArrayString value = new MutableCharArrayString(1);

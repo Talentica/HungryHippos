@@ -58,7 +58,7 @@ public class FileReaderTest {
 		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
 	}
 
-	@Ignore
+	
 	@Test
 	public void testRead() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
@@ -74,7 +74,7 @@ public class FileReaderTest {
 		Assert.assertEquals(2, numberOfLines);
 	}
 
-	@Ignore
+	
 	@Test
 	public void testReadWithNoBlankLineAtTheEndOfFile() throws IOException, InvalidRowException {
 		int numberOfLines = 0;
@@ -90,7 +90,7 @@ public class FileReaderTest {
 		Assert.assertEquals(4, numberOfLines);
 	}
 
-	@Ignore
+	
 	@Test
 	public void testReadFromFileHavingBlankLines() throws IOException, InvalidRowException {
 		int numberOfLines = 0;

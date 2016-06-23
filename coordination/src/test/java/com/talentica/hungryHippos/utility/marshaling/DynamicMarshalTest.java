@@ -20,7 +20,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
-@Ignore
+
 public class DynamicMarshalTest {
   private DynamicMarshal dynamicmarshal;
   private ByteBuffer bytebuffer;
@@ -28,7 +28,7 @@ public class DynamicMarshalTest {
 
   @Before
   public void setUp() throws IOException {
-    dataDescription = new FieldTypeArrayDataDescription(50);
+    dataDescription = new FieldTypeArrayDataDescription(80);
     dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
     dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
     dataDescription.addFieldType(DataLocator.DataType.STRING, 2);
@@ -161,7 +161,7 @@ public class DynamicMarshalTest {
       dynamicmarshal.writeValueDouble(7, key8, bytebuffer);
       dynamicmarshal.writeValueString(8, key9, bytebuffer);
 
-
+     
       for (int i = 0; i < 9; i++) {
         Object valueAtPosition = dynamicmarshal.readValue(i, bytebuffer);
         Assert.assertNotNull(valueAtPosition);

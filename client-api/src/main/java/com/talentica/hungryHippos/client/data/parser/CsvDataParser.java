@@ -77,6 +77,9 @@ public class CsvDataParser extends LineByLineDataParser {
       invalidRow.setBadRow(data);
       throw invalidRow;
     }
+    if (!pContext.getTokenBuffer().isEmpty()) {
+      pContext.pushToken();
+    }
     return pContext.getParsedRow();
   }
 
@@ -94,8 +97,8 @@ public class CsvDataParser extends LineByLineDataParser {
    * @throws CSVParseException
    * @throws ArrayIndexOutOfBoundsException
    */
-  public void parseCharacter(final char character)
-      throws CSVParseException, ArrayIndexOutOfBoundsException {
+  public void parseCharacter(final char character) throws CSVParseException,
+      ArrayIndexOutOfBoundsException {
     switch (pState) {
       case START:
         start(character);
@@ -295,7 +298,7 @@ public class CsvDataParser extends LineByLineDataParser {
    */
   private void createBuffer(DataType type, int i, int size) {
     switch (type) {
-      // 308
+    // 308
       case DOUBLE:
         size = 30;
         buffer[i] = new MutableDouble(size);

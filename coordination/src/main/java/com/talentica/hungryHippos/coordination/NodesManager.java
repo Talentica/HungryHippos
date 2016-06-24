@@ -65,7 +65,6 @@ public class NodesManager implements Watcher {
   private ZookeeperConfiguration zkConfiguration;
   private List<Server> servers;
   private Map<String, Server> serverNameMap;
-  private CoordinationApplicationContext applicationContext = new CoordinationApplicationContext();
   private Property<ZkProperty> zkproperty;
   private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
 
@@ -101,7 +100,7 @@ public class NodesManager implements Watcher {
     servers = new ArrayList<Server>();
     serverNameMap = new HashMap<String, Server>();
     pathMap = new HashMap<String, String>();
-    zkproperty = applicationContext.getZkProperty();
+    zkproperty = CoordinationApplicationContext.getZkProperty();
     pathMap.put(PathEnum.NAMESPACE.name(), zkproperty.getValueByKey("zookeeper.namespace_path"));
     pathMap.put(PathEnum.BASEPATH.name(), zkproperty.getValueByKey("zookeeper.base_path"));
     pathMap.put(PathEnum.ZKIPTPATH.name(), zkproperty.getValueByKey("zookeeper.server.ips"));

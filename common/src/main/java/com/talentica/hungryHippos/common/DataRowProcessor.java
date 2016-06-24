@@ -27,7 +27,7 @@ public class DataRowProcessor implements RowProcessor {
 	private static final String BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS = "Before garbage collection free memory available is: ";
 
 	private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR = Long
-			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("node.no.of.rows.to.check.memory.consumption.after").toString());
+			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("no.of.rows.to.check.memory.consumption.after").toString());
 
 	private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER = Long
 			.parseLong(CoordinationApplicationContext.getProperty().getValueByKey("no.of.rows.to.log.progress.after").toString());
@@ -73,7 +73,7 @@ public class DataRowProcessor implements RowProcessor {
 	private int totalNoOfRowsProcessed = 0;
 
 	public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS = Long
-			.valueOf(CoordinationApplicationContext.getProperty().getValueByKey("node.min.free.memory.in.mbs"));
+			.valueOf(CoordinationApplicationContext.getProperty().getValueByKey("min.free.memory.in.mbs"));
 
 	long startTime = System.currentTimeMillis();
 

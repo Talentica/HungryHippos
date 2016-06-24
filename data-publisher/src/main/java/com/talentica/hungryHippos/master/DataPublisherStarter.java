@@ -35,7 +35,7 @@ public class DataPublisherStarter {
       CommonUtil.loadDefaultPath(jobUUId);
       DataPublisherApplicationContext.getProperty();
       nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
-      String isCleanUpFlagString = CoordinationApplicationContext.getProperty().getValueByKey("cleanup.zookeeper.nodes");
+      String isCleanUpFlagString = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
       if("Y".equals(isCleanUpFlagString)){
         CoordinationApplicationContext.getNodesManagerIntances().startup();
       }

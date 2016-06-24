@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -37,8 +37,9 @@ public class FileDataStore implements DataStore, Serializable {
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
-  public static final String DATA_FILE_BASE_NAME = File.separator + "data_";
-  public static final String FOLDER_NAME = "data";
+  public static final String DATA_FILE_BASE_NAME = "data_";
+
+  // public static final String FOLDER_NAME = "data";
 
   public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
     this(numDimensions, dataDescription, false);
@@ -50,8 +51,11 @@ public class FileDataStore implements DataStore, Serializable {
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
     // check data folder exists , if its not present this logic will create a folder named data.
-    String dirloc =
-        new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + FOLDER_NAME;
+    /*
+     * String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator +
+     * FOLDER_NAME;
+     */
+    String dirloc = StorageApplicationContext.dataFilePath;
     File file = new File(dirloc);
     if (!file.exists()) {
       boolean flag = file.mkdir();
@@ -64,9 +68,8 @@ public class FileDataStore implements DataStore, Serializable {
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
         os[i] =
-            new BufferedOutputStream(new FileOutputStream(
-                new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator
-                    + FOLDER_NAME + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
+            new BufferedOutputStream(new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i,
+                APPEND_TO_DATA_FILES));
       }
     }
   }

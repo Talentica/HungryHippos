@@ -1,9 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.job.context;
-
-import java.util.Properties;
+package com.talentica.hungryHippos.node.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +10,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.job.property.JobManagerProperty;
+import com.talentica.hungryHippos.node.property.NodeProperty;
 
 
 
@@ -21,18 +19,18 @@ import com.talentica.hungryHippos.job.property.JobManagerProperty;
  * @param <T>
  *
  */
-public class JobManagerApplicationContext {
+public class NodeApplicationContext {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerApplicationContext.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NodeApplicationContext.class);
 
-  private static Property<JobManagerProperty> property;
+  private static Property<NodeProperty> property;
   private static NodesManager nodesManager;
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
   private static FieldTypeArrayDataDescription dataDescription;
 
-  public static Property<JobManagerProperty> getProperty() {
+  public static Property<NodeProperty> getProperty() {
     if (property == null) {
-      property = new JobManagerProperty("jobmanager-config.properties");
+      property = new NodeProperty("node-config.properties");
     }
     return property;
   }

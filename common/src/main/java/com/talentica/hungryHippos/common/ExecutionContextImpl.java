@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.common;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
@@ -11,7 +10,7 @@ import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -26,8 +25,9 @@ public class ExecutionContextImpl implements ExecutionContext {
 
 	static {
 		try {
-			out = new PrintStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR + "outputFile");
+			/*out = new PrintStream(
+					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR + "outputFile");*/
+		  out = new PrintStream(StorageApplicationContext.outputFilePath + "outputFile");
 		} catch (Exception ex) {
 			LOGGER.error("Exception occurred while getting print stream for outoutFile.", ex);
 		}

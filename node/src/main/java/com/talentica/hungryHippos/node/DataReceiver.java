@@ -24,6 +24,7 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 
 public class DataReceiver {
 
@@ -76,8 +77,8 @@ public class DataReceiver {
 
   public static void main(String[] args) {
     try {
+      validateArguments(args);
       initialize(args);
-      // listenerDataReciever();
       LOGGER.info("Start Node initialize");
       long startTime = System.currentTimeMillis();
       DataReceiver dataReceiver = getNodeInitializer();
@@ -106,23 +107,20 @@ public class DataReceiver {
   }
 
   /**
-   * @throws KeeperException
-   * @throws InterruptedException
-   */
-  /*
-   * private static void listenerDataReciever() throws KeeperException, InterruptedException {
-   * ZkSignalListener
-   * .waitForStartDataReciever(CoordinationApplicationContext.getNodesManagerIntances(),
-   * CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()); }
-   */
-
-  /**
    * @param args
    */
   private static void initialize(String[] args) {
     jobUUId = args[0];
     CommonUtil.loadDefaultPath(jobUUId);
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+    StorageApplicationContext.dataFilePath = args[2];
+  }
+
+  private static void validateArguments(String[] args) {
+    if (args.length < 3) {
+      throw new RuntimeException(
+          "Either missing 1st argument {job uuid} and/or 2nd argument {data parser class name} and/or 3rd argument{output directory}.");
+    }
   }
 
   /**

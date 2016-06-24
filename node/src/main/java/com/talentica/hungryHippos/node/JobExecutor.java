@@ -23,6 +23,7 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -47,6 +48,7 @@ public class JobExecutor {
   public static void main(String[] args) {
     try {
       LOGGER.info("Start Node initialize");
+      validateArguments(args);
       initialize(args);
       long startTime = System.currentTimeMillis();
       listenerOnJobMatrix();
@@ -74,6 +76,12 @@ public class JobExecutor {
     }
   }
 
+  private static void validateArguments(String[] args) {
+    if (args.length < 3) {
+      throw new RuntimeException("Either missing 1st argument {job uuid} and/or 2nd argument {data input directory} and/or 3rd argument{output directory}.");
+    }
+  }
+
   /**
    * @throws Exception
    * @throws KeeperException
@@ -92,6 +100,8 @@ public class JobExecutor {
     CommonUtil.loadDefaultPath(jobUUId);
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
+    StorageApplicationContext.dataFilePath = args[1];
+    StorageApplicationContext.outputFilePath = args[2];
   }
 
   /**

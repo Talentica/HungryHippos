@@ -57,8 +57,9 @@ public class DataProvider {
     Properties prop = DataPublisherApplicationContext.getServerProperty().getProperties();
     int size = prop.keySet().size();
     for (int index = 0; index < size; index++) {
-      String server= prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index);
-      if(server == null) break;
+      String server = prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index);
+      if (server == null)
+        break;
       servers.add(server);
     }
     LOGGER.info("There are {} servers", servers.size());
@@ -114,8 +115,7 @@ public class DataProvider {
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
     Reader input =
         new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-            DataPublisherApplicationContext.getProperty().getValueByKey("input.file").toString(),
-            dataParser);
+            DataPublisherApplicationContext.inputFile, dataParser);
     long timeForEncoding = 0;
     long timeForLookup = 0;
     int lineNo = 0;

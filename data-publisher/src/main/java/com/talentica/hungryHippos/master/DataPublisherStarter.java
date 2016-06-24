@@ -35,8 +35,10 @@ public class DataPublisherStarter {
       CommonUtil.loadDefaultPath(jobUUId);
       DataPublisherApplicationContext.getProperty();
       nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
-      String isCleanUpFlagString = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-      if("Y".equals(isCleanUpFlagString)){
+      DataPublisherApplicationContext.inputFile = args[2];
+      String isCleanUpFlagString =
+          CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+      if ("Y".equals(isCleanUpFlagString)) {
         CoordinationApplicationContext.getNodesManagerIntances().startup();
       }
       uploadServerConfigFileToZK();
@@ -58,8 +60,9 @@ public class DataPublisherStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 2) {
-      throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
+    if (args.length < 3) {
+      throw new RuntimeException(
+          "Either missing 1st argument {job uuid} and/or 2nd argument {data parser class name} and/or 3rd argument {input file}.");
     }
   }
 
@@ -69,8 +72,8 @@ public class DataPublisherStarter {
   private static void dataPublishingFailed() {
     CountDownLatch signal = new CountDownLatch(1);
     String alertPathForDataPublisherFailure =
-        nodesManager
-            .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
+        nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
+            .getZKJobNode());
     signal = new CountDownLatch(1);
     try {
       dataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure,
@@ -99,24 +102,28 @@ public class DataPublisherStarter {
       LOGGER.info("Unable to create the sharding failure path");
     }
   }
-  
+
   private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
     CountDownLatch signal = new CountDownLatch(1);
     try {
-        nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+      nodesManager.createPersistentNode(nodesManager
+          .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER
+              .getZKJobNode()), signal);
     } catch (IOException e) {
-        LOGGER.info("Unable to send the signal node on zk due to {}", e);
+      LOGGER.info("Unable to send the signal node on zk due to {}", e);
     }
 
     signal.await();
-}
-  
+  }
+
   private static void uploadServerConfigFileToZK() throws Exception {
     LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-    ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
-        CoordinationApplicationContext.getServerProperty().getProperties());
-    CoordinationApplicationContext.getNodesManagerIntances().saveConfigFileToZNode(serverConfigFile, null);
+    ZKNodeFile serverConfigFile =
+        new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
+            CoordinationApplicationContext.getServerProperty().getProperties());
+    CoordinationApplicationContext.getNodesManagerIntances().saveConfigFileToZNode(
+        serverConfigFile, null);
     LOGGER.info("serverConfigFile file successfully put on zk node.");
-}
+  }
 
 }

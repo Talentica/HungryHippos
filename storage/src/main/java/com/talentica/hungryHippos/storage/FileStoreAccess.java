@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -66,7 +67,7 @@ public class FileStoreAccess implements StoreAccess {
 	private void processRows(int fileId) throws IOException {
 		DataInputStream in = null;
 		try {
-			File dataFile = new File(CANONICAL_PATH + PathUtil.SEPARATOR_CHAR + base + fileId);
+			File dataFile = new File(StorageApplicationContext.dataFilePath + base + fileId);
 			in = new DataInputStream(new FileInputStream(dataFile));
 			long dataFileSize = dataFile.length();
 			while (dataFileSize > 0) {

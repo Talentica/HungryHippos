@@ -19,19 +19,19 @@ public class ShardingStarter {
    * @param args
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
-  private static String sampleInputFile;
 
   public static void main(String[] args) {
     try {
       validateArguments(args);
       initialize(args);
+      String inputFileString = args[0];
       String dataParserClassName = args[1];
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
-      Sharding.doSharding(getInputReaderForSharding(dataParser));
+      Sharding.doSharding(getInputReaderForSharding(inputFileString,dataParser));
       LOGGER.info("SHARDING DONE!!");
 
       long endTime = System.currentTimeMillis();
@@ -43,7 +43,7 @@ public class ShardingStarter {
 
   private static void validateArguments(String[] args) {
     if (args.length < 2) {
-      throw new RuntimeException("Missing job uuid and/or data parser class name parameters.");
+      throw new RuntimeException("Missing data parser class name parameters or input file path.");
     }
   }
 
@@ -57,11 +57,11 @@ public class ShardingStarter {
     CommonUtil.loadDefaultPath(jobUUId);
   }
 
-  private static Reader getInputReaderForSharding(DataParser dataParser) throws IOException {
-    sampleInputFile =
-        CoordinationApplicationContext.getProperty().getValueByKey("input.file").toString();
+  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser) throws IOException {
+    /*sampleInputFile =
+        CoordinationApplicationContext.getProperty().getValueByKey("input.file").toString();*/
     return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-        sampleInputFile, dataParser);
+        inputFile, dataParser);
   }
 
 }

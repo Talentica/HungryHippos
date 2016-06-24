@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.master.util;
+package com.talentica.hungryHippos.master.context;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,8 +15,9 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.Property;
+import com.talentica.hungryHippos.master.property.DataPublisherProperty;
 
 
 

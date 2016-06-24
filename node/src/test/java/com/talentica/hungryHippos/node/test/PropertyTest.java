@@ -8,8 +8,8 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.node.NodeProperty;
+import com.talentica.hungryHippos.coordination.property.Property;
+import com.talentica.hungryHippos.node.property.NodeProperty;
 
 /**
  * @author pooshans

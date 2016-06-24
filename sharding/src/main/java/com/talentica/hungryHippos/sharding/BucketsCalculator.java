@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 
 public final class BucketsCalculator {
 

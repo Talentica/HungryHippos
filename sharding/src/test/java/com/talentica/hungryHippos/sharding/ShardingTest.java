@@ -14,7 +14,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;

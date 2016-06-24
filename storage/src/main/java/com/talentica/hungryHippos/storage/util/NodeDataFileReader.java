@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.FileDataStore;
 

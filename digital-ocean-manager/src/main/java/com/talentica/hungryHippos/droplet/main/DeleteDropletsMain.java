@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**

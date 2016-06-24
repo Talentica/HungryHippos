@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.coordination.utility;
+package com.talentica.hungryHippos.coordination.property;
 
 import java.io.FileInputStream;
 import java.io.IOException;

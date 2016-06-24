@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;

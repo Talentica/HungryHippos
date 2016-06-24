@@ -10,9 +10,9 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.utility.Property;
-import com.talentica.hungryHippos.coordination.utility.ZkProperty;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.property.Property;
+import com.talentica.hungryHippos.coordination.property.ZkProperty;
 
 /**
  * @author nitink

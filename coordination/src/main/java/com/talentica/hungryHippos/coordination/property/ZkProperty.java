@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.coordination.utility;
+package com.talentica.hungryHippos.coordination.property;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

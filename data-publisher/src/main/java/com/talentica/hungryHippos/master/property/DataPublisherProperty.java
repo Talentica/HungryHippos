@@ -1,12 +1,12 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.master.util;
+package com.talentica.hungryHippos.master.property;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.utility.CommonProperty;
+import com.talentica.hungryHippos.coordination.property.CommonProperty;
 
 /**
  * @author pooshans

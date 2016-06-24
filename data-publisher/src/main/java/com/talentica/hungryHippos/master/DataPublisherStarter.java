@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.master.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.master.data.DataProvider;
-import com.talentica.hungryHippos.master.util.DataPublisherApplicationContext;
 
 public class DataPublisherStarter {
 

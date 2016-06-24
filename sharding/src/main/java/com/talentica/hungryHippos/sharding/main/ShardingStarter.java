@@ -7,9 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;

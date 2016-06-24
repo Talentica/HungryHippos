@@ -1,21 +1,19 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.coordination.utility;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+package com.talentica.hungryHippos.coordination.context;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.property.Property;
+import com.talentica.hungryHippos.coordination.property.ZkProperty;
+import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
+import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 
 /**
  * @author pooshans
@@ -68,22 +66,6 @@ public class CoordinationApplicationContext {
     }
     return dataDescription;
   }
-
-  /*public static Properties loadServerProperties() {
-    if (serverProperty == null) {
-      serverProperty = new ServerProperty();
-      try {
-        InputStream is =
-            new FileInputStream(CommonUtil.TEMP_JOBUUID_FOLDER_PATH + SERVER_CONF_FILE);
-        serverProperty.load(is);
-        PropertyConfigurator.configure(serverProperty);
-        LOGGER.info("serverConfigFile.properties file is loaded");
-      } catch (IOException e) {
-        LOGGER.warn("Unable to load serverConfigFile.properties file");
-      }
-    }
-    return serverProp;
-  }*/
 
   public static String[] getShardingDimensions() {
     if (property == null) {

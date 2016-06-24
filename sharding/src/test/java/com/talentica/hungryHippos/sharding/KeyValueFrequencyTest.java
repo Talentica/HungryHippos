@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
  
 
  public class KeyValueFrequencyTest {

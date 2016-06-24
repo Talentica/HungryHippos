@@ -25,12 +25,12 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**

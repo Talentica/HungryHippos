@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.utility.PathUtil;
 

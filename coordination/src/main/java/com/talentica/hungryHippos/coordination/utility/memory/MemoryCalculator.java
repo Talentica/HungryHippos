@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.utility.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 
 /**
  * @author PooshanS

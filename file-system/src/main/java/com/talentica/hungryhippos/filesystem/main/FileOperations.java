@@ -39,21 +39,6 @@ public final class FileOperations {
   private static String hhroot = null;
   private static Logger logger = LoggerFactory.getLogger(FileOperations.class);
 
-  /*
-   * public static void main(String[] args) { System.out.println(fs); Iterable<Path> it =
-   * fs.getRootDirectories(); Path actualRoot = null; for (Path path : it) { actualRoot =
-   * path.getRoot(); } String userDir = System.getProperty("user.home");
-   * System.out.println(userDir); Path path = fs.getPath(actualRoot.toString(), userDir,
-   * "/HungryHippos/" + args[0]); System.out.println(path);
-   * 
-   * try { Path path1 = Files.createDirectories(path, attrs); if (path1 != null) {
-   * System.out.println("created Directory sucessfully"); } } catch (IOException e) {
-   * 
-   * e.printStackTrace(); }
-   * 
-   * }
-   */
-
   /**
    * This method returns the defaultFileSystem of the Operating System.
    * 
@@ -89,8 +74,14 @@ public final class FileOperations {
    *         Note:- To convert the string to root. You can use createPath(String arg)
    */
   public static String getHungryHipposRoot() {
+    if (rootDir == null) {
+      getRoot();
+    }
 
-    hhroot = rootDir.toString() + userDir + HUNGRY_HIPPOS_FOLDER;
+    if (userHome == null) {
+      getUserHome();
+    }
+    hhroot = rootDir.toString() + userHome + HUNGRY_HIPPOS_FOLDER;
     return hhroot;
   }
 
@@ -148,8 +139,8 @@ public final class FileOperations {
    * @param attributes is a string of this format "rwxr-x--x"
    * @return
    */
-  public static Set<PosixFilePermission> setPermission(String attributes) {
-    return PosixFilePermissions.fromString(attributes);
+  public static Set<PosixFilePermission> setPermission(String permission) {
+    return PosixFilePermissions.fromString(permission);
   }
 
   /**
@@ -182,7 +173,7 @@ public final class FileOperations {
    * @param String
    * @return boolean
    */
-  public boolean deleteFile(String file) {
+  public static boolean deleteFile(String file) {
     Path path = createPath(file);
     return deleteFile(path);
   }
@@ -194,7 +185,7 @@ public final class FileOperations {
    * @param Path
    * @return boolean
    */
-  public boolean deleteFile(Path path) {
+  public static boolean deleteFile(Path path) {
     boolean flag = false;
     try {
       Files.deleteIfExists(path);
@@ -218,7 +209,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public boolean deleteEverything(Path path) {
+  public static boolean deleteEverything(Path path) {
     // LinkOption[] link = null;
     boolean flag = false;
     boolean isDir = isDirectory(path);
@@ -247,7 +238,7 @@ public final class FileOperations {
   /**
    * This method is used to list all the files inside Hungry Hippos root folder.
    */
-  public void listFilesInsideHHRoot() {
+  public static void listFilesInsideHHRoot() {
     listFiles(hhroot);
   }
 
@@ -255,12 +246,12 @@ public final class FileOperations {
   /**
    * This method is used to list all the files inside the subFolder of HungryHippos root folder.
    */
-  public List<Path> listFiles(String file) {
+  public static List<Path> listFiles(String file) {
     Path path = createPath(file);
     return listFiles(path);
   }
 
-  public List<Path> listFiles(Path path) {
+  public static List<Path> listFiles(Path path) {
     List<Path> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
       for (Path file : stream) {
@@ -280,7 +271,7 @@ public final class FileOperations {
    * @param fileName
    * @param attrs
    */
-  public void createFile(String fileName, FileAttribute<Set<PosixFilePermission>> attrs) {
+  public static void createFile(String fileName, FileAttribute<Set<PosixFilePermission>> attrs) {
     Path path = createPath(fileName);
     createFile(path, attrs);
   }
@@ -292,7 +283,7 @@ public final class FileOperations {
    * @param fileName
    * @param attrs
    */
-  public void createFile(Path path, FileAttribute<Set<PosixFilePermission>> attrs) {
+  public static void createFile(Path path, FileAttribute<Set<PosixFilePermission>> attrs) {
     LinkOption[] link = null;
 
     try {
@@ -312,7 +303,7 @@ public final class FileOperations {
    * @param link
    * @return
    */
-  public boolean checkFileExist(String fileName, LinkOption[] link) {
+  public static boolean checkFileExist(String fileName, LinkOption[] link) {
     Path path = createPath(fileName);
     return checkFileExist(path, link);
   }
@@ -324,7 +315,7 @@ public final class FileOperations {
    * @param link
    * @return
    */
-  public boolean checkFileExist(Path path, LinkOption[] link) {
+  public static boolean checkFileExist(Path path, LinkOption[] link) {
     return Files.exists(path, link);
   }
 
@@ -334,7 +325,7 @@ public final class FileOperations {
    * @param fileName
    * @return
    */
-  public boolean isRegularExecutableFile(String fileName) {
+  public static boolean isRegularExecutableFile(String fileName) {
     return isReadable(fileName) & isWritable(fileName) & isExecutable(fileName);
   }
 
@@ -344,7 +335,7 @@ public final class FileOperations {
    * @param String
    * @return
    */
-  public boolean isReadable(String fileName) {
+  public static boolean isReadable(String fileName) {
     Path path = createPath(fileName);
     return isReadable(path);
   }
@@ -355,7 +346,7 @@ public final class FileOperations {
    * @param String
    * @return
    */
-  public boolean isWritable(String fileName) {
+  public static boolean isWritable(String fileName) {
     Path path = createPath(fileName);
     return isWritable(path);
 
@@ -367,7 +358,7 @@ public final class FileOperations {
    * @param String
    * @return
    */
-  public boolean isExecutable(String fileName) {
+  public static boolean isExecutable(String fileName) {
     Path path = createPath(fileName);
     return isExecutable(path);
   }
@@ -378,7 +369,7 @@ public final class FileOperations {
    * @param Path
    * @return
    */
-  public boolean isReadable(Path path) {
+  public static boolean isReadable(Path path) {
     return Files.isReadable(path);
   }
 
@@ -388,7 +379,7 @@ public final class FileOperations {
    * @param Path
    * @return
    */
-  public boolean isWritable(Path path) {
+  public static boolean isWritable(Path path) {
     return Files.isWritable(path);
 
   }
@@ -399,7 +390,7 @@ public final class FileOperations {
    * @param Path
    * @return
    */
-  public boolean isExecutable(Path path) {
+  public static boolean isExecutable(Path path) {
     return Files.isExecutable(path);
   }
 
@@ -409,7 +400,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public long size(Path path) {
+  public static long size(Path path) {
     long size = 0L;
     try {
       size = Files.size(path);
@@ -426,7 +417,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public boolean isDirectory(Path path) {
+  public static boolean isDirectory(Path path) {
     return Files.isDirectory(path);
   }
 
@@ -436,7 +427,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public boolean isRegularFile(Path path) {
+  public static boolean isRegularFile(Path path) {
     return Files.isRegularFile(path);
   }
 
@@ -446,7 +437,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public boolean isSymbolicLink(Path path) {
+  public static boolean isSymbolicLink(Path path) {
     return Files.isSymbolicLink(path);
   }
 
@@ -456,7 +447,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public boolean isHidden(Path path) {
+  public static boolean isHidden(Path path) {
     boolean flag = false;
     try {
       flag = Files.isHidden(path);
@@ -473,7 +464,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public FileTime getLastModifiedTime(Path path) {
+  public static FileTime getLastModifiedTime(Path path) {
     FileTime fileTime = null;
     try {
       fileTime = Files.getLastModifiedTime(path);
@@ -490,7 +481,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public void setLastModifiedTime(Path path, FileTime time) {
+  public static void setLastModifiedTime(Path path, FileTime time) {
     try {
       Files.setLastModifiedTime(path, time);
     } catch (IOException e) {
@@ -505,7 +496,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public UserPrincipal getOwner(Path path) {
+  public static UserPrincipal getOwner(Path path) {
     UserPrincipal user = null;
     try {
       user = Files.getOwner(path);
@@ -522,7 +513,7 @@ public final class FileOperations {
    * @param path
    * @return
    */
-  public void setOwner(Path path, UserPrincipal user) {
+  public static void setOwner(Path path, UserPrincipal user) {
     try {
       Files.setOwner(path, user);
     } catch (IOException e) {
@@ -536,7 +527,7 @@ public final class FileOperations {
    * 
    * @param path
    */
-  public void getAttribute(Path path) {
+  public static void getAttribute(Path path) {
     try {
       BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
       FileStore store = Files.getFileStore(path);

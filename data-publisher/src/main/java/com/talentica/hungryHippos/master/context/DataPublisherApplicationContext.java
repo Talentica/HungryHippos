@@ -17,6 +17,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 import com.talentica.hungryHippos.master.property.DataPublisherProperty;
 
 
@@ -34,6 +35,7 @@ public class DataPublisherApplicationContext {
   private static Property<DataPublisherProperty> property;
   private static NodesManager nodesManager;
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
+  private static Property<ServerProperty> serverProperty;
   private static FieldTypeArrayDataDescription dataDescription;
 
   private static Properties serverProp = null;
@@ -50,10 +52,6 @@ public class DataPublisherApplicationContext {
     return nodesManager;
   }
 
-  public static void setNodesManager(NodesManager nodesManager) {
-    DataPublisherApplicationContext.nodesManager = nodesManager;
-  }
-
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
     if (dataDescription == null) {
       dataDescription =
@@ -63,20 +61,11 @@ public class DataPublisherApplicationContext {
     return dataDescription;
   }
 
-  public static Properties loadServerProperties() {
-    if (serverProp == null) {
-      serverProp = new Properties();
-      try {
-        InputStream is =
-            new FileInputStream(CommonUtil.TEMP_JOBUUID_FOLDER_PATH + SERVER_CONF_FILE);
-        serverProp.load(is);
-        PropertyConfigurator.configure(serverProp);
-        LOGGER.info("serverConfigFile.properties file is loaded");
-      } catch (IOException e) {
-        LOGGER.warn("Unable to load serverConfigFile.properties file");
-      }
+  public static Property<ServerProperty> getServerProperty(){
+    if (serverProperty == null) {
+      serverProperty = new ServerProperty("server-config.properties");
     }
-    return serverProp;
+    return serverProperty;
   }
 
   public static String[] getShardingDimensions() {

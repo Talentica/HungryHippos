@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.job.context.JobManagerApplicationContext;
 import com.talentica.hungryHippos.master.job.JobManager;
 
 /**
@@ -60,13 +60,14 @@ public class JobManagerStarter {
 
 	/**
 	 * @param args
+	 * @throws Exception 
 	 */
-	private static void initialize(String[] args) {
+	private static void initialize(String[] args) throws Exception {
 		jobUUId = args[1];
 		CommonUtil.loadDefaultPath(jobUUId);
 		ZkSignalListener.jobuuidInBase64 = CommonUtil
 				.getJobUUIdInBase64(jobUUId);
-		JobManagerStarter.nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
+		JobManagerStarter.nodesManager = JobManagerApplicationContext.getNodesManager();
 	}
 
 	private static void validateProgramArguments(String[] args)

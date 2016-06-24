@@ -54,11 +54,12 @@ public class DataProvider {
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
-    Properties prop = DataPublisherApplicationContext.loadServerProperties();
+    Properties prop = DataPublisherApplicationContext.getServerProperty().getProperties();
     int size = prop.keySet().size();
     for (int index = 0; index < size; index++) {
-      System.out.println();
-      servers.add(prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index));
+      String server= prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index);
+      if(server == null) break;
+      servers.add(server);
     }
     LOGGER.info("There are {} servers", servers.size());
     return servers.toArray(new String[servers.size()]);

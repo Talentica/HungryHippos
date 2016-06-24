@@ -135,14 +135,6 @@ public class CommonUtil {
     LOGGER.info("Dumping of file {} on disk finished.", fileName);
   }
 
-  /*
-   * public static final FieldTypeArrayDataDescription getConfiguredDataDescription() { if
-   * (dataDescription == null) { dataDescription =
-   * FieldTypeArrayDataDescription.createDataDescription
-   * (CoordinationApplicationContext.getDataTypeConfiguration(),
-   * PropertyOld.getMaximumSizeOfSingleDataBlock()); } return dataDescription; }
-   */
-
   public static List<String> readFile(File fin) throws IOException {
     List<String> listOfLine = new ArrayList<>();
     FileInputStream fis = new FileInputStream(fin);
@@ -168,17 +160,6 @@ public class CommonUtil {
   public static String getKazooIp() throws IOException {
     return readFile(new File(OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
   }
-
-  /*
-   * public static NodesManager connectZK() throws Exception { if (nodesManager == null) {
-   * (nodesManager = NodesManagerContext.getNodesManagerInstance()).connectZookeeper(getZKIp())
-   * .startup(); } else { return nodesManager; } return nodesManager; }
-   */
-  /*
-   * public static Properties getMergedConfigurationPropertyFromZk() throws Exception { ZKNodeFile
-   * configProp = ZKUtils .getConfigZKNodeFile(PropertyOld.MERGED_CONFIG_PROP_FILE); if (configProp
-   * == null) return null; return configProp.getFileData(); }
-   */
 
   public static Properties getServerConfigurationPropertyFromZk() throws Exception {
     ZKNodeFile serverConfig =

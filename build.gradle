@@ -61,7 +61,7 @@ subprojects{
 	}
 	
 	ext.outputLibsDir="build/libs"
-	ext.outputScriptsDir="scripts"
+	ext.outputScriptsDir="src/main/resources/bin"
 	ext.javaodcDir="build/docs/javadoc"
 	ext.configDir="src/main/resources"
 	ext.distributionHome="../build/distribution/HungryHippos-"+project.version+"/"

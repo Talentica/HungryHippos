@@ -4,12 +4,21 @@ sourceCompatibility = 1.8
 
 allprojects {
 	apply plugin: 'java'
+	apply plugin: 'com.github.jacobono.jaxb'
 	group = 'com.talentica.hungry-hippos'
 	version = '0.6.0 SNAPSHOT'
+	
+	dependencies{
+		jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
+		jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
+		jaxb 'javax.xml.bind:jaxb-api:2.2.7'
+	}
+	
 }
 
 repositories {
     mavenCentral()
+	jcenter()
 }
 
 jar{
@@ -26,9 +35,11 @@ buildscript {
     maven {
       url 'https://plugins.gradle.org/m2/'
     }
+	jcenter()
   }
   dependencies {
     classpath 'net.researchgate:gradle-release:2.3.4'
+	classpath 'com.github.jacobono:gradle-jaxb-plugin:1.3.6'
   }
 }
 
@@ -61,7 +72,7 @@ subprojects{
 	}
 	
 	ext.outputLibsDir="build/libs"
-	ext.outputScriptsDir="scripts"
+	ext.outputScriptsDir="src/main/resources/bin"
 	ext.javaodcDir="build/docs/javadoc"
 	ext.configDir="src/main/resources"
 	ext.distributionHome="../build/distribution/HungryHippos-"+project.version+"/"

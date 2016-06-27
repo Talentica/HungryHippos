@@ -19,9 +19,16 @@ jar {
         attributes("Main-Class": "com.talentica.hungryHippos.sharding.main.ShardingStarter" )
     }
 }
+
 dependencies {
     compile project (':coordination')
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-
+jaxb {
+	xsdDir = "sharding/src/main/resources/schema"
+	xjc{
+		destinationDir="src/main/java"
+		generatePackage="com.talentica.hungryHippos.sharding.config"
+	}
+}

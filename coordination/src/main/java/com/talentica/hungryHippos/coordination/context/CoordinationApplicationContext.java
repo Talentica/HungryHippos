@@ -30,6 +30,8 @@ public class CoordinationApplicationContext {
   private static NodesManager nodesManager;
   private static FieldTypeArrayDataDescription dataDescription;
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
+  
+  public static final String COMMON_CONF_FILE_STRING = "common-config.properties";
 
   public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
 
@@ -46,8 +48,8 @@ public class CoordinationApplicationContext {
     }
     return zkProperty;
   }
-  
-  public static Property<ServerProperty> getServerProperty(){
+
+  public static Property<ServerProperty> getServerProperty() {
     if (serverProperty == null) {
       serverProperty = new ServerProperty("server-config.properties");
     }
@@ -148,5 +150,11 @@ public class CoordinationApplicationContext {
       }
     }
     return totalNumberOfNodes;
+  }
+
+  public  static void loadAllProperty() {
+    getProperty();
+    getZkProperty();
+    getServerProperty();
   }
 }

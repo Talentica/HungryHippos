@@ -25,8 +25,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 
 	static {
 		try {
-			/*out = new PrintStream(
-					new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR + "outputFile");*/
 		  out = new PrintStream(StorageApplicationContext.outputFilePath + "outputFile");
 		} catch (Exception ex) {
 			LOGGER.error("Exception occurred while getting print stream for outoutFile.", ex);

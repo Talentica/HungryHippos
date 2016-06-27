@@ -44,12 +44,12 @@ public class ZKUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(ZKUtils.class.getName());
   private static String ZK_ROOT_NODE = "/rootnode";
   public static ZooKeeper zk;
-  public static NodesManager nodesManager ;
+  public static NodesManager nodesManager;
 
   public static ZKNodeFile getConfigZKNodeFile(String fileName) {
     Object obj = null;
     ZKNodeFile zkFile = null;
-      nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
+    nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
     try {
       obj = nodesManager.getConfigFileFromZNode(fileName);
       zkFile = (obj == null) ? null : (ZKNodeFile) obj;
@@ -495,9 +495,9 @@ public class ZKUtils {
   public static void createDefaultNodes(String... jobUUId) throws Exception {
     if (nodesManager == null) {
       CommonUtil.loadDefaultPath(jobUUId[0]);
-      String zkIp = CommonUtil.getZKIp();
-      LOGGER.info("zk ip is {}", zkIp);
-      nodesManager = NodesManagerContext.getNodesManagerInstance().connectZookeeper(zkIp);
+      // String zkIp = CommonUtil.getZKIp();
+      // LOGGER.info("zk ip is {}", zkIp);
+      nodesManager = NodesManagerContext.getNodesManagerInstance();
     }
     nodesManager.startup();
   }

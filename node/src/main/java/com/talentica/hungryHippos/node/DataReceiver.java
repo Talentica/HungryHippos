@@ -83,7 +83,7 @@ public class DataReceiver {
       long startTime = System.currentTimeMillis();
       DataReceiver dataReceiver = getNodeInitializer();
       ZKNodeFile serverConfig =
-          ZKUtils.getConfigZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE);
+          ZKUtils.getConfigZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING);
       int nodeId = NodeUtil.getNodeId();
       Properties serverConfigProps =
           CoordinationApplicationContext.getServerProperty().getProperties();

@@ -79,5 +79,4 @@ public class DataPublisherApplicationContext {
     getProperty();
     return Integer.parseInt(property.getValueByKey("maximum.size.of.single.block.data"));
   }
-
 }

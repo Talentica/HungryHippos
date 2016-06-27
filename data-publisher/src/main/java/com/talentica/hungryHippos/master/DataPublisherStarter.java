@@ -33,7 +33,7 @@ public class DataPublisherStarter {
       validateArguments(args);
       String jobUUId = args[0];
       CommonUtil.loadDefaultPath(jobUUId);
-      DataPublisherApplicationContext.getProperty();
+      CoordinationApplicationContext.loadAllProperty();
       nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
       DataPublisherApplicationContext.inputFile = args[2];
       String isCleanUpFlagString =
@@ -41,7 +41,7 @@ public class DataPublisherStarter {
       if ("Y".equals(isCleanUpFlagString)) {
         CoordinationApplicationContext.getNodesManagerIntances().startup();
       }
-      uploadServerConfigFileToZK();
+      uploadCommonConfigFileToZK();
       String dataParserClassName = args[1];
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
@@ -116,14 +116,14 @@ public class DataPublisherStarter {
     signal.await();
   }
 
-  private static void uploadServerConfigFileToZK() throws Exception {
+  private static void uploadCommonConfigFileToZK() throws Exception {
     LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
     ZKNodeFile serverConfigFile =
-        new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
-            CoordinationApplicationContext.getServerProperty().getProperties());
+        new ZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING,
+            CoordinationApplicationContext.getProperty().getProperties());
     CoordinationApplicationContext.getNodesManagerIntances().saveConfigFileToZNode(
         serverConfigFile, null);
-    LOGGER.info("serverConfigFile file successfully put on zk node.");
+    LOGGER.info("Common configuration  file successfully put on zk node.");
   }
 
 }

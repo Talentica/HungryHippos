@@ -6,11 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.httpclient.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,16 +23,11 @@ import com.myjeeva.digitalocean.pojo.Keys;
 import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
-import com.talentica.hungryHippos.droplet.query.JobRequest;
-import com.talentica.hungryHippos.tester.api.job.Job;
-import com.talentica.hungryHippos.tester.api.job.JobInput;
 
 /**
  * @author PooshanS
@@ -44,7 +36,6 @@ import com.talentica.hungryHippos.tester.api.job.JobInput;
 public class DigitalOceanServiceUtil {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DigitalOceanServiceUtil.class);
-	private static NodesManager nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
 	private static String ZK_IP;
 	private static String OUTPUT_IP;
 	private static int MAXIMUM_DROPLETS_IN_BATCH = 10;
@@ -366,7 +357,7 @@ public class DigitalOceanServiceUtil {
 			ZKUtils.createDefaultNodes(jobUUId);
 			LOGGER.info("Default nodes are created...");
 			LOGGER.info("Uploading server conf file to zk node");
-			uploadServerConfigFileToZK();
+			CoordinationApplicationContext.updateClusterSetup();
 			LOGGER.info("Server conf file is uploaded");
 		/*	LOGGER.info("Uploading dynamic conf file to zk node");
 			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
@@ -375,25 +366,6 @@ public class DigitalOceanServiceUtil {
 			webServerIp.add(CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip").toString());
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 		}
-	}
-
-	private static Map<String, String> getPropertyKeyValueFromJobByHHTPRequest(String jobUUId)
-			throws HttpException, IOException {
-		Map<String,String> keyValue = new HashMap<String, String>();
-		
-		JobRequest jobRequest = new JobRequest();
-		Job job = jobRequest.getJobDetails(jobUUId);
-		JobInput jobInput = job.getJobInput();
-		keyValue.put("input.file.url.link",jobInput.getDataLocation());
-		keyValue.put("common.sharding_dimensions",jobInput.getShardingDimensions());
-		String dataTypeConfiguration = jobInput.getDataTypeConfiguration();
-		String columnsConfiguration = getColumnsConfiguration(dataTypeConfiguration);
-		keyValue.put("common.column.names", columnsConfiguration);
-		keyValue.put("column.datatype-size",dataTypeConfiguration);
-		keyValue.put("column.file.size",jobInput.getDataSize().toString());
-		keyValue.put("job.matrix.class",jobInput.getJobMatrixClass());
-		keyValue.put("job.uuid",jobUUId);
-		return keyValue;
 	}
 
 	static String getColumnsConfiguration(String dataTypeConfiguration) {
@@ -407,34 +379,6 @@ public class DigitalOceanServiceUtil {
 		}
 		String columnsConfiguration = columnNames.toString();
 		return columnsConfiguration;
-	}
-	
-	/**
-	 * @param digitalOceanManager
-	 * @throws IOException
-	 */
-	/*private static void uploadDynamicConfigFileToZk(Map<String, String> keyValue)
-			throws IOException {
-		Properties properties = CoordinationApplicationContext.getProperty().getProperties();
-		properties.setProperty("zookeeper.server.ips", ZK_IP + ":2181");
-		for (Entry<String, String> entry : keyValue.entrySet()) {
-			properties.setProperty(entry.getKey(), entry.getValue());
-		}
-		ZKNodeFile mergedConfigNodeFile = new ZKNodeFile(CoordinationApplicationContext.MERGED_CONFIG_PROP_FILE, properties);
-		nodesManager.saveConfigFileToZNode(mergedConfigNodeFile, null);
-		
-	}*/
-
-	/**
-	 * @param digitalOceanManager
-	 * @throws IOException
-	 */
-	private static void uploadServerConfigFileToZK() throws IOException {
-		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE,
-		    CoordinationApplicationContext.getServerProperty().getProperties());
-		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
-		LOGGER.info("serverConfigFile file successfully put on zk node.");
 	}
 
 	/**

@@ -3,6 +3,8 @@
  */
 package com.talentica.hungryHippos.coordination.context;
 
+import java.io.IOException;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
@@ -157,4 +160,11 @@ public class CoordinationApplicationContext {
     getZkProperty();
     getServerProperty();
   }
+
+	public static void updateClusterSetup() throws IOException {
+		LOGGER.info("Updating cluster configuration on zookeeper");
+		ZKNodeFile serverConfigFile = new ZKNodeFile(SERVER_CONF_FILE, getServerProperty().getProperties());
+		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
+		LOGGER.info("serverConfigFile file successfully put on zk node.");
+	}
 }

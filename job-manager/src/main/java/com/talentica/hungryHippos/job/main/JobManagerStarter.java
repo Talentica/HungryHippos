@@ -61,8 +61,7 @@ public class JobManagerStarter {
    * @throws Exception
    */
   private static void initialize(String[] args) throws Exception {
-    // jobUUId = args[1]; Need to uncomment to accept argument and remove the auto generated jobuuid
-    jobUUId = UUID.randomUUID().toString();
+    jobUUId = args[1];
     LOGGER.info("Job UUID is {}", jobUUId);
     CommonUtil.loadDefaultPath(jobUUId);
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);

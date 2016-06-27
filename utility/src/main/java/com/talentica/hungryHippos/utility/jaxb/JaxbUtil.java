@@ -5,6 +5,7 @@ import java.io.StringWriter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
@@ -17,7 +18,7 @@ public final class JaxbUtil {
 	 * @param obj
 	 *            object to be marshalled
 	 * @return serialized XML document
-	 * @throws JAXBException
+	 * @throws MarshalException
 	 */
 	public static String marshal(Object obj) throws JAXBException {
 		StringWriter stringwriter = new StringWriter();

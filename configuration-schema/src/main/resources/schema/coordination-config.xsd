@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/coordination"
-	xmlns:tns="http://www.talentica.com/coordination"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/coordination"
+	xmlns:tns="http://www.talentica.com/hungryhippos/coordination"
 	elementFormDefault="qualified">
 	<element name="coordination-config">
 		<complexType>

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 public final class BucketsCalculator {
 
@@ -42,14 +43,14 @@ public final class BucketsCalculator {
 
 	public static int calculateNumberOfBucketsNeeded() {
 		double MAX_NO_OF_FILE_SIZE = Double
-				.valueOf(CoordinationApplicationContext.getProperty().getValueByKey(MAXIMUM_SHARD_FILE_SIZE_PROPERTY_KEY).toString());
+				.valueOf(ShardingApplicationContext.getProperty().getValueByKey(MAXIMUM_SHARD_FILE_SIZE_PROPERTY_KEY).toString());
 		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
 		long approximateMemoryPerBucketStoredInShardTable = (NO_OF_BYTES_PER_KEY * noOfKeys)
 				+ NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
 		Double noOfBucketsNeeded = Math.pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable,
 				1.0 / noOfKeys);
 		int numberOfBucketsNeeded = (int) Math.ceil(noOfBucketsNeeded);
-		Object maxNoOfBuckets = CoordinationApplicationContext.getProperty().getValueByKey(MAXIMUM_NO_OF_SHARD_BUCKETS_PROPERTY_KEY);
+		Object maxNoOfBuckets = ShardingApplicationContext.getProperty().getValueByKey(MAXIMUM_NO_OF_SHARD_BUCKETS_PROPERTY_KEY);
 		if (maxNoOfBuckets != null) {
 			int maximumNoOfBucketsAllowed = Integer.parseInt(maxNoOfBuckets.toString());
 			if (numberOfBucketsNeeded > maximumNoOfBucketsAllowed) {

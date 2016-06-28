@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/sharding-config"
-	xmlns:tns="http://www.talentica.com/sharding-config"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/sharding"
+	xmlns:tns="http://www.talentica.com/sharding"
 	elementFormDefault="qualified">
 	<element name="sharding-config">
 		<complexType>

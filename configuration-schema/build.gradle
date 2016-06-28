@@ -1,0 +1,22 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+	version=null
+}
+
+jaxb {
+	xsdDir = "configuration-schema/src/main/resources/schema"
+	xjc{
+		destinationDir="src/main/java"
+	}
+}
+
+compileJava{
+	dependsOn xjc 
+}

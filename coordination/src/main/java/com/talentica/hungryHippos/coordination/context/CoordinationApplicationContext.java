@@ -76,7 +76,7 @@ public class CoordinationApplicationContext {
     if (property == null) {
       getProperty();
     }
-    String keyOrderString = property.getValueByKey("common.sharding_dimensions").toString();
+    String keyOrderString = property.getValueByKey("sharding_dimensions").toString();
     return keyOrderString.split(",");
   }
 
@@ -84,10 +84,10 @@ public class CoordinationApplicationContext {
     if (property == null) {
       getProperty();
     }
-    String keyOrderString = property.getValueByKey("common.sharding_dimensions").toString();
+    String keyOrderString = property.getValueByKey("sharding_dimensions").toString();
     String[] shardingKeys = keyOrderString.split(",");
     int[] shardingKeyIndexes = new int[shardingKeys.length];
-    String keysNamingPrefix = property.getValueByKey("common.keys.prefix");
+    String keysNamingPrefix = property.getValueByKey("keys.prefix");
     int keysNamingPrefixLength = keysNamingPrefix.length();
     for (int i = 0; i < shardingKeys.length; i++) {
       shardingKeyIndexes[i] =
@@ -118,7 +118,7 @@ public class CoordinationApplicationContext {
   }
 
   public static String[] getColumnsConfiguration() {
-    String[] keyColumnNames = property.getValueByKey("common.column.names").toString().split(",");
+    String[] keyColumnNames = property.getValueByKey("column.names").toString().split(",");
     return keyColumnNames;
   }
 

@@ -271,7 +271,7 @@ public class DigitalOceanServiceUtil {
 			throws DigitalOceanException, RequestUnsuccessfulException {
 		Droplets droplets;
 		List<String> newNames = new ArrayList<>();
-		int onOfDroplets = Integer.valueOf(CoordinationApplicationContext.getProperty().getValueByKey("common.no.of.droplets"));
+		int onOfDroplets = Integer.valueOf(CoordinationApplicationContext.getProperty().getValueByKey("no.of.droplets"));
 		String PRIFIX = "hh";
 		String HYPHEN = "-";
 		List<String> names = dropletEntity.getDroplet().getNames();
@@ -363,7 +363,7 @@ public class DigitalOceanServiceUtil {
 			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));
 			LOGGER.info("Conf file is uploaded...");*/
 			List<String> webServerIp = new ArrayList<String>();
-			webServerIp.add(CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip").toString());
+			webServerIp.add(CoordinationApplicationContext.getProperty().getValueByKey("webserver.ip").toString());
 			writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
 		}
 	}

@@ -66,7 +66,7 @@ public class DataPublisherApplicationContext {
 
   public static String[] getShardingDimensions() {
     getProperty();
-    String keyOrderString = property.getValueByKey("common.sharding_dimensions").toString();
+    String keyOrderString = property.getValueByKey("sharding_dimensions").toString();
     return keyOrderString.split(",");
   }
 

@@ -42,7 +42,7 @@ public class DigitalOceanManager {
 				return;
 			}
 			validateProgramArguments(args);
-			CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip").toString();
+			CoordinationApplicationContext.getProperty().getValueByKey("webserver.ip").toString();
 			DigitalOceanEntity dropletEntity = getDropletEntity(args);
 			dropletService = new DigitalOceanServiceImpl(
 					dropletEntity.getAuthToken());

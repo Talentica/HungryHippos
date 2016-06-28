@@ -31,7 +31,7 @@ public class ShardingStarter {
               .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
-      Sharding.doSharding(getInputReaderForSharding(inputFileString,dataParser));
+      Sharding.doSharding(getInputReaderForSharding(inputFileString, dataParser));
       LOGGER.info("SHARDING DONE!!");
 
       long endTime = System.currentTimeMillis();
@@ -57,11 +57,10 @@ public class ShardingStarter {
     CommonUtil.loadDefaultPath(jobUUId);
   }
 
-  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser) throws IOException {
-    /*sampleInputFile =
-        CoordinationApplicationContext.getProperty().getValueByKey("input.file").toString();*/
-    return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-        inputFile, dataParser);
+  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser)
+      throws IOException {
+    return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile,
+        dataParser);
   }
 
 }

@@ -184,7 +184,7 @@ public class DataProvider {
         Integer.valueOf(DataPublisherApplicationContext.getProperty()
             .getValueByKey("no.of.attempts.to.connect.to.node").toString());
     BAD_RECORDS_FILE =
-        CoordinationApplicationContext.getProperty().getValueByKey("common.bad.records.file.out")
+        CoordinationApplicationContext.getProperty().getValueByKey("bad.records.file.out")
             + "_datapublish.err";
   }
 

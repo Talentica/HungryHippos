@@ -6,13 +6,13 @@ package com.talentica.hungryHippos.master.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.property.CommonProperty;
+import com.talentica.hungryHippos.coordination.property.Property;
 
 /**
  * @author pooshans
  *
  */
-public class DataPublisherProperty extends CommonProperty<DataPublisherProperty> {
+public class DataPublisherProperty extends Property<DataPublisherProperty> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherProperty.class
       .getName());

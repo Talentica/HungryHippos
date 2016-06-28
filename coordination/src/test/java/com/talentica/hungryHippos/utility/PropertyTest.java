@@ -116,7 +116,7 @@ public class PropertyTest {
 
   @Test
   public void testPropertyBySetproperty() throws IOException {
-    Property<ZkProperty> property = new ZkProperty().setPropertyFileName("zookeeper.properties");
+    Property<ZkProperty> property = new ZkProperty().setPropertyFile("zookeeper.properties");
     Properties properties = property.getProperties();
     Assert.assertNotNull(properties);
   }

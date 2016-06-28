@@ -6,14 +6,14 @@ package com.talentica.hungryHippos.coordination.utility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.property.CommonProperty;
+import com.talentica.hungryHippos.coordination.property.Property;
 
 
 /**
  * @author pooshans
  *
  */
-public class CoordinationProperty extends CommonProperty<CoordinationProperty> {
+public class CoordinationProperty extends Property<CoordinationProperty> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CoordinationProperty.class.getName());

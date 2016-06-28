@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * @author pooshans
  *
  */
-public class ZkProperty extends CommonProperty<ZkProperty> {
+public class ZkProperty extends Property<ZkProperty> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ZkProperty.class.getName());
 

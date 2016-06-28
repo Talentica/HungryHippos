@@ -1,5 +1,6 @@
 package com.talentica.hungryhippos.filesystem.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -136,7 +137,7 @@ public final class FileOperations {
   /**
    * This method is used for setting FilePermission.
    * 
-   * @param attributes is a string of this format "rwxr-x--x"
+   * @param permission is a string of this format "rwxr-x--x"
    * @return
    */
   public static Set<PosixFilePermission> setPermission(String permission) {
@@ -144,9 +145,21 @@ public final class FileOperations {
   }
 
   /**
+   * This method is used for deleting a single file. It fails when the file is a directory which is
+   * not empty.
+   *
+   * @param file
+   * @return boolean
+   */
+  public static boolean deleteFile(String file) {
+    Path path = createPath(file);
+    return deleteFile(path);
+  }
+
+  /**
    * This method is used for creating Directory, if parent directory is not present it will create
    * parent directory first.
-   * 
+   *
    * @param path
    * @param attrs
    * @return boolean
@@ -170,19 +183,7 @@ public final class FileOperations {
    * This method is used for deleting a single file. It fails when the file is a directory which is
    * not empty.
    * 
-   * @param String
-   * @return boolean
-   */
-  public static boolean deleteFile(String file) {
-    Path path = createPath(file);
-    return deleteFile(path);
-  }
-
-  /**
-   * This method is used for deleting a single file. It fails when the file is a directory which is
-   * not empty.
-   * 
-   * @param Path
+   * @param path
    * @return boolean
    */
   public static boolean deleteFile(Path path) {
@@ -239,7 +240,7 @@ public final class FileOperations {
    * This method is used to list all the files inside Hungry Hippos root folder.
    */
   public static void listFilesInsideHHRoot() {
-    listFiles(hhroot);
+    listFiles((new File(hhroot)).toPath());
   }
 
 
@@ -280,7 +281,7 @@ public final class FileOperations {
   /**
    * This method used for creating a file with attributes.
    * 
-   * @param fileName
+   * @param path
    * @param attrs
    */
   public static void createFile(Path path, FileAttribute<Set<PosixFilePermission>> attrs) {
@@ -299,7 +300,7 @@ public final class FileOperations {
   /**
    * This method is used for checking whether the files already created.
    * 
-   * @param String
+   * @param fileName
    * @param link
    * @return
    */
@@ -311,12 +312,15 @@ public final class FileOperations {
   /**
    * This method is used for checking whether the files already created.
    * 
-   * @param Path
+   * @param path
    * @param link
    * @return
    */
   public static boolean checkFileExist(Path path, LinkOption[] link) {
-    return Files.exists(path, link);
+    if(link!=null)
+      return Files.exists(path, link);
+    else
+      return Files.exists(path);
   }
 
   /**
@@ -332,7 +336,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is readable.
    * 
-   * @param String
+   * @param fileName
    * @return
    */
   public static boolean isReadable(String fileName) {
@@ -343,7 +347,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is writable.
    * 
-   * @param String
+   * @param fileName
    * @return
    */
   public static boolean isWritable(String fileName) {
@@ -355,7 +359,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is Executable.
    * 
-   * @param String
+   * @param fileName
    * @return
    */
   public static boolean isExecutable(String fileName) {
@@ -366,7 +370,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is readable.
    * 
-   * @param Path
+   * @param path
    * @return
    */
   public static boolean isReadable(Path path) {
@@ -376,7 +380,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is writable.
    * 
-   * @param Path
+   * @param path
    * @return
    */
   public static boolean isWritable(Path path) {
@@ -387,7 +391,7 @@ public final class FileOperations {
   /**
    * This method checks whether file is Executable.
    * 
-   * @param Path
+   * @param path
    * @return
    */
   public static boolean isExecutable(Path path) {
@@ -540,5 +544,36 @@ public final class FileOperations {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+  }
+
+  /**
+   * This method used for creating the directories if they doesn't exist and also creates the file
+   *
+   * @param fileName
+   * @param attrs
+   */
+  public static void createDirectoriesAndFile(String fileName, FileAttribute<Set<PosixFilePermission>> attrs) throws IOException {
+    Path path = createPath(fileName);
+    createDirectoriesAndFile(path, attrs);
+  }
+
+  /**
+   * This method used for creating the directories if they doesn't exist and also creates the file
+   *
+   * @param path
+   * @param attrs
+   */
+  public static void createDirectoriesAndFile(Path path, FileAttribute<Set<PosixFilePermission>> attrs) throws IOException {
+    LinkOption[] link = null;
+
+
+    if(!Files.exists(path.getParent())){
+      Files.createDirectories(path.getParent(),attrs);
+    }
+
+    if (!checkFileExist(path, link)) {
+      Files.createFile(path, attrs);
+    }
+
   }
 }

@@ -20,7 +20,7 @@ public class XmlPropertyReaderTest {
 		try {
 			Properties properties = XmlPropertyFileReaderUtil.getProperties(
 					"property-conf.xml",
-					"com.talentica.hungryHippos.coordination.utility.Property");
+					"com.talentica.hungryHippos.coordination.property.Property");
 			Enumeration<?> enuKeys = properties.keys();
 			while (enuKeys.hasMoreElements()) {
 				String key = (String) enuKeys.nextElement();

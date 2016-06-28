@@ -27,8 +27,8 @@ public class JobRequest {
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public Job getJobDetails(String uuid) throws HttpException, IOException {
-		final String WEBSERVER_IP = CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.ip");
-		final String WEBSERVER_PORT = CoordinationApplicationContext.getProperty().getValueByKey("common.webserver.port");
+		final String WEBSERVER_IP = CoordinationApplicationContext.getProperty().getValueByKey("webserver.ip");
+		final String WEBSERVER_PORT = CoordinationApplicationContext.getProperty().getValueByKey("webserver.port");
 		final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
 		String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
 		LOGGER.info("Getting details of job:{}", uri);

@@ -9,7 +9,7 @@ public class BucketsCalculatorTest {
 	@Test
 	@Ignore
 	public void testCalculateNumberOfBucketsNeeded() {/*
-		PropertyOld.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1,key2,key3");
+		PropertyOld.setOrOverrideConfigurationProperty("sharding_dimensions", "key1,key2,key3");
 		PropertyOld.setOrOverrideConfigurationProperty("environment", "TEST");
 		PropertyOld.setOrOverrideConfigurationProperty("master.maximumShardFileSizeInBytes", "20000000");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
@@ -21,7 +21,7 @@ public class BucketsCalculatorTest {
 	@Ignore
 	public void testCalculateNumberOfBucketsNeededIfBucketsCountIsExceeding() {/*
 		PropertyOld.initialize(PROPERTIES_NAMESPACE.MASTER);
-		PropertyOld.setOrOverrideConfigurationProperty("common.sharding_dimensions", "key1");
+		PropertyOld.setOrOverrideConfigurationProperty("sharding_dimensions", "key1");
 		PropertyOld.setOrOverrideConfigurationProperty("environment", "TEST");
 		int numberOfBucketsNeeded = BucketsCalculator.calculateNumberOfBucketsNeeded();
 		Assert.assertEquals(50, numberOfBucketsNeeded);

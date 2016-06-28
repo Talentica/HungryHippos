@@ -45,7 +45,7 @@ public class DownloadOutputMain {
 	 */
 	private static void getFinishNodeJobsSignal(String nodeName) {/*
 		int totalCluster = Integer.valueOf(PropertyOld.getProperties()
-				.get("common.no.of.droplets").toString());
+				.get("no.of.droplets").toString());
 		for (int nodeId = 0; nodeId < totalCluster; nodeId++) {
 			if (!getSignalFromZk(nodeId, nodeName)) {
 				continue;

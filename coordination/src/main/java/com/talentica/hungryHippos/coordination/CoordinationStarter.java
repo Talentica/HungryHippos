@@ -1,9 +1,11 @@
 package com.talentica.hungryHippos.coordination;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +28,13 @@ public class CoordinationStarter {
 		try {
 			LOGGER.info("Starting coordination server..");
 			validateArguments(args);
-			CoordinationConfig configuration = readConfiguration(args[0]);
-			CoordinationApplicationContext.updateClusterConfiguration(configuration.getClusterConfig());
+			String filePath = args[0];
+			CoordinationConfig configuration = readConfiguration(filePath);
+			if (configuration.getClusterConfig() == null || configuration.getClusterConfig().getNode().isEmpty()) {
+				throw new RuntimeException("Invalid configuration file or cluster configuration missing." + filePath);
+			}
+			CoordinationApplicationContext
+					.updateClusterConfiguration(FileUtils.readFileToString(new File(filePath), "UTF-8"));
 			LOGGER.info("Coordination server started..");
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while starting coordination server.", exception);

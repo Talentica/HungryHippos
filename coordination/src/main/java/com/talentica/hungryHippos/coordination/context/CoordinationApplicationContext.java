@@ -17,7 +17,6 @@ import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
 import com.talentica.hungryHippos.coordination.utility.ServerProperty;
-import com.talentica.hungryhippos.config.coordination.ClusterConfig;
 
 /**
  * @author pooshans
@@ -165,9 +164,9 @@ public class CoordinationApplicationContext {
     getServerProperty();
   }
 
-	public static void updateClusterConfiguration(ClusterConfig clusterConfig) throws IOException {
+	public static void updateClusterConfiguration(String clusterConfigurationFile) throws IOException {
 		LOGGER.info("Updating cluster configuration on zookeeper");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(CLUSTER_CONFIGURATION, clusterConfig);
+		ZKNodeFile serverConfigFile = new ZKNodeFile(CLUSTER_CONFIGURATION, clusterConfigurationFile);
 		getNodesManagerIntances().saveConfigFileToZNode(serverConfigFile, null);
 	}
 }

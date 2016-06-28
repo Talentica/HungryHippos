@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.utility.jaxb;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -43,6 +45,24 @@ public final class JaxbUtil {
 		JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (T) unmarshaller.unmarshal(new StringReader(xml));
+	}
+
+	/**
+	 * Unmarshalling from XML document by JAXB annotations
+	 * 
+	 * @param xml
+	 *            xml document serialized as String
+	 * @param clazz
+	 *            Class to which shoud be object unmarshalled
+	 * @return serialized XML document
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T unmarshalFromFile(String filePath, Class<T> clazz) throws JAXBException, FileNotFoundException {
+		JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		return (T) unmarshaller.unmarshal(new FileReader(filePath));
 	}
 
 }

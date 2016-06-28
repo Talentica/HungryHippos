@@ -357,7 +357,7 @@ public class DigitalOceanServiceUtil {
 			ZKUtils.createDefaultNodes(jobUUId);
 			LOGGER.info("Default nodes are created...");
 			LOGGER.info("Uploading server conf file to zk node");
-			CoordinationApplicationContext.updateClusterSetup();
+			// CoordinationApplicationContext.updateClusterSetup();
 			LOGGER.info("Server conf file is uploaded");
 		/*	LOGGER.info("Uploading dynamic conf file to zk node");
 			uploadDynamicConfigFileToZk(getPropertyKeyValueFromJobByHHTPRequest(jobUUId[0]));

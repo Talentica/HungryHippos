@@ -10,13 +10,15 @@ jar {
 	version=null
 }
 
-jaxb {
-	xsdDir = "configuration-schema/src/main/resources/schema"
-	xjc{
-		destinationDir="src/main/java"
-	}
+xsd2java{
+	encoding = 'utf-8'
+	xsdsToGenerate = [
+		["src/main/resources/schema/coordination-config.xsd", 'com.talentica.hungryhippos.config.coordination', [header: false]],
+		["src/main/resources/schema/sharding-config.xsd", 'com.talentica.hungryhippos.config.sharding', [header: false]]
+	]
+	generatedXsdDir = file("src/main/java")
 }
 
 compileJava{
-	dependsOn xjc 
+	dependsOn xsd2java
 }

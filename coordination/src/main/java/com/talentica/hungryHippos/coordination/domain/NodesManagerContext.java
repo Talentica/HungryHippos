@@ -22,7 +22,7 @@ public class NodesManagerContext {
   private static Property<ZkProperty> cProperty;
   private static String zkIp;
 
-  private static NodesManager init() throws Exception {
+	public static NodesManager initialize() throws Exception {
     if (nodesManager == null) {
       nodesManager = new NodesManager();
       LOGGER.info("Initialized the nodes manager.");
@@ -36,7 +36,7 @@ public class NodesManagerContext {
   }
 
   public static NodesManager getNodesManagerInstance() throws Exception {
-    return init();
+    return initialize();
   }
 
   private static void connectZookeeper() {

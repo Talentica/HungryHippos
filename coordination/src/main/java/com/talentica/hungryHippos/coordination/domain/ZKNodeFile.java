@@ -28,6 +28,11 @@ public class ZKNodeFile implements Serializable{
 		this.obj = (obj!=null && obj.length==1)?obj[0]:null;
 	}
 
+	public ZKNodeFile(String fileName, Object obj) {
+		this.fileName = fileName;
+		this.obj = obj;
+	}
+
 	public String getFileName() {
 		return fileName;
 	}

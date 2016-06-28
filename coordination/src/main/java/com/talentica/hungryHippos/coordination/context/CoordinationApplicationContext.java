@@ -17,6 +17,7 @@ import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
 import com.talentica.hungryHippos.coordination.utility.ServerProperty;
+import com.talentica.hungryhippos.config.coordination.ClusterConfig;
 
 /**
  * @author pooshans
@@ -32,8 +33,11 @@ public class CoordinationApplicationContext {
   private static Property<ServerProperty> serverProperty;
   private static NodesManager nodesManager;
   private static FieldTypeArrayDataDescription dataDescription;
+
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
   
+	public static final String CLUSTER_CONFIGURATION = "cluster-configuration";
+
   public static final String COMMON_CONF_FILE_STRING = "common-config.properties";
 
   public static final String SERVER_CONFIGURATION_KEY_PREFIX = "server.";
@@ -161,10 +165,9 @@ public class CoordinationApplicationContext {
     getServerProperty();
   }
 
-	public static void updateClusterSetup() throws IOException {
+	public static void updateClusterConfiguration(ClusterConfig clusterConfig) throws IOException {
 		LOGGER.info("Updating cluster configuration on zookeeper");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(SERVER_CONF_FILE, getServerProperty().getProperties());
-		nodesManager.saveConfigFileToZNode(serverConfigFile, null);
-		LOGGER.info("serverConfigFile file successfully put on zk node.");
+		ZKNodeFile serverConfigFile = new ZKNodeFile(CLUSTER_CONFIGURATION, clusterConfig);
+		getNodesManagerIntances().saveConfigFileToZNode(serverConfigFile, null);
 	}
 }

@@ -11,6 +11,10 @@ import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
+import org.eclipse.persistence.jaxb.MarshallerProperties;
+import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+
 public final class JaxbUtil {
 
 	/**
@@ -22,10 +26,28 @@ public final class JaxbUtil {
 	 * @return serialized XML document
 	 * @throws MarshalException
 	 */
-	public static String marshal(Object obj) throws JAXBException {
-		StringWriter stringwriter = new StringWriter();
-		JAXBContext jc = JAXBContext.newInstance(obj.getClass());
+	public static String marshalToXml(Object obj) throws JAXBException {
+		JAXBContext jc = JAXBContextFactory.createContext(new Class[] { obj.getClass() }, null);
 		Marshaller marshaller = jc.createMarshaller();
+		StringWriter stringwriter = new StringWriter();
+		marshaller.marshal(obj, stringwriter);
+		return stringwriter.toString();
+	}
+
+	/**
+	 * Marshalling supplied object to XML document by JAXB annotations and
+	 * serializing it to String
+	 * 
+	 * @param obj
+	 *            object to be marshalled
+	 * @return serialized XML document
+	 * @throws MarshalException
+	 */
+	public static String marshalToJson(Object obj) throws JAXBException {
+		JAXBContext jc = JAXBContextFactory.createContext(new Class[] { obj.getClass() }, null);
+		Marshaller marshaller = jc.createMarshaller();
+		StringWriter stringwriter = new StringWriter();
+		marshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
 		marshaller.marshal(obj, stringwriter);
 		return stringwriter.toString();
 	}
@@ -41,10 +63,28 @@ public final class JaxbUtil {
 	 * @throws JAXBException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T unmarshal(String xml, Class<T> clazz) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
+	public static <T> T unmarshalFromXml(String xml, Class<T> clazz) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { clazz }, null);
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (T) unmarshaller.unmarshal(new StringReader(xml));
+	}
+
+	/**
+	 * Unmarshalling from XML document by JAXB annotations
+	 * 
+	 * @param xml
+	 *            xml document serialized as String
+	 * @param clazz
+	 *            Class to which shoud be object unmarshalled
+	 * @return serialized XML document
+	 * @throws JAXBException
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T unmarshalFromJson(String json, Class<T> clazz) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { clazz }, null);
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+		return (T) unmarshaller.unmarshal(new StringReader(json));
 	}
 
 	/**
@@ -60,8 +100,11 @@ public final class JaxbUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T unmarshalFromFile(String filePath, Class<T> clazz) throws JAXBException, FileNotFoundException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
+		JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { clazz }, null);
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		if (filePath.endsWith(".json")) {
+			unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+		}
 		return (T) unmarshaller.unmarshal(new FileReader(filePath));
 	}
 

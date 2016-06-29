@@ -10,6 +10,7 @@ allprojects {
 	
 	dependencies{
 		compile group: 'commons-io', name: 'commons-io', version: '2.5'
+		compile group:'org.eclipse.persistence',name:'org.eclipse.persistence.moxy',version:'2.5.2'
 	}
 	
 }

@@ -75,7 +75,6 @@ public class NodesManager implements Watcher {
 
   private Map<String, String> pathMap;
   private static final String NODE_NAME_PRIFIX = "_node";
-  private String formatFlag;
 
   public RegistrationListener getRegistrationListener() {
     return registrationListener;
@@ -152,8 +151,6 @@ public class NodesManager implements Watcher {
    * @throws Exception
    */
   public void startup() throws Exception {
-    //formatFlag = zkproperty.getValueByKey("cleanup.zookeeper.nodes");
-   /* if (formatFlag != null && formatFlag.equals("Y")) {*/
       CountDownLatch signal = new CountDownLatch(1);
       ZKUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
           signal);
@@ -213,7 +210,7 @@ public class NodesManager implements Watcher {
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,
       Object... data) throws IOException {
     zk.create(node,
-        (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : node.getBytes(),
+        (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : null,
         ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
           @Override
           public void processResult(int rc, String path, Object ctx, String name) {
@@ -552,7 +549,7 @@ public class NodesManager implements Watcher {
 
   public String buildPathNode(String parentNode) throws InterruptedException, KeeperException,
       ClassNotFoundException, IOException {
-    Set<LeafBean> beans = ZKUtils.searchTree(parentNode, null, null);
+    Set<LeafBean> beans = ZKUtils.searchLeafOfNode(parentNode, null, null);
     String path = "";
     for (LeafBean bean : beans) {
       if (bean.getName().equalsIgnoreCase(parentNode)) {

@@ -167,7 +167,7 @@ public class JobExecutor {
         ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId)) + PathUtil.SEPARATOR_CHAR
             + ("_node" + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
             + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-    Set<LeafBean> leafs = ZKUtils.searchTree(buildPath, null, null);
+    Set<LeafBean> leafs = ZKUtils.searchLeafOfNode(buildPath, null, null);
     LOGGER.info("Leafs size found {}", leafs.size());
     List<JobEntity> jobEntities = new ArrayList<JobEntity>();
     for (LeafBean leaf : leafs) {

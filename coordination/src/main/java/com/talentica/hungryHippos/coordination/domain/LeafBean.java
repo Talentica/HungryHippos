@@ -28,7 +28,7 @@ public class LeafBean implements Comparable<LeafBean>{
         this.path = path;
         this.name = name;
 		try {
-			this.value = ZKUtils.deserialize(value);
+			this.value = (value != null ) ? ZKUtils.deserialize(value) : null;
 		}catch(SerializationException ex){
 			LOGGER.error("Unable to deserialize object with path:- {} And ex", path,ex);
         }
@@ -65,6 +65,11 @@ public class LeafBean implements Comparable<LeafBean>{
             LOGGER.error(Arrays.toString(ex.getStackTrace()));
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+      return "LeafBean [path=" + path + ", name=" + name + ", value=" + value + "]";
     }
 
     @Override

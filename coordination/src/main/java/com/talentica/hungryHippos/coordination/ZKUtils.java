@@ -105,8 +105,9 @@ public class ZKUtils {
    * @throws IOException
    * @throws ClassNotFoundException
    */
-  public static Set<LeafBean> searchTree(String searchString, String authRole, CountDownLatch signal)
-      throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
+  public static Set<LeafBean> searchLeafOfNode(String searchString, String authRole,
+      CountDownLatch signal) throws InterruptedException, KeeperException, IOException,
+      ClassNotFoundException {
     LOGGER.info("IN searchTree path {}", searchString);
     /* Export all nodes and then search. */
     if (searchString.contains("/"))
@@ -173,7 +174,6 @@ public class ZKUtils {
         if (isFolder) {
           folders.add(child);
         }
-
       }
     }
 
@@ -186,6 +186,27 @@ public class ZKUtils {
 
   }
 
+  public static void getChildren(String path, String name, List<String> nodePathList)
+      throws KeeperException, InterruptedException {
+    List<String> children = zk.getChildren(path, false);
+    for (String child : children) {
+      String childPath;
+      if (!path.equals("/")) {
+        childPath = path + "/" + child;
+      } else {
+        childPath = path + child;
+      }
+      if (child.equals(name)) {
+        nodePathList.add(childPath);
+      }
+
+      getChildren(childPath, name, nodePathList);
+    }
+    return;
+  }
+
+
+
   /**
    * To get the value of particluar node
    * 
@@ -196,21 +217,28 @@ public class ZKUtils {
    * @return
    * @throws ClassNotFoundException
    * @throws IOException
+   * @throws InterruptedException
+   * @throws KeeperException
    */
   public static LeafBean getNodeValue(String path, String childPath, String child, String authRole)
-      throws ClassNotFoundException, IOException {
+      throws ClassNotFoundException, IOException, KeeperException, InterruptedException {
+    return getNodeDetail(path, childPath, child, authRole, true);
+  }
+
+  public static LeafBean getNodeDetail(String path, String childPath, String child,
+      String authRole, boolean getData) throws KeeperException, InterruptedException,
+      ClassNotFoundException, IOException {
     try {
       byte[] dataBytes = null;
       Stat stat = zk.exists(childPath, nodesManager);
-      if (stat != null) {
-        dataBytes = zk.getData(childPath, false, stat);
+      if (stat != null && getData) {
+        dataBytes = zk.getData(childPath, nodesManager, stat);
       }
       return (new LeafBean(path, child, dataBytes));
     } catch (KeeperException | InterruptedException ex) {
       LOGGER.error(ex.getMessage());
     }
     return null;
-
   }
 
   public static Object externalizeNodeValue(byte[] value) throws ClassNotFoundException,

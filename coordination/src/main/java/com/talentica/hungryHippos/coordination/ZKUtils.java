@@ -186,7 +186,7 @@ public class ZKUtils {
 
   }
 
-  public static void getChildren(String path, String name, List<String> nodePathList)
+  public static void getPathOfNode(String path, String name, List<String> nodePathList)
       throws KeeperException, InterruptedException {
     List<String> children = zk.getChildren(path, false);
     for (String child : children) {
@@ -200,7 +200,7 @@ public class ZKUtils {
         nodePathList.add(childPath);
       }
 
-      getChildren(childPath, name, nodePathList);
+      getPathOfNode(childPath, name, nodePathList);
     }
     return;
   }

@@ -549,7 +549,7 @@ public class NodesManager implements Watcher {
 
   public String buildPathNode(String parentNode) throws InterruptedException, KeeperException,
       ClassNotFoundException, IOException {
-    Set<LeafBean> beans = ZKUtils.searchLeafOfNode(parentNode, null, null);
+    Set<LeafBean> beans = ZKUtils.searchLeafNode(parentNode, null, null);
     String path = "";
     for (LeafBean bean : beans) {
       if (bean.getName().equalsIgnoreCase(parentNode)) {

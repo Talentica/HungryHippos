@@ -105,7 +105,7 @@ public class ZKUtils {
    * @throws IOException
    * @throws ClassNotFoundException
    */
-  public static Set<LeafBean> searchLeafOfNode(String searchString, String authRole,
+  public static Set<LeafBean> searchLeafNode(String searchString, String authRole,
       CountDownLatch signal) throws InterruptedException, KeeperException, IOException,
       ClassNotFoundException {
     LOGGER.info("IN searchTree path {}", searchString);
@@ -186,7 +186,7 @@ public class ZKUtils {
 
   }
 
-  public static void getPathOfNode(String path, String name, List<String> nodePathList)
+  public static void getNodePathByName(String path, String name, List<String> nodePathList)
       throws KeeperException, InterruptedException {
     List<String> children = zk.getChildren(path, false);
     for (String child : children) {
@@ -200,7 +200,7 @@ public class ZKUtils {
         nodePathList.add(childPath);
       }
 
-      getPathOfNode(childPath, name, nodePathList);
+      getNodePathByName(childPath, name, nodePathList);
     }
     return;
   }

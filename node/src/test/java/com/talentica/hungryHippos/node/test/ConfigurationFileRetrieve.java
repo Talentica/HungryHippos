@@ -47,7 +47,7 @@ public class ConfigurationFileRetrieve {
 		String buildPath = nodesManager.buildConfigPath(keyToValueToBucketMapFile);
 		Set<LeafBean> leafs;
 		try {
-			leafs = ZKUtils.searchTree(buildPath, null, null);
+			leafs = ZKUtils.searchLeafNode(buildPath, null, null);
 			for(LeafBean leaf : leafs){
 				LOGGER.info("Path is {} AND node name {}",leaf.getPath(),leaf.getName());
 			}

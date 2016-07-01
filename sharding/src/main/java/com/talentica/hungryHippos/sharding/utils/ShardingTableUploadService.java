@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,109 +39,117 @@ public class ShardingTableUploadService {
 
   private static NodesManager nodesManager = CoordinationApplicationContext
       .getNodesManagerIntances();
-  private static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap;
-
-  private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
-
-  private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
-
   private static Property<ZkProperty> zkproperty = CoordinationApplicationContext.getZkProperty();
 
   private static String zkKeyToBucketPath;
   private static String zkNodes;
   private static int BucketCombinationId;
 
-  static {
-    try (ObjectInputStream inKeyValueNodeNumberMap =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.keyToValueToBucketMapFile))) {
-      keyToValueToBucketMap =
-          (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
-              .readObject();
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
-    }
-
-    try (ObjectInputStream bucketToNodeNumberMapInputStream =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.bucketToNodeNumberMapFile))) {
-      bucketToNodeNumberMap =
-          (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
-              .readObject();
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
-    }
-
-    try (ObjectInputStream bucketToNodeNumberMapInputStream =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.bucketToNodeNumberMapFile))) {
-      bucketToNodeNumberMap =
-          (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
-              .readObject();
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
-    }
-
-    try (ObjectInputStream bucketToNodeNumberMapInputStream =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.bucketCombinationToNodeNumbersMapFile))) {
-      bucketCombinationToNodeNumbersMap =
-          (Map<BucketCombination, Set<Node>>) bucketToNodeNumberMapInputStream.readObject();
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER
-          .info("Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");
-    }
-
-  }
 
   public static void zkUploadBucketCombinationToNodeNumbersMap() throws IOException,
-      InterruptedException {
-    // CountDownLatch signal = new CountDownLatch(1);
+      InterruptedException, IllegalArgumentException, IllegalAccessException {
+
     int bucketCombinationId = 0;
     String baseConfigPath =
         zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.BUCKET_COMBINATION + File.separatorChar;
+            + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
 
-    zkKeyToBucketPath =
-        baseConfigPath + (bucketCombinationId) + File.separatorChar + ZkNodeName.KEY_TO_BUCKET;
+    for (Entry<BucketCombination, Set<Node>> entry : getBucketCombinationToNodeNumbersMap()
+        .entrySet()) {
+      zkKeyToBucketPath =
+          baseConfigPath
+              + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
+              + File.separatorChar + ZkNodeName.KEY_TO_BUCKET.getName();
+      zkNodes =
+          baseConfigPath
+              + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
+              + File.separatorChar + ZkNodeName.NODES.getName();
 
-    zkNodes = baseConfigPath + (bucketCombinationId) + File.separatorChar + ZkNodeName.NODES;
-
-    for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumbersMap.entrySet()) {
       Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap =
           entry.getKey().getBucketsCombination();
       Set<Node> nodes = entry.getValue();
       for (Entry<String, Bucket<KeyValueFrequency>> bucketCombination : bucketCombinationMap
           .entrySet()) {
-        String leafKeyPath =
-            zkKeyToBucketPath + File.separatorChar + bucketCombination.getKey()
-                + File.separatorChar + bucketCombination.getValue().getId();
-        nodesManager.createPersistentNode(leafKeyPath, null);
+        Bucket<KeyValueFrequency> bucket = bucketCombination.getValue();
+        String key = bucketCombination.getKey();
+        Field[] fields = bucket.getClass().getDeclaredFields();
+        CountDownLatch counter = new CountDownLatch(fields.length - 1);
+        for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+          fields[fieldIndex].setAccessible(true);
+          String fieldName = fields[fieldIndex].getName();
+          if (fieldName.equals("serialVersionUID")) {
+            continue;
+          }
+          Object value = fields[fieldIndex].get(bucket);
+          String leafNode = fieldName + "=" + value;
+          String leafNodePath =
+              zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
+                  + ZkNodeName.BUCKET.getName() + File.separatorChar + leafNode;
+          nodesManager.createPersistentNode(leafNodePath, counter);
+        }
+        counter.await();
       }
-
+      int nodeId = 0;
       for (Node node : nodes) {
-        String leafNodePath = zkNodes + File.separatorChar + node.getNodeId();
-        nodesManager.createPersistentNode(leafNodePath, null);
+        Field[] fields = node.getClass().getDeclaredFields();
+        CountDownLatch counter = new CountDownLatch(fields.length - 1);
+        for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+          fields[fieldIndex].setAccessible(true);
+          String fieldName = fields[fieldIndex].getName();
+          if (fieldName.equals("serialVersionUID")) {
+            continue;
+          }
+          Object value = fields[fieldIndex].get(node);
+          String leafNode = fieldName + "=" + value;
+          String leafNodePath =
+              zkNodes + File.separatorChar
+                  + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId)
+                  + File.separatorChar + leafNode;
+          nodesManager.createPersistentNode(leafNodePath, counter);
+        }
+        nodeId++;
+        counter.await();
       }
       bucketCombinationId++;
-      break;
     }
-    // signal.await();
+  }
+  
+  private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
+    try (ObjectInputStream inKeyValueNodeNumberMap =
+        new ObjectInputStream(new FileInputStream(
+            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
+                + Sharding.keyToValueToBucketMapFile))) {
+      return (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
+          .readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
+    }
+    return null;
   }
 
-  private Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
-    return bucketCombinationToNodeNumbersMap;
+  private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
+    try (ObjectInputStream bucketToNodeNumberMapInputStream =
+        new ObjectInputStream(new FileInputStream(
+            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
+                + Sharding.bucketToNodeNumberMapFile))) {
+      return (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
+          .readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
+    }
+    return null;
   }
 
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
-    return keyToValueToBucketMap;
-  }
-
-  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
-    return bucketToNodeNumberMap;
+  private static Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
+    try (ObjectInputStream bucketToNodeNumberMapInputStream =
+        new ObjectInputStream(new FileInputStream(
+            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
+                + Sharding.bucketCombinationToNodeNumbersMapFile))) {
+      return (Map<BucketCombination, Set<Node>>) bucketToNodeNumberMapInputStream.readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER
+          .info("Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");
+    }
+    return null;
   }
 }

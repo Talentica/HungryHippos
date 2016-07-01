@@ -27,7 +27,7 @@ public class ShardingFileUploadTest {
   }
 
   @Test
-  public void testBucketCombinationToNode() throws IOException, InterruptedException {
+  public void testBucketCombinationToNode() throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
     ShardingTableUploadService.zkUploadBucketCombinationToNodeNumbersMap();
   }
 }

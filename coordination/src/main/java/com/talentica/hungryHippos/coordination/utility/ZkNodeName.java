@@ -8,12 +8,29 @@ package com.talentica.hungryHippos.coordination.utility;
  *
  */
 public enum ZkNodeName {
+
+  BUCKET_COMBINATION("bucket_combination"),
+
+  KEY_TO_BUCKET("key_to_bucket"),
+
+  NODES("nodes"),
   
-  BUCKET_COMBINATION,
+  BUCKET("bucket"),
   
-  KEY_TO_BUCKET,
+  ID("id"),
   
-  NODES;
+  UNDERSCORE("_"),
   
+  NODE("node");
   
+  private String name;
+
+  private ZkNodeName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
+  }
+
 }

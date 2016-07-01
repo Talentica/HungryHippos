@@ -16,12 +16,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.AsyncCallback;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -717,4 +712,26 @@ public class NodesManager implements Watcher {
 		return flag;
 	}
 
+  public void setObjectToZKNode(String nodePath,Object data) throws KeeperException, InterruptedException,
+          ClassNotFoundException, IOException {
+    Stat stat = null;
+    stat = zk.exists(nodePath, this);
+    if (stat != null) {
+      zk.setData(nodePath, ZKUtils.serialize(data),stat.getVersion());
+    }
+  }
+
+  public void setObjectToZKNode(String nodePath,byte[] data) throws KeeperException, InterruptedException,
+          ClassNotFoundException, IOException {
+    Stat stat = null;
+    stat = zk.exists(nodePath, this);
+    if (stat != null) {
+      zk.setData(nodePath, data,stat.getVersion());
+    }
+  }
+
+  public boolean checkNodeExists(String nodePath) throws KeeperException, InterruptedException {
+    Stat stat =  zk.exists(nodePath,this);
+    return stat!=null;
+  }
 }

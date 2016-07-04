@@ -19,14 +19,15 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 public class DataPublisherStarter {
 
-  private static NodesManager nodesManager;
+	private static NodesManager nodesManager;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
 
 	public static void main(String[] args) {
 		try {
@@ -42,12 +43,14 @@ public class DataPublisherStarter {
 				NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
 			}
 			uploadCommonConfigFileToZK(coordinationServers);
+			ZookeeperFileSystem.createFilesAsZnode(DataPublisherApplicationContext.inputFile);
 			String dataParserClassName = args[1];
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 					.getConstructor(DataDescription.class)
 					.newInstance(DataPublisherApplicationContext.getConfiguredDataDescription());
 			LOGGER.info("Initializing nodes manager.");
 			long startTime = System.currentTimeMillis();
+
 			DataProvider.publishDataToNodes(nodesManager, dataParser);
 			sendSignalToNodes(nodesManager);
 			long endTime = System.currentTimeMillis();
@@ -66,7 +69,7 @@ public class DataPublisherStarter {
 		}
 	}
 
-  /**
+	/**
 	 * 
 	 */
 	private static void dataPublishingFailed() {
@@ -96,18 +99,17 @@ public class DataPublisherStarter {
 		}
 	}
 
-  private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
-    CountDownLatch signal = new CountDownLatch(1);
-    try {
-      nodesManager.createPersistentNode(nodesManager
-          .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER
-              .getZKJobNode()), signal);
-    } catch (IOException e) {
-      LOGGER.info("Unable to send the signal node on zk due to {}", e);
-    }
+	private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
+		CountDownLatch signal = new CountDownLatch(1);
+		try {
+			nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(
+					CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+		} catch (IOException e) {
+			LOGGER.info("Unable to send the signal node on zk due to {}", e);
+		}
 
-    signal.await();
-  }
+		signal.await();
+	}
 
 	private static void uploadCommonConfigFileToZK(CoordinationServers coordinationServers) throws Exception {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");

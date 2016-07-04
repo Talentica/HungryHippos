@@ -86,7 +86,7 @@ public class ConfigurationFileUploadTest {
 		//String buildPath = nodesManager.buildConfigPath("/rootnode/hostsnode/test/child");
 		Set<LeafBean> leafs;
 		try {
-			leafs = ZKUtils.searchTree("/rootnode/hostsnode/test", null, null);
+			leafs = ZKUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
 			for(LeafBean leaf : leafs){
 				LOGGER.info("Path is {} AND node name {}",leaf.getPath(),leaf.getName());
 			}

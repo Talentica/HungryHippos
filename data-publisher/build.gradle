@@ -27,6 +27,7 @@ jar {
   
 dependencies {
     compile project (':coordination')
+    compile project (':file-system')
     compile 'log4j:log4j:1.2.17'
     compile project (':common')
     testCompile 'junit:junit:4.12'

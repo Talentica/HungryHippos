@@ -110,7 +110,7 @@ public class NodeJobsService implements NodesJobsRunnable {
 		String buildpath = ZKUtils.buildNodePath(node.getNodeId())
 				+ PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-		Set<LeafBean> leafs = ZKUtils.searchTree(buildpath, null, null);
+		Set<LeafBean> leafs = ZKUtils.searchLeafNode(buildpath, null, null);
 		for (LeafBean leaf : leafs) {
 			if (leaf.getPath().contains(
 					CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {

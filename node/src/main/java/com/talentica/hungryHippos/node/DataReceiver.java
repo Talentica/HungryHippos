@@ -91,7 +91,7 @@ public class DataReceiver {
 			int nodeId = NodeUtil.getNodeId();
 			Properties serverConfigProps = CoordinationApplicationContext.getServerProperty().getProperties();
 			if (serverConfig != null) {
-				serverConfigProps = serverConfig.getFileData();
+        serverConfigProps = (Properties)serverConfig.getObj();
 			}
 			String server = serverConfigProps.getProperty("server." + nodeId);
 			int PORT = Integer.valueOf(server.split(":")[1]);

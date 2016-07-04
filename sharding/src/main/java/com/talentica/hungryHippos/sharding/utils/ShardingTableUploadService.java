@@ -57,6 +57,8 @@ public class ShardingTableUploadService {
       bucketCombinationId++;
     }
   }
+  
+  
 
   private static void createBasePath(int bucketCombinationId) {
     baseConfigPath =
@@ -87,7 +89,7 @@ public class ShardingTableUploadService {
           continue;
         }
         Object value = fields[fieldIndex].get(node);
-        String leafNode = fieldName + ZkNodeName.EQUAL + value;
+        String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
         String leafNodePath =
             zkNodes + File.separatorChar
                 + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId)
@@ -116,7 +118,7 @@ public class ShardingTableUploadService {
           continue;
         }
         Object value = fields[fieldIndex].get(bucket);
-        String leafNode = fieldName + ZkNodeName.EQUAL + value;
+        String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
         String leafNodePath =
             zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
                 + ZkNodeName.BUCKET.getName() + File.separatorChar + leafNode;

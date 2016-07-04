@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.sharding;
 import java.io.IOException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
@@ -27,7 +28,13 @@ public class ShardingFileUploadTest {
   }
 
   @Test
+  @Ignore
   public void testBucketCombinationToNode() throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
     ShardingTableUploadService.zkUploadBucketCombinationToNodeNumbersMap();
+  }
+  
+  @Test
+  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException{
+    ShardingTableUploadService.zkUploadBucketToNodeNumberMap();
   }
 }

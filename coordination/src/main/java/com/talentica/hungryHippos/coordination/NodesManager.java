@@ -158,7 +158,6 @@ public class NodesManager implements Watcher {
 		CountDownLatch signal = new CountDownLatch(1);
 		ZKUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()), signal);
 		signal.await();
-		// }
 		defaultNodesOnStart();
 		try {
 			List<String> serverNames = getMonitoredServers();

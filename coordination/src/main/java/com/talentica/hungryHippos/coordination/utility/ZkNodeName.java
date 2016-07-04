@@ -14,15 +14,17 @@ public enum ZkNodeName {
   KEY_TO_BUCKET("key_to_bucket"),
 
   NODES("nodes"),
-  
+
   BUCKET("bucket"),
-  
+
   ID("id"),
-  
+
   UNDERSCORE("_"),
-  
-  NODE("node");
-  
+
+  NODE("node"),
+
+  EQUAL("=");
+
   private String name;
 
   private ZkNodeName(String name) {

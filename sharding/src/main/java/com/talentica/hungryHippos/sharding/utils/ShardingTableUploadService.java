@@ -41,79 +41,91 @@ public class ShardingTableUploadService {
       .getNodesManagerIntances();
   private static Property<ZkProperty> zkproperty = CoordinationApplicationContext.getZkProperty();
 
+  private static String baseConfigPath;
   private static String zkKeyToBucketPath;
   private static String zkNodes;
-  private static int BucketCombinationId;
 
 
   public static void zkUploadBucketCombinationToNodeNumbersMap() throws IOException,
       InterruptedException, IllegalArgumentException, IllegalAccessException {
-
     int bucketCombinationId = 0;
-    String baseConfigPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
-
     for (Entry<BucketCombination, Set<Node>> entry : getBucketCombinationToNodeNumbersMap()
         .entrySet()) {
-      zkKeyToBucketPath =
-          baseConfigPath
-              + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
-              + File.separatorChar + ZkNodeName.KEY_TO_BUCKET.getName();
-      zkNodes =
-          baseConfigPath
-              + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
-              + File.separatorChar + ZkNodeName.NODES.getName();
-
-      Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap =
-          entry.getKey().getBucketsCombination();
-      Set<Node> nodes = entry.getValue();
-      for (Entry<String, Bucket<KeyValueFrequency>> bucketCombination : bucketCombinationMap
-          .entrySet()) {
-        Bucket<KeyValueFrequency> bucket = bucketCombination.getValue();
-        String key = bucketCombination.getKey();
-        Field[] fields = bucket.getClass().getDeclaredFields();
-        CountDownLatch counter = new CountDownLatch(fields.length - 1);
-        for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-          fields[fieldIndex].setAccessible(true);
-          String fieldName = fields[fieldIndex].getName();
-          if (fieldName.equals("serialVersionUID")) {
-            continue;
-          }
-          Object value = fields[fieldIndex].get(bucket);
-          String leafNode = fieldName + "=" + value;
-          String leafNodePath =
-              zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
-                  + ZkNodeName.BUCKET.getName() + File.separatorChar + leafNode;
-          nodesManager.createPersistentNode(leafNodePath, counter);
-        }
-        counter.await();
-      }
-      int nodeId = 0;
-      for (Node node : nodes) {
-        Field[] fields = node.getClass().getDeclaredFields();
-        CountDownLatch counter = new CountDownLatch(fields.length - 1);
-        for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-          fields[fieldIndex].setAccessible(true);
-          String fieldName = fields[fieldIndex].getName();
-          if (fieldName.equals("serialVersionUID")) {
-            continue;
-          }
-          Object value = fields[fieldIndex].get(node);
-          String leafNode = fieldName + "=" + value;
-          String leafNodePath =
-              zkNodes + File.separatorChar
-                  + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId)
-                  + File.separatorChar + leafNode;
-          nodesManager.createPersistentNode(leafNodePath, counter);
-        }
-        nodeId++;
-        counter.await();
-      }
+      createBasePath(bucketCombinationId);
+      zkUploadKeyTOBucket(entry);
+      zkUploadNodes(entry);
       bucketCombinationId++;
     }
   }
-  
+
+  private static void createBasePath(int bucketCombinationId) {
+    baseConfigPath =
+        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+            + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
+
+    zkKeyToBucketPath =
+        baseConfigPath
+            + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
+            + File.separatorChar + ZkNodeName.KEY_TO_BUCKET.getName();
+    zkNodes =
+        baseConfigPath
+            + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() + bucketCombinationId)
+            + File.separatorChar + ZkNodeName.NODES.getName();
+  }
+
+  private static void zkUploadNodes(Entry<BucketCombination, Set<Node>> entry)
+      throws IllegalAccessException, IOException, InterruptedException {
+    Set<Node> nodes = entry.getValue();
+    int nodeId = 0;
+    for (Node node : nodes) {
+      Field[] fields = node.getClass().getDeclaredFields();
+      CountDownLatch counter = new CountDownLatch(fields.length - 1);
+      for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+        fields[fieldIndex].setAccessible(true);
+        String fieldName = fields[fieldIndex].getName();
+        if (fieldName.equals("serialVersionUID")) {
+          continue;
+        }
+        Object value = fields[fieldIndex].get(node);
+        String leafNode = fieldName + ZkNodeName.EQUAL + value;
+        String leafNodePath =
+            zkNodes + File.separatorChar
+                + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId)
+                + File.separatorChar + leafNode;
+        nodesManager.createPersistentNode(leafNodePath, counter);
+      }
+      nodeId++;
+      counter.await();
+    }
+  }
+
+  private static void zkUploadKeyTOBucket(Entry<BucketCombination, Set<Node>> entry)
+      throws IllegalAccessException, IOException, InterruptedException {
+    Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap =
+        entry.getKey().getBucketsCombination();
+    for (Entry<String, Bucket<KeyValueFrequency>> bucketCombination : bucketCombinationMap
+        .entrySet()) {
+      Bucket<KeyValueFrequency> bucket = bucketCombination.getValue();
+      String key = bucketCombination.getKey();
+      Field[] fields = bucket.getClass().getDeclaredFields();
+      CountDownLatch counter = new CountDownLatch(fields.length - 1);
+      for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+        fields[fieldIndex].setAccessible(true);
+        String fieldName = fields[fieldIndex].getName();
+        if (fieldName.equals("serialVersionUID")) {
+          continue;
+        }
+        Object value = fields[fieldIndex].get(bucket);
+        String leafNode = fieldName + ZkNodeName.EQUAL + value;
+        String leafNodePath =
+            zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
+                + ZkNodeName.BUCKET.getName() + File.separatorChar + leafNode;
+        nodesManager.createPersistentNode(leafNodePath, counter);
+      }
+      counter.await();
+    }
+  }
+
   private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     try (ObjectInputStream inKeyValueNodeNumberMap =
         new ObjectInputStream(new FileInputStream(

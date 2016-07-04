@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
@@ -27,16 +28,12 @@ public class ZookeeperFileSystem {
 
 	private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
 
-	private static FileSystem fs = null;
-	private static NodesManager nodeManager = null;
-	private static final String FILE_SYSTEM_ROOT = "/root/file-system/";
+	private FileSystem fs = null;
+	private NodesManager nodeManager = null;
+	private final String FILE_SYSTEM_ROOT = "/root/file-system/";
 
-	private static void getNodeManger() {
-		try {
-			nodeManager = NodesManagerContext.getNodesManagerInstance();
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-		}
+	public ZookeeperFileSystem(CoordinationServers coordinationServers) {
+		nodeManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
 	}
 
 	/**
@@ -44,7 +41,7 @@ public class ZookeeperFileSystem {
 	 * 
 	 * @param fileName
 	 */
-	public static void createFilesAsZnode(String fileName) {
+	public void createFilesAsZnode(String fileName) {
 
 		fs = FileSystems.getDefault();
 		Path path = fs.getPath(fileName);
@@ -61,10 +58,6 @@ public class ZookeeperFileSystem {
 		String[] nameAndType = dirStructure[length - 1].split("\\.");
 		FileMetaData fileMetaData = new FileMetaData(nameAndType[0], nameAndType[1], size);
 		final CountDownLatch signal = new CountDownLatch(1);
-		if (nodeManager == null) {
-			getNodeManger();
-		}
-
 		try {
 			nodeManager.createPersistentNode(FILE_SYSTEM_ROOT + fileName, signal, fileMetaData);
 		} catch (IOException e) {
@@ -72,19 +65,15 @@ public class ZookeeperFileSystem {
 		}
 
 	}
-	
+
 	/**
 	 * Method used for creating fileName as Znodes.
 	 * 
 	 * @param fileName
 	 */
-	public static void createNodeDetailsAsZnode(Node node) {
+	public void createNodeDetailsAsZnode(Node node) {
 
 		final CountDownLatch signal = new CountDownLatch(1);
-		if (nodeManager == null) {
-			getNodeManger();
-		}
-
 		try {
 			nodeManager.createPersistentNode(node.getIp(), signal, null);
 		} catch (IOException e) {
@@ -100,12 +89,9 @@ public class ZookeeperFileSystem {
 	 * @return
 	 */
 
-	public static FileMetaData getDataInsideZnode(String fileName) {
+	public FileMetaData getDataInsideZnode(String fileName) {
 		fileName = fileName.replace(String.valueOf((java.io.File.separatorChar)), "@");
 		FileMetaData fileMetaData = null;
-		if (nodeManager == null) {
-			getNodeManger();
-		}
 		try {
 			Object obj = nodeManager.getObjectFromZKNode(FILE_SYSTEM_ROOT + fileName);
 			if (obj instanceof FileMetaData) {
@@ -119,7 +105,7 @@ public class ZookeeperFileSystem {
 
 		return fileMetaData;
 	}
-	
+
 	/**
 	 * To retrieve the data of Znode.
 	 * 
@@ -127,16 +113,13 @@ public class ZookeeperFileSystem {
 	 * @return
 	 */
 
-	public static FileMetaData getChildren(String fileName) {
+	public FileMetaData getChildren(String fileName) {
 		fileName = fileName.replace(String.valueOf((java.io.File.separatorChar)), "@");
 		FileMetaData fileMetaData = null;
-		if (nodeManager == null) {
-			getNodeManger();
-		}
 		try {
 			List<String> childNodes = nodeManager.getChildren(FILE_SYSTEM_ROOT + fileName);
-			
-		} catch ( KeeperException | InterruptedException e) {
+
+		} catch (KeeperException | InterruptedException e) {
 			logger.error(e.getMessage());
 		}
 

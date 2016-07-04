@@ -1,11 +1,18 @@
 package com.talentica.hungryhippos.filesystem;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
+
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.config.client.ObjectFactory;
 
 /**
  * Created by rajkishoreh on 29/6/16.
@@ -47,7 +54,8 @@ public class FileDataRetriever {
         }
 
         //Gets the NodeIps having data of the fileZKNode
-        NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
         List<String> nodeIps = nodesManager.getChildren(fileZKNode);
 
         //iterates on NodeIps

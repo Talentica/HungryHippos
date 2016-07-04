@@ -1,16 +1,24 @@
 package com.talentica.hungryhippos.filesystem;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
+
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.config.client.ObjectFactory;
 
 /**
  * This class is used for updating the Zookeeper FileSystem Node
  * Created by rajkishoreh on 29/6/16.
  */
 public class ZookeeperFileSystemUpdater {
+
+	private NodesManager nodesManager;
+
+	public ZookeeperFileSystemUpdater(CoordinationServers coordinationServers) {
+		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+	}
 
 
     /**
@@ -23,9 +31,6 @@ public class ZookeeperFileSystemUpdater {
      * @throws Exception
      */
     public void updateZookeper(String filePath, String nodeIp, String dataFileZKNode, String dataFileLocation, long datafileSize) throws Exception {
-
-        NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
-
         boolean flag= nodesManager.checkNodeExists(filePath + File.separator + nodeIp + File.separator + dataFileZKNode);
 
         long prevDataFileSize = 0;
@@ -55,9 +60,8 @@ public class ZookeeperFileSystemUpdater {
 
     public static void main(String[] args) throws Exception {
 
-
-
-        ZookeeperFileSystemUpdater zkCoordinator = new ZookeeperFileSystemUpdater();
+		ZookeeperFileSystemUpdater zkCoordinator = new ZookeeperFileSystemUpdater(
+				new ObjectFactory().createCoordinationServers());
         File file = new File("/home/rajkishoreh/out180mb/part-00007");
         zkCoordinator.updateZookeper("/filesystem/input", "172.29.3.18", "0", file.getPath(),file.length());
         file = new File("/home/rajkishoreh/out180mb/part-00000");

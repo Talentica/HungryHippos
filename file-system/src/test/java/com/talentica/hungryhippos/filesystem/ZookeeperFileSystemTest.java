@@ -1,14 +1,22 @@
 package com.talentica.hungryhippos.filesystem;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.config.client.ObjectFactory;
+
 public class ZookeeperFileSystemTest {
+
+	private ZookeeperFileSystem system;
 
 	@Test
 	public void testCreateFilesAsZnode() {
-		ZookeeperFileSystem.createFilesAsZnode("/abcd/input.txt");
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem(coordinationServers);
+		system.createFilesAsZnode("/abcd/input.txt");
 	}
 
 	/**
@@ -16,7 +24,9 @@ public class ZookeeperFileSystemTest {
 	 */
 	@Test
 	public void testGetDataInsideZnode() {
-		FileMetaData fileMetaData = ZookeeperFileSystem
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem(coordinationServers);
+		FileMetaData fileMetaData = system
 				.getDataInsideZnode("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
 		assertNotNull(fileMetaData);
 		assertNotNull(fileMetaData.getFileName());

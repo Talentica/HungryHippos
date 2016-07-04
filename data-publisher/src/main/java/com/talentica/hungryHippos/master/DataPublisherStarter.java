@@ -19,9 +19,9 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 
 public class DataPublisherStarter {
 
@@ -43,7 +43,8 @@ public class DataPublisherStarter {
 				NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
 			}
 			uploadCommonConfigFileToZK(coordinationServers);
-			ZookeeperFileSystem.createFilesAsZnode(DataPublisherApplicationContext.inputFile);
+			ZookeeperFileSystem fileSystem = new ZookeeperFileSystem(coordinationServers);
+			fileSystem.createFilesAsZnode(DataPublisherApplicationContext.inputFile);
 			String dataParserClassName = args[1];
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 					.getConstructor(DataDescription.class)

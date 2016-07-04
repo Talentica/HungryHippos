@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
@@ -27,6 +28,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * @author pooshans
@@ -34,19 +36,24 @@ import com.talentica.hungryHippos.utility.PathUtil;
  */
 public class ShardingTableUploadService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ShardingTableUploadService.class
+	private final Logger LOGGER = LoggerFactory.getLogger(ShardingTableUploadService.class
       .getName());
 
-  private static NodesManager nodesManager = CoordinationApplicationContext
-      .getNodesManagerIntances();
-  private static Property<ZkProperty> zkproperty = CoordinationApplicationContext.getZkProperty();
+	private NodesManager nodesManager;
 
-  private static String baseConfigPath;
-  private static String zkKeyToBucketPath;
-  private static String zkNodes;
-  private static String baseConfigBucketToNodePath;
+	private Property<ZkProperty> zkproperty = CoordinationApplicationContext.getZkProperty();
 
-  public static void zkUploadBucketCombinationToNodeNumbersMap() throws IOException,
+	private String baseConfigPath;
+	private String zkKeyToBucketPath;
+	private String zkNodes;
+	private String baseConfigBucketToNodePath;
+
+	public ShardingTableUploadService(CoordinationServers coordinationServers) {
+		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+	}
+
+	public void zkUploadBucketCombinationToNodeNumbersMap()
+			throws IOException,
       InterruptedException, IllegalArgumentException, IllegalAccessException {
     int bucketCombinationId = 0;
     for (Entry<BucketCombination, Set<Node>> entry : getBucketCombinationToNodeNumbersMap()
@@ -58,7 +65,8 @@ public class ShardingTableUploadService {
     }
   }
 
-  public static void zkUploadBucketToNodeNumberMap() throws IOException, InterruptedException,
+	public void zkUploadBucketToNodeNumberMap()
+			throws IOException, InterruptedException,
       IllegalArgumentException, IllegalAccessException {
     buildBasePathBucketToNode();
     for (Entry<String, Map<Bucket<KeyValueFrequency>, Node>> entry : getBucketToNodeNumberMap()
@@ -81,7 +89,7 @@ public class ShardingTableUploadService {
     }
   }
 
-  private static String createKeyToBucketId(String keyToBucketPath, int keyToBucketPathId) {
+	private String createKeyToBucketId(String keyToBucketPath, int keyToBucketPathId) {
     keyToBucketPath =
         keyToBucketPath
             + File.separatorChar
@@ -91,7 +99,8 @@ public class ShardingTableUploadService {
     return keyToBucketPath;
   }
 
-  private static void createNode(String keyToBucketPath, Node node) throws IllegalAccessException,
+	private void createNode(String keyToBucketPath, Node node)
+			throws IllegalAccessException,
       IOException, InterruptedException {
     CountDownLatch counter;
     String nodepath =
@@ -114,7 +123,7 @@ public class ShardingTableUploadService {
     counter.await();
   }
 
-  private static void createBucket(String keyToBucketPath, Bucket<KeyValueFrequency> bucket)
+	private void createBucket(String keyToBucketPath, Bucket<KeyValueFrequency> bucket)
       throws IllegalAccessException, IOException, InterruptedException {
     CountDownLatch counter;
     String bucketPath =
@@ -137,13 +146,13 @@ public class ShardingTableUploadService {
     counter.await();
   }
 
-  private static void buildBasePathBucketToNode() {
+	private void buildBasePathBucketToNode() {
     baseConfigBucketToNodePath =
         zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
             + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
   }
 
-  private static void createBasePathForBucketCombinationToNodeNumberMap(int bucketCombinationId) {
+	private void createBasePathForBucketCombinationToNodeNumberMap(int bucketCombinationId) {
     baseConfigPath =
         zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
             + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
@@ -158,7 +167,7 @@ public class ShardingTableUploadService {
             + File.separatorChar + ZkNodeName.NODES.getName();
   }
 
-  private static void zkUploadNodes(Entry<BucketCombination, Set<Node>> entry)
+	private void zkUploadNodes(Entry<BucketCombination, Set<Node>> entry)
       throws IllegalAccessException, IOException, InterruptedException {
     Set<Node> nodes = entry.getValue();
     int nodeId = 0;
@@ -184,7 +193,7 @@ public class ShardingTableUploadService {
     }
   }
 
-  private static void zkUploadKeyTOBucket(Entry<BucketCombination, Set<Node>> entry)
+	private void zkUploadKeyTOBucket(Entry<BucketCombination, Set<Node>> entry)
       throws IllegalAccessException, IOException, InterruptedException {
     Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap =
         entry.getKey().getBucketsCombination();
@@ -211,7 +220,7 @@ public class ShardingTableUploadService {
     }
   }
 
-  private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
+	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     try (ObjectInputStream inKeyValueNodeNumberMap =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
@@ -224,7 +233,7 @@ public class ShardingTableUploadService {
     return null;
   }
 
-  private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
+	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     try (ObjectInputStream bucketToNodeNumberMapInputStream =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
@@ -237,7 +246,7 @@ public class ShardingTableUploadService {
     return null;
   }
 
-  private static Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
+	private Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
     try (ObjectInputStream bucketToNodeNumberMapInputStream =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR

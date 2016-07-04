@@ -10,7 +10,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.sharding.utils.ShardingTableUploadService;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.config.client.ObjectFactory;
 
 /**
  * @author pooshans
@@ -18,23 +21,29 @@ import com.talentica.hungryHippos.sharding.utils.ShardingTableUploadService;
  */
 public class ShardingFileUploadTest {
 
-  @Before
-  public void setUp() throws Exception {
-    String flag =
-        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-    if (flag.equals("Y")) {
-      CoordinationApplicationContext.getNodesManagerIntances().startup();
-    }
-  }
+	private ShardingTableUploadService service;
 
-  @Test
-  @Ignore
-  public void testBucketCombinationToNode() throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
-    ShardingTableUploadService.zkUploadBucketCombinationToNodeNumbersMap();
-  }
-  
-  @Test
-  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException{
-    ShardingTableUploadService.zkUploadBucketToNodeNumberMap();
-  }
+	@Before
+	public void setUp() throws Exception {
+		String flag = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+		if (flag.equals("Y")) {
+			ObjectFactory factory = new ObjectFactory();
+			CoordinationServers coordinationServers = factory.createCoordinationServers();
+			service = new ShardingTableUploadService(coordinationServers);
+			NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
+		}
+	}
+
+	@Test
+	@Ignore
+	public void testBucketCombinationToNode()
+			throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
+		service.zkUploadBucketCombinationToNodeNumbersMap();
+	}
+
+	@Test
+	public void testBucketToNodeNumber()
+			throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
+		service.zkUploadBucketToNodeNumberMap();
+	}
 }

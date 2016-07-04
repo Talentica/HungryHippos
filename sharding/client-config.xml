@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/client" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/client ../configuration-schema/src/main/resources/schema/client-config.xsd ">
   <tns:coordination-servers>
-    <tns:server>
-      <tns:address>localhost</tns:address>
-      <tns:port>2181</tns:port>
-    </tns:server>
+    <tns:servers>localhost:2181</tns:servers>
   </tns:coordination-servers>
 </tns:client-config>

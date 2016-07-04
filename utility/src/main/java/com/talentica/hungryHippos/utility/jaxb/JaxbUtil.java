@@ -14,8 +14,12 @@ import javax.xml.bind.Unmarshaller;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
 import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class JaxbUtil {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(JaxbUtil.class);
 
 	/**
 	 * Marshalling supplied object to XML document by JAXB annotations and
@@ -81,10 +85,15 @@ public final class JaxbUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T unmarshalFromJson(String json, Class<T> clazz) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { clazz }, null);
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		return (T) unmarshaller.unmarshal(new StringReader(json));
+		try {
+			JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { clazz }, null);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
+			return (T) unmarshaller.unmarshal(new StringReader(json));
+		} catch (JAXBException exception) {
+			LOGGER.warn("Error while parsing JSON content:-{}", json);
+			throw exception;
+		}
 	}
 
 	/**
@@ -106,6 +115,25 @@ public final class JaxbUtil {
 			unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
 		}
 		return (T) unmarshaller.unmarshal(new FileReader(filePath));
+	}
+
+	/**
+	 * Unmarshals object from XML or JSON configuration content.
+	 * 
+	 * @param content
+	 * @param clazz
+	 * @return
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+	 */
+	public static <T> T unmarshal(String content, Class<T> clazz) throws JAXBException, FileNotFoundException {
+		T object = null;
+		try {
+			object = unmarshalFromXml(content, clazz);
+		} catch (Exception exception) {
+			object = unmarshalFromJson(content, clazz);
+		}
+		return object;
 	}
 
 }

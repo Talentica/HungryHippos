@@ -14,16 +14,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -34,9 +29,8 @@ public class CommonUtil {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CommonUtil.class.getName());
 
-  private static FieldTypeArrayDataDescription dataDescription;
-
   public static String TEMP_JOBUUID_FOLDER_PATH = null;
+
   public static final String MASTER_IP_FILE_NAME = "master_ip_file";
 
   public static final String OUTPUT_IP_FILE_NAME = "output_ip_file";
@@ -159,12 +153,6 @@ public class CommonUtil {
 
   public static String getKazooIp() throws IOException {
     return readFile(new File(OUTPUT_IP_FILE_NAME_ABSOLUTE_PATH)).get(0);
-  }
-
-  public static Properties getServerConfigurationPropertyFromZk() throws Exception {
-    ZKNodeFile serverConfig =
-        ZKUtils.getConfigZKNodeFile(CoordinationApplicationContext.SERVER_CONF_FILE);
-    return (serverConfig == null) ? null : serverConfig.getFileData();
   }
 
   /**

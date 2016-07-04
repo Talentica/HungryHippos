@@ -16,7 +16,6 @@ public final class JaxbUtilTest {
 		testObj.setTestB("B");
 		testObj.setTestC("C");
 		String xmlString = JaxbUtil.marshalToXml(testObj);
-		System.out.println(xmlString);
 		Assert.assertNotNull(xmlString);
 		Assert.assertEquals(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?><jaxbTest><testA>A</testA><testB>B</testB></jaxbTest>",
@@ -30,7 +29,6 @@ public final class JaxbUtilTest {
 		testObj.setTestB("B");
 		testObj.setTestC("C");
 		String jsonString = JaxbUtil.marshalToJson(testObj);
-		System.out.println(jsonString);
 		Assert.assertNotNull(jsonString);
 		Assert.assertEquals("{\"jaxbTest\":{\"testA\":\"A\",\"testB\":\"B\"}}", jsonString);
 	}

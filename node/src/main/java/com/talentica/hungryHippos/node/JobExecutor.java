@@ -3,11 +3,14 @@
  */
 package com.talentica.hungryHippos.node;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -26,6 +30,9 @@ import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -76,11 +83,12 @@ public class JobExecutor {
     }
   }
 
-  private static void validateArguments(String[] args) {
-    if (args.length < 3) {
-      throw new RuntimeException("Either missing 1st argument {job uuid} and/or 2nd argument {data input directory} and/or 3rd argument{output directory}.");
-    }
-  }
+	private static void validateArguments(String[] args) {
+		if (args.length < 4) {
+			throw new RuntimeException(
+					"Either missing 1st argument {job uuid} and/or 2nd argument {data input directory} and/or 3rd argument{output directory} and/or 4th argument {client configuration file}.");
+		}
+	}
 
   /**
    * @throws Exception
@@ -92,17 +100,21 @@ public class JobExecutor {
         CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
   }
 
-  /**
-   * @param args
-   */
-  private static void initialize(String[] args) {
-    jobUUId = args[0];
-    CommonUtil.loadDefaultPath(jobUUId);
-    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-    nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
-    StorageApplicationContext.dataFilePath = args[1];
-    StorageApplicationContext.outputFilePath = args[2];
-  }
+  	/**
+	 * @param args
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+	 */
+	private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
+		jobUUId = args[0];
+		CommonUtil.loadDefaultPath(jobUUId);
+		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+		ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[3], ClientConfig.class);
+		CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
+		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		StorageApplicationContext.dataFilePath = args[1];
+		StorageApplicationContext.outputFilePath = args[2];
+	}
 
   /**
    * @throws IOException

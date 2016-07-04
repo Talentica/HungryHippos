@@ -4,8 +4,6 @@
 package com.talentica.hungryHippos.node.test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
@@ -19,8 +17,8 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.sharding.Bucket;
-import com.talentica.hungryHippos.sharding.KeyValueFrequency;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+import com.talentica.hungryhippos.config.client.ObjectFactory;
 /**
  * @author PooshanS
  *
@@ -33,13 +31,13 @@ public class ConfigurationFileRetrieve {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationFileRetrieve.class.getName());
 	
-	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
 	private NodesManager nodesManager;
 	
 	@Before
 	public void setUp() throws Exception{
-		(nodesManager = NodesManagerContext.getNodesManagerInstance()).startup();
-		keyToValueToBucketMap = new HashMap<String, Map<Object, Bucket<KeyValueFrequency>>>();
+		ObjectFactory factory = new ObjectFactory();
+		CoordinationServers coordinationServers = factory.createCoordinationServers();
+		(nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers)).startup();
 	}
 	
 	@Test

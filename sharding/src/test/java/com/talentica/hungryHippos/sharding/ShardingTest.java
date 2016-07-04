@@ -15,9 +15,10 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.utility.ENVIRONMENT;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileReader;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
+import com.talentica.hungryhippos.config.coordination.ClusterConfig;
+import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
  *
@@ -30,14 +31,31 @@ public class ShardingTest {
 
 	@Before
 	public void setup() throws IOException {
-
-		sharding = new Sharding(5);
+		ClusterConfig clusterConfig = getClusterConfiguration();
+		sharding = new Sharding(clusterConfig);
 		DataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(
 				"STRING-1,STRING-1,STRING-1,STRING-1,DOUBLE-0,DOUBLE-0,DOUBLE-0,DOUBLE-0,STRING-3".split(","), 100);
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 
 		shardingInputFileReader = new FileReader(
 				new File("src/test/java/com/talentica/hungryHippos/sharding/testSampleInput.txt"), csvDataPreprocessor);
+	}
+
+	private ClusterConfig getClusterConfiguration() {
+		com.talentica.hungryhippos.config.coordination.ObjectFactory factory = new com.talentica.hungryhippos.config.coordination.ObjectFactory();
+		ClusterConfig clusterConfig = factory.createClusterConfig();
+		Node node0 = new Node();
+		node0.setIdentifier(0);
+		clusterConfig.getNode().add(node0);
+
+		Node node1 = new Node();
+		node1.setIdentifier(1);
+		clusterConfig.getNode().add(node1);
+
+		Node node2 = new Node();
+		node2.setIdentifier(2);
+		clusterConfig.getNode().add(node2);
+		return clusterConfig;
 	}
 
 	// The populate frequency can't be test alone as the method is to much
@@ -69,7 +87,7 @@ public class ShardingTest {
 	 */
 	@Test
 	public void testDoSharding() {
-		Sharding.doSharding(shardingInputFileReader);
+		Sharding.doSharding(shardingInputFileReader, getClusterConfiguration());
 	}
 
 	@After

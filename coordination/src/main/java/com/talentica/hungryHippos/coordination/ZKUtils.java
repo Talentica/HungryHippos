@@ -32,6 +32,7 @@ import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * 
@@ -46,18 +47,18 @@ public class ZKUtils {
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
 
-  public static ZKNodeFile getConfigZKNodeFile(String fileName) {
-    Object obj = null;
-    ZKNodeFile zkFile = null;
-    nodesManager = CoordinationApplicationContext.getNodesManagerIntances();
-    try {
-      obj = nodesManager.getConfigFileFromZNode(fileName);
-      zkFile = (obj == null) ? null : (ZKNodeFile) obj;
-    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
-      LOGGER.error("Error occurred while getting zk file.", e);
-    }
-    return zkFile;
-  }
+	public static ZKNodeFile getConfigZKNodeFile(String fileName, CoordinationServers coordinationServers) {
+		Object obj = null;
+		ZKNodeFile zkFile = null;
+		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		try {
+			obj = nodesManager.getConfigFileFromZNode(fileName);
+			zkFile = (obj == null) ? null : (ZKNodeFile) obj;
+		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
+			LOGGER.error("Error occurred while getting zk file.", e);
+		}
+		return zkFile;
+	}
 
   /**
    * To serialize the object
@@ -492,14 +493,12 @@ public class ZKUtils {
    * @param jobUUId
    * @throws Exception
    */
-  public static void createDefaultNodes(String... jobUUId) throws Exception {
-    if (nodesManager == null) {
-      CommonUtil.loadDefaultPath(jobUUId[0]);
-      // String zkIp = CommonUtil.getZKIp();
-      // LOGGER.info("zk ip is {}", zkIp);
-      nodesManager = NodesManagerContext.getNodesManagerInstance();
-    }
-    nodesManager.startup();
-  }
+	public static void createDefaultNodes(CoordinationServers coordinationServers, String... jobUUId) throws Exception {
+		if (nodesManager == null) {
+			CommonUtil.loadDefaultPath(jobUUId[0]);
+			nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		}
+		nodesManager.startup();
+	}
 
 }

@@ -8,59 +8,50 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.config.sharding.ShardingConfig;
 
 public class ShardingStarter {
 
-  /**
-   * @param args
-   */
-  private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
+	/**
+	 * @param args
+	 */
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
 
-  public static void main(String[] args) {
-    try {
-      validateArguments(args);
-      initialize(args);
-      String inputFileString = args[0];
-      String dataParserClassName = args[1];
-      DataParser dataParser =
-          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-              .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
-      LOGGER.info("SHARDING STARTED");
-      long startTime = System.currentTimeMillis();
-      Sharding.doSharding(getInputReaderForSharding(inputFileString, dataParser));
-      LOGGER.info("SHARDING DONE!!");
+	public static void main(String[] args) {
+		try {
+			validateArguments(args);
+			CoordinationConfig coordinationConfig = JaxbUtil.unmarshalFromFile(args[0], CoordinationConfig.class);
+			ShardingConfig shardingConfig = JaxbUtil.unmarshalFromFile(args[1], ShardingConfig.class);
+			String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
+			String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();
+			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
+					.getConstructor(DataDescription.class)
+					.newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
+			LOGGER.info("SHARDING STARTED");
+			long startTime = System.currentTimeMillis();
+			Sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser),
+					coordinationConfig.getClusterConfig());
+			LOGGER.info("SHARDING DONE!!");
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while sharding.", exception);
+		}
+	}
 
-      long endTime = System.currentTimeMillis();
-      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while sharding.", exception);
-    }
-  }
+	private static void validateArguments(String[] args) {
+		if (args.length < 2) {
+			throw new RuntimeException(
+					"Missing coordination configuration and sharding configuration file paths parameters.");
+		}
+	}
 
-  private static void validateArguments(String[] args) {
-    if (args.length < 2) {
-      throw new RuntimeException("Missing data parser class name parameters or input file path.");
-    }
-  }
-
-  /**
-   * @param args
-   * @throws Exception
-   */
-  private static void initialize(String[] args) throws Exception {
-    String jobUUId = args[0];
-    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-    CommonUtil.loadDefaultPath(jobUUId);
-  }
-
-  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser)
-      throws IOException {
-    return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile,
-        dataParser);
-  }
+	private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser) throws IOException {
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile, dataParser);
+	}
 
 }

@@ -14,6 +14,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 import com.talentica.hungryHippos.master.property.DataPublisherProperty;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 
 
@@ -43,10 +44,10 @@ public class DataPublisherApplicationContext {
     return property;
   }
 
-  public static NodesManager getNodesManager() throws Exception {
-    nodesManager = NodesManagerContext.getNodesManagerInstance();
-    return nodesManager;
-  }
+	public static NodesManager getNodesManager(CoordinationServers coordinationServers) throws Exception {
+		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		return nodesManager;
+	}
 
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
     if (dataDescription == null) {

@@ -19,7 +19,9 @@
 
 	<complexType name="input">
 		<sequence>
-			<element type="tns:data-description" name="data-description" />
+			<element type="string" name="sample-file-path" />
+			<element type="tns:data-description" minOccurs="0"
+				name="data-description" />
 			<element type="tns:data-parser-config" name="data-parser-config" />
 		</sequence>
 	</complexType>
@@ -41,14 +43,7 @@
 	<complexType name="column">
 		<sequence>
 			<element name="name" type="string" />
-			<element name="description" type="string" />
-			<element name="data-type" type="tns:data-type" />
-			<element name="size" type="int" />
-		</sequence>
-	</complexType>
-
-	<complexType name="data-type">
-		<sequence>
+			<element name="description" minOccurs="0" type="string" />
 			<element name="data-type">
 				<simpleType>
 					<restriction base="string">
@@ -60,6 +55,8 @@
 					</restriction>
 				</simpleType>
 			</element>
+			<element name="size" minOccurs="0" type="int" default="0" />
 		</sequence>
 	</complexType>
+
 </schema>

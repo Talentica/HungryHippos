@@ -1,14 +1,5 @@
 package com.talentica.hungryHippos.node;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-
 import java.io.IOException;
 import java.util.Properties;
 
@@ -19,12 +10,24 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
@@ -33,8 +36,6 @@ public class DataReceiver {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
   private DataStore dataStore;
-
-  private static String jobUUId;
 
   public DataReceiver(DataDescription dataDescription) throws Exception {
     this.dataDescription = dataDescription;
@@ -75,53 +76,45 @@ public class DataReceiver {
     }
   }
 
-  public static void main(String[] args) {
-    try {
-      validateArguments(args);
-      initialize(args);
-      LOGGER.info("Start Node initialize");
-      long startTime = System.currentTimeMillis();
-      DataReceiver dataReceiver = getNodeInitializer();
-      ZKNodeFile serverConfig =
-          ZKUtils.getConfigZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING);
-      int nodeId = NodeUtil.getNodeId();
-      Properties serverConfigProps =
-          CoordinationApplicationContext.getServerProperty().getProperties();
-      if (serverConfig != null) {
-        serverConfigProps = serverConfig.getFileData();
-      }
-      String server = serverConfigProps.getProperty("server." + nodeId);
-      int PORT = Integer.valueOf(server.split(":")[1]);
-      dataReceiver.startServer(PORT, nodeId);
-      long endTime = System.currentTimeMillis();
-      LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
-          ((endTime - startTime) / 1000));
-    } catch (Exception exception) {
-      try {
-        errorHandler(exception);
-      } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
-  }
+	public static void main(String[] args) {
+		CoordinationServers coordinationServers = null;
+		try {
+			validateArguments(args);
+			StorageApplicationContext.dataFilePath = args[2];
+			LOGGER.info("Start Node initialize");
+			long startTime = System.currentTimeMillis();
+			DataReceiver dataReceiver = getNodeInitializer();
+			ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
+			coordinationServers = clientConfig.getCoordinationServers();
+			ZKNodeFile serverConfig = ZKUtils
+					.getConfigZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING, coordinationServers);
+			int nodeId = NodeUtil.getNodeId();
+			Properties serverConfigProps = CoordinationApplicationContext.getServerProperty().getProperties();
+			if (serverConfig != null) {
+				serverConfigProps = serverConfig.getFileData();
+			}
+			String server = serverConfigProps.getProperty("server." + nodeId);
+			int PORT = Integer.valueOf(server.split(":")[1]);
+			dataReceiver.startServer(PORT, nodeId);
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to for receiving all data on this node.",
+					((endTime - startTime) / 1000));
+		} catch (Exception exception) {
+			try {
+				errorHandler(exception, coordinationServers);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
-  /**
-   * @param args
-   */
-  private static void initialize(String[] args) {
-    jobUUId = args[0];
-    CommonUtil.loadDefaultPath(jobUUId);
-    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-    StorageApplicationContext.dataFilePath = args[2];
-  }
-
-  private static void validateArguments(String[] args) {
-    if (args.length < 3) {
-      throw new RuntimeException(
-          "Either missing 1st argument {job uuid} and/or 2nd argument {data parser class name} and/or 3rd argument{output directory}.");
-    }
-  }
+	private static void validateArguments(String[] args) {
+		if (args.length < 3) {
+			throw new RuntimeException(
+					"Either missing 1st argument {client configuration file path} and/or 2nd argument {data parser class name} and/or 3rd argument{output directory}.");
+		}
+	}
 
   /**
    * Initialize the node.
@@ -141,14 +134,14 @@ public class DataReceiver {
    * @param exception
    * @throws Exception
    */
-  private static void errorHandler(Exception exception) throws Exception {
-    LOGGER.error("Error occured while executing node starter program.", exception);
-    try {
-      ZkSignalListener.createErrorEncounterSignal(CoordinationApplicationContext
-          .getNodesManagerIntances());
-    } catch (IOException | InterruptedException e) {
-      LOGGER.info("Unable to create the node on zk due to {}", e.getMessage());
-    }
-  }
+	private static void errorHandler(Exception exception, CoordinationServers coordinationServers) throws Exception {
+		LOGGER.error("Error occured while executing node starter program.", exception);
+		try {
+			ZkSignalListener
+					.createErrorEncounterSignal(NodesManagerContext.getNodesManagerInstance(coordinationServers));
+		} catch (IOException | InterruptedException e) {
+			LOGGER.info("Unable to create the node on zk due to {}", e.getMessage());
+		}
+	}
 
 }

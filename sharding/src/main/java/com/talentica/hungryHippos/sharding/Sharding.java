@@ -22,6 +22,7 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.utility.MapUtils;
+import com.talentica.hungryhippos.config.coordination.ClusterConfig;
 
 /**
  * Created by debasishc on 14/8/15.
@@ -54,17 +55,17 @@ public class Sharding {
   private final static String BAD_RECORDS_FILE = CoordinationApplicationContext.getProperty()
       .getValueByKey("bad.records.file.out") + "_sharding.err";
 
-  public Sharding(int numNodes) {
-    for (int i = 0; i < numNodes; i++) {
+	public Sharding(ClusterConfig clusterConfig) {
+		for (int i = 0; i < clusterConfig.getNode().size(); i++) {
       Node node = new Node(300000, i);
       fillupQueue.offer(node);
       nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
     }
   }
 
-  public static void doSharding(Reader input) {
+	public static void doSharding(Reader input, ClusterConfig clusterConfig) {
     logger.info("SHARDING STARTED");
-    Sharding sharding = new Sharding(CoordinationApplicationContext.getTotalNumberOfNodes());
+		Sharding sharding = new Sharding(clusterConfig);
     try {
       sharding.populateFrequencyFromData(input);
       sharding.populateKeysToListOfBucketsMap();

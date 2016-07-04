@@ -354,7 +354,7 @@ public class DigitalOceanServiceUtil {
 				}
 			LOGGER.info("Zookeeper server started and status is {}...",zkStatus);
 			LOGGER.info("Creating default nodes");
-			ZKUtils.createDefaultNodes(jobUUId);
+			// ZKUtils.createDefaultNodes(jobUUId);
 			LOGGER.info("Default nodes are created...");
 			LOGGER.info("Uploading server conf file to zk node");
 			// CoordinationApplicationContext.updateClusterSetup();

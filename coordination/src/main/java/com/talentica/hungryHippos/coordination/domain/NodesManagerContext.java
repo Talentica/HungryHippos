@@ -9,42 +9,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.coordination.property.ZkProperty;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * @author PooshanS
  *
  */
 public class NodesManagerContext {
-  private static NodesManager nodesManager;
-  private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
-  private static Property<ZkProperty> cProperty;
-  private static String zkIp;
+	private static NodesManager nodesManager = new NodesManager();
+	private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
 
-	public static NodesManager initialize() throws Exception {
-    if (nodesManager == null) {
-      nodesManager = new NodesManager();
-      LOGGER.info("Initialized the nodes manager.");
-      connectZookeeper();
-    }
-    return nodesManager;
-  }
+	public static NodesManager initialize(CoordinationServers coordinationServers) {
+		LOGGER.info("Initialized the nodes manager.");
+		nodesManager.connectZookeeper(coordinationServers.getServers());
+		return nodesManager;
+	}
 
-  public List<Server> getMonitoredServers() throws InterruptedException {
-    return nodesManager.getServers();
-  }
+	public List<Server> getMonitoredServers() throws InterruptedException {
+		return nodesManager.getServers();
+	}
 
-  public static NodesManager getNodesManagerInstance() throws Exception {
-    return initialize();
-  }
-
-  private static void connectZookeeper() {
-    if (cProperty == null) {
-      cProperty = new ZkProperty("zookeeper.properties");
-    }
-    zkIp = cProperty.getValueByKey("zookeeper.server.ips");
-    nodesManager.connectZookeeper(zkIp);
-  }
+	public static NodesManager getNodesManagerInstance(CoordinationServers coordinationServers) {
+		return initialize(coordinationServers);
+	}
 
 }

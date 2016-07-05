@@ -1,11 +1,14 @@
 package com.talentica.hungryHippos.sharding.utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
@@ -22,7 +25,6 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * 
@@ -33,7 +35,7 @@ public class ShardingTableReadService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingTableReadService.class.getClass());
 	
-	private NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance(new CoordinationServers());
+	private NodesManager nodesManager;
 	
 	private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
@@ -46,7 +48,10 @@ public class ShardingTableReadService {
 	private static String bucketCombinationPath;
 	private static String keyToBucketNumberPath;
 	private static String KeyToValueToBucketPath;
-	
+
+	public ShardingTableReadService() throws FileNotFoundException, JAXBException {
+		nodesManager = NodesManagerContext.getNodesManagerInstance();
+	}
 	
 	public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap(){
 		bucketCombinationPath = zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar

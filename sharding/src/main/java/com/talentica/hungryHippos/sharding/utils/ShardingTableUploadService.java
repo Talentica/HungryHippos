@@ -31,7 +31,6 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * @author pooshans
@@ -81,9 +80,9 @@ public class ShardingTableUploadService {
 
   public void zkUploadKeyToValueToBucketMap() throws IllegalArgumentException,
       IllegalAccessException, IOException, InterruptedException {
+    buildBaseConfigKeyToValueToBucketPath();
     for (Entry<String, Map<Object, Bucket<KeyValueFrequency>>> entry : getKeyToValueToBucketMap()
         .entrySet()) {
-      buildBaseConfigKeyToValueToBucketPath();
       createZkKeyToValueBucket(entry);
     }
   }
@@ -190,21 +189,6 @@ public class ShardingTableUploadService {
     }
     counter.await();
   }
-
-  /*
-   * private void buildBasePathBucketToNode() { baseConfigBucketToNodePath =
-   * zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar +
-   * ZkNodeName.KEY_TO_BUCKET_NUMBER.getName(); }
-   * 
-   * private void createBasePathForBucketCombinationToNodeNumberMap(int bucketCombinationId) {
-   * baseConfigPath = zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar +
-   * ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
-   * 
-   * zkKeyToBucketPath = baseConfigPath + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName()
-   * + bucketCombinationId) + File.separatorChar + ZkNodeName.KEY_TO_BUCKET.getName(); zkNodes =
-   * baseConfigPath + (ZkNodeName.ID.getName() + ZkNodeName.UNDERSCORE.getName() +
-   * bucketCombinationId) + File.separatorChar + ZkNodeName.NODES.getName(); }
-   */
 
   private void zkUploadNodes(Entry<BucketCombination, Set<Node>> entry)
       throws IllegalAccessException, IOException, InterruptedException {

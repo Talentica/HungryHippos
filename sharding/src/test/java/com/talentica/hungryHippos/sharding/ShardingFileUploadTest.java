@@ -5,6 +5,8 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
 
+import javax.xml.bind.JAXBException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -60,7 +62,7 @@ public class ShardingFileUploadTest {
 
   @Test
   public void testKeyToValueToBucket() throws IllegalArgumentException, IllegalAccessException,
-      IOException, InterruptedException {
+      IOException, InterruptedException, JAXBException {
     try {
       service.zkUploadKeyToValueToBucketMap();
       Assert.assertTrue(true);

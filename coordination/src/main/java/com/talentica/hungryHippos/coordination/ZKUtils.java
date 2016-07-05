@@ -50,18 +50,19 @@ public class ZKUtils {
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
 
-	public static ZKNodeFile getConfigZKNodeFile(String fileName, CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
-		Object obj = null;
-		ZKNodeFile zkFile = null;
-		nodesManager = NodesManagerContext.getNodesManagerInstance();
-		try {
-			obj = nodesManager.getConfigFileFromZNode(fileName);
-			zkFile = (obj == null) ? null : (ZKNodeFile) obj;
-		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
-			LOGGER.error("Error occurred while getting zk file.", e);
-		}
-		return zkFile;
-	}
+  public static ZKNodeFile getConfigZKNodeFile(String fileName,
+      CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
+    Object obj = null;
+    ZKNodeFile zkFile = null;
+    nodesManager = NodesManagerContext.getNodesManagerInstance();
+    try {
+      obj = nodesManager.getConfigFileFromZNode(fileName);
+      zkFile = (obj == null) ? null : (ZKNodeFile) obj;
+    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
+      LOGGER.error("Error occurred while getting zk file.", e);
+    }
+    return zkFile;
+  }
 
   /**
    * To serialize the object
@@ -518,17 +519,4 @@ public class ZKUtils {
     LOGGER.info("Shell command is executed");
     return retStatus;
   }
-
-  /**
-   * @param jobUUId
-   * @throws Exception
-   */
-	public static void createDefaultNodes(CoordinationServers coordinationServers, String... jobUUId) throws Exception {
-		if (nodesManager == null) {
-			CommonUtil.loadDefaultPath(jobUUId[0]);
-			nodesManager = NodesManagerContext.getNodesManagerInstance();
-		}
-		nodesManager.startup();
-	}
-
 }

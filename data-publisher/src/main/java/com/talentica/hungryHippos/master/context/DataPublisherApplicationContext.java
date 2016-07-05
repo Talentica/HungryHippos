@@ -44,10 +44,10 @@ public class DataPublisherApplicationContext {
     return property;
   }
 
-	public static NodesManager getNodesManager(CoordinationServers coordinationServers) throws Exception {
-		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
-		return nodesManager;
-	}
+  public static NodesManager getNodesManager() throws Exception {
+    nodesManager = NodesManagerContext.getNodesManagerInstance();
+    return nodesManager;
+  }
 
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
     if (dataDescription == null) {

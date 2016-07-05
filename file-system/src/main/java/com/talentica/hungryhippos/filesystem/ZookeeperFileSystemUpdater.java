@@ -1,12 +1,13 @@
 package com.talentica.hungryhippos.filesystem;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
-import com.talentica.hungryhippos.config.client.ObjectFactory;
 
 /**
  * This class is used for updating the Zookeeper FileSystem Node
@@ -16,8 +17,8 @@ public class ZookeeperFileSystemUpdater {
 
 	private NodesManager nodesManager;
 
-	public ZookeeperFileSystemUpdater(CoordinationServers coordinationServers) {
-		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+	public ZookeeperFileSystemUpdater() throws FileNotFoundException, JAXBException {
+		nodesManager = NodesManagerContext.getNodesManagerInstance();
 	}
 
 
@@ -60,8 +61,7 @@ public class ZookeeperFileSystemUpdater {
 
     public static void main(String[] args) throws Exception {
 
-		ZookeeperFileSystemUpdater zkCoordinator = new ZookeeperFileSystemUpdater(
-				new ObjectFactory().createCoordinationServers());
+		ZookeeperFileSystemUpdater zkCoordinator = new ZookeeperFileSystemUpdater();
         File file = new File("/home/rajkishoreh/out180mb/part-00007");
         zkCoordinator.updateZookeper("/filesystem/input", "172.29.3.18", "0", file.getPath(),file.length());
         file = new File("/home/rajkishoreh/out180mb/part-00000");

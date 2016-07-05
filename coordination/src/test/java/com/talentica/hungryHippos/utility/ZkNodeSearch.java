@@ -4,10 +4,10 @@
 package com.talentica.hungryHippos.utility;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ public class ZkNodeSearch {
 		ObjectFactory factory = new ObjectFactory();
 		CoordinationServers coordinationServers = factory.createCoordinationServers();
     if ("Y".equals(isCleanUpFlagString)) {
-			NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
+			NodesManagerContext.getNodesManagerInstance().startup();
     }
   }
 
@@ -39,6 +39,6 @@ public class ZkNodeSearch {
   public void testSearchNodeByName() throws KeeperException, InterruptedException {
     List<String> nodePaths = new ArrayList<>();
     ZKUtils.getNodePathByName("/", "PUSH_JOB_NOTIFICATION", nodePaths);
-    System.out.println(Arrays.toString(nodePaths.toArray()));
+    Assert.assertNotEquals(nodePaths.size(), 0);
   }
 }

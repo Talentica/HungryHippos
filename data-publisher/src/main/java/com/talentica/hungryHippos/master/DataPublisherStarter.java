@@ -35,15 +35,15 @@ public class DataPublisherStarter {
 			ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
 			CoordinationApplicationContext.loadAllProperty();
 			CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
-			nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+			nodesManager = NodesManagerContext.getNodesManagerInstance();
 			DataPublisherApplicationContext.inputFile = args[2];
 			String isCleanUpFlagString = CoordinationApplicationContext.getZkProperty()
 					.getValueByKey("cleanup.zookeeper.nodes");
 			if ("Y".equals(isCleanUpFlagString)) {
-				NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
+				NodesManagerContext.getNodesManagerInstance().startup();
 			}
 			uploadCommonConfigFileToZK(coordinationServers);
-			ZookeeperFileSystem fileSystem = new ZookeeperFileSystem(coordinationServers);
+			ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
 			fileSystem.createFilesAsZnode(DataPublisherApplicationContext.inputFile);
 			String dataParserClassName = args[1];
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
@@ -116,7 +116,7 @@ public class DataPublisherStarter {
 		LOGGER.info("PUT THE CONFIG FILE TO ZK NODE");
 		ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING,
 				CoordinationApplicationContext.getProperty().getProperties());
-		NodesManagerContext.getNodesManagerInstance(coordinationServers).saveConfigFileToZNode(serverConfigFile, null);
+		NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, null);
 		LOGGER.info("Common configuration  file successfully put on zk node.");
 	}
 

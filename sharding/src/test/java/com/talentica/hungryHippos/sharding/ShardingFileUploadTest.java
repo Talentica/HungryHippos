@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -12,38 +13,59 @@ import org.junit.Test;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.sharding.utils.ShardingTableUploadService;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
-import com.talentica.hungryhippos.config.client.ObjectFactory;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
  * @author pooshans
  *
  */
 public class ShardingFileUploadTest {
+  private ShardingTableUploadService service;
+  ClientConfig clientConfig;
 
-	private ShardingTableUploadService service;
+  @Before
+  public void setUp() throws Exception {
+    service = new ShardingTableUploadService();
+    String flag =
+        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+    
+    if (flag.equals("Y")) {
+      service = new ShardingTableUploadService();
+      NodesManagerContext.getNodesManagerInstance().startup();
+    }
+  }
 
-	@Before
-	public void setUp() throws Exception {
-		String flag = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-		if (flag.equals("Y")) {
-			ObjectFactory factory = new ObjectFactory();
-			CoordinationServers coordinationServers = factory.createCoordinationServers();
-			service = new ShardingTableUploadService(coordinationServers);
-			NodesManagerContext.getNodesManagerInstance(coordinationServers).startup();
-		}
-	}
+  @Test
+  @Ignore
+  public void testBucketCombinationToNode() {
+    try {
+      service.zkUploadBucketCombinationToNodeNumbersMap();
+      Assert.assertTrue(true);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+      Assert.assertFalse(false);
+    }
+  }
 
-	@Test
-	@Ignore
-	public void testBucketCombinationToNode()
-			throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
-		service.zkUploadBucketCombinationToNodeNumbersMap();
-	}
+  @Test
+  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
+      IOException, InterruptedException {
+    try {
+      service.zkUploadBucketToNodeNumberMap();
+      Assert.assertTrue(true);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+      Assert.assertFalse(false);
+    }
 
-	@Test
-	public void testBucketToNodeNumber()
-			throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
-		service.zkUploadBucketToNodeNumberMap();
-	}
+  }
+
+  @Test
+  public void testKeyToValueToBucket() throws IllegalArgumentException, IllegalAccessException,
+      IOException, InterruptedException {
+    try {
+      service.zkUploadKeyToValueToBucketMap();
+      Assert.assertTrue(true);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+      Assert.assertFalse(false);
+    }
+  }
 }

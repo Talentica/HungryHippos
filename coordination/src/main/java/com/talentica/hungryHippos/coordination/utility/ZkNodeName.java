@@ -10,8 +10,10 @@ package com.talentica.hungryHippos.coordination.utility;
 public enum ZkNodeName {
 
   BUCKET_COMBINATION("bucket_combination"),
-  
+
   KEY_TO_BUCKET_NUMBER("key_to_bucket_number"),
+
+  KEY_TO_VALUE_TO_BUCKET("key_to_value_to_bucket"),
 
   KEY_TO_BUCKET("key_to_bucket"),
 

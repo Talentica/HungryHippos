@@ -5,6 +5,8 @@ package com.talentica.hungryHippos.coordination.context;
 
 import java.io.IOException;
 
+import javax.xml.bind.JAXBException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,9 +145,9 @@ public class CoordinationApplicationContext {
 	}
 
 	public static void updateClusterConfiguration(String clusterConfigurationFile,
-			CoordinationServers coordinationServers) throws IOException {
+			CoordinationServers coordinationServers) throws IOException, JAXBException {
 		LOGGER.info("Updating cluster configuration on zookeeper");
 		ZKNodeFile serverConfigFile = new ZKNodeFile(CLUSTER_CONFIGURATION, clusterConfigurationFile);
-		NodesManagerContext.getNodesManagerInstance(coordinationServers).saveConfigFileToZNode(serverConfigFile, null);
+		NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, null);
 	}
 }

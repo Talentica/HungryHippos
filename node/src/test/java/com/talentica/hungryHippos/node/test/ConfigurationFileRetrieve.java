@@ -37,7 +37,7 @@ public class ConfigurationFileRetrieve {
 	public void setUp() throws Exception{
 		ObjectFactory factory = new ObjectFactory();
 		CoordinationServers coordinationServers = factory.createCoordinationServers();
-		(nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers)).startup();
+		(nodesManager = NodesManagerContext.getNodesManagerInstance()).startup();
 	}
 	
 	@Test

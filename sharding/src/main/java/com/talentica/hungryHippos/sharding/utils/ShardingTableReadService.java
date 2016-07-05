@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
@@ -21,6 +22,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * 
@@ -31,8 +33,8 @@ public class ShardingTableReadService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingTableReadService.class.getClass());
 	
-	private NodesManager nodesManager = CoordinationApplicationContext
-		      .getNodesManagerIntances();
+	private NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance(new CoordinationServers());
+	
 	private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
 	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
 	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
@@ -43,9 +45,10 @@ public class ShardingTableReadService {
 	
 	private static String bucketCombinationPath;
 	private static String keyToBucketNumberPath;
+	private static String KeyToValueToBucketPath;
 	
 	
-	public void readBucketCombinationToNodeNumbersMap(){
+	public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap(){
 		bucketCombinationPath = zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
 	            + ZkNodeName.BUCKET_COMBINATION.getName();
 		try {
@@ -103,9 +106,10 @@ public class ShardingTableReadService {
 		} catch (KeeperException | InterruptedException e) {
 			LOGGER.error(e.getMessage());
 		}
+		return bucketCombinationToNodeNumbersMap;
 	}
 	
-	public void readBucketToNodeNumberMap(){
+	public Map<String, Map<Bucket<KeyValueFrequency>, Node>> readBucketToNodeNumberMap(){
 		keyToBucketNumberPath = zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
 	            + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
 		try {
@@ -156,6 +160,31 @@ public class ShardingTableReadService {
 		} catch (KeeperException | InterruptedException e) {
 			LOGGER.error(e.getMessage());
 		}
+		return bucketToNodeNumberMap;
+	}
+	
+	public Map<String, Map<Object, Bucket<KeyValueFrequency>>> readKeyToValueToBucketMap(){
+		KeyToValueToBucketPath = zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+	            + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
+		try {
+			List<String> children = nodesManager.getChildren(KeyToValueToBucketPath);
+			for(String child : children){
+				String keyPath = KeyToValueToBucketPath + File.separatorChar +  child;
+				List<String> keyChildren = nodesManager.getChildren(keyPath);
+				Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
+				for(String keyChild : keyChildren){
+					String bucketPath = keyPath + File.separatorChar + keyChild + File.separatorChar +
+							ZkNodeName.BUCKET.getName();
+					List<String> bucketChildren = nodesManager.getChildren(bucketPath);
+					Bucket<KeyValueFrequency> bucket = createBucket(bucketChildren);
+					valueToBucketMap.put(keyChild, bucket);
+				}
+				keyToValueToBucketMap.put(child, valueToBucketMap);
+			}
+		} catch (KeeperException | InterruptedException e) {
+			LOGGER.error(e.getMessage());
+		}
+		return keyToValueToBucketMap;
 	}
 	
 	private Bucket<KeyValueFrequency> createBucket(List<String> bucketDetails){

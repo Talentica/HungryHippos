@@ -111,7 +111,7 @@ public class JobExecutor {
 		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
 		ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[3], ClientConfig.class);
 		CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
-		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		nodesManager = NodesManagerContext.getNodesManagerInstance();
 		StorageApplicationContext.dataFilePath = args[1];
 		StorageApplicationContext.outputFilePath = args[2];
 	}

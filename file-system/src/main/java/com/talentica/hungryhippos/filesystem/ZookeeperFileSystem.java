@@ -1,5 +1,6 @@
 package com.talentica.hungryhippos.filesystem;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -8,13 +9,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
@@ -32,8 +34,8 @@ public class ZookeeperFileSystem {
 	private NodesManager nodeManager = null;
 	private final String FILE_SYSTEM_ROOT = "/root/file-system/";
 
-	public ZookeeperFileSystem(CoordinationServers coordinationServers) {
-		nodeManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+	public ZookeeperFileSystem() throws FileNotFoundException, JAXBException {
+		nodeManager = NodesManagerContext.getNodesManagerInstance();
 	}
 
 	/**

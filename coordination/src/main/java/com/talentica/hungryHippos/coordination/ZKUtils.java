@@ -3,6 +3,7 @@
  */
 package com.talentica.hungryHippos.coordination;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Paths;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.zookeeper.AsyncCallback;
@@ -47,10 +50,10 @@ public class ZKUtils {
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
 
-	public static ZKNodeFile getConfigZKNodeFile(String fileName, CoordinationServers coordinationServers) {
+	public static ZKNodeFile getConfigZKNodeFile(String fileName, CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
 		Object obj = null;
 		ZKNodeFile zkFile = null;
-		nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+		nodesManager = NodesManagerContext.getNodesManagerInstance();
 		try {
 			obj = nodesManager.getConfigFileFromZNode(fileName);
 			zkFile = (obj == null) ? null : (ZKNodeFile) obj;
@@ -200,7 +203,6 @@ public class ZKUtils {
       if (child.equals(name)) {
         nodePathList.add(childPath);
       }
-
       getNodePathByName(childPath, name, nodePathList);
     }
     return;
@@ -524,7 +526,7 @@ public class ZKUtils {
 	public static void createDefaultNodes(CoordinationServers coordinationServers, String... jobUUId) throws Exception {
 		if (nodesManager == null) {
 			CommonUtil.loadDefaultPath(jobUUId[0]);
-			nodesManager = NodesManagerContext.getNodesManagerInstance(coordinationServers);
+			nodesManager = NodesManagerContext.getNodesManagerInstance();
 		}
 		nodesManager.startup();
 	}

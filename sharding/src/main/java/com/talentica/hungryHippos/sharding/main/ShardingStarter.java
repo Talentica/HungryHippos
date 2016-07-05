@@ -37,7 +37,7 @@ public class ShardingStarter {
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 					.getConstructor(DataDescription.class)
 					.newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
-			NodesManager manager = NodesManagerContext.initialize(clientConfig.getCoordinationServers());
+			NodesManager manager = NodesManagerContext.initialize();
 			ZKNodeFile clusterConfigurationFile = (ZKNodeFile) manager
 					.getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
 			CoordinationConfig coordinationConfig = JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(),

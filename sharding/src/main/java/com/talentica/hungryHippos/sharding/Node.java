@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by debasishc on 14/8/15.
  */
-public class Node implements Serializable,Comparable<Node>{
+public class Node implements Comparable<Node>,Serializable{
     /**
 	 * 
 	 */

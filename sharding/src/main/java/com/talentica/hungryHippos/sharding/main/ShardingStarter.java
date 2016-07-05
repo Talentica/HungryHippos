@@ -14,7 +14,6 @@ import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingConfig;
 
@@ -30,14 +29,13 @@ public class ShardingStarter {
 			validateArguments(args);
 			LOGGER.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
-			ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
 			ShardingConfig shardingConfig = JaxbUtil.unmarshalFromFile(args[1], ShardingConfig.class);
 			String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
 			String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 					.getConstructor(DataDescription.class)
 					.newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
-			NodesManager manager = NodesManagerContext.initialize();
+			NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
 			ZKNodeFile clusterConfigurationFile = (ZKNodeFile) manager
 					.getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
 			CoordinationConfig coordinationConfig = JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(),

@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -33,10 +33,9 @@ public class CoordinationStarter {
 				throw new RuntimeException(
 						"Invalid configuration file or cluster configuration missing." + coordinationConfigFilePath);
 			}
-			ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
+			NodesManagerContext.initialize(args[0]);
 			CoordinationApplicationContext.updateClusterConfiguration(
-					FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"),
-					clientConfig.getCoordinationServers());
+					FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
 			LOGGER.info("Coordination server started..");
 		} catch (Exception exception) {
 			LOGGER.error("Error occurred while starting coordination server.", exception);

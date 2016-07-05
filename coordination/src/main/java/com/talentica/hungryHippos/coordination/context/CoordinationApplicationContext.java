@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.coordination.context;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
@@ -144,10 +145,12 @@ public class CoordinationApplicationContext {
 		getServerProperty();
 	}
 
-	public static void updateClusterConfiguration(String clusterConfigurationFile,
-			CoordinationServers coordinationServers) throws IOException, JAXBException {
+	public static void updateClusterConfiguration(String clusterConfigurationFile)
+			throws IOException, JAXBException, InterruptedException {
 		LOGGER.info("Updating cluster configuration on zookeeper");
 		ZKNodeFile serverConfigFile = new ZKNodeFile(CLUSTER_CONFIGURATION, clusterConfigurationFile);
-		NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, null);
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, countDownLatch);
+		countDownLatch.await();
 	}
 }

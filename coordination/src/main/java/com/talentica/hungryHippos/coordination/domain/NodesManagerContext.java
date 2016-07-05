@@ -20,15 +20,16 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
  *
  */
 public class NodesManagerContext {
-  
+
 	private static NodesManager nodesManager = new NodesManager();
 	private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
-    private static ClientConfig clientConfig;
-	public static NodesManager initialize() throws FileNotFoundException, JAXBException {
-	  if(clientConfig == null){
-	    clientConfig = JaxbUtil.unmarshalFromFile("client-config.xml", ClientConfig.class);
-	  }
-		LOGGER.info("Initialized the nodes manager.");
+	private static ClientConfig clientConfig;
+
+	public static NodesManager initialize(String configFilePath) throws FileNotFoundException, JAXBException {
+		if (clientConfig == null) {
+			clientConfig = JaxbUtil.unmarshalFromFile(configFilePath, ClientConfig.class);
+			LOGGER.info("Initialized the nodes manager.");
+		}
 		nodesManager.connectZookeeper(clientConfig.getCoordinationServers().getServers());
 		return nodesManager;
 	}
@@ -38,7 +39,12 @@ public class NodesManagerContext {
 	}
 
 	public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
-		return initialize();
+		return initialize("client-config.xml");
+	}
+
+	public static NodesManager getNodesManagerInstance(String clientConfigFilePath)
+			throws FileNotFoundException, JAXBException {
+		return initialize(clientConfigFilePath);
 	}
 
 }

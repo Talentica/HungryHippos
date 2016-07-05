@@ -1,9 +1,7 @@
 package com.talentica.hungryHippos.sharding;
 
-import java.io.FileNotFoundException;
-
-import javax.xml.bind.JAXBException;
-
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.sharding.utils.ShardingTableReadService;
@@ -15,10 +13,41 @@ import com.talentica.hungryHippos.sharding.utils.ShardingTableReadService;
  */
 public class ShardingTableReadTest {
 
-	@Test
-	public void testBucketCombinationToNode() throws FileNotFoundException, JAXBException {
-		ShardingTableReadService reader = new ShardingTableReadService();
-		reader.readBucketCombinationToNodeNumbersMap();
-	}
-	
+  private ShardingTableReadService reader;
+
+  @Before
+  public void setUp() throws Exception {
+    reader = new ShardingTableReadService();
+  }
+
+  @Test
+  public void testBucketCombinationToNode() {
+    try {
+      reader.readBucketCombinationToNodeNumbersMap();
+      Assert.assertTrue(true);
+    } catch (Exception e) {
+      Assert.assertFalse(true);
+    }
+  }
+
+  @Test
+  public void testBucketToNodeNumber() {
+    try {
+      reader.readBucketToNodeNumberMap();
+      Assert.assertTrue(true);
+    } catch (Exception e) {
+      Assert.assertFalse(true);
+    }
+  }
+
+  @Test
+  public void testKeyToValueToBucket() {
+    try {
+      reader.readKeyToValueToBucketMap();
+      Assert.assertTrue(true);
+    } catch (Exception e) {
+      Assert.assertFalse(true);
+    }
+  }
+
 }

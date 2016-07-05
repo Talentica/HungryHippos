@@ -30,7 +30,7 @@ public class ShardingFileUploadTest {
     service = new ShardingTableUploadService();
     String flag =
         CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-    
+
     if (flag.equals("Y")) {
       service = new ShardingTableUploadService();
       NodesManagerContext.getNodesManagerInstance().startup();
@@ -43,19 +43,21 @@ public class ShardingFileUploadTest {
     try {
       service.zkUploadBucketCombinationToNodeNumbersMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
   }
 
   @Test
-  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
-      IOException, InterruptedException {
+  public void testBucketToNodeNumber()
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
     try {
       service.zkUploadBucketToNodeNumberMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
 
   }
@@ -66,8 +68,9 @@ public class ShardingFileUploadTest {
     try {
       service.zkUploadKeyToValueToBucketMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
   }
 }

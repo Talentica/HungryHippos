@@ -5,6 +5,8 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
 
+import javax.xml.bind.JAXBException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,7 +30,7 @@ public class ShardingFileUploadTest {
     service = new ShardingTableUploadService();
     String flag =
         CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-    
+
     if (flag.equals("Y")) {
       service = new ShardingTableUploadService();
       NodesManagerContext.getNodesManagerInstance().startup();
@@ -41,31 +43,34 @@ public class ShardingFileUploadTest {
     try {
       service.zkUploadBucketCombinationToNodeNumbersMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
   }
 
   @Test
-  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
-      IOException, InterruptedException {
+  public void testBucketToNodeNumber()
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
     try {
       service.zkUploadBucketToNodeNumberMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
 
   }
 
   @Test
   public void testKeyToValueToBucket() throws IllegalArgumentException, IllegalAccessException,
-      IOException, InterruptedException {
+      IOException, InterruptedException, JAXBException {
     try {
       service.zkUploadKeyToValueToBucketMap();
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
-      Assert.assertFalse(false);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
+      Assert.assertFalse(true);
     }
   }
 }

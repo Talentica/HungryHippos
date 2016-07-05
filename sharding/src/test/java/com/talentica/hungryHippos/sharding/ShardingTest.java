@@ -87,7 +87,7 @@ public class ShardingTest {
 	 */
 	@Test
 	public void testDoSharding() {
-		Sharding.doSharding(shardingInputFileReader, getClusterConfiguration());
+		new Sharding(getClusterConfiguration()).doSharding(shardingInputFileReader);
 	}
 
 	@After

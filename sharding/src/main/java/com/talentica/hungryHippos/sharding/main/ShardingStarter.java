@@ -40,8 +40,9 @@ public class ShardingStarter {
 					.getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
 			CoordinationConfig coordinationConfig = JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(),
 					CoordinationConfig.class);
-			Sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser),
-					coordinationConfig.getClusterConfig());
+			Sharding sharding = new Sharding(coordinationConfig.getClusterConfig());
+			sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser));
+			sharding.dumpShardingTableFiles(shardingConfig.getOutput().getOutputDir());
 			long endTime = System.currentTimeMillis();
 			LOGGER.info("SHARDING DONE!!");
 			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
@@ -53,7 +54,7 @@ public class ShardingStarter {
 	private static void validateArguments(String[] args) {
 		if (args.length < 2) {
 			throw new RuntimeException(
-					"Missing coordination configuration and sharding configuration file paths parameters.");
+					"Missing coordination configuration and/or sharding configuration file path arguments.");
 		}
 	}
 

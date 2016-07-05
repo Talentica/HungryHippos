@@ -102,32 +102,25 @@ public class CommonUtil {
 
   }
 
-  /**
-   * To Dump the file on the Disk of system.
-   * 
-   * @param fileName
-   * @param obj
-   */
-  public static void dumpFileOnDisk(String fileName, Object obj) {
-    LOGGER.info("Dumping of file {} on disk started.", fileName);
-    String filePath = null;
-    try {
-      filePath =
-          new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-              + fileName;
-    } catch (IOException e1) {
-      LOGGER.info("Unable to create path for File {}", fileName);
-      return;
-    }
-    LOGGER.info("Dumping File {} AND Path {}", fileName, filePath);
-    try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
-      out.writeObject(obj);
-      out.flush();
-    } catch (IOException e) {
-      LOGGER.info("There occured some problem to dump file {}", fileName);
-    }
-    LOGGER.info("Dumping of file {} on disk finished.", fileName);
-  }
+	/**
+	 * To Dump the file on the Disk of system.
+	 * 
+	 * @param fileName
+	 * @param obj
+	 */
+	public static void dumpFileOnDisk(String fileName, Object objToDump, String folderPath) {
+		LOGGER.info("Dumping of file {} on disk started.", fileName);
+		new File(folderPath).mkdirs();
+		String filePath = folderPath + File.separator + fileName;
+		LOGGER.info("Dumping File {} AND Path {}", fileName, filePath);
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
+			out.writeObject(objToDump);
+			out.flush();
+		} catch (IOException e) {
+			LOGGER.info("There occured some problem to dump file {}", fileName);
+		}
+		LOGGER.info("Dumping of file {} on disk finished.", fileName);
+	}
 
   public static List<String> readFile(File fin) throws IOException {
     List<String> listOfLine = new ArrayList<>();

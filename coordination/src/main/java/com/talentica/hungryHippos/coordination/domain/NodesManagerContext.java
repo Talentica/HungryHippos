@@ -24,6 +24,7 @@ public class NodesManagerContext {
 	private static NodesManager nodesManager = new NodesManager();
 	private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
 	private static ClientConfig clientConfig;
+	private static String CLIENT_CONFIG_FILE = "client-config.xml"; 
 
 	public static NodesManager initialize(String configFilePath) throws FileNotFoundException, JAXBException {
 		if (clientConfig == null) {
@@ -39,7 +40,7 @@ public class NodesManagerContext {
 	}
 
 	public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
-		return initialize("client-config.xml");
+		return initialize(CLIENT_CONFIG_FILE);
 	}
 
 	public static NodesManager getNodesManagerInstance(String clientConfigFilePath)

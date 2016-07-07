@@ -23,6 +23,7 @@ public class ShardingTableTest {
 
   @Before
   public void setUp() throws Exception {
+    //Setup test
     shardingTable = new ShardingTable();
     String flag =
         CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");

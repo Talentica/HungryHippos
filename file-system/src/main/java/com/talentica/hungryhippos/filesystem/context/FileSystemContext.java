@@ -22,7 +22,7 @@ public class FileSystemContext {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemContext.class);
 
-    public static FileSystemConfig fileSystemConfig;
+    private static FileSystemConfig fileSystemConfig;
 
     /**
      * This method uploads the filesystem configuration file in zookeeper
@@ -49,7 +49,7 @@ public class FileSystemContext {
      * @throws ClassNotFoundException
      * @throws KeeperException
      */
-    public static FileSystemConfig getFileSystemConfig() throws IOException, JAXBException, InterruptedException, ClassNotFoundException, KeeperException {
+    private static void getFileSystemConfig() throws IOException, JAXBException, InterruptedException, ClassNotFoundException, KeeperException {
         if(fileSystemConfig==null){
             NodesManager manager = NodesManagerContext.getNodesManagerInstance();
             ZKNodeFile fileSystemConfigurationFile = (ZKNodeFile) manager
@@ -57,7 +57,40 @@ public class FileSystemContext {
             fileSystemConfig = JaxbUtil.unmarshal((String) fileSystemConfigurationFile.getObj(),
                     FileSystemConfig.class);
         }
+    }
 
-        return fileSystemConfig;
+    public static String getRootDirectory() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getRootDirectory();
+    }
+
+    public static String getDataFilePrefix() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getDataFilePrefix();
+    }
+
+    public static int getServerPort() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getServerPort();
+    }
+
+    public static long getQueryRetryInterval() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getQueryRetryInterval();
+    }
+
+    public static int getMaxQueryAttempts() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getMaxQueryAttempts();
+    }
+
+    public static int getFileStreamBufferSize() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getFileStreamBufferSize();
+    }
+
+    public static int getMaxClientRequests() throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+        getFileSystemConfig();
+        return fileSystemConfig.getMaxClientRequests();
     }
 }

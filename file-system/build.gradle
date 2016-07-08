@@ -10,4 +10,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.slf4j:slf4j-api:1.7.10'
     compile 'log4j:log4j:1.2.17'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.2'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.2'
+
+
 }

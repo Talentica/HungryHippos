@@ -1,5 +1,6 @@
 package com.talentica.hungryhippos.filesystem;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -11,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +128,38 @@ public class ZookeeperFileSystem {
 		}
 
 		return fileMetaData;
+	}
+
+	/**
+	 * This method updates the HungryHippos filesystem with the metadata of the file
+	 *
+	 * @param fileZKNode
+	 * @param nodeIp
+	 * @param dataFileZKNode
+	 * @param datafileSize
+	 * @throws Exception
+	 */
+	public void updateFSBlockMetaData(String fileZKNode, String nodeIp, String dataFileZKNode, long datafileSize) throws Exception {
+		NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
+		String fileNodeZKPath = CoordinationApplicationContext.getZkProperty()
+				.getValueByKey(FileSystemConstants.ROOT_NODE) +
+				File.separator + fileZKNode;
+		String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
+		String dataFileNodeZKPath = nodeIpZKPath + File.separator + dataFileZKNode;
+		long prevDataFileSize = 0;
+		if (nodesManager.checkNodeExists(dataFileNodeZKPath)) {
+			String prevDataFileData = (String) nodesManager.getObjectFromZKNode(dataFileNodeZKPath);
+			prevDataFileSize = Long.parseLong(prevDataFileData);
+			nodesManager.setObjectToZKNode(dataFileNodeZKPath, datafileSize + "");
+		} else {
+			if (!nodesManager.checkNodeExists(nodeIpZKPath)) {
+				nodesManager.createPersistentNode(nodeIpZKPath, new CountDownLatch(1), "");
+			}
+			nodesManager.createPersistentNode(dataFileNodeZKPath, new CountDownLatch(1), datafileSize + "");
+		}
+		String fileZKNodeValues = (String) nodesManager.getObjectFromZKNode(fileNodeZKPath);
+		long currentSize = Long.parseLong(fileZKNodeValues) + datafileSize - prevDataFileSize;
+		nodesManager.setObjectToZKNode(fileNodeZKPath, (currentSize + ""));
 	}
 
 }

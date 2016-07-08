@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/client"
+	xmlns:tns="http://www.talentica.com/hungryhippos/client"
+	elementFormDefault="qualified">
+
+	<element name="zookeeper-config">
+		<complexType>
+			<sequence>
+				<element type="tns:zookeeper-servers" name="zookeeper-servers"
+					nillable="false" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="zookeeper-servers">
+		<sequence>
+			<element type="string" name="servers" maxOccurs="1"
+				minOccurs="1" />
+		</sequence>
+	</complexType>
+</schema>

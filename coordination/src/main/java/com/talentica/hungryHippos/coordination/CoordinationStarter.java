@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -27,8 +26,8 @@ public class CoordinationStarter {
 			LOGGER.info("Starting coordination server..");
 			validateArguments(args);
 			String coordinationConfigFilePath = args[1];
-			CoordinationConfig configuration = JaxbUtil.unmarshalFromFile(coordinationConfigFilePath,
-					CoordinationConfig.class);
+			CoordinationApplicationContext.setCoordinationConfigPathContext(coordinationConfigFilePath);
+			CoordinationConfig configuration = CoordinationApplicationContext.getCoordinationConfig();
 			if (configuration.getClusterConfig() == null || configuration.getClusterConfig().getNode().isEmpty()) {
 				throw new RuntimeException(
 						"Invalid configuration file or cluster configuration missing." + coordinationConfigFilePath);

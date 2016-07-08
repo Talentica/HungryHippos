@@ -24,11 +24,11 @@ public class NodeJobsServiceTest {
 	private NodesManager nodesManager = null;
 	private long nodeCapacity = 2000l;
 	private int nodeId = 1;
-
+	private String zookeeperConfigPath = "/home/pooshans/HungryHippos/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
 	@Before
 	public void setUp() throws Exception {
 		node = new Node(nodeCapacity, nodeId);
-		nodesManager = new NodesManager();
+		nodesManager = new NodesManager(zookeeperConfigPath);
 		nodeService = new NodeJobsService(node, nodesManager);
 	}
 

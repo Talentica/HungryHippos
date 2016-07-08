@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -33,6 +32,7 @@ import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerAddress;
 import com.talentica.hungryHippos.coordination.domain.Status;
@@ -41,14 +41,12 @@ import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.listeners.AlertManager;
 import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.coordination.property.ZkProperty;
-import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.coordination.Node;
+import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
+import com.talentica.hungryhippos.config.zookeeper.ZookeeperDefaultSetting;
 
 /**
  * To manage the different nodes of the server
@@ -68,7 +66,8 @@ public class NodesManager implements Watcher {
   private ZookeeperConfiguration zkConfiguration;
   private List<Server> servers;
   private Map<String, Server> serverNameMap;
-  private Property<ZkProperty> zkproperty;
+  private ZookeeperConfig zookeeperConfig;
+  private ZookeeperDefaultSetting zkDeafultSetting;
   private static final Logger LOGGER = LoggerFactory.getLogger(NodesManager.class.getName());
 
   private static final int DEFAULT_NODES = PathEnum.values().length - 1; // subtracting
@@ -101,24 +100,23 @@ public class NodesManager implements Watcher {
     this.servers = servers;
   }
 
-  public NodesManager() {
+  public NodesManager(String zookeeperConfigPath) {
     connectedSignal = new CountDownLatch(1);
     registrationListener = new AlertManager();
     evictionListener = (EvictionListener) registrationListener;
     servers = new ArrayList<Server>();
     serverNameMap = new HashMap<String, Server>();
     pathMap = new HashMap<String, String>();
-    zkproperty = CoordinationApplicationContext.getZkProperty();
-    pathMap.put(PathEnum.NAMESPACE.name(), zkproperty.getValueByKey("zookeeper.namespace_path"));
-    pathMap.put(PathEnum.BASEPATH.name(), zkproperty.getValueByKey("zookeeper.base_path"));
-    pathMap.put(PathEnum.ZKIPTPATH.name(), zkproperty.getValueByKey("zookeeper.server.ips"));
-    pathMap.put(PathEnum.ALERTPATH.name(), zkproperty.getValueByKey("zookeeper.alerts_path"));
-    pathMap.put(PathEnum.CONFIGPATH.name(), zkproperty.getValueByKey("zookeeper.config_path"));
-    pathMap.put(PathEnum.FILESYSTEM.name(), zkproperty.getValueByKey("zookeeper.file.system"));
-    pathMap.put(PathEnum.SHARDING_TABLE.name(),
-        zkproperty.getValueByKey("zookeeper.sharding.table.path"));
-    Integer sessionTimeOut = Integer.valueOf(zkproperty.getValueByKey("zookeeper.session_timeout"));
-    zkConfiguration = new ZookeeperConfiguration(pathMap, sessionTimeOut);
+    zookeeperConfig = NodesManagerContext.getZookeeperConfiguration(zookeeperConfigPath);
+    zkDeafultSetting = zookeeperConfig.getZookeeperDefaultSetting();
+    pathMap.put(PathEnum.NAMESPACE.name(), zkDeafultSetting.getNamespacePath());
+    pathMap.put(PathEnum.BASEPATH.name(), zkDeafultSetting.getHostPath());
+    pathMap.put(PathEnum.ALERTPATH.name(), zkDeafultSetting.getAlertPath());
+    pathMap.put(PathEnum.CONFIGPATH.name(), zkDeafultSetting.getConfigPath());
+    pathMap.put(PathEnum.FILESYSTEM.name(), zkDeafultSetting.getFilesystemPath());
+    pathMap.put(PathEnum.SHARDING_TABLE.name(), zkDeafultSetting.getShardingTablePath());
+    zkConfiguration =
+        new ZookeeperConfiguration(pathMap, Integer.valueOf(zkDeafultSetting.getSessionTimout()));
   }
 
   /**
@@ -130,9 +128,8 @@ public class NodesManager implements Watcher {
   public NodesManager connectZookeeper(String zkIP) {
     try {
       if (zkIP == null) {
-        LOGGER.info("Node Manager started, connecting to ZK hosts: "
-            + zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
-        connect(zkConfiguration.getPathMap().get(PathEnum.ZKIPTPATH.name()));
+        LOGGER.info("Zookeeper IP is NOT provided. Please pass the zookeeper IP's as string");
+        return null;
       } else {
         connect(zkIP);
       }
@@ -204,6 +201,7 @@ public class NodesManager implements Watcher {
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()), null);
   }
 
   /**

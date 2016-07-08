@@ -39,12 +39,15 @@ public class CoordinationApplicationContext {
   private static Property<ZkProperty> zkProperty;
   private static Property<ServerProperty> serverProperty;
   private static FieldTypeArrayDataDescription dataDescription;
+  private static String coordinationConfigFilePath;
 
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
 
   public static final String CLUSTER_CONFIGURATION = "cluster-configuration";
 
   public static final String COMMON_CONF_FILE_STRING = "common-config.properties";
+
+
 
   public CoordinationApplicationContext(CoordinationServers coordinationServers) {
 
@@ -176,7 +179,21 @@ public class CoordinationApplicationContext {
 
   public static List<Node> getServers() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    CoordinationConfig coordinationConfig = getZkCoordinationConfig();
+    CoordinationConfig coordinationConfig = getCoordinationConfig();
     return coordinationConfig.getClusterConfig().getNode();
+  }
+
+  public static CoordinationConfig getCoordinationConfig()
+      throws FileNotFoundException, JAXBException {
+    if (CoordinationApplicationContext.coordinationConfigFilePath == null) {
+      LOGGER.info("Please set the coordination configuration file path.");
+      return null;
+    }
+    return JaxbUtil.unmarshalFromFile(CoordinationApplicationContext.coordinationConfigFilePath,
+        CoordinationConfig.class);
+  }
+
+  public static void setCoordinationConfigPathContext(String coordinationConfigFilePath) {
+    CoordinationApplicationContext.coordinationConfigFilePath = coordinationConfigFilePath;
   }
 }

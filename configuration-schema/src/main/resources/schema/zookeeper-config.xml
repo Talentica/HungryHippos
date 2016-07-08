@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:zookeeper-config xmlns:tns="http://www.talentica.com/hungryhippos/client" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/client zookeeper-config.xsd ">
+  <tns:zookeeper-servers>
+    <tns:servers>localhost:2181</tns:servers>
+  </tns:zookeeper-servers>
+</tns:zookeeper-config>

@@ -33,7 +33,7 @@ public class CoordinationStarter {
 				throw new RuntimeException(
 						"Invalid configuration file or cluster configuration missing." + coordinationConfigFilePath);
 			}
-			NodesManagerContext.initialize(args[0]);
+			NodesManagerContext.initialize(args[0]).startup();
 			CoordinationApplicationContext.updateClusterConfiguration(
 					FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
 			LOGGER.info("Coordination server started..");

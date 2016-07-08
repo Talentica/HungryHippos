@@ -9,6 +9,7 @@ import javax.xml.bind.JAXBException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
@@ -33,6 +34,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testBucketCombinationToNode() {
     try {
       shardingTable.zkUploadBucketCombinationToNodeNumbersMap();

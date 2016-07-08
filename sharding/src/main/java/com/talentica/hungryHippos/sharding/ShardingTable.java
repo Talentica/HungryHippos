@@ -341,19 +341,19 @@ public class ShardingTable {
 
   private void buildBaseConfigKeyToValueToBucketPath() {
     baseConfigKeyToValueToBucketPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
   }
 
   private void buildBasePathBucketToNode() {
     baseConfigBucketToNodePath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
   }
 
   private void createBasePathBucketCombinationToNodeNumberMap(int bucketCombinationId) {
     baseConfigPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
 
     zkKeyToBucketPath =
@@ -423,7 +423,7 @@ public class ShardingTable {
    */
   public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap() {
     bucketCombinationPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.BUCKET_COMBINATION.getName();
     try {
       List<String> children = nodesManager.getChildren(bucketCombinationPath);
@@ -469,7 +469,7 @@ public class ShardingTable {
    */
   public Map<String, Map<Bucket<KeyValueFrequency>, Node>> readBucketToNodeNumberMap() {
     keyToBucketNumberPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
     try {
       List<String> children = nodesManager.getChildren(keyToBucketNumberPath);
@@ -507,7 +507,7 @@ public class ShardingTable {
    */
   public Map<String, Map<Object, Bucket<KeyValueFrequency>>> readKeyToValueToBucketMap() {
     KeyToValueToBucketPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
+        zkproperty.getValueByKey("zookeeper.sharding.table.path") + File.separatorChar
             + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
     try {
       List<String> children = nodesManager.getChildren(KeyToValueToBucketPath);

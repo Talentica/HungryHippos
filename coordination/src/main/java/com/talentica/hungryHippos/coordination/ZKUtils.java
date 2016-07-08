@@ -272,6 +272,11 @@ public class ZKUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
+      Stat stat = zk.exists(node, true);
+      if(stat == null){
+        LOGGER.info("No such node {} exists.",node);
+        return;
+      }
       ZKUtil.deleteRecursive(zk, node);
       LOGGER.info("Nodes are deleted recursively");
     } catch (InterruptedException | KeeperException e) {

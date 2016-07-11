@@ -1,6 +1,5 @@
 package com.talentica.hungryhippos.filesystem.server;
 
-import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 import com.talentica.hungryhippos.filesystem.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
@@ -24,14 +23,12 @@ public class DataRequestHandlerServer {
 
     private int port;
     private int maximumClientRequests;
-    private FileSystemConfig fileSystemConfig;
     private DataRetrievalThread[] requestHandlingThreads;
 
-    public DataRequestHandlerServer(int port, int maximumClientRequests, FileSystemConfig fileSystemConfig) {
+    public DataRequestHandlerServer(int port, int maximumClientRequests) {
         this.port = port;
         this.maximumClientRequests = maximumClientRequests;
         this.requestHandlingThreads = new DataRetrievalThread[maximumClientRequests];
-        this.fileSystemConfig = fileSystemConfig;
     }
 
     /**
@@ -39,7 +36,7 @@ public class DataRequestHandlerServer {
      *
      * @throws IOException
      */
-    public void start() throws IOException {
+    public void start() throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
 
         ServerSocket serverSocket = new ServerSocket(port);
         while (true) {
@@ -50,7 +47,7 @@ public class DataRequestHandlerServer {
                 for (i = 0; i < maximumClientRequests; i++) {
                     if (requestHandlingThreads[i] == null || !requestHandlingThreads[i].isAlive()) {
                         LOGGER.info("[{}] Assigning slot {}", Thread.currentThread().getName(), i);
-                        (requestHandlingThreads[i] = new DataRetrievalThread(clientSocket,fileSystemConfig.getRootDirectory(),fileSystemConfig.getDataFilePrefix(),fileSystemConfig.getFileStreamBufferSize())).start();
+                        (requestHandlingThreads[i] = new DataRetrievalThread(clientSocket,FileSystemContext.getRootDirectory(),FileSystemContext.getDataFilePrefix(),FileSystemContext.getFileStreamBufferSize())).start();
                         break;
                     }
                 }
@@ -73,9 +70,8 @@ public class DataRequestHandlerServer {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
-        FileSystemConfig fileSystemConfig = FileSystemContext.getFileSystemConfig();
-        int port = fileSystemConfig.getServerPort();
-        int maximumClientRequests = fileSystemConfig.getMaxClientRequests();
-        new DataRequestHandlerServer(port, maximumClientRequests, fileSystemConfig).start();
+        int port = FileSystemContext.getServerPort();
+        int maximumClientRequests = FileSystemContext.getMaxClientRequests();
+        new DataRequestHandlerServer(port, maximumClientRequests).start();
     }
 }

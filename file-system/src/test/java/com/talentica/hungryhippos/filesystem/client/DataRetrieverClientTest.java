@@ -5,7 +5,6 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
-import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 import com.talentica.hungryhippos.filesystem.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
@@ -39,7 +38,6 @@ import static org.junit.Assert.assertTrue;
 public class DataRetrieverClientTest {
 
     private NodesManager nodesManager;
-    private FileSystemConfig fileSystemConfig;
     private Property<ZkProperty> zkProperty;
 
     @Before
@@ -51,7 +49,6 @@ public class DataRetrieverClientTest {
         PowerMockito.spy(FileSystemUtils.class);
 
         nodesManager = Mockito.mock(NodesManager.class);
-        fileSystemConfig = Mockito.mock(FileSystemConfig.class);
         zkProperty = Mockito.mock(Property.class);
     }
 
@@ -104,11 +101,10 @@ public class DataRetrieverClientTest {
 
             PowerMockito.doNothing().when(DataRetrieverClient.class, "retrieveDataBlocks", Mockito.anyString(), Mockito.anyString(),
                     Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyLong(), Mockito.anyInt(), Mockito.anyLong(), Mockito.anyInt());
-            PowerMockito.when(FileSystemContext.getFileSystemConfig()).thenReturn(fileSystemConfig);
-            Mockito.when(fileSystemConfig.getServerPort()).thenReturn(9898);
-            Mockito.when(fileSystemConfig.getMaxQueryAttempts()).thenReturn(10);
-            Mockito.when(fileSystemConfig.getQueryRetryInterval()).thenReturn(1000L);
-            Mockito.when(fileSystemConfig.getFileStreamBufferSize()).thenReturn(1024);
+            PowerMockito.when(FileSystemContext.getServerPort()).thenReturn(9898);
+            PowerMockito.when(FileSystemContext.getMaxQueryAttempts()).thenReturn(10);
+            PowerMockito.when(FileSystemContext.getQueryRetryInterval()).thenReturn(1000L);
+            PowerMockito.when(FileSystemContext.getFileStreamBufferSize()).thenReturn(1024);
 
             DataRetrieverClient.retrieveDataBlocks(nodeIp, fileZKNode, dataFilePaths, outputDirName, dataSize);
 

@@ -76,11 +76,10 @@ public class DataRetrieverClient {
      */
     public static void retrieveDataBlocks(String nodeIp, String fileZKNode, String dataBlocks, String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
 
-        FileSystemConfig fileSystemConfig = FileSystemContext.getFileSystemConfig();
-        int port = fileSystemConfig.getServerPort();
-        int noOfAttempts = fileSystemConfig.getMaxQueryAttempts();
-        int fileStreamBufferSize = fileSystemConfig.getFileStreamBufferSize();
-        long retryTimeInterval = fileSystemConfig.getQueryRetryInterval();
+        int port = FileSystemContext.getServerPort();
+        int noOfAttempts = FileSystemContext.getMaxQueryAttempts();
+        int fileStreamBufferSize = FileSystemContext.getFileStreamBufferSize();
+        long retryTimeInterval = FileSystemContext.getQueryRetryInterval();
         retrieveDataBlocks(nodeIp, fileZKNode, dataBlocks, outputFile, fileStreamBufferSize, dataSize, port, retryTimeInterval, noOfAttempts);
     }
 

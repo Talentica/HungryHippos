@@ -24,78 +24,75 @@ import java.util.concurrent.CountDownLatch;
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({NodesManagerContext.class,
-        CoordinationApplicationContext.class})
-@SuppressStaticInitializationFor({"com.talentica.hungryHippos.coordination.domain.NodesManagerContext"})
+@PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class })
+@SuppressStaticInitializationFor({ "com.talentica.hungryHippos.coordination.domain.NodesManagerContext" })
 public class ZookeeperFileSystemTest {
 
-    private ZookeeperFileSystem system;
+	private ZookeeperFileSystem system;
 
-    private NodesManager nodesManager;
-    private Property<ZkProperty> zkProperty;
+	private NodesManager nodesManager;
+	private Property<ZkProperty> zkProperty;
 
-    @Before
-    public void setUp() {
-        PowerMockito.mockStatic(NodesManagerContext.class);
-        PowerMockito.mockStatic(CoordinationApplicationContext.class);
+	@Before
+	public void setUp() {
+		PowerMockito.mockStatic(NodesManagerContext.class);
+		PowerMockito.mockStatic(CoordinationApplicationContext.class);
 
-        nodesManager = Mockito.mock(NodesManager.class);
-        zkProperty = Mockito.mock(Property.class);
-    }
+		nodesManager = Mockito.mock(NodesManager.class);
+		zkProperty = Mockito.mock(Property.class);
+	}
 
-    @Test
-    public void testCreateFilesAsZnode() throws FileNotFoundException, JAXBException {
-        CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-        system = new ZookeeperFileSystem();
-        system.createFilesAsZnode("/abcd/input.txt");
-    }
+	@Test
+	public void testCreateFilesAsZnode() throws FileNotFoundException, JAXBException {
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem();
+		system.createZnode("/abcd/input.txt");
+	}
 
-    /**
-     * Positive test scenario, already a Znode is created in the Zookeeper.
-     *
-     * @throws JAXBException
-     * @throws FileNotFoundException
-     */
-    @Test
-    public void testGetDataInsideZnode() throws FileNotFoundException, JAXBException {
-        CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-        system = new ZookeeperFileSystem();
-        FileMetaData fileMetaData = system
-                .getDataInsideZnode("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
-        assertNotNull(fileMetaData);
-        assertNotNull(fileMetaData.getFileName());
-        assertTrue(fileMetaData.getSize() >= 0);
-        assertNotNull(fileMetaData.getType());
-    }
+	/**
+	 * Positive test scenario, already a Znode is created in the Zookeeper.
+	 *
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+	 */
+	@Test
+	public void testGetDataInsideZnode() throws FileNotFoundException, JAXBException {
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem();
+		String fileMetaData = system.getData("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
+		assertNotNull(fileMetaData);
 
-    @Test
-    public void testUpdateFSBlockMetaData() {
+	}
 
-        try {
-            String fileZKNode = "input";
-            String fileSystemRootNodeZKPath = "/rootnode/filesystem";
-            String dataFileZKNode = "0";
-            long datafileSize = 1000L;
-            String nodeIp = "localhost";
-            String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
-            String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
+	@Test
+	public void testUpdateFSBlockMetaData() {
 
-            PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).thenReturn(nodesManager);
-            PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
+		try {
+			String fileZKNode = "input";
+			String fileSystemRootNodeZKPath = "/rootnode/filesystem";
+			String dataFileZKNode = "0";
+			long datafileSize = 1000L;
+			String nodeIp = "localhost";
+			String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
+			String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
 
-            Mockito.when(nodesManager.checkNodeExists(fileNodeZKPath)).thenReturn(false);
-            Mockito.when(nodesManager.checkNodeExists(nodeIpZKPath)).thenReturn(false);
-            Mockito.when(nodesManager.getObjectFromZKNode(fileNodeZKPath)).thenReturn("0");
-            Mockito.doNothing().when(nodesManager).createPersistentNode(Mockito.anyString(), new CountDownLatch(1), Mockito.eq(Mockito.any()));
-            Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE)).thenReturn(fileSystemRootNodeZKPath);
+			PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).thenReturn(nodesManager);
+			PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
 
-            ZookeeperFileSystem zookeeperFileSystem = new ZookeeperFileSystem();
-            zookeeperFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+			Mockito.when(nodesManager.checkNodeExists(fileNodeZKPath)).thenReturn(false);
+			Mockito.when(nodesManager.checkNodeExists(nodeIpZKPath)).thenReturn(false);
+			Mockito.when(nodesManager.getObjectFromZKNode(fileNodeZKPath)).thenReturn("0");
+			Mockito.doNothing().when(nodesManager).createPersistentNode(Mockito.anyString(), new CountDownLatch(1),
+					Mockito.eq(Mockito.any()));
+			Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE)).thenReturn(fileSystemRootNodeZKPath);
 
-            assertTrue(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(false);
-        }
-    }
+			ZookeeperFileSystem zookeeperFileSystem = new ZookeeperFileSystem();
+			zookeeperFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+
+			assertTrue(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			assertTrue(false);
+		}
+	}
 }

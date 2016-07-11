@@ -711,6 +711,15 @@ public class NodesManager implements Watcher {
 		return flag;
 	}
 
+	/**
+	 * Stores a serialized Object in node
+	 * @param nodePath
+	 * @param data
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+     * @throws IOException
+     */
   public void setObjectToZKNode(String nodePath,Object data) throws KeeperException, InterruptedException,
           ClassNotFoundException, IOException {
     Stat stat = null;
@@ -720,6 +729,16 @@ public class NodesManager implements Watcher {
     }
   }
 
+
+	/**
+	 * Stores a byte array in node
+	 * @param nodePath
+	 * @param data
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+     * @throws IOException
+     */
   public void setObjectToZKNode(String nodePath,byte[] data) throws KeeperException, InterruptedException,
           ClassNotFoundException, IOException {
     Stat stat = null;
@@ -729,6 +748,13 @@ public class NodesManager implements Watcher {
     }
   }
 
+	/**
+	 * Checks if a nodePath exists in zookeeper
+	 * @param nodePath
+	 * @return
+	 * @throws KeeperException
+	 * @throws InterruptedException
+     */
   public boolean checkNodeExists(String nodePath) throws KeeperException, InterruptedException {
     Stat stat =  zk.exists(nodePath,this);
     return stat!=null;

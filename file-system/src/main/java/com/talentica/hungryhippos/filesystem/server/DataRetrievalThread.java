@@ -1,8 +1,6 @@
 package com.talentica.hungryhippos.filesystem.server;
 
-import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryhippos.filesystem.FileSystemConstants;
-import com.talentica.hungryhippos.filesystem.property.FileSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +20,15 @@ public class DataRetrievalThread extends Thread {
     private Socket clientSocket = null;
     private DataInputStream dis = null;
     private DataOutputStream dos = null;
-    private Property<FileSystemProperty> fileSystemProperty = null;
+    private String rootDirectory;
+    private String dataFilePrefix;
+    private int fileStreamBufferSize;
 
-    public DataRetrievalThread(Socket clientSocket,Property<FileSystemProperty> fileSystemProperty) {
+    public DataRetrievalThread(Socket clientSocket, String rootDirectory, String dataFilePrefix, int fileStreamBufferSize) {
         this.clientSocket = clientSocket;
-        this.fileSystemProperty = fileSystemProperty;
+        this.rootDirectory = rootDirectory;
+        this.dataFilePrefix = dataFilePrefix;
+        this.fileStreamBufferSize = fileStreamBufferSize;
         LOGGER.info("[{}] Just connected to {}", Thread.currentThread().getName(), clientSocket.getRemoteSocketAddress());
     }
 
@@ -39,12 +41,11 @@ public class DataRetrievalThread extends Thread {
             String dataNodes = dis.readUTF();
             LOGGER.info("[{}] DataNodes : {}", Thread.currentThread().getName(), dataNodes);
             String[] filePathsArr = dataNodes.split(FileSystemConstants.FILE_PATHS_DELIMITER);
-            int fileStreamBufferSize = Integer.parseInt(fileSystemProperty.getValueByKey(FileSystemConstants.FILE_STREAM_BUFFER_SIZE));
             byte[] inputBuffer = new byte[fileStreamBufferSize];
             int len;
             for (String filePath : filePathsArr) {
-                String absoluteFilePath = fileSystemProperty.getValueByKey(FileSystemConstants.HHROOT) + File.separator +
-                        fileZKNode + File.separator +fileSystemProperty.getValueByKey(FileSystemConstants.DATA_FILE_PREFIX) +
+                String absoluteFilePath = rootDirectory + File.separator +
+                        fileZKNode + File.separator +dataFilePrefix +
                         filePath;
                 fis = new FileInputStream(absoluteFilePath);
                 bis = new BufferedInputStream(fis);

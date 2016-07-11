@@ -3,14 +3,15 @@ package com.talentica.hungryhippos.filesystem.client;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.property.Property;
+import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 import com.talentica.hungryhippos.filesystem.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import com.talentica.hungryhippos.filesystem.property.FileSystemProperty;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
@@ -73,14 +74,13 @@ public class DataRetrieverClient {
      * @param outputFile
      * @param dataSize
      */
-    public static void retrieveDataBlocks(String nodeIp, String fileZKNode, String dataBlocks, String outputFile, long dataSize) {
+    public static void retrieveDataBlocks(String nodeIp, String fileZKNode, String dataBlocks, String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
 
-        Property<FileSystemProperty> fileSystemProperty = FileSystemContext.getProperty();
-        int port = Integer.parseInt(fileSystemProperty.getValueByKey(FileSystemConstants.SERVER_PORT));
-        int noOfAttempts = Integer.parseInt(fileSystemProperty.getValueByKey(FileSystemConstants.MAX_QUERY_ATTEMPTS));
-        int fileStreamBufferSize = Integer.parseInt(fileSystemProperty.getValueByKey(FileSystemConstants.FILE_STREAM_BUFFER_SIZE));
-        long retryTimeInterval = Long.parseLong(fileSystemProperty.getValueByKey(FileSystemConstants.QUERY_RETRY_INTERVAL));
-
+        FileSystemConfig fileSystemConfig = FileSystemContext.getFileSystemConfig();
+        int port = fileSystemConfig.getServerPort();
+        int noOfAttempts = fileSystemConfig.getMaxQueryAttempts();
+        int fileStreamBufferSize = fileSystemConfig.getFileStreamBufferSize();
+        long retryTimeInterval = fileSystemConfig.getQueryRetryInterval();
         retrieveDataBlocks(nodeIp, fileZKNode, dataBlocks, outputFile, fileStreamBufferSize, dataSize, port, retryTimeInterval, noOfAttempts);
     }
 

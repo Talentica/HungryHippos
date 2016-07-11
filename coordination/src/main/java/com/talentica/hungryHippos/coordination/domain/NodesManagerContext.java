@@ -40,6 +40,10 @@ public class NodesManagerContext {
   }
 
   public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
+    if(ZOOKEEPER_CONFIG_FILE_PATH == null){
+      LOGGER.info("Please set the zookeeper configuration xml path");
+      return null;
+    }
     return initialize(ZOOKEEPER_CONFIG_FILE_PATH);
   }
 
@@ -56,5 +60,12 @@ public class NodesManagerContext {
     }
     return null;
   }
+  
+  public static void setZookeeperXmlPath(String clientConfigFilePath){
+    if(ZOOKEEPER_CONFIG_FILE_PATH == null){
+      NodesManagerContext.ZOOKEEPER_CONFIG_FILE_PATH = clientConfigFilePath;
+    }
+  }
+  
 
 }

@@ -32,14 +32,15 @@ import com.talentica.hungryhippos.config.coordination.Node;
  */
 public class CoordinationApplicationContext {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(CoordinationApplicationContext.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CoordinationApplicationContext.class);
 
   private static Property<CoordinationProperty> property;
   private static Property<ZkProperty> zkProperty;
   private static Property<ServerProperty> serverProperty;
   private static FieldTypeArrayDataDescription dataDescription;
   private static String coordinationConfigFilePath;
+  private static CoordinationConfig config;
 
   public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
 
@@ -74,35 +75,38 @@ public class CoordinationApplicationContext {
     return serverProperty;
   }
 
-  public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
-    if (property == null) {
-      getProperty();
+  public static final FieldTypeArrayDataDescription getConfiguredDataDescription()
+      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
+      IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
     }
     if (dataDescription == null) {
-      dataDescription =
-          FieldTypeArrayDataDescription.createDataDescription(
-              ((CoordinationProperty) property).getDataTypeConfiguration(),
-              ((CoordinationProperty) property).getMaximumSizeOfSingleDataBlock());
+      dataDescription = FieldTypeArrayDataDescription.createDataDescription(
+          config.getInputFileConfig().getColumnDatatypeSize().split(","),
+          config.getCommonConfig().getMaximumSizeOfSingleBlockData());
     }
     return dataDescription;
   }
 
-  public static String[] getShardingDimensions() {
-    if (property == null) {
-      getProperty();
+  public static String[] getShardingDimensions() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
     }
-    String keyOrderString = property.getValueByKey("sharding_dimensions").toString();
+    String keyOrderString = config.getCommonConfig().getShardingDimensions();
     return keyOrderString.split(",");
   }
 
-  public static int[] getShardingIndexes() {
-    if (property == null) {
-      getProperty();
+  public static int[] getShardingIndexes() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
     }
-    String keyOrderString = property.getValueByKey("sharding_dimensions").toString();
+    String keyOrderString = config.getCommonConfig().getShardingDimensions();
     String[] shardingKeys = keyOrderString.split(",");
     int[] shardingKeyIndexes = new int[shardingKeys.length];
-    String keysNamingPrefix = property.getValueByKey("keys.prefix");
+    String keysNamingPrefix = config.getCommonConfig().getKeysPrefix();
     int keysNamingPrefixLength = keysNamingPrefix.length();
     for (int i = 0; i < shardingKeys.length; i++) {
       shardingKeyIndexes[i] =
@@ -111,7 +115,8 @@ public class CoordinationApplicationContext {
     return shardingKeyIndexes;
   }
 
-  public static int getShardingIndexSequence(int keyId) {
+  public static int getShardingIndexSequence(int keyId) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     int[] shardingIndexes = getShardingIndexes();
     int index = -1;
     for (int i = 0; i < shardingIndexes.length; i++) {
@@ -123,7 +128,8 @@ public class CoordinationApplicationContext {
     return index;
   }
 
-  public static String[] getKeyNamesFromIndexes(int[] keyIndexes) {
+  public static String[] getKeyNamesFromIndexes(int[] keyIndexes) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     String[] keyColumnNames = getColumnsConfiguration();
     String[] result = new String[keyIndexes.length];
     for (int i = 0; i < keyIndexes.length; i++) {
@@ -132,23 +138,29 @@ public class CoordinationApplicationContext {
     return result;
   }
 
-  public static String[] getColumnsConfiguration() {
-    String[] keyColumnNames = property.getValueByKey("column.names").toString().split(",");
+  public static String[] getColumnsConfiguration() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
+    }
+    String[] keyColumnNames = config.getInputFileConfig().getColumnNames().split(",");
     return keyColumnNames;
   }
 
-  public static final String[] getDataTypeConfiguration() {
-    if (property == null) {
-      getProperty();
+  public static final String[] getDataTypeConfiguration() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
     }
-    return property.getValueByKey("column.datatype-size").toString().split(",");
+    return config.getInputFileConfig().getColumnDatatypeSize().split(",");
   }
 
-  public static final int getMaximumSizeOfSingleDataBlock() {
-    if (property == null) {
-      getProperty();
+  public static final int getMaximumSizeOfSingleDataBlock() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    if (config == null) {
+      config = getZkCoordinationConfig();
     }
-    return Integer.parseInt(property.getValueByKey("maximum.size.of.single.block.data"));
+    return config.getCommonConfig().getMaximumSizeOfSingleBlockData();
   }
 
   public static void loadAllProperty() {
@@ -169,9 +181,8 @@ public class CoordinationApplicationContext {
 
   public static CoordinationConfig getZkCoordinationConfig() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    ZKNodeFile clusterConfigurationFile =
-        (ZKNodeFile) NodesManagerContext.getNodesManagerInstance().getConfigFileFromZNode(
-            CoordinationApplicationContext.CLUSTER_CONFIGURATION);
+    ZKNodeFile clusterConfigurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
+        .getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
     CoordinationConfig coordinationConfig =
         JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(), CoordinationConfig.class);
     return coordinationConfig;

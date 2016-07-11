@@ -29,6 +29,7 @@ public class ShardingStarter {
 			validateArguments(args);
 			LOGGER.info("SHARDING STARTED");
 			long startTime = System.currentTimeMillis();
+			NodesManagerContext.setZookeeperXmlPath(args[0]);
 			ShardingConfig shardingConfig = JaxbUtil.unmarshalFromFile(args[1], ShardingConfig.class);
 			String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
 			String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();

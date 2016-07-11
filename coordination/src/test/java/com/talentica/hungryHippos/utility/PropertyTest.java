@@ -3,9 +3,13 @@
  */
 package com.talentica.hungryHippos.utility;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,7 +27,8 @@ public class PropertyTest {
   @Test
 
   public void testGetPropertyValueForMaster() {
-    Object cleanupZookeeperNodesPropValue = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+    Object cleanupZookeeperNodesPropValue =
+        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
     Assert.assertNotNull(cleanupZookeeperNodesPropValue);
     Assert.assertEquals("Y", cleanupZookeeperNodesPropValue);
   }
@@ -31,7 +36,8 @@ public class PropertyTest {
   @Test
 
   public void testGetPropertyValueForNode() {
-    Object cleanupZookeeperNodesPropValue = CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+    Object cleanupZookeeperNodesPropValue =
+        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
     Assert.assertNotNull(cleanupZookeeperNodesPropValue);
     Assert.assertEquals("Y", cleanupZookeeperNodesPropValue);
   }
@@ -39,13 +45,15 @@ public class PropertyTest {
   @Test
 
   public void testGetPropertyValueWithoutNamespace() {
-    Object zookeeperServerIps = CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.server.ips");
+    Object zookeeperServerIps =
+        CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.server.ips");
     Assert.assertNotNull(zookeeperServerIps);
   }
 
   @Test
 
-  public void testGetKeyOrder() {
+  public void testGetKeyOrder() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     String[] keyOrder = CoordinationApplicationContext.getShardingDimensions();
     Assert.assertNotNull(keyOrder);
     for (String key : keyOrder) {
@@ -57,7 +65,8 @@ public class PropertyTest {
 
   @Test
 
-  public void testGetKeyNamesFromIndexes() {
+  public void testGetKeyNamesFromIndexes() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     String[] keyNames = CoordinationApplicationContext.getKeyNamesFromIndexes(new int[] {1, 2});
     Assert.assertNotNull(keyNames);
     Assert.assertEquals(2, keyNames.length);
@@ -67,7 +76,8 @@ public class PropertyTest {
 
   @Test
 
-  public void testGetKeyNamesFromIndexesWithEmptyArray() {
+  public void testGetKeyNamesFromIndexesWithEmptyArray() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     CoordinationApplicationContext.getProperty();
     String[] keyNames = CoordinationApplicationContext.getKeyNamesFromIndexes(new int[] {});
     Assert.assertNotNull(keyNames);
@@ -76,13 +86,15 @@ public class PropertyTest {
 
   @Test
 
-  public void testGetEnvironmentSpecificProperty() {
+  public void testGetEnvironmentSpecificProperty() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     Assert.assertEquals(1, CoordinationApplicationContext.getShardingDimensions().length);
   }
 
   @Test
 
-  public void testGetShardingIndexes() {
+  public void testGetShardingIndexes() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     int[] shardingKeyIndexes = CoordinationApplicationContext.getShardingIndexes();
     Assert.assertNotNull(shardingKeyIndexes);
     Assert.assertEquals(1, shardingKeyIndexes.length);
@@ -92,17 +104,17 @@ public class PropertyTest {
 
   @Test
 
-  public void testGetShardingIndexSequence() {
+  public void testGetShardingIndexSequence() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     Assert.assertEquals(-1, CoordinationApplicationContext.getShardingIndexSequence(3));
 
   }
 
- 
+
   @Test
   public void testPropertyByOverriding() throws IOException {
     Property<ZkProperty> property =
-        new ZkProperty()
-            .overrideProperty("./src/main/resources/zookeeper.properties");
+        new ZkProperty().overrideProperty("./src/main/resources/zookeeper.properties");
     Properties properties = property.getProperties();
     Assert.assertNotNull(properties);
   }

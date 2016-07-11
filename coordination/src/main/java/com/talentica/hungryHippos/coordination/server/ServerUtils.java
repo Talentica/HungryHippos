@@ -16,6 +16,7 @@ public class ServerUtils {
 
 	public static final String PRIFIX_SERVER_NAME = "server";
 	public static final String DOT = ".";
+	public static final String COLON = ":";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerUtils.class
 			.getName());
 

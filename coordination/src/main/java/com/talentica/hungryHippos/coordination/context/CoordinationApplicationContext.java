@@ -22,7 +22,6 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
 import com.talentica.hungryHippos.coordination.utility.ServerProperty;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.coordination.Node;
 
@@ -48,12 +47,6 @@ public class CoordinationApplicationContext {
 
   public static final String COMMON_CONF_FILE_STRING = "common-config.properties";
 
-
-
-  public CoordinationApplicationContext(CoordinationServers coordinationServers) {
-
-  }
-
   public static Property<CoordinationProperty> getProperty() {
     if (property == null) {
       property = new CoordinationProperty("coordination-config.properties");
@@ -78,9 +71,7 @@ public class CoordinationApplicationContext {
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription()
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     if (dataDescription == null) {
       dataDescription = FieldTypeArrayDataDescription.createDataDescription(
           config.getInputFileConfig().getColumnDatatypeSize().split(","),
@@ -91,18 +82,14 @@ public class CoordinationApplicationContext {
 
   public static String[] getShardingDimensions() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     String keyOrderString = config.getCommonConfig().getShardingDimensions();
     return keyOrderString.split(",");
   }
 
   public static int[] getShardingIndexes() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     String keyOrderString = config.getCommonConfig().getShardingDimensions();
     String[] shardingKeys = keyOrderString.split(",");
     int[] shardingKeyIndexes = new int[shardingKeys.length];
@@ -140,26 +127,20 @@ public class CoordinationApplicationContext {
 
   public static String[] getColumnsConfiguration() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     String[] keyColumnNames = config.getInputFileConfig().getColumnNames().split(",");
     return keyColumnNames;
   }
 
   public static final String[] getDataTypeConfiguration() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     return config.getInputFileConfig().getColumnDatatypeSize().split(",");
   }
 
   public static final int getMaximumSizeOfSingleDataBlock() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    if (config == null) {
-      config = getZkCoordinationConfig();
-    }
+    config = getZkCoordinationConfig();
     return config.getCommonConfig().getMaximumSizeOfSingleBlockData();
   }
 
@@ -181,10 +162,14 @@ public class CoordinationApplicationContext {
 
   public static CoordinationConfig getZkCoordinationConfig() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    if (config != null) {
+      return config;
+    }
     ZKNodeFile clusterConfigurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
         .getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
     CoordinationConfig coordinationConfig =
         JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(), CoordinationConfig.class);
+    config = coordinationConfig;
     return coordinationConfig;
   }
 

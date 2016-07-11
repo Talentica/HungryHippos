@@ -3,17 +3,19 @@ package com.talentica.hungryHippos.master.data;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,6 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
-import com.talentica.hungryHippos.master.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
@@ -37,6 +38,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * Created by debasishc on 24/9/15.
@@ -54,12 +56,11 @@ public class DataProvider {
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
-    Properties prop = DataPublisherApplicationContext.getServerProperty().getProperties();
-    int size = prop.keySet().size();
-    for (int index = 0; index < size; index++) {
-      String server = prop.getProperty(ServerUtils.PRIFIX_SERVER_NAME + ServerUtils.DOT + index);
-      if (server == null)
-        break;
+    CoordinationConfig config = CoordinationApplicationContext.getCoordinationConfig();
+    List<com.talentica.hungryhippos.config.coordination.Node> nodes =
+        config.getClusterConfig().getNode();
+    for (com.talentica.hungryhippos.config.coordination.Node node : nodes) {
+      String server = node.getIp() + ServerUtils.COLON + node.getPort();
       servers.add(server);
     }
     LOGGER.info("There are {} servers", servers.size());
@@ -73,16 +74,15 @@ public class DataProvider {
     long start = System.currentTimeMillis();
     String[] servers = loadServers(nodesManager);
     FieldTypeArrayDataDescription dataDescription =
-        DataPublisherApplicationContext.getConfiguredDataDescription();
-    dataDescription.setKeyOrder(DataPublisherApplicationContext.getShardingDimensions());
+        CoordinationApplicationContext.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 
-    try (ObjectInputStream inBucketCombinationNodeMap =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.bucketCombinationToNodeNumbersMapFile))) {
+    try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
+        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+            + PathUtil.SEPARATOR_CHAR + Sharding.bucketCombinationToNodeNumbersMapFile))) {
       bucketCombinationNodeMap =
           (Map<BucketCombination, Set<Node>>) inBucketCombinationNodeMap.readObject();
     } catch (Exception exception) {
@@ -90,10 +90,9 @@ public class DataProvider {
       throw new RuntimeException(exception);
     }
 
-    try (ObjectInputStream inBucketCombinationNodeMap =
-        new ObjectInputStream(new FileInputStream(
-            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-                + Sharding.keyToValueToBucketMapFile))) {
+    try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
+        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+            + PathUtil.SEPARATOR_CHAR + Sharding.keyToValueToBucketMapFile))) {
       keyToValueToBucketMap =
           (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inBucketCombinationNodeMap
               .readObject();
@@ -113,9 +112,10 @@ public class DataProvider {
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
-    Reader input =
-        new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-            DataPublisherApplicationContext.inputFile, dataParser);
+    Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
+        CoordinationApplicationContext.getCoordinationConfig().getInputFileConfig()
+            .getInputFileName(),
+        dataParser);
     long timeForEncoding = 0;
     long timeForLookup = 0;
     int lineNo = 0;
@@ -166,9 +166,8 @@ public class DataProvider {
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));
     LOGGER.info("Time taken in lookup: " + (timeForLookup));
     try {
-      String dataPublishingNodeName =
-          nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED
-              .getZKJobNode());
+      String dataPublishingNodeName = nodesManager
+          .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED.getZKJobNode());
       CountDownLatch signal = new CountDownLatch(1);
       nodesManager.createPersistentNode(dataPublishingNodeName, signal);
       signal.await();
@@ -179,19 +178,10 @@ public class DataProvider {
 
   }
 
-  private static void init() {
-    NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE =
-        Integer.valueOf(DataPublisherApplicationContext.getProperty()
-            .getValueByKey("no.of.attempts.to.connect.to.node").toString());
-    BAD_RECORDS_FILE =
-        CoordinationApplicationContext.getProperty().getValueByKey("bad.records.file.out")
-            + "_datapublish.err";
-  }
-
-
-  private int flushData(int lineNo, InvalidRowException e) {
-    FileWriter.write("Error in line :: [" + (lineNo++) + "]  and columns(true are bad values) :: "
-        + Arrays.toString(e.getColumns()) + " and row :: [" + e.getBadRow().toString() + "]");
-    return lineNo;
+  private static void init() throws FileNotFoundException, JAXBException {
+    NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(CoordinationApplicationContext
+        .getCoordinationConfig().getCommonConfig().getNoOfAttemptsToConnectToNode());
+    BAD_RECORDS_FILE = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig()
+        .getBadRecordsFileOut();
   }
 }

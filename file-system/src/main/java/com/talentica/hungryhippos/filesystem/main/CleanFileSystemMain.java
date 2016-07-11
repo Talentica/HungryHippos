@@ -6,7 +6,9 @@ import java.nio.file.FileSystem;
 import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 
 /**
- * The main class which calls clean file system to remove the files which was not removed successfully because of some failures.
+ * The main class which calls clean file system to remove the files which was
+ * not removed successfully because of some failures.
+ * 
  * @author sudarshans
  *
  */
@@ -21,6 +23,7 @@ public class CleanFileSystemMain {
 	public static void main(String[] args) {
 		CleanFileSystem cleanFileSystem = new CleanFileSystem();
 		cleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
+
 	}
 
 }

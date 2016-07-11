@@ -25,10 +25,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-/**
- * This is a Test class for DataRetrieverClient Created by rajkishoreh on
- * 11/7/16.
- */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class, DataRetrieverClient.class,
 		FileSystemContext.class, FileSystemUtils.class })
@@ -102,7 +98,7 @@ public class DataRetrieverClientTest {
 			PowerMockito.doNothing().when(DataRetrieverClient.class, "retrieveDataBlocks", Mockito.anyString(),
 					Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.anyLong(),
 					Mockito.anyInt(), Mockito.anyLong(), Mockito.anyInt());
-				Mockito.when(fileSystemConfig.getServerPort()).thenReturn(9898);
+			Mockito.when(fileSystemConfig.getServerPort()).thenReturn(9898);
 			Mockito.when(fileSystemConfig.getMaxQueryAttempts()).thenReturn(10);
 			Mockito.when(fileSystemConfig.getQueryRetryInterval()).thenReturn(1000L);
 			Mockito.when(fileSystemConfig.getFileStreamBufferSize()).thenReturn(1024);

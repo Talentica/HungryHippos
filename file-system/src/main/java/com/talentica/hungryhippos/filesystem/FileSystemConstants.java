@@ -13,7 +13,6 @@ public interface FileSystemConstants {
 	String DOWNLOAD_FILE_PREFIX = "part-";
 
 	String CONFIGURATION_FILE = "filesystem-config";
-
 	// constants for file-system configuration
 	String ROOT_NODE = "zookeeper.file.system";
 

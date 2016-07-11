@@ -1,5 +1,23 @@
 package com.talentica.hungryHippos.node;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.config.coordination.Node;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -8,26 +26,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-
-import java.io.IOException;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
-import com.talentica.hungryHippos.storage.DataStore;
-import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 public class DataReceiver {
 
@@ -77,26 +75,24 @@ public class DataReceiver {
   }
 
   public static void main(String[] args) {
-    CoordinationServers coordinationServers = null;
     try {
       validateArguments(args);
       StorageApplicationContext.dataFilePath = args[2];
       LOGGER.info("Start Node initialize");
       long startTime = System.currentTimeMillis();
       DataReceiver dataReceiver = getNodeInitializer();
-      ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
-      coordinationServers = clientConfig.getCoordinationServers();
-      ZKNodeFile serverConfig =
-          ZKUtils.getConfigZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING,
-              coordinationServers);
+      CoordinationConfig coordinationConfig =
+          JaxbUtil.unmarshalFromFile(args[0], CoordinationConfig.class);
+      List<Node> nodes = coordinationConfig.getClusterConfig().getNode();
       int nodeId = NodeUtil.getNodeId();
-      Properties serverConfigProps =
-          CoordinationApplicationContext.getServerProperty().getProperties();
-      if (serverConfig != null) {
-        serverConfigProps = (Properties) serverConfig.getObj();
+      int PORT = 0;
+
+      for (Node node : nodes) {
+        if (node.getIdentifier() == nodeId) {
+          PORT = Integer.valueOf(node.getPort());
+          break;
+        }
       }
-      String server = serverConfigProps.getProperty("server." + nodeId);
-      int PORT = Integer.valueOf(server.split(":")[1]);
       dataReceiver.startServer(PORT, nodeId);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for receiving all data on this node.",

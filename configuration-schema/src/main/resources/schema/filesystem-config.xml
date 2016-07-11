@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:file-system-config xmlns:tns="http://www.talentica.com/hungryhippos/filesystem" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/filesystem filesystem-config.xsd ">
-<tns:root-directory>/home/rajkishoreh/hungryhippo_root</tns:root-directory>
+<tns:file-system-config xmlns:tns="http://www.talentica.com/hungryhippos/filesystem"
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xsi:schemaLocation="http://www.talentica.com/hungryhippos/filesystem filesystem-config.xsd ">
+    <tns:root-directory>/tmp/hungryhippo_root</tns:root-directory>
     <tns:data-file-prefix>data_</tns:data-file-prefix>
     <tns:server-port>9898</tns:server-port>
     <tns:query-retry-interval>2500</tns:query-retry-interval>

@@ -6,5 +6,38 @@
       <tns:name>localhost</tns:name>
       <tns:ip>localhost</tns:ip>
     </tns:node>
+     <tns:node>
+      <tns:identifier>1</tns:identifier>
+      <tns:name>localhost</tns:name>
+      <tns:ip>localhost2</tns:ip>
+    </tns:node>
+     <tns:node>
+      <tns:identifier>2</tns:identifier>
+      <tns:name>localhost</tns:name>
+      <tns:ip>localhost</tns:ip>
+    </tns:node>
   </tns:cluster-config>
+  <tns:input-file-config>
+    <tns:input-file-name>tns:input-file-name</tns:input-file-name>
+    <tns:column-datatype-size>tns:column-datatype-size</tns:column-datatype-size>
+    <tns:column-names>tns:column-names</tns:column-names>
+  </tns:input-file-config>
+  <tns:node-config>
+    <tns:no-of-rows-to-check-available-memory>0</tns:no-of-rows-to-check-available-memory>
+    <tns:datareceiver-append-to-data-files>true</tns:datareceiver-append-to-data-files>
+    <tns:min-free-memory-in-mbs>0</tns:min-free-memory-in-mbs>
+    <tns:no-of-rows-to-check-memory-consumption-after>0</tns:no-of-rows-to-check-memory-consumption-after>
+    <tns:no-of-rows-to-log-progress-after>0</tns:no-of-rows-to-log-progress-after>
+    <tns:max-no-of-gc-retries-when-single-valueset-is-in-process>0</tns:max-no-of-gc-retries-when-single-valueset-is-in-process>
+    <tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>0</tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
+  </tns:node-config>
+  <tns:common-config>
+    <tns:maximum-size-of-single-block-data>0</tns:maximum-size-of-single-block-data>
+    <tns:sharding-dimensions>tns:sharding-dimensions</tns:sharding-dimensions>
+    <tns:keys-prefix>tns:keys-prefix</tns:keys-prefix>
+    <tns:no-of-droplets>0</tns:no-of-droplets>
+    <tns:webserver-ip>tns:webserver-ip</tns:webserver-ip>
+    <tns:webserver-port>tns:webserver-port</tns:webserver-port>
+    <tns:bad-records-file-out>tns:bad-records-file-out</tns:bad-records-file-out>
+  </tns:common-config>
 </tns:coordination-config>

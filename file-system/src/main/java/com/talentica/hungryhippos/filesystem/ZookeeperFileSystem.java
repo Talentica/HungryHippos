@@ -192,7 +192,7 @@ public class ZookeeperFileSystem {
 
 	/**
 	 * Delete the specified node. Only deletes when the file is
-	 * 
+	 * key
 	 * @param name
 	 */
 	public static void deleteNode(String name) {

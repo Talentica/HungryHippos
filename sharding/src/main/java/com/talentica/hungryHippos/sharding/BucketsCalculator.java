@@ -1,10 +1,16 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -41,7 +47,7 @@ public final class BucketsCalculator {
 		}
 	}
 
-	public static int calculateNumberOfBucketsNeeded() {
+	public static int calculateNumberOfBucketsNeeded() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
 		double MAX_NO_OF_FILE_SIZE = Double
 				.valueOf(ShardingApplicationContext.getProperty().getValueByKey(MAXIMUM_SHARD_FILE_SIZE_PROPERTY_KEY).toString());
 		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;

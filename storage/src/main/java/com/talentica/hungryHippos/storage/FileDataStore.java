@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.storage;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,6 +11,9 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +26,16 @@ import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
  */
 public class FileDataStore implements DataStore, Serializable {
   /**
-	 * 
-	 */
+   * 
+   */
   private static final long serialVersionUID = -7726551156576482829L;
   private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
   private final int numFiles;
   private OutputStream[] os;
   private DataDescription dataDescription;
 
-  private static final boolean APPEND_TO_DATA_FILES = Boolean
-      .valueOf(CoordinationApplicationContext.getProperty().getValueByKey(
-          "datareceiver.append.to.data.files"));
+  private static final boolean APPEND_TO_DATA_FILES = Boolean.valueOf(CoordinationApplicationContext
+      .getProperty().getValueByKey("datareceiver.append.to.data.files"));
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
@@ -67,9 +70,8 @@ public class FileDataStore implements DataStore, Serializable {
     }
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-        os[i] =
-            new BufferedOutputStream(new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i,
-                APPEND_TO_DATA_FILES));
+        os[i] = new BufferedOutputStream(
+            new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
       }
     }
   }
@@ -84,12 +86,13 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) {
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
-      storeAccess =
-          new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
+      storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles,
+          dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
     storeAccess.clear();

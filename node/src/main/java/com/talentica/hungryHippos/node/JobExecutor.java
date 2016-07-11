@@ -153,8 +153,12 @@ public class JobExecutor {
    * 
    * @return JobRunner
    * @throws IOException
+   * @throws JAXBException 
+   * @throws InterruptedException 
+   * @throws KeeperException 
+   * @throws ClassNotFoundException 
    */
-  private static JobRunner createJobRunner() throws IOException {
+  private static JobRunner createJobRunner() throws IOException, ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
         CoordinationApplicationContext.getConfiguredDataDescription();
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());

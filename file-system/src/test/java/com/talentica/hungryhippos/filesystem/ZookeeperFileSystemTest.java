@@ -1,14 +1,10 @@
 package com.talentica.hungryhippos.filesystem;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
@@ -30,21 +26,6 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
 import com.talentica.hungryhippos.config.client.ObjectFactory;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.concurrent.CountDownLatch;
-
-import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class })
@@ -66,12 +47,37 @@ public class ZookeeperFileSystemTest {
 	}
 
 	@Test
+
 	public void testCreateZnode() {
 		String testFolder = "test";
 		ZookeeperFileSystem.createZnode(testFolder);
 	}
 
 	@Test
+
+	public void testCreateFilesAsZnode() throws FileNotFoundException, JAXBException {
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem();
+		system.createZnode("/abcd/input.txt");
+	}
+
+	/**
+	 * Positive test scenario, already a Znode is created in the Zookeeper.
+	 *
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+	 */
+	@Test
+	public void testGetDataInsideZnode() throws FileNotFoundException, JAXBException {
+		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
+		system = new ZookeeperFileSystem();
+		String fileMetaData = system.getData("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
+		assertNotNull(fileMetaData);
+
+	}
+
+	@Test
+
 	public void testUpdateFSBlockMetaData() {
 
 		try {

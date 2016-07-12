@@ -6,7 +6,7 @@ import java.nio.file.FileSystem;
 import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 
 /**
- * The main class which calls clean file system to remove the files which was not removed successfully because of some failures.
+ * 
  * @author sudarshans
  *
  */

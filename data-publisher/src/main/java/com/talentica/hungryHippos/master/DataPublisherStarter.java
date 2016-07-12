@@ -43,6 +43,11 @@ public class DataPublisherStarter {
 				NodesManagerContext.getNodesManagerInstance().startup();
 			}
 			uploadCommonConfigFileToZK(coordinationServers);
+<<<<<<< HEAD
+=======
+			ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
+			// fileSystem.createFilesAsZnode(DataPublisherApplicationContext.inputFile);
+>>>>>>> ac6c47b8df1ec306522c8860678b3559958438e3
 			String dataParserClassName = args[1];
 			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
 					.getConstructor(DataDescription.class)

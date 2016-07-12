@@ -3,20 +3,26 @@ package com.talentica.hungryhippos.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
  * Zookeeper FileSystem. This class has methods for creating files as znodes in
@@ -77,9 +83,7 @@ public class ZookeeperFileSystem {
 	}
 
 	/**
-	 * 
-	 * 
-	 * /** Create persistent znode in zookeeper
+	 * Create persistent znode in zookeeper
 	 * 
 	 * @param name
 	 * @param signal
@@ -172,7 +176,7 @@ public class ZookeeperFileSystem {
 	}
 
 	/**
-	 * Delete the specified node. Only deletes when the file is key
+	 * Delete the specified node. Only deletes when the file is
 	 * 
 	 * @param name
 	 */

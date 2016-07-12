@@ -11,7 +11,6 @@ public interface FileSystemConstants {
 	String DATA_TRANSFER_COMPLETED = "DATA_TRANSFER_COMPLETED";
 	String FILE_PATHS_DELIMITER = ",";
 	String DOWNLOAD_FILE_PREFIX = "part-";
-
 	String CONFIGURATION_FILE = "filesystem-config";
 	// constants for file-system configuration
 	String ROOT_NODE = "zookeeper.file.system";

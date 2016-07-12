@@ -31,7 +31,7 @@ public class CleanFileSystem {
 	 * @param path
 	 * @return
 	 */
-	private List<Path> getAllFilesPath(String path) {
+	public List<Path> getAllFilesPath(String path) {
 		List<Path> filesPresentInRootFolder = new ArrayList<>();
 		try {
 			Files.walk(Paths.get(path)).forEach(filePath -> {
@@ -51,7 +51,7 @@ public class CleanFileSystem {
 	 * 
 	 * @param path
 	 */
-	private void deleteFile(Path path) {
+	public void deleteFile(Path path) {
 		try {
 			Files.delete(path);
 		} catch (IOException e) {
@@ -62,7 +62,7 @@ public class CleanFileSystem {
 	/**
 	 * Deletes all the items inside a folder including that folder.
 	 */
-	private void deleteAllFilesInsideAFolder(Path path) {
+	public void deleteAllFilesInsideAFolder(Path path) {
 		if (!Files.isDirectory(path)) {
 			deleteFile(path);
 		} else {

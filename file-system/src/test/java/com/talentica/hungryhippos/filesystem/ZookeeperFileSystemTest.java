@@ -66,25 +66,9 @@ public class ZookeeperFileSystemTest {
 	}
 
 	@Test
-	public void testCreateFilesAsZnode() throws FileNotFoundException, JAXBException {
-		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-		system = new ZookeeperFileSystem();
-		system.createZnode("/abcd/input.txt");
-	}
-
-	/**
-	 * Positive test scenario, already a Znode is created in the Zookeeper.
-	 *
-	 * @throws JAXBException
-	 * @throws FileNotFoundException
-	 */
-	@Test
-	public void testGetDataInsideZnode() throws FileNotFoundException, JAXBException {
-		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-		system = new ZookeeperFileSystem();
-		String fileMetaData = system.getData("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
-		assertNotNull(fileMetaData);
-
+	public void testCreateZnode() {
+		String testFolder = "test";
+		ZookeeperFileSystem.createZnode(testFolder);
 	}
 
 	@Test

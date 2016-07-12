@@ -3,16 +3,7 @@ package com.talentica.hungryhippos.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
 import java.nio.charset.StandardCharsets;
-
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -24,9 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
-
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
@@ -51,14 +40,12 @@ public class ZookeeperFileSystem {
 		}
 	}
 
-
 	private static String checkNameContainsFileSystemRoot(String name) {
 		if (!(name.contains(FILE_SYSTEM_ROOT))) {
 			name = FILE_SYSTEM_ROOT + name;
 		}
 		return name;
 	}
-
 
 	static {
 		getZookeeperFileSystem();
@@ -89,13 +76,10 @@ public class ZookeeperFileSystem {
 		createZnode(name, signal, data);
 	}
 
-
-
 	/**
-
-
-	/**
-	 * Create persistent znode in zookeeper
+	 * 
+	 * 
+	 * /** Create persistent znode in zookeeper
 	 * 
 	 * @param name
 	 * @param signal
@@ -187,12 +171,9 @@ public class ZookeeperFileSystem {
 		return pathWithSameZnodeName;
 	}
 
-
-
-
 	/**
-	 * Delete the specified node. Only deletes when the file is
-	 * key
+	 * Delete the specified node. Only deletes when the file is key
+	 * 
 	 * @param name
 	 */
 	public static void deleteNode(String name) {
@@ -273,4 +254,4 @@ public class ZookeeperFileSystem {
 		nodeManager.setObjectToZKNode(fileNodeZKPath, (currentSize + ""));
 	}
 
-}	
+}

@@ -1,15 +1,11 @@
 package com.talentica.hungryhippos.filesystem;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.concurrent.CountDownLatch;
 
-import javax.xml.bind.JAXBException;
-
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -17,16 +13,13 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
-import com.talentica.hungryhippos.config.client.ObjectFactory;
 
-
+@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class })
 @SuppressStaticInitializationFor({ "com.talentica.hungryHippos.coordination.domain.NodesManagerContext" })
@@ -37,7 +30,6 @@ public class ZookeeperFileSystemTest {
 	private NodesManager nodesManager;
 	private Property<ZkProperty> zkProperty;
 
-	@Before
 	public void setUp() {
 		PowerMockito.mockStatic(NodesManagerContext.class);
 		PowerMockito.mockStatic(CoordinationApplicationContext.class);
@@ -47,39 +39,59 @@ public class ZookeeperFileSystemTest {
 	}
 
 	@Test
-
 	public void testCreateZnode() {
 		String testFolder = "test";
-		ZookeeperFileSystem.createZnode(testFolder);
+		String path = ZookeeperFileSystem.createZnode(testFolder);
+		assertNotNull(path);
 	}
 
 	@Test
-
-	public void testCreateFilesAsZnode() throws FileNotFoundException, JAXBException {
-		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-		system = new ZookeeperFileSystem();
-		system.createZnode("/abcd/input.txt");
-	}
-
-	/**
-	 * Positive test scenario, already a Znode is created in the Zookeeper.
-	 *
-	 * @throws JAXBException
-	 * @throws FileNotFoundException
-	 */
-	@Test
-	public void testGetDataInsideZnode() throws FileNotFoundException, JAXBException {
-		CoordinationServers coordinationServers = new ObjectFactory().createCoordinationServers();
-		system = new ZookeeperFileSystem();
-		String fileMetaData = system.getData("/home/sudarshans/RD/HungryHippos/utility/sampledata.txt");
-		assertNotNull(fileMetaData);
-
+	public void testCreateZnodeArg2() {
+		String testFolder = "test1";
+		CountDownLatch signal = new CountDownLatch(1);
+		String path = ZookeeperFileSystem.createZnode(testFolder, signal);
+		try {
+			signal.await();
+		} catch (InterruptedException e) {
+			assertFalse(false);
+		}
+		assertNotNull(path);
 	}
 
 	@Test
+	public void testCreateZnodeArg3() {
+		String testFolder = "test2";
+		String path = ZookeeperFileSystem.createZnode(testFolder, "testing");
+		assertNotNull(path);
+	}
 
+	@Test
+	public void testCheckZnodeExists() {
+		boolean flag = ZookeeperFileSystem.checkZnodeExists("test2");
+		assertTrue(flag);
+	}
+
+	@Test
+	public void testCheckZnodeExistsNegative() {
+		boolean flag = ZookeeperFileSystem.checkZnodeExists("test3");
+		assertFalse(flag);
+	}
+
+	@Test
+	public void testSetData() {
+		ZookeeperFileSystem.setData("test1", "data Passed");
+
+	}
+
+	@Test
+	public void testGetData() {
+		String s = ZookeeperFileSystem.getData("test1");
+		assertNotNull(s);
+	}
+
+	@Test
 	public void testUpdateFSBlockMetaData() {
-
+		setUp();
 		try {
 			String fileZKNode = "input";
 			String fileSystemRootNodeZKPath = "/rootnode/filesystem";
@@ -99,8 +111,7 @@ public class ZookeeperFileSystemTest {
 					Mockito.eq(Mockito.any()));
 			Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE)).thenReturn(fileSystemRootNodeZKPath);
 
-			ZookeeperFileSystem zookeeperFileSystem = new ZookeeperFileSystem();
-			zookeeperFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+			ZookeeperFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
 
 			assertTrue(true);
 		} catch (Exception e) {

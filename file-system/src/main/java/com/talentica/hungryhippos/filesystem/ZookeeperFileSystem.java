@@ -3,26 +3,20 @@ package com.talentica.hungryhippos.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
  * Zookeeper FileSystem. This class has methods for creating files as znodes in
@@ -35,7 +29,8 @@ public class ZookeeperFileSystem {
 
 	private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
 	private static NodesManager nodeManager = null;
-	private static final String FILE_SYSTEM_ROOT = "/root/file-system/";
+	private static final String ROOT_NODE = CoordinationApplicationContext.getZkProperty()
+			.getValueByKey(FileSystemConstants.ROOT_NODE);
 
 	private static void getZookeeperFileSystem() {
 		try {
@@ -47,8 +42,12 @@ public class ZookeeperFileSystem {
 	}
 
 	private static String checkNameContainsFileSystemRoot(String name) {
-		if (!(name.contains(FILE_SYSTEM_ROOT))) {
-			name = FILE_SYSTEM_ROOT + name;
+		if (!(name.contains(ROOT_NODE))) {
+			if (name.startsWith("/")) {
+				name = ROOT_NODE + name;
+			} else {
+				name = ROOT_NODE + "/" + name;
+			}
 		}
 		return name;
 	}
@@ -63,10 +62,10 @@ public class ZookeeperFileSystem {
 	 * @param name
 	 * @return
 	 */
-	public static void createZnode(String name) {
+	public static String createZnode(String name) {
 		name = checkNameContainsFileSystemRoot(name);
 		CountDownLatch signal = new CountDownLatch(1);
-		createZnode(name, signal);
+		return createZnode(name, signal);
 	}
 
 	/**
@@ -76,10 +75,10 @@ public class ZookeeperFileSystem {
 	 * @param data
 	 * @return
 	 */
-	public static void createZnode(String name, Object data) {
+	public static String createZnode(String name, Object data) {
 		name = checkNameContainsFileSystemRoot(name);
 		CountDownLatch signal = new CountDownLatch(1);
-		createZnode(name, signal, data);
+		return createZnode(name, signal, data);
 	}
 
 	/**
@@ -89,9 +88,9 @@ public class ZookeeperFileSystem {
 	 * @param signal
 	 * @return
 	 */
-	public static void createZnode(String name, CountDownLatch signal) {
+	public static String createZnode(String name, CountDownLatch signal) {
 		name = checkNameContainsFileSystemRoot(name);
-		createZnode(name, signal, "");
+		return createZnode(name, signal, "");
 	}
 
 	/**
@@ -102,13 +101,15 @@ public class ZookeeperFileSystem {
 	 * @param data
 	 * @return
 	 */
-	public static void createZnode(String name, CountDownLatch signal, Object data) {
+	public static String createZnode(String name, CountDownLatch signal, Object data) {
 		name = checkNameContainsFileSystemRoot(name);
 		try {
 			nodeManager.createPersistentNode(name, signal, data);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
+			throw new RuntimeException(e.getMessage());
 		}
+		return name;
 	}
 
 	/**
@@ -135,6 +136,7 @@ public class ZookeeperFileSystem {
 	 * @param data
 	 */
 	public static void setData(String name, Object data) {
+		name = checkNameContainsFileSystemRoot(name);
 		try {
 			nodeManager.setObjectToZKNode(name, data);
 		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
@@ -150,13 +152,32 @@ public class ZookeeperFileSystem {
 	 */
 	public static String getData(String name) {
 		name = checkNameContainsFileSystemRoot(name);
-		byte[] nodeData = null;
+		String nodeData = null;
 		try {
-			nodeData = nodeManager.getNodeData(name);
-		} catch (KeeperException | InterruptedException e) {
+			nodeData = nodeManager.getStringFromZKNode(name);
+		} catch (KeeperException | InterruptedException | ClassNotFoundException | IOException e) {
 			logger.error(e.getMessage());
 		}
-		return new String(nodeData, StandardCharsets.UTF_8);
+		return nodeData;
+	}
+
+	/**
+	 * get value inside the znode in string format.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static Object getObjectData(String name) {
+		name = checkNameContainsFileSystemRoot(name);
+		Object nodeData = null;
+
+		try {
+			nodeData = nodeManager.getObjectFromZKNode(name);
+		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
+			logger.error(e.getMessage());
+		}
+
+		return nodeData;
 	}
 
 	/**
@@ -168,7 +189,7 @@ public class ZookeeperFileSystem {
 	public static List<String> findZnodePath(String name) {
 		List<String> pathWithSameZnodeName = null;
 		try {
-			ZKUtils.getNodePathByName(FILE_SYSTEM_ROOT, name, pathWithSameZnodeName);
+			ZKUtils.getNodePathByName(ROOT_NODE, name, pathWithSameZnodeName);
 		} catch (InterruptedException | KeeperException e) {
 			logger.error(e.getMessage());
 		}
@@ -181,7 +202,7 @@ public class ZookeeperFileSystem {
 	 * @param name
 	 */
 	public static void deleteNode(String name) {
-		if (name.equals(FILE_SYSTEM_ROOT)) {
+		if (name.equals(ROOT_NODE)) {
 			logger.info("Cannot delete the root folder.");
 			return;
 		}
@@ -195,7 +216,7 @@ public class ZookeeperFileSystem {
 	 * @param name
 	 */
 	public static void deleteNodeRecursive(String name) {
-		if (name.equals(FILE_SYSTEM_ROOT)) {
+		if (name.equals(ROOT_NODE)) {
 			logger.info("Cannot delete the root folder.");
 			return;
 		}
@@ -238,24 +259,23 @@ public class ZookeeperFileSystem {
 	public static void updateFSBlockMetaData(String fileZKNode, String nodeIp, String dataFileZKNode, long datafileSize)
 			throws Exception {
 
-		String fileNodeZKPath = CoordinationApplicationContext.getZkProperty()
-				.getValueByKey(FileSystemConstants.ROOT_NODE) + File.separator + fileZKNode;
+		String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
 		String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
 		String dataFileNodeZKPath = nodeIpZKPath + File.separator + dataFileZKNode;
 		long prevDataFileSize = 0;
-		if (nodeManager.checkNodeExists(dataFileNodeZKPath)) {
-			String prevDataFileData = (String) nodeManager.getObjectFromZKNode(dataFileNodeZKPath);
+		if (checkZnodeExists(dataFileNodeZKPath)) {
+			String prevDataFileData = (String) getObjectData(dataFileNodeZKPath);
 			prevDataFileSize = Long.parseLong(prevDataFileData);
-			nodeManager.setObjectToZKNode(dataFileNodeZKPath, datafileSize + "");
+			setData(dataFileNodeZKPath, datafileSize + "");
 		} else {
-			if (!nodeManager.checkNodeExists(nodeIpZKPath)) {
-				nodeManager.createPersistentNode(nodeIpZKPath, new CountDownLatch(1), "");
+			if (!checkZnodeExists(nodeIpZKPath)) {
+				createZnode(nodeIpZKPath, new CountDownLatch(1), "");
 			}
-			nodeManager.createPersistentNode(dataFileNodeZKPath, new CountDownLatch(1), datafileSize + "");
+			createZnode(dataFileNodeZKPath, new CountDownLatch(1), datafileSize + "");
 		}
-		String fileZKNodeValues = (String) nodeManager.getObjectFromZKNode(fileNodeZKPath);
+		String fileZKNodeValues = (String) getObjectData(fileNodeZKPath);
 		long currentSize = Long.parseLong(fileZKNodeValues) + datafileSize - prevDataFileSize;
-		nodeManager.setObjectToZKNode(fileNodeZKPath, (currentSize + ""));
+		setData(fileNodeZKPath, (currentSize + ""));
 	}
 
 }

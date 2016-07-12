@@ -1,17 +1,16 @@
 package com.talentica.hungryhippos.filesystem;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 
 /**
  * This class is used for cleaning files which have no reference in the
@@ -24,15 +23,22 @@ public class CleanFileSystem {
 
 	private static final Logger logger = LoggerFactory.getLogger(CleanFileSystem.class);
 	private static final String ROOT_DIR = "HungryHipposFs";
+	private static final String USER_DIR = System.getProperty("user.dir");
 
 	/**
-	 * List all the file path in the HHFileSystem
+	 * return all the regular files in the folder provided as an argument as
+	 * well as regular files in its subfolder.
+	 * 
+	 * i.e; /{user.dir}/HungryHippos/data/data.txt -> regular file will get be
+	 * added to the list. /{user.dir}/HungryHippos/data -> is a directory and
+	 * will not get added.
+	 * 
 	 * 
 	 * @param path
 	 * @return
 	 */
 
-	private List<Path> getAllFilesPath(String path) {
+	public static List<Path> getAllRgularFilesPath(String path) {
 		List<Path> filesPresentInRootFolder = new ArrayList<>();
 		try {
 			Files.walk(Paths.get(path)).forEach(filePath -> {
@@ -42,7 +48,35 @@ public class CleanFileSystem {
 			});
 		} catch (IOException e) {
 			logger.error(e.getMessage());
-			;
+
+		}
+		return filesPresentInRootFolder;
+	}
+
+	/**
+	 * return all the directory in the folder provided as an argument as well as
+	 * in its subfolder.
+	 * 
+	 * i.e; /{user.dir}/HungryHippos/data/data.txt -> regular file will get be
+	 * added to the list. /{user.dir}/HungryHippos/data -> is a directory and
+	 * will not get added.
+	 * 
+	 * 
+	 * @param path
+	 * @return
+	 */
+
+	public static List<Path> getAllDirectoryPath(String path) {
+		List<Path> filesPresentInRootFolder = new ArrayList<>();
+		try {
+			Files.walk(Paths.get(path)).forEach(filePath -> {
+				if (Files.isDirectory(filePath)) {
+					filesPresentInRootFolder.add(filePath);
+				}
+			});
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+
 		}
 		return filesPresentInRootFolder;
 	}
@@ -53,35 +87,33 @@ public class CleanFileSystem {
 	 * @param path
 	 */
 
-	private void deleteFile(Path path) {
-
+	public static void deleteFile(Path path) {
+		if (path.toString().equals(USER_DIR + ROOT_DIR)) {
+			return;
+		}
 		try {
 			Files.delete(path);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 
 	/**
 	 * Deletes all the items inside a folder including that folder.
+	 * 
+	 * @param path
 	 */
 
-	private void deleteAllFilesInsideAFolder(Path path) {
-		if (!Files.isDirectory(path)) {
-			deleteFile(path);
-		} else {
-			List<Path> filesPresentInFolder = getAllFilesPath(path.toString());
-			if (filesPresentInFolder.isEmpty()) {
-				if (path.equals(System.getProperty("user.home") + File.separatorChar + ROOT_DIR)) {
-					logger.info("can't delete the root folder of the node");
-					return;
-				}
-				deleteFile(path);
-			}
-			for (Path path2 : filesPresentInFolder) {
-				deleteAllFilesInsideAFolder(path2);
-			}
-		}
+	public static void deleteAllFilesInsideAFolder(Path path) {
+		List<Path> regularFilesInFolder = getAllRgularFilesPath(path.toString());
+		List<Path> directoryInsideFolder = getAllDirectoryPath(path.toString());
+
+		regularFilesInFolder.stream().forEach(CleanFileSystem::deleteFile);
+		// reversing the list so first subfolders of a folder is deleted first.
+		directoryInsideFolder.stream().sorted().collect(Collectors.toCollection(ArrayDeque::new)).descendingIterator()
+				.forEachRemaining(CleanFileSystem::deleteFile);
+
 	}
 
 	/**
@@ -89,7 +121,7 @@ public class CleanFileSystem {
 	 * 
 	 * @param path
 	 */
-	public void DeleteFilesWhichAreNotPartOFZK(String path) {
+	public static void DeleteFilesWhichAreNotPartOFZK(String path) {
 		if (ZookeeperFileSystem.checkZnodeExists(path)) {
 			return;
 		}

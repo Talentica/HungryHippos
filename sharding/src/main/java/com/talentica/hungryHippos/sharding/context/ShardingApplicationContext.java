@@ -8,8 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.sharding.property.ShardingProperty;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.sharding.ShardingConfig;
 
@@ -22,24 +20,22 @@ public class ShardingApplicationContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ShardingApplicationContext.class);
 
-  private static Property<ShardingProperty> property;
   private static FieldTypeArrayDataDescription dataDescription;
   private static String shardingApplicationContext;
-
-  public static Property<ShardingProperty> getProperty() {
-    if (property == null) {
-      property = new ShardingProperty("sharding-config.properties");
-    }
-    return property;
-  }
+  private static ShardingConfig shardingConfig;
 
   public static ShardingConfig getShardingConfig() throws FileNotFoundException, JAXBException {
+    if (shardingConfig != null) {
+      return shardingConfig;
+    }
     if (ShardingApplicationContext.shardingApplicationContext == null) {
       LOGGER.info("Please set the sharding configuration file path.");
       return null;
     }
-    return JaxbUtil.unmarshalFromFile(ShardingApplicationContext.shardingApplicationContext,
-        ShardingConfig.class);
+    shardingConfig =
+        JaxbUtil.unmarshalFromFile(ShardingApplicationContext.shardingApplicationContext,
+            ShardingConfig.class);
+    return shardingConfig;
   }
 
   public static void setShardingConfigPathContext(String shardingConfigFilePath) {

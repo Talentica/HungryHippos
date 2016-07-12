@@ -12,10 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
-import com.talentica.hungryhippos.config.client.ObjectFactory;
 
 /**
  * @author pooshans
@@ -25,14 +22,7 @@ public class ZkNodeSearch {
 
   @Before
   public void setUp() throws Exception {
-    String isCleanUpFlagString =
-        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
-
-		ObjectFactory factory = new ObjectFactory();
-		CoordinationServers coordinationServers = factory.createCoordinationServers();
-    if ("Y".equals(isCleanUpFlagString)) {
-			NodesManagerContext.getNodesManagerInstance().startup();
-    }
+    NodesManagerContext.getNodesManagerInstance();
   }
 
   @Test

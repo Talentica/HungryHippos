@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -34,13 +33,15 @@ public class FileDataStore implements DataStore, Serializable {
   private OutputStream[] os;
   private DataDescription dataDescription;
 
-  private static final boolean APPEND_TO_DATA_FILES = Boolean.valueOf(CoordinationApplicationContext
-      .getProperty().getValueByKey("datareceiver.append.to.data.files"));
+  private static final boolean APPEND_TO_DATA_FILES = Boolean
+      .valueOf(CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+          .isDatareceiverAppendToDataFiles());
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
-  public static final String DATA_FILE_BASE_NAME = "data_";
+  public static final String DATA_FILE_BASE_NAME = CoordinationApplicationContext
+      .getCoordinationConfig().getNodeConfig().getDataStorage().getFileName();
 
   // public static final String FOLDER_NAME = "data";
 
@@ -58,7 +59,9 @@ public class FileDataStore implements DataStore, Serializable {
      * String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator +
      * FOLDER_NAME;
      */
-    String dirloc = StorageApplicationContext.dataFilePath;
+    String dirloc =
+        CoordinationApplicationContext.getCoordinationConfig().getNodeConfig().getDataStorage()
+            .getPath();
     File file = new File(dirloc);
     if (!file.exists()) {
       boolean flag = file.mkdir();
@@ -70,8 +73,9 @@ public class FileDataStore implements DataStore, Serializable {
     }
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-        os[i] = new BufferedOutputStream(
-            new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i, APPEND_TO_DATA_FILES));
+        os[i] =
+            new BufferedOutputStream(new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i,
+                APPEND_TO_DATA_FILES));
       }
     }
   }
@@ -86,13 +90,13 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException {
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
-      storeAccess = new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles,
-          dataDescription);
+      storeAccess =
+          new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
     storeAccess.clear();

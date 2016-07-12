@@ -3,8 +3,16 @@
  */
 package com.talentica.hungryHippos.job.context;
 
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.job.property.JobManagerProperty;
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.job.JobConfig;
+
 
 /**
  * @author pooshans
@@ -13,15 +21,28 @@ import com.talentica.hungryHippos.job.property.JobManagerProperty;
  */
 public class JobManagerApplicationContext {
 
-	private static Property<JobManagerProperty> property;
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerApplicationContext.class);
 
-	public static final String SERVER_CONF_FILE = "serverConfigFile.properties";
+  private static String jobConfigFilePath;
+  private static JobConfig jobConfig;
 
-	public static Property<JobManagerProperty> getProperty() {
-		if (property == null) {
-			property = new JobManagerProperty("jobmanager-config.properties");
-		}
-		return property;
-	}
+
+  public static JobConfig getJobConfig() throws FileNotFoundException, JAXBException {
+    if (jobConfig != null) {
+      return jobConfig;
+    }
+    if (JobManagerApplicationContext.jobConfigFilePath == null) {
+      LOGGER.info("Please set the job configuration file path.");
+      return null;
+    }
+    jobConfig =
+        JaxbUtil.unmarshalFromFile(JobManagerApplicationContext.jobConfigFilePath, JobConfig.class);
+    return jobConfig;
+  }
+
+  public static void setJobConfigPathContext(String jobConfigFilePath) {
+    JobManagerApplicationContext.jobConfigFilePath= jobConfigFilePath;
+  }
+
 
 }

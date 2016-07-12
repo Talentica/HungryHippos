@@ -253,12 +253,12 @@ public class ZKUtils {
   }
 
   public static String buildNodePath(int nodeId) {
-    return CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
         + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
   }
 
   public static String buildNodePath(String jobuuid) {
-    return CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
         + PathUtil.SEPARATOR_CHAR + (jobuuid);
   }
 

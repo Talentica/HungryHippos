@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
@@ -26,7 +25,7 @@ public class ShardingTableTest {
   public void setUp() throws Exception {
     shardingTable = new ShardingTable();
     String flag =
-        CoordinationApplicationContext.getZkProperty().getValueByKey("cleanup.zookeeper.nodes");
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getCleanup();
     if (flag.equals("Y")) {
       NodesManagerContext.getNodesManagerInstance().startup();
     }

@@ -6,13 +6,18 @@ allprojects {
 	apply plugin: 'java'
 	group = 'com.talentica.hungry-hippos'
 	version = '0.6.0 SNAPSHOT'
-	apply plugin: 'no.nils.wsdl2java'
-	
+
+
+	repositories {
+		mavenCentral()
+		jcenter()
+	}
+
 	dependencies{
 		compile group: 'commons-io', name: 'commons-io', version: '2.5'
 		compile group:'org.eclipse.persistence',name:'org.eclipse.persistence.moxy',version:'2.5.2'
 	}
-	
+
 }
 
 repositories {

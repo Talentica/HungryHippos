@@ -2,6 +2,21 @@ apply plugin: 'java'
 
 sourceCompatibility = 1.8
 
+def generatedJava = 'src/generated/java'
+sourceSets {
+	// Note that just declaring this sourceset creates two configurations.
+	generated {
+		java {
+			srcDir generatedJava
+		}
+	}
+
+	main {
+		compileClasspath += sourceSets.generated.output
+		runtimeClasspath += sourceSets.generated.output
+	}
+}
+
 repositories {
     mavenCentral()
 }
@@ -17,7 +32,7 @@ xsd2java{
 		["src/main/resources/schema/sharding-config.xsd", 'com.talentica.hungryhippos.config.sharding', [header: false]],
 		["src/main/resources/schema/client-config.xsd", 'com.talentica.hungryhippos.config.client', [header: false]]
 	]
-	generatedXsdDir = file("src/main/java")
+	generatedXsdDir = file(generatedJava)
 }
 
 compileJava{

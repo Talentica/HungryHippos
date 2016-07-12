@@ -27,7 +27,6 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
@@ -112,8 +111,6 @@ public class JobExecutor {
 		ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[3], ClientConfig.class);
 		CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
 		nodesManager = NodesManagerContext.getNodesManagerInstance();
-		StorageApplicationContext.dataFilePath = args[1];
-		StorageApplicationContext.outputFilePath = args[2];
 	}
 
   /**
@@ -138,7 +135,7 @@ public class JobExecutor {
   private static void sendFailureSignal(NodesManager nodesManager) throws IOException,
       InterruptedException {
     String basePathPerNode =
-        CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
             + PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64 + PathUtil.SEPARATOR_CHAR
             + (PRIFIX_NODE_NAME + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
             + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();

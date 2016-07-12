@@ -1,5 +1,14 @@
 package com.talentica.hungryHippos.node;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -13,19 +22,8 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.coordination.Node;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
@@ -77,12 +75,12 @@ public class DataReceiver {
   public static void main(String[] args) {
     try {
       validateArguments(args);
-      StorageApplicationContext.dataFilePath = args[2];
+      setContext(args);
       LOGGER.info("Start Node initialize");
       long startTime = System.currentTimeMillis();
       DataReceiver dataReceiver = getNodeInitializer();
       CoordinationConfig coordinationConfig =
-          JaxbUtil.unmarshalFromFile(args[0], CoordinationConfig.class);
+          CoordinationApplicationContext.getCoordinationConfig();
       List<Node> nodes = coordinationConfig.getClusterConfig().getNode();
       int nodeId = NodeUtil.getNodeId();
       int PORT = 0;
@@ -108,9 +106,9 @@ public class DataReceiver {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 3) {
+    if (args.length < 2) {
       throw new RuntimeException(
-          "Either missing 1st argument {client configuration file path} and/or 2nd argument {data parser class name} and/or 3rd argument{output directory}.");
+          "Either missing 1st argument {zookeeper configuration file path} and/or 2nd argument {coordination configuration file path}");
     }
   }
 
@@ -139,6 +137,11 @@ public class DataReceiver {
     } catch (IOException | InterruptedException e) {
       LOGGER.info("Unable to create the node on zk due to {}", e.getMessage());
     }
+  }
+
+  private static void setContext(String[] args) {
+    NodesManagerContext.setZookeeperXmlPath(args[0]);
+    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
   }
 
 }

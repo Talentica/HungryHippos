@@ -57,7 +57,7 @@ public class Sharding {
       "bucketCombinationToNodeNumbersMap";
   public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
   private final static String BAD_RECORDS_FILE =
-      CoordinationApplicationContext.getProperty().getValueByKey("bad.records.file.out")
+      CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getBadRecordsFileOut()
           + "_sharding.err";
 
   public Sharding(ClusterConfig clusterConfig) {

@@ -28,7 +28,7 @@ public class NodesManagerContext {
   public static NodesManager initialize(String zKconfigFilePath) throws FileNotFoundException,
       JAXBException {
     ZOOKEEPER_CONFIG_FILE_PATH = zKconfigFilePath;
-    if(nodesManager == null){
+    if (nodesManager == null) {
       nodesManager = new NodesManager(zKconfigFilePath);
     }
     if (zookeeperConfig == null) {
@@ -40,7 +40,7 @@ public class NodesManagerContext {
   }
 
   public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
-    if(ZOOKEEPER_CONFIG_FILE_PATH == null){
+    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
       LOGGER.info("Please set the zookeeper configuration xml path");
       return null;
     }
@@ -60,12 +60,18 @@ public class NodesManagerContext {
     }
     return null;
   }
-  
-  public static void setZookeeperXmlPath(String clientConfigFilePath){
-    if(ZOOKEEPER_CONFIG_FILE_PATH == null){
+
+  public static ZookeeperConfig getZookeeperConfiguration() {
+    if(zookeeperConfig == null){
+      LOGGER.info("Please initialize the zookeeper instance");
+      return null;
+    }
+    return zookeeperConfig;
+  }
+
+  public static void setZookeeperXmlPath(String clientConfigFilePath) {
+    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
       NodesManagerContext.ZOOKEEPER_CONFIG_FILE_PATH = clientConfigFilePath;
     }
   }
-  
-
 }

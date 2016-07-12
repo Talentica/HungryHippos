@@ -28,21 +28,19 @@ public class DataPublisherStarter {
   public static void main(String[] args) {
     try {
       validateArguments(args);
-      CoordinationApplicationContext.setCoordinationConfigPathContext(args[0]);
-      NodesManagerContext.setZookeeperXmlPath(args[1]);
-      ShardingApplicationContext.setShardingConfigPathContext(args[2]);
+      setContext(args);
       nodesManager = NodesManagerContext.getNodesManagerInstance();
       ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
       fileSystem.createFilesAsZnode(CoordinationApplicationContext.getCoordinationConfig()
           .getInputFileConfig().getInputFileName());
-      String dataParserClassName = ShardingApplicationContext.getShardingConfig().getInput()
-          .getDataParserConfig().getClassName();
+      String dataParserClassName =
+          ShardingApplicationContext.getShardingConfig().getInput().getDataParserConfig()
+              .getClassName();
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
-
       DataProvider.publishDataToNodes(nodesManager, dataParser);
       sendSignalToNodes(nodesManager);
       long endTime = System.currentTimeMillis();
@@ -66,8 +64,9 @@ public class DataPublisherStarter {
    */
   private static void dataPublishingFailed() {
     CountDownLatch signal = new CountDownLatch(1);
-    String alertPathForDataPublisherFailure = nodesManager
-        .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
+    String alertPathForDataPublisherFailure =
+        nodesManager.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED
+            .getZKJobNode());
     signal = new CountDownLatch(1);
     try {
       DataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure,
@@ -81,8 +80,9 @@ public class DataPublisherStarter {
 
   private static void createErrorEncounterSignal() {
     LOGGER.info("ERROR_ENCOUNTERED signal is sent");
-    String alertErrorEncounterDataPublisher = DataPublisherStarter.nodesManager
-        .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
+    String alertErrorEncounterDataPublisher =
+        DataPublisherStarter.nodesManager
+            .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
     CountDownLatch signal = new CountDownLatch(1);
     try {
       DataPublisherStarter.nodesManager.createPersistentNode(alertErrorEncounterDataPublisher,
@@ -96,8 +96,9 @@ public class DataPublisherStarter {
   private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
     CountDownLatch signal = new CountDownLatch(1);
     try {
-      nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(
-          CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
+      nodesManager.createPersistentNode(nodesManager
+          .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER
+              .getZKJobNode()), signal);
     } catch (IOException e) {
       LOGGER.info("Unable to send the signal node on zk due to {}", e);
     }
@@ -105,13 +106,10 @@ public class DataPublisherStarter {
     signal.await();
   }
 
-  /*
-   * private static void uploadCommonConfigFileToZK(CoordinationServers coordinationServers) throws
-   * Exception { LOGGER.info("PUT THE CONFIG FILE TO ZK NODE"); ZKNodeFile serverConfigFile = new
-   * ZKNodeFile(CoordinationApplicationContext.COMMON_CONF_FILE_STRING,
-   * CoordinationApplicationContext.getProperty().getProperties());
-   * NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, null);
-   * LOGGER.info("Common configuration  file successfully put on zk node."); }
-   */
+  private static void setContext(String[] args) {
+    NodesManagerContext.setZookeeperXmlPath(args[0]);
+    ShardingApplicationContext.setShardingConfigPathContext(args[1]);
+    CoordinationApplicationContext.setCoordinationConfigPathContext(args[2]);
+  }
 
 }

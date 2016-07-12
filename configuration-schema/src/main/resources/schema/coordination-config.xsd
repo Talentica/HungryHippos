@@ -48,6 +48,22 @@
 				name="max-no-of-gc-retries-when-single-valueset-is-in-process" />
 			<element type="long"
 				name="wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process" />
+			<element type="tns:data-storage" name="data-storage" />
+			<element type="tns:output-config" name="output-config" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="data-storage">
+		<sequence>
+			<element type="string" name="file-name" />
+			<element type="string" name="path" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="output-config">
+		<sequence>
+			<element type="string" name="file-name" />
+			<element type="string" name="path" />
 		</sequence>
 	</complexType>
 

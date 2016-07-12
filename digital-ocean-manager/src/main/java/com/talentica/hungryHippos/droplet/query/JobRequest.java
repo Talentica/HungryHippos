@@ -22,21 +22,23 @@ import com.talentica.hungryHippos.tester.api.job.JobServiceResponse;
  */
 public class JobRequest {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JobRequest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobRequest.class);
 
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
-	public Job getJobDetails(String uuid) throws HttpException, IOException {
-		final String WEBSERVER_IP = CoordinationApplicationContext.getProperty().getValueByKey("webserver.ip");
-		final String WEBSERVER_PORT = CoordinationApplicationContext.getProperty().getValueByKey("webserver.port");
-		final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
-		String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
-		LOGGER.info("Getting details of job:{}", uri);
-		GetMethod getJobDetails = new GetMethod(uri);
-		HttpClient httpClient = new HttpClient();
-		httpClient.executeMethod(getJobDetails);
-		JobServiceResponse jobServiceResponse = MAPPER.readValue(getJobDetails.getResponseBody(),
-				JobServiceResponse.class);
-		return jobServiceResponse.getJobDetail();
-	}
+  public Job getJobDetails(String uuid) throws HttpException, IOException {
+    final String WEBSERVER_IP =
+        CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getWebserverIp();
+    final String WEBSERVER_PORT =
+        CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getWebserverPort();
+    final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
+    String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
+    LOGGER.info("Getting details of job:{}", uri);
+    GetMethod getJobDetails = new GetMethod(uri);
+    HttpClient httpClient = new HttpClient();
+    httpClient.executeMethod(getJobDetails);
+    JobServiceResponse jobServiceResponse =
+        MAPPER.readValue(getJobDetails.getResponseBody(), JobServiceResponse.class);
+    return jobServiceResponse.getJobDetail();
+  }
 }

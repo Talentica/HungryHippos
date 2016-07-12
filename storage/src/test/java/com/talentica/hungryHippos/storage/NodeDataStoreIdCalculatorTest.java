@@ -74,8 +74,7 @@ public class NodeDataStoreIdCalculatorTest {
   private FieldTypeArrayDataDescription getDataDescription() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
     String[] datatypes =
-        CoordinationApplicationContext.getProperty().getValueByKey("column.datatype-size")
-            .toString().split(",");
+        CoordinationApplicationContext.getCoordinationConfig().getInputFileConfig().getColumnDatatypeSize() .toString().split(",");
     for (String datatype : datatypes) {
       dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
           Integer.valueOf(datatype.split("-")[1]));

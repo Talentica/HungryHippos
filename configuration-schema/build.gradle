@@ -2,18 +2,13 @@ apply plugin: 'java'
 
 sourceCompatibility = 1.8
 
-def generatedJava = 'src/generated/java'
+def generatedJava = 'src/main/generated'
 sourceSets {
 	// Note that just declaring this sourceset creates two configurations.
-	generated {
-		java {
-			srcDir generatedJava
-		}
-	}
-
 	main {
-		compileClasspath += sourceSets.generated.output
-		runtimeClasspath += sourceSets.generated.output
+		java {
+			srcDirs += generatedJava
+		}
 	}
 }
 

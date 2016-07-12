@@ -55,6 +55,7 @@ public class JobExecutor {
     try {
       LOGGER.info("Start Node initialize");
       validateArguments(args);
+      setContext(args);
       initialize(args);
       long startTime = System.currentTimeMillis();
       listenerOnJobMatrix();
@@ -82,12 +83,12 @@ public class JobExecutor {
     }
   }
 
-	private static void validateArguments(String[] args) {
-		if (args.length < 4) {
-			throw new RuntimeException(
-					"Either missing 1st argument {job uuid} and/or 2nd argument {data input directory} and/or 3rd argument{output directory} and/or 4th argument {client configuration file}.");
-		}
-	}
+  private static void validateArguments(String[] args) {
+    if (args.length < 2) {
+      throw new RuntimeException(
+          "Either missing 1st argument {zookeeper configuration} and/or 2nd argument {coordination configuration} .");
+    }
+  }
 
   /**
    * @throws Exception
@@ -99,19 +100,17 @@ public class JobExecutor {
         CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
   }
 
-  	/**
-	 * @param args
-	 * @throws JAXBException
-	 * @throws FileNotFoundException
-	 */
-	private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
-		jobUUId = args[0];
-		CommonUtil.loadDefaultPath(jobUUId);
-		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-		ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[3], ClientConfig.class);
-		CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
-		nodesManager = NodesManagerContext.getNodesManagerInstance();
-	}
+  /**
+   * @param args
+   * @throws JAXBException
+   * @throws FileNotFoundException
+   */
+  private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
+    jobUUId = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getJobuuid();
+    CommonUtil.loadDefaultPath(jobUUId);
+    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+    nodesManager = NodesManagerContext.getNodesManagerInstance();
+  }
 
   /**
    * @throws IOException
@@ -150,12 +149,13 @@ public class JobExecutor {
    * 
    * @return JobRunner
    * @throws IOException
-   * @throws JAXBException 
-   * @throws InterruptedException 
-   * @throws KeeperException 
-   * @throws ClassNotFoundException 
+   * @throws JAXBException
+   * @throws InterruptedException
+   * @throws KeeperException
+   * @throws ClassNotFoundException
    */
-  private static JobRunner createJobRunner() throws IOException, ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+  private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
+      KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
         CoordinationApplicationContext.getConfiguredDataDescription();
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
@@ -195,6 +195,11 @@ public class JobExecutor {
     }
     LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
     return jobEntities;
+  }
+
+  private static void setContext(String[] args) {
+    NodesManagerContext.setZookeeperXmlPath(args[0]);
+    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
   }
 
 }

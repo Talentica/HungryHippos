@@ -78,6 +78,7 @@
 			<element type="string" name="webserver-ip" />
 			<element type="string" name="webserver-port" />
 			<element type="string" name="bad-records-file-out" />
+			<element type="string" name="jobuuid" />
 		</sequence>
 	</complexType>
 </schema>

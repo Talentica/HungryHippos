@@ -32,9 +32,10 @@ public class JobManagerStarter {
 
   public static void main(String[] args) {
     try {
-      validateProgramArguments(args);
+      validateArguments(args);
       setContext(args);
-      initialize(args);
+      validateJobMatrixClass(args);
+      initialize();
       long startTime = System.currentTimeMillis();
       JobManager jobManager = new JobManager();
       JobManager.nodesManager = NodesManagerContext.getNodesManagerInstance();
@@ -64,24 +65,26 @@ public class JobManagerStarter {
    * @param args
    * @throws Exception
    */
-  private static void initialize(String[] args) throws Exception {
-    jobUUId = "ABC";
+  private static void initialize() throws Exception {
+    jobUUId = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getJobuuid();
     LOGGER.info("Job UUID is {}", jobUUId);
-    CommonUtil.loadDefaultPath(jobUUId);
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     JobManagerStarter.nodesManager = NodesManagerContext.getNodesManagerInstance();
   }
 
-  private static void validateProgramArguments(String[] args) throws InstantiationException,
+  private static void validateJobMatrixClass(String[] args) throws InstantiationException,
       IllegalAccessException, ClassNotFoundException, FileNotFoundException, JAXBException {
-    if (args.length < 3) {
-      System.out
-          .println("Either missing 1st arg {zookeeper config path} or 2nd arg {coordination config path} or 3rd arg {job config path}.");
-      System.exit(1);
-    }
     Object jobMatrix = getJobMatrix();
     if (!(jobMatrix instanceof JobMatrix)) {
       System.out.println("Please provide the job matrix class name in job configuration xml file.");
+      System.exit(1);
+    }
+  }
+
+  private static void validateArguments(String[] args) {
+    if (args.length < 3) {
+      System.out
+          .println("Either missing 1st arg {zookeeper config path} or 2nd arg {coordination config path} or 3rd arg {job config path}.");
       System.exit(1);
     }
   }

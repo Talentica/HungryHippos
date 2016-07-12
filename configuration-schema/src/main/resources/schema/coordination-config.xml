@@ -45,5 +45,6 @@
 		<tns:webserver-ip>192.241.180.17</tns:webserver-ip>
 		<tns:webserver-port>80</tns:webserver-port>
 		<tns:bad-records-file-out>/home/pooshans/HungryHippos</tns:bad-records-file-out>
+		 <tns:jobuuid>abc123</tns:jobuuid>
 	</tns:common-config>
 </tns:coordination-config>

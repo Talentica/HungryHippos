@@ -144,7 +144,7 @@ public class CoordinationApplicationContext {
 
   public static List<Node> getServers() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    CoordinationConfig coordinationConfig = getZkCoordinationConfigCache();
+    CoordinationConfig coordinationConfig = getCoordinationConfig();
     return coordinationConfig.getClusterConfig().getNode();
   }
 

@@ -2,6 +2,16 @@ apply plugin: 'java'
 
 sourceCompatibility = 1.8
 
+def generatedJava = 'src/main/generated'
+sourceSets {
+	// Note that just declaring this sourceset creates two configurations.
+	main {
+		java {
+			srcDirs += generatedJava
+		}
+	}
+}
+
 repositories {
     mavenCentral()
 }
@@ -19,7 +29,7 @@ xsd2java{
 		["src/main/resources/schema/zookeeper-config.xsd", 'com.talentica.hungryhippos.config.zookeeper', [header: false]],
 		["src/main/resources/schema/job-config.xsd", 'com.talentica.hungryhippos.config.job', [header: false]]
 	]
-	generatedXsdDir = file("src/main/java")
+	generatedXsdDir = file(generatedJava)
 }
 
 compileJava{

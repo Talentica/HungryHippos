@@ -1,10 +1,7 @@
 package com.talentica.hungryHippos.master.data;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -36,8 +33,7 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryHippos.sharding.ShardingTable;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -79,29 +75,10 @@ public class DataProvider {
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-
-    try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
-        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.bucketCombinationToNodeNumbersMapFile))) {
-      bucketCombinationNodeMap =
-          (Map<BucketCombination, Set<Node>>) inBucketCombinationNodeMap.readObject();
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while publishing data on nodes.", exception);
-      throw new RuntimeException(exception);
-    }
-
-    try (ObjectInputStream inBucketCombinationNodeMap = new ObjectInputStream(
-        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.keyToValueToBucketMapFile))) {
-      keyToValueToBucketMap =
-          (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inBucketCombinationNodeMap
-              .readObject();
-      bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while publishing data on nodes.", exception);
-      throw new RuntimeException(exception);
-    }
-
+    ShardingTable shardingTable = new ShardingTable();
+    bucketCombinationNodeMap = shardingTable.readBucketCombinationToNodeNumbersMap();
+    keyToValueToBucketMap = shardingTable.readKeyToValueToBucketMap();
+    bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
@@ -181,7 +158,7 @@ public class DataProvider {
   private static void init() throws FileNotFoundException, JAXBException {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(CoordinationApplicationContext
         .getZkCoordinationConfigCache().getCommonConfig().getNoOfAttemptsToConnectToNode());
-    BAD_RECORDS_FILE = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
-        .getBadRecordsFileOut();
+    BAD_RECORDS_FILE = CoordinationApplicationContext.getZkCoordinationConfigCache()
+        .getCommonConfig().getBadRecordsFileOut();
   }
 }

@@ -34,7 +34,7 @@ public class JobManagerStarter {
     try {
       validateArguments(args);
       setContext(args);
-      validateJobMatrixClass(args);
+      validateJobMatrixClass();
       initialize();
       long startTime = System.currentTimeMillis();
       JobManager jobManager = new JobManager();
@@ -66,13 +66,13 @@ public class JobManagerStarter {
    * @throws Exception
    */
   private static void initialize() throws Exception {
-    jobUUId = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getJobuuid();
+    jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
     LOGGER.info("Job UUID is {}", jobUUId);
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     JobManagerStarter.nodesManager = NodesManagerContext.getNodesManagerInstance();
   }
 
-  private static void validateJobMatrixClass(String[] args) throws InstantiationException,
+  private static void validateJobMatrixClass() throws InstantiationException,
       IllegalAccessException, ClassNotFoundException, FileNotFoundException, JAXBException {
     Object jobMatrix = getJobMatrix();
     if (!(jobMatrix instanceof JobMatrix)) {
@@ -82,9 +82,9 @@ public class JobManagerStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 3) {
+    if (args.length < 1) {
       System.out
-          .println("Either missing 1st arg {zookeeper config path} or 2nd arg {coordination config path} or 3rd arg {job config path}.");
+          .println("Missing zookeeper xml configuration file path arguments.");
       System.exit(1);
     }
   }
@@ -92,14 +92,12 @@ public class JobManagerStarter {
   private static Object getJobMatrix() throws InstantiationException, IllegalAccessException,
       ClassNotFoundException, FileNotFoundException, JAXBException {
     Object jobMatrix =
-        Class.forName(JobManagerApplicationContext.getJobConfig().getClassName()).newInstance();
+        Class.forName(JobManagerApplicationContext.getZkJobConfigCache().getClassName()).newInstance();
     return jobMatrix;
   }
 
   private static void setContext(String[] args) {
     NodesManagerContext.setZookeeperXmlPath(args[0]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
-    JobManagerApplicationContext.setJobConfigPathContext(args[2]);
   }
 
 }

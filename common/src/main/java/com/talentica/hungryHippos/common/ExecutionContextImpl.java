@@ -26,9 +26,9 @@ public class ExecutionContextImpl implements ExecutionContext {
   static {
     try {
       out =
-          new PrintStream(CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+          new PrintStream(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
               .getOutputConfig().getPath()
-              + CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+              + CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
                   .getOutputConfig().getFileName());
     } catch (Exception ex) {
       LOGGER.error("Exception occurred while getting print stream for outoutFile.", ex);

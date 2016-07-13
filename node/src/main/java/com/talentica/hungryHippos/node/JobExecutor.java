@@ -29,9 +29,6 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -84,9 +81,9 @@ public class JobExecutor {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 2) {
+    if (args.length < 1) {
       throw new RuntimeException(
-          "Either missing 1st argument {zookeeper configuration} and/or 2nd argument {coordination configuration} .");
+          "Missing zookeeper xml configuration file path arguments.");
     }
   }
 
@@ -106,8 +103,7 @@ public class JobExecutor {
    * @throws FileNotFoundException
    */
   private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
-    jobUUId = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getJobuuid();
-    CommonUtil.loadDefaultPath(jobUUId);
+    jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     nodesManager = NodesManagerContext.getNodesManagerInstance();
   }
@@ -199,7 +195,6 @@ public class JobExecutor {
 
   private static void setContext(String[] args) {
     NodesManagerContext.setZookeeperXmlPath(args[0]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
   }
 
 }

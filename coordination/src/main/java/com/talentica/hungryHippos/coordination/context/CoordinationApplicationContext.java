@@ -29,23 +29,18 @@ public class CoordinationApplicationContext {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CoordinationApplicationContext.class);
-
   private static FieldTypeArrayDataDescription dataDescription;
   private static String coordinationConfigFilePath;
   private static CoordinationConfig config;
-
   public static final String COORDINATION_CONFIGURATION = "coordination-configuration";
-
   public static final String ZOOKEEPER_CONFIGURATION = "zookeeper-configuration";
-
   public static final String SHARDING_CONFIGURATION = "sharding-configuration";
-
   public static final String JOB_CONFIGURATION = "job-configuration";
 
   public static final FieldTypeArrayDataDescription getConfiguredDataDescription()
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     if (dataDescription == null) {
       dataDescription =
           FieldTypeArrayDataDescription.createDataDescription(config.getInputFileConfig()
@@ -57,14 +52,14 @@ public class CoordinationApplicationContext {
 
   public static String[] getShardingDimensions() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     String keyOrderString = config.getCommonConfig().getShardingDimensions();
     return keyOrderString.split(",");
   }
 
   public static int[] getShardingIndexes() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     String keyOrderString = config.getCommonConfig().getShardingDimensions();
     String[] shardingKeys = keyOrderString.split(",");
     int[] shardingKeyIndexes = new int[shardingKeys.length];
@@ -102,20 +97,20 @@ public class CoordinationApplicationContext {
 
   public static String[] getColumnsConfiguration() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     String[] keyColumnNames = config.getInputFileConfig().getColumnNames().split(",");
     return keyColumnNames;
   }
 
   public static final String[] getDataTypeConfiguration() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     return config.getInputFileConfig().getColumnDatatypeSize().split(",");
   }
 
   public static final int getMaximumSizeOfSingleDataBlock() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    config = getZkCoordinationConfig();
+    config = getZkCoordinationConfigCache();
     return config.getCommonConfig().getMaximumSizeOfSingleBlockData();
   }
 
@@ -128,23 +123,28 @@ public class CoordinationApplicationContext {
     countDownLatch.await();
   }
 
-  public static CoordinationConfig getZkCoordinationConfig() throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+  public static CoordinationConfig getZkCoordinationConfigCache() {
     if (config != null) {
       return config;
     }
-    ZKNodeFile clusterConfigurationFile =
-        (ZKNodeFile) NodesManagerContext.getNodesManagerInstance().getConfigFileFromZNode(
-            CoordinationApplicationContext.COORDINATION_CONFIGURATION);
-    CoordinationConfig coordinationConfig =
-        JaxbUtil.unmarshal((String) clusterConfigurationFile.getObj(), CoordinationConfig.class);
-    config = coordinationConfig;
-    return coordinationConfig;
+    try {
+      ZKNodeFile configurationFile =
+          (ZKNodeFile) NodesManagerContext.getNodesManagerInstance().getConfigFileFromZNode(
+              CoordinationApplicationContext.COORDINATION_CONFIGURATION);
+      CoordinationConfig coordinationConfig =
+          JaxbUtil.unmarshal((String) configurationFile.getObj(), CoordinationConfig.class);
+      return CoordinationApplicationContext.config = coordinationConfig;
+    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
+      LOGGER.info("Please upload the sharding configuration file on zookeeper");
+    } catch (JAXBException e1) {
+      LOGGER.info("Unable to unmarshal the coordination xml configuration.");
+    }
+    return CoordinationApplicationContext.config;
   }
 
   public static List<Node> getServers() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    CoordinationConfig coordinationConfig = getCoordinationConfig();
+    CoordinationConfig coordinationConfig = getZkCoordinationConfigCache();
     return coordinationConfig.getClusterConfig().getNode();
   }
 

@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -39,7 +36,6 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class ShardingTable {
   private static NodesManager nodesManager;
   private final Logger LOGGER = LoggerFactory.getLogger(ShardingTable.class.getName());
-  private static Property<ZkProperty> zkproperty = CoordinationApplicationContext.getZkProperty();
   private String baseConfigPath;
   private String zkKeyToBucketPath;
   private String zkNodes;
@@ -341,20 +337,23 @@ public class ShardingTable {
 
   private void buildBaseConfigKeyToValueToBucketPath() {
     baseConfigKeyToValueToBucketPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
   }
 
   private void buildBasePathBucketToNode() {
     baseConfigBucketToNodePath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
   }
 
   private void createBasePathBucketCombinationToNodeNumberMap(int bucketCombinationId) {
     baseConfigPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.BUCKET_COMBINATION.getName() + File.separatorChar;
 
     zkKeyToBucketPath =
         baseConfigPath
@@ -423,8 +422,9 @@ public class ShardingTable {
    */
   public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap() {
     bucketCombinationPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.BUCKET_COMBINATION.getName();
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.BUCKET_COMBINATION.getName();
     try {
       List<String> children = nodesManager.getChildren(bucketCombinationPath);
       if (children != null) {
@@ -469,8 +469,9 @@ public class ShardingTable {
    */
   public Map<String, Map<Bucket<KeyValueFrequency>, Node>> readBucketToNodeNumberMap() {
     keyToBucketNumberPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
     try {
       List<String> children = nodesManager.getChildren(keyToBucketNumberPath);
       if (children != null) {
@@ -507,8 +508,9 @@ public class ShardingTable {
    */
   public Map<String, Map<Object, Bucket<KeyValueFrequency>>> readKeyToValueToBucketMap() {
     KeyToValueToBucketPath =
-        zkproperty.getValueByKey("zookeeper.config_path") + File.separatorChar
-            + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+            .getShardingTablePath()
+            + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
     try {
       List<String> children = nodesManager.getChildren(KeyToValueToBucketPath);
       for (String child : children) {

@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.storage;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,20 +11,22 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 
 /**
  * Created by debasishc on 31/8/15.
  */
 public class FileDataStore implements DataStore, Serializable {
   /**
-	 * 
-	 */
+   * 
+   */
   private static final long serialVersionUID = -7726551156576482829L;
   private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
   private final int numFiles;
@@ -31,13 +34,14 @@ public class FileDataStore implements DataStore, Serializable {
   private DataDescription dataDescription;
 
   private static final boolean APPEND_TO_DATA_FILES = Boolean
-      .valueOf(CoordinationApplicationContext.getProperty().getValueByKey(
-          "datareceiver.append.to.data.files"));
+      .valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
+          .isDatareceiverAppendToDataFiles());
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
-  public static final String DATA_FILE_BASE_NAME = "data_";
+  public static final String DATA_FILE_BASE_NAME = CoordinationApplicationContext
+      .getZkCoordinationConfigCache().getNodeConfig().getDataStorage().getFileName();
 
   // public static final String FOLDER_NAME = "data";
 
@@ -55,7 +59,9 @@ public class FileDataStore implements DataStore, Serializable {
      * String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator +
      * FOLDER_NAME;
      */
-    String dirloc = StorageApplicationContext.dataFilePath;
+    String dirloc =
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig().getDataStorage()
+            .getPath();
     File file = new File(dirloc);
     if (!file.exists()) {
       boolean flag = file.mkdir();
@@ -84,7 +90,8 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) {
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {

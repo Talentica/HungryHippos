@@ -25,7 +25,9 @@ xsd2java{
 	xsdsToGenerate = [
 		["src/main/resources/schema/coordination-config.xsd", 'com.talentica.hungryhippos.config.coordination', [header: false]],
 		["src/main/resources/schema/sharding-config.xsd", 'com.talentica.hungryhippos.config.sharding', [header: false]],
-		["src/main/resources/schema/client-config.xsd", 'com.talentica.hungryhippos.config.client', [header: false]]
+		["src/main/resources/schema/client-config.xsd", 'com.talentica.hungryhippos.config.client', [header: false]],
+		["src/main/resources/schema/zookeeper-config.xsd", 'com.talentica.hungryhippos.config.zookeeper', [header: false]],
+		["src/main/resources/schema/job-config.xsd", 'com.talentica.hungryhippos.config.job', [header: false]]
 	]
 	generatedXsdDir = file(generatedJava)
 }

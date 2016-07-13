@@ -253,12 +253,12 @@ public class ZKUtils {
   }
 
   public static String buildNodePath(int nodeId) {
-    return CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
         + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
   }
 
   public static String buildNodePath(String jobuuid) {
-    return CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
         + PathUtil.SEPARATOR_CHAR + (jobuuid);
   }
 
@@ -272,6 +272,11 @@ public class ZKUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
+      Stat stat = zk.exists(node, true);
+      if(stat == null){
+        LOGGER.info("No such node {} exists.",node);
+        return;
+      }
       ZKUtil.deleteRecursive(zk, node);
       LOGGER.info("Nodes are deleted recursively");
     } catch (InterruptedException | KeeperException e) {

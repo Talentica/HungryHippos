@@ -3,11 +3,15 @@ package com.talentica.hungryHippos.storage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,11 +71,10 @@ public class NodeDataStoreIdCalculatorTest {
     }
   }
 
-  private FieldTypeArrayDataDescription getDataDescription() {
+  private FieldTypeArrayDataDescription getDataDescription() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
     String[] datatypes =
-        CoordinationApplicationContext.getProperty().getValueByKey("column.datatype-size")
-            .toString().split(",");
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getInputFileConfig().getColumnDatatypeSize() .toString().split(",");
     for (String datatype : datatypes) {
       dataDescription.addFieldType(DataLocator.DataType.valueOf(datatype.split("-")[0]),
           Integer.valueOf(datatype.split("-")[1]));

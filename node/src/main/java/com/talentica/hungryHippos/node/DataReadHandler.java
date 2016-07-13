@@ -68,8 +68,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
 	private void waitForDataPublishersServerConnectRetryInterval() throws InterruptedException {
 	  int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE =
-	        Integer.valueOf(CoordinationApplicationContext.getProperty()
-	            .getValueByKey("no.of.attempts.to.connect.to.node").toString());
+	        Integer.valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getNoOfAttemptsToConnectToNode());
 		Thread.sleep(NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE * 2);
 	}
 

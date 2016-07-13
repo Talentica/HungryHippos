@@ -7,6 +7,7 @@
 			<sequence>
 				<element type="tns:input" name="input" />
 				<element type="tns:output" name="output" />
+				<element type="tns:output-file-config" name="output-file-config" />
 			</sequence>
 		</complexType>
 	</element>
@@ -14,6 +15,13 @@
 	<complexType name="output">
 		<sequence>
 			<element type="string" name="output-dir"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="output-file-config">
+		<sequence>
+			<element type="string" name="maximum-shard-file-size-in-bytes"></element>
+			<element type="string" name="maximum-no-of-shard-buckets-size"></element>
 		</sequence>
 	</complexType>
 

@@ -2,6 +2,12 @@
 
 
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +19,7 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
  public class KeyValueFrequencyTest {
 
  @Test
- public void testEquals() {
+ public void testEquals() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
  FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(CoordinationApplicationContext.getDataTypeConfiguration(),1);
  dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
  MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);

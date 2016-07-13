@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,10 +86,14 @@ public class ShardingTest {
 	/**
 	 * This method test all the methods written in Sharding. An assert statement
 	 * has to be added.
+	 * @throws JAXBException 
+	 * @throws InterruptedException 
+	 * @throws KeeperException 
+	 * @throws ClassNotFoundException 
 	 * 
 	 */
 	@Test
-	public void testDoSharding() {
+	public void testDoSharding() throws ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
 		new Sharding(getClusterConfiguration()).doSharding(shardingInputFileReader);
 	}
 
@@ -100,7 +107,7 @@ public class ShardingTest {
 	}
 
 	@Test
-	public void testPopulateFrequencyFromData() throws IOException, InvalidRowException {
+	public void testPopulateFrequencyFromData() throws IOException, InvalidRowException, ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
 		Map<String, Map<MutableCharArrayString, Long>> frequencyData = sharding
 				.populateFrequencyFromData(shardingInputFileReader);
 		Assert.assertNotNull(frequencyData);

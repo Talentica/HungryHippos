@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/coordination"
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.talentica.com/hungryhippos/coordination"
 	xmlns:tns="http://www.talentica.com/hungryhippos/coordination"
 	elementFormDefault="qualified">
 	<element name="coordination-config">
 		<complexType>
 			<sequence>
 				<element type="tns:cluster-config" name="cluster-config" />
+				<element type="tns:input-file-config" name="input-file-config" />
+				<element type="tns:node-config" name="node-config" />
+				<element type="tns:common-config" name="common-config" />
 			</sequence>
 		</complexType>
 	</element>
@@ -21,6 +25,60 @@
 			<element type="int" name="identifier" />
 			<element type="string" name="name" />
 			<element type="string" name="ip" />
+			<element type="string" name="port" />
+		</sequence>
+	</complexType>
+
+	<complexType name="input-file-config">
+		<sequence>
+			<element type="string" name="input-file-name" />
+			<element type="string" name="column-datatype-size" />
+			<element type="string" name="column-names" />
+		</sequence>
+	</complexType>
+
+	<complexType name="node-config">
+		<sequence>
+			<element type="long" name="no-of-rows-to-check-available-memory" />
+			<element type="boolean" name="datareceiver-append-to-data-files" />
+			<element type="long" name="min-free-memory-in-mbs" />
+			<element type="long" name="no-of-rows-to-check-memory-consumption-after" />
+			<element type="long" name="no-of-rows-to-log-progress-after" />
+			<element type="int"
+				name="max-no-of-gc-retries-when-single-valueset-is-in-process" />
+			<element type="long"
+				name="wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process" />
+			<element type="tns:data-storage" name="data-storage" />
+			<element type="tns:output-config" name="output-config" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="data-storage">
+		<sequence>
+			<element type="string" name="file-name" />
+			<element type="string" name="path" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="output-config">
+		<sequence>
+			<element type="string" name="file-name" />
+			<element type="string" name="path" />
+		</sequence>
+	</complexType>
+
+	<complexType name="common-config">
+		<sequence>
+			<element type="int" name="maximum-size-of-single-block-data" />
+			<element type="string" name="sharding-dimensions" />
+			<element type="string" name="keys-prefix" />
+			<element type="int" name="no-of-droplets" />
+			<element type="string" name="no-of-attempts-to-connect-to-node" />
+			<element type="string" name="servers-connect-retry-interval-in-ms" />
+			<element type="string" name="webserver-ip" />
+			<element type="string" name="webserver-port" />
+			<element type="string" name="bad-records-file-out" />
+			<element type="string" name="jobuuid" />
 		</sequence>
 	</complexType>
 </schema>

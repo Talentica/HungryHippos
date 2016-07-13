@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.coordination.domain;
 
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -13,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
 
 /**
  * @author PooshanS
@@ -21,30 +20,58 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
  */
 public class NodesManagerContext {
 
-	private static NodesManager nodesManager = new NodesManager();
-	private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
-	private static ClientConfig clientConfig;
+  private static NodesManager nodesManager;
+  private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
+  private static ZookeeperConfig zookeeperConfig;
+  private static String ZOOKEEPER_CONFIG_FILE_PATH;
 
-	public static NodesManager initialize(String configFilePath) throws FileNotFoundException, JAXBException {
-		if (clientConfig == null) {
-			clientConfig = JaxbUtil.unmarshalFromFile(configFilePath, ClientConfig.class);
-			LOGGER.info("Initialized the nodes manager.");
-		}
-		nodesManager.connectZookeeper(clientConfig.getCoordinationServers().getServers());
-		return nodesManager;
-	}
+  public static NodesManager initialize(String zKconfigFilePath) throws FileNotFoundException,
+      JAXBException {
+    ZOOKEEPER_CONFIG_FILE_PATH = zKconfigFilePath;
+    if (nodesManager == null) {
+      nodesManager = new NodesManager(zKconfigFilePath);
+    }
+    if (zookeeperConfig == null) {
+      zookeeperConfig = getZookeeperConfiguration(zKconfigFilePath);
+      LOGGER.info("Initialized the nodes manager.");
+    }
+    nodesManager.connectZookeeper(zookeeperConfig.getZookeeperServers().getServers());
+    return nodesManager;
+  }
 
-	public List<Server> getMonitoredServers() throws InterruptedException {
-		return nodesManager.getServers();
-	}
+  public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
+    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
+      LOGGER.info("Please set the zookeeper configuration xml path");
+      return null;
+    }
+    return initialize(ZOOKEEPER_CONFIG_FILE_PATH);
+  }
 
-	public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
-		return initialize("client-config.xml");
-	}
+  public static NodesManager getNodesManagerInstance(String clientConfigFilePath)
+      throws FileNotFoundException, JAXBException {
+    return initialize(clientConfigFilePath);
+  }
 
-	public static NodesManager getNodesManagerInstance(String clientConfigFilePath)
-			throws FileNotFoundException, JAXBException {
-		return initialize(clientConfigFilePath);
-	}
+  public static ZookeeperConfig getZookeeperConfiguration(String zKconfigFilePath) {
+    try {
+      return JaxbUtil.unmarshalFromFile(zKconfigFilePath, ZookeeperConfig.class);
+    } catch (FileNotFoundException | JAXBException e) {
+      LOGGER.info("Problem occured duw to {} ", e);
+    }
+    return null;
+  }
 
+  public static ZookeeperConfig getZookeeperConfiguration() {
+    if(zookeeperConfig == null){
+      LOGGER.info("Please initialize the zookeeper instance");
+      return null;
+    }
+    return zookeeperConfig;
+  }
+
+  public static void setZookeeperXmlPath(String clientConfigFilePath) {
+    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
+      NodesManagerContext.ZOOKEEPER_CONFIG_FILE_PATH = clientConfigFilePath;
+    }
+  }
 }

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/client"
+	xmlns:tns="http://www.talentica.com/hungryhippos/client"
+	elementFormDefault="qualified">
+
+	<element name="zookeeper-config">
+		<complexType>
+			<sequence>
+				<element type="tns:zookeeper-servers" name="zookeeper-servers"
+					nillable="false" />
+				<element type="tns:zookeeper-default-setting" name="zookeeper-default-setting"
+					nillable="false" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="zookeeper-servers">
+		<sequence>
+			<element type="string" name="servers" maxOccurs="1"
+				minOccurs="1" />
+		</sequence>
+	</complexType>
+	<complexType name="zookeeper-default-setting">
+		<sequence>
+			<element name="tick-time" type="string" default="5000" />
+			<element name="session-timout" type="string" default="86400000" />
+			<element name="retry" type="string" default="5" />
+			<element name="namespace-path" type="string" default="rootnode" />
+			<element name="host-path" type="string" default="/rootnode/hostsnode" />
+			<element name="alert-path" type="string" default="/rootnode/alertsnode" />
+			<element name="config-path" type="string" default="/rootnode/confignode" />
+			<element name="filesystem-path" type="string" default="/rootnode/file-system" />
+			<element name="sharding-table-path" type="string"
+				default="/rootnode/sharding-table" />
+			<element name="cleanup" type="string" default="Y" />
+		</sequence>
+	</complexType>
+
+</schema>

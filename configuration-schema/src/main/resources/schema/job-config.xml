@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:job-config xmlns:tns="http://www.talentica.com/hungryhippos/job" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/job job-config.xsd ">
+  <tns:class-name>com.talentica.hungryHippos.test.sum.SumJobMatrixImpl</tns:class-name>
+  <tns:jar-file-path>/home/pooshans/HungryHippos/client-api/build/libs/client-api.jar</tns:jar-file-path>
+</tns:job-config>

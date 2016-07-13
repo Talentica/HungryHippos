@@ -3,10 +3,14 @@ package com.talentica.hungryHippos.storage.util;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +31,7 @@ public class NodeDataFileReader {
 
 	private static FieldTypeArrayDataDescription dataDescription;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
 		if (args.length != 1) {
 			System.out.println(
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
@@ -65,7 +69,7 @@ public class NodeDataFileReader {
 		}
 	}
 
-	private static DynamicMarshal getDynamicMarshal() {
+	private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
 		dataDescription = CoordinationApplicationContext.getConfiguredDataDescription();
 		dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);

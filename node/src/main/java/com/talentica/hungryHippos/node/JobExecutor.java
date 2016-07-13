@@ -27,12 +27,8 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
-import com.talentica.hungryhippos.config.client.CoordinationServers;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -56,6 +52,7 @@ public class JobExecutor {
     try {
       LOGGER.info("Start Node initialize");
       validateArguments(args);
+      setContext(args);
       initialize(args);
       long startTime = System.currentTimeMillis();
       listenerOnJobMatrix();
@@ -83,12 +80,12 @@ public class JobExecutor {
     }
   }
 
-	private static void validateArguments(String[] args) {
-		if (args.length < 4) {
-			throw new RuntimeException(
-					"Either missing 1st argument {job uuid} and/or 2nd argument {data input directory} and/or 3rd argument{output directory} and/or 4th argument {client configuration file}.");
-		}
-	}
+  private static void validateArguments(String[] args) {
+    if (args.length < 1) {
+      throw new RuntimeException(
+          "Missing zookeeper xml configuration file path arguments.");
+    }
+  }
 
   /**
    * @throws Exception
@@ -100,21 +97,16 @@ public class JobExecutor {
         CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
   }
 
-  	/**
-	 * @param args
-	 * @throws JAXBException
-	 * @throws FileNotFoundException
-	 */
-	private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
-		jobUUId = args[0];
-		CommonUtil.loadDefaultPath(jobUUId);
-		ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-		ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[3], ClientConfig.class);
-		CoordinationServers coordinationServers = clientConfig.getCoordinationServers();
-		nodesManager = NodesManagerContext.getNodesManagerInstance();
-		StorageApplicationContext.dataFilePath = args[1];
-		StorageApplicationContext.outputFilePath = args[2];
-	}
+  /**
+   * @param args
+   * @throws JAXBException
+   * @throws FileNotFoundException
+   */
+  private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
+    jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
+    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+    nodesManager = NodesManagerContext.getNodesManagerInstance();
+  }
 
   /**
    * @throws IOException
@@ -138,7 +130,7 @@ public class JobExecutor {
   private static void sendFailureSignal(NodesManager nodesManager) throws IOException,
       InterruptedException {
     String basePathPerNode =
-        CoordinationApplicationContext.getZkProperty().getValueByKey("zookeeper.base_path")
+        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
             + PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64 + PathUtil.SEPARATOR_CHAR
             + (PRIFIX_NODE_NAME + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
             + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
@@ -153,8 +145,13 @@ public class JobExecutor {
    * 
    * @return JobRunner
    * @throws IOException
+   * @throws JAXBException
+   * @throws InterruptedException
+   * @throws KeeperException
+   * @throws ClassNotFoundException
    */
-  private static JobRunner createJobRunner() throws IOException {
+  private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
+      KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
         CoordinationApplicationContext.getConfiguredDataDescription();
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
@@ -194,6 +191,10 @@ public class JobExecutor {
     }
     LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
     return jobEntities;
+  }
+
+  private static void setContext(String[] args) {
+    NodesManagerContext.setZookeeperXmlPath(args[0]);
   }
 
 }

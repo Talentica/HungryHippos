@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +46,7 @@ public class RecordFilterTest {
   @Test
   public void testFilterBadRecords() throws InstantiationException, IllegalAccessException,
       ClassNotFoundException, IOException, IllegalArgumentException, InvocationTargetException,
-      NoSuchMethodException, SecurityException {
+      NoSuchMethodException, SecurityException, KeeperException, InterruptedException, JAXBException {
     DataParser dataParser =
         (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
             .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());

@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.property.Property;
-import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -39,8 +36,6 @@ import com.talentica.hungryHippos.utility.PathUtil;
 public class ShardingTable {
   private static NodesManager nodesManager;
   private final Logger LOGGER = LoggerFactory.getLogger(ShardingTable.class.getName());
-  // private static Property<ZkProperty> zkproperty =
-  // CoordinationApplicationContext.getZkProperty();
   private String baseConfigPath;
   private String zkKeyToBucketPath;
   private String zkNodes;
@@ -345,11 +340,6 @@ public class ShardingTable {
         NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
             .getShardingTablePath()
             + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
-
-    /*
-     * baseConfigKeyToValueToBucketPath = zkproperty.getValueByKey("zookeeper.sharding.table.path")
-     * + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
-     */
   }
 
   private void buildBasePathBucketToNode() {

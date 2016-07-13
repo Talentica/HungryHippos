@@ -56,7 +56,7 @@ public class DataProvider {
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
-    CoordinationConfig config = CoordinationApplicationContext.getCoordinationConfig();
+    CoordinationConfig config = CoordinationApplicationContext.getZkCoordinationConfigCache();
     List<com.talentica.hungryhippos.config.coordination.Node> nodes =
         config.getClusterConfig().getNode();
     for (com.talentica.hungryhippos.config.coordination.Node node : nodes) {
@@ -113,7 +113,7 @@ public class DataProvider {
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
     Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-        CoordinationApplicationContext.getCoordinationConfig().getInputFileConfig()
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getInputFileConfig()
             .getInputFileName(),
         dataParser);
     long timeForEncoding = 0;
@@ -180,8 +180,8 @@ public class DataProvider {
 
   private static void init() throws FileNotFoundException, JAXBException {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(CoordinationApplicationContext
-        .getCoordinationConfig().getCommonConfig().getNoOfAttemptsToConnectToNode());
-    BAD_RECORDS_FILE = CoordinationApplicationContext.getCoordinationConfig().getCommonConfig()
+        .getZkCoordinationConfigCache().getCommonConfig().getNoOfAttemptsToConnectToNode());
+    BAD_RECORDS_FILE = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
         .getBadRecordsFileOut();
   }
 }

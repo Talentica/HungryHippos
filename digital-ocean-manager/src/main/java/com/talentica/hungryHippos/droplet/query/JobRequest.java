@@ -28,9 +28,9 @@ public class JobRequest {
 
   public Job getJobDetails(String uuid) throws HttpException, IOException {
     final String WEBSERVER_IP =
-        CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getWebserverIp();
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getWebserverIp();
     final String WEBSERVER_PORT =
-        CoordinationApplicationContext.getCoordinationConfig().getCommonConfig().getWebserverPort();
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getWebserverPort();
     final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
     String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
     LOGGER.info("Getting details of job:{}", uri);

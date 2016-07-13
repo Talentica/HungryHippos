@@ -47,7 +47,7 @@ public final class BucketsCalculator {
   public static int calculateNumberOfBucketsNeeded() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     double MAX_NO_OF_FILE_SIZE =
-        Double.valueOf(ShardingApplicationContext.getShardingConfig().getOutputFileConfig()
+        Double.valueOf(ShardingApplicationContext.getZkShardingConfigCache().getOutputFileConfig()
             .getMaximumShardFileSizeInBytes());
     int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
     long approximateMemoryPerBucketStoredInShardTable =
@@ -56,7 +56,7 @@ public final class BucketsCalculator {
         Math.pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable, 1.0 / noOfKeys);
     int numberOfBucketsNeeded = (int) Math.ceil(noOfBucketsNeeded);
     Object maxNoOfBuckets =
-        ShardingApplicationContext.getShardingConfig().getOutputFileConfig()
+        ShardingApplicationContext.getZkShardingConfigCache().getOutputFileConfig()
             .getMaximumNoOfShardBucketsSize();
     if (maxNoOfBuckets != null) {
       int maximumNoOfBucketsAllowed = Integer.parseInt(maxNoOfBuckets.toString());

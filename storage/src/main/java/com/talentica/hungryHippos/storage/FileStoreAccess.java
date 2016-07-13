@@ -67,7 +67,7 @@ public class FileStoreAccess implements StoreAccess {
 	private void processRows(int fileId) throws IOException {
 		DataInputStream in = null;
 		try {
-			File dataFile = new File(CoordinationApplicationContext.getCoordinationConfig().getNodeConfig().getDataStorage().getPath() + base + fileId);
+			File dataFile = new File(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig().getDataStorage().getPath() + base + fileId);
 			in = new DataInputStream(new FileInputStream(dataFile));
 			long dataFileSize = dataFile.length();
 			while (dataFileSize > 0) {

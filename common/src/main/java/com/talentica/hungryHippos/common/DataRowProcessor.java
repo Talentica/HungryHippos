@@ -28,23 +28,23 @@ public class DataRowProcessor implements RowProcessor {
   private static final String BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS =
       "Before garbage collection free memory available is: ";
   private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getNoOfRowsToCheckMemoryConsumptionAfter();
 
   private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getNoOfRowsToLogProgressAfter();
 
   private static final long NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getNoOfRowsToCheckAvailableMemory();
 
   private static final long WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getWaitTimeInMsAfterGcIsRequestedForSingleValuesetIsInProcess();
 
   private static final int MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getMaxNoOfGcRetriesWhenSingleValuesetIsInProcess();
 
   private DynamicMarshal dynamicMarshal;
@@ -78,7 +78,7 @@ public class DataRowProcessor implements RowProcessor {
   private int totalNoOfRowsProcessed = 0;
 
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
-      CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .getMinFreeMemoryInMbs();
 
   long startTime = System.currentTimeMillis();

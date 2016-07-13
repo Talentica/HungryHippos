@@ -9,7 +9,6 @@ import javax.xml.bind.JAXBException;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -20,20 +19,18 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
  */
 public class ShardingTableTest {
   private ShardingTable shardingTable;
+  private static final String basePath = "/home/pooshans/HungryHippos";
+  private static final String zookeeprConfigFilePath = basePath
+      + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
 
   @Before
   public void setUp() throws Exception {
     //Setup test
+    NodesManagerContext.setZookeeperXmlPath(zookeeprConfigFilePath);
     shardingTable = new ShardingTable();
-    String flag =
-        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getCleanup();
-    if (flag.equals("Y")) {
-      NodesManagerContext.getNodesManagerInstance().startup();
-    }
   }
 
   @Test
-  @Ignore
   public void testBucketCombinationToNode() {
     try {
       shardingTable.zkUploadBucketCombinationToNodeNumbersMap();

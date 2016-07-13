@@ -34,14 +34,14 @@ public class FileDataStore implements DataStore, Serializable {
   private DataDescription dataDescription;
 
   private static final boolean APPEND_TO_DATA_FILES = Boolean
-      .valueOf(CoordinationApplicationContext.getCoordinationConfig().getNodeConfig()
+      .valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
           .isDatareceiverAppendToDataFiles());
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
   public static final String DATA_FILE_BASE_NAME = CoordinationApplicationContext
-      .getCoordinationConfig().getNodeConfig().getDataStorage().getFileName();
+      .getZkCoordinationConfigCache().getNodeConfig().getDataStorage().getFileName();
 
   // public static final String FOLDER_NAME = "data";
 
@@ -60,7 +60,7 @@ public class FileDataStore implements DataStore, Serializable {
      * FOLDER_NAME;
      */
     String dirloc =
-        CoordinationApplicationContext.getCoordinationConfig().getNodeConfig().getDataStorage()
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig().getDataStorage()
             .getPath();
     File file = new File(dirloc);
     if (!file.exists()) {

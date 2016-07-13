@@ -80,7 +80,7 @@ public class DataReceiver {
       long startTime = System.currentTimeMillis();
       DataReceiver dataReceiver = getNodeInitializer();
       CoordinationConfig coordinationConfig =
-          CoordinationApplicationContext.getCoordinationConfig();
+          CoordinationApplicationContext.getZkCoordinationConfigCache();
       List<Node> nodes = coordinationConfig.getClusterConfig().getNode();
       int nodeId = NodeUtil.getNodeId();
       int PORT = 0;
@@ -99,16 +99,15 @@ public class DataReceiver {
       try {
         errorHandler(exception);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 2) {
+    if (args.length < 1) {
       throw new RuntimeException(
-          "Either missing 1st argument {zookeeper configuration file path} and/or 2nd argument {coordination configuration file path}");
+          "Missing zookeeper xml configuration file path arguments.");
     }
   }
 
@@ -141,7 +140,6 @@ public class DataReceiver {
 
   private static void setContext(String[] args) {
     NodesManagerContext.setZookeeperXmlPath(args[0]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
   }
 
 }

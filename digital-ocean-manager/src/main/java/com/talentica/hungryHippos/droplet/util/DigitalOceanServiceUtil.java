@@ -263,7 +263,7 @@ public class DigitalOceanServiceUtil {
     Droplets droplets;
     List<String> newNames = new ArrayList<>();
     int onOfDroplets =
-        Integer.valueOf(CoordinationApplicationContext.getCoordinationConfig().getCommonConfig()
+        Integer.valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
             .getNoOfDroplets());
     String PRIFIX = "hh";
     String HYPHEN = "-";
@@ -360,7 +360,7 @@ public class DigitalOceanServiceUtil {
        * LOGGER.info("Conf file is uploaded...");
        */
       List<String> webServerIp = new ArrayList<String>();
-      webServerIp.add(CoordinationApplicationContext.getCoordinationConfig().getCommonConfig()
+      webServerIp.add(CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
           .getWebserverIp());
       writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
     }

@@ -11,6 +11,7 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.sharding.ShardingTable;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingConfig;
@@ -28,11 +29,11 @@ public class ShardingStarter {
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
       setContext(args);
-      ShardingConfig shardingConfig = ShardingApplicationContext.getShardingConfig();
+      ShardingConfig shardingConfig = ShardingApplicationContext.getZkShardingConfigCache();
       String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
       String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();
       CoordinationConfig coordinationConfig =
-          CoordinationApplicationContext.getZkCoordinationConfig();
+          CoordinationApplicationContext.getZkCoordinationConfigCache();
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
@@ -42,15 +43,24 @@ public class ShardingStarter {
       long endTime = System.currentTimeMillis();
       LOGGER.info("SHARDING DONE!!");
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
+      ShardingTable shardingTable = new ShardingTable();
+      LOGGER.info("Uploading started for sharded table bucketCombinationToNodeNumbersMap...");
+      shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
+      LOGGER.info("Completed.");
+      LOGGER.info("Uploading started for sharded table bucketToNodeNumberMap...");
+      shardingTable.zkUploadBucketToNodeNumberMap();
+      LOGGER.info("Completed.");
+      LOGGER.info("Uploading started for sharded table keyToValueToBucketMap...");
+      shardingTable.zkUploadKeyToValueToBucketMap();
+      LOGGER.info("Completed.");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
     }
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 2) {
-      throw new RuntimeException(
-          "Missing coordination configuration and/or sharding configuration file path arguments.");
+    if (args.length < 1) {
+      throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
     }
   }
 
@@ -62,8 +72,6 @@ public class ShardingStarter {
 
   private static void setContext(String[] args) {
     NodesManagerContext.setZookeeperXmlPath(args[0]);
-    ShardingApplicationContext.setShardingConfigPathContext(args[1]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[2]);
   }
 
 }

@@ -31,10 +31,10 @@ public class DataPublisherStarter {
       setContext(args);
       nodesManager = NodesManagerContext.getNodesManagerInstance();
       ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
-      fileSystem.createFilesAsZnode(CoordinationApplicationContext.getCoordinationConfig()
+      fileSystem.createFilesAsZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
           .getInputFileConfig().getInputFileName());
       String dataParserClassName =
-          ShardingApplicationContext.getShardingConfig().getInput().getDataParserConfig()
+          ShardingApplicationContext.getZkShardingConfigCache().getInput().getDataParserConfig()
               .getClassName();
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
@@ -53,9 +53,8 @@ public class DataPublisherStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 3) {
-      throw new RuntimeException(
-          "Either missing 1st argument {coordination config file path} and/or 2nd argument {zookeeper xml path} and/or 3rd argument {sharding xml path}.");
+    if (args.length < 1) {
+      throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
     }
   }
 
@@ -108,8 +107,6 @@ public class DataPublisherStarter {
 
   private static void setContext(String[] args) {
     NodesManagerContext.setZookeeperXmlPath(args[0]);
-    ShardingApplicationContext.setShardingConfigPathContext(args[1]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[2]);
   }
 
 }

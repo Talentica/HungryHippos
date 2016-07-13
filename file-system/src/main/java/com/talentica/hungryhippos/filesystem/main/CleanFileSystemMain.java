@@ -19,8 +19,8 @@ public class CleanFileSystemMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		CleanFileSystem cleanFileSystem = new CleanFileSystem();
-		cleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
+
+		CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
 	}
 
 }

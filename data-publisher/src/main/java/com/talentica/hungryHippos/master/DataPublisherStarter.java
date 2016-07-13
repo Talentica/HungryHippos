@@ -21,7 +21,6 @@ import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
-import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 
 public class DataPublisherStarter {
 

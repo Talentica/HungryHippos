@@ -122,7 +122,7 @@ public class CleanFileSystem {
 	 * @param path
 	 */
 	public static void DeleteFilesWhichAreNotPartOFZK(String path) {
-		if (ZookeeperFileSystem.checkZnodeExists(path)) {
+		if (HungryHipposFileSystem.checkZnodeExists(path)) {
 			return;
 		}
 		deleteAllFilesInsideAFolder(Paths.get(path));

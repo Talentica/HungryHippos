@@ -25,7 +25,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
  * @author sudarshans
  *
  */
-public class ZookeeperFileSystem {
+public class HungryHipposFileSystem {
 
 	private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
 	private static NodesManager nodeManager = null;

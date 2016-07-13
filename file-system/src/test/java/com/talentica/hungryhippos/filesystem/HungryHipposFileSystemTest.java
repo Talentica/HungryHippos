@@ -23,9 +23,9 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class })
 @SuppressStaticInitializationFor({ "com.talentica.hungryHippos.coordination.domain.NodesManagerContext" })
-public class ZookeeperFileSystemTest {
+public class HungryHipposFileSystemTest {
 
-	private ZookeeperFileSystem system;
+	private HungryHipposFileSystem system;
 
 	private NodesManager nodesManager;
 	private Property<ZkProperty> zkProperty;
@@ -41,7 +41,7 @@ public class ZookeeperFileSystemTest {
 	@Test
 	public void testCreateZnode() {
 		String testFolder = "test";
-		String path = ZookeeperFileSystem.createZnode(testFolder);
+		String path = HungryHipposFileSystem.createZnode(testFolder);
 		assertNotNull(path);
 	}
 
@@ -49,7 +49,7 @@ public class ZookeeperFileSystemTest {
 	public void testCreateZnodeArg2() {
 		String testFolder = "test1";
 		CountDownLatch signal = new CountDownLatch(1);
-		String path = ZookeeperFileSystem.createZnode(testFolder, signal);
+		String path = HungryHipposFileSystem.createZnode(testFolder, signal);
 		try {
 			signal.await();
 		} catch (InterruptedException e) {
@@ -61,31 +61,31 @@ public class ZookeeperFileSystemTest {
 	@Test
 	public void testCreateZnodeArg3() {
 		String testFolder = "test2";
-		String path = ZookeeperFileSystem.createZnode(testFolder, "testing");
+		String path = HungryHipposFileSystem.createZnode(testFolder, "testing");
 		assertNotNull(path);
 	}
 
 	@Test
 	public void testCheckZnodeExists() {
-		boolean flag = ZookeeperFileSystem.checkZnodeExists("test2");
+		boolean flag = HungryHipposFileSystem.checkZnodeExists("test2");
 		assertTrue(flag);
 	}
 
 	@Test
 	public void testCheckZnodeExistsNegative() {
-		boolean flag = ZookeeperFileSystem.checkZnodeExists("test3");
+		boolean flag = HungryHipposFileSystem.checkZnodeExists("test3");
 		assertFalse(flag);
 	}
 
 	@Test
 	public void testSetData() {
-		ZookeeperFileSystem.setData("test1", "data Passed");
+		HungryHipposFileSystem.setData("test1", "data Passed");
 
 	}
 
 	@Test
 	public void testGetData() {
-		String s = ZookeeperFileSystem.getData("test1");
+		String s = HungryHipposFileSystem.getData("test1");
 		assertNotNull(s);
 	}
 
@@ -111,7 +111,7 @@ public class ZookeeperFileSystemTest {
 					Mockito.eq(Mockito.any()));
 			Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE)).thenReturn(fileSystemRootNodeZKPath);
 
-			ZookeeperFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+			HungryHipposFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
 
 			assertTrue(true);
 		} catch (Exception e) {

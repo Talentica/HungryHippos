@@ -9,8 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class CleanFileSystemTest {
 
 	@Test

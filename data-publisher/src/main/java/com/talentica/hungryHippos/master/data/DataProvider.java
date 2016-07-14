@@ -33,7 +33,7 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTable;
+import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -75,7 +75,7 @@ public class DataProvider {
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-    ShardingTable shardingTable = new ShardingTable();
+    ShardingTableZkService shardingTable = new ShardingTableZkService();
     bucketCombinationNodeMap = shardingTable.readBucketCombinationToNodeNumbersMap();
     keyToValueToBucketMap = shardingTable.readKeyToValueToBucketMap();
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);

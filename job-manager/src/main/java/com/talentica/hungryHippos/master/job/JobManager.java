@@ -20,7 +20,7 @@ import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTable;
+import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -64,7 +64,7 @@ public class JobManager {
 
   @SuppressWarnings("unchecked")
   private void setBucketToNodeNumberMap() throws Exception {
-    ShardingTable shardingTable = new ShardingTable();
+    ShardingTableZkService shardingTable = new ShardingTableZkService();
     bucketToNodeNumberMap = shardingTable.readBucketToNodeNumberMap();
   }
 

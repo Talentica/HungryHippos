@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -215,6 +216,17 @@ public class NodesManager implements Watcher {
   public void createPersistentNode(final String node, CountDownLatch signal, Object... data)
       throws IOException {
     createNode(node, signal, CreateMode.PERSISTENT, data);
+  }
+
+  public void createPersistentNode(final String node, CountDownLatch signal,
+      boolean isTransient) throws IOException {
+    if (isTransient) {
+      if (signal != null) {
+        signal.countDown();
+      }
+      return;
+    }
+    createNode(node, signal, CreateMode.PERSISTENT);
   }
 
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,

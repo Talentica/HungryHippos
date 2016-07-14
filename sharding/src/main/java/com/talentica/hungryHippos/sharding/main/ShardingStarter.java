@@ -11,7 +11,7 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.sharding.ShardingTable;
+import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingConfig;
@@ -43,7 +43,7 @@ public class ShardingStarter {
       long endTime = System.currentTimeMillis();
       LOGGER.info("SHARDING DONE!!");
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
-      ShardingTable shardingTable = new ShardingTable();
+      ShardingTableZkService shardingTable = new ShardingTableZkService();
       LOGGER.info("Uploading started for sharded table bucketCombinationToNodeNumbersMap...");
       shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
       LOGGER.info("Completed.");

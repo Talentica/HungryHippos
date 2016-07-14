@@ -18,7 +18,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
  * @author sohanc
  */
 public class ShardingTableTest {
-  private ShardingTable shardingTable;
+  private ShardingTableZkService shardingTable;
   private static final String basePath = "/home/pooshans/HungryHippos";
   private static final String zookeeprConfigFilePath = basePath
       + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
@@ -27,7 +27,7 @@ public class ShardingTableTest {
   public void setUp() throws Exception {
     //Setup test
     NodesManagerContext.setZookeeperXmlPath(zookeeprConfigFilePath);
-    shardingTable = new ShardingTable();
+    shardingTable = new ShardingTableZkService();
   }
 
   @Test

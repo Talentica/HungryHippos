@@ -3,14 +3,18 @@ package com.talentica.hungryHippos.sharding;
 import java.io.Serializable;
 import java.util.Collection;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
+
 public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 
+   @ZkTransient
 	private static final long serialVersionUID = 4664630705942019835L;
 
 	private Integer id;
 
 	private long size = 0;
 
+	@ZkTransient
 	private long numberOfObjects = 0;
 
 	public Integer getId() {

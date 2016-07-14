@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.coordination;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -523,5 +525,10 @@ public class ZKUtils {
     String retStatus = CommonUtil.executeScriptCommand(strArr);
     LOGGER.info("Shell command is executed");
     return retStatus;
+  }
+  
+  public static boolean isZkTransient(Field[] fields, int fieldIndex) {
+    ZkTransient zkTransient = fields[fieldIndex].getAnnotation(ZkTransient.class);
+    return (zkTransient == null) ? false : zkTransient.value();
   }
 }

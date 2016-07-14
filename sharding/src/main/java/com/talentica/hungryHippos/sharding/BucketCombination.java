@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
+
 /**
  * Created by debasishc on 14/8/15.
  */
@@ -11,6 +13,7 @@ public class BucketCombination implements Serializable {
 	/**
 	 * 
 	 */
+  @ZkTransient
 	private static final long serialVersionUID = 3581984005135868712L;
 	private Map<String, Bucket<KeyValueFrequency>> bucketsCombination;
 

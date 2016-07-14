@@ -2,11 +2,14 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.Serializable;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
+
 /**
  * Created by debasishc on 14/8/15.
  */
 public class KeyValueFrequency implements Comparable<KeyValueFrequency>, Serializable {
-
+     
+    @ZkTransient
 	private static final long serialVersionUID = 7621688881158875750L;
 	private Object keyValue;
     private long frequency;

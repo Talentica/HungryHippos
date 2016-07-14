@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTable;
+import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 @SuppressWarnings("unchecked")
@@ -31,7 +31,7 @@ public class NodeUtil {
   private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   static {
-    ShardingTable shardingTable = new ShardingTable();
+    ShardingTableZkService shardingTable = new ShardingTableZkService();
     keyToValueToBucketMap = shardingTable.readKeyToValueToBucketMap();
     bucketToNodeNumberMap = shardingTable.readBucketToNodeNumberMap();
   }

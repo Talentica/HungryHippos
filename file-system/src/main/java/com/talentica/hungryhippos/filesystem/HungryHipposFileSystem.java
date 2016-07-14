@@ -3,7 +3,7 @@ package com.talentica.hungryhippos.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -17,6 +17,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZKUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
 
 /**
  * Zookeeper FileSystem. This class has methods for creating files as znodes in
@@ -125,6 +126,7 @@ public class HungryHipposFileSystem {
 			exists = nodeManager.checkNodeExists(name);
 		} catch (InterruptedException | KeeperException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 		return exists;
 	}
@@ -141,6 +143,7 @@ public class HungryHipposFileSystem {
 			nodeManager.setObjectToZKNode(name, data);
 		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 	}
 
@@ -157,6 +160,7 @@ public class HungryHipposFileSystem {
 			nodeData = nodeManager.getStringFromZKNode(name);
 		} catch (KeeperException | InterruptedException | ClassNotFoundException | IOException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 		return nodeData;
 	}
@@ -175,6 +179,7 @@ public class HungryHipposFileSystem {
 			nodeData = nodeManager.getObjectFromZKNode(name);
 		} catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 
 		return nodeData;
@@ -192,6 +197,7 @@ public class HungryHipposFileSystem {
 			ZKUtils.getNodePathByName(ROOT_NODE, name, pathWithSameZnodeName);
 		} catch (InterruptedException | KeeperException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 		return pathWithSameZnodeName;
 	}
@@ -226,6 +232,7 @@ public class HungryHipposFileSystem {
 			ZKUtils.deleteRecursive(name, signal);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 	}
 
@@ -242,6 +249,7 @@ public class HungryHipposFileSystem {
 			childZnodes = nodeManager.getChildren(name);
 		} catch (KeeperException | InterruptedException e) {
 			logger.error(e.getMessage());
+			throw new HungryHipposFileSystemException(e.getMessage());
 		}
 		return childZnodes;
 	}

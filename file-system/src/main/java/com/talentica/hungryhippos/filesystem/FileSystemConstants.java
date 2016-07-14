@@ -15,13 +15,4 @@ public interface FileSystemConstants {
 	// constants for file-system configuration
 	String ROOT_NODE = "zookeeper.file.system";
 
-	// constants for file-system configuration
-	String HHROOT = "file.system.root.directory";
-	String DATA_FILE_PREFIX = "file.system.data.file.prefix";
-	String SERVER_PORT = "file.system.server.port";
-	String MAX_CLIENT_REQUESTS = "file.system.max.client.requests";
-	String MAX_QUERY_ATTEMPTS = "file.system.max.query.attempts";
-	String QUERY_RETRY_INTERVAL = "file.system.query.retry.interval";
-	String FILE_STREAM_BUFFER_SIZE = "file.system.file.stream.buffer.size";
-
 }

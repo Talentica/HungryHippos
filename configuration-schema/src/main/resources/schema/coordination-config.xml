@@ -10,6 +10,18 @@
 			<tns:ip>localhost</tns:ip>
 			<tns:port>2324</tns:port>
 		</tns:node>
+		<tns:node>
+			<tns:identifier>1</tns:identifier>
+			<tns:name>localhost1</tns:name>
+			<tns:ip>localhost</tns:ip>
+			<tns:port>2324</tns:port>
+		</tns:node>
+		<tns:node>
+			<tns:identifier>2</tns:identifier>
+			<tns:name>localhost2</tns:name>
+			<tns:ip>localhost</tns:ip>
+			<tns:port>2324</tns:port>
+		</tns:node>
 	</tns:cluster-config>
 	<tns:input-file-config>
 		<tns:input-file-name>/home/pooshans/HungryHippos/hungryhippos-tester-web/src/main/resources/static/sampledata.csv</tns:input-file-name>
@@ -37,7 +49,7 @@
 	</tns:node-config>
 	<tns:common-config>
 		<tns:maximum-size-of-single-block-data>80</tns:maximum-size-of-single-block-data>
-		<tns:sharding-dimensions>key1</tns:sharding-dimensions>
+		<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>
 		<tns:keys-prefix>key</tns:keys-prefix>
 		<tns:no-of-droplets>10</tns:no-of-droplets>
 		<tns:no-of-attempts-to-connect-to-node>50</tns:no-of-attempts-to-connect-to-node>

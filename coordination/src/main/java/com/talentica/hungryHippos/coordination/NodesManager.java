@@ -221,8 +221,8 @@ public class NodesManager implements Watcher {
 
   /**
    * To save the object which contains only the primitive data type as instance variable. The
-   * hirarachy is managed by the parent node followed by the instance variable and it corresponding
-   * value.
+   * hierarchy is managed by the parent node followed by the instance variable and it corresponding
+   * value i.e (id=0) or (size = 1) as complete node name.
    * 
    * @param parentNode is the node which is basically contains all the values of the object as
    *        children of it.
@@ -233,7 +233,7 @@ public class NodesManager implements Watcher {
    * @throws IllegalAccessException
    * @throws InterruptedException
    */
-  public void saveObjectZkNode(final String parentNode, CountDownLatch signal, Object object)
+  public void saveObjectZkNode(String parentNode, CountDownLatch signal, Object object)
       throws IOException, IllegalArgumentException, IllegalAccessException, InterruptedException {
     Field[] fields = object.getClass().getDeclaredFields();
     CountDownLatch counter = new CountDownLatch(fields.length);
@@ -248,7 +248,7 @@ public class NodesManager implements Watcher {
     counter.await();
     signal.countDown();
   }
-  
+
   /**
    * To Create the singal node as a name of the zookeeper node.
    * 
@@ -259,17 +259,13 @@ public class NodesManager implements Watcher {
    */
   public void createPersistentNode(final String node, CountDownLatch signal, boolean isTransient)
       throws IOException {
-    ensureTransient(signal, isTransient);
-    createNode(node, signal, CreateMode.PERSISTENT);
-  }
-
-  private void ensureTransient(CountDownLatch signal, boolean isTransient) {
     if (isTransient) {
       if (signal != null) {
         signal.countDown();
       }
       return;
     }
+    createNode(node, signal, CreateMode.PERSISTENT);
   }
 
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,

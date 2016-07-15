@@ -4,11 +4,13 @@
 package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
@@ -31,6 +33,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testBucketCombinationToNode() {
     try {
       shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
@@ -41,6 +44,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
       IOException, InterruptedException {
     try {
@@ -52,6 +56,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testKeyToValueToBucket() throws IllegalArgumentException, IllegalAccessException,
       IOException, InterruptedException, JAXBException {
     try {
@@ -63,6 +68,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testBucketCombinationToNodeRead() {
     try {
       shardingTable.readBucketCombinationToNodeNumbersMap();
@@ -73,6 +79,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testBucketToNodeNumberRead() {
     try {
       shardingTable.readBucketToNodeNumberMap();
@@ -83,6 +90,7 @@ public class ShardingTableTest {
   }
 
   @Test
+  @Ignore
   public void testKeyToValueToBucketRead() {
     try {
       shardingTable.readKeyToValueToBucketMap();
@@ -96,7 +104,7 @@ public class ShardingTableTest {
   public void testBucketToNodeNumberObject() throws IllegalArgumentException,
       IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
     try {
-      ZkUtils.createZkNode("/rootnode/test", shardingTable.getBucketToNodeNumberMap());
+      ZkUtils.createZkNodeMap("/rootnode/test/"+Map.class.getName(), shardingTable.getBucketToNodeNumberMap());
       Assert.assertTrue(true);
     } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);

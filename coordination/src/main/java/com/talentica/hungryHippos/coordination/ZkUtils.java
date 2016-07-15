@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -536,39 +538,94 @@ public class ZkUtils {
     ZkTransient zkTransient = fields[fieldIndex].getAnnotation(ZkTransient.class);
     return (zkTransient == null) ? false : zkTransient.value();
   }
-  
+
   public static boolean isZkTransient(Method[] methods, int methodIndex) {
     ZkTransient zkTransient = methods[methodIndex].getAnnotation(ZkTransient.class);
     return (zkTransient == null) ? false : zkTransient.value();
   }
-  
-  public static <T> void createZkNode(String basePath, Object object)
-      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
+
+  public static void createZkNode(String basePath, Object object) throws IllegalArgumentException,
+      IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
     Field[] fields = object.getClass().getDeclaredFields();
     for (int index = 0; index < fields.length; index++) {
       fields[index].setAccessible(true);
       Field field = fields[index];
       Object value = FieldUtils.readField(field, object);
-      if(value == null) continue;
+      if (value == null)
+        continue;
       if (ClassUtils.isPrimitiveOrWrapper(field.getType())) {
-        String childPath = basePath + File.separatorChar + field.getName() + File.separatorChar + value;
+        String childPath =
+            basePath + File.separatorChar + field.getName() + File.separatorChar + value;
         CountDownLatch signal = new CountDownLatch(1);
         nodesManager.createPersistentNode(childPath, signal, isZkTransient(fields, index));
         signal.await();
         continue;
       }
       basePath = basePath + File.separatorChar + field.getDeclaringClass().getName();
-      createZkNode(basePath,value);
+      createZkNode(basePath, value);
     }
   }
 
-  public static <T> void createZkNodeMethod(String basePath, Object object)
+  public static <K, V> void createZkNodeMap(String basePath, Map<K, V> map)
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
+    int id = 0;
+    for (Entry<K, V> entry : map.entrySet()) {
+      K key = entry.getKey();
+      V value = entry.getValue();
+      String kId = ("K" + id);
+      String vId = ("V" + id);
+      if (ClassUtils.isPrimitiveOrWrapper(key.getClass())) {
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.saveObjectZkNode(basePath, signal, key);
+        signal.await();
+      } else if (key instanceof Map) {
+        String childPath =
+            basePath + File.separatorChar + kId + File.separatorChar + key.getClass().getName();
+        createZkNodeMap(childPath, (Map) key);
+      } else if (key instanceof String) {
+        String childPath = basePath + File.separatorChar + kId + File.separatorChar + key;
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.createPersistentNode(childPath, signal, false);
+        signal.await();
+      } else {
+        String childPath =
+            basePath + File.separatorChar + kId + File.separatorChar + key.getClass().getName();
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.saveObjectZkNode(childPath, signal, key);
+        signal.await();
+      }
+      if (ClassUtils.isPrimitiveOrWrapper(value.getClass())) {
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.saveObjectZkNode(basePath, signal, value);
+        signal.await();
+      } else if (value instanceof Map) {
+        String childPath =
+            basePath + File.separatorChar + vId + File.separatorChar + value.getClass().getName();
+        createZkNodeMap(childPath, (Map) value);
+      } else if (value instanceof String) {
+        String childPath = basePath + File.separatorChar + vId + File.separatorChar + value;
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.createPersistentNode((String) value, signal, false);
+        signal.await();
+      } else {
+        String childPath =
+            basePath + File.separatorChar + vId + File.separatorChar + value.getClass().getName();
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.saveObjectZkNode(childPath, signal, value);
+        signal.await();
+      }
+      id++;
+    }
+  }
+
+  public static void createZkNodeMethod(String basePath, Object object)
       throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
     Method[] methods = object.getClass().getDeclaredMethods();
     for (int index = 0; index < methods.length; index++) {
       Method method = methods[index];
       Object value = method.getDefaultValue();
-      if(value == null) continue;
+      if (value == null)
+        continue;
       if (ClassUtils.isPrimitiveOrWrapper(method.getClass())) {
         String childPath = basePath + File.separatorChar + value;
         CountDownLatch signal = new CountDownLatch(1);

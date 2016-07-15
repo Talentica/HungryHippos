@@ -1,37 +1,21 @@
 package com.talentica.hungryhippos.filesystem.Exception;
 
+import org.apache.zookeeper.KeeperException;
+
 /**
  * Exception Class used on FileSystem.
  * 
  * @author sudarshans
  *
  */
-public class HungryHipposFileSystemException extends RuntimeException {
+public class HungryHipposFileSystemException extends KeeperException {
 
-	/**
-	 * Serial UID for the serialization
-	 */
-	private static final long serialVersionUID = 2529936268877346952L;
+  public HungryHipposFileSystemException(Code code) {
+    super(code);
+  }
 
-	private String message = null;
-
-	public HungryHipposFileSystemException() {
-		super();
-	}
-
-	public HungryHipposFileSystemException(String message) {
-		super(message);
-		this.message = message;
-	}
-
-	public HungryHipposFileSystemException(String message, Throwable cause) {
-		super(message, cause);
-		this.message = message;
-	}
-
-	@Override
-	public String toString() {
-		return message;
-	}
-
+  /**
+   * Serial UID for the serialization
+   */
+  private static final long serialVersionUID = 2529936268877346952L;
 }

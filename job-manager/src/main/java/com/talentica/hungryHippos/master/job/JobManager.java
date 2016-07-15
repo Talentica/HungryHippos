@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.sharding.Bucket;
@@ -94,7 +94,7 @@ public class JobManager {
 
   private void sendSignalEndJobMatrix() throws InterruptedException {
     CountDownLatch signal = new CountDownLatch(1);
-    String buildFinishPath = ZKUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
+    String buildFinishPath = ZkUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
         + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.END_JOB_MATRIX.getZKJobNode();
     try {
       nodesManager.createPersistentNode(buildFinishPath, signal);
@@ -132,11 +132,11 @@ public class JobManager {
   private boolean getSignalFromZk(Integer nodeId, String finishNode) {
     CountDownLatch signal = new CountDownLatch(1);
 
-    String buildFinishPath = ZKUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
+    String buildFinishPath = ZkUtils.buildNodePath(ZkSignalListener.jobuuidInBase64)
         + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId) + PathUtil.SEPARATOR_CHAR + finishNode;
 
     try {
-      ZKUtils.waitForSignal(buildFinishPath, signal);
+      ZkUtils.waitForSignal(buildFinishPath, signal);
       signal.await();
     } catch (KeeperException | InterruptedException e) {
       return false;
@@ -160,7 +160,7 @@ public class JobManager {
       if (jobEntities == null || jobEntities.isEmpty())
         continue;
       CountDownLatch signal = new CountDownLatch(1);
-      String buildPath = ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
+      String buildPath = ZkUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
           + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId) + PathUtil.SEPARATOR_CHAR
           + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
       nodesManager.createPersistentNode(buildPath, signal);

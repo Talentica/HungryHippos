@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.sharding.Node;
@@ -90,7 +90,7 @@ public class NodeJobsService implements NodesJobsRunnable {
 			CountDownLatch signal,String jobUUId) throws InterruptedException,
 			KeeperException, ClassNotFoundException, IOException {
 		boolean flag = false;
-		String buildPath = ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
+		String buildPath = ZkUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
 				+ PathUtil.SEPARATOR_CHAR + ("_node"+node.getNodeId()) + PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.SEPARATOR_CHAR + ("_job" + jobEntity.getJobId());
 		try {
@@ -107,14 +107,14 @@ public class NodeJobsService implements NodesJobsRunnable {
 			throws InterruptedException, KeeperException,
 			ClassNotFoundException, IOException {
 		Set<LeafBean> jobLeafs = new HashSet<>();
-		String buildpath = ZKUtils.buildNodePath(node.getNodeId())
+		String buildpath = ZkUtils.buildNodePath(node.getNodeId())
 				+ PathUtil.SEPARATOR_CHAR
 				+ CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-		Set<LeafBean> leafs = ZKUtils.searchLeafNode(buildpath, null, null);
+		Set<LeafBean> leafs = ZkUtils.searchLeafNode(buildpath, null, null);
 		for (LeafBean leaf : leafs) {
 			if (leaf.getPath().contains(
 					CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {
-				LeafBean jobBean = ZKUtils.getNodeValue(
+				LeafBean jobBean = ZkUtils.getNodeValue(
 						leaf.getPath(),
 						leaf.getPath() + PathUtil.SEPARATOR_CHAR
 								+ leaf.getName(), leaf.getName(), null);

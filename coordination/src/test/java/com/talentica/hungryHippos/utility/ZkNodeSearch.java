@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
@@ -28,7 +28,7 @@ public class ZkNodeSearch {
   @Test
   public void testSearchNodeByName() throws KeeperException, InterruptedException {
     List<String> nodePaths = new ArrayList<>();
-    ZKUtils.getNodePathByName("/", "PUSH_JOB_NOTIFICATION", nodePaths);
+    ZkUtils.getNodePathByName("/", "PUSH_JOB_NOTIFICATION", nodePaths);
     Assert.assertNotEquals(nodePaths.size(), 0);
   }
 }

@@ -3,10 +3,12 @@
  */
 package com.talentica.hungryHippos.coordination;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +22,9 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZKUtil;
@@ -30,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.Server;
@@ -46,8 +49,8 @@ import com.talentica.hungryhippos.config.client.CoordinationServers;
  * @author PooshanS
  *
  */
-public class ZKUtils {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ZKUtils.class.getName());
+public class ZkUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZkUtils.class.getName());
   private static String ZK_ROOT_NODE = "/rootnode";
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
@@ -251,16 +254,18 @@ public class ZKUtils {
       IOException {
     if (value == null)
       return null;
-    return ZKUtils.deserialize(value);
+    return ZkUtils.deserialize(value);
   }
 
   public static String buildNodePath(int nodeId) {
-    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+        .getHostPath()
         + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
   }
 
   public static String buildNodePath(String jobuuid) {
-    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
+    return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
+        .getHostPath()
         + PathUtil.SEPARATOR_CHAR + (jobuuid);
   }
 
@@ -275,8 +280,8 @@ public class ZKUtils {
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
       Stat stat = zk.exists(node, true);
-      if(stat == null){
-        LOGGER.info("No such node {} exists.",node);
+      if (stat == null) {
+        LOGGER.info("No such node {} exists.", node);
         return;
       }
       ZKUtil.deleteRecursive(zk, node);
@@ -309,7 +314,7 @@ public class ZKUtils {
             break;
           case NONODE:
             try {
-              ZKUtils.waitForSignal(path, signal);
+              ZkUtils.waitForSignal(path, signal);
             } catch (KeeperException | InterruptedException e) {
               LOGGER.error("Error occurred in async callback.", e);
             }
@@ -526,9 +531,53 @@ public class ZKUtils {
     LOGGER.info("Shell command is executed");
     return retStatus;
   }
-  
+
   public static boolean isZkTransient(Field[] fields, int fieldIndex) {
     ZkTransient zkTransient = fields[fieldIndex].getAnnotation(ZkTransient.class);
     return (zkTransient == null) ? false : zkTransient.value();
+  }
+  
+  public static boolean isZkTransient(Method[] methods, int methodIndex) {
+    ZkTransient zkTransient = methods[methodIndex].getAnnotation(ZkTransient.class);
+    return (zkTransient == null) ? false : zkTransient.value();
+  }
+  
+  public static <T> void createZkNode(String basePath, Object object)
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
+    Field[] fields = object.getClass().getDeclaredFields();
+    for (int index = 0; index < fields.length; index++) {
+      fields[index].setAccessible(true);
+      Field field = fields[index];
+      Object value = FieldUtils.readField(field, object);
+      if(value == null) continue;
+      if (ClassUtils.isPrimitiveOrWrapper(field.getType())) {
+        String childPath = basePath + File.separatorChar + field.getName() + File.separatorChar + value;
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.createPersistentNode(childPath, signal, isZkTransient(fields, index));
+        signal.await();
+        continue;
+      }
+      basePath = basePath + File.separatorChar + field.getDeclaringClass().getName();
+      createZkNode(basePath,value);
+    }
+  }
+
+  public static <T> void createZkNodeMethod(String basePath, Object object)
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
+    Method[] methods = object.getClass().getDeclaredMethods();
+    for (int index = 0; index < methods.length; index++) {
+      Method method = methods[index];
+      Object value = method.getDefaultValue();
+      if(value == null) continue;
+      if (ClassUtils.isPrimitiveOrWrapper(method.getClass())) {
+        String childPath = basePath + File.separatorChar + value;
+        CountDownLatch signal = new CountDownLatch(1);
+        nodesManager.createPersistentNode(childPath, signal, isZkTransient(methods, index));
+        signal.await();
+        continue;
+      }
+      basePath = basePath + File.separatorChar + method.getName();
+      createZkNodeMethod(basePath, value);
+    }
   }
 }

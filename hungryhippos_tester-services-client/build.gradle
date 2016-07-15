@@ -17,7 +17,7 @@ jar{
 
 dependencies {	
 	compile('joda-time:joda-time:2.3')
-	compile('org.apache.commons:commons-lang3:3.0')
+	compile('org.apache.commons:commons-lang3:3.1')
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.6.5'
 	compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
     compile 'org.slf4j:slf4j-api:1.7.10'

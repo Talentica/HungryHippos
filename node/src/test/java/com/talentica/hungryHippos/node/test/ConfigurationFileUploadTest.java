@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.node.NodeUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
@@ -86,7 +86,7 @@ public class ConfigurationFileUploadTest {
 		//String buildPath = nodesManager.buildConfigPath("/rootnode/hostsnode/test/child");
 		Set<LeafBean> leafs;
 		try {
-			leafs = ZKUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
+			leafs = ZkUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
 			for(LeafBean leaf : leafs){
 				LOGGER.info("Path is {} AND node name {}",leaf.getPath(),leaf.getName());
 			}

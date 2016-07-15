@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
@@ -25,7 +26,6 @@ public class ShardingTableTest {
 
   @Before
   public void setUp() throws Exception {
-    //Setup test
     NodesManagerContext.setZookeeperXmlPath(zookeeprConfigFilePath);
     shardingTable = new ShardingTableZkService();
   }
@@ -49,7 +49,6 @@ public class ShardingTableTest {
     } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);
     }
-
   }
 
   @Test
@@ -89,6 +88,17 @@ public class ShardingTableTest {
       shardingTable.readKeyToValueToBucketMap();
       Assert.assertTrue(true);
     } catch (Exception e) {
+      Assert.assertFalse(true);
+    }
+  }
+
+  @Test
+  public void testBucketToNodeNumberObject() throws IllegalArgumentException,
+      IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
+    try {
+      ZkUtils.createZkNode("/rootnode/test", shardingTable.getBucketToNodeNumberMap());
+      Assert.assertTrue(true);
+    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);
     }
   }

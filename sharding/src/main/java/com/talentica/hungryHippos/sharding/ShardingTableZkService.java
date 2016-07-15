@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
-import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -149,19 +146,9 @@ public class ShardingTableZkService {
    */
   private void createZkNode(String valuePath, Bucket<KeyValueFrequency> bucket)
       throws IllegalAccessException, IOException, InterruptedException {
-    Field[] bucketFields = bucket.getClass().getDeclaredFields();
-    CountDownLatch counter = new CountDownLatch(bucketFields.length);
-    for (int fieldIndex = 0; fieldIndex < bucketFields.length; fieldIndex++) {
-      bucketFields[fieldIndex].setAccessible(true);
-      String fieldName = bucketFields[fieldIndex].getName();
-      boolean isTransient = ZKUtils.isZkTransient(bucketFields, fieldIndex);
-      Object bucketValue = bucketFields[fieldIndex].get(bucket);
-      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + bucketValue;
-      String leafNodePath =
-          valuePath + File.separatorChar + ZkNodeName.BUCKET.getName() + File.separatorChar
-              + leafNode;
-      nodesManager.createPersistentNode(leafNodePath, counter, isTransient);
-    }
+    CountDownLatch counter = new CountDownLatch(1);
+    String leafNodePath = valuePath + File.separatorChar + ZkNodeName.BUCKET.getName();
+    nodesManager.saveObjectZkNode(leafNodePath, counter, bucket);
     counter.await();
   }
 
@@ -223,20 +210,9 @@ public class ShardingTableZkService {
    */
   private void createZkNode(String keyToBucketPath, Node node) throws IllegalAccessException,
       IOException, InterruptedException {
-    CountDownLatch counter;
+    CountDownLatch counter = new CountDownLatch(1);
     String nodepath = keyToBucketPath + File.separatorChar + (ZkNodeName.NODE.getName());
-
-    Field[] nodeFields = node.getClass().getDeclaredFields();
-    counter = new CountDownLatch(nodeFields.length);
-    for (int fieldIndex = 0; fieldIndex < nodeFields.length; fieldIndex++) {
-      nodeFields[fieldIndex].setAccessible(true);
-      String fieldName = nodeFields[fieldIndex].getName();
-      boolean isTransient = ZKUtils.isZkTransient(nodeFields, fieldIndex);
-      Object value = nodeFields[fieldIndex].get(node);
-      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
-      String leafNodePath = nodepath + File.separatorChar + leafNode;
-      nodesManager.createPersistentNode(leafNodePath, counter, isTransient);
-    }
+    nodesManager.saveObjectZkNode(nodepath, counter, node);
     counter.await();
   }
 
@@ -249,20 +225,9 @@ public class ShardingTableZkService {
    */
   private void createZkBucket(String keyToBucketPath, Bucket<KeyValueFrequency> bucket)
       throws IllegalAccessException, IOException, InterruptedException {
-    CountDownLatch counter;
+    CountDownLatch counter = new CountDownLatch(1);
     String bucketPath = keyToBucketPath + File.separatorChar + (ZkNodeName.BUCKET.getName());
-
-    Field[] bucketfields = bucket.getClass().getDeclaredFields();
-    counter = new CountDownLatch(bucketfields.length);
-    for (int fieldIndex = 0; fieldIndex < bucketfields.length; fieldIndex++) {
-      bucketfields[fieldIndex].setAccessible(true);
-      String fieldName = bucketfields[fieldIndex].getName();
-      boolean isTransient = ZKUtils.isZkTransient(bucketfields, fieldIndex);
-      Object value = bucketfields[fieldIndex].get(bucket);
-      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
-      String leafBucketPath = bucketPath + File.separatorChar + leafNode;
-      nodesManager.createPersistentNode(leafBucketPath, counter, isTransient);
-    }
+    nodesManager.saveObjectZkNode(bucketPath, counter, bucket);
     counter.await();
   }
 
@@ -276,24 +241,15 @@ public class ShardingTableZkService {
       throws IllegalAccessException, IOException, InterruptedException {
     Set<Node> nodes = entry.getValue();
     int nodeId = 0;
+    CountDownLatch counter = new CountDownLatch(nodes.size());
     for (Node node : nodes) {
-      Field[] fields = node.getClass().getDeclaredFields();
-      CountDownLatch counter = new CountDownLatch(fields.length);
-      for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-        fields[fieldIndex].setAccessible(true);
-        String fieldName = fields[fieldIndex].getName();
-        boolean isTransient = ZKUtils.isZkTransient(fields, fieldIndex);
-        Object value = fields[fieldIndex].get(node);
-        String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
-        String leafNodePath =
-            zkNodes + File.separatorChar
-                + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId)
-                + File.separatorChar + leafNode;
-        nodesManager.createPersistentNode(leafNodePath, counter, isTransient);
-      }
+      String leafNodePath =
+          zkNodes + File.separatorChar
+              + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId);
+      nodesManager.saveObjectZkNode(leafNodePath, counter, node);
       nodeId++;
-      counter.await();
     }
+    counter.await();
   }
 
   /**
@@ -306,25 +262,17 @@ public class ShardingTableZkService {
       throws IllegalAccessException, IOException, InterruptedException {
     Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap =
         entry.getKey().getBucketsCombination();
+    CountDownLatch counter = new CountDownLatch(bucketCombinationMap.size());
     for (Entry<String, Bucket<KeyValueFrequency>> bucketCombination : bucketCombinationMap
         .entrySet()) {
       Bucket<KeyValueFrequency> bucket = bucketCombination.getValue();
       String key = bucketCombination.getKey();
-      Field[] fields = bucket.getClass().getDeclaredFields();
-      CountDownLatch counter = new CountDownLatch(fields.length);
-      for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-        fields[fieldIndex].setAccessible(true);
-        String fieldName = fields[fieldIndex].getName();
-        boolean isTransient = ZKUtils.isZkTransient(fields, fieldIndex);
-        Object value = fields[fieldIndex].get(bucket);
-        String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
-        String leafNodePath =
-            zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
-                + ZkNodeName.BUCKET.getName() + File.separatorChar + leafNode;
-        nodesManager.createPersistentNode(leafNodePath, counter, isTransient);
-      }
-      counter.await();
+      String leafNodePath =
+          zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
+              + ZkNodeName.BUCKET.getName();
+      nodesManager.saveObjectZkNode(leafNodePath, counter, bucket);
     }
+    counter.await();
   }
 
   private void buildBaseConfigKeyToValueToBucketPath() {
@@ -379,7 +327,7 @@ public class ShardingTableZkService {
    * @return Map<String, Map<Bucket<KeyValueFrequency>, Node>>
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
+  public Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     try (ObjectInputStream bucketToNodeNumberMapInputStream =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR

@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.coordination;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -16,7 +17,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -30,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
-import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -43,6 +43,7 @@ import com.talentica.hungryHippos.coordination.listeners.AlertManager;
 import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.coordination.Node;
@@ -149,8 +150,8 @@ public class NodesManager implements Watcher {
    */
   private void connect(String hosts) throws Exception {
     zk = new org.apache.zookeeper.ZooKeeper(hosts, zkConfiguration.getSessionTimeout(), this);
-    ZKUtils.zk = zk;
-    ZKUtils.nodesManager = this;
+    ZkUtils.zk = zk;
+    ZkUtils.nodesManager = this;
     connectedSignal.await();
   }
 
@@ -162,7 +163,7 @@ public class NodesManager implements Watcher {
    */
   public void startup() throws Exception {
     CountDownLatch signal = new CountDownLatch(1);
-    ZKUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
+    ZkUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
         signal);
     signal.await();
     defaultNodesOnStart();
@@ -218,20 +219,62 @@ public class NodesManager implements Watcher {
     createNode(node, signal, CreateMode.PERSISTENT, data);
   }
 
-  public void createPersistentNode(final String node, CountDownLatch signal,
-      boolean isTransient) throws IOException {
+  /**
+   * To save the object which contains only the primitive data type as instance variable. The
+   * hirarachy is managed by the parent node followed by the instance variable and it corresponding
+   * value.
+   * 
+   * @param parentNode is the node which is basically contains all the values of the object as
+   *        children of it.
+   * @param signal is to ensure that all the relevant children should be created as node.
+   * @param object is to save onto zookeeper as a part of node formation.
+   * @throws IOException
+   * @throws IllegalArgumentException
+   * @throws IllegalAccessException
+   * @throws InterruptedException
+   */
+  public void saveObjectZkNode(final String parentNode, CountDownLatch signal, Object object)
+      throws IOException, IllegalArgumentException, IllegalAccessException, InterruptedException {
+    Field[] fields = object.getClass().getDeclaredFields();
+    CountDownLatch counter = new CountDownLatch(fields.length);
+    for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+      fields[fieldIndex].setAccessible(true);
+      String fieldName = fields[fieldIndex].getName();
+      Object value = fields[fieldIndex].get(object);
+      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
+      String leafNodePath = parentNode + File.separatorChar + leafNode;
+      createPersistentNode(leafNodePath, counter, ZkUtils.isZkTransient(fields, fieldIndex));
+    }
+    counter.await();
+    signal.countDown();
+  }
+  
+  /**
+   * To Create the singal node as a name of the zookeeper node.
+   * 
+   * @param node name of the zookeeper node.
+   * @param signal
+   * @param isTransient
+   * @throws IOException
+   */
+  public void createPersistentNode(final String node, CountDownLatch signal, boolean isTransient)
+      throws IOException {
+    ensureTransient(signal, isTransient);
+    createNode(node, signal, CreateMode.PERSISTENT);
+  }
+
+  private void ensureTransient(CountDownLatch signal, boolean isTransient) {
     if (isTransient) {
       if (signal != null) {
         signal.countDown();
       }
       return;
     }
-    createNode(node, signal, CreateMode.PERSISTENT);
   }
 
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,
       Object... data) throws IOException {
-    zk.create(node, (data != null && data.length != 0) ? ZKUtils.serialize(data[0]) : null,
+    zk.create(node, (data != null && data.length != 0) ? ZkUtils.serialize(data[0]) : null,
         ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
           @Override
           public void processResult(int rc, String path, Object ctx, String name) {
@@ -469,7 +512,7 @@ public class NodesManager implements Watcher {
       if (stat == null) {
         CreateMode createMode = persistent ? CreateMode.PERSISTENT : CreateMode.EPHEMERAL;
         zk.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode,
-            ZKUtils.checkCreateAlertStatusAsync(), server);
+            ZkUtils.checkCreateAlertStatusAsync(), server);
       }
     } catch (KeeperException.SessionExpiredException ex) {
 
@@ -498,7 +541,7 @@ public class NodesManager implements Watcher {
     try {
       Stat stat = zk.exists(path, this);
       if (stat != null) {
-        zk.delete(path, stat.getVersion(), ZKUtils.checkAlertRemoveStatusAsync(), server);
+        zk.delete(path, stat.getVersion(), ZkUtils.checkAlertRemoveStatusAsync(), server);
       }
       path = buildMonitorPathForServer(server);
       if (zk.exists(path, this) != null) {
@@ -570,7 +613,7 @@ public class NodesManager implements Watcher {
 
   public String buildPathNode(String parentNode) throws InterruptedException, KeeperException,
       ClassNotFoundException, IOException {
-    Set<LeafBean> beans = ZKUtils.searchLeafNode(parentNode, null, null);
+    Set<LeafBean> beans = ZkUtils.searchLeafNode(parentNode, null, null);
     String path = "";
     for (LeafBean bean : beans) {
       if (bean.getName().equalsIgnoreCase(parentNode)) {
@@ -613,7 +656,7 @@ public class NodesManager implements Watcher {
         server.setServerAddress(new ServerAddress(NODE_NAME_PRIFIX + index, node.getIp()));
         server.setData(new Date().getTime());
         server.setServerType("simpleserver");
-        server.setCurrentDateTime(ZKUtils.getCurrentTimeStamp());
+        server.setCurrentDateTime(ZkUtils.getCurrentTimeStamp());
         server.setDescription("A simple server to test monitoring");
         server.setId(index);
         this.servers.add(server);
@@ -650,7 +693,7 @@ public class NodesManager implements Watcher {
     try {
       stat = zk.exists(path, this);
       if (stat != null) {
-        ZKUtils.deleteRecursive(path, null);
+        ZkUtils.deleteRecursive(path, null);
       }
     } catch (KeeperException | InterruptedException e) {
       LOGGER.info("Unable to delete node :: " + server.getName() + " Exception is :: "
@@ -664,7 +707,7 @@ public class NodesManager implements Watcher {
 
   public synchronized void checkZookeeperConnection(Server server) {
     String path = buildMonitorPathForServer(server);
-    zk.exists(path, this, ZKUtils.checkZKConnectionStatusAsync(), server);
+    zk.exists(path, this, ZkUtils.checkZKConnectionStatusAsync(), server);
   }
 
   /**
@@ -692,7 +735,7 @@ public class NodesManager implements Watcher {
     Stat stat = null;
     stat = zk.exists(buildConfigPath(fileName), this);
     if (stat != null) {
-      return ZKUtils.deserialize(zk.getData(buildConfigPath(fileName), this, stat));
+      return ZkUtils.deserialize(zk.getData(buildConfigPath(fileName), this, stat));
     }
     return null;
   }
@@ -702,7 +745,7 @@ public class NodesManager implements Watcher {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
     if (stat != null) {
-      return ZKUtils.deserialize(zk.getData(nodePath, this, stat));
+      return ZkUtils.deserialize(zk.getData(nodePath, this, stat));
     }
     return null;
   }
@@ -712,7 +755,7 @@ public class NodesManager implements Watcher {
     try {
       stat = zk.exists(nodePath, this);
       if (stat != null) {
-        zk.delete(nodePath, stat.getVersion(), ZKUtils.checkDeleteNodeStatusAsync(), nodePath);
+        zk.delete(nodePath, stat.getVersion(), ZkUtils.checkDeleteNodeStatusAsync(), nodePath);
         LOGGER.info("Node {} is deleted successfully", nodePath);
       }
     } catch (KeeperException | InterruptedException e) {
@@ -744,7 +787,7 @@ public class NodesManager implements Watcher {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
     if (stat != null) {
-      zk.setData(nodePath, ZKUtils.serialize(data), stat.getVersion());
+      zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
     }
   }
 

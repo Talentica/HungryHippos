@@ -7,11 +7,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
-import org.apache.commons.lang.SerializationException;
+import org.apache.commons.lang3.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 
 /**
  * @author PooshanS
@@ -28,7 +28,7 @@ public class LeafBean implements Comparable<LeafBean>{
         this.path = path;
         this.name = name;
 		try {
-			this.value = (value != null ) ? ZKUtils.deserialize(value) : null;
+			this.value = (value != null ) ? ZkUtils.deserialize(value) : null;
 		}catch(SerializationException ex){
 			LOGGER.error("Unable to deserialize object with path:- {} And ex", path,ex);
         }
@@ -60,7 +60,7 @@ public class LeafBean implements Comparable<LeafBean>{
 
     public String getStrValue() throws IOException {
         try {
-            return new String(ZKUtils.serialize(this.value), "UTF-8");
+            return new String(ZkUtils.serialize(this.value), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             LOGGER.error(Arrays.toString(ex.getStackTrace()));
         }

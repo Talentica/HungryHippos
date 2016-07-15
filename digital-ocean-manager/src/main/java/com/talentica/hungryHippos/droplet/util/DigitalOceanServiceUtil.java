@@ -23,7 +23,7 @@ import com.myjeeva.digitalocean.pojo.Keys;
 import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -330,12 +330,12 @@ public class DigitalOceanServiceUtil {
       writeLineInFile(CommonUtil.TEMP_JOBUUID_FOLDER_PATH + SERVER_CONF_FILE, ipv4AddrsList);
       LOGGER.info("Server config file is created...");
       LOGGER.info("Start zookeeper server");
-      ZKUtils.startZookeeperServer(jobUUId[0]);
+      ZkUtils.startZookeeperServer(jobUUId[0]);
       LOGGER.info("Checking zookeeper running status on master server...");
-      String zkStatus = ZKUtils.checkZookeeperServerStatus(jobUUId[0]);
+      String zkStatus = ZkUtils.checkZookeeperServerStatus(jobUUId[0]);
       while (!zkStatus.toLowerCase().contains("Mode".toLowerCase())) {
-        ZKUtils.startZookeeperServer(jobUUId[0]);
-        zkStatus = ZKUtils.checkZookeeperServerStatus(jobUUId[0]);
+        ZkUtils.startZookeeperServer(jobUUId[0]);
+        zkStatus = ZkUtils.checkZookeeperServerStatus(jobUUId[0]);
         retryCounter--;
         if (retryCounter == 0) {
           LOGGER

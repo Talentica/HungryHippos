@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
@@ -45,7 +45,7 @@ public class ConfigurationFileRetrieve {
 		String buildPath = nodesManager.buildConfigPath(keyToValueToBucketMapFile);
 		Set<LeafBean> leafs;
 		try {
-			leafs = ZKUtils.searchLeafNode(buildPath, null, null);
+			leafs = ZkUtils.searchLeafNode(buildPath, null, null);
 			for(LeafBean leaf : leafs){
 				LOGGER.info("Path is {} AND node name {}",leaf.getPath(),leaf.getName());
 			}

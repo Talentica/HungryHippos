@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -114,7 +114,7 @@ public class JobExecutor {
    */
   private static void sendFinishJobMatrixSignal() throws IOException, InterruptedException {
     String buildFinishPath =
-        ZKUtils.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.SEPARATOR_CHAR
+        ZkUtils.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.SEPARATOR_CHAR
             + ("_node" + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
             + CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
     CountDownLatch signal = new CountDownLatch(1);
@@ -173,17 +173,17 @@ public class JobExecutor {
       InterruptedException, KeeperException {
 
     String buildPath =
-        ZKUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId)) + PathUtil.SEPARATOR_CHAR
+        ZkUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId)) + PathUtil.SEPARATOR_CHAR
             + ("_node" + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
             + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-    Set<LeafBean> leafs = ZKUtils.searchLeafNode(buildPath, null, null);
+    Set<LeafBean> leafs = ZkUtils.searchLeafNode(buildPath, null, null);
     LOGGER.info("Leafs size found {}", leafs.size());
     List<JobEntity> jobEntities = new ArrayList<JobEntity>();
     for (LeafBean leaf : leafs) {
       LOGGER.info("Leaf path {} and name {}", leaf.getPath(), leaf.getName());
-      String buildLeafPath = ZKUtils.getNodePath(leaf.getPath(), leaf.getName());
+      String buildLeafPath = ZkUtils.getNodePath(leaf.getPath(), leaf.getName());
       LOGGER.info("Build path {}", buildLeafPath);
-      LeafBean leafObject = ZKUtils.getNodeValue(buildPath, buildLeafPath, leaf.getName(), null);
+      LeafBean leafObject = ZkUtils.getNodeValue(buildPath, buildLeafPath, leaf.getName(), null);
       JobEntity jobEntity = (JobEntity) leafObject.getValue();
       if (jobEntity == null)
         continue;

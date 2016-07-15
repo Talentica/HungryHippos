@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZKUtils;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -147,7 +147,7 @@ public class ZkSignalListener {
 	private static void listenerOnAlertNode(NodesManager nodesManager,
 			String nodeName) throws KeeperException, InterruptedException {
 		CountDownLatch signal = new CountDownLatch(1);
-		ZKUtils.waitForSignal(nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.SEPARATOR_CHAR + nodeName),
+		ZkUtils.waitForSignal(nodesManager.buildAlertPathByName(jobuuidInBase64 + PathUtil.SEPARATOR_CHAR + nodeName),
 				signal);
 		signal.await();
 	}

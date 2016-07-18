@@ -21,103 +21,105 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
 
 @Ignore
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ NodesManagerContext.class, CoordinationApplicationContext.class })
-@SuppressStaticInitializationFor({ "com.talentica.hungryHippos.coordination.domain.NodesManagerContext" })
+@PrepareForTest({NodesManagerContext.class, CoordinationApplicationContext.class})
+@SuppressStaticInitializationFor({
+    "com.talentica.hungryHippos.coordination.domain.NodesManagerContext"})
 public class HungryHipposFileSystemTest {
 
-	private HungryHipposFileSystem system;
+  private HungryHipposFileSystem system = HungryHipposFileSystem.getInstance();
 
-	private NodesManager nodesManager;
-	private Property<ZkProperty> zkProperty;
+  private NodesManager nodesManager;
+  private Property<ZkProperty> zkProperty;
 
-	public void setUp() {
-		PowerMockito.mockStatic(NodesManagerContext.class);
-		PowerMockito.mockStatic(CoordinationApplicationContext.class);
+  public void setUp() {
+    PowerMockito.mockStatic(NodesManagerContext.class);
+    PowerMockito.mockStatic(CoordinationApplicationContext.class);
 
-		nodesManager = Mockito.mock(NodesManager.class);
-		zkProperty = Mockito.mock(Property.class);
-	}
+    nodesManager = Mockito.mock(NodesManager.class);
+    zkProperty = Mockito.mock(Property.class);
+  }
 
-	@Test
-	public void testCreateZnode() {
-		String testFolder = "test";
-		String path = HungryHipposFileSystem.createZnode(testFolder);
-		assertNotNull(path);
-	}
+  @Test
+  public void testCreateZnode() {
+    String testFolder = "test";
+    String path = system.createZnode(testFolder);
+    assertNotNull(path);
+  }
 
-	@Test
-	public void testCreateZnodeArg2() {
-		String testFolder = "test1";
-		CountDownLatch signal = new CountDownLatch(1);
-		String path = HungryHipposFileSystem.createZnode(testFolder, signal);
-		try {
-			signal.await();
-		} catch (InterruptedException e) {
-			assertFalse(false);
-		}
-		assertNotNull(path);
-	}
+  @Test
+  public void testCreateZnodeArg2() {
+    String testFolder = "test1";
+    CountDownLatch signal = new CountDownLatch(1);
+    String path = system.createZnode(testFolder, signal);
+    try {
+      signal.await();
+    } catch (InterruptedException e) {
+      assertFalse(false);
+    }
+    assertNotNull(path);
+  }
 
-	@Test
-	public void testCreateZnodeArg3() {
-		String testFolder = "test2";
-		String path = HungryHipposFileSystem.createZnode(testFolder, "testing");
-		assertNotNull(path);
-	}
+  @Test
+  public void testCreateZnodeArg3() {
+    String testFolder = "test2";
+    String path = system.createZnode(testFolder, "testing");
+    assertNotNull(path);
+  }
 
-	@Test
-	public void testCheckZnodeExists() {
-		boolean flag = HungryHipposFileSystem.checkZnodeExists("test2");
-		assertTrue(flag);
-	}
+  @Test
+  public void testCheckZnodeExists() {
+    boolean flag = system.checkZnodeExists("test2");
+    assertTrue(flag);
+  }
 
-	@Test
-	public void testCheckZnodeExistsNegative() {
-		boolean flag = HungryHipposFileSystem.checkZnodeExists("test3");
-		assertFalse(flag);
-	}
+  @Test
+  public void testCheckZnodeExistsNegative() {
+    boolean flag = system.checkZnodeExists("test3");
+    assertFalse(flag);
+  }
 
-	@Test
-	public void testSetData() {
-		HungryHipposFileSystem.setData("test1", "data Passed");
+  @Test
+  public void testSetData() {
+    system.setData("test1", "data Passed");
 
-	}
+  }
 
-	@Test
-	public void testGetData() {
-		String s = HungryHipposFileSystem.getData("test1");
-		assertNotNull(s);
-	}
+  @Test
+  public void testGetData() {
+    String s = system.getData("test1");
+    assertNotNull(s);
+  }
 
-	@Test
-	public void testUpdateFSBlockMetaData() {
-		setUp();
-		try {
-			String fileZKNode = "input";
-			String fileSystemRootNodeZKPath = "/rootnode/filesystem";
-			String dataFileZKNode = "0";
-			long datafileSize = 1000L;
-			String nodeIp = "localhost";
-			String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
-			String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
+  @Test
+  public void testUpdateFSBlockMetaData() {
+    setUp();
+    try {
+      String fileZKNode = "input";
+      String fileSystemRootNodeZKPath = "/rootnode/filesystem";
+      String dataFileZKNode = "0";
+      long datafileSize = 1000L;
+      String nodeIp = "localhost";
+      String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
+      String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
 
-			PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).thenReturn(nodesManager);
-			PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
+      PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).thenReturn(nodesManager);
+      PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
 
-			Mockito.when(nodesManager.checkNodeExists(fileNodeZKPath)).thenReturn(false);
-			Mockito.when(nodesManager.checkNodeExists(nodeIpZKPath)).thenReturn(false);
-			Mockito.when(nodesManager.getObjectFromZKNode(fileNodeZKPath)).thenReturn("0");
-			Mockito.doNothing().when(nodesManager).createPersistentNode(Mockito.anyString(), new CountDownLatch(1),
-					Mockito.eq(Mockito.any()));
-			Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE)).thenReturn(fileSystemRootNodeZKPath);
+      Mockito.when(nodesManager.checkNodeExists(fileNodeZKPath)).thenReturn(false);
+      Mockito.when(nodesManager.checkNodeExists(nodeIpZKPath)).thenReturn(false);
+      Mockito.when(nodesManager.getObjectFromZKNode(fileNodeZKPath)).thenReturn("0");
+      Mockito.doNothing().when(nodesManager).createPersistentNode(Mockito.anyString(),
+          new CountDownLatch(1), Mockito.eq(Mockito.any()));
+      Mockito.when(zkProperty.getValueByKey(FileSystemConstants.ROOT_NODE))
+          .thenReturn(fileSystemRootNodeZKPath);
 
-			HungryHipposFileSystem.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+      system.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
 
-			assertTrue(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-			assertTrue(false);
-		}
-	}
+      assertTrue(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+      assertTrue(false);
+    }
+  }
 
 }

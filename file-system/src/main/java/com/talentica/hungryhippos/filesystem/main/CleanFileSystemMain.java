@@ -1,7 +1,6 @@
 package com.talentica.hungryhippos.filesystem.main;
 
 import java.io.File;
-import java.nio.file.FileSystem;
 
 import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 
@@ -12,15 +11,16 @@ import com.talentica.hungryhippos.filesystem.CleanFileSystem;
  */
 public class CleanFileSystemMain {
 
-	private static final String ROOT_DIR = "HungryHipposFs";
+  private static final String ROOT_DIR = "HungryHipposFs";
 
-	/**
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
+  /**
+   * 
+   * @param args
+   */
+  public static void main(String[] args) {
 
-		CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
-	}
+    CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(
+        System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
+  }
 
 }

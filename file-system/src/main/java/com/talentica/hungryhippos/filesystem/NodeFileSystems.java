@@ -25,7 +25,7 @@ public class NodeFileSystems {
   private static final String ROOT_DIR = "HungryHipposFs";
   private static final String USER_DIR = System.getProperty("user.dir");
 
-  public boolean checkFileExistsInNode(Path path) {  
+  public boolean checkFileExistsInNode(Path path) {
 
     return Files.exists(path);
   }
@@ -87,12 +87,12 @@ public class NodeFileSystems {
    * @param path
    */
 
-  public static void deleteFile(Path path) {
+  public static void deleteFile(String path) {
     if (path.toString().equals(USER_DIR + ROOT_DIR)) {
       return;
     }
     try {
-      Files.delete(path);
+      Files.delete(Paths.get(path));
     } catch (IOException e) {
       logger.error(e.getMessage());
     }
@@ -104,15 +104,37 @@ public class NodeFileSystems {
    * @param path
    */
 
-  public static void deleteAllFilesInsideAFolder(Path path) {
-    List<Path> regularFilesInFolder = getAllRgularFilesPath(path.toString());
-    List<Path> directoryInsideFolder = getAllDirectoryPath(path.toString());
+  public static void deleteAllFilesInsideAFolder(String path) {
+    List<Path> regularFilesInFolder = getAllRgularFilesPath(path);
+    List<Path> directoryInsideFolder = getAllDirectoryPath(path);
 
     regularFilesInFolder.stream().forEach(CleanFileSystem::deleteFile);
     // reversing the list so first subfolders of a folder is deleted first.
     directoryInsideFolder.stream().sorted().collect(Collectors.toCollection(ArrayDeque::new))
         .descendingIterator().forEachRemaining(CleanFileSystem::deleteFile);
 
+  }
+
+  public static Path createDir(String loc) {
+    Path path = null;
+
+    try {
+      path = Files.createDirectories(path);
+    } catch (IOException e) {
+
+      e.printStackTrace();
+    }
+    return path;
+  }
+
+  public static Path createFile(String loc) {
+    Path path = null;
+    try {
+      path = Files.createFile(Paths.get(loc));
+    } catch (IOException e) {
+
+    }
+    return path;
   }
 
 

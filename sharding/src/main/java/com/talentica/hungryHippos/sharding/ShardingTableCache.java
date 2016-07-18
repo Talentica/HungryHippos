@@ -5,33 +5,38 @@ import java.util.Map;
 
 public class ShardingTableCache {
 
+  private static ShardingTableCache shardingTableCache = null;
   private final Map<String, Object> shardingTableMap = new HashMap<>();
 
-  ShardingTableZkService table = new ShardingTableZkService();
-
-  public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
-  public final static String bucketCombinationToNodeNumbersMapFile =
-      "bucketCombinationToNodeNumbersMap";
-  public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
+  private ShardingTableZkService table = new ShardingTableZkService();
 
   private ShardingTableCache() {}
 
   public static ShardingTableCache newInstance() {
-    return new ShardingTableCache();
+    if (shardingTableCache == null) {
+      shardingTableCache = new ShardingTableCache();
+    }
+    return shardingTableCache;
   }
 
   public Object getShardingTableFromCache(String key) throws IllegalArgumentException {
     Object value = shardingTableMap.get(key);
     if (value == null) {
-      if (key.equalsIgnoreCase(bucketCombinationToNodeNumbersMapFile)) {
+      if (key.equalsIgnoreCase(
+          ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName())) {
         value = table.readBucketCombinationToNodeNumbersMap();
-        shardingTableMap.put(bucketCombinationToNodeNumbersMapFile, value);
-      } else if (key.equalsIgnoreCase(bucketToNodeNumberMapFile)) {
+        shardingTableMap.put(
+            ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName(), value);
+      } else if (key
+          .equalsIgnoreCase(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName())) {
         value = table.readBucketToNodeNumberMap();
-        shardingTableMap.put(bucketToNodeNumberMapFile, value);
-      } else if (key.equalsIgnoreCase(keyToValueToBucketMapFile)) {
+        shardingTableMap.put(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName(),
+            value);
+      } else if (key
+          .equalsIgnoreCase(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName())) {
         value = table.readKeyToValueToBucketMap();
-        shardingTableMap.put(keyToValueToBucketMapFile, value);
+        shardingTableMap.put(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName(),
+            value);
       } else {
         throw new IllegalArgumentException();
       }

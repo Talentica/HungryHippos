@@ -16,7 +16,8 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTableZkService;
+import com.talentica.hungryHippos.sharding.ShardingTableCache;
+import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 @SuppressWarnings("unchecked")
@@ -31,9 +32,12 @@ public class NodeUtil {
   private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   static {
-    ShardingTableZkService shardingTable = new ShardingTableZkService();
-    keyToValueToBucketMap = shardingTable.readKeyToValueToBucketMap();
-    bucketToNodeNumberMap = shardingTable.readBucketToNodeNumberMap();
+    ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
+    keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) shardingTableCache
+        .getShardingTableFromCache(
+            ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName());
+    bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) shardingTableCache
+        .getShardingTableFromCache(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName());
   }
 
   public static final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {

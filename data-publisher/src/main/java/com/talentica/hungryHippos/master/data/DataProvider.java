@@ -33,7 +33,8 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTableZkService;
+import com.talentica.hungryHippos.sharding.ShardingTableCache;
+import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -75,9 +76,14 @@ public class DataProvider {
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-    ShardingTableZkService shardingTable = new ShardingTableZkService();
-    bucketCombinationNodeMap = shardingTable.readBucketCombinationToNodeNumbersMap();
-    keyToValueToBucketMap = shardingTable.readKeyToValueToBucketMap();
+
+    ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
+    bucketCombinationNodeMap =
+        (Map<BucketCombination, Set<Node>>) shardingTableCache.getShardingTableFromCache(
+            ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName());
+    keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) shardingTableCache
+        .getShardingTableFromCache(
+            ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName());
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");

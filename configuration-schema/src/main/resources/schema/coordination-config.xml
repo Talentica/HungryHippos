@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:coordination-config xmlns:tns="http://www.talentica.com/hungryhippos/coordination" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/coordination coordination-config.xsd ">
+<tns:coordination-config xmlns:tns="http://www.talentica.com/hungryhippos/config/coordination" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/coordination coordination-config.xsd ">
   <tns:cluster-config>
     <tns:node>
       <tns:identifier>0</tns:identifier>

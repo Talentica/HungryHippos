@@ -72,7 +72,7 @@ public class Node implements Comparable<Node>,Serializable{
 
     @Override
     public String toString() {
-		return "Node{" + nodeId + " And remainingCapacity "+ remainingCapacity +"}";
+		return "Node{" + nodeId + "}";
     }
 
 	@Override

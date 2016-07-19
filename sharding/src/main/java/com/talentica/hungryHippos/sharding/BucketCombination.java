@@ -99,6 +99,6 @@ public class BucketCombination implements Serializable {
 
 	@Override
 	public String toString() {
-		return "BucketCombination{" + "BucketCombination=" + bucketsCombination + '}';
+		return "BucketCombination{" + bucketsCombination + '}';
 	}
 }

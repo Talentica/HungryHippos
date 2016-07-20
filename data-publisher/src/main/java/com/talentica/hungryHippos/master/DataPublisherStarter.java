@@ -17,7 +17,6 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
 
 public class DataPublisherStarter {
 

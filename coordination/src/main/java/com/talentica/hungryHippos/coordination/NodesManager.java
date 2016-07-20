@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.coordination;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -28,6 +29,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
@@ -746,6 +748,16 @@ public class NodesManager implements Watcher {
     return null;
   }
 
+	public String getStringFromZKNode(String nodePath)
+			throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
+		Stat stat = null;
+		stat = zk.exists(nodePath, this);
+		if (stat != null) {
+			return new String(zk.getData(nodePath, this, stat), Charsets.UTF_8);
+		}
+		return null;
+	}
+
   public synchronized void deleteNode(String nodePath) {
     Stat stat = null;
     try {
@@ -778,26 +790,36 @@ public class NodesManager implements Watcher {
     return flag;
   }
 
-  public void setObjectToZKNode(String nodePath, Object data) throws KeeperException,
-      InterruptedException, ClassNotFoundException, IOException {
-    Stat stat = null;
-    stat = zk.exists(nodePath, this);
-    if (stat != null) {
+	public void setObjectToZKNode(String nodePath, Object data)
+			throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
+		Stat stat = null;
+		stat = zk.exists(nodePath, this);
+		if (stat != null) {
       zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
-    }
-  }
+				zk.setData(nodePath, ((String) data).getBytes(), stat.getVersion());
+			} else {
+			}
+		}
 
-  public void setObjectToZKNode(String nodePath, byte[] data) throws KeeperException,
-      InterruptedException, ClassNotFoundException, IOException {
-    Stat stat = null;
-    stat = zk.exists(nodePath, this);
-    if (stat != null) {
+	public void setObjectToZKNode(String nodePath, byte[] data)
+			throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
+		Stat stat = null;
+		stat = zk.exists(nodePath, this);
+		if (stat != null) {
       zk.setData(nodePath, data, stat.getVersion());
-    }
-  }
+		}
+	}
 
-  public boolean checkNodeExists(String nodePath) throws KeeperException, InterruptedException {
+	/**
+	 * Checks if a nodePath exists in zookeeper
+	 * 
+	 * @param nodePath
+	 * @return
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public boolean checkNodeExists(String nodePath) throws KeeperException, InterruptedException {
     Stat stat = zk.exists(nodePath, this);
     return stat != null;
-  }
+	}
 }

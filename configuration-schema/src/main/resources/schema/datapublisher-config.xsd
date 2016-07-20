@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/datapublisher"
+	xmlns:tns="http://www.talentica.com/hungryhippos/datapublisher"
+	elementFormDefault="qualified">
+	<element name="datapublisher-config">
+		<complexType>
+			<sequence>
+				<element type="int" name="no-of-attempts-to-connect-to-node"/>
+				<element type="int" name="servers-connect-retry-interval-in-ms"/>
+			</sequence>
+		</complexType>
+	</element>
+	
+</schema>

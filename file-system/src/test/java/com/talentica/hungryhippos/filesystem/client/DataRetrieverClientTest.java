@@ -67,7 +67,8 @@ public class DataRetrieverClientTest {
 					Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyLong());
 			PowerMockito.doNothing().when(FileSystemUtils.class, "createDirectory", Mockito.anyString());
 			PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).thenReturn(nodesManager);
-			PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
+//	        TODO: Need to fix this - after merge
+//			PowerMockito.when(CoordinationApplicationContext.getZkProperty()).thenReturn(zkProperty);
 
 			for (String dataFileNode : dataFileNodes) {
 				Mockito.when(nodesManager.getObjectFromZKNode(nodeIpZKPath + File.separator + dataFileNode))

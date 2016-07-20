@@ -1,20 +1,25 @@
 package com.talentica.hungryhippos.filesystem.client;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
-import com.talentica.hungryhippos.filesystem.FileSystemConstants;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.*;
-import java.net.Socket;
-import java.util.List;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.filesystem.FileSystemConstants;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 /**
  * This class is for retrieving the sharded files from the HungryHippos
@@ -36,8 +41,10 @@ public class DataRetrieverClient {
 		FileSystemUtils.createDirectory(outputDirName);
 		int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
 		NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
-		String fileNodeZKPath = CoordinationApplicationContext.getZkProperty()
-				.getValueByKey(FileSystemConstants.ROOT_NODE) + File.separator + fileZKNode;
+//      TODO: Need to fix this - after merge
+//		String fileNodeZKPath = CoordinationApplicationContext.getZkProperty()
+//				.getValueByKey(FileSystemConstants.ROOT_NODE) + File.separator + fileZKNode;
+		String fileNodeZKPath = null;
 		List<String> nodeIps = nodesManager.getChildren(fileNodeZKPath);
 		int count = 0;
 		for (String nodeIp : nodeIps) {

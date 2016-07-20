@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/client"
-	xmlns:tns="http://www.talentica.com/hungryhippos/client"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/zookeeper"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/zookeeper"
 	elementFormDefault="qualified">
 
 	<element name="zookeeper-config">

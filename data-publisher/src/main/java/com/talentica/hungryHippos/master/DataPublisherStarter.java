@@ -17,6 +17,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 
 public class DataPublisherStarter {
 
@@ -29,8 +30,8 @@ public class DataPublisherStarter {
       validateArguments(args);
       setContext(args);
       nodesManager = NodesManagerContext.getNodesManagerInstance();
-      ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
-      fileSystem.createFilesAsZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
+	  HungryHipposFileSystem fileSystem = HungryHipposFileSystem.getInstance();
+      fileSystem.createZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
           .getInputFileConfig().getInputFileName());
       String dataParserClassName =
           ShardingApplicationContext.getZkShardingConfigCache().getInput().getDataParserConfig()

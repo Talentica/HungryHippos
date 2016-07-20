@@ -2,6 +2,18 @@ apply plugin: 'java'
 
 sourceCompatibility = 1.8
 
+buildscript {
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath "com.github.jacobono:gradle-jaxb-plugin:1.3.5"
+	}
+}
+apply plugin: 'com.github.jacobono.jaxb'
+
 def generatedJava = 'src/main/generated'
 sourceSets {
 	// Note that just declaring this sourceset creates two configurations.
@@ -16,23 +28,27 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+	jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
+	jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
+	jaxb 'javax.xml.bind:jaxb-api:2.2.7'
+}
+
+jaxb {
+	xsdDir = project.name + "/src/main/resources"
+	xjc{
+		destinationDir = generatedJava
+	}
+}
+
+
+
 jar {
 	version=null
 }
 
-xsd2java{
-	encoding = 'utf-8'
-	xsdsToGenerate = [
-		["src/main/resources/schema/coordination-config.xsd", 'com.talentica.hungryhippos.config.coordination', [header: false]],
-		["src/main/resources/schema/sharding-config.xsd", 'com.talentica.hungryhippos.config.sharding', [header: false]],
-		["src/main/resources/schema/client-config.xsd", 'com.talentica.hungryhippos.config.client', [header: false]],
-		["src/main/resources/schema/zookeeper-config.xsd", 'com.talentica.hungryhippos.config.zookeeper', [header: false]],
-		["src/main/resources/schema/filesystem-config.xsd", 'com.talentica.hungryhippos.config.filesystem', [header: false]],
-		["src/main/resources/schema/job-config.xsd", 'com.talentica.hungryhippos.config.job', [header: false]]
-	]
-	generatedXsdDir = file(generatedJava)
-}
+
 
 compileJava{
-	dependsOn xsd2java
+	dependsOn xjc
 }

@@ -13,9 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-
 /**
  * HungryHipposFileSystem FileSystem. This class has methods for creating files as znodes in the
  * Zookeeper.
@@ -27,8 +26,8 @@ public class HungryHipposFileSystem {
 
   private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
   private static NodesManager nodeManager = null;
-  private static final String ROOT_NODE =
-      CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
+	private static final String ROOT_NODE = null;
+	// CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
   private static volatile HungryHipposFileSystem hfs = null;
 
   // for singleton
@@ -206,7 +205,7 @@ public class HungryHipposFileSystem {
   public List<String> findZnodePath(String name) {
     List<String> pathWithSameZnodeName = null;
     try {
-      ZKUtils.getNodePathByName(ROOT_NODE, name, pathWithSameZnodeName);
+			ZkUtils.getNodePathByName(ROOT_NODE, name, pathWithSameZnodeName);
     } catch (InterruptedException | KeeperException e) {
       logger.error(e.getMessage());
 
@@ -241,7 +240,7 @@ public class HungryHipposFileSystem {
     name = checkNameContainsFileSystemRoot(name);
     CountDownLatch signal = new CountDownLatch(1);
     try {
-      ZKUtils.deleteRecursive(name, signal);
+			ZkUtils.deleteRecursive(name, signal);
     } catch (Exception e) {
       logger.error(e.getMessage());
 

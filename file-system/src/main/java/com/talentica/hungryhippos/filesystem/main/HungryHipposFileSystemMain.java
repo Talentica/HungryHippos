@@ -80,7 +80,7 @@ public class HungryHipposFileSystemMain {
         break;
       case TOUCH:
         hhfs.createZnode(name);
-        
+
         break;
       case MKDIR:
         hhfs.createZnode(name);

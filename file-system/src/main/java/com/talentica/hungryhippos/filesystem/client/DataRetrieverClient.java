@@ -41,9 +41,11 @@ public class DataRetrieverClient {
 		FileSystemUtils.createDirectory(outputDirName);
 		int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
 		NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
-//      TODO: Need to fix this - after merge
-//		String fileNodeZKPath = CoordinationApplicationContext.getZkProperty()
-//				.getValueByKey(FileSystemConstants.ROOT_NODE) + File.separator + fileZKNode;
+		// TODO: Need to fix this - after merge
+		// String fileNodeZKPath =
+		// CoordinationApplicationContext.getZkProperty()
+		// .getValueByKey(FileSystemConstants.ROOT_NODE) + File.separator +
+		// fileZKNode;
 		String fileNodeZKPath = null;
 		List<String> nodeIps = nodesManager.getChildren(fileNodeZKPath);
 		int count = 0;

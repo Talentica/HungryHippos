@@ -72,7 +72,7 @@ public class HungryHipposFileSystem {
    * @param name
    * @return
    */
-  public String createZnode(String name)  {
+  public String createZnode(String name) {
     name = checkNameContainsFileSystemRoot(name);
     CountDownLatch signal = new CountDownLatch(1);
     return createZnode(name, signal);
@@ -85,7 +85,7 @@ public class HungryHipposFileSystem {
    * @param data
    * @return
    */
-  public String createZnode(String name, Object data)  {
+  public String createZnode(String name, Object data) {
     name = checkNameContainsFileSystemRoot(name);
     CountDownLatch signal = new CountDownLatch(1);
     return createZnode(name, signal, data);
@@ -98,8 +98,7 @@ public class HungryHipposFileSystem {
    * @param signal
    * @return
    */
-  public String createZnode(String name, CountDownLatch signal)
-       {
+  public String createZnode(String name, CountDownLatch signal) {
     name = checkNameContainsFileSystemRoot(name);
     return createZnode(name, signal, "");
   }
@@ -112,8 +111,7 @@ public class HungryHipposFileSystem {
    * @param data
    * @return
    */
-  public String createZnode(String name, CountDownLatch signal, Object data)
-       {
+  public String createZnode(String name, CountDownLatch signal, Object data) {
     name = checkNameContainsFileSystemRoot(name);
     try {
       nodeManager.createPersistentNode(name, signal, data);
@@ -130,7 +128,7 @@ public class HungryHipposFileSystem {
    * @param name
    * @return
    */
-  public boolean checkZnodeExists(String name)  {
+  public boolean checkZnodeExists(String name) {
     name = checkNameContainsFileSystemRoot(name);
     boolean exists = false;
     try {
@@ -282,16 +280,19 @@ public class HungryHipposFileSystem {
     String dataFileNodeZKPath = nodeIpZKPath + File.separator + dataFileZKNode;
     long prevDataFileSize = 0;
     if (checkZnodeExists(dataFileNodeZKPath)) {
-      String prevDataFileData = (String) getObjectData(dataFileNodeZKPath);
+      String prevDataFileData = getData(dataFileNodeZKPath);
       prevDataFileSize = Long.parseLong(prevDataFileData);
-      setData(dataFileNodeZKPath, datafileSize + "");
+      setData(dataFileNodeZKPath, datafileSize+"");
     } else {
       if (!checkZnodeExists(nodeIpZKPath)) {
         createZnode(nodeIpZKPath, new CountDownLatch(1), "");
       }
       createZnode(dataFileNodeZKPath, new CountDownLatch(1), datafileSize + "");
     }
-    String fileZKNodeValues = (String) getObjectData(fileNodeZKPath);
+    String fileZKNodeValues = getData(fileNodeZKPath);
+    if (fileZKNodeValues == null || fileZKNodeValues.isEmpty()) {
+      fileZKNodeValues = "0";
+    }
     long currentSize = Long.parseLong(fileZKNodeValues) + datafileSize - prevDataFileSize;
     setData(fileNodeZKPath, (currentSize + ""));
   }

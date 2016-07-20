@@ -20,6 +20,8 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 	public Integer getId() {
 		return id;
 	}
+	
+	public Bucket(){}
 
 	public Bucket(int id, long size) {
 		this.id = id;
@@ -93,5 +95,23 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
 		}
 		return super.toString();
 	}
+
+  public long getNumberOfObjects() {
+    return numberOfObjects;
+  }
+
+  public void setNumberOfObjects(long numberOfObjects) {
+    this.numberOfObjects = numberOfObjects;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  public void setSize(long size) {
+    this.size = size;
+  }
+	
+	
 
 }

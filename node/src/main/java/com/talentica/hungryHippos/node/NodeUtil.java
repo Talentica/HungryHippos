@@ -20,7 +20,6 @@ import com.talentica.hungryHippos.sharding.ShardingTableCache;
 import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
 import com.talentica.hungryHippos.utility.PathUtil;
 
-@SuppressWarnings("unchecked")
 public class NodeUtil {
 
   private static final String nodeIdFile = "nodeId";

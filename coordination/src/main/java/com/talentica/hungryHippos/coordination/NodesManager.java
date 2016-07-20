@@ -239,15 +239,25 @@ public class NodesManager implements Watcher {
     CountDownLatch counter = new CountDownLatch(fields.length);
     for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
       fields[fieldIndex].setAccessible(true);
+      if (ZkUtils.isZkTransient(fields[fieldIndex])) {
+        continue;
+      }
       String fieldName = fields[fieldIndex].getName();
       Object value = fields[fieldIndex].get(object);
       String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
       String leafNodePath = parentNode + File.separatorChar + leafNode;
-      createPersistentNode(leafNodePath, counter, ZkUtils.isZkTransient(fields, fieldIndex));
+      createPersistentNodeSync(leafNodePath);
     }
     counter.await();
     signal.countDown();
   }
+
+  public void createPersistentNodeSync(final String node) throws IOException, InterruptedException {
+    CountDownLatch counter = new CountDownLatch(1);
+    createNode(node, counter, CreateMode.PERSISTENT);
+    counter.await();
+  }
+
 
   /**
    * To Create the singal node as a name of the zookeeper node.
@@ -439,6 +449,7 @@ public class NodesManager implements Watcher {
   }
 
   public List<String> getChildren(String parentNode) throws KeeperException, InterruptedException {
+    System.out.println(parentNode);
     List<String> children = zk.getChildren(parentNode, this);
     return children;
   }

@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.sharding;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -90,7 +89,6 @@ public class ShardingTableTest {
   }
 
   @Test
-  @Ignore
   public void testKeyToValueToBucketRead() {
     try {
       shardingTable.readKeyToValueToBucketMap();
@@ -101,13 +99,23 @@ public class ShardingTableTest {
   }
 
   @Test
-  public void testBucketToNodeNumberObject() throws IllegalArgumentException,
-      IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
+  public void testBucketToNodeNumberObject() throws Exception {
     try {
-      ZkUtils.createZkNodeMap("/rootnode/test/"+Map.class.getName(), shardingTable.getBucketToNodeNumberMap());
+      ZkUtils.saveObjectZkNode("/rootnode/test1",
+          shardingTable.getBucketToNodeNumberMap());
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+    } catch (IllegalArgumentException e) {
       Assert.assertFalse(true);
+    }
+  }
+
+  @Test
+  public <V, K> void testGetBucketToNodeNumberObject() throws Exception {
+    try {
+      Object object  = ZkUtils.readObjectZkNode("/rootnode/test1");
+      Assert.assertTrue(true);
+    } finally{
+      
     }
   }
 }

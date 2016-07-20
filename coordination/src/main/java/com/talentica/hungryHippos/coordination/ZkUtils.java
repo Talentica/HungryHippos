@@ -9,15 +9,18 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -26,7 +29,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZKUtil;
@@ -41,6 +43,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
 
@@ -52,10 +55,12 @@ import com.talentica.hungryhippos.config.client.CoordinationServers;
  *
  */
 public class ZkUtils {
+  public static final String zkPathSeparator = "/";
   private static final Logger LOGGER = LoggerFactory.getLogger(ZkUtils.class.getName());
   private static String ZK_ROOT_NODE = "/rootnode";
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
+  public static final String CHARSET = "UTF8";
 
   public static ZKNodeFile getConfigZKNodeFile(String fileName,
       CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
@@ -122,7 +127,7 @@ public class ZkUtils {
       ClassNotFoundException {
     LOGGER.info("IN searchTree path {}", searchString);
     /* Export all nodes and then search. */
-    if (searchString.contains("/"))
+    if (searchString.contains(zkPathSeparator))
       ZK_ROOT_NODE = searchString;
     Set<LeafBean> searchResult = new TreeSet<>();
     Set<LeafBean> leaves = new TreeSet<>();
@@ -203,8 +208,8 @@ public class ZkUtils {
     List<String> children = zk.getChildren(path, false);
     for (String child : children) {
       String childPath;
-      if (!path.equals("/")) {
-        childPath = path + "/" + child;
+      if (!path.equals(zkPathSeparator)) {
+        childPath = path + zkPathSeparator + child;
       } else {
         childPath = path + child;
       }
@@ -534,8 +539,155 @@ public class ZkUtils {
     return retStatus;
   }
 
-  public static boolean isZkTransient(Field[] fields, int fieldIndex) {
-    ZkTransient zkTransient = fields[fieldIndex].getAnnotation(ZkTransient.class);
+  private static class KeyValuePair {
+    private Object key;
+    private Object value;
+
+    public KeyValuePair(Object key, Object value) {
+      super();
+      this.key = key;
+      this.value = value;
+    }
+  }
+
+  public static Object readObjectZkNode(String parentNode) {
+    try {
+      String classNameParen = nodesManager.getChildren(parentNode).get(0);
+      List<String> values = nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
+      String valueString = values.size() > 0 ? values.get(0) : null;
+      String className = classNameParen.substring(1, classNameParen.length() - 1);
+      switch (className) {
+        case ("int"):
+          return Integer.valueOf(valueString);
+        case ("long"):
+          return Long.valueOf(valueString);
+        case ("short"):
+          return Short.valueOf(valueString);
+        case ("byte"):
+          return Byte.valueOf(valueString);
+        case ("char"):
+          return URLDecoder.decode(valueString, CHARSET).charAt(0);
+        case ("float"):
+          return Float.valueOf(valueString);
+        case ("double"):
+          return Double.valueOf(valueString);
+        case ("java.lang.String"):
+          return URLDecoder.decode(valueString, CHARSET);
+        case ("MAP"):
+          Map map = new HashMap<>();
+          List<String> valueStrings =
+              nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
+          for (String entryNum : valueStrings) {
+            String keyNode =
+                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + entryNum
+                    + zkPathSeparator + "key=";
+            String valueNode =
+                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + entryNum
+                    + zkPathSeparator + "value=";
+            Object key = readObjectZkNode(keyNode);
+            Object value = readObjectZkNode(valueNode);
+            map.put(key, value);
+          }
+          return map;
+        case ("ITERABLE"):
+          List list = new LinkedList<>();
+          List<String> entries =
+              nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
+          for (String entryNum : entries) {
+            String entryString =
+                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + entryNum;
+            Object value = readObjectZkNode(entryString);
+            list.add(value);
+          }
+          return list;
+        default:
+          Class objClass = Class.forName(className);
+          Object obj = objClass.newInstance();
+          List<String> fieldNames =
+              nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
+          for (String fieldName : fieldNames) {
+            Field field = objClass.getDeclaredField(fieldName.substring(0, fieldName.length() - 1));
+            field.setAccessible(true);
+            String valueNodeString =
+                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + fieldName;
+            Object value = readObjectZkNode(valueNodeString);
+            field.set(obj, value);
+          }
+          return obj;
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    return null;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public static void saveObjectZkNode(String parentNode, Object object) {
+    try {
+      String className = getClassIdentifier(object);
+      if (object == null) {
+
+      } else if (object instanceof Map<?, ?>) {
+        Iterable<Map.Entry> iterable = ((Map) object).entrySet();
+        int index = 0;
+        for (Map.Entry o : iterable) {
+          saveObjectZkNode(parentNode + zkPathSeparator + "(" + className + ")/" + (index++),
+              new KeyValuePair(o.getKey(), o.getValue()));
+        }
+      } else if (object instanceof Iterable<?>) {
+        Iterable<?> iterable = (Iterable<?>) object;
+        int index = 0;
+        for (Object o : iterable) {
+          saveObjectZkNode(parentNode + zkPathSeparator + "(" + className + ")/" + (index++), o);
+        }
+      } else if (object instanceof KeyValuePair) {
+        saveObjectZkNode(parentNode + zkPathSeparator + "key=", ((KeyValuePair) object).key);
+        saveObjectZkNode(parentNode + zkPathSeparator + "value=", ((KeyValuePair) object).value);
+      } else if (ClassUtils.isPrimitiveOrWrapper(object.getClass())) {
+        if (object instanceof Character) {
+          object = URLEncoder.encode("" + (Character) object, CHARSET);
+        }
+        nodesManager.createPersistentNodeSync(parentNode + zkPathSeparator + "(" + className + ")/"
+            + URLEncoder.encode(object.toString(), CHARSET));
+      } else if (object instanceof String) {
+        nodesManager.createPersistentNodeSync(parentNode + zkPathSeparator + "(" + className + ")/"
+            + URLEncoder.encode(object.toString(), CHARSET));
+      } else {
+        Field[] fields = object.getClass().getDeclaredFields();
+        for (Field field : fields) {
+          if (ZkUtils.isZkTransient(field)) {
+            continue;
+          }
+          field.setAccessible(true);
+          String fieldName = field.getName();
+          Object value;
+          value = field.get(object);
+          String fieldNameString = fieldName + ZkNodeName.EQUAL.getName();
+          saveObjectZkNode(parentNode + zkPathSeparator + "(" + className + ")" + zkPathSeparator
+              + fieldNameString, value);
+        }
+      }
+    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static String getClassIdentifier(Object c) {
+    if (c instanceof Iterable) {
+      return "ITERABLE";
+    } else if (c instanceof Map) {
+      return "MAP";
+    } else if (c instanceof KeyValuePair) {
+      return "KEYVALUE";
+    } else if (ClassUtils.isPrimitiveWrapper(c.getClass())) {
+      return ClassUtils.wrappersToPrimitives(c.getClass())[0].getName();
+    } else {
+      return c.getClass().getName();
+    }
+  }
+
+  public static boolean isZkTransient(Field field) {
+    ZkTransient zkTransient = field.getAnnotation(ZkTransient.class);
     return (zkTransient == null) ? false : zkTransient.value();
   }
 
@@ -544,78 +696,17 @@ public class ZkUtils {
     return (zkTransient == null) ? false : zkTransient.value();
   }
 
-  public static void createZkNode(String basePath, Object object) throws IllegalArgumentException,
-      IllegalAccessException, IOException, InterruptedException, ClassNotFoundException {
-    Field[] fields = object.getClass().getDeclaredFields();
-    for (int index = 0; index < fields.length; index++) {
-      fields[index].setAccessible(true);
-      Field field = fields[index];
-      Object value = FieldUtils.readField(field, object);
-      if (value == null)
-        continue;
-      if (ClassUtils.isPrimitiveOrWrapper(field.getType())) {
-        String childPath =
-            basePath + File.separatorChar + field.getName() + File.separatorChar + value;
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.createPersistentNode(childPath, signal, isZkTransient(fields, index));
-        signal.await();
-        continue;
-      }
-      basePath = basePath + File.separatorChar + field.getDeclaringClass().getName();
-      createZkNode(basePath, value);
+  private static String getChildrenRecursive(String valuePath, List<String> children)
+      throws KeeperException, InterruptedException {
+    List<String> valueChild = nodesManager.getChildren(valuePath);
+    if (valueChild.size() == 1) {
+      valuePath = valuePath + File.separatorChar + valueChild.get(0);
+      getChildrenRecursive(valuePath, children);
+    } else {
+      children.addAll(valueChild);
+      return valuePath;
     }
-  }
-
-  public static <K, V> void createZkNodeMap(String basePath, Map<K, V> map)
-      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
-    int id = 0;
-    for (Entry<K, V> entry : map.entrySet()) {
-      K key = entry.getKey();
-      V value = entry.getValue();
-      String kId = ("K" + id);
-      String vId = ("V" + id);
-      if (ClassUtils.isPrimitiveOrWrapper(key.getClass())) {
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.saveObjectZkNode(basePath, signal, key);
-        signal.await();
-      } else if (key instanceof Map) {
-        String childPath =
-            basePath + File.separatorChar + kId + File.separatorChar + key.getClass().getName();
-        createZkNodeMap(childPath, (Map) key);
-      } else if (key instanceof String) {
-        String childPath = basePath + File.separatorChar + kId + File.separatorChar + key;
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.createPersistentNode(childPath, signal, false);
-        signal.await();
-      } else {
-        String childPath =
-            basePath + File.separatorChar + kId + File.separatorChar + key.getClass().getName();
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.saveObjectZkNode(childPath, signal, key);
-        signal.await();
-      }
-      if (ClassUtils.isPrimitiveOrWrapper(value.getClass())) {
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.saveObjectZkNode(basePath, signal, value);
-        signal.await();
-      } else if (value instanceof Map) {
-        String childPath =
-            basePath + File.separatorChar + vId + File.separatorChar + value.getClass().getName();
-        createZkNodeMap(childPath, (Map) value);
-      } else if (value instanceof String) {
-        String childPath = basePath + File.separatorChar + vId + File.separatorChar + value;
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.createPersistentNode((String) value, signal, false);
-        signal.await();
-      } else {
-        String childPath =
-            basePath + File.separatorChar + vId + File.separatorChar + value.getClass().getName();
-        CountDownLatch signal = new CountDownLatch(1);
-        nodesManager.saveObjectZkNode(childPath, signal, value);
-        signal.await();
-      }
-      id++;
-    }
+    return valuePath;
   }
 
   public static void createZkNodeMethod(String basePath, Object object)

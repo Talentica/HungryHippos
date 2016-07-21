@@ -101,8 +101,8 @@ public class ShardingTableTest {
   @Test
   public void testBucketToNodeNumberObject() throws Exception {
     try {
-      ZkUtils.saveObjectZkNode("/rootnode/test1",
-          shardingTable.getBucketToNodeNumberMap());
+      ZkUtils.saveObjectZkNode("/rootnode/test",
+          shardingTable.getKeyToValueToBucketMap());
       Assert.assertTrue(true);
     } catch (IllegalArgumentException e) {
       Assert.assertFalse(true);
@@ -111,11 +111,7 @@ public class ShardingTableTest {
 
   @Test
   public <V, K> void testGetBucketToNodeNumberObject() throws Exception {
-    try {
-      Object object  = ZkUtils.readObjectZkNode("/rootnode/test1");
-      Assert.assertTrue(true);
-    } finally{
-      
-    }
-  }
+      Object object  = ZkUtils.readObjectZkNode("/rootnode/test");
+      Assert.assertNotNull(object);
+ }
 }

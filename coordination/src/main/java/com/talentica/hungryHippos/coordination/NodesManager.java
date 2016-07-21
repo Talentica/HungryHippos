@@ -254,7 +254,7 @@ public class NodesManager implements Watcher {
 
   public void createPersistentNodeSync(final String node) throws IOException, InterruptedException {
     CountDownLatch counter = new CountDownLatch(1);
-    createNode(node, counter, CreateMode.PERSISTENT);
+    createNode(node, counter,CreateMode.PERSISTENT);
     counter.await();
   }
 

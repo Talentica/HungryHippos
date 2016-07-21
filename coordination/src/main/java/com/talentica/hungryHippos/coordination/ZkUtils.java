@@ -7,8 +7,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.file.Paths;
@@ -37,6 +39,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -123,8 +126,8 @@ public class ZkUtils {
    * @throws ClassNotFoundException
    */
   public static Set<LeafBean> searchLeafNode(String searchString, String authRole,
-      CountDownLatch signal) throws InterruptedException, KeeperException, IOException,
-      ClassNotFoundException {
+      CountDownLatch signal)
+      throws InterruptedException, KeeperException, IOException, ClassNotFoundException {
     LOGGER.info("IN searchTree path {}", searchString);
     /* Export all nodes and then search. */
     if (searchString.contains(zkPathSeparator))
@@ -241,9 +244,9 @@ public class ZkUtils {
     return getNodeDetail(path, childPath, child, authRole, true);
   }
 
-  public static LeafBean getNodeDetail(String path, String childPath, String child,
-      String authRole, boolean getData) throws KeeperException, InterruptedException,
-      ClassNotFoundException, IOException {
+  public static LeafBean getNodeDetail(String path, String childPath, String child, String authRole,
+      boolean getData)
+      throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
     try {
       byte[] dataBytes = null;
       Stat stat = zk.exists(childPath, nodesManager);
@@ -257,8 +260,8 @@ public class ZkUtils {
     return null;
   }
 
-  public static Object externalizeNodeValue(byte[] value) throws ClassNotFoundException,
-      IOException {
+  public static Object externalizeNodeValue(byte[] value)
+      throws ClassNotFoundException, IOException {
     if (value == null)
       return null;
     return ZkUtils.deserialize(value);
@@ -266,14 +269,12 @@ public class ZkUtils {
 
   public static String buildNodePath(int nodeId) {
     return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
-        .getHostPath()
-        + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
+        .getHostPath() + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
   }
 
   public static String buildNodePath(String jobuuid) {
     return NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting()
-        .getHostPath()
-        + PathUtil.SEPARATOR_CHAR + (jobuuid);
+        .getHostPath() + PathUtil.SEPARATOR_CHAR + (jobuuid);
   }
 
   /**
@@ -313,8 +314,8 @@ public class ZkUtils {
       public void processResult(int rc, String path, Object ctx, Stat stat) {
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
-            LOGGER
-                .info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+            LOGGER.info(
+                "ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
             break;
           case OK:
             LOGGER.info("ZOOKEEPER SERVER IS RUNNING...");
@@ -350,15 +351,15 @@ public class ZkUtils {
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
             nodesManager.deleteNode(node);
-            LOGGER
-                .info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+            LOGGER.info(
+                "ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
             break;
           case OK:
             LOGGER.info("Node {} is  ({})", node, path);
             break;
           default:
-            LOGGER.info("[{}] Unexpected result for deleting {} ({})", new Object[] {
-                KeeperException.Code.get(rc), node, path});
+            LOGGER.info("[{}] Unexpected result for deleting {} ({})",
+                new Object[] {KeeperException.Code.get(rc), node, path});
         }
       }
     };
@@ -377,8 +378,8 @@ public class ZkUtils {
         Server svr = (Server) ctx;
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
-            LOGGER
-                .info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
+            LOGGER.info(
+                "ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO CHECK STATUS...");
             nodesManager.checkZookeeperConnection(svr);
             break;
           case OK:
@@ -386,8 +387,8 @@ public class ZkUtils {
             LOGGER.info("Node {} is  ({})", svr.getName(), svr.getServerAddress().getHostname());
             break;
           default:
-            LOGGER.info("[{}] Unexpected result for STATUS {} ({})", new Object[] {
-                KeeperException.Code.get(rc), svr.getName(), path});
+            LOGGER.info("[{}] Unexpected result for STATUS {} ({})",
+                new Object[] {KeeperException.Code.get(rc), svr.getName(), path});
         }
       }
     };
@@ -407,15 +408,15 @@ public class ZkUtils {
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
             nodesManager.deleteNode(svr);
-            LOGGER
-                .info("ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
+            LOGGER.info(
+                "ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
             break;
           case OK:
             LOGGER.info("Node {} is  ({})", svr.getName(), svr.getServerAddress().getHostname());
             break;
           default:
-            LOGGER.info("[{}] Unexpected result for deleting {} ({})", new Object[] {
-                KeeperException.Code.get(rc), svr.getName(), path});
+            LOGGER.info("[{}] Unexpected result for deleting {} ({})",
+                new Object[] {KeeperException.Code.get(rc), svr.getName(), path});
         }
       }
     };
@@ -437,12 +438,12 @@ public class ZkUtils {
             nodesManager.removeAlert(svr);
             break;
           case OK:
-            LOGGER.info("Server {} re-enabled ({})", svr.getName(), svr.getServerAddress()
-                .getHostname());
+            LOGGER.info("Server {} re-enabled ({})", svr.getName(),
+                svr.getServerAddress().getHostname());
             break;
           default:
-            LOGGER.info("[{}] Unexpected result for alerting {} ({})", new Object[] {
-                KeeperException.Code.get(rc), svr.getName(), path});
+            LOGGER.info("[{}] Unexpected result for alerting {} ({})",
+                new Object[] {KeeperException.Code.get(rc), svr.getName(), path});
         }
       }
     };
@@ -469,20 +470,21 @@ public class ZkUtils {
             LOGGER.info("Trying to alert an already silenced server [" + name + "]");
             break;
           case OK:
-            LOGGER.info("Server {} silenced ({})", svr.getName(), svr.getServerAddress()
-                .getHostname());
+            LOGGER.info("Server {} silenced ({})", svr.getName(),
+                svr.getServerAddress().getHostname());
             try {
               if (nodesManager.getMonitoredServers() != null) {
-                LOGGER.info("STATUS :: NOW, There are currently {} " + "servers: {}", nodesManager
-                    .getMonitoredServers().size(), nodesManager.getMonitoredServers().toString());
+                LOGGER.info("STATUS :: NOW, There are currently {} " + "servers: {}",
+                    nodesManager.getMonitoredServers().size(),
+                    nodesManager.getMonitoredServers().toString());
               }
             } catch (Exception e) {
               LOGGER.info("Unable to get the monitored servers");
             }
             break;
           default:
-            LOGGER.info("[{}] Unexpected result for alerting {} ({})", new Object[] {
-                KeeperException.Code.get(rc), svr.getName(), path});
+            LOGGER.info("[{}] Unexpected result for alerting {} ({})",
+                new Object[] {KeeperException.Code.get(rc), svr.getName(), path});
         }
       }
     };
@@ -497,8 +499,8 @@ public class ZkUtils {
    * @throws KeeperException
    * @throws InterruptedException
    */
-  public static void waitForSignal(String nodePath, CountDownLatch signal) throws KeeperException,
-      InterruptedException {
+  public static void waitForSignal(String nodePath, CountDownLatch signal)
+      throws KeeperException, InterruptedException {
     Stat stat = null;
     try {
       stat = zk.exists(nodePath, nodesManager);
@@ -578,12 +580,10 @@ public class ZkUtils {
           List<String> valueStrings =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : valueStrings) {
-            String keyNode =
-                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + entryNum
-                    + zkPathSeparator + "key=";
-            String valueNode =
-                parentNode + zkPathSeparator + classNameParen + zkPathSeparator + entryNum
-                    + zkPathSeparator + "value=";
+            String keyNode = parentNode + zkPathSeparator + classNameParen + zkPathSeparator
+                + entryNum + zkPathSeparator + "key=";
+            String valueNode = parentNode + zkPathSeparator + classNameParen + zkPathSeparator
+                + entryNum + zkPathSeparator + "value=";
             Object key = readObjectZkNode(keyNode);
             Object value = readObjectZkNode(valueNode);
             map.put(key, value);
@@ -600,6 +600,21 @@ public class ZkUtils {
             list.add(value);
           }
           return list;
+        case ("ARRAY"):
+          String componentType =
+              nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen).get(0);
+          entries = nodesManager.getChildren(
+              parentNode + zkPathSeparator + classNameParen + zkPathSeparator + componentType);
+
+          Object arrayObject =
+              Array.newInstance(getClassFromClassName(componentType), entries.size());
+          for (String entryNum : entries) {
+            String entryString = parentNode + zkPathSeparator + classNameParen + zkPathSeparator
+                + componentType + zkPathSeparator + entryNum;
+            Object value = readObjectZkNode(entryString);
+            Array.set(arrayObject, Integer.parseInt(entryNum), value);
+          }
+          return arrayObject;
         default:
           Class objClass = Class.forName(className);
           Object obj = objClass.newInstance();
@@ -617,6 +632,33 @@ public class ZkUtils {
       }
     } catch (Exception ex) {
       ex.printStackTrace();
+    }
+    return null;
+  }
+
+  private static Class getClassFromClassName(String className) throws ClassNotFoundException {
+    if (className.startsWith("[")) {
+      Array.newInstance(getClassFromClassName(className.substring(1, className.length() - 1)), 0)
+          .getClass();
+    } else {
+      switch (className) {
+        case "byte":
+          return byte.class;
+        case "short":
+          return short.class;
+        case "int":
+          return int.class;
+        case "long":
+          return long.class;
+        case "float":
+          return float.class;
+        case "double":
+          return double.class;
+        case "char":
+          return char.class;
+        default:
+          return Class.forName(className);
+      }
     }
     return null;
   }
@@ -640,6 +682,14 @@ public class ZkUtils {
         for (Object o : iterable) {
           saveObjectZkNode(parentNode + zkPathSeparator + "(" + className + ")/" + (index++), o);
         }
+      } else if (object.getClass().isArray()) {
+        int length = Array.getLength(object);
+        for (int index = 0; index < length; index++) {
+          saveObjectZkNode(
+              parentNode + zkPathSeparator + "(" + className + ")" + zkPathSeparator
+                  + object.getClass().getComponentType().getName() + zkPathSeparator + (index),
+              Array.get(object, index));
+        }
       } else if (object instanceof KeyValuePair) {
         saveObjectZkNode(parentNode + zkPathSeparator + "key=", ((KeyValuePair) object).key);
         saveObjectZkNode(parentNode + zkPathSeparator + "value=", ((KeyValuePair) object).value);
@@ -655,7 +705,7 @@ public class ZkUtils {
       } else {
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
-          if (ZkUtils.isZkTransient(field)) {
+          if (ZkUtils.isZkTransient(field) || ((field.getModifiers() & Modifier.STATIC) > 0)) {
             continue;
           }
           field.setAccessible(true);
@@ -667,7 +717,8 @@ public class ZkUtils {
               + fieldNameString, value);
         }
       }
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException e) {
       e.printStackTrace();
     }
   }
@@ -675,6 +726,8 @@ public class ZkUtils {
   private static String getClassIdentifier(Object c) {
     if (c instanceof Iterable) {
       return "ITERABLE";
+    } else if (c.getClass().isArray()) {
+      return "ARRAY";
     } else if (c instanceof Map) {
       return "MAP";
     } else if (c instanceof KeyValuePair) {
@@ -685,6 +738,8 @@ public class ZkUtils {
       return c.getClass().getName();
     }
   }
+
+
 
   public static boolean isZkTransient(Field field) {
     ZkTransient zkTransient = field.getAnnotation(ZkTransient.class);

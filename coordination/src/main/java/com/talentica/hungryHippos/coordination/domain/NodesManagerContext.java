@@ -56,7 +56,7 @@ public class NodesManagerContext {
     try {
       return JaxbUtil.unmarshalFromFile(zKconfigFilePath, ZookeeperConfig.class);
     } catch (FileNotFoundException | JAXBException e) {
-      LOGGER.info("Problem occured duw to {} ", e);
+      LOGGER.info("Problem occured due to  ", e);
     }
     return null;
   }

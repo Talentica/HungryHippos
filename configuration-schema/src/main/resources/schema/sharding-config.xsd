@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/sharding"
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.talentica.com/hungryhippos/config/sharding"
 	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
 	elementFormDefault="qualified">
 	<element name="sharding-config">
@@ -7,6 +8,7 @@
 			<sequence>
 				<element type="tns:input" name="input" />
 				<element type="tns:output" name="output" />
+				<element type="tns:input-file-config" name="inputFileConfig" />
 				<element type="tns:output-file-config" name="output-file-config" />
 			</sequence>
 		</complexType>
@@ -17,7 +19,7 @@
 			<element type="string" name="output-dir"></element>
 		</sequence>
 	</complexType>
-	
+
 	<complexType name="output-file-config">
 		<sequence>
 			<element type="string" name="maximum-shard-file-size-in-bytes"></element>
@@ -31,6 +33,15 @@
 			<element type="tns:data-description" minOccurs="0"
 				name="data-description" />
 			<element type="tns:data-parser-config" name="data-parser-config" />
+		</sequence>
+	</complexType>
+
+
+	<complexType name="input-file-config">
+		<sequence>
+			<element type="string" name="input-file-name" />
+			<element type="string" name="column-datatype-size" />
+			<element type="string" name="column-names" />
 		</sequence>
 	</complexType>
 

@@ -15,63 +15,64 @@ import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingConfig;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 
 public class ShardingStarter {
 
-  /**
-   * @param args
-   */
-  private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
+	/**
+	 * @param args
+	 */
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
 
-  public static void main(String[] args) {
-    try {
-      validateArguments(args);
-      LOGGER.info("SHARDING STARTED");
-      long startTime = System.currentTimeMillis();
-      setContext(args);
-      ShardingConfig shardingConfig = ShardingApplicationContext.getZkShardingConfigCache();
-      String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
-      String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();
-      CoordinationConfig coordinationConfig =
-          CoordinationApplicationContext.getZkCoordinationConfigCache();
-      DataParser dataParser =
-          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-              .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
-      Sharding sharding = new Sharding(coordinationConfig.getClusterConfig());
-      sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser));
-      sharding.dumpShardingTableFiles(shardingConfig.getOutput().getOutputDir());
-      long endTime = System.currentTimeMillis();
-      LOGGER.info("SHARDING DONE!!");
-      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
-      ShardingTableZkService shardingTable = new ShardingTableZkService();
-      LOGGER.info("Uploading started for sharded table bucketCombinationToNodeNumbersMap...");
-      shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
-      LOGGER.info("Completed.");
-      LOGGER.info("Uploading started for sharded table bucketToNodeNumberMap...");
-      shardingTable.zkUploadBucketToNodeNumberMap();
-      LOGGER.info("Completed.");
-      LOGGER.info("Uploading started for sharded table keyToValueToBucketMap...");
-      shardingTable.zkUploadKeyToValueToBucketMap();
-      LOGGER.info("Completed.");
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while sharding.", exception);
-    }
-  }
+	public static void main(String[] args) {
+		try {
+			validateArguments(args);
+			LOGGER.info("SHARDING STARTED");
+			long startTime = System.currentTimeMillis();
+			setContext(args);
+			ShardingConfig shardingConfig = ShardingApplicationContext.getZkShardingConfigCache();
+			String sampleFilePath = shardingConfig.getInput().getSampleFilePath();
+			String inputFilePath = shardingConfig.getInputFileConfig().getInputFileName();
+			String dataParserClassName = shardingConfig.getInput().getDataParserConfig().getClassName();
+			CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+			DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
+					.getConstructor(DataDescription.class)
+					.newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
+			Sharding sharding = new Sharding(coordinationConfig.getClusterConfig());
+			sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser));
+			sharding.dumpShardingTableFiles(shardingConfig.getOutput().getOutputDir());
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("SHARDING DONE!!");
+			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
+			HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
+			hhfs.createZnode(inputFilePath);
+			ShardingTableZkService shardingTable = new ShardingTableZkService();
+			LOGGER.info("Uploading started for sharded table bucketCombinationToNodeNumbersMap...");
+			shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
+			LOGGER.info("Completed.");
+			LOGGER.info("Uploading started for sharded table bucketToNodeNumberMap...");
+			shardingTable.zkUploadBucketToNodeNumberMap();
+			LOGGER.info("Completed.");
+			LOGGER.info("Uploading started for sharded table keyToValueToBucketMap...");
+			shardingTable.zkUploadKeyToValueToBucketMap();
+			LOGGER.info("Completed.");
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while sharding.", exception);
+		}
+	}
 
-  private static void validateArguments(String[] args) {
-    if (args.length < 1) {
-      throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
-    }
-  }
+	private static void validateArguments(String[] args) {
+		if (args.length < 1) {
+			throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
+		}
+	}
 
-  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser)
-      throws IOException {
-    return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile,
-        dataParser);
-  }
+	private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser) throws IOException {
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile, dataParser);
+	}
 
-  private static void setContext(String[] args) {
-    NodesManagerContext.setZookeeperXmlPath(args[0]);
-  }
+	private static void setContext(String[] args) {
+		NodesManagerContext.setZookeeperXmlPath(args[0]);
+	}
 
 }

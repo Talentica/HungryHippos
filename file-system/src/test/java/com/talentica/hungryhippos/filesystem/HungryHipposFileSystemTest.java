@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.After;
@@ -139,5 +141,7 @@ public class HungryHipposFileSystemTest {
 			assertTrue(false);
 		}
 	}
+	
+
 
 }

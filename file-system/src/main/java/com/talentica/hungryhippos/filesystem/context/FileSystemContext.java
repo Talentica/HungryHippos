@@ -1,6 +1,7 @@
 package com.talentica.hungryhippos.filesystem.context;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
@@ -35,7 +36,7 @@ public class FileSystemContext {
 	public static void uploadFileSystemConfig(String fileSystemConfigFile)
 			throws IOException, JAXBException, InterruptedException {
 		LOGGER.info("Updating filesystem configuration on zookeeper");
-		ZKNodeFile serverConfigFile = new ZKNodeFile(FileSystemConstants.CONFIGURATION_FILE, fileSystemConfigFile);
+		ZKNodeFile serverConfigFile = new ZKNodeFile(CoordinationApplicationContext.FILE_SYSTEM, fileSystemConfigFile);
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		NodesManagerContext.getNodesManagerInstance().saveConfigFileToZNode(serverConfigFile, countDownLatch);
 		countDownLatch.await();
@@ -57,7 +58,7 @@ public class FileSystemContext {
 		if (fileSystemConfig == null) {
 			NodesManager manager = NodesManagerContext.getNodesManagerInstance();
 			ZKNodeFile fileSystemConfigurationFile = (ZKNodeFile) manager
-					.getConfigFileFromZNode(FileSystemConstants.CONFIGURATION_FILE);
+					.getConfigFileFromZNode(CoordinationApplicationContext.FILE_SYSTEM);
 			fileSystemConfig = JaxbUtil.unmarshal((String) fileSystemConfigurationFile.getObj(),
 					FileSystemConfig.class);
 		}

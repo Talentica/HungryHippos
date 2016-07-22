@@ -27,7 +27,8 @@ public class CoordinationStarter {
       String coordinationConfigFilePath = args[0];
       String zookeeperConfigFilePath = args[1];
       String shardingConfigFilePath = args[2];
-      String jobConfigFilePathString = args[3];
+      String jobConfigFilePath = args[3];
+      String fileSystemConfigFilePath = args[4];
       CoordinationApplicationContext.setCoordinationConfigPathContext(coordinationConfigFilePath);
       CoordinationConfig configuration = CoordinationApplicationContext.getCoordinationConfig();
       if (configuration.getClusterConfig() == null
@@ -47,7 +48,10 @@ public class CoordinationStarter {
           FileUtils.readFileToString(new File(shardingConfigFilePath), "UTF-8"));
       CoordinationApplicationContext.uploadConfigurationOnZk(
           CoordinationApplicationContext.JOB_CONFIGURATION,
-          FileUtils.readFileToString(new File(jobConfigFilePathString), "UTF-8"));
+          FileUtils.readFileToString(new File(jobConfigFilePath), "UTF-8"));
+      CoordinationApplicationContext.uploadConfigurationOnZk(
+              CoordinationApplicationContext.FILE_SYSTEM,
+              FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
       LOGGER.info("Coordination server started..");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while starting coordination server.", exception);

@@ -16,34 +16,45 @@ import com.talentica.hungryHippos.client.domain.InvalidRowException;
  */
 public class FileReader implements Reader {
 
-  private InputStream dataInputStream;
-  private DataParser dataParser = null;
-  private Iterator<DataTypes[]> iterator = null;
+	private InputStream dataInputStream;
+	private DataParser dataParser = null;
+	private Iterator<DataTypes[]> iterator = null;
+	private String filepath = null;
 
-  public FileReader(String filepath, DataParser parser)
-      throws RuntimeException, FileNotFoundException {
-    this.dataParser = parser;
-    dataInputStream = new FileInputStream(filepath);
-    iterator = dataParser.iterator(dataInputStream);
-  }
+	public FileReader(String filepath, DataParser parser) throws RuntimeException, FileNotFoundException {
+		this.dataParser = parser;
+		this.filepath = filepath;
+		dataInputStream = new FileInputStream(filepath);
+		iterator = dataParser.iterator(dataInputStream);
+	}
 
-  public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {
-    this(file.getAbsolutePath(), preProcessor);
-  }
+	public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {
+		this(file.getAbsolutePath(), preProcessor);
+	}
 
-  @Override
-  public DataTypes[] read() throws RuntimeException {
-    if (iterator.hasNext()) {
-      return iterator.next();
-    }
-    return null;
-  }
+	@Override
+	public DataTypes[] read() throws RuntimeException {
+		if (iterator.hasNext()) {
+			return iterator.next();
+		}
+		return null;
+	}
 
-  @Override
-  public void close() throws IOException {
-    if (dataInputStream != null) {
-      dataInputStream.close();
-    }
-  }
+	@Override
+	public void close() throws IOException {
+		if (dataInputStream != null) {
+			dataInputStream.close();
+		}
+	}
+
+	@Override
+	public void reset() throws IOException {
+		if (dataInputStream != null) {
+			dataInputStream.close();
+			
+		}
+		dataInputStream = new FileInputStream(this.filepath);
+		iterator = dataParser.iterator(dataInputStream);
+	}
 
 }

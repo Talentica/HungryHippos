@@ -7,8 +7,10 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 public interface Reader {
 
-  DataTypes[] read() throws RuntimeException;
+	DataTypes[] read() throws RuntimeException;
 
-  void close() throws IOException;
+	void close() throws IOException;
 
+	void reset() throws IOException;
+	
 }

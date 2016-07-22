@@ -103,6 +103,10 @@ public class NodesManager implements Watcher {
   public void setServers(List<Server> servers) {
     this.servers = servers;
   }
+  
+  public ZookeeperConfiguration getZookeeperConfiguration(){
+	  return this.zkConfiguration;
+  }
 
   public NodesManager(String zookeeperConfigPath) {
     connectedSignal = new CountDownLatch(1);
@@ -601,6 +605,8 @@ public class NodesManager implements Watcher {
     return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.SEPARATOR_CHAR
         + serverHostname;
   }
+  
+  
 
   public String buildConfigPath(String fileName) {
     String buildPath =

@@ -10,9 +10,12 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
 
 /**
  * @author pooshans
@@ -21,6 +24,9 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
 public class HhObjectZkTest {
 
   private HhClassTest hhObject;
+  private static final String basePath = "/home/pooshans/HungryHippos";
+  private static final String zookeeprConfigFilePath =
+      basePath + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
 
   @Before
   public void setUp() {
@@ -45,10 +51,21 @@ public class HhObjectZkTest {
   }
 
   @Test
+  @Ignore
   public void testSaveHhObjectZk() {
     String nodePath = "/rootnode/hhobject";
     ZkUtils.saveObjectZkNode(nodePath, hhObject);
     HhClassTest object = (HhClassTest) ZkUtils.readObjectZkNode(nodePath);
     Assert.assertEquals(hhObject, object);
+  }
+
+  @Test
+  public void testClientConfigZk() {
+    ZookeeperConfig configSave =
+        NodesManagerContext.getZookeeperConfiguration(zookeeprConfigFilePath);
+    ZkUtils.saveObjectZkNode("/rootnode/configuration2/A/B", configSave);
+    ZookeeperConfig configRet =
+        (ZookeeperConfig) ZkUtils.readObjectZkNode("/rootnode/configuration2/A/B");
+    Assert.assertNotNull(configRet);
   }
 }

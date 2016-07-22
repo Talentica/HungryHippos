@@ -18,7 +18,7 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
  * @author pooshans
  *
  */
-public class HhObjectOperationOnZk {
+public class HhObjectZkTest {
 
   private HhClassTest hhObject;
 

@@ -39,7 +39,6 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -64,12 +63,22 @@ public class ZkUtils {
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
   public static final String CHARSET = "UTF8";
+  private static final String basePath = "/home/pooshans/HungryHippos";
+  private static final String zookeeprConfigFilePath = basePath
+      + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
 
+  static {
+    try {
+      nodesManager = NodesManagerContext.getNodesManagerInstance(zookeeprConfigFilePath);
+    } catch (FileNotFoundException | JAXBException e) {
+     LOGGER.info("Unable to start the nodesManager");
+    }
+  }
   public static ZKNodeFile getConfigZKNodeFile(String fileName,
       CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
     Object obj = null;
     ZKNodeFile zkFile = null;
-    nodesManager = NodesManagerContext.getNodesManagerInstance();
+   // nodesManager = NodesManagerContext.getNodesManagerInstance();
     try {
       obj = nodesManager.getConfigFileFromZNode(fileName);
       zkFile = (obj == null) ? null : (ZKNodeFile) obj;

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/node"
+	xmlns:tns="http://www.talentica.com/hungryhippos/node"
+	elementFormDefault="qualified">
+	<element name="node-config">
+		<complexType>
+			<sequence>
+				<element type="tns:common-config" name="common-config"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="common-config">
+		<sequence>
+			<element type="long" name="no-of-rows-to-check-available-memory" />
+			<element type="long" name="min-free-memory-in-mbs" />
+			<element type="long" name="no-of-rows-to-check-memory-consumption-after" />
+			<element type="long" name="no-of-rows-to-log-progress-after" />
+			<element type="long" name="datareceiver-append-to-data-files" />
+			<element type="int"
+				name="max-no-of-gc-retries-when-single-valueset-is-in-process" />
+			<element type="long"
+				name="wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process" />
+		</sequence>
+	</complexType>
+	
+</schema>

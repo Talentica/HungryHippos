@@ -2,18 +2,25 @@ package com.talentica.hungryHippos.client.domain;
 
 import java.util.Arrays;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
+
 /**
  * Created by debasishc on 29/9/15. updated by Sudarshan
  */
 public class MutableCharArrayString implements CharSequence, DataTypes {
 
+  @ZkTransient
   private static final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
       MutableCharArrayStringCache.newInstance();
 
+  @ZkTransient
   private static final long serialVersionUID = -6085804645372631875L;
   private char[] array;
   private int stringLength;
 
+  public MutableCharArrayString(){
+    
+  }
   public MutableCharArrayString(int length) {
     array = new char[length];
     stringLength = 0;
@@ -110,13 +117,6 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     }
     return h;
   }
-
-  /*
-   * public static MutableCharArrayString from(String value) throws InvalidRowException {
-   * MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length()); for
-   * (char character : value.toCharArray()) { mutableCharArrayString.addCharacter(character); }
-   * return mutableCharArrayString; }
-   */
 
   @Override
   public int compareTo(DataTypes dataType) {

@@ -15,10 +15,8 @@ public class Node implements Comparable<Node>,Serializable{
 	private static final long serialVersionUID = -6827244296973600470L;
 	private int nodeId;
     private long nodeCapacity;
-    
-    @ZkTransient
     private long remainingCapacity;
-
+    public Node(){}
     public Node(long nodeCapacity, int nodeId) {
         this.nodeCapacity = nodeCapacity;
         this.nodeId = nodeId;
@@ -83,4 +81,6 @@ public class Node implements Comparable<Node>,Serializable{
 		else if(this.nodeId == o.nodeId) ret = 0;
 		return ret;
 	}
+	
+	
 }

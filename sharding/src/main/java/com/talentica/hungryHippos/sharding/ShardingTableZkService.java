@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -148,7 +149,7 @@ public class ShardingTableZkService {
       throws IllegalAccessException, IOException, InterruptedException {
     CountDownLatch counter = new CountDownLatch(1);
     String leafNodePath = valuePath + File.separatorChar + ZkNodeName.BUCKET.getName();
-    nodesManager.saveObjectZkNode(leafNodePath, counter, bucket);
+    ZkUtils.saveObjectZkNode(leafNodePath, bucket);
     counter.await();
   }
 
@@ -212,7 +213,7 @@ public class ShardingTableZkService {
       IOException, InterruptedException {
     CountDownLatch counter = new CountDownLatch(1);
     String nodepath = keyToBucketPath + File.separatorChar + (ZkNodeName.NODE.getName());
-    nodesManager.saveObjectZkNode(nodepath, counter, node);
+    ZkUtils.saveObjectZkNode(nodepath, node);
     counter.await();
   }
 
@@ -227,7 +228,7 @@ public class ShardingTableZkService {
       throws IllegalAccessException, IOException, InterruptedException {
     CountDownLatch counter = new CountDownLatch(1);
     String bucketPath = keyToBucketPath + File.separatorChar + (ZkNodeName.BUCKET.getName());
-    nodesManager.saveObjectZkNode(bucketPath, counter, bucket);
+    ZkUtils.saveObjectZkNode(bucketPath, bucket);
     counter.await();
   }
 
@@ -246,7 +247,7 @@ public class ShardingTableZkService {
       String leafNodePath =
           zkNodes + File.separatorChar
               + (ZkNodeName.NODE.getName() + ZkNodeName.UNDERSCORE.getName() + nodeId);
-      nodesManager.saveObjectZkNode(leafNodePath, counter, node);
+      ZkUtils.saveObjectZkNode(leafNodePath, node);
       nodeId++;
     }
     counter.await();
@@ -270,7 +271,7 @@ public class ShardingTableZkService {
       String leafNodePath =
           zkKeyToBucketPath + File.separatorChar + key + File.separatorChar
               + ZkNodeName.BUCKET.getName();
-      nodesManager.saveObjectZkNode(leafNodePath, counter, bucket);
+      ZkUtils.saveObjectZkNode(leafNodePath, bucket);
     }
     counter.await();
   }
@@ -310,7 +311,7 @@ public class ShardingTableZkService {
    * @return Map<String, Map<Object, Bucket<KeyValueFrequency>>>
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
+  public Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     try (ObjectInputStream inKeyValueNodeNumberMap =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
@@ -344,12 +345,13 @@ public class ShardingTableZkService {
    * @return Map<BucketCombination, Set<Node>>
    */
   @SuppressWarnings("unchecked")
-  private Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
-    try (ObjectInputStream bucketToNodeNumberMapInputStream =
+  public Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
+    try (ObjectInputStream bucketCombinationToNodeNumbersMapStream =
         new ObjectInputStream(new FileInputStream(
             new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
                 + Sharding.bucketCombinationToNodeNumbersMapFile))) {
-      return (Map<BucketCombination, Set<Node>>) bucketToNodeNumberMapInputStream.readObject();
+      return (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapStream
+          .readObject();
     } catch (IOException | ClassNotFoundException e) {
       LOGGER
           .info("Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");

@@ -9,10 +9,9 @@ public interface FileSystemConstants {
 	String DATA_SERVER_BUSY = "DATA_SERVER_BUSY";
 	String DATA_SERVER_AVAILABLE = "DATA_SERVER_AVAILABLE";
 	String DATA_TRANSFER_COMPLETED = "DATA_TRANSFER_COMPLETED";
-	String FILE_PATHS_DELIMITER = ",";
-	String DOWNLOAD_FILE_PREFIX = "part-";
+	String DOWNLOAD_FILE_PREFIX = "-part-";
 	String CONFIGURATION_FILE = "filesystem-config";
-	// constants for file-system configuration
-	String ROOT_NODE = "zookeeper.file.system";
+	String DFS_NODE = "DFS_NODE";
+	String SHARDED = "SHARDED";
 
 }

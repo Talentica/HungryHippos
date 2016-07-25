@@ -1,5 +1,6 @@
 package com.talentica.hungryhippos.filesystem.server;
 
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.filesystem.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
@@ -47,7 +48,7 @@ public class DataRequestHandlerServer {
                 for (i = 0; i < maximumClientRequests; i++) {
                     if (requestHandlingThreads[i] == null || !requestHandlingThreads[i].isAlive()) {
                         LOGGER.info("[{}] Assigning slot {}", Thread.currentThread().getName(), i);
-                        (requestHandlingThreads[i] = new DataRetrievalThread(clientSocket,FileSystemContext.getRootDirectory(),FileSystemContext.getDataFilePrefix(),FileSystemContext.getFileStreamBufferSize())).start();
+                        (requestHandlingThreads[i] = new DataRetrievalThread(clientSocket,FileSystemContext.getRootDirectory(),FileSystemContext.getFileStreamBufferSize())).start();
                         break;
                     }
                 }
@@ -70,6 +71,7 @@ public class DataRequestHandlerServer {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+        NodesManagerContext.getNodesManagerInstance(args[0]);
         int port = FileSystemContext.getServerPort();
         int maximumClientRequests = FileSystemContext.getMaxClientRequests();
         new DataRequestHandlerServer(port, maximumClientRequests).start();

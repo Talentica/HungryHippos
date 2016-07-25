@@ -3,6 +3,7 @@ package com.talentica.hungryhippos.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,17 +19,17 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 /**
  * HungryHipposFileSystem FileSystem. This class has methods for creating files as znodes in the
  * Zookeeper.
- * 
+ *
  * @author sudarshans
  *
  */
 public class HungryHipposFileSystem {
 
-  private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
-  private static NodesManager nodeManager = null;
-	private static final String ROOT_NODE = null;
-	// CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
-  private static volatile HungryHipposFileSystem hfs = null;
+    private static Logger logger = LoggerFactory.getLogger("ZookeeperFileSystem");
+    private static NodesManager nodeManager = null;
+    private static String ROOT_NODE;
+    // CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
+    private static volatile HungryHipposFileSystem hfs = null;
 
   // for singleton
   private HungryHipposFileSystem() {
@@ -36,13 +37,15 @@ public class HungryHipposFileSystem {
       throw new IllegalStateException("Instance Already created");
     }
 
-    try {
-      nodeManager = NodesManagerContext.getNodesManagerInstance();
-    } catch (FileNotFoundException | JAXBException e) {
-      logger.error(e.getMessage());
-      throw new RuntimeException(e.getMessage());
+        try {
+            nodeManager = NodesManagerContext.getNodesManagerInstance();
+            this.ROOT_NODE = NodesManagerContext.getZookeeperConfiguration().
+                    getZookeeperDefaultSetting().getFilesystemPath();
+        } catch (FileNotFoundException | JAXBException e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
-  }
 
   public static HungryHipposFileSystem getInstance() {
     if (hfs == null) {
@@ -68,7 +71,7 @@ public class HungryHipposFileSystem {
 
   /**
    * Create persistent znode in zookeeper
-   * 
+   *
    * @param name
    * @return
    */
@@ -78,22 +81,28 @@ public class HungryHipposFileSystem {
     return createZnode(name, signal);
   }
 
-  /**
-   * Create persistent znode in zookeeper and store data on it
-   * 
-   * @param name
-   * @param data
-   * @return
-   */
-  public String createZnode(String name, Object data) {
-    name = checkNameContainsFileSystemRoot(name);
-    CountDownLatch signal = new CountDownLatch(1);
-    return createZnode(name, signal, data);
-  }
+    /**
+     * Create persistent znode in zookeeper and store data on it
+     *
+     * @param name
+     * @param data
+     * @return
+     */
+    public String createZnode(String name, Object data) {
+        name = checkNameContainsFileSystemRoot(name);
+        CountDownLatch signal = new CountDownLatch(1);
+        createZnode(name, signal, data);
+        try {
+            signal.await();
+        } catch (InterruptedException e) {
+            logger.error(e.toString());
+        }
+        return name;
+    }
 
   /**
    * Create persistent znode in zookeeper
-   * 
+   *
    * @param name
    * @param signal
    * @return
@@ -105,7 +114,7 @@ public class HungryHipposFileSystem {
 
   /**
    * Create persistent znode in zookeeper.
-   * 
+   *
    * @param name
    * @param signal
    * @param data
@@ -124,7 +133,7 @@ public class HungryHipposFileSystem {
 
   /**
    * To check whether a znode already exits on specified directory structure.
-   * 
+   *
    * @param name
    * @return
    */
@@ -142,7 +151,7 @@ public class HungryHipposFileSystem {
 
   /**
    * set znode value to the data.
-   * 
+   *
    * @param name
    * @param data
    */
@@ -158,7 +167,7 @@ public class HungryHipposFileSystem {
 
   /**
    * get value inside the znode in string format.
-   * 
+   *
    * @param name
    * @return
    */
@@ -176,7 +185,7 @@ public class HungryHipposFileSystem {
 
   /**
    * get value inside the znode in string format.
-   * 
+   *
    * @param name
    * @return
    */
@@ -196,7 +205,7 @@ public class HungryHipposFileSystem {
 
   /**
    * Find the path of a particular znode
-   * 
+   *
    * @param name
    * @return
    */
@@ -213,7 +222,7 @@ public class HungryHipposFileSystem {
 
   /**
    * Delete the specified node. Only deletes when the file is
-   * 
+   *
    * @param name
    */
   public void deleteNode(String name) {
@@ -227,7 +236,7 @@ public class HungryHipposFileSystem {
 
   /**
    * Delete the specified zode and all the children folders.
-   * 
+   *
    * @param name
    */
   public void deleteNodeRecursive(String name) {
@@ -247,7 +256,7 @@ public class HungryHipposFileSystem {
 
   /**
    * returns a list of children znodes of the node specified.
-   * 
+   *
    * @param name
    * @return
    */
@@ -263,38 +272,56 @@ public class HungryHipposFileSystem {
     return childZnodes;
   }
 
-  /**
-   * This method updates the HungryHippos filesystem with the metadata of the file
-   *
-   * @param fileZKNode
-   * @param nodeIp
-   * @param dataFileZKNode
-   * @param datafileSize
-   * @throws Exception
-   */
-  public void updateFSBlockMetaData(String fileZKNode, String nodeIp, String dataFileZKNode,
-      long datafileSize) throws Exception {
+    /**
+     * This method updates the HungryHippos filesystem with the metadata of the file
+     *
+     * @param fileZKNode
+     * @param nodeId
+     * @param dataFileZKNode
+     * @param datafileSize
+     * @throws Exception
+     */
+    public void updateFSBlockMetaData(String fileZKNode, String nodeId, String dataFileZKNode,
+                                      long datafileSize) throws Exception {
+        String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
+        String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
+        String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
+        String dataFileNodeZKPath = nodeIdZKPath + File.separator + dataFileZKNode;
+        if (!checkZnodeExists(dataFileNodeZKPath)) {
+            if (!checkZnodeExists(nodeIdZKPath)) {
+                if (!checkZnodeExists(fileNodeZKDFSPath)) {
+                    createZnode(fileNodeZKDFSPath, "");
+                }
+                createZnode(nodeIdZKPath, "");
+            }
+            createZnode(dataFileNodeZKPath, datafileSize + "");
+        } else {
+            setData(dataFileNodeZKPath, datafileSize + "");
+        }
+    }
 
-    String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
-    String nodeIpZKPath = fileNodeZKPath + File.separator + nodeIp;
-    String dataFileNodeZKPath = nodeIpZKPath + File.separator + dataFileZKNode;
-    long prevDataFileSize = 0;
-    if (checkZnodeExists(dataFileNodeZKPath)) {
-      String prevDataFileData = getData(dataFileNodeZKPath);
-      prevDataFileSize = Long.parseLong(prevDataFileData);
-      setData(dataFileNodeZKPath, datafileSize+"");
-    } else {
-      if (!checkZnodeExists(nodeIpZKPath)) {
-        createZnode(nodeIpZKPath, new CountDownLatch(1), "");
-      }
-      createZnode(dataFileNodeZKPath, new CountDownLatch(1), datafileSize + "");
+    /**
+     * This method updates the HungryHippos filesystem with the metadata of the file
+     *
+     * @param fileZKNode
+     * @param nodeId
+     * @param datafileSize
+     * @throws Exception
+     */
+    public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize) throws Exception {
+        String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
+        String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
+        String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
+
+        if (!checkZnodeExists(nodeIdZKPath)) {
+            if (!checkZnodeExists(fileNodeZKDFSPath)) {
+                createZnode(fileNodeZKDFSPath, "");
+            }
+            createZnode(nodeIdZKPath, datafileSize + "");
+        } else {
+            setData(nodeIdZKPath, datafileSize + "");
+        }
+
     }
-    String fileZKNodeValues = getData(fileNodeZKPath);
-    if (fileZKNodeValues == null || fileZKNodeValues.isEmpty()) {
-      fileZKNodeValues = "0";
-    }
-    long currentSize = Long.parseLong(fileZKNodeValues) + datafileSize - prevDataFileSize;
-    setData(fileNodeZKPath, (currentSize + ""));
-  }
 
 }

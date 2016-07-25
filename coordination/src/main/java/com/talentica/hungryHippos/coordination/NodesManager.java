@@ -796,7 +796,7 @@ public class NodesManager implements Watcher {
 		stat = zk.exists(nodePath, this);
 		if (stat != null) {
       zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
-				zk.setData(nodePath, ((String) data).getBytes(), stat.getVersion());
+//				zk.setData(nodePath, ((String) data).getBytes(), stat.getVersion());
 			} else {
 			}
 		}

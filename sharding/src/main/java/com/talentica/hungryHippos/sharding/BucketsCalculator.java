@@ -52,6 +52,7 @@ public final class BucketsCalculator {
     int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
     long approximateMemoryPerBucketStoredInShardTable =
         (NO_OF_BYTES_PER_KEY * noOfKeys) + NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
+    //Sudarshan:- Need to understand the purpose, Max number of file size is configurable
     Double noOfBucketsNeeded =
         Math.pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable, 1.0 / noOfKeys);
     int numberOfBucketsNeeded = (int) Math.ceil(noOfBucketsNeeded);

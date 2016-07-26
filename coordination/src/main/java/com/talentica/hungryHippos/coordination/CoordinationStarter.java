@@ -40,18 +40,22 @@ public class CoordinationStarter {
       CoordinationApplicationContext.uploadConfigurationOnZk(
           CoordinationApplicationContext.COORDINATION_CONFIGURATION,
           FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
+      LOGGER.debug("Coordination file is uploaded to zookeeper");
       CoordinationApplicationContext.uploadConfigurationOnZk(
           CoordinationApplicationContext.ZOOKEEPER_CONFIGURATION,
           FileUtils.readFileToString(new File(zookeeperConfigFilePath), "UTF-8"));
+      LOGGER.debug("Zookeeper configuration file is uploaded to zookeeper");
       CoordinationApplicationContext.uploadConfigurationOnZk(
           CoordinationApplicationContext.SHARDING_CONFIGURATION,
           FileUtils.readFileToString(new File(shardingConfigFilePath), "UTF-8"));
+      LOGGER.debug("Sharding Configuration file is uploaded to zookeeper");
       CoordinationApplicationContext.uploadConfigurationOnZk(
           CoordinationApplicationContext.JOB_CONFIGURATION,
           FileUtils.readFileToString(new File(jobConfigFilePath), "UTF-8"));
       CoordinationApplicationContext.uploadConfigurationOnZk(
               CoordinationApplicationContext.FILE_SYSTEM,
               FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
+      LOGGER.debug("fileSystem Configuration file is uploaded to zookeeper");
       LOGGER.info("Coordination server started..");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while starting coordination server.", exception);

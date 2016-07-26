@@ -67,6 +67,7 @@ public class Sharding {
 
 	public void doSharding(Reader input)
 			throws ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+
 		logger.info("SHARDING STARTED");
 		try {
 			populateFrequencyFromData(input);
@@ -74,11 +75,14 @@ public class Sharding {
 			populateKeysToListOfBucketsMap();
 			updateBucketToNodeNumbersMap(input);
 			shardAllKeys();
-			if (logger.isDebugEnabled()) {
-				logger.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(keyToValueToBucketMap));
-				logger.debug("bucketCombinationToNodeNumbersMap: "
-						+ MapUtils.getFormattedString(bucketCombinationToNodeNumbersMap));
-			}
+			/*
+			 * if (logger.isDebugEnabled()) {
+			 * logger.debug("keyToValueToBucketMap:" +
+			 * MapUtils.getFormattedString(keyToValueToBucketMap));
+			 * logger.debug("bucketCombinationToNodeNumbersMap: " +
+			 * MapUtils.getFormattedString(bucketCombinationToNodeNumbersMap));
+			 * }
+			 */
 
 		} catch (IOException | NodeOverflowException e) {
 			logger.error("Error occurred during sharding process.", e);
@@ -155,27 +159,35 @@ public class Sharding {
 			try {
 				parts = data.read();
 			} catch (InvalidRowException e) {
+				logger.debug("Invalid RowException");
 				FileWriter.flushData(lineNo++, e);
 				continue;
 			}
 			if (parts == null) {
 				break;
 			}
+
 			MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
 
 			for (int i = 0; i < keys.length; i++) {
 				String key = keys[i];
+				// logger.debug("key is " + key);
 				int keyIndex = keyToIndexMap.get(key);
 				values[i] = (MutableCharArrayString) parts[keyIndex].clone();
+				// logger.debug("cloned value is " + values[i]);
 				Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
 				if (frequencyPerValue == null) {
 					frequencyPerValue = new HashMap<>();
 					keyValueFrequencyMap.put(key, frequencyPerValue);
+					// logger.debug("key :- " + key + " frequencyPerValue " +
+					// frequencyPerValue);
 				}
 				Long frequency = frequencyPerValue.get(values[i]);
 				if (frequency == null) {
 					frequency = 0L;
 				}
+				// logger.debug("key :- ", values[i] + " frequencyPerValue " +
+				// frequencyPerValue);
 				frequencyPerValue.put(values[i], frequency + 1);
 			}
 		}
@@ -185,6 +197,20 @@ public class Sharding {
 		FileWriter.close();
 
 		return keyValueFrequencyMap;
+	}
+
+	public int numberOfZnodeToBeCreated() throws ClassNotFoundException, FileNotFoundException, KeeperException,
+			InterruptedException, IOException, JAXBException {
+		String[] keys = CoordinationApplicationContext.getShardingDimensions();
+		int total = 0;
+		for (String key : keys) {
+			int keydetailStored = 1;
+			int bucketFieldsStored = 2;
+			int nodeFieldsStored = 3;
+			total = total + keydetailStored + bucketFieldsStored + nodeFieldsStored;
+		}
+
+		return total;
 	}
 
 	private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap() throws ClassNotFoundException,

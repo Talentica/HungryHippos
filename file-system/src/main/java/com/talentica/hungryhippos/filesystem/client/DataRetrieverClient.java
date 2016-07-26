@@ -53,9 +53,9 @@ public class DataRetrieverClient {
         NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
         List<String> tmpDestFileNames = new ArrayList<>();
         String fsRootNode = NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getFilesystemPath();
-        String fileNodeZKDFSPath =fsRootNode+File.separator+hungryHippoFilePath+File.separator+ FileSystemConstants.DFS_NODE ;
+        String fileNodeZKDFSPath =fsRootNode+hungryHippoFilePath+File.separator+ FileSystemConstants.DFS_NODE ;
         List<String> nodeIds = nodesManager.getChildren(fileNodeZKDFSPath);
-        boolean isSharded = nodesManager.checkNodeExists(fsRootNode+File.separator+hungryHippoFilePath+File.separator+FileSystemConstants.SHARDED);
+        boolean isSharded = nodesManager.checkNodeExists(fsRootNode+hungryHippoFilePath+File.separator+FileSystemConstants.SHARDED);
         for (String nodeId : nodeIds) {
             String nodeIdZKPath = fileNodeZKDFSPath + File.separator +  nodeId;
             String nodeIp = getNodeIp(nodeId);

@@ -283,7 +283,7 @@ public class HungryHipposFileSystem {
      */
     public void updateFSBlockMetaData(String fileZKNode, String nodeId, String dataFileZKNode,
                                       long datafileSize) throws Exception {
-        String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
+        String fileNodeZKPath = ROOT_NODE + fileZKNode;
         String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
         String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
         String dataFileNodeZKPath = nodeIdZKPath + File.separator + dataFileZKNode;
@@ -309,7 +309,7 @@ public class HungryHipposFileSystem {
      * @throws Exception
      */
     public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize) throws Exception {
-        String fileNodeZKPath = ROOT_NODE + File.separator + fileZKNode;
+        String fileNodeZKPath = ROOT_NODE + fileZKNode;
         String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
         String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
 

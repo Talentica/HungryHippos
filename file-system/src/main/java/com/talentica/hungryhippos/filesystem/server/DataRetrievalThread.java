@@ -41,7 +41,7 @@ public class DataRetrievalThread extends Thread {
             LOGGER.info("[{}] offset {}", Thread.currentThread().getName(),offset);
             byte[] inputBuffer = new byte[fileStreamBufferSize];
             int len;
-            String absoluteFilePath = rootDirectory + File.separator + filePath;
+            String absoluteFilePath = rootDirectory + filePath;
             RandomAccessFile raf = new RandomAccessFile(absoluteFilePath, "r");
             if (offset < raf.length()) {
                 raf.seek(offset);

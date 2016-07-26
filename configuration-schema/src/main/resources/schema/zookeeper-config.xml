@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:zookeeper-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/zookeeper"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/zookeeper zookeeper-config.xsd ">
+	<tns:zookeeper-servers>
+		<tns:servers>localhost:2181</tns:servers>
+	</tns:zookeeper-servers>
+	<tns:zookeeper-default-setting>
+		<tns:tick-time>5000</tns:tick-time>
+		<tns:session-timout>86400000</tns:session-timout>
+		<tns:retry>5</tns:retry>
+		<tns:namespace-path>rootnode</tns:namespace-path>
+		<tns:host-path>/rootnode/hostsnode</tns:host-path>
+		<tns:alert-path>/rootnode/alertsnode</tns:alert-path>
+		<tns:config-path>/rootnode/confignode</tns:config-path>
+		<tns:filesystem-path>/rootnode/file-system</tns:filesystem-path>
+		<tns:sharding-table-path>/rootnode/sharding-table</tns:sharding-table-path>
+		<tns:cleanup>Y</tns:cleanup>
+	</tns:zookeeper-default-setting>
+</tns:zookeeper-config>
+

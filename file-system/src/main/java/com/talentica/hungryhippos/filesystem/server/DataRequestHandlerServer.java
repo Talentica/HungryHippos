@@ -37,7 +37,7 @@ public class DataRequestHandlerServer {
      *
      * @throws IOException
      */
-    public void start() throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+    public void start() throws IOException{
 
         ServerSocket serverSocket = new ServerSocket(port);
         while (true) {
@@ -59,7 +59,7 @@ public class DataRequestHandlerServer {
                     clientSocket.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

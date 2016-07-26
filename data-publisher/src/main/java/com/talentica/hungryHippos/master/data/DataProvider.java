@@ -65,11 +65,12 @@ public class DataProvider {
   }
 
   @SuppressWarnings({"unchecked"})
-  public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser)
+  public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser, String sourcePath, String destinationPath)
       throws Exception {
     init();
     long start = System.currentTimeMillis();
     String[] servers = loadServers(nodesManager);
+    //TODO Get dataDescription for the particular file from zookeeper instead of using common config
     FieldTypeArrayDataDescription dataDescription =
         CoordinationApplicationContext.getConfiguredDataDescription();
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
@@ -77,6 +78,7 @@ public class DataProvider {
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 
+    //TODO Get Sharding Table for the particular file from zookeeper instead of using common config
     ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
     bucketCombinationNodeMap =
         (Map<BucketCombination, Set<Node>>) shardingTableCache.getShardingTableFromCache(
@@ -88,17 +90,18 @@ public class DataProvider {
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
+    Socket[] sockets =  new Socket[servers.length];
+
     for (int i = 0; i < servers.length; i++) {
       String server = servers[i];
-      Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
-      targets[i] = new BufferedOutputStream(socket.getOutputStream(), 8388608);
+      sockets[i] = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+      targets[i] = new BufferedOutputStream(sockets[i].getOutputStream(), 8388608);
+      targets[i].write(destinationPath.getBytes());
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
     Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getInputFileConfig()
-            .getInputFileName(),
-        dataParser);
+            sourcePath,dataParser);
     long timeForEncoding = 0;
     long timeForLookup = 0;
     int lineNo = 0;
@@ -143,6 +146,7 @@ public class DataProvider {
     for (int j = 0; j < targets.length; j++) {
       targets[j].flush();
       targets[j].close();
+      sockets[j].close();
     }
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));

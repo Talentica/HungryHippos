@@ -16,12 +16,15 @@ import java.util.List;
 public enum NodeInfo {
     INSTANCE;
 
-    private String nodeIp;
+    private String ip;
+    private String id;
+    private int port;
 
     NodeInfo() {
         ClusterConfig config = CoordinationApplicationContext.getCoordinationConfig().getClusterConfig();
         List<Node> nodeList = config.getNode();
         Enumeration e;
+        boolean configPresent = false;
         try {
             e = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e1) {
@@ -35,15 +38,29 @@ public enum NodeInfo {
                 InetAddress inetAddress = (InetAddress) ee.nextElement();
                 for (Node node : nodeList) {
                     if (inetAddress.getHostAddress().equals(node.getIp())) {
-                        this.nodeIp = node.getIp();
+                        this.ip = node.getIp();
+                        this.id = node.getIdentifier()+"";
+                        this.port = Integer.parseInt(node.getPort());
+                        configPresent = true;
                         break searchIp;
                     }
                 }
             }
         }
+        if(!configPresent){
+            throw new RuntimeException("Unable to find Corresponding Node in Cluster Configuration");
+        }
     }
 
-    public String getNodeIp() {
-        return nodeIp;
+    public String getIp() {
+        return ip;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

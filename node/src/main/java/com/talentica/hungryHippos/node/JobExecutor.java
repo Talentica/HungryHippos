@@ -44,6 +44,8 @@ public class JobExecutor {
 
   private static DataStore dataStore;
 
+  private static String hungryHippoFilePath;
+
   private static String PRIFIX_NODE_NAME = "_node";
 
   private static String jobUUId;
@@ -81,9 +83,9 @@ public class JobExecutor {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 1) {
+    if (args.length < 2) {
       throw new RuntimeException(
-          "Missing zookeeper xml configuration file path arguments.");
+              "Either missing 1st argument {zookeeper configuration} or 2nd argument {coordination configuration}");
     }
   }
 
@@ -103,9 +105,12 @@ public class JobExecutor {
    * @throws FileNotFoundException
    */
   private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
+    //TODO Job should not be common
     jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     nodesManager = NodesManagerContext.getNodesManagerInstance();
+    //TODO hungryHippoFilePath should be initiallized
+    hungryHippoFilePath = "";
   }
 
   /**
@@ -152,11 +157,13 @@ public class JobExecutor {
    */
   private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
+    //TODO dataDescription should be file specific
     FieldTypeArrayDataDescription dataDescription =
         CoordinationApplicationContext.getConfiguredDataDescription();
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
+    //TODO Sharding table should be file specific
     dataStore =
-        new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, true);
+        new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription,hungryHippoFilePath,NodeInfo.INSTANCE.getId(), true);
     return new JobRunner(dataDescription, dataStore);
   }
 
@@ -194,7 +201,9 @@ public class JobExecutor {
   }
 
   private static void setContext(String[] args) {
+
     NodesManagerContext.setZookeeperXmlPath(args[0]);
+    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
   }
 
 }

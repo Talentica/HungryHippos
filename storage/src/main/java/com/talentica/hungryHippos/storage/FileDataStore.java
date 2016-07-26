@@ -13,6 +13,8 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,9 @@ public class FileDataStore implements DataStore, Serializable {
   private final int numFiles;
   private OutputStream[] os;
   private DataDescription dataDescription;
+  private String hungryHippoFilePath;
+  private String fileNamePrefix;
+  private String nodeId;
 
   private static final boolean APPEND_TO_DATA_FILES = Boolean
       .valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
@@ -40,28 +45,21 @@ public class FileDataStore implements DataStore, Serializable {
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
-  public static final String DATA_FILE_BASE_NAME = CoordinationApplicationContext
-      .getZkCoordinationConfigCache().getNodeConfig().getDataStorage().getFileName();
+ public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
-  // public static final String FOLDER_NAME = "data";
-
-  public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
-    this(numDimensions, dataDescription, false);
+  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath,String nodeId) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+    this(numDimensions, dataDescription, hungryHippoFilePath,nodeId, false);
   }
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, boolean readOnly)
-      throws IOException {
+  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath,
+                       String nodeId,boolean readOnly) throws IOException{
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
-    // check data folder exists , if its not present this logic will create a folder named data.
-    /*
-     * String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator +
-     * FOLDER_NAME;
-     */
-    String dirloc =
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig().getDataStorage()
-            .getPath();
+    this.nodeId = nodeId;
+    this.hungryHippoFilePath = hungryHippoFilePath;
+    String dirloc = FileSystemContext.getRootDirectory() + hungryHippoFilePath;
+    this.fileNamePrefix = dirloc + File.separator + DATA_FILE_BASE_NAME;
     File file = new File(dirloc);
     if (!file.exists()) {
       boolean flag = file.mkdir();
@@ -73,9 +71,7 @@ public class FileDataStore implements DataStore, Serializable {
     }
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-        os[i] =
-            new BufferedOutputStream(new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i,
-                APPEND_TO_DATA_FILES));
+        os[i] = new BufferedOutputStream(new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
       }
     }
   }
@@ -96,7 +92,7 @@ public class FileDataStore implements DataStore, Serializable {
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
       storeAccess =
-          new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
+          new FileStoreAccess(hungryHippoFilePath,nodeId,DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
     storeAccess.clear();
@@ -114,8 +110,12 @@ public class FileDataStore implements DataStore, Serializable {
         try {
           if (os[i] != null)
             os[i].close();
+          HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,i+"",
+                  (new File(fileNamePrefix+i)).length() );
         } catch (IOException e) {
           logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+        } catch (Exception e){
+          logger.error(e.toString());
         }
       }
     }

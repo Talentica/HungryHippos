@@ -284,9 +284,9 @@ public class HungryHipposFileSystem {
     public void updateFSBlockMetaData(String fileZKNode, String nodeId, String dataFileZKNode,
                                       long datafileSize) throws Exception {
         String fileNodeZKPath = ROOT_NODE + fileZKNode;
-        String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
-        String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
-        String dataFileNodeZKPath = nodeIdZKPath + File.separator + dataFileZKNode;
+        String fileNodeZKDFSPath = fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
+        String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
+        String dataFileNodeZKPath = nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileZKNode;
         if (!checkZnodeExists(dataFileNodeZKPath)) {
             if (!checkZnodeExists(nodeIdZKPath)) {
                 if (!checkZnodeExists(fileNodeZKDFSPath)) {
@@ -310,8 +310,8 @@ public class HungryHipposFileSystem {
      */
     public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize) throws Exception {
         String fileNodeZKPath = ROOT_NODE + fileZKNode;
-        String fileNodeZKDFSPath = fileNodeZKPath + File.separator + FileSystemConstants.DFS_NODE;
-        String nodeIdZKPath = fileNodeZKDFSPath + File.separator + nodeId;
+        String fileNodeZKDFSPath = fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
+        String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
 
         if (!checkZnodeExists(nodeIdZKPath)) {
             if (!checkZnodeExists(fileNodeZKDFSPath)) {

@@ -77,8 +77,8 @@ public class DataRetrieverClientTest {
 			List<Node> nodeList = new ArrayList<>();
 			nodeList.add(node);
 
-			String fileNodeZKPath = fsRootNode + File.separator + relativeFilePath  +File.separator+FileSystemConstants.DFS_NODE;
-			String nodeIdZKPath = fileNodeZKPath+ File.separator + nodeId;
+			String fileNodeZKPath = fsRootNode + FileSystemConstants.ZK_PATH_SEPARATOR + relativeFilePath  +FileSystemConstants.ZK_PATH_SEPARATOR+FileSystemConstants.DFS_NODE;
+			String nodeIdZKPath = fileNodeZKPath+ FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
 			List<String> nodeIds = new ArrayList<>();
 			nodeIds.add(nodeId+"");
 
@@ -96,7 +96,7 @@ public class DataRetrieverClientTest {
 
 
 			for (String dataFileNode : dataFileNodes) {
-				Mockito.when(nodesManager.getObjectFromZKNode(nodeIdZKPath + File.separator + dataFileNode))
+				Mockito.when(nodesManager.getObjectFromZKNode(nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileNode))
 						.thenReturn("100");
 			}
 			Mockito.when(nodesManager.getChildren(fileNodeZKPath)).thenReturn(nodeIds);

@@ -83,11 +83,11 @@ public class DataRowProcessor implements RowProcessor {
 
   long startTime = System.currentTimeMillis();
 
-  public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity) {
+  public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath) {
     this.jobEntity = jobEntity;
     this.dynamicMarshal = dynamicMarshal;
     this.keys = jobEntity.getJob().getDimensions();
-    this.executionContext = new ExecutionContextImpl(dynamicMarshal);
+    this.executionContext = new ExecutionContextImpl(dynamicMarshal,outputHHPath);
     workClassType = jobEntity.getJob().createNewWork().getClass();
   }
 

@@ -13,5 +13,6 @@ public interface FileSystemConstants {
 	String CONFIGURATION_FILE = "filesystem-config";
 	String DFS_NODE = "DFS_NODE";
 	String SHARDED = "SHARDED";
+	String ZK_PATH_SEPARATOR = "/";
 
 }

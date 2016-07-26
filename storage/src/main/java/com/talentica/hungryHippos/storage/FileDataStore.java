@@ -51,8 +51,8 @@ public class FileDataStore implements DataStore, Serializable {
     this(numDimensions, dataDescription, hungryHippoFilePath,nodeId, false);
   }
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath,
-                       String nodeId,boolean readOnly) throws IOException{
+  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath, String nodeId,boolean readOnly)
+          throws IOException{
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
@@ -92,7 +92,7 @@ public class FileDataStore implements DataStore, Serializable {
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
       storeAccess =
-          new FileStoreAccess(hungryHippoFilePath,nodeId,DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
+          new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
     storeAccess.clear();

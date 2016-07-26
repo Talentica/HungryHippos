@@ -26,7 +26,7 @@ public class FileStoreAccessTest {
 
 	@Before
 	public void setup() {
-		storeAccess = new FileStoreAccess(base, keyId, numFiles, dataDescription);
+		storeAccess = new FileStoreAccess("hungryHippoFilePath",base, keyId, numFiles, dataDescription);
 	}
 
 	@Test

@@ -35,7 +35,6 @@ public class FileStoreAccess implements StoreAccess {
 	private ByteBuffer byteBuffer = null;
 	private byte[] byteBufferBytes;
 	private String hungryHippoFilePath;
-	private String nodeId;
 
 	static {
 		try {
@@ -45,9 +44,8 @@ public class FileStoreAccess implements StoreAccess {
 		}
 	}
 
-	public FileStoreAccess(String hungryHippoFilePath, String nodeId, String base, int keyId, int numFiles, DataDescription dataDescription) {
+	public FileStoreAccess(String hungryHippoFilePath, String base, int keyId, int numFiles, DataDescription dataDescription) {
 		this.hungryHippoFilePath = hungryHippoFilePath;
-		this.nodeId = nodeId;
 		this.keyId = keyId;
 		this.numFiles = numFiles;
 		this.base = base;
@@ -92,7 +90,7 @@ public class FileStoreAccess implements StoreAccess {
 			}
 		} finally {
 			closeDatsInputStream(in);
-			HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId, dataFile.length());
+
 		}
 	}
 

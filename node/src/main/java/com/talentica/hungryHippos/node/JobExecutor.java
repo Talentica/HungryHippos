@@ -44,7 +44,9 @@ public class JobExecutor {
 
   private static DataStore dataStore;
 
-  private static String hungryHippoFilePath;
+  private static String inputHHPath;
+
+  private static String outputHHPath;
 
   private static String PRIFIX_NODE_NAME = "_node";
 
@@ -109,8 +111,9 @@ public class JobExecutor {
     jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
     ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
     nodesManager = NodesManagerContext.getNodesManagerInstance();
-    //TODO hungryHippoFilePath should be initiallized
-    hungryHippoFilePath = "";
+    //TODO inputHHPath and outputHHPath should be initiallized
+    inputHHPath = "";
+    outputHHPath = "";
   }
 
   /**
@@ -163,8 +166,8 @@ public class JobExecutor {
     dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
     //TODO Sharding table should be file specific
     dataStore =
-        new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription,hungryHippoFilePath,NodeInfo.INSTANCE.getId(), true);
-    return new JobRunner(dataDescription, dataStore);
+        new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, inputHHPath,NodeInfo.INSTANCE.getId(), true);
+    return new JobRunner(dataDescription, dataStore,NodeInfo.INSTANCE.getId(),outputHHPath);
   }
 
   /**

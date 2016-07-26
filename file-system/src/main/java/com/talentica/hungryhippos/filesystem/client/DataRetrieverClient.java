@@ -53,11 +53,11 @@ public class DataRetrieverClient {
         NodesManager nodesManager = NodesManagerContext.getNodesManagerInstance();
         List<String> tmpDestFileNames = new ArrayList<>();
         String fsRootNode = NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getFilesystemPath();
-        String fileNodeZKDFSPath =fsRootNode+hungryHippoFilePath+File.separator+ FileSystemConstants.DFS_NODE ;
+        String fileNodeZKDFSPath =fsRootNode+hungryHippoFilePath+FileSystemConstants.ZK_PATH_SEPARATOR+ FileSystemConstants.DFS_NODE ;
         List<String> nodeIds = nodesManager.getChildren(fileNodeZKDFSPath);
-        boolean isSharded = nodesManager.checkNodeExists(fsRootNode+hungryHippoFilePath+File.separator+FileSystemConstants.SHARDED);
+        boolean isSharded = nodesManager.checkNodeExists(fsRootNode+hungryHippoFilePath+FileSystemConstants.ZK_PATH_SEPARATOR+FileSystemConstants.SHARDED);
         for (String nodeId : nodeIds) {
-            String nodeIdZKPath = fileNodeZKDFSPath + File.separator +  nodeId;
+            String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR +  nodeId;
             String nodeIp = getNodeIp(nodeId);
             List<String> dataBlockNodes = nodesManager.getChildren(nodeIdZKPath);
             if (isSharded) {
@@ -67,7 +67,7 @@ public class DataRetrieverClient {
             }
         }
         if (!tmpDestFileNames.isEmpty()) {
-            FileSystemUtils.combineFiles(tmpDestFileNames, outputDirName + File.separator + fileName);
+            FileSystemUtils.combineFiles(tmpDestFileNames, outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + fileName);
             FileSystemUtils.deleteFiles(tmpDestFileNames);
         }
     }
@@ -200,12 +200,12 @@ public class DataRetrieverClient {
             int dataBlockIntVal = Integer.parseInt(dataBlockNode);
             int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
             if ((dataBlockIntVal & dimensionOperand) == dimensionOperand) {
-                String dataBlockZKPath = nodeIdZKPath + File.separator + dataBlockNode;
+                String dataBlockZKPath = nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
                 String dataBlockSizeStr = (String) nodesManager.getObjectFromZKNode(dataBlockZKPath);
                 long dataSize = Long.parseLong(dataBlockSizeStr);
-                String filePath = hungryHippoFilePath + File.separator + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
-                String tmpDestFileName = outputDirName + File.separator + nodeIp + FileSystemConstants.DOWNLOAD_FILE_PREFIX +
-                        hungryHippoFilePath.replaceAll(File.separator,"-") + seq;
+                String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
+                String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp + FileSystemConstants.DOWNLOAD_FILE_PREFIX +
+                        hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR,"-") + seq;
                 retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
                 tmpDestFileNames.add(tmpDestFileName);
                 seq++;
@@ -232,7 +232,7 @@ public class DataRetrieverClient {
             , String hungryHippoFilePath, String outputDirName, String nodeIp, List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException, IOException, KeeperException, JAXBException {
         String dataBlockSizeStr = (String) nodesManager.getObjectFromZKNode(nodeIdZKPath);
         long dataSize = Long.parseLong(dataBlockSizeStr);
-        String tmpDestFileName = outputDirName + File.separator + nodeIp + FileSystemConstants.DOWNLOAD_FILE_PREFIX +hungryHippoFilePath.replaceAll(File.separator,"-");
+        String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp + FileSystemConstants.DOWNLOAD_FILE_PREFIX +hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR,"-");
         retrieveDataBlocks(nodeIp, hungryHippoFilePath, tmpDestFileName, dataSize);
         tmpDestFileNames.add(tmpDestFileName);
     }

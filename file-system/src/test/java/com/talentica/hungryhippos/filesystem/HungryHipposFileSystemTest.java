@@ -111,7 +111,7 @@ public class HungryHipposFileSystemTest {
 			String dataFileZKNode = "0";
 			long datafileSize = 1000L;
 			String nodeIp = "localhost";
-			String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
+			String fileNodeZKPath = fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
 
 			/*
 			 * PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).

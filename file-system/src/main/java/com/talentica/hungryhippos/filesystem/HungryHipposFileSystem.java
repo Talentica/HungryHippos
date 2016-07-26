@@ -2,6 +2,7 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -18,8 +19,13 @@ import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.PathEnum;
 
 /**
+ * 
  * HungryHipposFileSystem FileSystem. This class has methods for creating files
  * as znodes in the Zookeeper.
+ * 
+ * ======= HungryHipposFileSystem FileSystem. This class has methods for
+ * creating files as znodes in the Zookeeper.
+ *
  * 
  * @author sudarshans
  *
@@ -41,7 +47,8 @@ public class HungryHipposFileSystem {
 
 		try {
 			nodeManager = NodesManagerContext.getNodesManagerInstance();
-			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = nodeManager.getZookeeperConfiguration().getPathMap().get(PathEnum.FILESYSTEM.name());
+			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = nodeManager.getZookeeperConfiguration().getPathMap()
+					.get(PathEnum.FILESYSTEM.name());
 		} catch (JAXBException | IOException e) {
 			logger.error(e.getMessage());
 			throw new RuntimeException(e.getMessage());
@@ -300,6 +307,32 @@ public class HungryHipposFileSystem {
 		}
 		long currentSize = Long.parseLong(fileZKNodeValues) + datafileSize - prevDataFileSize;
 		setData(fileNodeZKPath, (currentSize + ""));
+	}
+
+	/**
+	 * This method updates the HungryHippos filesystem with the metadata of the
+	 * file
+	 *
+	 * @param fileZKNode
+	 * @param nodeId
+	 * @param datafileSize
+	 * @throws Exception
+	 */
+	public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize) throws Exception {
+		String fileNodeZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + fileZKNode;
+		String fileNodeZKDFSPath = fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR
+				+ FileSystemConstants.DFS_NODE;
+		String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
+
+		if (!checkZnodeExists(nodeIdZKPath)) {
+			if (!checkZnodeExists(fileNodeZKDFSPath)) {
+				createZnode(fileNodeZKDFSPath, "");
+			}
+			createZnode(nodeIdZKPath, datafileSize + "");
+		} else {
+			setData(nodeIdZKPath, datafileSize + "");
+		}
+
 	}
 
 }

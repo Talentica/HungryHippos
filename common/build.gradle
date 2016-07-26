@@ -19,5 +19,6 @@ dependencies {
 	compile project (':client-api')
 	compile project (':utility')
 	compile project (':storage')
+	compile project (':file-system')
 }
 

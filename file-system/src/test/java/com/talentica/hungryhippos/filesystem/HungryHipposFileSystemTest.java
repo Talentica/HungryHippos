@@ -12,8 +12,8 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
+//import org.mockito.Mockito;
+//import org.powermock.api.mockito.PowerMockito;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
@@ -113,7 +113,7 @@ public class HungryHipposFileSystemTest {
 			String dataFileZKNode = "0";
 			long datafileSize = 1000L;
 			String nodeIp = "localhost";
-			String fileNodeZKPath = fileSystemRootNodeZKPath + File.separator + fileZKNode;
+			String fileNodeZKPath = fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
 
 			/*
 			 * PowerMockito.when(NodesManagerContext.getNodesManagerInstance()).
@@ -141,7 +141,5 @@ public class HungryHipposFileSystemTest {
 			assertTrue(false);
 		}
 	}
-	
-
 
 }

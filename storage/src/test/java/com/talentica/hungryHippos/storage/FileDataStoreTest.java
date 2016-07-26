@@ -33,7 +33,7 @@ public class FileDataStoreTest {
 
   @BeforeClass
   public static void setUp() throws Exception {
-    fileDataStore = new FileDataStore(numDimensions, dataDescription);
+    fileDataStore = new FileDataStore(numDimensions, dataDescription,"hungryHippoFilePath","0");
   }
 
   /**

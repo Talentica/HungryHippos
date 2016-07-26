@@ -2,6 +2,8 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.File;
 
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ public class FileSystemStarter {
       LOGGER.info("Uploading FileSystem configuration");
       validateArguments(args);
       String fileSystemConfigFilePath = args[0];
+      NodesManagerContext.getNodesManagerInstance(args[1]);
       FileSystemConfig configuration =
           JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class);
       if (configuration.getServerPort() == 0 || configuration.getFileStreamBufferSize() <= 0
@@ -54,7 +57,7 @@ public class FileSystemStarter {
    * @param args
    */
   private static void validateArguments(String[] args) {
-    if (args == null || args.length < 1) {
+    if (args == null || args.length < 2) {
       LOGGER.error("Missing filesystem configuration file arguments.");
       System.exit(1);
     }

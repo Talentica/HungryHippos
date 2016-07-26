@@ -1,11 +1,14 @@
 package com.talentica.hungryHippos.common;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +29,17 @@ public class JobRunner implements Serializable {
    */
   private static final long serialVersionUID = -4793614653018059851L;
   private DataStore dataStore;
+  private String nodeId;
   private DynamicMarshal dynamicMarshal = null;
+  private String outputHHPath;
 
   private Logger LOGGER = LoggerFactory.getLogger(JobRunner.class);
 
-  public JobRunner(DataDescription dataDescription, DataStore dataStore) {
+  public JobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,String outputHHPath) {
     this.dataStore = dataStore;
+    this.nodeId = nodeId;
     dynamicMarshal = new DynamicMarshal(dataDescription);
+    this.outputHHPath = outputHHPath;
   }
 
   public void run(JobEntity jobEntity) throws ClassNotFoundException, FileNotFoundException,
@@ -40,12 +47,19 @@ public class JobRunner implements Serializable {
     checkIfMemoryAvailableToRunJob();
     StoreAccess storeAccess = null;
     storeAccess = dataStore.getStoreAccess(jobEntity.getJob().getPrimaryDimension());
-    DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal, jobEntity);
+    DataRowProcessor rowProcessor = new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath);
     storeAccess.addRowProcessor(rowProcessor);
     do {
       storeAccess.processRows();
       rowProcessor.finishUp();
     } while (rowProcessor.isAdditionalValueSetsPresentForProcessing());
+
+    try {
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId, (new File(FileSystemContext.getRootDirectory()+outputHHPath)).length());
+    } catch (Exception e) {
+      LOGGER.error(e.toString());
+     throw new RuntimeException(e);
+    }
   }
 
   private void checkIfMemoryAvailableToRunJob() {

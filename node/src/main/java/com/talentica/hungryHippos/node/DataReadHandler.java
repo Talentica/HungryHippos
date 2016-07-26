@@ -54,6 +54,14 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 			int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
 			dataStore.storeRow(storeId, byteBuffer, buf);
 		}
+		if(byteBuf.readableBytes()>0){
+			byte[] lastBuf= new byte[byteBuf.readableBytes()];
+			byteBuf.readBytes(lastBuf);
+			ByteBuffer lastByteBuffer = ByteBuffer.wrap(lastBuf);
+			int storeId = nodeDataStoreIdCalculator.storeId(lastByteBuffer);
+			dataStore.storeRow(storeId,lastByteBuffer,lastBuf);
+
+		}
 		waitForDataPublishersServerConnectRetryInterval();
 		dataReaderHandlerCounter--;
 		if (dataReaderHandlerCounter <= 0) {

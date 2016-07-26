@@ -13,78 +13,65 @@ import java.net.Socket;
  */
 public class DataRetrievalThread extends Thread {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataRetrievalThread.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataRetrievalThread.class);
 
-	private FileInputStream fis = null;
-	private BufferedInputStream bis = null;
-	private Socket clientSocket = null;
-	private DataInputStream dis = null;
-	private DataOutputStream dos = null;
-	private String rootDirectory;
-	private String dataFilePrefix;
-	private int fileStreamBufferSize;
+    private Socket clientSocket = null;
+    private DataInputStream dis = null;
+    private DataOutputStream dos = null;
+    private String rootDirectory;
+    private int fileStreamBufferSize;
 
-	public DataRetrievalThread(Socket clientSocket, String rootDirectory, String dataFilePrefix,
-			int fileStreamBufferSize) {
-		this.clientSocket = clientSocket;
-		this.rootDirectory = rootDirectory;
-		this.dataFilePrefix = dataFilePrefix;
-		this.fileStreamBufferSize = fileStreamBufferSize;
-		LOGGER.info("[{}] Just connected to {}", Thread.currentThread().getName(),
-				clientSocket.getRemoteSocketAddress());
-	}
+    public DataRetrievalThread(Socket clientSocket, String rootDirectory,
+                               int fileStreamBufferSize) {
+        this.clientSocket = clientSocket;
+        this.rootDirectory = rootDirectory;
+        this.fileStreamBufferSize = fileStreamBufferSize;
+        LOGGER.info("[{}] Just connected to {}", Thread.currentThread().getName(),
+                clientSocket.getRemoteSocketAddress());
+    }
 
-	public void run() {
-		try {
-			dis = new DataInputStream(clientSocket.getInputStream());
-			dos = new DataOutputStream(clientSocket.getOutputStream());
-			dos.writeUTF(FileSystemConstants.DATA_SERVER_AVAILABLE);
-			String fileZKNode = dis.readUTF();
-			String dataNodes = dis.readUTF();
-			LOGGER.info("[{}] DataNodes : {}", Thread.currentThread().getName(), dataNodes);
-			String[] filePathsArr = dataNodes.split(FileSystemConstants.FILE_PATHS_DELIMITER);
-			byte[] inputBuffer = new byte[fileStreamBufferSize];
-			int len;
-			for (String filePath : filePathsArr) {
-				String absoluteFilePath = rootDirectory + File.separator + fileZKNode + File.separator + dataFilePrefix
-						+ filePath;
-				fis = new FileInputStream(absoluteFilePath);
-				bis = new BufferedInputStream(fis);
-				LOGGER.info("[{}] Sending Data of : {}", Thread.currentThread().getName(), absoluteFilePath);
-				while ((len = bis.read(inputBuffer)) > -1) {
-					dos.write(inputBuffer, 0, len);
-				}
-				bis.close();
-				dos.flush();
-			}
-			Thread.sleep(1000);
-			dos.writeUTF(FileSystemConstants.DATA_TRANSFER_COMPLETED);
-			LOGGER.info("[{}] {}", Thread.currentThread().getName(), FileSystemConstants.DATA_TRANSFER_COMPLETED);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (clientSocket != null) {
-					clientSocket.close();
-				}
-				if (dis != null) {
-					dis.close();
-				}
-				if (dos != null) {
-					dos.close();
-				}
-				if (fis != null) {
-					fis.close();
-				}
-				if (bis != null) {
-					bis.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+    public void run() {
+        try {
+            dis = new DataInputStream(clientSocket.getInputStream());
+            dos = new DataOutputStream(clientSocket.getOutputStream());
+            dos.writeUTF(FileSystemConstants.DATA_SERVER_AVAILABLE);
+            String filePath = dis.readUTF();
+            long offset = dis.readLong();
+            LOGGER.info("[{}] filePath {}", Thread.currentThread().getName(),filePath);
+            LOGGER.info("[{}] offset {}", Thread.currentThread().getName(),offset);
+            byte[] inputBuffer = new byte[fileStreamBufferSize];
+            int len;
+            String absoluteFilePath = rootDirectory + filePath;
+            RandomAccessFile raf = new RandomAccessFile(absoluteFilePath, "r");
+            if (offset < raf.length()) {
+                raf.seek(offset);
+                while ((len = raf.read(inputBuffer)) > -1) {
+                    dos.write(inputBuffer, 0, len);
+                }
+            }
+            raf.close();
+            Thread.sleep(1000);
+            dos.writeUTF(FileSystemConstants.DATA_TRANSFER_COMPLETED);
+            LOGGER.info("[{}] {}", Thread.currentThread().getName(), FileSystemConstants.DATA_TRANSFER_COMPLETED);
+        } catch (IOException e) {
+            LOGGER.error(e.toString());
+        } catch (InterruptedException e) {
+            LOGGER.error(e.toString());
+        } finally {
+            try {
+                if (clientSocket != null) {
+                    clientSocket.close();
+                }
+                if (dis != null) {
+                    dis.close();
+                }
+                if (dos != null) {
+                    dos.close();
+                }
+            } catch (IOException e) {
+                LOGGER.error(e.toString());
+            }
+        }
 
-	}
+    }
 }

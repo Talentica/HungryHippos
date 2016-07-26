@@ -285,7 +285,7 @@ public class NodesManager implements Watcher {
 		counter.await();
 	}
 
-	public void createPersistentNodeASync(final String node)  {
+	public void createPersistentNodeASync(final String node) {
 		Object ctx = null;
 		zk.create(node, new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, createNodeCallBack, ctx);
 
@@ -895,9 +895,14 @@ public class NodesManager implements Watcher {
 		Stat stat = null;
 		stat = zk.exists(nodePath, this);
 		if (stat != null) {
+
 			zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
 			zk.setData(nodePath, ((String) data).getBytes(), stat.getVersion());
 		} else {
+
+			zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
+			// zk.setData(nodePath, ((String) data).getBytes(),
+			// stat.getVersion());
 		}
 	}
 

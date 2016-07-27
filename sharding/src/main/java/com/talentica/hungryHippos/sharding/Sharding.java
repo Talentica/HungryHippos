@@ -134,6 +134,7 @@ public class Sharding {
 		logger.info("Calculating buckets to node numbers map finished");
 	}
 
+
 	private void setKeysToIndexes() throws ClassNotFoundException, FileNotFoundException, KeeperException,
 			InterruptedException, IOException, JAXBException {
 		String[] keys = CoordinationApplicationContext.getColumnsConfiguration();

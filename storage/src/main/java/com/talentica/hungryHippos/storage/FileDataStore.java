@@ -26,99 +26,101 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
  * Created by debasishc on 31/8/15.
  */
 public class FileDataStore implements DataStore, Serializable {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -7726551156576482829L;
-  private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
-  private final int numFiles;
-  private OutputStream[] os;
-  private DataDescription dataDescription;
-  private String hungryHippoFilePath;
-  private String fileNamePrefix;
-  private String nodeId;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7726551156576482829L;
+	private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
+	private final int numFiles;
+	private OutputStream[] os;
+	private DataDescription dataDescription;
+	private String hungryHippoFilePath;
+	private String fileNamePrefix;
+	private String nodeId;
 
-  private static final boolean APPEND_TO_DATA_FILES = Boolean
-      .valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .isDatareceiverAppendToDataFiles());
+	private static final boolean APPEND_TO_DATA_FILES = Boolean.valueOf(CoordinationApplicationContext
+			.getZkCoordinationConfigCache().getNodeConfig().isDatareceiverAppendToDataFiles());
 
-  private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
-      new HashMap<>();
+	private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache = new HashMap<>();
 
- public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
+	public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath,String nodeId) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
-    this(numDimensions, dataDescription, hungryHippoFilePath,nodeId, false);
-  }
+	public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath, String nodeId)
+			throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+		this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false);
+	}
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath, String nodeId,boolean readOnly)
-          throws IOException{
-    this.numFiles = 1 << numDimensions;
-    this.dataDescription = dataDescription;
-    os = new OutputStream[numFiles];
-    this.nodeId = nodeId;
-    this.hungryHippoFilePath = hungryHippoFilePath;
-    String dirloc = FileSystemContext.getRootDirectory() + hungryHippoFilePath;
-    this.fileNamePrefix = dirloc + File.separator + DATA_FILE_BASE_NAME;
-    File file = new File(dirloc);
-    if (!file.exists()) {
-      boolean flag = file.mkdir();
-      if (flag) {
-        logger.info("created data folder");
-      } else {
-        logger.info("Not able to create dataFolder");
-      }
-    }
-    if (!readOnly) {
-      for (int i = 0; i < numFiles; i++) {
-        os[i] = new BufferedOutputStream(new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
-      }
-    }
-  }
+	public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath, String nodeId,
+			boolean readOnly) throws IOException {
+		this.numFiles = 1 << numDimensions;
+		this.dataDescription = dataDescription;
+		os = new OutputStream[numFiles];
+		this.nodeId = nodeId;
+		this.hungryHippoFilePath = hungryHippoFilePath;
+		if (FileSystemContext.getRootDirectory().endsWith(String.valueOf(File.separatorChar))) {
 
-  @Override
-  public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
-    try {
-      os[storeId].write(raw);
-    } catch (IOException e) {
-      logger.error("Error occurred while writing data received to datastore.", e);
-    }
-  }
+		}
+		String dirloc = FileSystemContext.getRootDirectory() + hungryHippoFilePath;
+		this.fileNamePrefix = dirloc + File.separator + DATA_FILE_BASE_NAME;
+		File file = new File(dirloc);
+		if (!file.exists()) {
+			boolean flag = file.mkdirs();
+			if (flag) {
+				logger.info("created data folder");
+			} else {
+				logger.info("Not able to create dataFolder");
+			}
+		}
+		if (!readOnly) {
+			for (int i = 0; i < numFiles; i++) {
+				os[i] = new BufferedOutputStream(new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
+			}
+		}
+	}
 
-  @Override
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
-    FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
-    if (storeAccess == null) {
-      storeAccess =
-          new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
-      primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
-    }
-    storeAccess.clear();
-    return storeAccess;
-  }
+	@Override
+	public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
+		try {
+			os[storeId].write(raw);
+		} catch (IOException e) {
+			logger.error("Error occurred while writing data received to datastore.", e);
+		}
+	}
 
-  @Override
-  public void sync() {
-    for (int i = 0; i < numFiles; i++) {
-      try {
-        os[i].flush();
-      } catch (IOException e) {
-        logger.error("Error occurred while flushing " + i + "th outputstream.", e);
-      } finally {
-        try {
-          if (os[i] != null)
-            os[i].close();
-          HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,i+"",
-                  (new File(fileNamePrefix+i)).length() );
-        } catch (IOException e) {
-          logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
-        } catch (Exception e){
-          logger.error(e.toString());
-        }
-      }
-    }
-  }
+	@Override
+	public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException, KeeperException,
+			InterruptedException, IOException, JAXBException {
+		int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
+		FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
+		if (storeAccess == null) {
+			storeAccess = new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles,
+					dataDescription);
+			primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
+		}
+		storeAccess.clear();
+		return storeAccess;
+	}
+
+	@Override
+	public void sync() {
+		for (int i = 0; i < numFiles; i++) {
+			try {
+				os[i].flush();
+			} catch (IOException e) {
+				logger.error("Error occurred while flushing " + i + "th outputstream.", e);
+			} finally {
+				try {
+					if (os[i] != null)
+						os[i].close();
+					HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId, i + "",
+							(new File(fileNamePrefix + i)).length());
+				} catch (IOException e) {
+					logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+				} catch (Exception e) {
+					logger.error(e.toString());
+				}
+			}
+		}
+	}
 
 }

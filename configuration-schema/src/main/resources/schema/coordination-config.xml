@@ -28,8 +28,7 @@
 		</tns:node>
 	</tns:cluster-config>
 	<tns:input-file-config>
-		<tns:input-file-name>/home/sudarshans/RD/HH_NEW/HungryHippos/utility/data.csv
-		</tns:input-file-name>
+		<tns:input-file-name>/home/sudarshans/RD/HH_NEW/HungryHippos/utility/data.csv</tns:input-file-name>
 		<tns:column-datatype-size>STRING-4,STRING-3,STRING-3,INT-0,INT-0,INT-0</tns:column-datatype-size>
 		<tns:column-names>key1,key2,key3,key4,key5,key6</tns:column-names>
 	</tns:input-file-config>
@@ -50,27 +49,23 @@
 		</tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
 		<tns:data-storage>
 			<tns:file-name>data_</tns:file-name>
-			<tns:path>/home/pooshans/HungryHippos/</tns:path>
+			<tns:path>/home/sudarshans/HungryHippos/</tns:path>
 		</tns:data-storage>
 		<tns:output-config>
 			<tns:file-name>outputFile</tns:file-name>
-			<tns:path>/home/pooshans/HungryHippos/</tns:path>
+			<tns:path>/home/sudarshans/HungryHippos/</tns:path>
 		</tns:output-config>
 	</tns:node-config>
 	<tns:common-config>
-		<tns:maximum-size-of-single-block-data>80
-		</tns:maximum-size-of-single-block-data>
+		<tns:maximum-size-of-single-block-data>80</tns:maximum-size-of-single-block-data>
 		<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>
 		<tns:keys-prefix>key</tns:keys-prefix>
 		<tns:no-of-droplets>10</tns:no-of-droplets>
-		<tns:no-of-attempts-to-connect-to-node>50
-		</tns:no-of-attempts-to-connect-to-node>
-		<tns:servers-connect-retry-interval-in-ms>2000
-		</tns:servers-connect-retry-interval-in-ms>
+		<tns:no-of-attempts-to-connect-to-node>50</tns:no-of-attempts-to-connect-to-node>
+		<tns:servers-connect-retry-interval-in-ms>2000</tns:servers-connect-retry-interval-in-ms>
 		<tns:webserver-ip>192.241.180.17</tns:webserver-ip>
 		<tns:webserver-port>80</tns:webserver-port>
-		<tns:bad-records-file-out>/home/pooshans/HungryHippos
-		</tns:bad-records-file-out>
+		<tns:bad-records-file-out>/home/sudarshans/HungryHippos</tns:bad-records-file-out>
 		<tns:jobuuid>abc123</tns:jobuuid>
 	</tns:common-config>
 </tns:coordination-config>

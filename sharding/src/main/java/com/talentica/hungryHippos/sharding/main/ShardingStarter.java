@@ -60,11 +60,11 @@ public class ShardingStarter {
 			LOGGER.info("Completed.");
 			long start = Calendar.getInstance().getTimeInMillis();
 			LOGGER.info("Uploading started for sharded table bucketToNodeNumberMap...");
-			shardingTable.zkUploadBucketToNodeNumberMap();
+		//	shardingTable.zkUploadBucketToNodeNumberMap();
 			LOGGER.info("Completed.");
 			LOGGER.info("Uploading started for sharded table keyToValueToBucketMap...");
-			shardingTable.zkUploadKeyToValueToBucketMap();
-			int queuedEvents = 0;
+		//	shardingTable.zkUploadKeyToValueToBucketMap();
+		/*	int queuedEvents = 0;
 			while (true) {
 				Thread.sleep(60000);
 				queuedEvents = ZkUtils.getQueuedEvents();
@@ -73,7 +73,7 @@ public class ShardingStarter {
 					break;
 				}
 				
-			}
+			}*/
 
 			long end = Calendar.getInstance().getTimeInMillis();
 			LOGGER.info( "Completed after " + (end - start)/1000 +  "seconds ");

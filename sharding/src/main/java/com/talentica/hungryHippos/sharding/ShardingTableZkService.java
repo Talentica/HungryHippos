@@ -27,8 +27,10 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.main.ShardingStarter;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.config.sharding.ShardingConfig;
 
 /**
  * @author pooshans
@@ -71,9 +73,9 @@ public class ShardingTableZkService {
 		// int bucketCombinationId = 0;
 		ZkUtils.saveObjectZkNode_test("/rootnode/sharding-table/BucketCombinationToNodeNumbers",
 				getBucketCombinationToNodeNumbersMap());
-		
+
 		Long start = Calendar.getInstance().getTimeInMillis();
-	
+
 		Long end = Calendar.getInstance().getTimeInMillis();
 		System.out.println("Duration is " + (end - start) / 1000 + " seconds");
 
@@ -97,8 +99,8 @@ public class ShardingTableZkService {
 	public void zkUploadBucketToNodeNumberMap()
 			throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
 		buildBasePathBucketToNode();
-		Map<String,Map<Bucket<KeyValueFrequency>, Node>> test = getBucketToNodeNumberMap();
-		
+		Map<String, Map<Bucket<KeyValueFrequency>, Node>> test = getBucketToNodeNumberMap();
+
 		System.out.println("BucketToNodeNumberMap " + test.size());
 		ZkUtils.saveObjectZkNode_test("/rootnode/sharding-table/BucketToNodeNumberMap", test);
 		/*
@@ -123,7 +125,7 @@ public class ShardingTableZkService {
 	 */
 	public void zkUploadKeyToValueToBucketMap()
 			throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
-		Map<String, Map<Object, Bucket<KeyValueFrequency>>> test1 = getKeyToValueToBucketMap();	
+		Map<String, Map<Object, Bucket<KeyValueFrequency>>> test1 = getKeyToValueToBucketMap();
 		System.out.println("KeyToValueToBucketMap" + test1.size());
 		ZkUtils.saveObjectZkNode_test("/rootnode/sharding-table/KeyToValueToBucketMap", test1);
 		/*
@@ -314,7 +316,7 @@ public class ShardingTableZkService {
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
-		String dir = ShardingStarter.getOutPutDir();
+		String dir = getOutPutDir();
 		dir = (dir.endsWith(String.valueOf(File.separatorChar)) ? dir : dir + File.pathSeparatorChar);
 		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
 				new FileInputStream(dir + Sharding.keyToValueToBucketMapFile))) {
@@ -330,7 +332,7 @@ public class ShardingTableZkService {
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
-		String dir = ShardingStarter.getOutPutDir();
+		String dir = getOutPutDir();
 		dir = (dir.endsWith(String.valueOf(File.separatorChar)) ? dir : dir + File.pathSeparatorChar);
 		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
 				new FileInputStream(dir + Sharding.bucketToNodeNumberMapFile))) {
@@ -347,7 +349,7 @@ public class ShardingTableZkService {
 	@SuppressWarnings("unchecked")
 	public Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
 
-		String dir = ShardingStarter.getOutPutDir();
+		String dir = getOutPutDir();
 		dir = (dir.endsWith(String.valueOf(File.separatorChar)) ? dir : dir + File.pathSeparatorChar);
 		try (ObjectInputStream bucketCombinationToNodeNumbersMapStream = new ObjectInputStream(
 				new FileInputStream(new File(dir + Sharding.bucketCombinationToNodeNumbersMapFile)))) {
@@ -356,6 +358,11 @@ public class ShardingTableZkService {
 			LOGGER.info("Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");
 		}
 		return null;
+	}
+
+	private String getOutPutDir() {
+		ShardingConfig shardingConfig = ShardingApplicationContext.getZkShardingConfigCache();
+		return shardingConfig.getOutput().getOutputDir();
 	}
 
 	/**

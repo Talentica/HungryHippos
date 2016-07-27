@@ -33,7 +33,7 @@ public class DataPublisherStarter {
       //TODO get the parser for the particular file from zookeeper instead of common config
 	  HungryHipposFileSystem fileSystem = HungryHipposFileSystem.getInstance();
       fileSystem.createZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
-          .getInputFileConfig().getInputFileName());
+          .getInputFileConfig().getInputFileName().trim());
       String dataParserClassName =
           ShardingApplicationContext.getZkShardingConfigCache().getInput().getDataParserConfig()
               .getClassName();

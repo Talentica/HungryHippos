@@ -8,12 +8,18 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.org.apache.xalan.internal.lib.NodeInfo;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
+
+import javax.xml.bind.JAXBException;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -28,6 +34,7 @@ public class FileStoreAccess implements StoreAccess {
 	private String base;
 	private ByteBuffer byteBuffer = null;
 	private byte[] byteBufferBytes;
+	private String hungryHippoFilePath;
 
 	static {
 		try {
@@ -37,7 +44,8 @@ public class FileStoreAccess implements StoreAccess {
 		}
 	}
 
-	public FileStoreAccess(String base, int keyId, int numFiles, DataDescription dataDescription) {
+	public FileStoreAccess(String hungryHippoFilePath, String base, int keyId, int numFiles, DataDescription dataDescription) {
+		this.hungryHippoFilePath = hungryHippoFilePath;
 		this.keyId = keyId;
 		this.numFiles = numFiles;
 		this.base = base;
@@ -59,15 +67,16 @@ public class FileStoreAccess implements StoreAccess {
 					processRows(i);
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void processRows(int fileId) throws IOException {
+	private void processRows(int fileId) throws Exception {
 		DataInputStream in = null;
+		File dataFile = null;
 		try {
-			File dataFile = new File(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig().getDataStorage().getPath() + base + fileId);
+			dataFile = new File(FileSystemContext.getRootDirectory()+hungryHippoFilePath+File.separator + base + fileId);
 			in = new DataInputStream(new FileInputStream(dataFile));
 			long dataFileSize = dataFile.length();
 			while (dataFileSize > 0) {
@@ -81,6 +90,7 @@ public class FileStoreAccess implements StoreAccess {
 			}
 		} finally {
 			closeDatsInputStream(in);
+
 		}
 	}
 

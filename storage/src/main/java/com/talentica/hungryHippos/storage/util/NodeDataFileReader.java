@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.storage.FileDataStore;
 
 /**
  * Utility class to read data files generated on nodes after sharding process is
@@ -39,7 +39,7 @@ public class NodeDataFileReader {
 		}
 		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
-			String dataFileName = args[0] + FileDataStore.DATA_FILE_BASE_NAME + i;
+			String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
 			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
 			DataInputStream dataInputStream = new DataInputStream(fileInputStream);
 			File readableDataFile = new File(dataFileName + "_read");

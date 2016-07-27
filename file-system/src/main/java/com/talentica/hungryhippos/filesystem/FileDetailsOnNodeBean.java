@@ -7,22 +7,21 @@ import com.talentica.hungryhippos.config.coordination.Node;
 
 /**
  * 
- * @author sudarshans Each node has details about FileMetaData or the file
- *         details.
+ * @author sudarshans Each node has details about FileMetaData or the file details.
  */
 public class FileDetailsOnNodeBean extends Node {
 
-	private static List<FileMetaData> fileMetaData = new ArrayList<>();
+  private static List<FileMetaData> fileMetaData = new ArrayList<>();
 
-	public void setFileMetaData(FileMetaData fileDetails) {
-		fileMetaData.add(fileDetails);
-	}
+  public void setFileMetaData(FileMetaData fileDetails) {
+    fileMetaData.add(fileDetails);
+  }
 
-	public List<FileMetaData> getFileMetaData() {
-		return fileMetaData;
-	}
+  public List<FileMetaData> getFileMetaData() {
+    return fileMetaData;
+  }
 
-	public FileDetailsOnNodeBean() {
+  public FileDetailsOnNodeBean() {
 
-	}
+  }
 }

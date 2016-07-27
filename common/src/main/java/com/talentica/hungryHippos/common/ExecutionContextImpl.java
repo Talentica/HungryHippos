@@ -1,8 +1,10 @@
 package com.talentica.hungryHippos.common;
 
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,20 +25,13 @@ public class ExecutionContextImpl implements ExecutionContext {
 
   private static PrintStream out;
 
-  static {
-    try {
-      out =
-          new PrintStream(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-              .getOutputConfig().getPath()
-              + CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-                  .getOutputConfig().getFileName());
-    } catch (Exception ex) {
-      LOGGER.error("Exception occurred while getting print stream for outoutFile.", ex);
-    }
-  }
-
-  public ExecutionContextImpl(DynamicMarshal dynamicMarshal) {
+  public ExecutionContextImpl(DynamicMarshal dynamicMarshal, String outputHHPath) {
     this.dynamicMarshal = dynamicMarshal;
+    try {
+      out = new PrintStream(FileSystemContext.getRootDirectory()+outputHHPath);
+    } catch (FileNotFoundException e) {
+      LOGGER.error("Exception occurred while getting print stream for outoutFile.", e);
+    }
   }
 
   public void setData(ByteBuffer data) {

@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.ZookeeperFileSystem;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 
 public class DataPublisherStarter {
 
@@ -30,8 +30,9 @@ public class DataPublisherStarter {
       validateArguments(args);
       setContext(args);
       nodesManager = NodesManagerContext.getNodesManagerInstance();
-      ZookeeperFileSystem fileSystem = new ZookeeperFileSystem();
-      fileSystem.createFilesAsZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
+      //TODO get the parser for the particular file from zookeeper instead of common config
+	  HungryHipposFileSystem fileSystem = HungryHipposFileSystem.getInstance();
+      fileSystem.createZnode(CoordinationApplicationContext.getZkCoordinationConfigCache()
           .getInputFileConfig().getInputFileName());
       String dataParserClassName =
           ShardingApplicationContext.getZkShardingConfigCache().getInput().getDataParserConfig()
@@ -40,8 +41,10 @@ public class DataPublisherStarter {
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
+      String sourcePath = args[1];
+      String destinationPath = args[2];
       long startTime = System.currentTimeMillis();
-      DataProvider.publishDataToNodes(nodesManager, dataParser);
+      DataProvider.publishDataToNodes(nodesManager, dataParser,sourcePath,destinationPath);
       sendSignalToNodes(nodesManager);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
@@ -53,8 +56,8 @@ public class DataPublisherStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 1) {
-      throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
+    if (args.length < 3) {
+      throw new RuntimeException("Either missing 1st argument {zookeeper configuration} or 2nd argument {source path} or 3rd argument {destination path}");
     }
   }
 

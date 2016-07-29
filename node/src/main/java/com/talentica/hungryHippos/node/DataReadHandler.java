@@ -80,11 +80,17 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 		processData();
 	}
 
+	/**
+	 * Writes the data in DataStore and reInitializes byteBuf
+	 */
 	private void processData() {
 		writeDataInStore();
 		reInitializeByteBuf();
 	}
 
+	/**
+	 * Writes the data in DataStore
+	 */
 	private void writeDataInStore() {
 		while (byteBuf.readableBytes() >= dataDescription.getSize()) {
 			byteBuf.readBytes(buf);
@@ -93,6 +99,9 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 		}
 	}
 
+	/**
+	 * reInitializes byteBuf
+	 */
 	private void reInitializeByteBuf() {
 		int remainingBytes = byteBuf.readableBytes();
 		byteBuf.readBytes(buf, 0, remainingBytes);

@@ -63,10 +63,14 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
         }
     }
 
+    /**
+     * Returns HHFilePath using the filePathLength
+     * @return
+     */
     private String readHHFilePath() {
         byte[] hhFilePathInBytes = new byte[filePathLength];
         byteBuf.readBytes(hhFilePathInBytes);
-        return new String();
+        return new String(hhFilePathInBytes);
     }
 
 }

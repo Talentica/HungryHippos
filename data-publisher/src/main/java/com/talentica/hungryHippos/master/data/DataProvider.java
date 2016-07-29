@@ -1,10 +1,9 @@
 package com.talentica.hungryHippos.master.data;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -91,12 +90,17 @@ public class DataProvider {
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
     Socket[] sockets =  new Socket[servers.length];
-
+    DataOutputStream dos = null;
+    byte[] destinationPathInBytes =  destinationPath.getBytes(Charset.defaultCharset());
+    int destinationPathLength = destinationPathInBytes.length;
     for (int i = 0; i < servers.length; i++) {
       String server = servers[i];
       sockets[i] = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
       targets[i] = new BufferedOutputStream(sockets[i].getOutputStream(), 8388608);
-      targets[i].write(destinationPath.getBytes());
+      dos= new DataOutputStream(sockets[i].getOutputStream());
+      dos.writeInt(destinationPathLength);
+      dos.flush();
+      targets[i].write(destinationPathInBytes);
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");

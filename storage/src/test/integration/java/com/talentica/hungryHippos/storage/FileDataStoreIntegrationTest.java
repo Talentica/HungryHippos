@@ -25,7 +25,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
  * @author sudarshans
  *
  */
-public class FileDataStoreTest {
+public class FileDataStoreIntegrationTest {
 
   private static FileDataStore fileDataStore = null;
   private static final DataDescription dataDescription = new FieldTypeArrayDataDescription(1);

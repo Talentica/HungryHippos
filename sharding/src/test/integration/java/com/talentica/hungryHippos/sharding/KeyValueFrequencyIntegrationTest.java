@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
  
 
- public class KeyValueFrequencyTest {
+ public class KeyValueFrequencyIntegrationTest {
 
  @Test
  public void testEquals() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {

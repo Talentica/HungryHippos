@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
-public class NodeUtilTest {
+public class NodeUtilIntegrationTest {
   private NodesManager nodesManager;
   private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap =
       new HashMap<BucketCombination, Set<Node>>();

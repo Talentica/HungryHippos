@@ -29,7 +29,7 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
  * @SuppressStaticInitializationFor({
  * "com.talentica.hungryHippos.coordination.domain.NodesManagerContext"})
  */
-public class HungryHipposFileSystemTest {
+public class HungryHipposFileSystemIntegrationTest {
 
 	private HungryHipposFileSystem hhfs = null;
 

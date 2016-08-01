@@ -27,7 +27,7 @@ import com.talentica.hungryhippos.config.coordination.Node;
  *
  * @author nitink
  */
-public class ShardingTest {
+public class ShardingIntegrationTest {
 
 	private Reader shardingInputFileReader;
 	private Sharding sharding;
@@ -41,7 +41,8 @@ public class ShardingTest {
 		CsvDataParser csvDataPreprocessor = new CsvDataParser(dataDescription);
 
 		shardingInputFileReader = new FileReader(
-				new File("src/test/java/com/talentica/hungryHippos/sharding/testSampleInput.txt"), csvDataPreprocessor);
+				new File("src/test/integration/java/com/talentica/hungryHippos/sharding/testSampleInput.txt"),
+				csvDataPreprocessor);
 	}
 
 	private ClusterConfig getClusterConfiguration() {

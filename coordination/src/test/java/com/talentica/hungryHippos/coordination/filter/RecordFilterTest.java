@@ -17,9 +17,8 @@ import org.junit.Test;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataTypes;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -30,47 +29,48 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
 public class RecordFilterTest {
 
-  private static String sampleBadRecordFile;
-  private static String dataParserClassName;
-  private static Reader data;
-  private static String badRecordsFile;
+	private static String sampleBadRecordFile;
+	private static String dataParserClassName;
+	private static Reader data;
+	private static String badRecordsFile;
 
-  @Before
-  public void setUp() {
-    dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
-    sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "temp.csv";
-    badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
-  }
+	private static final String[] INPUT_DATA_DESCRIPTION = new String[] { "STRING-1", "STRING-1", "STRING-1",
+			"STRING-3", "STRING-3", "STRING-3", "DOUBLE", "DOUBLE", "STRING-5" };
 
+	@Before
+	public void setUp() {
+		dataParserClassName = "com.talentica.hungryHippos.client.data.parser.CsvDataParser";
+		sampleBadRecordFile = new File("").getAbsolutePath() + File.separator + "temp.csv";
+		badRecordsFile = new File("").getAbsolutePath() + File.separator + "test.err";
+	}
 
-  @Test
-  public void testFilterBadRecords() throws InstantiationException, IllegalAccessException,
-      ClassNotFoundException, IOException, IllegalArgumentException, InvocationTargetException,
-      NoSuchMethodException, SecurityException, KeeperException, InterruptedException, JAXBException {
-    DataParser dataParser =
-        (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-            .newInstance(CoordinationApplicationContext.getConfiguredDataDescription());
-    data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-        sampleBadRecordFile, dataParser);
-    int actualBadRecords = 0;
-    int expectedBadRows = 2;
-    int lineNo = 0;
-    FileWriter.openFile(badRecordsFile);
-    while (true) {
-      DataTypes[] parts = null;
-      try {
-        parts = data.read();
-      } catch (InvalidRowException e) {
-        FileWriter.flushData(lineNo++, e);
-        actualBadRecords++;
-        continue;
-      }
-      if (parts == null) {
-        data.close();
-        break;
-      }
-    }
-    Assert.assertEquals(expectedBadRows, actualBadRecords);
-  }
+	@Test
+	public void testFilterBadRecords() throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+			IOException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException,
+			KeeperException, InterruptedException, JAXBException {
+		DataParser dataParser = (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
+				.newInstance(FieldTypeArrayDataDescription.createDataDescription(INPUT_DATA_DESCRIPTION, 150));
+		data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(sampleBadRecordFile,
+				dataParser);
+		int actualBadRecords = 0;
+		int expectedBadRows = 2;
+		int lineNo = 0;
+		FileWriter.openFile(badRecordsFile);
+		while (true) {
+			DataTypes[] parts = null;
+			try {
+				parts = data.read();
+			} catch (InvalidRowException e) {
+				FileWriter.flushData(lineNo++, e);
+				actualBadRecords++;
+				continue;
+			}
+			if (parts == null) {
+				data.close();
+				break;
+			}
+		}
+		Assert.assertEquals(expectedBadRows, actualBadRecords);
+	}
 
 }

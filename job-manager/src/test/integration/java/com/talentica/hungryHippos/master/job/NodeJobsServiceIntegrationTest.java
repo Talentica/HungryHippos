@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.JobEntity;
 
-public class NodeJobsServiceTest {
+public class NodeJobsServiceIntegrationTest {
 
 	private NodeJobsService nodeService = null;;
 	private Node node = null;

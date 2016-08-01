@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.Test;
 
 
-public class NodeFileSystemTest {
+public class NodeFileSystemIntegrationTest {
 
 
   String path = System.getProperty("user.home") + File.separatorChar + "hungryhippos";

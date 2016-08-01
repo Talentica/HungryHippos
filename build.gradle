@@ -17,6 +17,32 @@ allprojects {
 		compile group: 'commons-io', name: 'commons-io', version: '2.5'
 		compile group:'org.eclipse.persistence',name:'org.eclipse.persistence.moxy',version:'2.5.2'
 	}
+	
+	sourceSets {
+		test {
+		  java.srcDir 'src/test/java'
+		}
+		integration {
+		  java.srcDir 'src/test/integration/java'
+		  resources.srcDir 'src/test/resources'
+		  compileClasspath += main.output + test.output
+		  runtimeClasspath += main.output + test.output
+		}
+	  }
+	
+	jar{
+		exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+	}
+	  
+	  configurations {
+		integrationCompile.extendsFrom testCompile
+		integrationRuntime.extendsFrom testRuntime
+	  }
+	  
+	  task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
+		testClassesDir = sourceSets.integration.output.classesDir
+		classpath = sourceSets.integration.runtimeClasspath
+	  }
 
 }
 

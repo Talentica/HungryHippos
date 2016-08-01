@@ -24,7 +24,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
 
-public class NodeDataStoreIdCalculatorTest {
+public class NodeDataStoreIdCalculatorIntegrationTest {
 
   private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 

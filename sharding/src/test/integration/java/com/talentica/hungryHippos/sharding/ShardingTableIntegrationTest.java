@@ -19,7 +19,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
  * @author pooshans
  * @author sohanc
  */
-public class ShardingTableTest {
+public class ShardingTableIntegrationTest {
   private ShardingTableZkService shardingTable;
   private static final String basePath = "/home/pooshans/HungryHippos";
   private static final String zookeeprConfigFilePath = basePath

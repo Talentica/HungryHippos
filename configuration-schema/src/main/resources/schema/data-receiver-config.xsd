@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.talentica.com/hungryhippos/config/datareceiver"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/datareceiver"
+	elementFormDefault="qualified">
+	<element name="data-receiver-config">
+		<complexType>
+			<sequence>
+				<element type="boolean" name="datareceiver-append-to-data-files" />
+			</sequence>
+		</complexType>
+	</element>
+
+</schema>

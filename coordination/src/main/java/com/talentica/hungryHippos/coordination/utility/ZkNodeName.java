@@ -8,6 +8,8 @@ package com.talentica.hungryHippos.coordination.utility;
  *
  */
 public enum ZkNodeName {
+  
+  SHARDING_TABLE("sharding-table"),
 
   BUCKET_COMBINATION("bucket_combination"),
 

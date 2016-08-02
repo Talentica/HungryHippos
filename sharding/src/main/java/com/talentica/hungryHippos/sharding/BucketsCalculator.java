@@ -12,7 +12,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 public final class BucketsCalculator {
@@ -30,7 +29,8 @@ public final class BucketsCalculator {
 
   }
 
-  public BucketsCalculator(Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap) {
+  public BucketsCalculator(
+      Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap) {
     this.keyToValueToBucketMap = keyToValueToBucketMap;
     if (keyToValueToBucketMap != null) {
       for (String key : keyToValueToBucketMap.keySet()) {
@@ -44,21 +44,18 @@ public final class BucketsCalculator {
     }
   }
 
-  public static int calculateNumberOfBucketsNeeded() throws ClassNotFoundException,
+  public static int calculateNumberOfBucketsNeeded(String path) throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    double MAX_NO_OF_FILE_SIZE =
-        Double.valueOf(ShardingApplicationContext.getZkShardingConfigCache().getOutputFileConfig()
-            .getMaximumShardFileSizeInBytes());
-    int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
+    double MAX_NO_OF_FILE_SIZE = Double.valueOf(
+        ShardingApplicationContext.getShardingServerConfig(path).getMaximumShardFileSizeInBytes());
+    int noOfKeys = ShardingApplicationContext.getShardingDimensions(path).length;
     long approximateMemoryPerBucketStoredInShardTable =
         (NO_OF_BYTES_PER_KEY * noOfKeys) + NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
-    //Sudarshan:- Need to understand the purpose, Max number of file size is configurable
-    Double noOfBucketsNeeded =
-        Math.pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable, 1.0 / noOfKeys);
+    Double noOfBucketsNeeded = Math
+        .pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable, 1.0 / noOfKeys);
     int numberOfBucketsNeeded = (int) Math.ceil(noOfBucketsNeeded);
     Object maxNoOfBuckets =
-        ShardingApplicationContext.getZkShardingConfigCache().getOutputFileConfig()
-            .getMaximumNoOfShardBucketsSize();
+        ShardingApplicationContext.getShardingServerConfig(path).getMaximumNoOfShardBucketsSize();
     if (maxNoOfBuckets != null) {
       int maximumNoOfBucketsAllowed = Integer.parseInt(maxNoOfBuckets.toString());
       if (numberOfBucketsNeeded > maximumNoOfBucketsAllowed) {
@@ -89,7 +86,8 @@ public final class BucketsCalculator {
 
   private Bucket<KeyValueFrequency> calculateBucketNumberForNewValue(String key, Object value) {
     Bucket<KeyValueFrequency> bucket = null;
-    if (keyToBucketNumbersCollectionMap != null && keyToBucketNumbersCollectionMap.get(key) != null) {
+    if (keyToBucketNumbersCollectionMap != null
+        && keyToBucketNumbersCollectionMap.get(key) != null) {
       List<Bucket<KeyValueFrequency>> bucketsForKey = keyToBucketNumbersCollectionMap.get(key);
       int totalNumberOfBuckets = bucketsForKey.size();
       if (totalNumberOfBuckets > 1) {

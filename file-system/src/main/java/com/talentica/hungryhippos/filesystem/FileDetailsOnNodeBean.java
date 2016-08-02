@@ -3,7 +3,8 @@ package com.talentica.hungryhippos.filesystem;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.talentica.hungryhippos.config.coordination.Node;
+import com.talentica.hungryhippos.config.cluster.Node;
+
 
 /**
  * 

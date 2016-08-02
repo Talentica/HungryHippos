@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.tester.api.job.Job;
 import com.talentica.hungryHippos.tester.api.job.JobServiceResponse;
 
@@ -27,10 +26,8 @@ public class JobRequest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   public Job getJobDetails(String uuid) throws HttpException, IOException {
-    final String WEBSERVER_IP =
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getWebserverIp();
-    final String WEBSERVER_PORT =
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getWebserverPort();
+    final String WEBSERVER_IP ="192.241.248.197";
+    final String WEBSERVER_PORT ="8080";
     final String WEBSERVER_IP_PORT = WEBSERVER_IP + ":" + WEBSERVER_PORT;
     String uri = "http://" + WEBSERVER_IP_PORT + "/job/any/detail/" + uuid;
     LOGGER.info("Getting details of job:{}", uri);

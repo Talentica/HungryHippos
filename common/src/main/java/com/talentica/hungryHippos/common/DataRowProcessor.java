@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.utility.JobEntity;
@@ -28,23 +28,20 @@ public class DataRowProcessor implements RowProcessor {
   private static final String BEFORE_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS =
       "Before garbage collection free memory available is: ";
   private static final long NO_OF_ROWS_AFTER_WHICH_TO_DO_MEMORY_CONSUMPTION_CHECK_FOR =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .getNoOfRowsToCheckMemoryConsumptionAfter();
+      JobRunnerApplicationContext.getZkJobRunnerConfig().getNoOfRowsToCheckMemoryConsumptionAfter();
 
   private static final long MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .getNoOfRowsToLogProgressAfter();
+      JobRunnerApplicationContext.getZkJobRunnerConfig().getNoOfRowsToLogProgressAfter();
 
   private static final long NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .getNoOfRowsToCheckAvailableMemory();
+      JobRunnerApplicationContext.getZkJobRunnerConfig().getNoOfRowsToCheckAvailableMemory();
 
   private static final long WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
+      JobRunnerApplicationContext.getZkJobRunnerConfig()
           .getWaitTimeInMsAfterGcIsRequestedForSingleValuesetIsInProcess();
 
   private static final int MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
+      JobRunnerApplicationContext.getZkJobRunnerConfig()
           .getMaxNoOfGcRetriesWhenSingleValuesetIsInProcess();
 
   private DynamicMarshal dynamicMarshal;
@@ -78,8 +75,7 @@ public class DataRowProcessor implements RowProcessor {
   private int totalNoOfRowsProcessed = 0;
 
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
-      CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .getMinFreeMemoryInMbs();
+      JobRunnerApplicationContext.getZkJobRunnerConfig().getMinFreeMemoryInMbs();
 
   long startTime = System.currentTimeMillis();
 
@@ -87,7 +83,7 @@ public class DataRowProcessor implements RowProcessor {
     this.jobEntity = jobEntity;
     this.dynamicMarshal = dynamicMarshal;
     this.keys = jobEntity.getJob().getDimensions();
-    this.executionContext = new ExecutionContextImpl(dynamicMarshal,outputHHPath);
+    this.executionContext = new ExecutionContextImpl(dynamicMarshal, outputHHPath);
     workClassType = jobEntity.getJob().createNewWork().getClass();
   }
 
@@ -122,10 +118,8 @@ public class DataRowProcessor implements RowProcessor {
   }
 
   private void logFreeMemoryAtThisPoint(String message) {
-    LOGGER.info(
-        message + " {}.",
-        new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
-            MemoryStatus.getTotalmemory()});
+    LOGGER.info(message + " {}.", new Object[] {
+        MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(), MemoryStatus.getTotalmemory()});
   }
 
   private void removeValuesToFreeupMemory() {
@@ -137,8 +131,7 @@ public class DataRowProcessor implements RowProcessor {
         (long) (Math.ceil((double) memoryDeficiency * valuesetToWorkTreeMap.size() / usedMemory));
     LOGGER.info("Removing {} of values to free up memory.",
         new Object[] {numberOfValuesToBeDeleted});
-    LOGGER.info(
-        "Before removing items free up memory, size of batch(valuesetToWorkTreeMap) is: {}",
+    LOGGER.info("Before removing items free up memory, size of batch(valuesetToWorkTreeMap) is: {}",
         new Object[] {valuesetToWorkTreeMap.size()});
     long valuesDeletedCounter = 0;
     while (valuesDeletedCounter < numberOfValuesToBeDeleted && valuesetToWorkTreeMap.size() > 1) {
@@ -147,14 +140,14 @@ public class DataRowProcessor implements RowProcessor {
       valuesDeletedCounter++;
     }
     maxValueSetOfCurrentBatch = valuesetToWorkTreeMap.lastKey();
-    LOGGER
-        .info(
-            "After removing few items according to available memory, size of batch(valuesetToWorkTreeMap) is: {}",
-            new Object[] {valuesetToWorkTreeMap.size()});
+    LOGGER.info(
+        "After removing few items according to available memory, size of batch(valuesetToWorkTreeMap) is: {}",
+        new Object[] {valuesetToWorkTreeMap.size()});
   }
 
   private boolean isThresholdMemoryNotAvailable() {
-    return MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated() < MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS;
+    return MemoryStatus
+        .getMaximumFreeMemoryThatCanBeAllocated() < MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS;
   }
 
   private boolean checkForFreeMemory() {
@@ -164,10 +157,9 @@ public class DataRowProcessor implements RowProcessor {
 
   private void waitForGarbageCollectionToBeRun() {
     while (retryCount <= MAXIMUM_NO_OF_GC_RETRIES_WHEN_SINGLE_VALUEST_IS_IN_PROCESS) {
-      LOGGER
-          .info(
-              "Waiting for GC to be run as there is a single valueset: {} for which computation is being performed and very less memory available.",
-              new Object[] {valuesetToWorkTreeMap.lastKey()});
+      LOGGER.info(
+          "Waiting for GC to be run as there is a single valueset: {} for which computation is being performed and very less memory available.",
+          new Object[] {valuesetToWorkTreeMap.lastKey()});
       sleep();
       retryCount++;
     }
@@ -175,9 +167,9 @@ public class DataRowProcessor implements RowProcessor {
 
   private void sleep() {
     try {
-      LOGGER.info("Sleeping for {} ms. Total no. of rows processed is: {}. ", new Object[] {
-          WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS,
-          totalNoOfRowsProcessed});
+      LOGGER.info("Sleeping for {} ms. Total no. of rows processed is: {}. ",
+          new Object[] {WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS,
+              totalNoOfRowsProcessed});
       Thread.sleep(WAIT_TIME_IN_MS_AFTER_GC_IS_REQUESTED_FOR_SINGLE_VALUEST_IN_PROCESS);
     } catch (InterruptedException exception) {
       throw new RuntimeException(exception);
@@ -211,16 +203,14 @@ public class DataRowProcessor implements RowProcessor {
   private void logProgress() {
     totalNoOfRowsProcessed++;
     if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
-      LOGGER
-          .info(
-              "*********  Processing in progress. {} no. of rows processed... and current batch size {} *********",
-              new Object[] {totalNoOfRowsProcessed, valuesetToWorkTreeMap.size()});
-      LOGGER
-          .info(
-              "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
-              new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
-                  MemoryStatus.getUsedMemory(), MemoryStatus.getTotalmemory(),
-                  MemoryStatus.getFreeMemory(), MemoryStatus.getMaxMemory()});
+      LOGGER.info(
+          "*********  Processing in progress. {} no. of rows processed... and current batch size {} *********",
+          new Object[] {totalNoOfRowsProcessed, valuesetToWorkTreeMap.size()});
+      LOGGER.info(
+          "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
+          new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
+              MemoryStatus.getUsedMemory(), MemoryStatus.getTotalmemory(),
+              MemoryStatus.getFreeMemory(), MemoryStatus.getMaxMemory()});
       LOGGER.info("Size of batch(valuesetToWorkTreeMap) is: {}",
           new Object[] {valuesetToWorkTreeMap.size()});
     }
@@ -298,7 +288,8 @@ public class DataRowProcessor implements RowProcessor {
   private void checkIfBatchIsFull() {
     if (countOfRows >= NO_OF_ROWS_TO_CHECK_AVAILABLE_MEMORY_AFTER) {
       long freeMemory = MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated();
-      if (!isCurrentBatchFull && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
+      if (!isCurrentBatchFull
+          && freeMemory <= MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS) {
         isCurrentBatchFull = true;
       }
       countOfRows = 0;
@@ -319,8 +310,8 @@ public class DataRowProcessor implements RowProcessor {
   }
 
   private void reset() {
-    LOGGER.info("Processing of batch id:{}, size:{} completed.", new Object[] {batchId,
-        valuesetToWorkTreeMap.size()});
+    LOGGER.info("Processing of batch id:{}, size:{} completed.",
+        new Object[] {batchId, valuesetToWorkTreeMap.size()});
     valuesetToWorkTreeMap.clear();
     isCurrentBatchFull = false;
     countOfRows = 0;

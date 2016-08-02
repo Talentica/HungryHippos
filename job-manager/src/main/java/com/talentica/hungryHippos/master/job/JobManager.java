@@ -65,6 +65,7 @@ public class JobManager {
 
   @SuppressWarnings("unchecked")
   private void setBucketToNodeNumberMap() throws Exception {
+    //TODO figuring out the path of sharding table on Zk.
     ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
     bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) shardingTableCache
         .getShardingTableFromCache(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName());

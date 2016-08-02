@@ -29,17 +29,16 @@ public class MemoryCalculator implements Memory {
   }
 
   @Override
-  public Map<Integer, Long> getJobMemoryAlloc() throws ClassNotFoundException,
+  public Map<Integer, Long> getJobMemoryAlloc(DataDescription dataDescription) throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     for (Map.Entry<Integer, Long> e : jobIdRowCountMap.entrySet()) {
-      jobIdMemoMap.put(e.getKey(), getObjectSize(e.getValue()));
+      jobIdMemoMap.put(e.getKey(), getObjectSize(e.getValue(),dataDescription));
     }
     return jobIdMemoMap;
   }
 
-  private long getObjectSize(Long rowCount) throws ClassNotFoundException, FileNotFoundException,
+  private long getObjectSize(Long rowCount,DataDescription dataDescription) throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    DataDescription dataDescription = CoordinationApplicationContext.getConfiguredDataDescription();
     return (rowCount * dataDescription.getSize());
   }
 

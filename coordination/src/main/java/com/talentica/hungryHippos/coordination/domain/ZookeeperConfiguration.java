@@ -14,35 +14,25 @@ import org.slf4j.LoggerFactory;
  */
 public class ZookeeperConfiguration {
 
-    Integer sessionTimeout;
-    Map<String,String> pathMap;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConfiguration.class);
+  Map<String, String> pathMap;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConfiguration.class);
 
-   
-    /**
-     * @param pathMap
-     * @param sessionTimeout
-     */
-    public ZookeeperConfiguration(Map<String,String> pathMap,Integer sessionTimeout){
-    	this.pathMap = pathMap;
-    	this.sessionTimeout = sessionTimeout;
-    }
 
-    public Integer getSessionTimeout() {
-        return sessionTimeout;
-    }
+  /**
+   * @param pathMap
+   * @param sessionTimeout
+   */
+  public ZookeeperConfiguration(Map<String, String> pathMap) {
+    this.pathMap = pathMap;
+  }
 
-    public void setSessionTimeout(Integer sessionTimeout) {
-        this.sessionTimeout = sessionTimeout;
-    }
+  public Map<String, String> getPathMap() {
+    return pathMap;
+  }
 
-	public Map<String, String> getPathMap() {
-		return pathMap;
-	}
-
-	public void setPathMap(Map<String, String> pathMap) {
-		this.pathMap = pathMap;
-	}
+  public void setPathMap(Map<String, String> pathMap) {
+    this.pathMap = pathMap;
+  }
 
 
 }

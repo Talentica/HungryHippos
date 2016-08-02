@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
+	<tns:coordination-servers>
+		<tns:servers>localhost:2181</tns:servers>
+	</tns:coordination-servers>
+	<tns:session-timout>86400000</tns:session-timout>
+</tns:client-config>

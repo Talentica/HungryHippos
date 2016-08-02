@@ -21,13 +21,10 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
  */
 public class ShardingTableIntegrationTest {
   private ShardingTableZkService shardingTable;
-  private static final String basePath = "/home/pooshans/HungryHippos";
-  private static final String zookeeprConfigFilePath = basePath
-      + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
+  private static final String shardingPath = "/dir/dir1/input";
 
   @Before
   public void setUp() throws Exception {
-    NodesManagerContext.setZookeeperXmlPath(zookeeprConfigFilePath);
     shardingTable = new ShardingTableZkService();
   }
 
@@ -35,7 +32,7 @@ public class ShardingTableIntegrationTest {
   @Ignore
   public void testBucketCombinationToNode() {
     try {
-      shardingTable.zkUploadBucketCombinationToNodeNumbersMap();
+      shardingTable.zkUploadBucketCombinationToNodeNumbersMap(shardingPath);
       Assert.assertTrue(true);
     } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);
@@ -47,7 +44,7 @@ public class ShardingTableIntegrationTest {
   public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
       IOException, InterruptedException {
     try {
-      shardingTable.zkUploadBucketToNodeNumberMap();
+      shardingTable.zkUploadBucketToNodeNumberMap(shardingPath);
       Assert.assertTrue(true);
     } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);
@@ -59,7 +56,7 @@ public class ShardingTableIntegrationTest {
   public void testKeyToValueToBucket() throws IllegalArgumentException, IllegalAccessException,
       IOException, InterruptedException, JAXBException {
     try {
-      shardingTable.zkUploadKeyToValueToBucketMap();
+      shardingTable.zkUploadKeyToValueToBucketMap(shardingPath);
       Assert.assertTrue(true);
     } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
       Assert.assertFalse(true);
@@ -70,7 +67,7 @@ public class ShardingTableIntegrationTest {
   @Ignore
   public void testBucketCombinationToNodeRead() {
     try {
-      shardingTable.readBucketCombinationToNodeNumbersMap();
+      shardingTable.readBucketCombinationToNodeNumbersMap(shardingPath);
       Assert.assertTrue(true);
     } catch (Exception e) {
       Assert.assertFalse(true);
@@ -81,7 +78,7 @@ public class ShardingTableIntegrationTest {
   @Ignore
   public void testBucketToNodeNumberRead() {
     try {
-      shardingTable.readBucketToNodeNumberMap();
+      shardingTable.readBucketToNodeNumberMap(shardingPath);
       Assert.assertTrue(true);
     } catch (Exception e) {
       Assert.assertFalse(true);
@@ -91,7 +88,7 @@ public class ShardingTableIntegrationTest {
   @Test
   public void testKeyToValueToBucketRead() {
     try {
-      shardingTable.readKeyToValueToBucketMap();
+      shardingTable.readKeyToValueToBucketMap(shardingPath);
       Assert.assertTrue(true);
     } catch (Exception e) {
       Assert.assertFalse(true);

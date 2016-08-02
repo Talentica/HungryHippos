@@ -24,6 +24,7 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataReadHandler.class);
 	private DataDescription dataDescription;
 	private byte[] buf;
+	private byte[] previousHandlerUnprocessedData;
 	private ByteBuffer byteBuffer;
 	private DataStore dataStore;
 	private ByteBuf byteBuf;
@@ -32,7 +33,8 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	private static int dataReaderHandlerCounter = 0;
 	private int dataReaderHandlerId = -1;
 
-	public DataReadHandler(DataDescription dataDescription, DataStore dataStore) throws IOException {
+	public DataReadHandler(DataDescription dataDescription, DataStore dataStore, byte[] remainingBufferData) throws IOException {
+		this.previousHandlerUnprocessedData = remainingBufferData;
 		this.dataDescription = dataDescription;
 		this.buf = new byte[dataDescription.getSize()];
 		byteBuffer = ByteBuffer.wrap(this.buf);
@@ -44,24 +46,14 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) {
-		byteBuf = ctx.alloc().buffer(dataDescription.getSize() * 20); // (1)
+		byteBuf = ctx.alloc().buffer(dataDescription.getSize() * 20);
+		byteBuf.writeBytes(previousHandlerUnprocessedData);
+		processData();
 	}
 
 	@Override
 	public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
-		while (byteBuf.readableBytes() >= dataDescription.getSize()) {
-			byteBuf.readBytes(buf);
-			int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
-			dataStore.storeRow(storeId, byteBuffer, buf);
-		}
-		if(byteBuf.readableBytes()>0){
-			byte[] lastBuf= new byte[byteBuf.readableBytes()];
-			byteBuf.readBytes(lastBuf);
-			ByteBuffer lastByteBuffer = ByteBuffer.wrap(lastBuf);
-			int storeId = nodeDataStoreIdCalculator.storeId(lastByteBuffer);
-			dataStore.storeRow(storeId,lastByteBuffer,lastBuf);
-
-		}
+		writeDataInStore();
 		waitForDataPublishersServerConnectRetryInterval();
 		dataReaderHandlerCounter--;
 		if (dataReaderHandlerCounter <= 0) {
@@ -83,16 +75,34 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
 		ByteBuf msgB = (ByteBuf) msg;
-		byteBuf.writeBytes(msgB); // (2)
+		byteBuf.writeBytes(msgB);
 		msgB.release();
-		// process the new data.
+		processData();
+	}
+
+	/**
+	 * Writes the data in DataStore and reInitializes byteBuf
+	 */
+	private void processData() {
+		writeDataInStore();
+		reInitializeByteBuf();
+	}
+
+	/**
+	 * Writes the data in DataStore
+	 */
+	private void writeDataInStore() {
 		while (byteBuf.readableBytes() >= dataDescription.getSize()) {
 			byteBuf.readBytes(buf);
 			int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
 			dataStore.storeRow(storeId, byteBuffer, buf);
 		}
+	}
 
-		// take the remaining content to the beginning
+	/**
+	 * reInitializes byteBuf
+	 */
+	private void reInitializeByteBuf() {
 		int remainingBytes = byteBuf.readableBytes();
 		byteBuf.readBytes(buf, 0, remainingBytes);
 		byteBuf.clear();

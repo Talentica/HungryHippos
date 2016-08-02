@@ -1,30 +1,23 @@
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-
-import java.io.IOException;
-import java.util.List;
-
-import io.netty.handler.codec.string.StringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
-import com.talentica.hungryhippos.config.coordination.Node;
+import java.io.IOException;
 
 public class DataReceiver {
 
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
-  public static final String STRING_DECODER="STRING_DECODER";
   public static final String REQUEST_DETAILS_HANDLER ="REQUEST_DETAILS_HANDLER";
   public static final String DATA_HANDLER="DATA_HANDLER";
 
@@ -53,7 +46,6 @@ public class DataReceiver {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
-          pipeline.addLast(STRING_DECODER,new StringDecoder());
           pipeline.addLast(REQUEST_DETAILS_HANDLER,new RequestDetailsHandler(nodeId));
         }
       });
@@ -74,7 +66,9 @@ public class DataReceiver {
       validateArguments(args);
       setContext(args);
       LOGGER.info("Start Node initialize");
-      DataReceiver dataReceiver = new DataReceiver(NodeInfo.INSTANCE.getPort(),NodeInfo.INSTANCE.getId());
+      int nodePort = NodeInfo.INSTANCE.getPort();
+      String nodeId = NodeInfo.INSTANCE.getId();
+      DataReceiver dataReceiver = new DataReceiver(nodePort,nodeId);
       dataReceiver.startServer();
     } catch (Exception exception) {
       try {

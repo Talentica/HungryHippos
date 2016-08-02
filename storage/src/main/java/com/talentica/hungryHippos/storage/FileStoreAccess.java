@@ -1,5 +1,11 @@
 package com.talentica.hungryHippos.storage;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,19 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.sun.org.apache.xalan.internal.lib.NodeInfo;
-import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.utility.PathUtil;
-
-import javax.xml.bind.JAXBException;
 
 /**
  * Created by debasishc on 31/8/15.

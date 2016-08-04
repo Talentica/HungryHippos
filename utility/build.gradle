@@ -41,6 +41,7 @@ dependencies {
 	}
 	compile 'org.eclipse.jetty:jetty-server:9.3.4.v20151007'
 	compile 'org.eclipse.jetty.websocket:websocket-client:9.3.4.v20151007'
-	compile('org.apache.commons:commons-lang3:3.1')
+	compile 'org.apache.commons:commons-lang3:3.1'
+    compile "org.kamranzafar:jtar:2.2"
 	compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.4'
 }

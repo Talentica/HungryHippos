@@ -9,9 +9,17 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * This class is for Node to start instantiate JobExecutor processes
  * Created by rajkishoreh on 1/8/16.
  */
 public class JobExecutorProcessBuilder {
+    /**
+     * This method is the entry point of the class
+     * @param args
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws JAXBException
+     */
     public static void main(String[] args) throws InterruptedException, IOException, JAXBException {
         validateArguments(args);
         String clientConfigPath = args[0];
@@ -19,6 +27,9 @@ public class JobExecutorProcessBuilder {
         int nodeId = NodeInfo.INSTANCE.getIdentifier();
         while(true){
             List<String> jobUUIDs = JobStatusNodeCoordinator.checkNodeJobUUIDs(nodeId);
+            if(jobUUIDs==null||jobUUIDs.size()==0){
+                continue;
+            }
             for(String jobUUID:jobUUIDs){
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
                 Process process = processBuilder.start();
@@ -30,6 +41,10 @@ public class JobExecutorProcessBuilder {
         }
     }
 
+    /**
+     * Validates the arguements
+     * @param args
+     */
     private static void validateArguments(String[] args) {
         if (args.length < 1) {
             System.out.println("Missing {zookeeper xml configuration} file path arguments.");

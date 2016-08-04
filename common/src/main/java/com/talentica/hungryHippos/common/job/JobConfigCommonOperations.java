@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class is for having common methods related to Job Configurations
  * Created by rajkishoreh on 3/8/16.
  */
 public class JobConfigCommonOperations {
@@ -42,17 +43,33 @@ public class JobConfigCommonOperations {
         return jobNode+"/"+ JOB_LIST;
     }
 
+    /**
+     * Returns jobEntity Node
+     * @param jobNode
+     * @param jobEntityId
+     * @return
+     */
     public static String getJobEntityIdNode(String jobNode, String jobEntityId){
         String jobListNode = getJobListNode(jobNode);
         return jobListNode+"/"+jobEntityId;
     }
 
+    /**
+     * Returns Job Node
+     * @param jobUUID
+     * @return
+     */
     public static String getJobNode(String jobUUID){
         String jobConfigsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
                 getZookeeperDefaultConfig().getJobConfigPath();
         return jobConfigsRootNode + "/" + jobUUID;
     }
 
+    /**
+     * Returns String data from config node
+     * @param node
+     * @return
+     */
     public static String getConfigNodeData(String node){
         String configValue = "";
         try {
@@ -65,6 +82,11 @@ public class JobConfigCommonOperations {
         return configValue;
     }
 
+    /**
+     * Returns Job Entity Object
+     * @param node
+     * @return
+     */
     public static JobEntity getJobEntityObject(String node){
         JobEntity jobEntity = null;
         try {
@@ -77,6 +99,11 @@ public class JobConfigCommonOperations {
         return jobEntity;
     }
 
+    /**
+     * Returns list of child nodes
+     * @param parentNode
+     * @return
+     */
     public static List<String> getChildren(String parentNode){
         List<String> stringList = new ArrayList<>();
         try {
@@ -88,5 +115,7 @@ public class JobConfigCommonOperations {
         }
         return  stringList;
     }
+
+
 
 }

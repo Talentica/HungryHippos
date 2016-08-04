@@ -12,12 +12,20 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 
 /**
+ * This method is for client to instantiate Jobs
  * Created by rajkishoreh on 2/8/16.
  */
 public class JobOrchestrator {
 
     private static final Logger logger = LoggerFactory.getLogger(JobOrchestrator.class);
 
+    /**
+     * This the entry point of the class
+     * @param args
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws JAXBException
+     */
     public static void main(String[] args) throws IOException, InterruptedException, JAXBException {
 
         int jobStatus = -1;
@@ -69,6 +77,10 @@ public class JobOrchestrator {
         return jobStatus;
     }
 
+    /**
+     * Validates the arguements
+     * @param args
+     */
     private static void validateArguments(String[] args) {
         if (args.length < 5) {
             System.out.println("Missing {zookeeper xml configuration} or {local JarPath} or {JobMatrix Class name} " +

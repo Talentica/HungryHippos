@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.*;
 
 /**
+ * This class is for Client to publish Job Configurations
  * Created by rajkishoreh on 2/8/16.
  */
 public class JobConfigPublisher {
@@ -48,7 +49,13 @@ public class JobConfigPublisher {
         }
     }
 
-
+    /**
+     * Validates configuration data
+     * @param jobUUID
+     * @param jobMatrixClass
+     * @param inputHHPath
+     * @param outputHHPath
+     */
     private static void validateConfigNodes(String jobUUID, String jobMatrixClass, String inputHHPath, String outputHHPath) {
         try {
             NodesManager manager = NodesManagerContext.getNodesManagerInstance();
@@ -68,6 +75,11 @@ public class JobConfigPublisher {
         }
     }
 
+    /**
+     * Compares with Node data
+     * @param node
+     * @param data
+     */
     private static void compareWithNodeData(String node, String data) {
         String configNodeData = getConfigNodeData(node);
         if (configNodeData.equals(data)) {
@@ -75,6 +87,12 @@ public class JobConfigPublisher {
         }
     }
 
+    /**
+     * Uploads JobEntity Object
+     * @param jobUUID
+     * @param jobEntityId
+     * @param jobEntity
+     */
     public static void uploadJobEntity(String jobUUID, int jobEntityId, JobEntity jobEntity) {
         try {
             String jobEntityIdNode = getJobEntityIdNode(jobUUID, jobEntityId+"");
@@ -85,13 +103,21 @@ public class JobConfigPublisher {
         }
     }
 
+    /**
+     * Creates fresh node with data
+     * @param node
+     * @param data
+     */
     private static void createZKNode(String node, Object data) {
-        CountDownLatch signal = new CountDownLatch(1);
         try {
             NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+            if (manager.checkNodeExists(node)) {
+                manager.deleteNode(node);
+            }
+            CountDownLatch signal = new CountDownLatch(1);
             manager.createPersistentNode(node, signal, data);
             signal.await();
-        } catch (IOException | JAXBException | InterruptedException e) {
+        } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
             throw new RuntimeException(e);
         }
     }

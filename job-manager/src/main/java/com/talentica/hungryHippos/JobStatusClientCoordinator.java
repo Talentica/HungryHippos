@@ -14,10 +14,15 @@ import java.util.List;
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.*;
 
 /**
+ * This class is for client to interact with job status
  * Created by rajkishoreh on 4/8/16.
  */
 public class JobStatusClientCoordinator {
 
+    /**
+     * Initializes the Job
+     * @param jobUUID
+     */
     public static void initializeJobNodes(String jobUUID) {
         List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
         for (Node node : nodeList) {
@@ -29,7 +34,12 @@ public class JobStatusClientCoordinator {
         }
     }
 
-    public static boolean areAllJobsCompleted(String jobUUID) {
+    /**
+     * Checks if all the Nodes are completed
+     * @param jobUUID
+     * @return
+     */
+    public static boolean areAllNodesCompleted(String jobUUID) {
         String completedGroup = PathEnum.COMPLETED_JOB_NODES.getPathName();
         List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
         if (nodeList.size() == 0) {
@@ -50,7 +60,12 @@ public class JobStatusClientCoordinator {
         return true;
     }
 
-    public static boolean hasAnyJobFailed(String jobUUID) {
+    /**
+     * Checks if any node has failed
+     * @param jobUUID
+     * @return
+     */
+    public static boolean hasAnyNodeFailed(String jobUUID) {
         String failedGroup = PathEnum.FAILED_JOB_NODES.getPathName();
         List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
         if (nodeList.size() == 0) {
@@ -71,6 +86,10 @@ public class JobStatusClientCoordinator {
         return false;
     }
 
+    /**
+     * Updates that the Job has completed
+     * @param jobUUID
+     */
     public static void updateJobCompleted(String jobUUID) {
         String completedJobsGroup = PathEnum.COMPLETED_JOBS.getPathName();
         String completedJobIdNode = getJobIdNode(completedJobsGroup,jobUUID);
@@ -78,6 +97,10 @@ public class JobStatusClientCoordinator {
 
     }
 
+    /**
+     * Updates that the Job has failed
+     * @param jobUUID
+     */
     public static void updateJobFailed(String jobUUID) {
         String failedJobsGroup = PathEnum.FAILED_JOBS.getPathName();
         String failedJobIdNode = getJobIdNode(failedJobsGroup,jobUUID);

@@ -46,10 +46,10 @@ public class JobManager {
     LOGGER.info("SEND TASKS TO NODES");
     sendJobsToNodes(jobUUId);
     LOGGER.info("ALL JOBS ARE CREATED ON ZK NODES. PLEASE START ALL NODES");
-    sendSignalToAllNodesToStartJobMatrix();
+    JobStatusClientCoordinator.initializeJobNodes(jobUUId);
     LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
-    boolean areJobsCompleted = checkJobsStatusSignal();
-    if(areJobsCompleted){
+    boolean areNodesCompleted = checkNodesStatusSignal();
+    if(areNodesCompleted){
       JobStatusClientCoordinator.updateJobCompleted(jobUUId);
     }else{
       JobStatusClientCoordinator.updateJobFailed(jobUUId);
@@ -80,22 +80,20 @@ public class JobManager {
     LOGGER.info("ALL NODES FINISHED THE JOBS");
   }
 
-  private boolean checkJobsStatusSignal() {
-    boolean areJobsCompleted = false;
-    boolean hasAnyJobFailed = false;
-    while(!(areJobsCompleted||hasAnyJobFailed)){
-      areJobsCompleted = JobStatusClientCoordinator.areAllJobsCompleted(ZkSignalListener.jobuuidInBase64);
-      hasAnyJobFailed = JobStatusClientCoordinator.hasAnyJobFailed(ZkSignalListener.jobuuidInBase64);
+  /**
+   * Waits and checks the outcome of the Nodes
+   * @return
+     */
+  private boolean checkNodesStatusSignal() {
+    boolean areNodesCompleted = false;
+    boolean hasAnyNodeFailed = false;
+    while(!(areNodesCompleted||hasAnyNodeFailed)){
+      areNodesCompleted = JobStatusClientCoordinator.areAllNodesCompleted(ZkSignalListener.jobuuidInBase64);
+      hasAnyNodeFailed = JobStatusClientCoordinator.hasAnyNodeFailed(ZkSignalListener.jobuuidInBase64);
     }
     LOGGER.info("ALL NODES FINISHED THE JOBS");
-    return areJobsCompleted;
+    return areNodesCompleted;
 
-  }
-
-
-
-  private void sendSignalToAllNodesToStartJobMatrix() throws InterruptedException {
-    JobStatusClientCoordinator.initializeJobNodes(ZkSignalListener.jobuuidInBase64);
   }
 
   private void sendSignalEndJobMatrix() throws InterruptedException {

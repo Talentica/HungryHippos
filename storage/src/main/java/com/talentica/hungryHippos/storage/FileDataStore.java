@@ -1,27 +1,18 @@
 package com.talentica.hungryHippos.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -39,9 +30,7 @@ public class FileDataStore implements DataStore, Serializable {
   private String fileNamePrefix;
   private String nodeId;
 
-  private static final boolean APPEND_TO_DATA_FILES = true/*Boolean
-      .valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getNodeConfig()
-          .isDatareceiverAppendToDataFiles())*/;
+  private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();

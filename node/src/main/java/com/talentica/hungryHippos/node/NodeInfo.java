@@ -18,6 +18,7 @@ public enum NodeInfo {
 
 	private String ip;
 	private String id;
+    private int identifier;
 	private int port;
 
     NodeInfo() {
@@ -39,6 +40,7 @@ public enum NodeInfo {
                 for (Node node : nodeList) {
                     if (inetAddress.getHostAddress().equals(node.getIp())) {
                         this.ip = node.getIp();
+                        this.identifier = node.getIdentifier();
                         this.id = node.getIdentifier()+"";
                         this.port = Integer.parseInt(node.getPort());
                         configPresent = true;
@@ -60,7 +62,11 @@ public enum NodeInfo {
 		return id;
 	}
 
-	public int getPort() {
+    public int getIdentifier() {
+        return identifier;
+    }
+
+    public int getPort() {
 		return port;
 	}
 }

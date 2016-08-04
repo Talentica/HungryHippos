@@ -1,21 +1,18 @@
 package com.talentica.hungryHippos.job.main;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URLClassLoader;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.master.job.JobManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.job.JobMatrix;
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
-import com.talentica.hungryHippos.master.job.JobManager;
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URLClassLoader;
 
 /**
  * @author PooshanS
@@ -50,6 +47,7 @@ public class JobManagerStarter {
 
     } catch (Exception exception) {
       errorHandler(exception);
+      System.exit(1);
     }
   }
 
@@ -72,7 +70,7 @@ public class JobManagerStarter {
      */
   private static void initialize(String jobUUId) throws Exception {
     LOGGER.info("Job UUID is {}", jobUUId);
-    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
+    ZkSignalListener.jobuuidInBase64 = jobUUId;
     JobManagerStarter.nodesManager = NodesManagerContext.getNodesManagerInstance();
   }
 

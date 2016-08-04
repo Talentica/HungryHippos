@@ -153,6 +153,17 @@ public class NodesManager implements Watcher {
         CoordinationApplicationContext.getProperty().getValueByKey("zookeeper.config_path"));
     pathMap.put(PathEnum.FILESYSTEM.name(), zookeeperDefaultConfig.getFilesystemPath());
     pathMap.put(PathEnum.SHARDING_TABLE.name(), zookeeperDefaultConfig.getShardingTablePath());
+    pathMap.put(PathEnum.JOB_CONFIG.name(), zookeeperDefaultConfig.getJobConfigPath());
+    pathMap.put(PathEnum.JOB_STATUS.name(), zookeeperDefaultConfig.getJobStatusPath());
+    pathMap.put(PathEnum.COMPLETED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOBS.getPathName());
+    pathMap.put(PathEnum.FAILED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.FAILED_JOBS.getPathName());
+    pathMap.put(PathEnum.STARTED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.STARTED_JOB_ENTITY.getPathName());
+    pathMap.put(PathEnum.COMPLETED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOB_ENTITY.getPathName());
+    pathMap.put(PathEnum.PENDING_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.PENDING_JOBS.getPathName());
+    pathMap.put(PathEnum.IN_PROGRESS_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.IN_PROGRESS_JOBS.getPathName());
+    pathMap.put(PathEnum.COMPLETED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOB_NODES.getPathName());
+    pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.FAILED_JOB_NODES.getPathName());
+
     zkConfiguration = new ZookeeperConfiguration(pathMap);
     return zkConfiguration;
   }
@@ -215,6 +226,16 @@ public class NodesManager implements Watcher {
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_CONFIG.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()), null);
   }
 
   /**

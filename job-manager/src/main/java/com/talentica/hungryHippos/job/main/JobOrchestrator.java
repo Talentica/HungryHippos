@@ -1,8 +1,8 @@
 package com.talentica.hungryHippos.job.main;
 
+import com.talentica.hungryHippos.JobConfigPublisher;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.job.util.JobConfigPublisher;
 import com.talentica.hungryHippos.job.util.JobIDGenerator;
 import com.talentica.hungryHippos.job.util.JobJarPublisher;
 import org.slf4j.Logger;

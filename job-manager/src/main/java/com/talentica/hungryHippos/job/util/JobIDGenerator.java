@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.job.util;
 
+import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,9 @@ public class JobIDGenerator {
      * @return
      */
     public static String generateJobID(){
-        String jobUUID = UUID.randomUUID().toString();
-        return jobUUID;
+        String uuid = UUID.randomUUID().toString();
+        String jobUUIdInBase64 = CommonUtil.getJobUUIdInBase64(uuid);
+        return jobUUIdInBase64;
     }
 
 }

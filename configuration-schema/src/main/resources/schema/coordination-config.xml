@@ -11,6 +11,8 @@
 		<tns:alert-path>/rootnode/alertsnode</tns:alert-path>
 		<tns:filesystem-path>/rootnode/file-system</tns:filesystem-path>
 		<tns:sharding-table-path>/rootnode/sharding-table</tns:sharding-table-path>
+        <tns:job-config-path>/rootnode/job-config</tns:job-config-path>
+        <tns:job-status-path>/rootnode/job-status</tns:job-status-path>
 		<tns:cleanup>Y</tns:cleanup>
 	</tns:zookeeper-default-config>
 </tns:coordination-config>

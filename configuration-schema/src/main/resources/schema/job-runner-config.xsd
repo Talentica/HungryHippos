@@ -13,6 +13,7 @@
 					name="max-no-of-gc-retries-when-single-valueset-is-in-process" />
 				<element type="long"
 					name="wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process" />
+				<element type="string" name="jar-root-directory" />
 			</sequence>
 		</complexType>
 	</element>

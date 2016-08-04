@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.storage;
+/*package com.talentica.hungryHippos.storage;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -84,3 +84,4 @@ public class NodeDataStoreIdCalculatorIntegrationTest {
   }
 
 }
+*/

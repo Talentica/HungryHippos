@@ -2,70 +2,17 @@
 <tns:coordination-config
 	xmlns:tns="http://www.talentica.com/hungryhippos/config/coordination"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.talentica.com/hungryhippos/coordination coordination-config.xsd ">
-	xmlns:tns="http://www.talentica.com/hungryhippos/coordination"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.talentica.com/hungryhippos/coordination
-	coordination-config.xsd ">
-	<tns:cluster-config>
-		<tns:node>
-			<tns:identifier>0</tns:identifier>
-			<tns:name>localhost</tns:name>
-			<tns:ip>localhost</tns:ip>
-			<tns:port>2324</tns:port>
-		</tns:node>
-		<tns:node>
-			<tns:identifier>1</tns:identifier>
-			<tns:name>localhost1</tns:name>
-			<tns:ip>localhost</tns:ip>
-			<tns:port>2324</tns:port>
-		</tns:node>
-		<tns:node>
-			<tns:identifier>2</tns:identifier>
-			<tns:name>localhost2</tns:name>
-			<tns:ip>localhost</tns:ip>
-			<tns:port>2324</tns:port>
-		</tns:node>
-	</tns:cluster-config>
-	<tns:input-file-config>
-		<tns:input-file-name>/home/sudarshans/RD/HH_NEW/HungryHippos/utility/data.csv</tns:input-file-name>
-		<tns:column-datatype-size>STRING-4,STRING-3,STRING-3,INT-0,INT-0,INT-0</tns:column-datatype-size>
-		<tns:column-names>key1,key2,key3,key4,key5,key6</tns:column-names>
-	</tns:input-file-config>
-	<tns:node-config>
-		<tns:no-of-rows-to-check-available-memory>2000
-		</tns:no-of-rows-to-check-available-memory>
-		<tns:datareceiver-append-to-data-files>false
-		</tns:datareceiver-append-to-data-files>
-		<tns:min-free-memory-in-mbs>1100</tns:min-free-memory-in-mbs>
-		<tns:no-of-rows-to-check-memory-consumption-after>1000
-		</tns:no-of-rows-to-check-memory-consumption-after>
-		<tns:no-of-rows-to-log-progress-after>3000000
-		</tns:no-of-rows-to-log-progress-after>
-		<tns:max-no-of-gc-retries-when-single-valueset-is-in-process>5
-		</tns:max-no-of-gc-retries-when-single-valueset-is-in-process>
-		<tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
-			5000
-		</tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
-		<tns:data-storage>
-			<tns:file-name>data_</tns:file-name>
-			<tns:path>/home/sudarshans/HungryHippos/</tns:path>
-		</tns:data-storage>
-		<tns:output-config>
-			<tns:file-name>outputFile</tns:file-name>
-			<tns:path>/home/sudarshans/HungryHippos/</tns:path>
-		</tns:output-config>
-	</tns:node-config>
-	<tns:common-config>
-		<tns:maximum-size-of-single-block-data>80</tns:maximum-size-of-single-block-data>
-		<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>
-		<tns:keys-prefix>key</tns:keys-prefix>
-		<tns:no-of-droplets>10</tns:no-of-droplets>
-		<tns:no-of-attempts-to-connect-to-node>50</tns:no-of-attempts-to-connect-to-node>
-		<tns:servers-connect-retry-interval-in-ms>2000</tns:servers-connect-retry-interval-in-ms>
-		<tns:webserver-ip>192.241.180.17</tns:webserver-ip>
-		<tns:webserver-port>80</tns:webserver-port>
-		<tns:bad-records-file-out>/home/sudarshans/HungryHippos</tns:bad-records-file-out>
-		<tns:jobuuid>abc123</tns:jobuuid>
-	</tns:common-config>
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/coordination coordination-config.xsd ">
+	<tns:zookeeper-default-config>
+		<tns:tick-time>5000</tns:tick-time>
+		<tns:retry>5</tns:retry>
+		<tns:namespace-path>rootnode</tns:namespace-path>
+		<tns:host-path>/rootnode/hostsnode</tns:host-path>
+		<tns:alert-path>/rootnode/alertsnode</tns:alert-path>
+		<tns:filesystem-path>/rootnode/file-system</tns:filesystem-path>
+		<tns:sharding-table-path>/rootnode/sharding-table</tns:sharding-table-path>
+        <tns:job-config-path>/rootnode/job-config</tns:job-config-path>
+        <tns:job-status-path>/rootnode/job-status</tns:job-status-path>
+		<tns:cleanup>Y</tns:cleanup>
+	</tns:zookeeper-default-config>
 </tns:coordination-config>

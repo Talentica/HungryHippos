@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/client"
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.talentica.com/hungryhippos/config/client"
 	xmlns:tns="http://www.talentica.com/hungryhippos/config/client"
 	elementFormDefault="qualified">
 
@@ -8,6 +9,7 @@
 			<sequence>
 				<element type="tns:coordination-servers" name="coordination-servers"
 					nillable="false" />
+				<element name="session-timout" type="string" default="86400000" />
 			</sequence>
 		</complexType>
 	</element>

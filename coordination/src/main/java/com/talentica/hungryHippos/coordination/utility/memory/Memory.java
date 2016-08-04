@@ -11,6 +11,8 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+
 
 /**
  * @author PooshanS
@@ -18,7 +20,7 @@ import org.apache.zookeeper.KeeperException;
  */
 public interface Memory {
 
-  Map<Integer, Long> getJobMemoryAlloc() throws ClassNotFoundException, FileNotFoundException,
+  Map<Integer, Long> getJobMemoryAlloc(DataDescription dataDescription) throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException;
 
 }

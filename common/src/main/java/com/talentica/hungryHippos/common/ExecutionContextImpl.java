@@ -4,15 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.ValueSet;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * Created by debasishc on 9/9/15.
@@ -28,7 +27,7 @@ public class ExecutionContextImpl implements ExecutionContext {
   public ExecutionContextImpl(DynamicMarshal dynamicMarshal, String outputHHPath) {
     this.dynamicMarshal = dynamicMarshal;
     try {
-      out = new PrintStream(FileSystemContext.getRootDirectory()+outputHHPath);
+      out = new PrintStream(FileSystemContext.getRootDirectory() + outputHHPath);
     } catch (FileNotFoundException e) {
       LOGGER.error("Exception occurred while getting print stream for outoutFile.", e);
     }
@@ -61,8 +60,8 @@ public class ExecutionContextImpl implements ExecutionContext {
 
   @Override
   public void saveValue(int calculationIndex, Object value, String metric) {
-    out.println(metric + " metric calculation result for column index " + calculationIndex
-        + " and " + keys.toString() + " is ====>" + value);
+    out.println(metric + " metric calculation result for column index " + calculationIndex + " and "
+        + keys.toString() + " is ====>" + value);
   }
 
   @Override

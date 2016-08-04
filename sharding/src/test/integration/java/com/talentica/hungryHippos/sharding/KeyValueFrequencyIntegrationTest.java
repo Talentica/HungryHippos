@@ -13,15 +13,15 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
  
 
  public class KeyValueFrequencyIntegrationTest {
 
  @Test
  public void testEquals() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
- FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(CoordinationApplicationContext.getDataTypeConfiguration(),1);
- dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
+ FieldTypeArrayDataDescription dataDescription = FieldTypeArrayDataDescription.createDataDescription(new String[0],1);
+ dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(""));
  MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);
  KeyValueFrequency keyValue1frequency1 = new
  KeyValueFrequency(mutableCharArrayStringL1, 10);

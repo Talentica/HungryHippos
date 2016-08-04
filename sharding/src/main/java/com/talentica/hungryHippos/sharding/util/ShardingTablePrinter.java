@@ -1,9 +1,15 @@
 package com.talentica.hungryHippos.sharding.util;
 
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBException;
+
+import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.utility.MapUtils;
+import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -15,24 +21,29 @@ import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
  */
 public class ShardingTablePrinter {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 
 		validateArguments(args);
-		NodesManagerContext.setZookeeperXmlPath(args[0]);
+		
+		NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
+	      CoordinationConfig coordinationConfig =
+	          CoordinationApplicationContext.getZkCoordinationConfigCache();
+	      manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+		String shardingTablePath = args[1];
 		ShardingTableZkService service = new ShardingTableZkService();
 		System.out.println("###### Key to value to bucket number map ######");
 		System.out.println("\t" + "Key" + "\t" + "Value" + "\t" + "Bucket"
-				+ MapUtils.getFormattedString(service.readKeyToValueToBucketMap()));
+				+ MapUtils.getFormattedString(service.readKeyToValueToBucketMap(shardingTablePath)));
 		System.out.println();
 		System.out.println("###### Bucket combination to node numbers map ######");
 		System.out.println("\t" + "BucketCombination" + "\t\t\t" + "Node"
-				+ MapUtils.getFormattedString(service.readBucketCombinationToNodeNumbersMap()));
+				+ MapUtils.getFormattedString(service.readBucketCombinationToNodeNumbersMap(shardingTablePath)));
 		System.out.println();
-		CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+		ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
 		System.out.println("##### Node details ####");
 		System.out.println();
 		System.out.println("Node Id" + "\t\t" + "Node name" + "\t\t" + "Address");
-		coordinationConfig.getClusterConfig().getNode().forEach(
+		clusterConfig.getNode().forEach(
 				node -> System.out.println(node.getIdentifier() + "\t\t" + node.getName() + "\t\t" + node.getIp()));
 	}
 

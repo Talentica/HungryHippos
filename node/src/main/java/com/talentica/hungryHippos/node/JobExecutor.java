@@ -3,15 +3,19 @@
  */
 package com.talentica.hungryHippos.node;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.net.URLClassLoader;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
+import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
+import com.talentica.hungryHippos.node.job.JobConfigReader;
+import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +25,10 @@ import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
@@ -56,31 +60,31 @@ public class JobExecutor {
     try {
       LOGGER.info("Start Node initialize");
       validateArguments(args);
-      setContext(args);
       initialize(args);
+      loadClasses();
       long startTime = System.currentTimeMillis();
-      listenerOnJobMatrix();
       JobRunner jobRunner = createJobRunner();
+      int nodeId =  NodeInfo.INSTANCE.getIdentifier();
+      JobStatusNodeCoordinator.updateInProgressJob(jobUUId,nodeId);
       List<JobEntity> jobEntities = getJobsFromZKNode();
       for (JobEntity jobEntity : jobEntities) {
-        Object[] loggerJobArgument = new Object[] {jobEntity.getJobId()};
+        int jobEntityId = jobEntity.getJobId();
+        JobStatusNodeCoordinator.updateStartedJobEntity(jobUUId,jobEntityId,nodeId);
+        Object[] loggerJobArgument = new Object[] {jobEntityId};
         LOGGER.info("Starting execution of job: {}", loggerJobArgument);
         jobRunner.run(jobEntity);
         LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
+        JobStatusNodeCoordinator.updateCompletedJobEntity(jobUUId,jobEntityId,nodeId);
       }
       jobEntities.clear();
-      sendFinishJobMatrixSignal();
+      JobStatusNodeCoordinator.updateNodeJobCompleted(jobUUId,nodeId);
       long endTime = System.currentTimeMillis();
       LOGGER
           .info("It took {} seconds of time to execute all jobs.", ((endTime - startTime) / 1000));
       LOGGER.info("ALL JOBS ARE FINISHED");
     } catch (Exception exception) {
       LOGGER.error("Error occured while executing node starter program.", exception);
-      try {
-        sendFailureSignal(nodesManager);
-      } catch (IOException | InterruptedException e) {
-        LOGGER.info("Unable to create the node for signal FINISH_JOB_FAILED due to {}", e);
-      }
+      System.exit(1);
     }
   }
 
@@ -106,14 +110,27 @@ public class JobExecutor {
    * @throws JAXBException
    * @throws FileNotFoundException
    */
-  private static void initialize(String[] args) throws FileNotFoundException, JAXBException {
-    //TODO Job should not be common
-    jobUUId = CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig().getJobuuid();
-    ZkSignalListener.jobuuidInBase64 = CommonUtil.getJobUUIdInBase64(jobUUId);
-    nodesManager = NodesManagerContext.getNodesManagerInstance();
-    //TODO inputHHPath and outputHHPath should be initiallized
-    inputHHPath = "";
-    outputHHPath = "";
+  private static void initialize(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException {
+    String clientConfigPath = args[0];
+    jobUUId = args[1];
+    nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+    ZkSignalListener.jobuuidInBase64 = jobUUId;
+    inputHHPath = JobConfigReader.readInputPath(jobUUId);
+    outputHHPath = JobConfigReader.readOutputPath(jobUUId);
+
+  }
+
+  /**
+   * Loads the required classes
+   * @throws ClassNotFoundException
+     */
+  private static void loadClasses() throws ClassNotFoundException {
+    String jarDirectory = JobRunnerApplicationContext.getZkJobRunnerConfig().getJarRootDirectory();
+    String jobJarPath = jarDirectory+ File.pathSeparator+jobUUId;
+    URLClassLoader urlClassLoader = ClassLoaderUtil.getURLClassLoader(jobJarPath);
+    String className = JobConfigReader.readClassName(jobUUId);
+    Class classToLoad = Class.forName(className,true,urlClassLoader);
+    LOGGER.info("Loaded {} class successfully",classToLoad.getName());
   }
 
   /**
@@ -135,13 +152,13 @@ public class JobExecutor {
    * @throws IOException
    * @throws InterruptedException
    */
-  private static void sendFailureSignal(NodesManager nodesManager) throws IOException,
-      InterruptedException {
+  private static void sendFailureSignal(NodesManager nodesManager)
+      throws IOException, InterruptedException {
     String basePathPerNode =
-        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getHostPath()
-            + PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64 + PathUtil.SEPARATOR_CHAR
-            + (PRIFIX_NODE_NAME + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
-            + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
+            .getHostPath() + PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64
+            + PathUtil.SEPARATOR_CHAR + (PRIFIX_NODE_NAME + NodeUtil.getNodeId())
+            + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
     CountDownLatch signal = new CountDownLatch(1);
     nodesManager.createPersistentNode(basePathPerNode, signal);
     signal.await();
@@ -160,14 +177,12 @@ public class JobExecutor {
    */
   private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
-    //TODO dataDescription should be file specific
     FieldTypeArrayDataDescription dataDescription =
-        CoordinationApplicationContext.getConfiguredDataDescription();
-    dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
-    //TODO Sharding table should be file specific
-    dataStore =
-        new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, inputHHPath,NodeInfo.INSTANCE.getId(), true);
-    return new JobRunner(dataDescription, dataStore,NodeInfo.INSTANCE.getId(),outputHHPath);
+        ShardingApplicationContext.getConfiguredDataDescription(inputHHPath);
+    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(inputHHPath));
+    dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
+        inputHHPath, NodeInfo.INSTANCE.getId(), true);
+    return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }
 
   /**
@@ -181,32 +196,10 @@ public class JobExecutor {
    */
   private static List<JobEntity> getJobsFromZKNode() throws IOException, ClassNotFoundException,
       InterruptedException, KeeperException {
-
-    String buildPath =
-        ZkUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId)) + PathUtil.SEPARATOR_CHAR
-            + ("_node" + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
-            + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-    Set<LeafBean> leafs = ZkUtils.searchLeafNode(buildPath, null, null);
-    LOGGER.info("Leafs size found {}", leafs.size());
-    List<JobEntity> jobEntities = new ArrayList<JobEntity>();
-    for (LeafBean leaf : leafs) {
-      LOGGER.info("Leaf path {} and name {}", leaf.getPath(), leaf.getName());
-      String buildLeafPath = ZkUtils.getNodePath(leaf.getPath(), leaf.getName());
-      LOGGER.info("Build path {}", buildLeafPath);
-      LeafBean leafObject = ZkUtils.getNodeValue(buildPath, buildLeafPath, leaf.getName(), null);
-      JobEntity jobEntity = (JobEntity) leafObject.getValue();
-      if (jobEntity == null)
-        continue;
-      jobEntities.add(jobEntity);
-    }
+    List<JobEntity> jobEntities = JobConfigReader.getJobEntityList(jobUUId);
     LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
     return jobEntities;
   }
 
-  private static void setContext(String[] args) {
-
-    NodesManagerContext.setZookeeperXmlPath(args[0]);
-    CoordinationApplicationContext.setCoordinationConfigPathContext(args[1]);
-  }
 
 }

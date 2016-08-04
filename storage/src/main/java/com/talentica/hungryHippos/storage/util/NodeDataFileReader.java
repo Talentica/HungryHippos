@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.storage.FileDataStore;
 
 /**
  * Utility class to read data files generated on nodes after sharding process is
@@ -37,7 +39,7 @@ public class NodeDataFileReader {
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
-		int noOfKeys = CoordinationApplicationContext.getShardingDimensions().length;
+		int noOfKeys = ShardingApplicationContext.getShardingDimensions(args[0]).length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
 			String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
 			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
@@ -45,7 +47,7 @@ public class NodeDataFileReader {
 			File readableDataFile = new File(dataFileName + "_read");
 			FileWriter fileWriter = new FileWriter(readableDataFile);
 			try {
-				DynamicMarshal dynamicMarshal = getDynamicMarshal();
+				DynamicMarshal dynamicMarshal = getDynamicMarshal(args[0]);
 				int noOfBytesInOneDataSet = dataDescription.getSize();
 				while (dataInputStream.available() > 0) {
 					byte[] bytes = new byte[noOfBytesInOneDataSet];
@@ -69,9 +71,9 @@ public class NodeDataFileReader {
 		}
 	}
 
-	private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-		dataDescription = CoordinationApplicationContext.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(CoordinationApplicationContext.getShardingDimensions());
+	private static DynamicMarshal getDynamicMarshal(String path) throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+		dataDescription = ShardingApplicationContext.getConfiguredDataDescription(path);
+		dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(path));
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

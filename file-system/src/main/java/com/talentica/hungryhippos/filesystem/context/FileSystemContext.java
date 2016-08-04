@@ -77,6 +77,11 @@ public class FileSystemContext {
 		return fileSystemConfig.getDataFilePrefix();
 	}
 
+	public static boolean isAppendToDataFile() {
+		getFileSystemConfig();
+		return fileSystemConfig.isAppendToDataFile();
+	}
+
 	public static int getServerPort() {
 		getFileSystemConfig();
 		return fileSystemConfig.getServerPort();

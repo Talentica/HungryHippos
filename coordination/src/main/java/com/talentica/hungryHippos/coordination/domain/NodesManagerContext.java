@@ -1,18 +1,21 @@
 /**
- * 
+ *
  */
 package com.talentica.hungryHippos.coordination.domain;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
  * @author PooshanS
@@ -21,57 +24,46 @@ import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
 public class NodesManagerContext {
 
   private static NodesManager nodesManager;
+  private static ClientConfig clientConfig;
   private static final Logger LOGGER = LoggerFactory.getLogger(NodesManagerContext.class);
-  private static ZookeeperConfig zookeeperConfig;
-  private static String ZOOKEEPER_CONFIG_FILE_PATH;
 
-  public static NodesManager initialize(String zKconfigFilePath) throws FileNotFoundException,
-      JAXBException {
-    ZOOKEEPER_CONFIG_FILE_PATH = zKconfigFilePath;
-    if (nodesManager == null) {
-      nodesManager = new NodesManager(zKconfigFilePath);
+  public static NodesManager initialize(String configFilePath)
+      throws FileNotFoundException, JAXBException {
+    if(nodesManager == null){
+      nodesManager = new NodesManager();
+      if (clientConfig == null) {
+        clientConfig = JaxbUtil.unmarshalFromFile(configFilePath, ClientConfig.class);
+        LOGGER.info("Initialized the nodes manager.");
+      }
+      nodesManager.connectZookeeper(clientConfig.getCoordinationServers().getServers(),
+          Integer.parseInt(clientConfig.getSessionTimout()));
     }
-    if (zookeeperConfig == null) {
-      zookeeperConfig = getZookeeperConfiguration(zKconfigFilePath);
-      LOGGER.info("Initialized the nodes manager.");
-    }
-    nodesManager.connectZookeeper(zookeeperConfig.getZookeeperServers().getServers());
+
     return nodesManager;
   }
 
+  public static List<Server> getMonitoredServers() {
+    return nodesManager.getServers();
+  }
+
   public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
-    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
-      LOGGER.info("Please set the zookeeper configuration xml path");
-      return null;
+    if(nodesManager == null){
+      LOGGER.error("Nodes Manager not initialized");
+      System.exit(1);
     }
-    return initialize(ZOOKEEPER_CONFIG_FILE_PATH);
+    return nodesManager;
   }
 
   public static NodesManager getNodesManagerInstance(String clientConfigFilePath)
-      throws FileNotFoundException, JAXBException {
-    return initialize(clientConfigFilePath);
+          throws FileNotFoundException, JAXBException {
+    initialize(clientConfigFilePath);
+    CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+    nodesManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+    return nodesManager;
   }
 
-  public static ZookeeperConfig getZookeeperConfiguration(String zKconfigFilePath) {
-    try {
-      return JaxbUtil.unmarshalFromFile(zKconfigFilePath, ZookeeperConfig.class);
-    } catch (FileNotFoundException | JAXBException e) {
-      LOGGER.info("Problem occured due to  ", e);
-    }
-    return null;
+  public static ClientConfig getClientConfig(){
+    return clientConfig;
   }
 
-  public static ZookeeperConfig getZookeeperConfiguration() {
-    if(zookeeperConfig == null){
-      LOGGER.info("Please initialize the zookeeper instance");
-      return null;
-    }
-    return zookeeperConfig;
-  }
-
-  public static void setZookeeperXmlPath(String clientConfigFilePath) {
-    if (ZOOKEEPER_CONFIG_FILE_PATH == null) {
-      NodesManagerContext.ZOOKEEPER_CONFIG_FILE_PATH = clientConfigFilePath;
-    }
-  }
 }

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -24,38 +26,38 @@ public class CoordinationStarter {
     try {
       LOGGER.info("Starting coordination server..");
       validateArguments(args);
-      String coordinationConfigFilePath = args[0];
-      String zookeeperConfigFilePath = args[1];
-      String shardingConfigFilePath = args[2];
-      String jobConfigFilePath = args[3];
-      String fileSystemConfigFilePath = args[4];
-      CoordinationApplicationContext.setCoordinationConfigPathContext(coordinationConfigFilePath);
-      CoordinationConfig configuration = CoordinationApplicationContext.getCoordinationConfig();
-      if (configuration.getClusterConfig() == null
-          || configuration.getClusterConfig().getNode().isEmpty()) {
+      String clientConfigFilePath = args[0];
+      String coordinationConfigFilePath = args[1];
+      String clusterConfigFilePath = args[2];
+      String datapublisherConfigFilePath = args[3];
+
+      CoordinationApplicationContext.setLocalClusterConfigPath(clusterConfigFilePath);
+      ClusterConfig configuration =
+          JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
+      if (configuration.getNode().isEmpty()) {
         throw new RuntimeException("Invalid configuration file or cluster configuration missing."
             + coordinationConfigFilePath);
       }
-      NodesManagerContext.initialize(zookeeperConfigFilePath).startup();
-      CoordinationApplicationContext.uploadConfigurationOnZk(
+
+      NodesManager manager = NodesManagerContext.initialize(clientConfigFilePath);
+
+      CoordinationConfig coordinationConfig =
+          JaxbUtil.unmarshalFromFile(coordinationConfigFilePath, CoordinationConfig.class);
+      manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+      manager.startup();
+      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
           CoordinationApplicationContext.COORDINATION_CONFIGURATION,
           FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
-      LOGGER.debug("Coordination file is uploaded to zookeeper");
-      CoordinationApplicationContext.uploadConfigurationOnZk(
-          CoordinationApplicationContext.ZOOKEEPER_CONFIGURATION,
-          FileUtils.readFileToString(new File(zookeeperConfigFilePath), "UTF-8"));
-      LOGGER.debug("Zookeeper configuration file is uploaded to zookeeper");
-      CoordinationApplicationContext.uploadConfigurationOnZk(
-          CoordinationApplicationContext.SHARDING_CONFIGURATION,
-          FileUtils.readFileToString(new File(shardingConfigFilePath), "UTF-8"));
-      LOGGER.debug("Sharding Configuration file is uploaded to zookeeper");
-      CoordinationApplicationContext.uploadConfigurationOnZk(
-          CoordinationApplicationContext.JOB_CONFIGURATION,
-          FileUtils.readFileToString(new File(jobConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(
-              CoordinationApplicationContext.FILE_SYSTEM,
-              FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
-      LOGGER.debug("fileSystem Configuration file is uploaded to zookeeper");
+      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
+          CoordinationApplicationContext.CLUSTER_CONFIGURATION,
+          FileUtils.readFileToString(new File(clusterConfigFilePath), "UTF-8"));
+      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
+          CoordinationApplicationContext.CLIENT_CONFIGURATION,
+          FileUtils.readFileToString(new File(clientConfigFilePath), "UTF-8"));
+      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
+          CoordinationApplicationContext.DATA_PUBLISHER_CONFIGURATION,
+          FileUtils.readFileToString(new File(datapublisherConfigFilePath), "UTF-8"));
+
       LOGGER.info("Coordination server started..");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while starting coordination server.", exception);
@@ -65,8 +67,8 @@ public class CoordinationStarter {
 
   private static void validateArguments(String[] args) {
     if (args == null || args.length < 4) {
-      LOGGER
-          .error("Either missing 1st argument {coordination configuration} or 2nd argument {zookeeper configuration} or 3rd argument {sharding configuration}  or 4th argument {job configuration} file/files arguments.");
+      LOGGER.error(
+          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} file/files arguments.");
       System.exit(1);
     }
   }

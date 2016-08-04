@@ -3,17 +3,7 @@
  */
 package com.talentica.hungryHippos.master.job;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.talentica.hungryHippos.JobConfigPublisher;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
@@ -21,6 +11,16 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Scheduling and Managing the Jobs across the nodes on ZK.
@@ -89,17 +89,9 @@ public class NodeJobsService implements NodesJobsRunnable {
 	public boolean sendJobRunnableNotificationToNode(JobEntity jobEntity,
 			CountDownLatch signal,String jobUUId) throws InterruptedException,
 			KeeperException, ClassNotFoundException, IOException {
-		boolean flag = false;
-		String buildPath = ZkUtils.buildNodePath(CommonUtil.getJobUUIdInBase64(jobUUId))
-				+ PathUtil.SEPARATOR_CHAR + ("_node"+node.getNodeId()) + PathUtil.SEPARATOR_CHAR
-				+ CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name() + PathUtil.SEPARATOR_CHAR + ("_job" + jobEntity.getJobId());
-		try {
-			nodesManager.createPersistentNode(buildPath, signal, jobEntity);
-			flag = true;
-		} catch (IOException e) {
-			LOGGER.info("Unable to create node");
-		}
-		return flag;
+		int jobEntityId = jobEntity.getJobId();
+		JobConfigPublisher.uploadJobEntity(jobUUId,jobEntityId,jobEntity);
+		return true;
 	}
 
 	@Override

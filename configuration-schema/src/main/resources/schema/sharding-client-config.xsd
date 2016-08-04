@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/sharding/client"
-	xmlns:tns="http://www.talentica.com/hungryhippos/sharding/client"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
 	elementFormDefault="qualified">
 	<element name="sharding-client-config">
 		<complexType>
 			<sequence>
 				<element type="tns:input" name="input" />
 				<element type="tns:output" name="output" />
-				<element type="tns:bad-records-output" name="bad-records-output" />
-				<element type="tns:sharding-dimensions" name="sharding-dimensions" />
+				<element type="string" name="sharding-dimensions" />
 				<element type="int" name="maximum-size-of-single-block-data" />
 			</sequence>
 		</complexType>
@@ -23,22 +22,17 @@
 	<complexType name="input">
 		<sequence>
 			<element type="string" name="sample-file-path" />
+			<element type="string" name="distributed-file-path" />
 			<element type="tns:data-description" minOccurs="0"
 				name="data-description" />
 			<element type="tns:data-parser-config" name="data-parser-config" />
 		</sequence>
 	</complexType>
-	
-	<complexType name="bad-records-output">
-		<sequence>
-			<element type="string" name="bad-records-file-out"/>
-		</sequence>
-	</complexType>
-	
+
 	<complexType name="data-parser-config">
 		<sequence>
 			<element type="string" name="class-name" />
-			<element type="string" name="jar-file-path" />
+			<element type="string" name="jar-file-path" minOccurs="0" />
 		</sequence>
 	</complexType>
 
@@ -64,13 +58,6 @@
 				</simpleType>
 			</element>
 			<element name="size" minOccurs="0" type="int" default="0" />
-		</sequence>
-	</complexType>
-	
-	<complexType name="sharding-dimensions">
-		<sequence>
-			<element name="sharding-dimension-keys" type="string"/>
-			<element name="keys-prefix" type="string"/>
 		</sequence>
 	</complexType>
 

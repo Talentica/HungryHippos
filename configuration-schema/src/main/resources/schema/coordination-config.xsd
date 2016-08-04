@@ -5,79 +5,24 @@
 	<element name="coordination-config">
 		<complexType>
 			<sequence>
-				<element type="tns:cluster-config" name="cluster-config" />
-				<element type="tns:input-file-config" name="input-file-config" />
-				<element type="tns:node-config" name="node-config" />
-				<element type="tns:common-config" name="common-config" />
+				<element type="tns:zookeeper-default-config" name="zookeeper-default-config"/>
 			</sequence>
 		</complexType>
 	</element>
-
-	<complexType name="cluster-config">
+	
+	<complexType name="zookeeper-default-config">
 		<sequence>
-			<element type="tns:node" name="node" maxOccurs="unbounded" />
-		</sequence>
-	</complexType>
-
-	<complexType name="node">
-		<sequence>
-			<element type="int" name="identifier" />
-			<element type="string" name="name" />
-			<element type="string" name="ip" />
-			<element type="string" name="port" />
-		</sequence>
-	</complexType>
-
-	<complexType name="input-file-config">
-		<sequence>
-			<element type="string" name="input-file-name" />
-			<element type="string" name="column-datatype-size" />
-			<element type="string" name="column-names" />
-		</sequence>
-	</complexType>
-
-	<complexType name="node-config">
-		<sequence>
-			<element type="long" name="no-of-rows-to-check-available-memory" />
-			<element type="boolean" name="datareceiver-append-to-data-files" />
-			<element type="long" name="min-free-memory-in-mbs" />
-			<element type="long" name="no-of-rows-to-check-memory-consumption-after" />
-			<element type="long" name="no-of-rows-to-log-progress-after" />
-			<element type="int"
-				name="max-no-of-gc-retries-when-single-valueset-is-in-process" />
-			<element type="long"
-				name="wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process" />
-			<element type="tns:data-storage" name="data-storage" />
-			<element type="tns:output-config" name="output-config" />
+			<element name="tick-time" type="string" default="5000" />
+			<element name="retry" type="string" default="5" />
+			<element name="namespace-path" type="string" default="rootnode" />
+			<element name="host-path" type="string" default="/rootnode/hostsnode" />
+			<element name="alert-path" type="string" default="/rootnode/alertsnode" />
+			<element name="filesystem-path" type="string" default="/rootnode/file-system" />
+			<element name="sharding-table-path" type="string" default="/rootnode/sharding-table" />
+			<element name="job-config-path" type="string" default="/rootnode/job-config" />
+			<element name="job-status-path" type="string" default="/rootnode/job-status" />
+			<element name="cleanup" type="string" default="Y" />
 		</sequence>
 	</complexType>
 	
-	<complexType name="data-storage">
-		<sequence>
-			<element type="string" name="file-name" />
-			<element type="string" name="path" />
-		</sequence>
-	</complexType>
-	
-	<complexType name="output-config">
-		<sequence>
-			<element type="string" name="file-name" />
-			<element type="string" name="path" />
-		</sequence>
-	</complexType>
-
-	<complexType name="common-config">
-		<sequence>
-			<element type="int" name="maximum-size-of-single-block-data" />
-			<element type="string" name="sharding-dimensions" />
-			<element type="string" name="keys-prefix" />
-			<element type="int" name="no-of-droplets" />
-			<element type="string" name="no-of-attempts-to-connect-to-node" />
-			<element type="string" name="servers-connect-retry-interval-in-ms" />
-			<element type="string" name="webserver-ip" />
-			<element type="string" name="webserver-port" />
-			<element type="string" name="bad-records-file-out" />
-			<element type="string" name="jobuuid" />
-		</sequence>
-	</complexType>
 </schema>

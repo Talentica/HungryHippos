@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:sharding-server-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-server-config.xsd ">
+	<tns:key-prefix>key</tns:key-prefix>
+	<tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
+	<tns:maximum-no-of-shard-buckets-size>50</tns:maximum-no-of-shard-buckets-size>
+	<tns:bad-records-file-out>/home/sohanc/D_drive/HungryHippos_project/HungryHippos/</tns:bad-records-file-out>
+</tns:sharding-server-config>

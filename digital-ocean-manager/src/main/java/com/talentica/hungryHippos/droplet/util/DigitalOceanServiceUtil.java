@@ -24,8 +24,6 @@ import com.myjeeva.digitalocean.pojo.Network;
 import com.myjeeva.digitalocean.pojo.Regions;
 import com.myjeeva.digitalocean.pojo.Sizes;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.droplet.DigitalOceanServiceImpl;
 import com.talentica.hungryHippos.droplet.entity.DigitalOceanEntity;
@@ -263,8 +261,7 @@ public class DigitalOceanServiceUtil {
     Droplets droplets;
     List<String> newNames = new ArrayList<>();
     int onOfDroplets =
-        Integer.valueOf(CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
-            .getNoOfDroplets());
+        Integer.valueOf(10);
     String PRIFIX = "hh";
     String HYPHEN = "-";
     List<String> names = dropletEntity.getDroplet().getNames();
@@ -315,11 +312,8 @@ public class DigitalOceanServiceUtil {
       Droplets droplets, String... jobUUId) throws DigitalOceanException,
       RequestUnsuccessfulException, InterruptedException, IOException, Exception {
     String SERVER_CONF_FILE = "server-config";
-    String formatFlag =
-        NodesManagerContext.getZookeeperConfiguration().getZookeeperDefaultSetting().getCleanup();
-    int retryCounter =
-        Integer.valueOf(NodesManagerContext.getZookeeperConfiguration()
-            .getZookeeperDefaultSetting().getRetry());
+    String formatFlag ="Y";
+    int retryCounter =5;
     if (formatFlag.equals("Y")) {
       List<Droplet> dropletFill = getActiveDroplets(dropletService, droplets, jobUUId[0]);
       LOGGER.info("Active droplets are {}", dropletFill.toString());
@@ -360,8 +354,7 @@ public class DigitalOceanServiceUtil {
        * LOGGER.info("Conf file is uploaded...");
        */
       List<String> webServerIp = new ArrayList<String>();
-      webServerIp.add(CoordinationApplicationContext.getZkCoordinationConfigCache().getCommonConfig()
-          .getWebserverIp());
+      webServerIp.add("192.241.248.197");
       writeLineInFile(CommonUtil.WEBSERVER_IP_FILE_PATH, webServerIp);
     }
   }

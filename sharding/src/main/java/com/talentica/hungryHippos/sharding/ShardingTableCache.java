@@ -19,22 +19,22 @@ public class ShardingTableCache {
     return shardingTableCache;
   }
 
-  public Object getShardingTableFromCache(String key) throws IllegalArgumentException {
+  public Object getShardingTableFromCache(String key,String path) throws IllegalArgumentException {
     Object value = shardingTableMap.get(key);
     if (value == null) {
       if (key.equalsIgnoreCase(
           ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName())) {
-        value = table.readBucketCombinationToNodeNumbersMap();
+        value = table.readBucketCombinationToNodeNumbersMap(path);
         shardingTableMap.put(
             ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName(), value);
       } else if (key
           .equalsIgnoreCase(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName())) {
-        value = table.readBucketToNodeNumberMap();
+        value = table.readBucketToNodeNumberMap(path);
         shardingTableMap.put(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName(),
             value);
       } else if (key
           .equalsIgnoreCase(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName())) {
-        value = table.readKeyToValueToBucketMap();
+        value = table.readKeyToValueToBucketMap(path);
         shardingTableMap.put(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName(),
             value);
       } else {

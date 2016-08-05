@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.node.job;
 
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 import java.util.ArrayList;
@@ -53,10 +54,10 @@ public class JobConfigReader {
      */
     public static List<JobEntity> getJobEntityList(String jobUUID){
         List<JobEntity> jobEntityList = new ArrayList<>();
-        String jobListNode=  getJobListNode(jobUUID);
-        List<String> jobIdList = getChildren(jobListNode);
-        for(String jobId: jobIdList){
-            JobEntity jobEntity = getJobEntity(jobUUID,jobId);
+        String jobEntityListNode=  getJobEntityListNode(jobUUID);
+        List<String> jobEntityIdList = ZkUtils.getChildren(jobEntityListNode);
+        for(String jobEntityId: jobEntityIdList){
+            JobEntity jobEntity = getJobEntity(jobUUID,jobEntityId);
             jobEntityList.add(jobEntity);
         }
         return jobEntityList;

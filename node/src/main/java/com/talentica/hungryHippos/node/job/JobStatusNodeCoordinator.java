@@ -1,13 +1,8 @@
 package com.talentica.hungryHippos.node.job;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.utility.PathEnum;
-import org.apache.zookeeper.KeeperException;
 
-import javax.xml.bind.JAXBException;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.*;
@@ -24,16 +19,8 @@ public class JobStatusNodeCoordinator {
      * @return
      */
     public static List<String> checkNodeJobUUIDs(int nodeId) {
-        List<String> listJobUUIDs = new ArrayList<>();
         String pendingHHNode = getPendingHHNode(nodeId);
-        try {
-            NodesManager manager = NodesManagerContext.getNodesManagerInstance();
-            if (manager.checkNodeExists(pendingHHNode)) {
-                listJobUUIDs = manager.getChildren(pendingHHNode);
-            }
-        } catch (FileNotFoundException | JAXBException | KeeperException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        List<String> listJobUUIDs = ZkUtils.getChildren(pendingHHNode);
         return listJobUUIDs;
     }
 
@@ -46,11 +33,11 @@ public class JobStatusNodeCoordinator {
     public static void updateStartedJobEntity(String jobUUID,int jobEntityId, int nodeId) {
         String startedJobEntityGroup = PathEnum.STARTED_JOB_ENTITY.getPathName();
         String jobIdNode = getJobIdNode(startedJobEntityGroup,jobUUID);
-        createZKNode(jobIdNode,"");
+        ZkUtils.createZKNodeIfNotPresent(jobIdNode,"");
         String jobEntityNode = getJobEntityNode(startedJobEntityGroup,jobUUID,jobEntityId);
-        createZKNode(jobEntityNode,"");
+        ZkUtils.createZKNodeIfNotPresent(jobEntityNode,"");
         String jobEntityHHNode = getJobEntityHHNode(startedJobEntityGroup,jobUUID,jobEntityId,nodeId);
-        createZKNode(jobEntityHHNode,"");
+        ZkUtils.createZKNodeIfNotPresent(jobEntityHHNode,"");
     }
 
     /**
@@ -96,5 +83,43 @@ public class JobStatusNodeCoordinator {
         String inProgressGroup = PathEnum.IN_PROGRESS_JOBS.getPathName();
         String failedGroup = PathEnum.FAILED_JOB_NODES.getPathName();
         moveJobNode(jobUUID, nodeId, inProgressGroup, failedGroup);
+    }
+
+    /**
+     * Moves job from fromGroup to toGroup
+     * @param jobUUID
+     * @param nodeId
+     * @param fromGroup
+     * @param toGroup
+     */
+    public static void moveJobNode(String jobUUID, int nodeId, String fromGroup, String toGroup) {
+        String toJobIdNode = getJobIdNode(toGroup, jobUUID);
+        ZkUtils.createZKNodeIfNotPresent(toJobIdNode, "");
+        String toHHNode = getHHNode(toGroup, jobUUID, nodeId);
+        ZkUtils.createZKNodeIfNotPresent(toHHNode, "");
+        if (fromGroup.equals(PathEnum.PENDING_JOBS.getPathName())) {
+            String fromJobIdNode = getPendingJobIdNode(nodeId, jobUUID);
+            ZkUtils.deleteZKNode(fromJobIdNode);
+        } else {
+            String fromHHNode = getHHNode(fromGroup, jobUUID, nodeId);
+            ZkUtils.deleteZKNode(fromHHNode);
+        }
+    }
+
+    /**
+     * Moves jobEntity from fromGroup to toGroup
+     * @param jobUUID
+     * @param jobEntityId
+     * @param nodeId
+     * @param fromGroup
+     * @param toGroup
+     */
+    public static void moveJobEntityNode(String jobUUID, int jobEntityId, int nodeId, String fromGroup, String toGroup) {
+        String toJobIdNode = getJobIdNode(toGroup, jobUUID);
+        ZkUtils.createZKNodeIfNotPresent(toJobIdNode, "");
+        String toJobEntityNode = getJobEntityNode(toGroup, jobUUID, jobEntityId);
+        ZkUtils.createZKNodeIfNotPresent(toJobEntityNode, "");
+        String fromJobEntityHHNode = getJobEntityHHNode(fromGroup, jobUUID, jobEntityId, nodeId);
+        ZkUtils.deleteZKNode(fromJobEntityHHNode);
     }
 }

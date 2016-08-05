@@ -793,4 +793,75 @@ public class ZkUtils {
       createZkNodeMethod(basePath, value);
     }
   }
+
+  /**
+   * Returns list of child nodes
+   * @param parentNode
+   * @return
+   */
+  public static List<String> getChildren(String parentNode){
+    List<String> stringList = new ArrayList<>();
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      stringList = manager.getChildren(parentNode);
+    } catch (FileNotFoundException | JAXBException | KeeperException | InterruptedException e) {
+      LOGGER.error(e.toString());
+      throw new RuntimeException(e);
+    }
+    return  stringList;
+  }
+
+  /**
+   * Creates fresh Zookeeper node with data
+   * @param node
+   * @param data
+   */
+  public static void createZKNode(String node, Object data) {
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      if (manager.checkNodeExists(node)) {
+        manager.deleteNode(node);
+      }
+      CountDownLatch signal = new CountDownLatch(1);
+      manager.createPersistentNode(node, signal, data);
+      signal.await();
+    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Creates Zookeeper node if the it doesn't exist
+   * @param node
+   * @param data
+   */
+  public static void createZKNodeIfNotPresent(String node, Object data) {
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      if (manager.checkNodeExists(node)) {
+        return;
+      }
+      CountDownLatch signal = new CountDownLatch(1);
+      manager.createPersistentNode(node, signal, data);
+      signal.await();
+    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Deletes Zookeeper node if it exists
+   * @param node
+   */
+  public static void deleteZKNode(String node) {
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      if (!manager.checkNodeExists(node)) {
+        return;
+      }
+      manager.deleteNode(node);
+    } catch (IOException | JAXBException | KeeperException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

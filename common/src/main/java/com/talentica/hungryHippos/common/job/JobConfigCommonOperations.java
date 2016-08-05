@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class is for having common methods related to Job Configurations
@@ -25,7 +22,7 @@ public class JobConfigCommonOperations {
     private static final String INPUT_HH_PATH = "INPUT_HH_PATH";
     private static final String OUTPUT_HH_PATH = "OUTPUT_HH_PATH";
     private static final String CLASS_NAME = "CLASS_NAME";
-    private static final String JOB_LIST = "JOB_LIST";
+    private static final String JOB_ENITY_LIST = "JOB_ENITY_LIST";
 
     public static String getJobClassNode(String jobNode){
         return jobNode+"/"+ CLASS_NAME;
@@ -39,8 +36,8 @@ public class JobConfigCommonOperations {
         return jobNode+"/"+OUTPUT_HH_PATH;
     }
 
-    public static String getJobListNode(String jobNode){
-        return jobNode+"/"+ JOB_LIST;
+    public static String getJobEntityListNode(String jobNode){
+        return jobNode+"/"+ JOB_ENITY_LIST;
     }
 
     /**
@@ -50,8 +47,8 @@ public class JobConfigCommonOperations {
      * @return
      */
     public static String getJobEntityIdNode(String jobNode, String jobEntityId){
-        String jobListNode = getJobListNode(jobNode);
-        return jobListNode+"/"+jobEntityId;
+        String jobEntityListNode = getJobEntityListNode(jobNode);
+        return jobEntityListNode+"/"+jobEntityId;
     }
 
     /**
@@ -98,24 +95,5 @@ public class JobConfigCommonOperations {
         }
         return jobEntity;
     }
-
-    /**
-     * Returns list of child nodes
-     * @param parentNode
-     * @return
-     */
-    public static List<String> getChildren(String parentNode){
-        List<String> stringList = new ArrayList<>();
-        try {
-            NodesManager manager = NodesManagerContext.getNodesManagerInstance();
-            stringList = manager.getChildren(parentNode);
-        } catch (FileNotFoundException | JAXBException | KeeperException | InterruptedException e) {
-            LOGGER.error(e.toString());
-            throw new RuntimeException(e);
-        }
-        return  stringList;
-    }
-
-
 
 }

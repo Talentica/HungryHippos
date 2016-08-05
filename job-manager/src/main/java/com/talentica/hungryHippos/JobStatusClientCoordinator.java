@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.PathEnum;
@@ -28,9 +29,9 @@ public class JobStatusClientCoordinator {
         for (Node node : nodeList) {
             int nodeId = node.getIdentifier();
             String hhNode = getPendingHHNode(nodeId);
-            createZKNode(hhNode, "");
+            ZkUtils.createZKNodeIfNotPresent(hhNode, "");
             String pendingJobIdNode = getPendingJobIdNode(nodeId, jobUUID);
-            createZKNode(pendingJobIdNode, "");
+            ZkUtils.createZKNodeIfNotPresent(pendingJobIdNode, "");
         }
     }
 
@@ -93,7 +94,7 @@ public class JobStatusClientCoordinator {
     public static void updateJobCompleted(String jobUUID) {
         String completedJobsGroup = PathEnum.COMPLETED_JOBS.getPathName();
         String completedJobIdNode = getJobIdNode(completedJobsGroup,jobUUID);
-        createZKNode(completedJobIdNode,"");
+        ZkUtils.createZKNodeIfNotPresent(completedJobIdNode,"");
 
     }
 
@@ -104,7 +105,7 @@ public class JobStatusClientCoordinator {
     public static void updateJobFailed(String jobUUID) {
         String failedJobsGroup = PathEnum.FAILED_JOBS.getPathName();
         String failedJobIdNode = getJobIdNode(failedJobsGroup,jobUUID);
-        createZKNode(failedJobIdNode,"");
+        ZkUtils.createZKNodeIfNotPresent(failedJobIdNode,"");
     }
 
 }

@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 import org.apache.zookeeper.KeeperException;
@@ -9,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.*;
 
@@ -34,13 +34,13 @@ public class JobConfigPublisher {
     public static boolean publish(String jobUUID, String jobMatrixClass, String inputHHPath, String outputHHPath) {
         try {
             String jobNode = getJobNode(jobUUID);
-            createZKNode(jobNode, "");
+            ZkUtils.createZKNode(jobNode, "");
             String jobClassNode = getJobClassNode(jobNode);
-            createZKNode(jobClassNode, jobMatrixClass);
+            ZkUtils.createZKNode(jobClassNode, jobMatrixClass);
             String jobInputNode = getJobInputNode(jobNode);
-            createZKNode(jobInputNode, inputHHPath);
+            ZkUtils.createZKNode(jobInputNode, inputHHPath);
             String jobOutputNode = getJobOutputNode(jobNode);
-            createZKNode(jobOutputNode, outputHHPath);
+            ZkUtils.createZKNode(jobOutputNode, outputHHPath);
             validateConfigNodes(jobUUID, jobMatrixClass, inputHHPath, outputHHPath);
             return true;
         } catch (Exception e) {
@@ -96,31 +96,11 @@ public class JobConfigPublisher {
     public static void uploadJobEntity(String jobUUID, int jobEntityId, JobEntity jobEntity) {
         try {
             String jobEntityIdNode = getJobEntityIdNode(jobUUID, jobEntityId+"");
-            createZKNode(jobEntityIdNode, jobEntity);
+            ZkUtils.createZKNode(jobEntityIdNode, jobEntity);
         } catch (Exception e) {
             LOGGER.error(e.toString());
             throw new RuntimeException(e);
         }
     }
-
-    /**
-     * Creates fresh node with data
-     * @param node
-     * @param data
-     */
-    private static void createZKNode(String node, Object data) {
-        try {
-            NodesManager manager = NodesManagerContext.getNodesManagerInstance();
-            if (manager.checkNodeExists(node)) {
-                manager.deleteNode(node);
-            }
-            CountDownLatch signal = new CountDownLatch(1);
-            manager.createPersistentNode(node, signal, data);
-            signal.await();
-        } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
 }

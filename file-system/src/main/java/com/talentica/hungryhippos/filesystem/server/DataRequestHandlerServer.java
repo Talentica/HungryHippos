@@ -1,7 +1,7 @@
 package com.talentica.hungryhippos.filesystem.server;
 
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.filesystem.FileSystemConstants;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;

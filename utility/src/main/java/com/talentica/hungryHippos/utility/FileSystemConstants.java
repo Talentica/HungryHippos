@@ -1,4 +1,4 @@
-package com.talentica.hungryhippos.filesystem;
+package com.talentica.hungryHippos.utility;
 
 /**
  * This class contains the constants for FileSystem Created by rajkishoreh on
@@ -9,16 +9,11 @@ public interface FileSystemConstants {
 	String DATA_SERVER_BUSY = "DATA_SERVER_BUSY";
 	String DATA_SERVER_AVAILABLE = "DATA_SERVER_AVAILABLE";
 	String DATA_TRANSFER_COMPLETED = "DATA_TRANSFER_COMPLETED";
-	String FILE_PATHS_DELIMITER = ",";
-
-	// String CONFIGURATION_FILE = "filesystem-config";
-	// constants for file-system configuration
-	String ROOT_NODE = "zookeeper.file.system";
-
 	String DOWNLOAD_FILE_PREFIX = "-part-";
-	String CONFIGURATION_FILE = "filesystem-config";
 	String DFS_NODE = "DFS_NODE";
 	String SHARDED = "SHARDED";
 	String ZK_PATH_SEPARATOR = "/";
-
+	String IS_A_FILE = "IS_A_FILE";
+	String DATA_READY = "DATA_READY";
+	String PUBLISH_FAILED = "PUBLISH_FAILED";
 }

@@ -1,13 +1,12 @@
 package com.talentica.hungryhippos.filesystem;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,6 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
-import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
@@ -338,6 +336,33 @@ public class HungryHipposFileSystem {
       setData(nodeIdZKPath, datafileSize + "");
     }
 
+  }
+
+  /**
+   * Validates if file Data is ready
+   * @param hungryHippoFilePath
+   */
+  public static void validateFileDataReady(String hungryHippoFilePath){
+    if ("".equals(hungryHippoFilePath)) {
+      throw new RuntimeException("Path is empty");
+    }
+    String fsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+            .getZookeeperDefaultConfig().getFilesystemPath();
+    String hungryHippoFilePathNode = fsRootNode + hungryHippoFilePath;
+    boolean nodeExists = ZkUtils.checkIfNodeExists(hungryHippoFilePathNode);
+    if(!nodeExists){
+      throw new RuntimeException(hungryHippoFilePath + " does not exists");
+    }
+    String data = (String) ZkUtils.getNodeData(hungryHippoFilePathNode);
+    if(!FileSystemConstants.IS_A_FILE.equals(data)){
+      throw new RuntimeException(hungryHippoFilePath + " is not a file");
+    }
+    String dataReadyNode = hungryHippoFilePathNode
+            + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DATA_READY;
+    boolean isDataReady = ZkUtils.checkIfNodeExists(dataReadyNode);
+    if(!isDataReady){
+      throw new RuntimeException(hungryHippoFilePath + " file is not ready");
+    }
   }
 
 }

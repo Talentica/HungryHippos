@@ -29,6 +29,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.zookeeper.AsyncCallback;
@@ -850,6 +851,19 @@ public class ZkUtils {
   }
 
   /**
+   * Checks if node is already present
+   * @param node
+   */
+  public static boolean checkIfNodeExists(String node) {
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      return manager.checkNodeExists(node);
+    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Deletes Zookeeper node if it exists
    * @param node
    */
@@ -864,4 +878,39 @@ public class ZkUtils {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Returns String data from config node
+   * @param node
+   * @return
+   */
+  public static Object getNodeData(String node){
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      Object configValue =  manager.getObjectFromZKNode(node);
+      return configValue;
+    } catch (IOException | KeeperException | InterruptedException |JAXBException |ClassNotFoundException e) {
+      LOGGER.error(e.toString());
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Creates fresh Zookeeper file node
+   * @param node
+   */
+  public static void createFileNode(String node) {
+    try {
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      if (manager.checkNodeExists(node)) {
+        manager.deleteNode(node);
+      }
+      CountDownLatch signal = new CountDownLatch(1);
+      manager.createPersistentNode(node, signal, FileSystemConstants.IS_A_FILE);
+      signal.await();
+    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

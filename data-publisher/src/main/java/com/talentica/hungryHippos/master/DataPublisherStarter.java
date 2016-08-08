@@ -6,6 +6,8 @@ package com.talentica.hungryHippos.master;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,18 +28,16 @@ public class DataPublisherStarter {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
 
   public static void main(String[] args) {
-    try {
+
       validateArguments(args);
       String clientConfigFilePath = args[0];
       String sourcePath = args[1];
       String destinationPath = args[2];
-      nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      try {
+        nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
       CoordinationConfig coordinationConfig =
           CoordinationApplicationContext.getZkCoordinationConfigCache();
       nodesManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-
-      ShardingApplicationContext.getShardingConfigFilePathOnZk(
-          coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath(), destinationPath);
       String dataParserClassName = ShardingApplicationContext
           .getShardingClientConfig(destinationPath).getInput().getDataParserConfig().getClassName();
       DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
@@ -46,13 +46,14 @@ public class DataPublisherStarter {
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);
-      sendSignalToNodes(nodesManager);
+        updateFilePublishSuccessful(destinationPath);
+
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
+      updateFilePublishFailure(destinationPath);
       LOGGER.error("Error occured while executing publishing data on nodes.", exception);
       exception.printStackTrace();
-      dataPublishingFailed();
     }
   }
 
@@ -105,6 +106,32 @@ public class DataPublisherStarter {
     }
 
     signal.await();
+  }
+
+  /**
+   * Updates file published successfully
+   * @param destinationPath
+     */
+  private static void updateFilePublishSuccessful(String destinationPath) {
+    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
+            getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
+    String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
+    ZkUtils.deleteZKNode(pathForFailureNode);
+    ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
+  }
+
+  /**
+   * Updates file pubising failed
+   * @param destinationPath
+     */
+  private static void updateFilePublishFailure(String destinationPath) {
+    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
+            getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
+    String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
+    ZkUtils.deleteZKNode(pathForSuccessNode);
+    ZkUtils.createZKNodeIfNotPresent(pathForFailureNode, "");
   }
 
 }

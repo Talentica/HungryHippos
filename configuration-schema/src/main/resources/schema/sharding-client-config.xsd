@@ -15,7 +15,8 @@
 
 	<complexType name="output">
 		<sequence>
-			<element type="string" name="output-dir"></element>
+			<element type="string" name="node-ssh-username" />
+			<element type="string" name="node-ssh-private-key-file-path" />
 		</sequence>
 	</complexType>
 

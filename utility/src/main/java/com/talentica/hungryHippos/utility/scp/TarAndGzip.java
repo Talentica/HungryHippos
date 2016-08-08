@@ -17,91 +17,91 @@ import org.kamranzafar.jtar.TarOutputStream;
 
 public class TarAndGzip {
 
-	public static void folder(File pFolder) throws IOException {
-		folder(pFolder, new ArrayList<String>());
-	}
+  public static void folder(File pFolder) throws IOException {
+    folder(pFolder, new ArrayList<String>(), pFolder.getName());
+  }
 
-	public static void folder(File pFolder, List<String> pIgnores)
-			throws IOException {
-		TarOutputStream out = null;
-		processIgnores(pFolder.getName(),pIgnores);
-		try {
-			out = new TarOutputStream(new BufferedOutputStream(
-					new GZIPOutputStream(new FileOutputStream(new File(
-							pFolder.getAbsolutePath() + "/../"
-									+ pFolder.getName() + ".tar.gz")))));
-			out.putNextEntry(new TarEntry(pFolder, pFolder.getName()));
-			writeToStream(out, pFolder, pFolder.getName(), pIgnores);
-		} finally {
-			IOUtils.closeQuietly(out);
-		}
-	}
+  public static String folder(File pFolder, List<String> pIgnores, String gzipFileName)
+      throws IOException {
+    TarOutputStream out = null;
+    processIgnores(pFolder.getName(), pIgnores);
+    try {
+      String outputFilePath = pFolder.getAbsolutePath() + "/../" + gzipFileName + ".tar.gz";
+      out = new TarOutputStream(new BufferedOutputStream(
+          new GZIPOutputStream(new FileOutputStream(new File(outputFilePath)))));
+      out.putNextEntry(new TarEntry(pFolder, pFolder.getName()));
+      writeToStream(out, pFolder, pFolder.getName(), pIgnores);
+      return outputFilePath;
+    } finally {
+      IOUtils.closeQuietly(out);
+    }
+  }
 
-	private static void processIgnores(String pName, List<String> pIgnores) {
-		for (int i = 0; i < pIgnores.size(); i++) {
-			String current = pIgnores.get(i);
-			pIgnores.set(i, pName + (current.startsWith("/") ? "" : "/")
-					+ current);
-		}
+  private static void processIgnores(String pName, List<String> pIgnores) {
+    for (int i = 0; i < pIgnores.size(); i++) {
+      String current = pIgnores.get(i);
+      pIgnores.set(i, pName + (current.startsWith("/") ? "" : "/") + current);
+    }
 
-	}
+  }
 
-	private static void writeToStream(TarOutputStream pOut, File pFolder,
-			String pParent, List<String> pIgnores) throws IOException {
-		File[] filesToTar = pFolder.listFiles(new FileFilter() {
-			public boolean accept(File pArg0) {
-				return pArg0.isFile();
-			}
-		});
+  private static void writeToStream(TarOutputStream pOut, File pFolder, String pParent,
+      List<String> pIgnores) throws IOException {
+    File[] filesToTar = pFolder.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File pArg0) {
+        return pArg0.isFile();
+      }
+    });
 
-		if (filesToTar != null) {
-			for (File f : filesToTar) {
-				String path = pParent + "/" + f.getName();
-				boolean skip = shouldSkip(pIgnores, path);
-				if (!skip) {
-					pOut.putNextEntry(new TarEntry(f, path));
-					BufferedInputStream origin = new BufferedInputStream(
-							new FileInputStream(f));
-					int count;
-					byte data[] = new byte[2048];
+    if (filesToTar != null) {
+      for (File f : filesToTar) {
+        String path = pParent + "/" + f.getName();
+        boolean skip = shouldSkip(pIgnores, path);
+        if (!skip) {
+          pOut.putNextEntry(new TarEntry(f, path));
+          BufferedInputStream origin = new BufferedInputStream(new FileInputStream(f));
+          int count;
+          byte data[] = new byte[2048];
 
-					while ((count = origin.read(data)) != -1) {
-						pOut.write(data, 0, count);
-					}
+          while ((count = origin.read(data)) != -1) {
+            pOut.write(data, 0, count);
+          }
 
-					pOut.flush();
-					origin.close();
-				}
-			}
-		}
+          pOut.flush();
+          origin.close();
+        }
+      }
+    }
 
-		File[] dirsToTar = pFolder.listFiles(new FileFilter() {
-			public boolean accept(File pArg0) {
-				return pArg0.isDirectory();
-			}
-		});
+    File[] dirsToTar = pFolder.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File pArg0) {
+        return pArg0.isDirectory();
+      }
+    });
 
-		if (dirsToTar != null) {
-			for (File dir : dirsToTar) {
+    if (dirsToTar != null) {
+      for (File dir : dirsToTar) {
 
-				String path = pParent + "/" + dir.getName();
-				boolean skip = shouldSkip(pIgnores, path);
-				if (!skip) {
-					pOut.putNextEntry(new TarEntry(dir, path));
-					writeToStream(pOut, dir, path, pIgnores);
-				}
-			}
-		}
+        String path = pParent + "/" + dir.getName();
+        boolean skip = shouldSkip(pIgnores, path);
+        if (!skip) {
+          pOut.putNextEntry(new TarEntry(dir, path));
+          writeToStream(pOut, dir, path, pIgnores);
+        }
+      }
+    }
 
-	}
+  }
 
-	private static boolean shouldSkip(List<String> pIgnores, String path) {
-		boolean skip = false;
-		for (String ignore : pIgnores) {
-			if (path.matches(ignore)) {
-				skip = true;
-			}
-		}
-		return skip;
-	}
+  private static boolean shouldSkip(List<String> pIgnores, String path) {
+    boolean skip = false;
+    for (String ignore : pIgnores) {
+      if (path.matches(ignore)) {
+        skip = true;
+      }
+    }
+    return skip;
+  }
 }

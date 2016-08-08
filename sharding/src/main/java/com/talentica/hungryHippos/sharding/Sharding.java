@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.sharding;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,13 +90,20 @@ public class Sharding {
     }
   }
 
-  public void dumpShardingTableFiles(String directoryPath) {
+  public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
+      String shardingServerConfigFilePath) throws IOException {
     CommonUtil.dumpFileOnDisk(Sharding.bucketCombinationToNodeNumbersMapFile,
         bucketCombinationToNodeNumbersMap, directoryPath);
     CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, bucketToNodeNumberMap,
         directoryPath);
     CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, keyToValueToBucketMap,
         directoryPath);
+    FileUtils.writeStringToFile(
+        new File(directoryPath + File.separator + "sharding-client-config.xml"),
+        FileUtils.readFileToString(new File(shardingClientConfigFilePath), "UTF-8"), "UTF-8");
+    FileUtils.writeStringToFile(
+        new File(directoryPath + File.separator + "sharding-server-config.xml"),
+        FileUtils.readFileToString(new File(shardingServerConfigFilePath), "UTF-8"), "UTF-8");
   }
 
   private void updateBucketToNodeNumbersMap(Reader data, String path) throws IOException,

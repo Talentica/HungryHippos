@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.sharding.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -16,11 +15,12 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
-import com.talentica.hungryHippos.sharding.ShardingTableZkService;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingServerConfig;
 
@@ -33,18 +33,15 @@ public class ShardingStarter {
 
   public static void main(String[] args) {
     try {
-      validateArguments(args);
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
-
-      String clientConfigFilePath = args[0];
+      validateArguments(args);
       String shardingClientConfigFilePath = args[1];
-      String shardingServerConfigFilePath = args[2];
-
       ShardingClientConfig shardingClientConfig =
           JaxbUtil.unmarshalFromFile(shardingClientConfigFilePath, ShardingClientConfig.class);
       ShardingApplicationContext.setShardingClientConfig(
           shardingClientConfig.getInput().getDistributedFilePath(), shardingClientConfig);
+      String shardingServerConfigFilePath = args[2];
       ShardingServerConfig shardingServerConfig =
           JaxbUtil.unmarshalFromFile(shardingServerConfigFilePath, ShardingServerConfig.class);
       ShardingApplicationContext.setShardingServerConfig(
@@ -57,6 +54,7 @@ public class ShardingStarter {
               .newInstance(ShardingApplicationContext.getConfiguredDataDescription(
                   shardingClientConfig.getInput().getDistributedFilePath()));
 
+      String clientConfigFilePath = args[0];
       NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
       CoordinationConfig coordinationConfig =
           CoordinationApplicationContext.getZkCoordinationConfigCache();
@@ -69,32 +67,18 @@ public class ShardingStarter {
       Sharding sharding = new Sharding(clusterConfig);
       sharding.doSharding(getInputReaderForSharding(sampleFilePath, dataParser),
           shardingClientConfig.getInput().getDistributedFilePath());
-      sharding.dumpShardingTableFiles(shardingClientConfig.getOutput().getOutputDir());
-
-      String shardingTablePathOnZk = ShardingApplicationContext.getShardingConfigFilePathOnZk(
-          coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath(),
-          shardingClientConfig.getInput().getDistributedFilePath());
-
-      ShardingApplicationContext.uploadShardingConfigOnZk(manager, shardingTablePathOnZk,
-          CoordinationApplicationContext.SHARDING_CLIENT_CONFIGURATION,
-          FileUtils.readFileToString(new File(shardingClientConfigFilePath), "UTF-8"));
-      ShardingApplicationContext.uploadShardingConfigOnZk(manager, shardingTablePathOnZk,
-          CoordinationApplicationContext.SHARDING_SERVER_CONFIGURATION,
-          FileUtils.readFileToString(new File(shardingServerConfigFilePath), "UTF-8"));
-
+      Output outputConfiguration = shardingClientConfig.getOutput();
+      String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
+          + "hungryhippos" + File.separator + System.currentTimeMillis();
+      new File(tempDir).mkdirs();
+      sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
+          shardingServerConfigFilePath);
+      ShardingTableCopier shardingTableCopier =
+          new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
+      shardingTableCopier.copyToAnyRandomNodeInCluster();
       long endTime = System.currentTimeMillis();
       LOGGER.info("SHARDING DONE!!");
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
-      ShardingTableZkService shardingTable = new ShardingTableZkService();
-      LOGGER.info("Uploading started for sharded table bucketCombinationToNodeNumbersMap...");
-      shardingTable.zkUploadBucketCombinationToNodeNumbersMap(shardingTablePathOnZk);
-      LOGGER.info("Completed.");
-      LOGGER.info("Uploading started for sharded table bucketToNodeNumberMap...");
-      shardingTable.zkUploadBucketToNodeNumberMap(shardingTablePathOnZk);
-      LOGGER.info("Completed.");
-      LOGGER.info("Uploading started for sharded table keyToValueToBucketMap...");
-      shardingTable.zkUploadKeyToValueToBucketMap(shardingTablePathOnZk);
-      LOGGER.info("Completed.");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
     }
@@ -111,10 +95,5 @@ public class ShardingStarter {
     return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile,
         dataParser);
   }
-
-  /*
-   * private static void setContext(String[] args) {
-   * NodesManagerContext.setZookeeperXmlPath(args[0]); }
-   */
 
 }

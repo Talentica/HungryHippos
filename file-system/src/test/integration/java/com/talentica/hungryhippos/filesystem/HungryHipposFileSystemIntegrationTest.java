@@ -4,11 +4,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.util.concurrent.CountDownLatch;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +14,6 @@ import org.junit.Test;
 //import org.powermock.api.mockito.PowerMockito;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 

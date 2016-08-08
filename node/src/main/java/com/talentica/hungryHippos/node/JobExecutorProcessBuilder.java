@@ -3,6 +3,8 @@ package com.talentica.hungryHippos.node;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.util.List;
  * Created by rajkishoreh on 1/8/16.
  */
 public class JobExecutorProcessBuilder {
+    public static final Logger logger = LoggerFactory.getLogger(JobExecutorProcessBuilder.class);
     /**
      * This method is the entry point of the class
      * @param args
@@ -21,6 +24,7 @@ public class JobExecutorProcessBuilder {
      * @throws JAXBException
      */
     public static void main(String[] args) throws InterruptedException, IOException, JAXBException {
+        logger.info("Started JobExecutorProcessBuilder");
         validateArguments(args);
         String clientConfigPath = args[0];
         NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
@@ -31,6 +35,7 @@ public class JobExecutorProcessBuilder {
                 continue;
             }
             for(String jobUUID:jobUUIDs){
+                logger.info("Processing "+jobUUID);
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
                 Process process = processBuilder.start();
                 int status =  process.waitFor();

@@ -1,6 +1,6 @@
 package com.talentica.hungryhippos.filesystem.server;
 
-import com.talentica.hungryhippos.filesystem.FileSystemConstants;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

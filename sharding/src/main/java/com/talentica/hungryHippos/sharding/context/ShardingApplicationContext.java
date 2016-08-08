@@ -32,8 +32,6 @@ public class ShardingApplicationContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ShardingApplicationContext.class);
 
-  private static String shardingConfigFilePathOnZk;
-
   private static Map<String, ShardingClientConfig> shardingClientConfigCache = new HashMap<>();
 
   private static Map<String, ShardingServerConfig> shardingServerConfigCache = new HashMap<>();
@@ -86,11 +84,11 @@ public class ShardingApplicationContext {
     return shardingServerConfigCache.get(path);
   }
   
-  public static void setShardingClientConfig(String path,ShardingClientConfig shardingClientConfig){
+  public static void putShardingClientConfig(String path, ShardingClientConfig shardingClientConfig){
     shardingClientConfigCache.put(path, shardingClientConfig);
   }
   
-  public static void setShardingServerConfig(String path,ShardingServerConfig shardingServerConfig){
+  public static void putShardingServerConfig(String path, ShardingServerConfig shardingServerConfig){
     shardingServerConfigCache.put(path, shardingServerConfig);
   }
 
@@ -161,20 +159,14 @@ public class ShardingApplicationContext {
     return index;
   }
 
-  public static void uploadShardingConfigOnZk(NodesManager manager, String shardingConfigPath,
-      String nodeName, String configurationFile) throws IOException, InterruptedException {
+  public static void uploadShardingConfigOnZk(String shardingConfigPath,
+      String nodeName, String configurationFile) throws IOException, InterruptedException,JAXBException {
     LOGGER.info("Updating sharding configuration on zookeeper");
+    NodesManager manager = NodesManagerContext.getNodesManagerInstance();
     ZKNodeFile configFile = new ZKNodeFile(nodeName, configurationFile);
     CountDownLatch countDownLatch = new CountDownLatch(1);
     manager.saveShardingConfigFileToZNode(shardingConfigPath, configFile, countDownLatch);
     countDownLatch.await();
-
-  }
-
-  public static String getShardingConfigFilePathOnZk(String fileSystemBasePath,
-      String distributedFilePath) {
-    shardingConfigFilePathOnZk = fileSystemBasePath + distributedFilePath;
-    return shardingConfigFilePathOnZk;
 
   }
 

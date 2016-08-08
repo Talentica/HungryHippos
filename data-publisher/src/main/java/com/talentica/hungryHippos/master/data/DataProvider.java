@@ -147,16 +147,6 @@ public class DataProvider {
     LOGGER.info("Time taken in ms: " + (end - start));
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));
     LOGGER.info("Time taken in lookup: " + (timeForLookup));
-    try {
-      String dataPublishingNodeName = nodesManager
-          .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_COMPLETED.getZKJobNode());
-      CountDownLatch signal = new CountDownLatch(1);
-      nodesManager.createPersistentNode(dataPublishingNodeName, signal);
-      signal.await();
-      LOGGER.info("DataPublishing completion notification created on zk node");
-    } catch (Exception e) {
-      LOGGER.info("Unable to connect the zk node due to {}", e);
-    }
 
   }
 

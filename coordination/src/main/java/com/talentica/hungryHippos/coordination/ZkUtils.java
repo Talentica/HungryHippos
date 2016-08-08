@@ -64,22 +64,12 @@ public class ZkUtils {
   public static ZooKeeper zk;
   public static NodesManager nodesManager;
   public static final String CHARSET = "UTF8";
-  private static final String basePath = "/home/sohanc/D_drive/HungryHippos_project/HungryHippos";
-  private static final String zookeeprConfigFilePath =
-      basePath + "/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
 
-  static {
-    try {
-      nodesManager = NodesManagerContext.getNodesManagerInstance(zookeeprConfigFilePath);
-    } catch (FileNotFoundException | JAXBException e) {
-     LOGGER.info("Unable to start the nodesManager");
-    }
-  }
   public static ZKNodeFile getConfigZKNodeFile(String fileName,
       CoordinationServers coordinationServers) throws FileNotFoundException, JAXBException {
     Object obj = null;
     ZKNodeFile zkFile = null;
-   // nodesManager = NodesManagerContext.getNodesManagerInstance();
+    nodesManager = NodesManagerContext.getNodesManagerInstance();
     try {
       obj = nodesManager.getConfigFileFromZNode(fileName);
       zkFile = (obj == null) ? null : (ZKNodeFile) obj;
@@ -705,7 +695,7 @@ public class ZkUtils {
         saveObjectZkNode(parentNode + zkPathSeparator + "value=", ((KeyValuePair) object).value);
       } else if (ClassUtils.isPrimitiveOrWrapper(object.getClass())) {
         if (object instanceof Character) {
-          object = URLEncoder.encode("" + (Character) object, CHARSET);
+          object = URLEncoder.encode("" + object, CHARSET);
         }
         nodesManager.createPersistentNodeSync(parentNode + zkPathSeparator + "(" + className + ")/"
             + URLEncoder.encode(object.toString(), CHARSET));

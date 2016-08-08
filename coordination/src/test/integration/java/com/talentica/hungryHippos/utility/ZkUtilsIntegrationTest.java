@@ -14,8 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.zookeeper.ZookeeperConfig;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * @author pooshans
@@ -66,9 +67,10 @@ public class ZkUtilsIntegrationTest {
 
 	@Test
 	public void testClientConfigZk() {
-		ZookeeperConfig configSave = NodesManagerContext.getZookeeperConfiguration(zookeeprConfigFilePath);
+    CoordinationConfig configSave = CoordinationApplicationContext.getZkCoordinationConfigCache();
 		ZkUtils.saveObjectZkNode("/rootnode/configuration2/A/B", configSave);
-		ZookeeperConfig configRet = (ZookeeperConfig) ZkUtils.readObjectZkNode("/rootnode/configuration2/A/B");
+    CoordinationConfig configRet =
+        (CoordinationConfig) ZkUtils.readObjectZkNode("/rootnode/configuration2/A/B");
 		Assert.assertNotNull(configRet);
 	}
 

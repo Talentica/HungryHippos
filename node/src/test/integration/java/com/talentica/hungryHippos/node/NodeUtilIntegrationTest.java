@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -25,11 +26,13 @@ public class NodeUtilIntegrationTest {
       new HashMap<String, Map<Object, Bucket<KeyValueFrequency>>>();
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap =
       new HashMap<String, Map<Bucket<KeyValueFrequency>, Node>>();
-  private String zookeeperConfigPath =
-      "/home/pooshans/HungryHippos/configuration-schema/src/main/resources/schema/zookeeper-config.xml";
+  private String basePath = "/home/pooshans";
+  private String clientConfig = basePath + "/HungryHippos/configuration-schema/src/main/resources/schema/client-config.xml";
 
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception {
+    nodesManager = NodesManagerContext.initialize(clientConfig);
+  }
 
   @After
   public void tearDown() throws Exception {}
@@ -55,7 +58,6 @@ public class NodeUtilIntegrationTest {
 
   @Test
   public void testCreateTrieBucketToNodeNumberMap() {
-    nodesManager = new NodesManager(zookeeperConfigPath);
     try {
       NodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
     } catch (IOException e) {
@@ -65,7 +67,6 @@ public class NodeUtilIntegrationTest {
 
   @Test
   public void testCreateTrieKeyToValueToBucketMap() {
-    nodesManager = new NodesManager(zookeeperConfigPath);
     try {
       NodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
     } catch (IOException e) {
@@ -76,7 +77,6 @@ public class NodeUtilIntegrationTest {
 
   @Test
   public void testCreateTrieBucketCombinationToNodeNumbersMap() {
-    nodesManager = new NodesManager(zookeeperConfigPath);
     try {
       NodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
           nodesManager);

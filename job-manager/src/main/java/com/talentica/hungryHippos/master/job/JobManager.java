@@ -1,21 +1,30 @@
 package com.talentica.hungryHippos.master.job;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.JobStatusClientCoordinator;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
-import com.talentica.hungryHippos.sharding.*;
+import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.sharding.ShardingTableCache;
+import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 public class JobManager {
 
@@ -49,9 +58,9 @@ public class JobManager {
     JobStatusClientCoordinator.initializeJobNodes(jobUUId);
     LOGGER.info("SIGNAL IS SENT TO ALL NODES TO START JOB MATRIX");
     boolean areNodesCompleted = checkNodesStatusSignal();
-    if(areNodesCompleted){
+    if (areNodesCompleted) {
       JobStatusClientCoordinator.updateJobCompleted(jobUUId);
-    }else{
+    } else {
       JobStatusClientCoordinator.updateJobFailed(jobUUId);
     }
     LOGGER.info("\n\n\n\t FINISHED!\n\n\n");
@@ -59,10 +68,12 @@ public class JobManager {
 
   @SuppressWarnings("unchecked")
   private void setBucketToNodeNumberMap() throws Exception {
-    //TODO figuring out the path of sharding table on Zk.
+    // TODO figuring out the path of sharding table on Zk.
     ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
+    // TODO change the path parameter of the getShardingTableFromCache method.
     bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) shardingTableCache
-        .getShardingTableFromCache(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName());
+        .getShardingTableFromCache(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName(),
+            "<sharding_table_path>");
   }
 
   /**
@@ -82,14 +93,17 @@ public class JobManager {
 
   /**
    * Waits and checks the outcome of the Nodes
+   * 
    * @return
-     */
+   */
   private boolean checkNodesStatusSignal() {
     boolean areNodesCompleted = false;
     boolean hasAnyNodeFailed = false;
-    while(!(areNodesCompleted||hasAnyNodeFailed)){
-      areNodesCompleted = JobStatusClientCoordinator.areAllNodesCompleted(ZkSignalListener.jobuuidInBase64);
-      hasAnyNodeFailed = JobStatusClientCoordinator.hasAnyNodeFailed(ZkSignalListener.jobuuidInBase64);
+    while (!(areNodesCompleted || hasAnyNodeFailed)) {
+      areNodesCompleted =
+          JobStatusClientCoordinator.areAllNodesCompleted(ZkSignalListener.jobuuidInBase64);
+      hasAnyNodeFailed =
+          JobStatusClientCoordinator.hasAnyNodeFailed(ZkSignalListener.jobuuidInBase64);
     }
     LOGGER.info("ALL NODES FINISHED THE JOBS");
     return areNodesCompleted;

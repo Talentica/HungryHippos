@@ -79,15 +79,14 @@ public class ShardingTableCopier {
       Node nodeToUploadShardingTableTo, String distributedFilePath)
       throws FileNotFoundException, JAXBException, IOException {
     int nodeIdShardingTableCopiedTo = nodeToUploadShardingTableTo.getIdentifier();
-    String baseFileSystemPathForFileInContext =
-        ShardingApplicationContext.getShardingConfigFilePathOnZk(distributedFilePath);
-    String shardingTableCopiedOnPath = baseFileSystemPathForFileInContext
-        + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH;
+    String shardingTableCopiedOnPath =
+        CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
+            + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
     NodesManager nodesManagerInstance = NodesManagerContext.getNodesManagerInstance();
     nodesManagerInstance.createPersistentNode(
         shardingTableCopiedOnPath + nodeIdShardingTableCopiedTo, new CountDownLatch(1));
-    String shardingTableToBeCopiedOnNodePath =
-        baseFileSystemPathForFileInContext + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
+    String shardingTableToBeCopiedOnNodePath =  CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() 
+        + distributedFilePath + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
     nodes.stream().filter(node -> node.getIdentifier() != nodeIdShardingTableCopiedTo)
         .forEach(node -> {
           try {

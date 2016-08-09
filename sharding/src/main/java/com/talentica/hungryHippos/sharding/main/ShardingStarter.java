@@ -41,14 +41,18 @@ public class ShardingStarter {
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
       validateArguments(args);
+      
       String clientConfigFilePath = args[0];
       String shardingClientConfigFilePath = args[1];
+      String shardingServerConfigFilePath = args[2];
+      
       ShardingClientConfig shardingClientConfig =
           JaxbUtil.unmarshalFromFile(shardingClientConfigFilePath, ShardingClientConfig.class);
-      String shardingServerConfigFilePath = args[2];
+      ShardingServerConfig shardingServerConfig =
+          JaxbUtil.unmarshalFromFile(shardingServerConfigFilePath, ShardingServerConfig.class);
 
       NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-
+      
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       if (distributedFilePath == null || "".equals(distributedFilePath)) {
         throw new RuntimeException("Distributed File path cannot be empty");
@@ -61,10 +65,9 @@ public class ShardingStarter {
       }
       ZkUtils.createFileNode(shardingTablePathOnZk);
       isFileCreated = true;
-      ShardingServerConfig shardingServerConfig =
-          JaxbUtil.unmarshalFromFile(shardingServerConfigFilePath, ShardingServerConfig.class);
       ShardingApplicationContext.putShardingClientConfig(distributedFilePath, shardingClientConfig);
       ShardingApplicationContext.putShardingServerConfig(distributedFilePath, shardingServerConfig);
+      
       String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
           + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(tempDir).mkdirs();

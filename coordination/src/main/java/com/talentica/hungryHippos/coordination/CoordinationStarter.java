@@ -30,6 +30,7 @@ public class CoordinationStarter {
       String coordinationConfigFilePath = args[1];
       String clusterConfigFilePath = args[2];
       String datapublisherConfigFilePath = args[3];
+      String fileSystemConfigFilePath = args[4];
 
       CoordinationApplicationContext.setLocalClusterConfigPath(clusterConfigFilePath);
       ClusterConfig configuration =
@@ -57,6 +58,9 @@ public class CoordinationStarter {
       CoordinationApplicationContext.uploadConfigurationOnZk(manager,
           CoordinationApplicationContext.DATA_PUBLISHER_CONFIGURATION,
           FileUtils.readFileToString(new File(datapublisherConfigFilePath), "UTF-8"));
+      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
+          CoordinationApplicationContext.FILE_SYSTEM,
+          FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
 
       LOGGER.info("Coordination server started..");
     } catch (Exception exception) {
@@ -66,9 +70,9 @@ public class CoordinationStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args == null || args.length < 4) {
+    if (args == null || args.length < 5) {
       LOGGER.error(
-          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} file/files arguments.");
+          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} or 5th argument {file system configuration} file/files arguments.");
       System.exit(1);
     }
   }

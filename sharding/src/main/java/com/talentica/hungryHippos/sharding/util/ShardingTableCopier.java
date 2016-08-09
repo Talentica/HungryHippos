@@ -12,6 +12,7 @@ import javax.xml.bind.JAXBException;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.scp.Jscp;
 import com.talentica.hungryHippos.utility.scp.SecureContext;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -78,15 +79,15 @@ public class ShardingTableCopier {
       Node nodeToUploadShardingTableTo, String distributedFilePath)
       throws FileNotFoundException, JAXBException, IOException {
     int nodeIdShardingTableCopiedTo = nodeToUploadShardingTableTo.getIdentifier();
-    String shardingTableCopiedOnPath =
-        CoordinationApplicationContext.FILE_SYSTEM + distributedFilePath
-            + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
+    String baseFileSystemPathForFileInContext =
+        ShardingApplicationContext.getShardingConfigFilePathOnZk(distributedFilePath);
+    String shardingTableCopiedOnPath = baseFileSystemPathForFileInContext
+        + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH;
     NodesManager nodesManagerInstance = NodesManagerContext.getNodesManagerInstance();
     nodesManagerInstance.createPersistentNode(
         shardingTableCopiedOnPath + nodeIdShardingTableCopiedTo, new CountDownLatch(1));
-
-    String shardingTableToBeCopiedOnNodePath = CoordinationApplicationContext.FILE_SYSTEM
-        + distributedFilePath + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
+    String shardingTableToBeCopiedOnNodePath =
+        baseFileSystemPathForFileInContext + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
     nodes.stream().filter(node -> node.getIdentifier() != nodeIdShardingTableCopiedTo)
         .forEach(node -> {
           try {

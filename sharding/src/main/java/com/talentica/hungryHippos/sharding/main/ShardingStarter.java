@@ -61,7 +61,6 @@ public class ShardingStarter {
       }
       ZkUtils.createFileNode(shardingTablePathOnZk);
       isFileCreated = true;
-
       ShardingServerConfig shardingServerConfig =
           JaxbUtil.unmarshalFromFile(shardingServerConfigFilePath, ShardingServerConfig.class);
       ShardingApplicationContext.putShardingClientConfig(distributedFilePath, shardingClientConfig);
@@ -72,7 +71,8 @@ public class ShardingStarter {
       doSharding(shardingClientConfig, shardingClientConfigFilePath, shardingServerConfigFilePath,
           tempDir);
       uploadShardingData(shardingClientConfig, tempDir);
-      LOGGER.info("SHARDING PROCESS COMPLETED SUCCESSFULLY");
+      long endTime = System.currentTimeMillis();
+      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
       if (isFileCreated) {
@@ -107,7 +107,6 @@ public class ShardingStarter {
       InvocationTargetException, InstantiationException, InterruptedException, JAXBException,
       KeeperException {
     LOGGER.info("SHARDING STARTED");
-    long startTime = System.currentTimeMillis();
     String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =
@@ -124,9 +123,7 @@ public class ShardingStarter {
     sharding.doSharding(inputReaderForSharding, distributedFilePath);
     sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
         shardingServerConfigFilePath);
-    long endTime = System.currentTimeMillis();
     LOGGER.info("SHARDING DONE!!");
-    LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
   }
 
   private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser)
@@ -150,7 +147,6 @@ public class ShardingStarter {
         new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
     shardingTableCopier.copyToAnyRandomNodeInCluster();
     LOGGER.info("Upload completed.");
-
   }
 
 

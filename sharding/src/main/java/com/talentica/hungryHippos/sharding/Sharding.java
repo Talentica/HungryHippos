@@ -23,10 +23,10 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
@@ -92,11 +92,11 @@ public class Sharding {
 
   public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
       String shardingServerConfigFilePath) throws IOException {
-    CommonUtil.dumpFileOnDisk(Sharding.bucketCombinationToNodeNumbersMapFile,
+    ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(Sharding.bucketCombinationToNodeNumbersMapFile,
         bucketCombinationToNodeNumbersMap, directoryPath);
-    CommonUtil.dumpFileOnDisk(Sharding.bucketToNodeNumberMapFile, bucketToNodeNumberMap,
+    ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(Sharding.bucketToNodeNumberMapFile, bucketToNodeNumberMap,
         directoryPath);
-    CommonUtil.dumpFileOnDisk(Sharding.keyToValueToBucketMapFile, keyToValueToBucketMap,
+    ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(Sharding.keyToValueToBucketMapFile, keyToValueToBucketMap,
         directoryPath);
     FileUtils.writeStringToFile(
         new File(directoryPath + File.separator + "sharding-client-config.xml"),

@@ -1,0 +1,22 @@
+syntax = "proto3";
+option java_package = "com.talentica.hungryHippos.sharding.protos";
+option java_outer_classname = "KeyToValueToBucketMapProtos";
+
+message KeyToValueToBucketMap {
+	repeated KeyToValueToBucket keyToValueToBucket = 1;
+}
+
+message KeyToValueToBucket {
+	string key = 1;
+	repeated ValueToBucketMap valueToBucketMap = 2;
+}
+
+message ValueToBucketMap {
+	string keyValue = 1;
+	Bucket bucket = 2;
+	
+	message Bucket {
+    	int32 id = 1;
+    	int64 size = 2;
+    }
+}

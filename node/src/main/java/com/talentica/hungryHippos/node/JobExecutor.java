@@ -8,31 +8,27 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
-import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
-import com.talentica.hungryHippos.node.job.JobConfigReader;
-import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.common.JobRunner;
+import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
+import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.node.job.JobConfigReader;
+import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.JobEntity;
-import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -134,38 +130,6 @@ public class JobExecutor {
   }
 
   /**
-   * @throws IOException
-   * @throws InterruptedException
-   */
-  private static void sendFinishJobMatrixSignal() throws IOException, InterruptedException {
-    String buildFinishPath =
-        ZkUtils.buildNodePath(ZkSignalListener.jobuuidInBase64) + PathUtil.SEPARATOR_CHAR
-            + ("_node" + NodeUtil.getNodeId()) + PathUtil.SEPARATOR_CHAR
-            + CommonUtil.ZKJobNodeEnum.FINISH_JOB_MATRIX.name();
-    CountDownLatch signal = new CountDownLatch(1);
-    nodesManager.createPersistentNode(buildFinishPath, signal);
-    signal.await();
-  }
-
-  /**
-   * @param nodesManager
-   * @throws IOException
-   * @throws InterruptedException
-   */
-  private static void sendFailureSignal(NodesManager nodesManager)
-      throws IOException, InterruptedException {
-    String basePathPerNode =
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
-            .getHostPath() + PathUtil.SEPARATOR_CHAR + ZkSignalListener.jobuuidInBase64
-            + PathUtil.SEPARATOR_CHAR + (PRIFIX_NODE_NAME + NodeUtil.getNodeId())
-            + PathUtil.SEPARATOR_CHAR + CommonUtil.ZKJobNodeEnum.FINISH_JOB_FAILED.getZKJobNode();
-    CountDownLatch signal = new CountDownLatch(1);
-    nodesManager.createPersistentNode(basePathPerNode, signal);
-    signal.await();
-    ZkSignalListener.createErrorEncounterSignal(nodesManager);
-  }
-
-  /**
    * Create the job runner.
    * 
    * @return JobRunner
@@ -180,7 +144,8 @@ public class JobExecutor {
     FieldTypeArrayDataDescription dataDescription =
         ShardingApplicationContext.getConfiguredDataDescription(inputHHPath);
     dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(inputHHPath));
-    dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
+    NodeUtil nodeUtil = new NodeUtil(inputHHPath);
+    dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true);
     return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }

@@ -16,9 +16,10 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTableCache;
-import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
+import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 public class NodeUtil {
 
@@ -30,24 +31,22 @@ public class NodeUtil {
 
   private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
-  static {
-    // TODO figuring out the path of sharding table on ZK.
-    ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
-    // TODO change the path parameter of the getShardingTableFromCache method
-    keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) shardingTableCache
-        .getShardingTableFromCache(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName(),
-            "<sharding_table_path>");
-    // TODO change the path parameter of the getShardingTableFromCache method
-    bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) shardingTableCache
-        .getShardingTableFromCache(ShardingTableFilesName.BUCKET_TO_NODE_NUMBER_MAP_FILE.getName(),
-            "<sharding_table_path>");
+  public NodeUtil(String filePath) {
+    String keyToValueToBucketMapFile = FileSystemContext.getRootDirectory() + filePath
+        + File.separatorChar + Sharding.keyToValueToBucketMapFile;
+
+    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile);
+    
+    String bucketToNodeNumberMapFile = FileSystemContext.getRootDirectory() + filePath
+        + File.separatorChar + Sharding.bucketToNodeNumberMapFile;
+    bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);
   }
 
-  public static final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
+  public final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     return keyToValueToBucketMap;
   }
 
-  public static final Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
+  public final Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     return bucketToNodeNumberMap;
   }
 
@@ -57,7 +56,7 @@ public class NodeUtil {
    * @return NodeId
    * @throws Exception
    */
-  public static int getNodeId() throws IOException {
+  public int getNodeId() throws IOException {
     try {
       BufferedReader in = new BufferedReader(new InputStreamReader(
           new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
@@ -71,7 +70,7 @@ public class NodeUtil {
     }
   }
 
-  public static void createTrieBucketToNodeNumberMap(
+  public void createTrieBucketToNodeNumberMap(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       NodesManager nodesManager) throws IOException {
     String buildPath = nodesManager.buildConfigPath("bucketToNodeNumberMap");
@@ -96,7 +95,7 @@ public class NodeUtil {
     }
   }
 
-  public static void createTrieKeyToValueToBucketMap(
+  public void createTrieKeyToValueToBucketMap(
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
       NodesManager nodesManager) throws IOException {
     String buildPath = nodesManager.buildConfigPath("keyToValueToBucketMap");
@@ -121,7 +120,7 @@ public class NodeUtil {
     }
   }
 
-  public static void createTrieBucketCombinationToNodeNumbersMap(
+  public void createTrieBucketCombinationToNodeNumbersMap(
       Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap,
       NodesManager nodesManager) throws IOException {
     String buildPath = nodesManager.buildConfigPath("bucketCombinationToNodeNumbersMap");

@@ -14,63 +14,70 @@ import io.netty.channel.ChannelHandlerContext;
  */
 public class RequestDetailsHandler extends ChannelHandlerAdapter {
 
-    private ByteBuf byteBuf;
-    private String nodeId;
+  private ByteBuf byteBuf;
+  private String nodeId;
 
-    private boolean isFilePathLengthRead = false;
-    int filePathLength = 0;
+  private boolean isFilePathLengthRead = false;
+  int filePathLength = 0;
 
-    public RequestDetailsHandler(String nodeId) {
-        super();
-        this.nodeId = nodeId;
+  public RequestDetailsHandler(String nodeId) {
+    super();
+    this.nodeId = nodeId;
+  }
+
+  @Override
+  public void handlerAdded(ChannelHandlerContext ctx) {
+    byteBuf = ctx.alloc().buffer(4);
+  }
+
+  @Override
+  public void handlerRemoved(ChannelHandlerContext ctx) {
+    byteBuf.release();
+    byteBuf = null;
+  }
+
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+    ByteBuf m = (ByteBuf) msg;
+    byteBuf.writeBytes(m);
+    m.release();
+
+    if (byteBuf.readableBytes() >= 4 && !isFilePathLengthRead) {
+      filePathLength = byteBuf.readInt();
+      isFilePathLengthRead = true;
     }
+    if (byteBuf.readableBytes() >= filePathLength && isFilePathLengthRead) {
 
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) {
-        byteBuf = ctx.alloc().buffer(4);
+      String hhFilePath = readHHFilePath();
+      byte[] remainingBufferData = new byte[byteBuf.readableBytes()];
+      byteBuf.readBytes(remainingBufferData);
+
+      String nodeId = NodeInfo.INSTANCE.getId();
+      DataDescription dataDescription =
+          ShardingApplicationContext.getConfiguredDataDescription(hhFilePath);
+      // TODO Get sharding table for the particular file from zookeeper instead of using common
+      // config
+      NodeUtil nodeUtil = new NodeUtil(hhFilePath);
+      DataStore dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
+          dataDescription, hhFilePath, nodeId);
+
+      
+      ctx.pipeline().remove(DataReceiver.REQUEST_DETAILS_HANDLER);
+      ctx.pipeline().addLast(DataReceiver.DATA_HANDLER,
+          new DataReadHandler(dataDescription, dataStore, remainingBufferData, nodeUtil));
     }
+  }
 
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        byteBuf.release();
-        byteBuf = null;
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
-        ByteBuf m = (ByteBuf) msg;
-        byteBuf.writeBytes(m);
-        m.release();
-
-        if (byteBuf.readableBytes() >= 4 && !isFilePathLengthRead) {
-            filePathLength = byteBuf.readInt();
-            isFilePathLengthRead = true;
-        }
-        if (byteBuf.readableBytes() >= filePathLength && isFilePathLengthRead) {
-
-            String hhFilePath = readHHFilePath();
-            byte[] remainingBufferData = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(remainingBufferData);
-
-            String nodeId = NodeInfo.INSTANCE.getId();
-            DataDescription dataDescription = ShardingApplicationContext.getConfiguredDataDescription(hhFilePath);
-            //TODO Get sharding table for the particular file from zookeeper instead of using common config
-            DataStore dataStore = new FileDataStore(NodeUtil.getKeyToValueToBucketMap().size(), dataDescription, hhFilePath, nodeId);
-
-            ctx.pipeline().remove(DataReceiver.REQUEST_DETAILS_HANDLER);
-            ctx.pipeline().addLast(DataReceiver.DATA_HANDLER, new DataReadHandler(dataDescription, dataStore, remainingBufferData));
-        }
-    }
-
-    /**
-     * Returns HHFilePath using the filePathLength
-     * @return
-     */
-    private String readHHFilePath() {
-        byte[] hhFilePathInBytes = new byte[filePathLength];
-        byteBuf.readBytes(hhFilePathInBytes);
-        return new String(hhFilePathInBytes);
-    }
+  /**
+   * Returns HHFilePath using the filePathLength
+   * 
+   * @return
+   */
+  private String readHHFilePath() {
+    byte[] hhFilePathInBytes = new byte[filePathLength];
+    byteBuf.readBytes(hhFilePathInBytes);
+    return new String(hhFilePathInBytes);
+  }
 
 }

@@ -1,10 +1,5 @@
 package com.talentica.hungryHippos.node;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -12,9 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 /**
  * Created by debasishc on 1/9/15.
@@ -33,15 +32,15 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 	private static int dataReaderHandlerCounter = 0;
 	private int dataReaderHandlerId = -1;
 
-	public DataReadHandler(DataDescription dataDescription, DataStore dataStore, byte[] remainingBufferData) throws IOException {
+	public DataReadHandler(DataDescription dataDescription, DataStore dataStore, byte[] remainingBufferData, NodeUtil nodeUtil) throws IOException {
 		this.previousHandlerUnprocessedData = remainingBufferData;
 		this.dataDescription = dataDescription;
 		this.buf = new byte[dataDescription.getSize()];
 		byteBuffer = ByteBuffer.wrap(this.buf);
 		this.dataStore = dataStore;
 		dataReaderHandlerId = ++dataReaderHandlerCounter;
-		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(NodeUtil.getKeyToValueToBucketMap(),
-				NodeUtil.getBucketToNodeNumberMap(), NodeUtil.getNodeId(), dataDescription);
+		nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
+				nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription);
 	}
 
 	@Override

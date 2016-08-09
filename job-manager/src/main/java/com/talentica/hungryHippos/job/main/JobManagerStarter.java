@@ -33,12 +33,13 @@ public class JobManagerStarter {
       String localJarPath = args[1];
       String jobMatrixClass = args[2];
       String jobUUId = args[3];
+
+      nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
       Object jobMatrix = getJobMatrix(localJarPath, jobMatrixClass);
       validateJobMatrixClass(jobMatrix);
       initialize(jobUUId);
       long startTime = System.currentTimeMillis();
       JobManager jobManager = new JobManager();
-      JobManager.nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
       jobManager.addJobList(((JobMatrix) jobMatrix).getListOfJobsToExecute());
       jobManager.start(jobUUId);
       long endTime = System.currentTimeMillis();
@@ -71,7 +72,6 @@ public class JobManagerStarter {
   private static void initialize(String jobUUId) throws Exception {
     LOGGER.info("Job UUID is {}", jobUUId);
     ZkSignalListener.jobuuidInBase64 = jobUUId;
-    JobManagerStarter.nodesManager = NodesManagerContext.getNodesManagerInstance();
   }
 
   private static void validateJobMatrixClass(Object jobMatrix) throws InstantiationException,

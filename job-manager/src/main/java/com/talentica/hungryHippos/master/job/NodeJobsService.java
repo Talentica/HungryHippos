@@ -90,7 +90,7 @@ public class NodeJobsService implements NodesJobsRunnable {
 			CountDownLatch signal,String jobUUId) throws InterruptedException,
 			KeeperException, ClassNotFoundException, IOException {
 		int jobEntityId = jobEntity.getJobId();
-		JobConfigPublisher.uploadJobEntity(jobUUId,jobEntityId,jobEntity);
+		JobConfigPublisher.uploadJobEntity(jobUUId,jobEntity);
 		return true;
 	}
 

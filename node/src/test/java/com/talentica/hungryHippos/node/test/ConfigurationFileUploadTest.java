@@ -35,65 +35,72 @@ import com.talentica.hungryHippos.utility.PathUtil;
 @Ignore
 public class ConfigurationFileUploadTest {
 
-	private NodesManager nodesManager;
-	private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
-	private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
-	private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap;
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationFileUploadTest.class.getName());
-	
-	@SuppressWarnings("unchecked")
-	@Before
-	public void setUp() throws Exception{
-		try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-						+ Sharding.keyToValueToBucketMapFile))) {
-			keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
-					.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
-		}
+  private NodesManager nodesManager;
+  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
+  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
+  private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap;
+  private NodeUtil nodeUtil;
 
-		try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-						+ Sharding.bucketToNodeNumberMapFile))) {
-			bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
-					.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
-		}
-		
-		try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream = new ObjectInputStream(
-				new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
-						+ Sharding.bucketCombinationToNodeNumbersMapFile))) {
-			bucketCombinationToNodeNumbersMap = (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapInputStream
-					.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			LOGGER.info("Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");
-		}
-	
-	}
-	
-	@Test
-	@Ignore
-	public void createUploadConfigFile() throws IOException, InterruptedException{
-		NodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
-		NodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
-		NodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap, nodesManager);
-		nodesManager.createPersistentNode("/rootnode/hostsnode/test/child",null);
-		Thread.sleep(3000);
-		
-		//String buildPath = nodesManager.buildConfigPath("/rootnode/hostsnode/test/child");
-		Set<LeafBean> leafs;
-		try {
-			leafs = ZkUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
-			for(LeafBean leaf : leafs){
-				LOGGER.info("Path is {} AND node name {}",leaf.getPath(),leaf.getName());
-			}
-		} catch (ClassNotFoundException | InterruptedException
-				| KeeperException | IOException e) {
-			LOGGER.info("Exception {}",e);
-		}
-	}
-	
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(ConfigurationFileUploadTest.class.getName());
+
+  @SuppressWarnings("unchecked")
+  @Before
+  public void setUp() throws Exception {
+    nodeUtil = new NodeUtil("/dir/input");
+    try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
+        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+            + PathUtil.SEPARATOR_CHAR + Sharding.keyToValueToBucketMapFile))) {
+      keyToValueToBucketMap =
+          (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
+              .readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.info("Unable to read keyValueNodeNumberMap. Please put the file in current directory");
+    }
+
+    try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
+        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+            + PathUtil.SEPARATOR_CHAR + Sharding.bucketToNodeNumberMapFile))) {
+      bucketToNodeNumberMap =
+          (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
+              .readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
+    }
+
+    try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream = new ObjectInputStream(
+        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
+            + PathUtil.SEPARATOR_CHAR + Sharding.bucketCombinationToNodeNumbersMapFile))) {
+      bucketCombinationToNodeNumbersMap =
+          (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapInputStream
+              .readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.info(
+          "Unable to read bucketCombinationToNodeNumbersMap. Please put the file in current directory");
+    }
+
+  }
+
+  @Test
+  @Ignore
+  public void createUploadConfigFile() throws IOException, InterruptedException {
+    nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
+    nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
+    nodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
+        nodesManager);
+    nodesManager.createPersistentNode("/rootnode/hostsnode/test/child", null);
+    Thread.sleep(3000);
+
+    // String buildPath = nodesManager.buildConfigPath("/rootnode/hostsnode/test/child");
+    Set<LeafBean> leafs;
+    try {
+      leafs = ZkUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
+      for (LeafBean leaf : leafs) {
+        LOGGER.info("Path is {} AND node name {}", leaf.getPath(), leaf.getName());
+      }
+    } catch (ClassNotFoundException | InterruptedException | KeeperException | IOException e) {
+      LOGGER.info("Exception {}", e);
+    }
+  }
+
 }

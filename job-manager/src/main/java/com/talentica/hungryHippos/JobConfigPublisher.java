@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.*;
 
@@ -86,6 +88,17 @@ public class JobConfigPublisher {
             throw new RuntimeException(node + " data inconsistent");
         }
     }
+    
+    /**
+     * Uploads List of JobEntities
+     * @param jobUUID
+     * @param jobEntities
+     */
+    public static void uploadJobEntities(String jobUUID, List<JobEntity> jobEntities) {
+        for (JobEntity jobEntity : jobEntities) {
+          uploadJobEntity(jobUUID, jobEntity);
+        }
+    }
 
     /**
      * Uploads JobEntity Object
@@ -93,9 +106,9 @@ public class JobConfigPublisher {
      * @param jobEntityId
      * @param jobEntity
      */
-    public static void uploadJobEntity(String jobUUID, int jobEntityId, JobEntity jobEntity) {
+    public static void uploadJobEntity(String jobUUID, JobEntity jobEntity) {
         try {
-            String jobEntityIdNode = getJobEntityIdNode(jobUUID, jobEntityId+"");
+            String jobEntityIdNode = getJobEntityIdNode(jobUUID, jobEntity.getJobId()+"");
             ZkUtils.createZKNode(jobEntityIdNode, jobEntity);
         } catch (Exception e) {
             LOGGER.error(e.toString());

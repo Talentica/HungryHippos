@@ -1,0 +1,29 @@
+syntax = "proto3";
+option java_package = "com.talentica.hungryHippos.sharding.protos";
+option java_outer_classname = "BucketToNodeNumberProtos";
+
+message BucketToNodeNumberMap {
+    repeated BucketToNode bucketToNodeMap = 1;
+}
+
+message BucketToNode {
+	string key = 1;
+	repeated Map_Type bucketToNode = 2;
+}
+
+
+message Map_Type{
+	Bucket bucket = 1;
+	Node node = 2;
+	
+	message Bucket {
+    	int32 id = 1;
+    	int64 size = 2;
+    }
+    
+    message Node {
+    	int32 nodeId = 1;
+    	int64 nodeCapacity = 2;
+    	int64 remainingCapacity = 3;
+    }
+}

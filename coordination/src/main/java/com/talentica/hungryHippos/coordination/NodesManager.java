@@ -47,7 +47,6 @@ import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathEnum;
-import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 
@@ -155,14 +154,22 @@ public class NodesManager implements Watcher {
     pathMap.put(PathEnum.SHARDING_TABLE.name(), zookeeperDefaultConfig.getShardingTablePath());
     pathMap.put(PathEnum.JOB_CONFIG.name(), zookeeperDefaultConfig.getJobConfigPath());
     pathMap.put(PathEnum.JOB_STATUS.name(), zookeeperDefaultConfig.getJobStatusPath());
-    pathMap.put(PathEnum.COMPLETED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOBS.getPathName());
-    pathMap.put(PathEnum.FAILED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.FAILED_JOBS.getPathName());
-    pathMap.put(PathEnum.STARTED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.STARTED_JOB_ENTITY.getPathName());
-    pathMap.put(PathEnum.COMPLETED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOB_ENTITY.getPathName());
-    pathMap.put(PathEnum.PENDING_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.PENDING_JOBS.getPathName());
-    pathMap.put(PathEnum.IN_PROGRESS_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.IN_PROGRESS_JOBS.getPathName());
-    pathMap.put(PathEnum.COMPLETED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.COMPLETED_JOB_NODES.getPathName());
-    pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()+"/"+PathEnum.FAILED_JOB_NODES.getPathName());
+    pathMap.put(PathEnum.COMPLETED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.COMPLETED_JOBS.getPathName());
+    pathMap.put(PathEnum.FAILED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.FAILED_JOBS.getPathName());
+    pathMap.put(PathEnum.STARTED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.STARTED_JOB_ENTITY.getPathName());
+    pathMap.put(PathEnum.COMPLETED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.COMPLETED_JOB_ENTITY.getPathName());
+    pathMap.put(PathEnum.PENDING_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.PENDING_JOBS.getPathName());
+    pathMap.put(PathEnum.IN_PROGRESS_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.IN_PROGRESS_JOBS.getPathName());
+    pathMap.put(PathEnum.COMPLETED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.COMPLETED_JOB_NODES.getPathName());
+    pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
+        + ZkUtils.zkPathSeparator + PathEnum.FAILED_JOB_NODES.getPathName());
 
     zkConfiguration = new ZookeeperConfiguration(pathMap);
     return zkConfiguration;
@@ -176,7 +183,7 @@ public class NodesManager implements Watcher {
    */
   public void startup() throws Exception {
     CountDownLatch signal = new CountDownLatch(1);
-    ZkUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
+    ZkUtils.deleteRecursive(ZkUtils.zkPathSeparator + pathMap.get(PathEnum.NAMESPACE.name()),
         signal);
     signal.await();
     defaultNodesOnStart();
@@ -204,7 +211,7 @@ public class NodesManager implements Watcher {
 
   public void cleanUpZkNodeRecursively() throws Exception, InterruptedException {
     CountDownLatch signal = new CountDownLatch(1);
-    ZkUtils.deleteRecursive(PathUtil.SEPARATOR_CHAR + pathMap.get(PathEnum.NAMESPACE.name()),
+    ZkUtils.deleteRecursive(ZkUtils.zkPathSeparator + pathMap.get(PathEnum.NAMESPACE.name()),
         signal);
     signal.await();
   }
@@ -219,7 +226,7 @@ public class NodesManager implements Watcher {
   public void defaultNodesOnStart() throws IOException {
     createServersMap();
     createPersistentNode(
-        PathUtil.SEPARATOR_CHAR + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),
+        ZkUtils.zkPathSeparator + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),
         null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), null);
@@ -230,11 +237,14 @@ public class NodesManager implements Watcher {
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()),
+        null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()),
+        null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()),
+        null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()), null);
   }
 
@@ -249,39 +259,6 @@ public class NodesManager implements Watcher {
   public void createPersistentNode(final String node, CountDownLatch signal, Object... data)
       throws IOException {
     createNode(node, signal, CreateMode.PERSISTENT, data);
-  }
-
-  /**
-   * To save the object which contains only the primitive data type as instance variable. The
-   * hierarchy is managed by the parent node followed by the instance variable and it corresponding
-   * value i.e (id=0) or (size = 1) as complete node name.
-   * 
-   * @param parentNode is the node which is basically contains all the values of the object as
-   *        children of it.
-   * @param signal is to ensure that all the relevant children should be created as node.
-   * @param object is to save onto zookeeper as a part of node formation.
-   * @throws IOException
-   * @throws IllegalArgumentException
-   * @throws IllegalAccessException
-   * @throws InterruptedException
-   */
-  public void saveObjectZkNode(String parentNode, CountDownLatch signal, Object object)
-      throws IOException, IllegalArgumentException, IllegalAccessException, InterruptedException {
-    Field[] fields = object.getClass().getDeclaredFields();
-    CountDownLatch counter = new CountDownLatch(fields.length);
-    for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-      fields[fieldIndex].setAccessible(true);
-      if (ZkUtils.isZkTransient(fields[fieldIndex])) {
-        continue;
-      }
-      String fieldName = fields[fieldIndex].getName();
-      Object value = fields[fieldIndex].get(object);
-      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
-      String leafNodePath = parentNode + File.separatorChar + leafNode;
-      createPersistentNodeSync(leafNodePath);
-    }
-    counter.await();
-    signal.countDown();
   }
 
   public void createPersistentNodeSync(final String node) throws IOException, InterruptedException {
@@ -690,12 +667,12 @@ public class NodesManager implements Watcher {
    * @return string
    */
   protected String buildAlertPathForServer(String serverHostname) {
-    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.SEPARATOR_CHAR
+    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + ZkUtils.zkPathSeparator
         + serverHostname;
   }
 
   public String buildAlertPathByName(String nodeName) {
-    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + PathUtil.SEPARATOR_CHAR
+    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + ZkUtils.zkPathSeparator
         + nodeName;
   }
 
@@ -720,13 +697,13 @@ public class NodesManager implements Watcher {
         .startsWith(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()))) {
       serverHostname = serverHostname.substring(serverHostname.lastIndexOf(File.separatorChar) + 1);
     }
-    return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + PathUtil.SEPARATOR_CHAR
+    return zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()) + ZkUtils.zkPathSeparator
         + serverHostname;
   }
 
   public String buildConfigPath(String fileName) {
     String buildPath = zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name())
-        + PathUtil.SEPARATOR_CHAR + fileName;
+        + ZkUtils.zkPathSeparator + fileName;
     return buildPath;
   }
 
@@ -736,10 +713,10 @@ public class NodesManager implements Watcher {
     String path = "";
     for (LeafBean bean : beans) {
       if (bean.getName().equalsIgnoreCase(parentNode)) {
-        path = bean.getPath() + PathUtil.SEPARATOR_CHAR + parentNode + PathUtil.SEPARATOR_CHAR;
+        path = bean.getPath() + ZkUtils.zkPathSeparator + parentNode + ZkUtils.zkPathSeparator;
         break;
-      } else if (bean.getPath().contains(String.valueOf(PathUtil.SEPARATOR_CHAR))) {
-        path = bean.getPath() + PathUtil.SEPARATOR_CHAR;
+      } else if (bean.getPath().contains(String.valueOf(ZkUtils.zkPathSeparator))) {
+        path = bean.getPath() + ZkUtils.zkPathSeparator;
       }
     }
     return path;
@@ -898,8 +875,8 @@ public class NodesManager implements Watcher {
     boolean flag = false;
     try {
       for (int nodeId = 0; nodeId < this.servers.size(); nodeId++) {
-        String pushNotification = pathMap.get(PathEnum.BASEPATH.name()) + PathUtil.SEPARATOR_CHAR
-            + (NODE_NAME_PRIFIX + nodeId) + PathUtil.SEPARATOR_CHAR
+        String pushNotification = pathMap.get(PathEnum.BASEPATH.name()) + ZkUtils.zkPathSeparator
+            + (NODE_NAME_PRIFIX + nodeId) + ZkUtils.zkPathSeparator
             + CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
         createPersistentNode(pushNotification, null);
       }

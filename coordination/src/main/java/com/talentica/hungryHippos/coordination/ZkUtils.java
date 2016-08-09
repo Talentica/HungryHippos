@@ -29,7 +29,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.zookeeper.AsyncCallback;
@@ -48,6 +47,7 @@ import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.client.CoordinationServers;
 
@@ -740,8 +740,6 @@ public class ZkUtils {
     }
   }
 
-
-
   public static boolean isZkTransient(Field field) {
     ZkTransient zkTransient = field.getAnnotation(ZkTransient.class);
     return (zkTransient == null) ? false : zkTransient.value();
@@ -752,7 +750,7 @@ public class ZkUtils {
     return (zkTransient == null) ? false : zkTransient.value();
   }
 
-  private static String getChildrenRecursive(String valuePath, List<String> children)
+  public static String getChildrenRecursive(String valuePath, List<String> children)
       throws KeeperException, InterruptedException {
     List<String> valueChild = nodesManager.getChildren(valuePath);
     if (valueChild.size() == 1) {
@@ -787,10 +785,11 @@ public class ZkUtils {
 
   /**
    * Returns list of child nodes
+   * 
    * @param parentNode
    * @return
    */
-  public static List<String> getChildren(String parentNode){
+  public static List<String> getChildren(String parentNode) {
     List<String> stringList = new ArrayList<>();
     try {
       NodesManager manager = NodesManagerContext.getNodesManagerInstance();
@@ -799,11 +798,12 @@ public class ZkUtils {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }
-    return  stringList;
+    return stringList;
   }
 
   /**
    * Creates fresh Zookeeper node with data
+   * 
    * @param node
    * @param data
    */
@@ -823,6 +823,7 @@ public class ZkUtils {
 
   /**
    * Creates Zookeeper node if the it doesn't exist
+   * 
    * @param node
    * @param data
    */
@@ -842,6 +843,7 @@ public class ZkUtils {
 
   /**
    * Checks if node is already present
+   * 
    * @param node
    */
   public static boolean checkIfNodeExists(String node) {
@@ -855,6 +857,7 @@ public class ZkUtils {
 
   /**
    * Deletes Zookeeper node if it exists
+   * 
    * @param node
    */
   public static void deleteZKNode(String node) {
@@ -871,15 +874,17 @@ public class ZkUtils {
 
   /**
    * Returns String data from config node
+   * 
    * @param node
    * @return
    */
-  public static Object getNodeData(String node){
+  public static Object getNodeData(String node) {
     try {
       NodesManager manager = NodesManagerContext.getNodesManagerInstance();
-      Object configValue =  manager.getObjectFromZKNode(node);
+      Object configValue = manager.getObjectFromZKNode(node);
       return configValue;
-    } catch (IOException | KeeperException | InterruptedException |JAXBException |ClassNotFoundException e) {
+    } catch (IOException | KeeperException | InterruptedException | JAXBException
+        | ClassNotFoundException e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }
@@ -887,6 +892,7 @@ public class ZkUtils {
 
   /**
    * Creates fresh Zookeeper file node
+   * 
    * @param node
    */
   public static void createFileNode(String node) {
@@ -902,5 +908,42 @@ public class ZkUtils {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * To save the object which contains only the primitive data type as instance variable. The
+   * hierarchy is managed by the parent node followed by the instance variable and it corresponding
+   * value i.e (id=0) or (size = 1) as complete node name.
+   * 
+   * @param parentNode is the node which is basically contains all the values of the object as
+   *        children of it.
+   * @param signal is to ensure that all the relevant children should be created as node.
+   * @param object is to save onto zookeeper as a part of node formation.
+   * @throws IOException
+   * @throws IllegalArgumentException
+   * @throws IllegalAccessException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
+  public void saveObjectZkNode(String parentNode, CountDownLatch signal, Object object)
+      throws IOException, IllegalArgumentException, IllegalAccessException, InterruptedException,
+      JAXBException {
+    NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+    Field[] fields = object.getClass().getDeclaredFields();
+    CountDownLatch counter = new CountDownLatch(fields.length);
+    for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+      fields[fieldIndex].setAccessible(true);
+      if (ZkUtils.isZkTransient(fields[fieldIndex])) {
+        continue;
+      }
+      String fieldName = fields[fieldIndex].getName();
+      Object value = fields[fieldIndex].get(object);
+      String leafNode = fieldName + ZkNodeName.EQUAL.getName() + value;
+      String leafNodePath = parentNode + File.separatorChar + leafNode;
+      manager.createPersistentNodeSync(leafNodePath);
+    }
+    counter.await();
+    signal.countDown();
+  }
+
 
 }

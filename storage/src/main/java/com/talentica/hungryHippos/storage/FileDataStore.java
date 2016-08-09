@@ -35,14 +35,16 @@ public class FileDataStore implements DataStore, Serializable {
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
- public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
+  public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath,String nodeId) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
-    this(numDimensions, dataDescription, hungryHippoFilePath,nodeId, false);
+  public FileDataStore(int numDimensions, DataDescription dataDescription,
+      String hungryHippoFilePath, String nodeId) throws IOException, InterruptedException,
+      ClassNotFoundException, KeeperException, JAXBException {
+    this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false);
   }
 
-  public FileDataStore(int numDimensions, DataDescription dataDescription, String hungryHippoFilePath, String nodeId,boolean readOnly)
-          throws IOException{
+  public FileDataStore(int numDimensions, DataDescription dataDescription,
+      String hungryHippoFilePath, String nodeId, boolean readOnly) throws IOException {
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
@@ -61,7 +63,8 @@ public class FileDataStore implements DataStore, Serializable {
     }
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-        os[i] = new BufferedOutputStream(new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
+        os[i] = new BufferedOutputStream(
+            new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
       }
     }
   }
@@ -76,13 +79,14 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    int shardingIndexSequence = ShardingApplicationContext.getShardingIndexSequence(keyId,hungryHippoFilePath);
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
+    int shardingIndexSequence =
+        ShardingApplicationContext.getShardingIndexSequence(keyId, hungryHippoFilePath);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
-      storeAccess =
-          new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
+      storeAccess = new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME,
+          shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
     storeAccess.clear();
@@ -100,11 +104,11 @@ public class FileDataStore implements DataStore, Serializable {
         try {
           if (os[i] != null)
             os[i].close();
-          HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,i+"",
-                  (new File(fileNamePrefix+i)).length() );
+          HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,
+              i + "", (new File(fileNamePrefix + i)).length());
         } catch (IOException e) {
           logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
-        } catch (Exception e){
+        } catch (Exception e) {
           logger.error(e.toString());
         }
       }

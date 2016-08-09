@@ -3,7 +3,6 @@
  */
 package com.talentica.hungryHippos.coordination.context;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.property.Property;
@@ -67,7 +67,7 @@ public class CoordinationApplicationContext {
     try {
       ZKNodeFile configurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
           .getObjectFromZKNode(getProperty().getValueByKey("zookeeper.config_path")
-              + File.separatorChar + CoordinationApplicationContext.COORDINATION_CONFIGURATION);
+              + ZkUtils.zkPathSeparator + CoordinationApplicationContext.COORDINATION_CONFIGURATION);
       config = JaxbUtil.unmarshal((String) configurationFile.getObj(), CoordinationConfig.class);
       return config;
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {

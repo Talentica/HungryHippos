@@ -27,11 +27,14 @@ public class NodeUtilIntegrationTest {
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap =
       new HashMap<String, Map<Bucket<KeyValueFrequency>, Node>>();
   private String basePath = "/home/pooshans";
-  private String clientConfig = basePath + "/HungryHippos/configuration-schema/src/main/resources/schema/client-config.xml";
+  private String clientConfig =
+      basePath + "/HungryHippos/configuration-schema/src/main/resources/schema/client-config.xml";
+  private NodeUtil nodeUtil;
 
   @Before
   public void setUp() throws Exception {
     nodesManager = NodesManagerContext.initialize(clientConfig);
+    nodeUtil = new NodeUtil(basePath + "/HungryHippos");
   }
 
   @After
@@ -39,18 +42,18 @@ public class NodeUtilIntegrationTest {
 
   @Test
   public void testGetKeyToValueToBucketMap() {
-    NodeUtil.getKeyToValueToBucketMap();
+    nodeUtil.getKeyToValueToBucketMap();
   }
 
   @Test
   public void testGetBucketToNodeNumberMap() {
-    NodeUtil.getBucketToNodeNumberMap();
+    nodeUtil.getBucketToNodeNumberMap();
   }
 
   @Test
   public void testGetNodeId() {
     try {
-      NodeUtil.getNodeId();
+      nodeUtil.getNodeId();
     } catch (IOException e) {
       assertTrue(false);
     }
@@ -59,7 +62,7 @@ public class NodeUtilIntegrationTest {
   @Test
   public void testCreateTrieBucketToNodeNumberMap() {
     try {
-      NodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
+      nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
     } catch (IOException e) {
       assertTrue(false);
     }
@@ -68,7 +71,7 @@ public class NodeUtilIntegrationTest {
   @Test
   public void testCreateTrieKeyToValueToBucketMap() {
     try {
-      NodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
+      nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -78,7 +81,7 @@ public class NodeUtilIntegrationTest {
   @Test
   public void testCreateTrieBucketCombinationToNodeNumbersMap() {
     try {
-      NodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
+      nodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
           nodesManager);
     } catch (IOException e) {
       // TODO Auto-generated catch block

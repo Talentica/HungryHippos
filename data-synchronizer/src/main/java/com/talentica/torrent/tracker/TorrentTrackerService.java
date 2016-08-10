@@ -1,9 +1,6 @@
 package com.talentica.torrent.tracker;
 
 import java.io.File;
-import java.util.Collection;
-
-import com.turn.ttorrent.tracker.TrackedTorrent;
 
 public interface TorrentTrackerService {
 
@@ -29,13 +26,7 @@ public interface TorrentTrackerService {
    */
   public void stopTracker();
 
-  /**
-   * Returns unmodifiable collection of torrents available.
-   * 
-   * @param port
-   * @return
-   */
-  public Collection<TrackedTorrent> getAvailableTorrents();
+  public boolean isTorrentAvailableForFileName(String filename);
 
   boolean isTrackerStarted();
 

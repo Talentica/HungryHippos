@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.turn.ttorrent.tracker.TrackedTorrent;
 import com.turn.ttorrent.tracker.Tracker;
@@ -58,8 +59,12 @@ public class TorrentTrackerServiceImpl implements TorrentTrackerService {
   }
 
   @Override
-  public Collection<TrackedTorrent> getAvailableTorrents() {
-    return Collections.unmodifiableCollection(tracker.getTrackedTorrents());
+  public boolean isTorrentAvailableForFileName(String filename) {
+    Collection<TrackedTorrent> availableTorrents = tracker.getTrackedTorrents();
+    List<TrackedTorrent> matchingtorrents = availableTorrents.stream()
+        .filter(availableTorrent -> availableTorrent.getFilenames().contains(filename))
+        .collect(Collectors.toList());
+    return matchingtorrents != null && !matchingtorrents.isEmpty();
   }
 
 }

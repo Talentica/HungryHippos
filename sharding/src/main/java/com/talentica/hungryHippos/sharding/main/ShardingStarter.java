@@ -45,9 +45,11 @@ public class ShardingStarter {
       String shardingServerConfigFilePath = args[2];
 
       NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-      ShardingApplicationContext.initialize(shardingClientConfigFilePath, shardingServerConfigFilePath);
-      
-      ShardingClientConfig shardingClientConfig = ShardingApplicationContext.getShardingClientConfig();
+      ShardingApplicationContext.initialize(shardingClientConfigFilePath,
+          shardingServerConfigFilePath);
+
+      ShardingClientConfig shardingClientConfig =
+          ShardingApplicationContext.getShardingClientConfig();
 
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       if (distributedFilePath == null || "".equals(distributedFilePath)) {
@@ -67,7 +69,7 @@ public class ShardingStarter {
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, shardingClientConfigFilePath, shardingServerConfigFilePath,
           tempDir);
-      // uploadShardingData(shardingClientConfig, tempDir);
+      uploadShardingData(shardingClientConfig, tempDir);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
@@ -107,8 +109,7 @@ public class ShardingStarter {
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =
         shardingClientConfig.getInput().getDataParserConfig().getClassName();
-    DataDescription dataDescription =
-        ShardingApplicationContext.getConfiguredDataDescription();
+    DataDescription dataDescription = ShardingApplicationContext.getConfiguredDataDescription();
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
         .getConstructor(DataDescription.class).newInstance(dataDescription);
 

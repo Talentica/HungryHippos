@@ -79,10 +79,9 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException {
-    int shardingIndexSequence =
-        ShardingApplicationContext.getShardingIndexSequence(keyId, hungryHippoFilePath);
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    int shardingIndexSequence = ShardingApplicationContext.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
       storeAccess = new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME,

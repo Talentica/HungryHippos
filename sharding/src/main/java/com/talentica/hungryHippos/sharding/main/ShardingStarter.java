@@ -20,11 +20,9 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
-import com.talentica.hungryhippos.config.sharding.ShardingServerConfig;
 
 public class ShardingStarter {
 
@@ -41,18 +39,16 @@ public class ShardingStarter {
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
       validateArguments(args);
-      
+
       String clientConfigFilePath = args[0];
       String shardingClientConfigFilePath = args[1];
       String shardingServerConfigFilePath = args[2];
-      
-      ShardingClientConfig shardingClientConfig =
-          JaxbUtil.unmarshalFromFile(shardingClientConfigFilePath, ShardingClientConfig.class);
-      ShardingServerConfig shardingServerConfig =
-          JaxbUtil.unmarshalFromFile(shardingServerConfigFilePath, ShardingServerConfig.class);
 
       NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      ShardingApplicationContext.initialize(shardingClientConfigFilePath, shardingServerConfigFilePath);
       
+      ShardingClientConfig shardingClientConfig = ShardingApplicationContext.getShardingClientConfig();
+
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       if (distributedFilePath == null || "".equals(distributedFilePath)) {
         throw new RuntimeException("Distributed File path cannot be empty");
@@ -65,15 +61,13 @@ public class ShardingStarter {
       }
       ZkUtils.createFileNode(shardingTablePathOnZk);
       isFileCreated = true;
-      ShardingApplicationContext.putShardingClientConfig(distributedFilePath, shardingClientConfig);
-      ShardingApplicationContext.putShardingServerConfig(distributedFilePath, shardingServerConfig);
-      
+
       String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
           + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, shardingClientConfigFilePath, shardingServerConfigFilePath,
           tempDir);
-      uploadShardingData(shardingClientConfig, tempDir);
+      // uploadShardingData(shardingClientConfig, tempDir);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
@@ -110,12 +104,11 @@ public class ShardingStarter {
       InvocationTargetException, InstantiationException, InterruptedException, JAXBException,
       KeeperException {
     LOGGER.info("SHARDING STARTED");
-    String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =
         shardingClientConfig.getInput().getDataParserConfig().getClassName();
     DataDescription dataDescription =
-        ShardingApplicationContext.getConfiguredDataDescription(distributedFilePath);
+        ShardingApplicationContext.getConfiguredDataDescription();
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
         .getConstructor(DataDescription.class).newInstance(dataDescription);
 
@@ -123,7 +116,7 @@ public class ShardingStarter {
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
     Sharding sharding = new Sharding(clusterConfig);
-    sharding.doSharding(inputReaderForSharding, distributedFilePath);
+    sharding.doSharding(inputReaderForSharding);
     sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
         shardingServerConfigFilePath);
     LOGGER.info("SHARDING DONE!!");

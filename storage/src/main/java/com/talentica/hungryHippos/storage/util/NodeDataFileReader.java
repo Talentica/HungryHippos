@@ -39,7 +39,7 @@ public class NodeDataFileReader {
 					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
 			System.exit(0);
 		}
-		int noOfKeys = ShardingApplicationContext.getShardingDimensions(args[0]).length;
+		int noOfKeys = ShardingApplicationContext.getShardingDimensions().length;
 		for (int i = 0; i < 1 << noOfKeys; i++) {
 			String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
 			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
@@ -47,7 +47,7 @@ public class NodeDataFileReader {
 			File readableDataFile = new File(dataFileName + "_read");
 			FileWriter fileWriter = new FileWriter(readableDataFile);
 			try {
-				DynamicMarshal dynamicMarshal = getDynamicMarshal(args[0]);
+				DynamicMarshal dynamicMarshal = getDynamicMarshal();
 				int noOfBytesInOneDataSet = dataDescription.getSize();
 				while (dataInputStream.available() > 0) {
 					byte[] bytes = new byte[noOfBytesInOneDataSet];
@@ -71,9 +71,9 @@ public class NodeDataFileReader {
 		}
 	}
 
-	private static DynamicMarshal getDynamicMarshal(String path) throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-		dataDescription = ShardingApplicationContext.getConfiguredDataDescription(path);
-		dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(path));
+	private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+		dataDescription = ShardingApplicationContext.getConfiguredDataDescription();
+		dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
 		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 		return dynamicMarshal;
 	}

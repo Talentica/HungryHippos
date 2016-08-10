@@ -39,10 +39,10 @@ public class DataPublisherStarter {
           CoordinationApplicationContext.getZkCoordinationConfigCache();
       nodesManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
       String dataParserClassName = ShardingApplicationContext
-          .getShardingClientConfig(destinationPath).getInput().getDataParserConfig().getClassName();
+          .getShardingClientConfig().getInput().getDataParserConfig().getClassName();
       DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
           .getConstructor(DataDescription.class)
-          .newInstance(ShardingApplicationContext.getConfiguredDataDescription(destinationPath));
+          .newInstance(ShardingApplicationContext.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);

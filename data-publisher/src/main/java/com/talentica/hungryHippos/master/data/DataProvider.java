@@ -34,9 +34,8 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.ShardingTableCache;
-import com.talentica.hungryHippos.sharding.ShardingTableFilesName;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
@@ -68,24 +67,20 @@ public class DataProvider {
   @SuppressWarnings({"unchecked"})
   public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
       String sourcePath, String destinationPath) throws Exception {
-    init(nodesManager, destinationPath);
+    init(nodesManager);
     long start = System.currentTimeMillis();
     String[] servers = loadServers(nodesManager);
-    FieldTypeArrayDataDescription dataDescription = ShardingApplicationContext.getConfiguredDataDescription(destinationPath);
-    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(destinationPath));
+    FieldTypeArrayDataDescription dataDescription = ShardingApplicationContext.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
 
-    // TODO Get Sharding Table for the particular file from zookeeper instead of using common config
-    ShardingTableCache shardingTableCache = ShardingTableCache.newInstance();
-    bucketCombinationNodeMap =
-        (Map<BucketCombination, Set<Node>>) shardingTableCache.getShardingTableFromCache(
-            ShardingTableFilesName.BUCKET_COMBINATION_TO_NODE_NUMBERS_MAP_FILE.getName(),
-            destinationPath);
-    keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) shardingTableCache
-        .getShardingTableFromCache(ShardingTableFilesName.KEY_TO_VALUE_TO_BUCKET_MAP_FILE.getName(),
-            destinationPath);
+    // TODO sharding FilePath need to be discussed.
+    String bucketCombinationPath = "";
+    String keyToValueToBucketPath = "";
+    bucketCombinationNodeMap = ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
+    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath);
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap);
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
@@ -125,7 +120,7 @@ public class DataProvider {
       }
 
       Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
-      String[] keyOrder = ShardingApplicationContext.getShardingDimensions(destinationPath);
+      String[] keyOrder = ShardingApplicationContext.getShardingDimensions();
 
       for (int i = 0; i < keyOrder.length; i++) {
         String key = keyOrder[i];
@@ -221,11 +216,11 @@ public class DataProvider {
    * }
    */
 
-  private static void init(NodesManager nodesManager, String destinationPath)
+  private static void init(NodesManager nodesManager)
       throws FileNotFoundException, JAXBException {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext
         .getDataPublisherConfig(nodesManager).getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
-        ShardingApplicationContext.getShardingServerConfig(destinationPath).getBadRecordsFileOut();
+        ShardingApplicationContext.getShardingServerConfig().getBadRecordsFileOut();
   }
 }

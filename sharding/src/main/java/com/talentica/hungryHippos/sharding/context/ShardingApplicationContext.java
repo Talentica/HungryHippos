@@ -167,7 +167,6 @@ public class ShardingApplicationContext {
     CountDownLatch countDownLatch = new CountDownLatch(1);
     manager.saveShardingConfigFileToZNode(shardingConfigPath, configFile, countDownLatch);
     countDownLatch.await();
-
   }
 
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {

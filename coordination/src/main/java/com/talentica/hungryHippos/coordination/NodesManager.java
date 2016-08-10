@@ -5,7 +5,6 @@ package com.talentica.hungryHippos.coordination;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -45,7 +44,6 @@ import com.talentica.hungryHippos.coordination.listeners.AlertManager;
 import com.talentica.hungryHippos.coordination.listeners.EvictionListener;
 import com.talentica.hungryHippos.coordination.listeners.RegistrationListener;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
@@ -140,7 +138,7 @@ public class NodesManager implements Watcher {
     zk = new org.apache.zookeeper.ZooKeeper(hosts, sessionTimeout, this);
     ZkUtils.zk = zk;
     ZkUtils.nodesManager = this;
-    connectedSignal.await();
+    connectedSignal.await(); // wait until the zk connection is established.
   }
 
   public ZookeeperConfiguration initializeZookeeperDefaultConfig(
@@ -372,71 +370,86 @@ public class NodesManager implements Watcher {
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,
       Object... data) throws IOException {
     zk.create(node, (data != null && data.length != 0) ? ZkUtils.serialize(data[0]) : null,
-        ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode, new AsyncCallback.StringCallback() {
-          @Override
-          public void processResult(int rc, String path, Object ctx, String name) {
-            try {
-              switch (KeeperException.Code.get(rc)) {
-                case CONNECTIONLOSS:
-                  retryCreationOfNode(signal, createMode, path, data);
-                  break;
-                case OK:
-                  LOGGER.info("Server Monitoring Path [" + path + "] is created");
-                  if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
-                      && path.contains("_job")) {
-                    LOGGER.info("DELETE THE PULL/PUSH NODES");
-                    deleteNode(path);
-                    String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-                    String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
-                    deleteNode(path.replace(oldString, newString));
-                  }
-                  countDown(signal);
-                  break;
-                case NODEEXISTS:
-                  LOGGER.warn("Server Monitoring Path [" + path + "] already exists");
-                  countDown(signal);
-                  break;
-                case NONODE:
-                  createParentNode(node);
-                  retryCreationOfNode(signal, createMode, path, data);
-                  break;
-                default:
-                  LOGGER.error("Unexpected result while trying to create node " + node + ": "
-                      + KeeperException.create(KeeperException.Code.get(rc), path));
-                  countDown(signal);
+        ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode,
+        createAsyncCallback(node, signal, createMode, data), null);
+  }
+
+  /**
+   * Asynchronous callback while creating the zookeeper node.
+   * 
+   * @param node
+   * @param signal
+   * @param createMode
+   * @param data
+   * @return
+   */
+  private StringCallback createAsyncCallback(final String node, CountDownLatch signal,
+      CreateMode createMode, Object... data) {
+    return new AsyncCallback.StringCallback() {
+      @Override
+      public void processResult(int rc, String path, Object ctx, String name) {
+        try {
+          switch (KeeperException.Code.get(rc)) {
+            case CONNECTIONLOSS:
+              retryCreationOfNode(signal, createMode, path, data);
+              break;
+            case OK:
+              LOGGER.info("Server Monitoring Path [" + path + "] is created");
+              if (path.contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())
+                  && path.contains("_job")) {
+                LOGGER.info("DELETE THE PULL/PUSH NODES");
+                deleteNode(path);
+                String oldString = CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
+                String newString = CommonUtil.ZKJobNodeEnum.PUSH_JOB_NOTIFICATION.name();
+                deleteNode(path.replace(oldString, newString));
               }
-            } catch (KeeperException | InterruptedException exception) {
-              LOGGER.error("Unexpected result while trying to create node {} ", node);
-              throw new RuntimeException(exception);
-            }
+              countDown(signal);
+              break;
+            case NODEEXISTS:
+              LOGGER.warn("Server Monitoring Path [" + path + "] already exists");
+              countDown(signal);
+              break;
+            case NONODE:
+              createParentNode(node);
+              retryCreationOfNode(signal, createMode, path, data);
+              break;
+            default:
+              LOGGER.error("Unexpected result while trying to create node " + node + ": "
+                  + KeeperException.create(KeeperException.Code.get(rc), path));
+              countDown(signal);
           }
+        } catch (KeeperException | InterruptedException exception) {
+          LOGGER.error("Unexpected result while trying to create node {} ", node);
+          throw new RuntimeException(exception);
+        }
+      }
 
-          private void createParentNode(final String node)
-              throws InterruptedException, KeeperException {
-            String parent = node.substring(0, node.lastIndexOf("/"));
-            if (StringUtils.isNotBlank(parent)) {
-              ZKPaths.mkdirs(zk, parent);
-            }
-          }
+      private void createParentNode(final String node)
+          throws InterruptedException, KeeperException {
+        String parent = node.substring(0, node.lastIndexOf("/"));
+        if (StringUtils.isNotBlank(parent)) {
+          ZKPaths.mkdirs(zk, parent);
+        }
+      }
 
-          private void retryCreationOfNode(CountDownLatch signal, CreateMode createMode,
-              String path, Object... data) {
-            try {
-              createNode(path, signal, createMode, data);
-            } catch (IOException e) {
-              LOGGER.warn("Unable to redirect to create node");
-            }
-          }
+      private void retryCreationOfNode(CountDownLatch signal, CreateMode createMode, String path,
+          Object... data) {
+        try {
+          createNode(path, signal, createMode, data);
+        } catch (IOException e) {
+          LOGGER.warn("Unable to redirect to create node");
+        }
+      }
 
-          private void countDown(CountDownLatch signal) {
-            if (getSignal != null) {
-              getSignal.countDown();
-            }
-            if (signal != null) {
-              signal.countDown();
-            }
-          }
-        }, null);
+      private void countDown(CountDownLatch signal) {
+        if (getSignal != null) {
+          getSignal.countDown();
+        }
+        if (signal != null) {
+          signal.countDown();
+        }
+      }
+    };
   }
 
   public void createEphemeralNode(final String node, CountDownLatch signal, Object... data)
@@ -464,7 +477,8 @@ public class NodesManager implements Watcher {
         if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
           LOGGER.info("ZooKeeper client connected to server");
         }
-        connectedSignal.countDown();
+        connectedSignal.countDown(); // As soon as zk connection is established, it decrement the
+                                     // counter and hence lock is released.
         break;
       case NodeChildrenChanged:
         try {

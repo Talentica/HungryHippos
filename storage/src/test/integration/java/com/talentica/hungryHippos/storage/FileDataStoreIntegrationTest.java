@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -31,9 +32,13 @@ public class FileDataStoreIntegrationTest {
   private static final DataDescription dataDescription = new FieldTypeArrayDataDescription(1);
   private static final int numDimensions = 2;
 
+  private static ShardingApplicationContext context;
+
   @BeforeClass
-  public static void setUp() throws Exception {
-    fileDataStore = new FileDataStore(numDimensions, dataDescription,"hungryHippoFilePath","0");
+  public void setUp() throws Exception {
+    context = new ShardingApplicationContext("<sharding file path>");
+    fileDataStore =
+        new FileDataStore(numDimensions, dataDescription, "hungryHippoFilePath", "0", context);
   }
 
   /**

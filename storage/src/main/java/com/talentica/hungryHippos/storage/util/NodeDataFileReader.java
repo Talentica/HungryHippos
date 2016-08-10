@@ -10,72 +10,74 @@ import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
- * Utility class to read data files generated on nodes after sharding process is
- * completed for input.
+ * Utility class to read data files generated on nodes after sharding process is completed for
+ * input.
  * 
  * @author nitink
  */
 public class NodeDataFileReader {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(NodeDataFileReader.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(NodeDataFileReader.class);
 
-	private static FieldTypeArrayDataDescription dataDescription;
+  private static FieldTypeArrayDataDescription dataDescription;
+  private static ShardingApplicationContext context;
 
-	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
-		if (args.length != 1) {
-			System.out.println(
-					"Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
-			System.exit(0);
-		}
-		int noOfKeys = ShardingApplicationContext.getShardingDimensions().length;
-		for (int i = 0; i < 1 << noOfKeys; i++) {
-			String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
-			FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
-			DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-			File readableDataFile = new File(dataFileName + "_read");
-			FileWriter fileWriter = new FileWriter(readableDataFile);
-			try {
-				DynamicMarshal dynamicMarshal = getDynamicMarshal();
-				int noOfBytesInOneDataSet = dataDescription.getSize();
-				while (dataInputStream.available() > 0) {
-					byte[] bytes = new byte[noOfBytesInOneDataSet];
-					dataInputStream.readFully(bytes);
-					ByteBuffer buffer = ByteBuffer.wrap(bytes);
-					for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
-						Object readableData = dynamicMarshal.readValue(index, buffer);
-						if (index != 0) {
-							fileWriter.write(",");
-						}
-						fileWriter.write(readableData.toString());
-					}
-					fileWriter.write("\n");
-				}
-			} finally {
-				fileWriter.flush();
-				fileWriter.close();
-				fileInputStream.close();
-			}
-			LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
-		}
-	}
+  public static void main(String[] args) throws IOException, ClassNotFoundException,
+      KeeperException, InterruptedException, JAXBException {
+    if (args.length != 1) {
+      System.out.println(
+          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> <sharding file path> e.g. java -jar storage.jar ~/home/");
+      System.exit(0);
+    }
+    context = new ShardingApplicationContext(args[1]);
+    int noOfKeys = context.getShardingDimensions().length;
+    for (int i = 0; i < 1 << noOfKeys; i++) {
+      String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
+      FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
+      DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+      File readableDataFile = new File(dataFileName + "_read");
+      FileWriter fileWriter = new FileWriter(readableDataFile);
+      try {
+        DynamicMarshal dynamicMarshal = getDynamicMarshal();
+        int noOfBytesInOneDataSet = dataDescription.getSize();
+        while (dataInputStream.available() > 0) {
+          byte[] bytes = new byte[noOfBytesInOneDataSet];
+          dataInputStream.readFully(bytes);
+          ByteBuffer buffer = ByteBuffer.wrap(bytes);
+          for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
+            Object readableData = dynamicMarshal.readValue(index, buffer);
+            if (index != 0) {
+              fileWriter.write(",");
+            }
+            fileWriter.write(readableData.toString());
+          }
+          fileWriter.write("\n");
+        }
+      } finally {
+        fileWriter.flush();
+        fileWriter.close();
+        fileInputStream.close();
+      }
+      LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
+    }
+  }
 
-	private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-		dataDescription = ShardingApplicationContext.getConfiguredDataDescription();
-		dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
-		DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-		return dynamicMarshal;
-	}
+  private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    dataDescription = context.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(context.getShardingDimensions());
+    DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
+    return dynamicMarshal;
+  }
 
 }

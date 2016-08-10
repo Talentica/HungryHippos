@@ -30,6 +30,7 @@ public class ShardingStarter {
    * @param args
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
+  private static ShardingApplicationContext context;
 
   public static void main(String[] args) {
     LOGGER.info("SHARDING PROCESS STARTED");
@@ -41,15 +42,12 @@ public class ShardingStarter {
       validateArguments(args);
 
       String clientConfigFilePath = args[0];
-      String shardingClientConfigFilePath = args[1];
-      String shardingServerConfigFilePath = args[2];
+      String shardingFolderPath = args[1];
 
       NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-      ShardingApplicationContext.initialize(shardingClientConfigFilePath,
-          shardingServerConfigFilePath);
+      context = new ShardingApplicationContext(shardingFolderPath);
 
-      ShardingClientConfig shardingClientConfig =
-          ShardingApplicationContext.getShardingClientConfig();
+      ShardingClientConfig shardingClientConfig = context.getShardingClientConfig();
 
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       if (distributedFilePath == null || "".equals(distributedFilePath)) {
@@ -67,8 +65,8 @@ public class ShardingStarter {
       String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
           + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(tempDir).mkdirs();
-      doSharding(shardingClientConfig, shardingClientConfigFilePath, shardingServerConfigFilePath,
-          tempDir);
+      doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
+          context.getShardingServerConfigFilePath(), tempDir);
       uploadShardingData(shardingClientConfig, tempDir);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
@@ -81,7 +79,7 @@ public class ShardingStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args.length < 1) {
+    if (args.length < 2) {
       throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
     }
   }
@@ -109,14 +107,14 @@ public class ShardingStarter {
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =
         shardingClientConfig.getInput().getDataParserConfig().getClassName();
-    DataDescription dataDescription = ShardingApplicationContext.getConfiguredDataDescription();
+    DataDescription dataDescription = context.getConfiguredDataDescription();
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
         .getConstructor(DataDescription.class).newInstance(dataDescription);
 
     ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
-    Sharding sharding = new Sharding(clusterConfig);
+    Sharding sharding = new Sharding(clusterConfig,context);
     sharding.doSharding(inputReaderForSharding);
     sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
         shardingServerConfigFilePath);

@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerAddress;
 import com.talentica.hungryHippos.coordination.domain.Status;
@@ -273,7 +272,6 @@ public class NodesManager implements Watcher {
   }
 
   StringCallback createNodeCallBack = new StringCallback() {
-
     @Override
     public void processResult(int rc, String node, Object ctx, String name) {
       switch (Code.get(rc)) {
@@ -311,11 +309,9 @@ public class NodesManager implements Watcher {
     private void createNode(final String node, boolean makeLastNode)
         throws KeeperException, InterruptedException {
       PathUtils.validatePath(node);
-
       int pos = 1; // skip first slash, root is guaranteed to exist
       do {
         pos = node.indexOf('/', pos + 1);
-
         if (pos == -1) {
           if (makeLastNode) {
             pos = node.length();
@@ -323,17 +319,12 @@ public class NodesManager implements Watcher {
             break;
           }
         }
-
         String nodePath = node.substring(0, pos);
         if (zk.exists(nodePath, false) == null) {
-
           createPersistentNodeASync(nodePath);
-
         }
-
       } while (pos < node.length());
     }
-
   };
 
   public int getQueuedEvents() {
@@ -426,7 +417,7 @@ public class NodesManager implements Watcher {
 
       private void createParentNode(final String node)
           throws InterruptedException, KeeperException {
-        String parent = node.substring(0, node.lastIndexOf("/"));
+        String parent = node.substring(0, node.lastIndexOf(ZkUtils.zkPathSeparator));
         if (StringUtils.isNotBlank(parent)) {
           ZKPaths.mkdirs(zk, parent);
         }
@@ -455,15 +446,6 @@ public class NodesManager implements Watcher {
   public void createEphemeralNode(final String node, CountDownLatch signal, Object... data)
       throws IOException {
     createNode(node, signal, CreateMode.EPHEMERAL, data);
-  }
-
-  /**
-   * @throws InterruptedException
-   */
-  public void shutdown() throws InterruptedException {
-    if (zk != null) {
-      zk.close();
-    }
   }
 
   @Override
@@ -526,16 +508,19 @@ public class NodesManager implements Watcher {
    */
   private synchronized void processDiffs(Map<String, Set<Server>> diffs) {
     for (Server server : diffs.get(REMOVED)) {
-      LOGGER.info("Reporting eviction to listener: " + server.getServerAddress().getHostname());
-      evictionListener.deregister(server);
-      registerAlert(server, false);
+      if (server != null) {
+        LOGGER.info("Reporting eviction to listener: " + server.getServerAddress().getHostname());
+        evictionListener.deregister(server);
+        registerAlert(server, false);
+      }
     }
     for (Server server : diffs.get(ADDED)) {
-      LOGGER.info("Reporting addition to listener: " + server.getName());
-      registrationListener.register(server);
-      removeAlert(server);
+      if (server != null) {
+        LOGGER.info("Reporting addition to listener: " + server.getName());
+        registrationListener.register(server);
+        removeAlert(server);
+      }
     }
-
   }
 
   /**
@@ -721,29 +706,6 @@ public class NodesManager implements Watcher {
     return buildPath;
   }
 
-  public String buildPathNode(String parentNode)
-      throws InterruptedException, KeeperException, ClassNotFoundException, IOException {
-    Set<LeafBean> beans = ZkUtils.searchLeafNode(parentNode, null, null);
-    String path = "";
-    for (LeafBean bean : beans) {
-      if (bean.getName().equalsIgnoreCase(parentNode)) {
-        path = bean.getPath() + ZkUtils.zkPathSeparator + parentNode + ZkUtils.zkPathSeparator;
-        break;
-      } else if (bean.getPath().contains(String.valueOf(ZkUtils.zkPathSeparator))) {
-        path = bean.getPath() + ZkUtils.zkPathSeparator;
-      }
-    }
-    return path;
-  }
-
-  public byte[] getNodeData(String pathNode) throws KeeperException, InterruptedException {
-    Stat stat = zk.exists(pathNode, this);
-    if (stat != null) {
-      return zk.getData(pathNode, false, stat);
-    }
-    return null;
-  }
-
   /**
    * Create the servers map which all need to be run on nodes
    * 
@@ -907,15 +869,6 @@ public class NodesManager implements Watcher {
     stat = zk.exists(nodePath, this);
     if (stat != null) {
       zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
-    }
-  }
-
-  public void setObjectToZKNode(String nodePath, byte[] data)
-      throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
-    Stat stat = null;
-    stat = zk.exists(nodePath, this);
-    if (stat != null) {
-      zk.setData(nodePath, data, stat.getVersion());
     }
   }
 

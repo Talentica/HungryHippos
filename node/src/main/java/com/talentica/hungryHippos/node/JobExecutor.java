@@ -51,6 +51,8 @@ public class JobExecutor {
   private static String PRIFIX_NODE_NAME = "_node";
 
   private static String jobUUId;
+  
+  private static ShardingApplicationContext context;
 
   public static void main(String[] args) {
     try {
@@ -58,6 +60,7 @@ public class JobExecutor {
       validateArguments(args);
       initialize(args);
       loadClasses();
+      context = new ShardingApplicationContext(inputHHPath);
       long startTime = System.currentTimeMillis();
       JobRunner jobRunner = createJobRunner();
       int nodeId =  NodeInfo.INSTANCE.getIdentifier();
@@ -142,11 +145,11 @@ public class JobExecutor {
   private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
-        ShardingApplicationContext.getConfiguredDataDescription();
-    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
+        context.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
-        inputHHPath, NodeInfo.INSTANCE.getId(), true);
+        inputHHPath, NodeInfo.INSTANCE.getId(), true,context);
     return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }
 
@@ -164,6 +167,10 @@ public class JobExecutor {
     List<JobEntity> jobEntities = JobConfigReader.getJobEntityList(jobUUId);
     LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
     return jobEntities;
+  }
+  
+  public static ShardingApplicationContext getShardingApplicationContext(){
+    return context;
   }
 
 

@@ -23,7 +23,7 @@ public class KeyValueFrequencyIntegrationTest {
       InterruptedException, IOException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
         FieldTypeArrayDataDescription.createDataDescription(new String[0], 1);
-    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
+    //dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
     MutableCharArrayString mutableCharArrayStringL1 = new MutableCharArrayString(5);
     KeyValueFrequency keyValue1frequency1 = new KeyValueFrequency(mutableCharArrayStringL1, 10);
     MutableCharArrayString mutableCharArrayStringL2 = new MutableCharArrayString(5);

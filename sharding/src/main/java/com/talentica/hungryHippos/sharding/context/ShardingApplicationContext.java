@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.sharding.context;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -24,39 +25,88 @@ public class ShardingApplicationContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ShardingApplicationContext.class);
 
-  private static ShardingClientConfig shardingClientConfig;
+  private ShardingClientConfig shardingClientConfig;
 
-  private static ShardingServerConfig shardingServerConfig;
-  
-  public static void initialize(String shardingClientConfigPath, String shardingServerConfigPath){
-    if (shardingClientConfigPath == null || shardingServerConfigPath == null) {
+  private ShardingServerConfig shardingServerConfig;
+
+  private String shardingFolderPath;
+
+  public final static String shardingClientConfigFileName = "sharding-client-config.xml";
+  public final static String shardingServerConfigFileName = "sharding-server-config.xml";
+  public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
+  public final static String bucketCombinationToNodeNumbersMapFile =
+      "bucketCombinationToNodeNumbersMap";
+  public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
+
+
+  public ShardingApplicationContext(String shardingFolderPath) {
+    this.shardingFolderPath = shardingFolderPath;
+    checkShardingFolderNull();
+    try {
+      shardingClientConfig =
+          JaxbUtil.unmarshalFromFile(getShardingClientConfigFilePath(), ShardingClientConfig.class);
+      shardingServerConfig =
+          JaxbUtil.unmarshalFromFile(getShardingServerConfigFilePath(), ShardingServerConfig.class);
+    } catch (FileNotFoundException | JAXBException e) {
+      LOGGER.error(e.toString());
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public String getShardingFolderPath() {
+    checkShardingFolderNull();
+    return shardingFolderPath;
+  }
+
+
+  private void checkShardingFolderNull() {
+    if (shardingFolderPath == null) {
       LOGGER.info("Please set the sharding config File path of Zookeeper.");
       throw new RuntimeException("Please set the sharding config File path of Zookeeper.");
     }
-      try {
-        shardingClientConfig = JaxbUtil.unmarshalFromFile(shardingClientConfigPath, ShardingClientConfig.class);
-        shardingServerConfig = JaxbUtil.unmarshalFromFile(shardingServerConfigPath, ShardingServerConfig.class);
-      } catch (FileNotFoundException | JAXBException e) {
-        LOGGER.error(e.toString());
-        throw new RuntimeException(e);
-      }
   }
 
-  public static ShardingClientConfig getShardingClientConfig() {
+  public String getShardingClientConfigFilePath() {
+    return getShardingFolderPath() + File.separatorChar + shardingClientConfigFileName;
+  }
+
+
+  public String getShardingServerConfigFilePath() {
+    return getShardingFolderPath() + File.separatorChar + shardingServerConfigFileName;
+  }
+
+
+  public String getBuckettoNodeNumberMapFilePath() {
+    return getShardingFolderPath() + File.separatorChar + bucketToNodeNumberMapFile;
+  }
+
+
+  public String getBucketCombinationtoNodeNumbersMapFilePath() {
+    return getShardingFolderPath() + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
+  }
+
+
+  public String getKeytovaluetobucketMapFilePath() {
+    return getShardingFolderPath() + File.separatorChar + keyToValueToBucketMapFile;
+  }
+
+
+  public ShardingClientConfig getShardingClientConfig() {
     if (shardingClientConfig == null) {
       throw new RuntimeException("ShardingApplicationContext not initialized.");
     }
     return shardingClientConfig;
   }
 
-  public static ShardingServerConfig getShardingServerConfig() {
+  public ShardingServerConfig getShardingServerConfig() {
     if (shardingServerConfig == null) {
       throw new RuntimeException("ShardingApplicationContext not initialized.");
     }
     return shardingServerConfig;
   }
 
-  public static final FieldTypeArrayDataDescription getConfiguredDataDescription() {
+  public final FieldTypeArrayDataDescription getConfiguredDataDescription() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     FieldTypeArrayDataDescription dataDescription = null;
     List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
@@ -72,19 +122,19 @@ public class ShardingApplicationContext {
 
   }
 
-  public static String getMaximumShardFileSizeInBytes() {
+  public String getMaximumShardFileSizeInBytes() {
     ShardingServerConfig shardingServerConfig = getShardingServerConfig();
     return shardingServerConfig.getMaximumShardFileSizeInBytes();
 
   }
 
-  public static String[] getShardingDimensions() {
+  public String[] getShardingDimensions() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     String keyOrderString = shardingClientConfig.getShardingDimensions();
     return keyOrderString.split(",");
   }
 
-  public static String[] getColumnsConfiguration() {
+  public String[] getColumnsConfiguration() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
     String[] keyColumnNames = new String[columns.size()];
@@ -94,12 +144,12 @@ public class ShardingApplicationContext {
     return keyColumnNames;
   }
 
-  public static String getKeysPrefix() {
+  public String getKeysPrefix() {
     ShardingServerConfig shardingServerConfig = getShardingServerConfig();
     return shardingServerConfig.getKeyPrefix();
   }
 
-  public static int[] getShardingIndexes() {
+  public int[] getShardingIndexes() {
     String[] shardingKeys = getShardingDimensions();
     int[] shardingKeyIndexes = new int[shardingKeys.length];
     String keysNamingPrefix = getKeysPrefix();
@@ -111,7 +161,7 @@ public class ShardingApplicationContext {
     return shardingKeyIndexes;
   }
 
-  public static int getShardingIndexSequence(int keyId) {
+  public int getShardingIndexSequence(int keyId) {
     int[] shardingIndexes = getShardingIndexes();
     int index = -1;
     for (int i = 0; i < shardingIndexes.length; i++) {
@@ -122,7 +172,7 @@ public class ShardingApplicationContext {
     }
     return index;
   }
-  
+
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {
     String fileSystemBasePath = CoordinationApplicationContext.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();

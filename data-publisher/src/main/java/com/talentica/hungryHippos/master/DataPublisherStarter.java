@@ -6,47 +6,45 @@ package com.talentica.hungryHippos.master;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 public class DataPublisherStarter {
 
   private static NodesManager nodesManager;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
-
+  private static ShardingApplicationContext context;
   public static void main(String[] args) {
 
-      validateArguments(args);
-      String clientConfigFilePath = args[0];
-      String sourcePath = args[1];
-      String destinationPath = args[2];
-      try {
-        nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-      CoordinationConfig coordinationConfig =
-          CoordinationApplicationContext.getZkCoordinationConfigCache();
-      nodesManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-      String dataParserClassName = ShardingApplicationContext
-          .getShardingClientConfig().getInput().getDataParserConfig().getClassName();
-      DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-          .getConstructor(DataDescription.class)
-          .newInstance(ShardingApplicationContext.getConfiguredDataDescription());
+    validateArguments(args);
+    String clientConfigFilePath = args[0];
+    String sourcePath = args[1];
+    String destinationPath = args[2];
+    String localShardingPath = args[3];
+    try {
+      nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      context = new ShardingApplicationContext(localShardingPath);
+      String dataParserClassName = context.getShardingClientConfig().getInput()
+          .getDataParserConfig().getClassName();
+      DataParser dataParser =
+          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
+              .newInstance(context.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);
-        updateFilePublishSuccessful(destinationPath);
+      updateFilePublishSuccessful(destinationPath);
 
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
@@ -110,11 +108,12 @@ public class DataPublisherStarter {
 
   /**
    * Updates file published successfully
+   * 
    * @param destinationPath
-     */
+   */
   private static void updateFilePublishSuccessful(String destinationPath) {
-    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
-            getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
     ZkUtils.deleteZKNode(pathForFailureNode);
@@ -123,15 +122,20 @@ public class DataPublisherStarter {
 
   /**
    * Updates file pubising failed
+   * 
    * @param destinationPath
-     */
+   */
   private static void updateFilePublishFailure(String destinationPath) {
-    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
-            getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
     ZkUtils.deleteZKNode(pathForSuccessNode);
     ZkUtils.createZKNodeIfNotPresent(pathForFailureNode, "");
+  }
+
+  public static ShardingApplicationContext getContext() {
+    return context;
   }
 
 }

@@ -53,17 +53,12 @@ public class Sharding {
   private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
   private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
+private ShardingApplicationContext context;
+private BucketsCalculator bucketsCalculator;
 
-  public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
-  public final static String bucketCombinationToNodeNumbersMapFile =
-      "bucketCombinationToNodeNumbersMap";
-  public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-  /*
-   * private final static String BAD_RECORDS_FILE =
-   * ShardingApplicationContext.getShardingServerConfig().getBadRecordsFileOut() + "_sharding.err";
-   */
-
-  public Sharding(ClusterConfig clusterConfig) {
+  public Sharding(ClusterConfig clusterConfig,ShardingApplicationContext context) {
+    this.context = context;
+    bucketsCalculator = new BucketsCalculator(context);
     for (int i = 0; i < clusterConfig.getNode().size(); i++) {
       Node node = new Node(300000, i);
       fillupQueue.offer(node);
@@ -93,11 +88,11 @@ public class Sharding {
   public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
       String shardingServerConfigFilePath) throws IOException {
     ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(
-        Sharding.bucketCombinationToNodeNumbersMapFile, bucketCombinationToNodeNumbersMap,
+        ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile, bucketCombinationToNodeNumbersMap,
         directoryPath);
-    ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(Sharding.bucketToNodeNumberMapFile,
+    ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(ShardingApplicationContext.bucketToNodeNumberMapFile,
         bucketToNodeNumberMap, directoryPath);
-    ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(Sharding.keyToValueToBucketMapFile,
+    ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(ShardingApplicationContext.keyToValueToBucketMapFile,
         keyToValueToBucketMap, directoryPath);
     FileUtils.writeStringToFile(
         new File(directoryPath + File.separator + "sharding-client-config.xml"),
@@ -112,7 +107,7 @@ public class Sharding {
 
     logger.info("Calculating buckets to node numbers map started");
 
-    String[] keys = ShardingApplicationContext.getShardingDimensions();
+    String[] keys = context.getShardingDimensions();
     // Map<key1,Map<value1,count>>
     while (true) {
       DataTypes[] parts = null;
@@ -147,7 +142,7 @@ public class Sharding {
 
   private void setKeysToIndexes() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    String[] keys = ShardingApplicationContext.getColumnsConfiguration();
+    String[] keys = context.getColumnsConfiguration();
     int index = 0;
     for (String key : keys) {
       keyToIndexMap.put(key, index);
@@ -162,9 +157,9 @@ public class Sharding {
 
     logger.info("Populating frequency map from data started");
     setKeysToIndexes();
-    String[] keys = ShardingApplicationContext.getShardingDimensions();
+    String[] keys = context.getShardingDimensions();
     int lineNo = 0;
-    FileWriter.openFile(ShardingApplicationContext.getShardingServerConfig().getBadRecordsFileOut()
+    FileWriter.openFile(context.getShardingServerConfig().getBadRecordsFileOut()
         + "_sharding.err");
     while (true) {
       DataTypes[] parts = null;
@@ -207,8 +202,8 @@ public class Sharding {
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
     logger.info("Calculating keys to list of buckets map started");
-    String[] keys = ShardingApplicationContext.getShardingDimensions();
-    int totalNoOfBuckets = BucketsCalculator.calculateNumberOfBucketsNeeded();
+    String[] keys = context.getShardingDimensions();
+    int totalNoOfBuckets = bucketsCalculator.calculateNumberOfBucketsNeeded();
     logger.info("Total no. of buckets: {}", totalNoOfBuckets);
     Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
         getSortedKeyToListOfKeyValueFrequenciesMap();
@@ -258,7 +253,7 @@ public class Sharding {
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
     Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
-    String[] keys = ShardingApplicationContext.getShardingDimensions();
+    String[] keys = context.getShardingDimensions();
     for (String key : keys) {
       List<KeyValueFrequency> frequencies = new ArrayList<>();
       Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);

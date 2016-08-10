@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -87,7 +88,7 @@ public class ShardingTableZkService {
   public Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.keyToValueToBucketMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.keyToValueToBucketMapFile))) {
       return (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
           .readObject();
     } catch (IOException | ClassNotFoundException e) {
@@ -103,7 +104,7 @@ public class ShardingTableZkService {
   public Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.bucketToNodeNumberMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketToNodeNumberMapFile))) {
       return (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
           .readObject();
     } catch (IOException | ClassNotFoundException e) {
@@ -119,7 +120,7 @@ public class ShardingTableZkService {
   public Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
     try (ObjectInputStream bucketCombinationToNodeNumbersMapStream = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.bucketCombinationToNodeNumbersMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
       return (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapStream
           .readObject();
     } catch (IOException | ClassNotFoundException e) {

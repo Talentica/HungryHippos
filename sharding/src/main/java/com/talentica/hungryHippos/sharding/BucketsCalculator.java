@@ -24,13 +24,15 @@ public final class BucketsCalculator {
 
   private Map<String, List<Bucket<KeyValueFrequency>>> keyToBucketNumbersCollectionMap =
       new HashMap<String, List<Bucket<KeyValueFrequency>>>();
-
-  public BucketsCalculator() {
-
+ private ShardingApplicationContext context;
+ 
+  public BucketsCalculator(ShardingApplicationContext context) {
+ this.context = context;
   }
 
   public BucketsCalculator(
-      Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap) {
+      Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,ShardingApplicationContext context) {
+    this(context);
     this.keyToValueToBucketMap = keyToValueToBucketMap;
     if (keyToValueToBucketMap != null) {
       for (String key : keyToValueToBucketMap.keySet()) {
@@ -44,18 +46,18 @@ public final class BucketsCalculator {
     }
   }
 
-  public static int calculateNumberOfBucketsNeeded() throws ClassNotFoundException,
+  public  int calculateNumberOfBucketsNeeded() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     double MAX_NO_OF_FILE_SIZE = Double.valueOf(
-        ShardingApplicationContext.getShardingServerConfig().getMaximumShardFileSizeInBytes());
-    int noOfKeys = ShardingApplicationContext.getShardingDimensions().length;
+        context.getShardingServerConfig().getMaximumShardFileSizeInBytes());
+    int noOfKeys = context.getShardingDimensions().length;
     long approximateMemoryPerBucketStoredInShardTable =
         (NO_OF_BYTES_PER_KEY * noOfKeys) + NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
     Double noOfBucketsNeeded = Math
         .pow(MAX_NO_OF_FILE_SIZE / approximateMemoryPerBucketStoredInShardTable, 1.0 / noOfKeys);
     int numberOfBucketsNeeded = (int) Math.ceil(noOfBucketsNeeded);
     Object maxNoOfBuckets =
-        ShardingApplicationContext.getShardingServerConfig().getMaximumNoOfShardBucketsSize();
+        context.getShardingServerConfig().getMaximumNoOfShardBucketsSize();
     if (maxNoOfBuckets != null) {
       int maximumNoOfBucketsAllowed = Integer.parseInt(maxNoOfBuckets.toString());
       if (numberOfBucketsNeeded > maximumNoOfBucketsAllowed) {

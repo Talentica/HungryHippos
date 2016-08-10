@@ -1,28 +1,31 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import java.io.IOException;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
-  public static final String REQUEST_DETAILS_HANDLER ="REQUEST_DETAILS_HANDLER";
-  public static final String DATA_HANDLER="DATA_HANDLER";
+  public static final String REQUEST_DETAILS_HANDLER = "REQUEST_DETAILS_HANDLER";
+  public static final String DATA_HANDLER = "DATA_HANDLER";
 
   private int port;
   private String nodeId;
@@ -50,7 +53,7 @@ public class DataReceiver {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
-          pipeline.addLast(REQUEST_DETAILS_HANDLER,new RequestDetailsHandler(nodeId));
+          pipeline.addLast(REQUEST_DETAILS_HANDLER, new RequestDetailsHandler(nodeId));
         }
       });
       LOGGER.info("binding to port " + port);
@@ -69,20 +72,13 @@ public class DataReceiver {
     try {
       validateArguments(args);
       NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
-      CoordinationConfig coordinationConfig =
-          CoordinationApplicationContext.getZkCoordinationConfigCache();
-      manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
       LOGGER.info("Start Node initialize");
       int nodePort = NodeInfo.INSTANCE.getPort();
       String nodeId = NodeInfo.INSTANCE.getId();
-      DataReceiver dataReceiver = new DataReceiver(nodePort,nodeId);
+      DataReceiver dataReceiver = new DataReceiver(nodePort, nodeId);
       dataReceiver.startServer();
-    } catch (Exception exception) {
-      try {
-        errorHandler(exception);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

@@ -26,6 +26,7 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
@@ -50,7 +51,7 @@ public class ConfigurationFileUploadTest {
     nodeUtil = new NodeUtil("/dir/input");
     try (ObjectInputStream inKeyValueNodeNumberMap = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.keyToValueToBucketMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.keyToValueToBucketMapFile))) {
       keyToValueToBucketMap =
           (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) inKeyValueNodeNumberMap
               .readObject();
@@ -60,7 +61,7 @@ public class ConfigurationFileUploadTest {
 
     try (ObjectInputStream bucketToNodeNumberMapInputStream = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.bucketToNodeNumberMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketToNodeNumberMapFile))) {
       bucketToNodeNumberMap =
           (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) bucketToNodeNumberMapInputStream
               .readObject();
@@ -70,7 +71,7 @@ public class ConfigurationFileUploadTest {
 
     try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream = new ObjectInputStream(
         new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + Sharding.bucketCombinationToNodeNumbersMapFile))) {
+            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
       bucketCombinationToNodeNumbersMap =
           (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapInputStream
               .readObject();

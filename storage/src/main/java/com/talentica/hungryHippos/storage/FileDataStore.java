@@ -29,7 +29,7 @@ public class FileDataStore implements DataStore, Serializable {
   private String hungryHippoFilePath;
   private String fileNamePrefix;
   private String nodeId;
-
+ private ShardingApplicationContext context;
   private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
@@ -38,13 +38,14 @@ public class FileDataStore implements DataStore, Serializable {
   public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
   public FileDataStore(int numDimensions, DataDescription dataDescription,
-      String hungryHippoFilePath, String nodeId) throws IOException, InterruptedException,
+      String hungryHippoFilePath, String nodeId, ShardingApplicationContext context) throws IOException, InterruptedException,
       ClassNotFoundException, KeeperException, JAXBException {
-    this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false);
+    this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false,context);
   }
 
   public FileDataStore(int numDimensions, DataDescription dataDescription,
-      String hungryHippoFilePath, String nodeId, boolean readOnly) throws IOException {
+      String hungryHippoFilePath, String nodeId, boolean readOnly, ShardingApplicationContext context) throws IOException {
+    this.context = context;
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
@@ -81,7 +82,7 @@ public class FileDataStore implements DataStore, Serializable {
   @Override
   public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    int shardingIndexSequence = ShardingApplicationContext.getShardingIndexSequence(keyId);
+    int shardingIndexSequence = context.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
       storeAccess = new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME,

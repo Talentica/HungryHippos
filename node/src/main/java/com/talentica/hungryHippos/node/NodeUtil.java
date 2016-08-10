@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.Sharding;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -32,13 +32,16 @@ public class NodeUtil {
   private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   public NodeUtil(String filePath) {
+   // String keyToValueToBucketMapFile =ShardingApplicationContext.getKeytovaluetobucketMapFilePath();
     String keyToValueToBucketMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + Sharding.keyToValueToBucketMapFile;
+        + File.separatorChar + ShardingApplicationContext.keyToValueToBucketMapFile;
 
     keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile);
     
+    //String bucketToNodeNumberMapFile = ShardingApplicationContext.getBuckettoNodeNumberMapFilePath();
+    
     String bucketToNodeNumberMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + Sharding.bucketToNodeNumberMapFile;
+        + File.separatorChar + ShardingApplicationContext.bucketToNodeNumberMapFile;
     bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);
   }
 

@@ -142,8 +142,8 @@ public class JobExecutor {
   private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription =
-        ShardingApplicationContext.getConfiguredDataDescription(inputHHPath);
-    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions(inputHHPath));
+        ShardingApplicationContext.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(ShardingApplicationContext.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true);

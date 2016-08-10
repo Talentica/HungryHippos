@@ -55,7 +55,7 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
 
       String nodeId = NodeInfo.INSTANCE.getId();
       DataDescription dataDescription =
-          ShardingApplicationContext.getConfiguredDataDescription(hhFilePath);
+          ShardingApplicationContext.getConfiguredDataDescription();
       // TODO Get sharding table for the particular file from zookeeper instead of using common
       // config
       NodeUtil nodeUtil = new NodeUtil(hhFilePath);

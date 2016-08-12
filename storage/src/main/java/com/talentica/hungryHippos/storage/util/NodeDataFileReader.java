@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -34,15 +35,17 @@ public class NodeDataFileReader {
 
   public static void main(String[] args) throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
-    if (args.length != 1) {
+    if (args.length != 2) {
       System.out.println(
-          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> <sharding file path> e.g. java -jar storage.jar ~/home/");
+          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
       System.exit(0);
     }
-    context = new ShardingApplicationContext(args[1]);
+    String clientConfigFilePath = args[1];
+    NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+    context = new ShardingApplicationContext(args[0]);
     int noOfKeys = context.getShardingDimensions().length;
     for (int i = 0; i < 1 << noOfKeys; i++) {
-      String dataFileName = args[0] + FileSystemContext.getDataFilePrefix() + i;
+      String dataFileName = args[0] + File.separatorChar + FileSystemContext.getDataFilePrefix() + i;
       FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
       DataInputStream dataInputStream = new DataInputStream(fileInputStream);
       File readableDataFile = new File(dataFileName + "_read");

@@ -32,7 +32,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
 
   private static int dataReaderHandlerCounter = 0;
   private int dataReaderHandlerId = -1;
-  private ShardingApplicationContext context;
 
   public DataReadHandler(DataDescription dataDescription, DataStore dataStore,
       byte[] remainingBufferData, NodeUtil nodeUtil, ShardingApplicationContext context)
@@ -42,7 +41,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
     this.buf = new byte[dataDescription.getSize()];
     byteBuffer = ByteBuffer.wrap(this.buf);
     this.dataStore = dataStore;
-    this.context = context;
     dataReaderHandlerId = ++dataReaderHandlerCounter;
     nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
         nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription,context);
@@ -58,14 +56,13 @@ public class DataReadHandler extends ChannelHandlerAdapter {
   @Override
   public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
     writeDataInStore();
-    waitForDataPublishersServerConnectRetryInterval();
+  //  waitForDataPublishersServerConnectRetryInterval();
     dataReaderHandlerCounter--;
     if (dataReaderHandlerCounter <= 0) {
       dataStore.sync();
       byteBuf.release();
       byteBuf = null;
       ctx.channel().close();
-      ctx.channel().parent().close();
       dataReaderHandlerCounter = 0;
     }
   }

@@ -57,8 +57,6 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
       FieldTypeArrayDataDescription dataDescription =
           context.getConfiguredDataDescription();
       dataDescription.setKeyOrder(context.getShardingDimensions());
-      // TODO Get sharding table for the particular file from zookeeper instead of using common
-      // config
       NodeUtil nodeUtil = new NodeUtil(hhFilePath);
       DataStore dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
           dataDescription, hhFilePath, nodeId,context);

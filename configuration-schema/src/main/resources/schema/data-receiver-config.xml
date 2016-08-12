@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tns:data-receiver-config
-	xmlns:tns="http://www.talentica.com/hungryhippos/config/datareceiver"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/datareceiver data-receiver-config.xsd ">
-	<tns:datareceiver-append-to-data-files>false</tns:datareceiver-append-to-data-files>
-</tns:data-receiver-config>

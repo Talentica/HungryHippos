@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.node.job;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.node.JobExecutor;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 import java.util.ArrayList;
@@ -47,31 +48,4 @@ public class JobConfigReader {
         return getConfigNodeData(jobOutputNode);
     }
 
-    /**
-     * Returns list of jobEntity Objects
-     * @param jobUUID
-     * @return
-     */
-    public static List<JobEntity> getJobEntityList(String jobUUID){
-        List<JobEntity> jobEntityList = new ArrayList<>();
-        String jobEntityListNode=  getJobEntityListNode(jobUUID);
-        List<String> jobEntityIdList = ZkUtils.getChildren(jobEntityListNode);
-        for(String jobEntityId: jobEntityIdList){
-            JobEntity jobEntity = getJobEntity(jobUUID,jobEntityId);
-            jobEntityList.add(jobEntity);
-        }
-        return jobEntityList;
-    }
-
-    /**
-     * Returns jobEntity Object
-     * @param jobUUID
-     * @param jobId
-     * @return
-     */
-    public static JobEntity getJobEntity(String jobUUID, String jobId){
-        String jobIdNode=  getJobEntityIdNode(jobUUID,jobId);
-        JobEntity jobEntity = getJobEntityObject(jobIdNode);
-        return jobEntity;
-    }
 }

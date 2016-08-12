@@ -23,7 +23,7 @@ public class ClassLoaderUtil {
             if (jobLibrary.isDirectory()) {
                 jarURLs = getChildFileURLs(jobLibrary);
             } else {
-                jarURLs = new URL[]{new URL(jarFilePath)};
+                jarURLs = new URL[]{new URL("file:"+jarFilePath)};
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -42,7 +42,7 @@ public class ClassLoaderUtil {
         File[] jarFiles = jobLibrary.listFiles();
         URL[] jarURLs = new URL[jarFiles.length];
         for (int i = 0; i < jarFiles.length; i++) {
-            jarURLs[i] = new URL("file:" + jarFiles[i].getPath());
+            jarURLs[i] = new URL("jar:file://" + jarFiles[i].getPath()+"!/");
         }
         return jarURLs;
     }

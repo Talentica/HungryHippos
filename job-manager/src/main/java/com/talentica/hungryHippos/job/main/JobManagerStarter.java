@@ -27,6 +27,7 @@ public class JobManagerStarter {
   private static NodesManager nodesManager;
 
   public static void main(String[] args) {
+    System.out.println("In Job Manager Main.");
     try {
       validateArguments(args);
       String clientConfigPath = args[0];
@@ -34,6 +35,7 @@ public class JobManagerStarter {
       String jobMatrixClass = args[2];
       String jobUUId = args[3];
 
+      System.out.println("Job Manager Started.");
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
       Object jobMatrix = getJobMatrix(localJarPath, jobMatrixClass);
       validateJobMatrixClass(jobMatrix);
@@ -43,6 +45,7 @@ public class JobManagerStarter {
       jobManager.addJobList(((JobMatrix) jobMatrix).getListOfJobsToExecute());
       jobManager.start(jobUUId);
       long endTime = System.currentTimeMillis();
+      System.out.println("Job Manager Completed.");
       LOGGER.info("It took {} seconds of time to for running all jobs.",
               ((endTime - startTime) / 1000));
 

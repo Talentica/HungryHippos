@@ -1,14 +1,21 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingHHNode;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.util.List;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
 
 /**
  * This class is for Node to start instantiate JobExecutor processes
@@ -29,6 +36,8 @@ public class JobExecutorProcessBuilder {
         String clientConfigPath = args[0];
         NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
         int nodeId = NodeInfo.INSTANCE.getIdentifier();
+        String pendingHHNode = getPendingHHNode(nodeId);
+        ZkUtils.createZKNodeIfNotPresent(pendingHHNode, ""); 
         while(true){
             List<String> jobUUIDs = JobStatusNodeCoordinator.checkNodeJobUUIDs(nodeId);
             if(jobUUIDs==null||jobUUIDs.size()==0){
@@ -39,6 +48,13 @@ public class JobExecutorProcessBuilder {
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
                 Process process = processBuilder.start();
                 int status =  process.waitFor();
+                BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String line = null;
+                StringBuilder sb = new StringBuilder();
+                while ((line = br.readLine()) != null){
+                    sb.append(line).append("\n");
+                }
+                System.out.println("Console OUTPUT : \n"+sb.toString());
                 if(status!=0){
                    JobStatusNodeCoordinator.updateNodeJobFailed(jobUUID,nodeId);
                 }

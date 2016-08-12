@@ -117,7 +117,7 @@ public class JobStatusNodeCoordinator {
     public static void moveJobEntityNode(String jobUUID, int jobEntityId, int nodeId, String fromGroup, String toGroup) {
         String toJobIdNode = getJobIdNode(toGroup, jobUUID);
         ZkUtils.createZKNodeIfNotPresent(toJobIdNode, "");
-        String toJobEntityNode = getJobEntityNode(toGroup, jobUUID, jobEntityId);
+        String toJobEntityNode = getJobEntityHHNode(toGroup, jobUUID, jobEntityId,nodeId);
         ZkUtils.createZKNodeIfNotPresent(toJobEntityNode, "");
         String fromJobEntityHHNode = getJobEntityHHNode(fromGroup, jobUUID, jobEntityId, nodeId);
         ZkUtils.deleteZKNode(fromJobEntityHHNode);

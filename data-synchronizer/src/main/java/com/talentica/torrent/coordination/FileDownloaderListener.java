@@ -23,7 +23,7 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloaderListener.class);
 
-  private static final String DOWNLOAD_FILES_PARENT_NODE_PATH = "/torrent/files-to-download/";
+  public static final String FILES_TO_DOWNLOAD_NODE_PATH = "/torrent/files-to-download/";
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -38,7 +38,7 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
     PathChildrenCache childrenCache = null;
     try {
       host = thisHost;
-      String zkNodeToListenTo = DOWNLOAD_FILES_PARENT_NODE_PATH + host;
+      String zkNodeToListenTo = FILES_TO_DOWNLOAD_NODE_PATH + host;
       createListenerNodeIfDoesntExist(client, zkNodeToListenTo);
       childrenCache = new PathChildrenCache(client, zkNodeToListenTo, true);
       childrenCache.getListenable().addListener(new FileDownloaderListener());
@@ -55,7 +55,7 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
       String zkNodeToListenTo) throws Exception {
     boolean pathDoesntExist = client.checkExists().forPath(zkNodeToListenTo) == null;
     if (pathDoesntExist) {
-      client.create().forPath(zkNodeToListenTo);
+      client.create().creatingParentsIfNeeded().forPath(zkNodeToListenTo);
     }
   }
 

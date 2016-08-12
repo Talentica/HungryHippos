@@ -18,12 +18,12 @@ public class TorrentTrackerServiceImpl implements TorrentTrackerService {
   private int port = -1;
 
   @Override
-  public void startTracker(int port) {
+  public void startTracker(String host, int port) {
     try {
       if (tracker != null) {
         throw new RuntimeException("Tracker already started on port:" + port);
       }
-      tracker = new Tracker(new InetSocketAddress(port));
+      tracker = new Tracker(new InetSocketAddress(host, port));
       tracker.start();
       this.port = port;
     } catch (IOException exception) {

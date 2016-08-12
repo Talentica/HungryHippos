@@ -56,7 +56,7 @@ public class DataRetrieverClient {
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     List<String> nodeIds = ZkUtils.getChildren(fileNodeZKDFSPath);
     boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + hungryHippoFilePath
-        + FileSystemConstants.ZK_PATH_SEPARATOR + CoordinationApplicationContext.SHARDING_CLIENT_CONFIGURATION);
+        + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
     HungryHipposFileSystem.validateFileDataReady(hungryHippoFilePath);
     FileSystemUtils.createDirectory(outputDirName);
     for (String nodeId : nodeIds) {

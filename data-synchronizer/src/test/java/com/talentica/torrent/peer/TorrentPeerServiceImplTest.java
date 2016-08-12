@@ -9,7 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
@@ -37,7 +39,7 @@ public class TorrentPeerServiceImplTest {
   @Before
   public void setup() throws URISyntaxException, FileNotFoundException, IOException {
     torrentTrackerServiceImpl = new TorrentTrackerServiceImpl();
-    torrentTrackerServiceImpl.startTracker(trackerPort);
+    torrentTrackerServiceImpl.startTracker("localhost", trackerPort);
     torrentFile = generateSampleTorrentFile();
     torrentPeerServiceImpl = new TorrentPeerServiceImpl();
   }
@@ -47,8 +49,9 @@ public class TorrentPeerServiceImplTest {
     ClassLoader classLoader = getClass().getClassLoader();
     File sourceFile =
         new File(classLoader.getResource("TestTorrentGenerationSourceFile.txt").getFile());
-    Torrent torrent = TorrentGenerator.generate(sourceFile,
-        new URI("http://0.0.0.0:" + trackerPort + "/announce"), "SampleSourceFile");
+    List<URI> trackers = new ArrayList<>();
+    trackers.add(new URI("http://localhost:" + trackerPort + "/announce"));
+    Torrent torrent = TorrentGenerator.generate(sourceFile, trackers, "SampleSourceFile");
     seedFilesDirectory = new File(FilenameUtils.getFullPath(sourceFile.getAbsolutePath()));
     String torrentFilesDirectory = seedFilesDirectory.getAbsolutePath() + File.separator + ".."
         + File.separator + "testTorrentFiles";

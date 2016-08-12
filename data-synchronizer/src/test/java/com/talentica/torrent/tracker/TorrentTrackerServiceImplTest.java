@@ -22,14 +22,14 @@ public class TorrentTrackerServiceImplTest {
 
   @Test
   public void testStartTracker() {
-    torrentTrackerService.startTracker(port);
+    torrentTrackerService.startTracker("localhost", port);
     assertTrue(torrentTrackerService.isTrackerStarted());
   }
 
   @Test(expected = RuntimeException.class)
   public void testStartTrackerForAlreadyStartedTracker() {
-    torrentTrackerService.startTracker(port + 1);
-    torrentTrackerService.startTracker(port + 1);
+    torrentTrackerService.startTracker("localhost", port + 1);
+    torrentTrackerService.startTracker("localhost", port + 1);
   }
 
   @Test(expected = RuntimeException.class)
@@ -41,7 +41,7 @@ public class TorrentTrackerServiceImplTest {
 
   @Test
   public void testNewTorrentFileAvailable() {
-    torrentTrackerService.startTracker(port);
+    torrentTrackerService.startTracker("localhost", port);
     assertFalse(torrentTrackerService.isTorrentAvailableForFileName("sample.txt"));
     File torrentFile =
         new File(getClass().getClassLoader().getResource("sample.torrent").getFile());
@@ -50,10 +50,11 @@ public class TorrentTrackerServiceImplTest {
   }
 
   @Test
-  public void testStopTracker() {
-    torrentTrackerService.startTracker(port);
+  public void testStopTracker() throws InterruptedException {
+    torrentTrackerService.startTracker("localhost", port);
     assertTrue(torrentTrackerService.isTrackerStarted());
     torrentTrackerService.stopTracker();
+    Thread.sleep(1000);
     assertFalse(torrentTrackerService.isTrackerStarted());
   }
 

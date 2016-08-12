@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -20,10 +22,12 @@ public class TorrentGenerator {
    * @param trackerUri
    * @param createdBy
    */
-  public static Torrent generate(File sourceFile, URI trackerUri, String createdBy) {
+  public static Torrent generate(File sourceFile, List<URI> trackerUri, String createdBy) {
     Torrent torrent;
     try {
-      torrent = Torrent.create(sourceFile, trackerUri, createdBy);
+      List<List<URI>> announceList = new ArrayList<>();
+      announceList.add(new ArrayList<>(trackerUri));
+      torrent = Torrent.create(sourceFile, Torrent.DEFAULT_PIECE_LENGTH, announceList, createdBy);
       return torrent;
     } catch (NoSuchAlgorithmException | InterruptedException | IOException e) {
       throw new RuntimeException(e);
@@ -39,7 +43,8 @@ public class TorrentGenerator {
    * @param torrentFilePath - path to generate torrent file at. Please specify full path along with
    *        name of the torrent file and extension.
    */
-  public static void generateTorrentFile(String sourceFilePath, URI trackerUri, String createdBy,
+  public static void generateTorrentFile(String sourceFilePath, List<URI> announceList,
+      String createdBy,
       String torrentFilePath) {
     try {
       if (!FilenameUtils.isExtension(torrentFilePath, "torrent")) {
@@ -48,7 +53,7 @@ public class TorrentGenerator {
       String directory = FilenameUtils.getFullPath(torrentFilePath);
       new File(directory).mkdirs();
       FileOutputStream output = new FileOutputStream(torrentFilePath);
-      Torrent torrent = generate(new File(sourceFilePath), trackerUri, createdBy);
+      Torrent torrent = generate(new File(sourceFilePath), announceList, createdBy);
       torrent.save(output);
       output.flush();
       output.close();
@@ -63,7 +68,9 @@ public class TorrentGenerator {
     URI trackerUri = URI.create(args[1]);
     String createdBy = args[2];
     String outputDirectory = args[3];
-    generateTorrentFile(sourceFilePath, trackerUri, createdBy, outputDirectory);
+    List<URI> trackers= new ArrayList<>();
+    trackers.add(trackerUri);
+    generateTorrentFile(sourceFilePath, trackers, createdBy, outputDirectory);
   }
 
   private static void validateArguments(String[] args) {

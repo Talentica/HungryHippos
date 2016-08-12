@@ -538,7 +538,6 @@ public class NodesManager implements Watcher {
   }
 
   public List<String> getChildren(String parentNode) throws KeeperException, InterruptedException {
-    System.out.println(parentNode);
     List<String> children = zk.getChildren(parentNode, this);
     return children;
   }

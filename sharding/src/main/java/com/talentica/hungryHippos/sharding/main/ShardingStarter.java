@@ -20,9 +20,11 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class ShardingStarter {
 
@@ -50,6 +52,7 @@ public class ShardingStarter {
       ShardingClientConfig shardingClientConfig = context.getShardingClientConfig();
 
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
+      FileSystemUtils.validatePath(distributedFilePath, true);
       if (distributedFilePath == null || "".equals(distributedFilePath)) {
         throw new RuntimeException("Distributed File path cannot be empty");
       }
@@ -60,6 +63,7 @@ public class ShardingStarter {
         throw new RuntimeException(shardingTablePathOnZk + " already exists");
       }
       ZkUtils.createFileNode(shardingTablePathOnZk);
+      
       isFileCreated = true;
 
       String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
@@ -67,8 +71,9 @@ public class ShardingStarter {
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
           context.getShardingServerConfigFilePath(), tempDir);
-      uploadShardingData(shardingClientConfig, tempDir);
-      long endTime = System.currentTimeMillis();
+      //uploadShardingData(shardingClientConfig, tempDir);
+      ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk+FileSystemConstants.ZK_PATH_SEPARATOR+FileSystemConstants.SHARDED, "");
+      long endTime = System.currentTimeMillis();      
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
@@ -114,7 +119,7 @@ public class ShardingStarter {
     ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
-    Sharding sharding = new Sharding(clusterConfig,context);
+    Sharding sharding = new Sharding(clusterConfig, context);
     sharding.doSharding(inputReaderForSharding);
     sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
         shardingServerConfigFilePath);

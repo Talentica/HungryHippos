@@ -21,7 +21,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class DataReceiver {
 
-
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
 
   public static final String REQUEST_DETAILS_HANDLER = "REQUEST_DETAILS_HANDLER";

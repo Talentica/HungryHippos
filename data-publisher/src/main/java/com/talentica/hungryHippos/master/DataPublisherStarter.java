@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class DataPublisherStarter {
 
@@ -26,6 +27,7 @@ public class DataPublisherStarter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
   private static ShardingApplicationContext context;
+
   public static void main(String[] args) {
 
     validateArguments(args);
@@ -34,10 +36,11 @@ public class DataPublisherStarter {
     String destinationPath = args[2];
     String localShardingPath = args[3];
     try {
+      FileSystemUtils.validatePath(destinationPath, true);
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
       context = new ShardingApplicationContext(localShardingPath);
-      String dataParserClassName = context.getShardingClientConfig().getInput()
-          .getDataParserConfig().getClassName();
+      String dataParserClassName =
+          context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
       DataParser dataParser =
           (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
               .newInstance(context.getConfiguredDataDescription());

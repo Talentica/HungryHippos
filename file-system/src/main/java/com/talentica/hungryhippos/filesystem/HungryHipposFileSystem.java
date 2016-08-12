@@ -6,7 +6,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +15,16 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * 
- * HungryHipposFileSystem FileSystem. This class has methods for creating files
- * as znodes in the Zookeeper.
+ * HungryHipposFileSystem FileSystem. This class has methods for creating files as znodes in the
+ * Zookeeper.
  * 
- * ======= HungryHipposFileSystem FileSystem. This class has methods for
- * creating files as znodes in the Zookeeper.
+ * ======= HungryHipposFileSystem FileSystem. This class has methods for creating files as znodes in
+ * the Zookeeper.
  *
  * 
  * @author sudarshans
@@ -32,12 +32,12 @@ import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
  */
 public class HungryHipposFileSystem {
 
-	private static Logger logger = LoggerFactory.getLogger("HungryHipposFileSystem");
-	private static NodesManager nodeManager = null;
-	private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
-	private ZookeeperConfiguration zkConfiguration;
-	// CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
-	private static volatile HungryHipposFileSystem hfs = null;
+  private static Logger logger = LoggerFactory.getLogger("HungryHipposFileSystem");
+  private static NodesManager nodeManager = null;
+  private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
+  private ZookeeperConfiguration zkConfiguration;
+  // CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
+  private static volatile HungryHipposFileSystem hfs = null;
 
   // for singleton
   private HungryHipposFileSystem() {
@@ -45,17 +45,18 @@ public class HungryHipposFileSystem {
       throw new IllegalStateException("Instance Already created");
     }
 
-		try {
-			nodeManager = NodesManagerContext.getNodesManagerInstance();
-			CoordinationConfig coordinationConfig =
-		          CoordinationApplicationContext.getZkCoordinationConfigCache();
-			nodeManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
-		} catch (JAXBException | IOException e) {
-			logger.error(e.getMessage());
-			throw new RuntimeException(e.getMessage());
-		}
-	}
+    try {
+      nodeManager = NodesManagerContext.getNodesManagerInstance();
+      CoordinationConfig coordinationConfig =
+          CoordinationApplicationContext.getZkCoordinationConfigCache();
+      nodeManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+      HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER =
+          coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+    } catch (JAXBException | IOException e) {
+      logger.error(e.getMessage());
+      throw new RuntimeException(e.getMessage());
+    }
+  }
 
   public static HungryHipposFileSystem getInstance() {
     if (hfs == null) {
@@ -68,16 +69,16 @@ public class HungryHipposFileSystem {
     return hfs;
   }
 
-	private String checkNameContainsFileSystemRoot(String name) {
-		if (!(name.contains(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER))) {
-			if (name.startsWith("/")) {
-				name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + name;
-			} else {
-				name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + "/" + name;
-			}
-		}
-		return name;
-	}
+  private String checkNameContainsFileSystemRoot(String name) {
+    if (!(name.contains(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER))) {
+      if (name.startsWith("/")) {
+        name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + name;
+      } else {
+        name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + "/" + name;
+      }
+    }
+    return name;
+  }
 
   /**
    * Create persistent znode in zookeeper
@@ -299,17 +300,9 @@ public class HungryHipposFileSystem {
     String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
     String dataFileNodeZKPath =
         nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileZKNode;
-    if (!checkZnodeExists(dataFileNodeZKPath)) {
-      if (!checkZnodeExists(nodeIdZKPath)) {
-        if (!checkZnodeExists(fileNodeZKDFSPath)) {
-          createZnode(fileNodeZKDFSPath, "");
-        }
-        createZnode(nodeIdZKPath, "");
-      }
-      createZnode(dataFileNodeZKPath, datafileSize + "");
-    } else {
-      setData(dataFileNodeZKPath, datafileSize + "");
-    }
+    ZkUtils.createZKNodeIfNotPresent(fileNodeZKDFSPath, "");
+    ZkUtils.createZKNodeIfNotPresent(nodeIdZKPath, "");
+    ZkUtils.createZKNode(dataFileNodeZKPath, datafileSize + "");
   }
 
   /**
@@ -323,44 +316,38 @@ public class HungryHipposFileSystem {
   public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize)
       throws Exception {
     String fileNodeZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + fileZKNode;
+    logger.info("HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER " + HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER);
     String fileNodeZKDFSPath =
         fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
-
-    if (!checkZnodeExists(nodeIdZKPath)) {
-      if (!checkZnodeExists(fileNodeZKDFSPath)) {
-        createZnode(fileNodeZKDFSPath, "");
-      }
-      createZnode(nodeIdZKPath, datafileSize + "");
-    } else {
-      setData(nodeIdZKPath, datafileSize + "");
-    }
-
+    ZkUtils.createZKNodeIfNotPresent(fileNodeZKDFSPath, "");
+    ZkUtils.createZKNode(nodeIdZKPath, datafileSize + "");
   }
 
   /**
    * Validates if file Data is ready
+   * 
    * @param hungryHippoFilePath
    */
-  public static void validateFileDataReady(String hungryHippoFilePath){
+  public static void validateFileDataReady(String hungryHippoFilePath) {
     if ("".equals(hungryHippoFilePath)) {
       throw new RuntimeException("Path is empty");
     }
     String fsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
-            .getZookeeperDefaultConfig().getFilesystemPath();
+        .getZookeeperDefaultConfig().getFilesystemPath();
     String hungryHippoFilePathNode = fsRootNode + hungryHippoFilePath;
     boolean nodeExists = ZkUtils.checkIfNodeExists(hungryHippoFilePathNode);
-    if(!nodeExists){
+    if (!nodeExists) {
       throw new RuntimeException(hungryHippoFilePath + " does not exists");
     }
     String data = (String) ZkUtils.getNodeData(hungryHippoFilePathNode);
-    if(!FileSystemConstants.IS_A_FILE.equals(data)){
+    if (!FileSystemConstants.IS_A_FILE.equals(data)) {
       throw new RuntimeException(hungryHippoFilePath + " is not a file");
     }
-    String dataReadyNode = hungryHippoFilePathNode
-            + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DATA_READY;
+    String dataReadyNode = hungryHippoFilePathNode + FileSystemConstants.ZK_PATH_SEPARATOR
+        + FileSystemConstants.DATA_READY;
     boolean isDataReady = ZkUtils.checkIfNodeExists(dataReadyNode);
-    if(!isDataReady){
+    if (!isDataReady) {
       throw new RuntimeException(hungryHippoFilePath + " file is not ready");
     }
   }

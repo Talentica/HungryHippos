@@ -1,15 +1,17 @@
 package com.talentica.hungryHippos.common.job;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.utility.JobEntity;
+import java.io.IOException;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
+import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
  * This class is for having common methods related to Job Configurations
@@ -79,21 +81,6 @@ public class JobConfigCommonOperations {
         return configValue;
     }
 
-    /**
-     * Returns Job Entity Object
-     * @param node
-     * @return
-     */
-    public static JobEntity getJobEntityObject(String node){
-        JobEntity jobEntity = null;
-        try {
-            NodesManager manager = NodesManagerContext.getNodesManagerInstance();
-            jobEntity = (JobEntity) manager.getObjectFromZKNode(node);
-        } catch (IOException | KeeperException | InterruptedException |JAXBException |ClassNotFoundException e) {
-            LOGGER.error(e.toString());
-            throw new RuntimeException(e);
-        }
-        return jobEntity;
-    }
+
 
 }

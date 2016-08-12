@@ -62,26 +62,28 @@ public class TorrentPeerServiceImplTest {
   }
 
   @Test
-  public void testSeedFile() {
+  public void testSeedFile() throws IOException {
     seedFile();
   }
 
-  private void seedFile() {
+  private void seedFile() throws IOException {
     torrentTrackerServiceImpl.newTorrentFileAvailable(torrentFile);
-    torrentPeerServiceImpl.seedFile(torrentFile, seedFilesDirectory, "localhost");
+    torrentPeerServiceImpl.seedFile(FileUtils.readFileToByteArray(torrentFile), seedFilesDirectory,
+        "localhost");
   }
 
   @Test
-  public void testDownloadFile() throws InterruptedException {
+  public void testDownloadFile() throws InterruptedException, IOException {
     seedFile();
     File downloadDir = new File(seedFilesDirectory.getAbsolutePath() + File.separator + ".."
         + File.separator + "downloadedFiles");
     try {
       downloadDir.mkdirs();
-      torrentPeerServiceImpl.downloadFile(torrentFile, downloadDir);
+      torrentPeerServiceImpl.downloadFile(FileUtils.readFileToByteArray(torrentFile), downloadDir)
+          .get();
       Optional<File> file = Arrays.asList(downloadDir.listFiles()).stream()
           .filter(name -> name.getName().equals("TestTorrentGenerationSourceFile.txt")).findFirst();
-      assertNotNull(file);
+      assertNotNull(file.get());
       String content = FileUtils.readFileToString(file.get(), "UTF-8");
       assertNotNull(content);
       assertEquals("hello world..Torrent rocks!", content);

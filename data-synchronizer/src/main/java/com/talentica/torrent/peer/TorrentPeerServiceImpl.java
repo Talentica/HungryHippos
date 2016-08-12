@@ -6,8 +6,10 @@ import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,24 +20,11 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TorrentPeerServiceImpl.class);
 
-  @Override
-  public void seedFile(File torrentFile, File seedFilesDirectory, String hostName,
-      Observer observer) {
-    try {
-      SharedTorrent sharedTorrent =
-          new SharedTorrent(FileUtils.readFileToByteArray(torrentFile), seedFilesDirectory, true);
-      InetAddress host = InetAddress.getByName(hostName);
-      Client client = new Client(host, sharedTorrent);
-      client.addObserver(observer);
-      client.share();
-    } catch (IOException | NoSuchAlgorithmException exception) {
-      throw new RuntimeException(exception);
-    }
-  }
+  private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(15);
 
   @Override
-  public void seedFile(File torrentFile, File seedFilesDirectory, String host) {
-    seedFile(torrentFile, seedFilesDirectory, host, new Observer() {
+  public Future<Runnable> seedFile(byte[] torrentFile, File seedFilesDirectory, String host) {
+    return seedFile(torrentFile, seedFilesDirectory, host, new Observer() {
       @Override
       public void update(Observable observable, Object data) {
         Client client = (Client) observable;
@@ -47,26 +36,48 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
   }
 
   @Override
-  public void downloadFile(File torrentFile, File downloadDirectory, Observer observer) {
-    Client client = null;
-    try {
-      client = new Client(InetAddress.getLocalHost(),
-          SharedTorrent.fromFile(torrentFile, downloadDirectory));
-      client.addObserver(observer);
-      client.download();
-      client.waitForCompletion();
-    } catch (NoSuchAlgorithmException | IOException exception) {
-      throw new RuntimeException(exception);
-    } finally {
-      if (client != null) {
-        client.stop();
+  public Future<Runnable> seedFile(byte[] torrentFile, File seedFilesDirectory, String hostName,
+      Observer observer) {
+    SeedFileTask seedFileTask =
+        new SeedFileTask(torrentFile, seedFilesDirectory, observer, hostName);
+    return EXECUTOR_SERVICE.submit(seedFileTask, seedFileTask);
+  }
+
+  private class SeedFileTask implements Runnable {
+
+    private byte[] torrentFile;
+
+    private File seedFilesDirectory;
+
+    private Observer observer;
+
+    private String hostName;
+
+    SeedFileTask(byte[] torrentFile, File seedFilesDirectory, Observer observer, String host) {
+      this.torrentFile = torrentFile;
+      this.seedFilesDirectory = seedFilesDirectory;
+      this.observer = observer;
+      this.hostName = host;
+    }
+
+    @Override
+    public void run() {
+      try {
+        SharedTorrent sharedTorrent = new SharedTorrent(torrentFile, seedFilesDirectory, true);
+        InetAddress host = InetAddress.getByName(hostName);
+        Client client = new Client(host, sharedTorrent);
+        client.addObserver(observer);
+        client.share();
+      } catch (IOException | NoSuchAlgorithmException exception) {
+        throw new RuntimeException(exception);
       }
     }
   }
 
+
   @Override
-  public void downloadFile(File torrentFile, File downloadDirectory) {
-    downloadFile(torrentFile, downloadDirectory, new Observer() {
+  public Future<Runnable> downloadFile(byte[] torrentFile, File downloadDirectory) {
+    return downloadFile(torrentFile, downloadDirectory, new Observer() {
       @Override
       public void update(Observable observable, Object data) {
         Client client = (Client) observable;
@@ -76,6 +87,46 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
             new Object[] {progress, torrent.getName()});
       }
     });
+  }
+
+  @Override
+  public Future<Runnable> downloadFile(byte[] torrentFile, File downloadDirectory,
+      Observer observer) {
+    DownloadFileTask downloadTask = new DownloadFileTask(torrentFile, downloadDirectory, observer);
+    return EXECUTOR_SERVICE.submit(downloadTask, downloadTask);
+  }
+
+  private class DownloadFileTask implements Runnable {
+
+    private byte[] torrentFile;
+
+    private File downloadDirectory;
+
+    private Observer observer;
+
+    DownloadFileTask(byte[] torrentFile, File downloadDirectory, Observer observer) {
+      this.torrentFile = torrentFile;
+      this.downloadDirectory = downloadDirectory;
+      this.observer = observer;
+    }
+
+    @Override
+    public void run() {
+      Client client = null;
+      try {
+        client = new Client(InetAddress.getLocalHost(),
+            new SharedTorrent(torrentFile, downloadDirectory));
+        client.addObserver(observer);
+        client.download();
+        client.waitForCompletion();
+      } catch (NoSuchAlgorithmException | IOException exception) {
+        throw new RuntimeException(exception);
+      } finally {
+        if (client != null) {
+          client.stop();
+        }
+      }
+    }
   }
 
 }

@@ -12,7 +12,7 @@ import com.talentica.torrent.coordination.FileSeederListener;
 
 public class DataSynchronizerStarter {
 
-  public static final String TORRENT_PEERS_NODE_PATH = "/torrent/peers/";
+  public static final String TORRENT_PEERS_NODE_PATH = "/torrent/peers";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSynchronizerStarter.class);
 
@@ -27,7 +27,7 @@ public class DataSynchronizerStarter {
       client.start();
       FileSeederListener.register(client, host);
       FileDownloaderListener.register(client, host);
-      String peerPath = TORRENT_PEERS_NODE_PATH + host;
+      String peerPath = TORRENT_PEERS_NODE_PATH + "/" + host;
       if (client.checkExists().forPath(peerPath) == null) {
         client.create().creatingParentsIfNeeded().forPath(peerPath);
       }

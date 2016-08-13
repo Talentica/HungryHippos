@@ -92,6 +92,7 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
   @Override
   public Future<Runnable> downloadFile(byte[] torrentFile, File downloadDirectory,
       Observer observer) {
+    downloadDirectory.mkdirs();
     DownloadFileTask downloadTask = new DownloadFileTask(torrentFile, downloadDirectory, observer);
     return EXECUTOR_SERVICE.submit(downloadTask, downloadTask);
   }

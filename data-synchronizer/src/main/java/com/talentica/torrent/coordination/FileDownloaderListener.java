@@ -42,10 +42,10 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
       createListenerNodeIfDoesntExist(client, zkNodeToListenTo);
       childrenCache = new PathChildrenCache(client, zkNodeToListenTo, true);
       childrenCache.getListenable().addListener(new FileDownloaderListener());
-      childrenCache.start(StartMode.BUILD_INITIAL_CACHE);
-      LOGGER.info("FileSeederListener registered successfully.");
+      childrenCache.start(StartMode.POST_INITIALIZED_EVENT);
+      LOGGER.info("FileDownloaderListener registered successfully.");
     } catch (Exception exception) {
-      LOGGER.error("Error occurred while registering FileSeederListener.", exception);
+      LOGGER.error("Error occurred while registering FileDownloaderListener.", exception);
       closeChildrenCache(childrenCache);
       throw new RuntimeException(exception);
     }
@@ -75,19 +75,25 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
     String path = "";
     try {
       ChildData childData = event.getData();
-      path = childData.getPath();
-      if (event.getType() == Type.CHILD_ADDED) {
-        byte[] metadataAboutFileToSeed = childData.getData();
-        FileMetadata fileMetadata =
-            OBJECT_MAPPER.readValue(metadataAboutFileToSeed, FileMetadata.class);
-        byte[] torrentFile =
-            DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
-        TORRENT_PEER_SERVICE.downloadFile(torrentFile, new File(fileMetadata.getPath()));
-        LOGGER.info("New children added for downloading file is added. Path is {}", path);
+      if (childData != null) {
+        path = childData.getPath();
+        if (event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED) {
+          byte[] metadataAboutFileToDownload = childData.getData();
+          if (metadataAboutFileToDownload != null && metadataAboutFileToDownload.length > 0) {
+            FileMetadata fileMetadata =
+                OBJECT_MAPPER.readValue(metadataAboutFileToDownload, FileMetadata.class);
+            byte[] torrentFile =
+                DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
+            File downloadDirectory = new File(fileMetadata.getPath());
+            TORRENT_PEER_SERVICE.downloadFile(torrentFile, downloadDirectory).get();
+            LOGGER.info("Downloading started for file with node path: {}", path);
+          }
+        }
       }
     } catch (Exception e) {
       LOGGER.error("Error occurred while processing request to download file on node with path: {}",
           new Object[] {host, path});
+      LOGGER.error(e.getMessage(), e);
     }
   }
 

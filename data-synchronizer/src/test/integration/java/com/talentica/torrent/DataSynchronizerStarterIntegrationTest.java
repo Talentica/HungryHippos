@@ -50,10 +50,10 @@ public class DataSynchronizerStarterIntegrationTest {
       throws JsonGenerationException, JsonMappingException, IOException, Exception {
     FileMetadata fileMetadata = new FileMetadata();
     fileMetadata.setOriginHost(ORIGIN_HOST);
-    fileMetadata.setPath("/home/nitink/hhfs");
+    fileMetadata.setPath("/home/nitink/hhfs/test");
     client.create().creatingParentsIfNeeded().forPath(
-        FileSeederListener.SEED_FILES_PARENT_NODE_PATH + ORIGIN_HOST
-            + "/" + System.currentTimeMillis(),
+        FileSeederListener.SEED_FILES_PARENT_NODE_PATH + ORIGIN_HOST + "/"
+            + System.currentTimeMillis(),
         OBJECT_MAPPER.writeValueAsString(fileMetadata).getBytes());
     synchronized (fileMetadata) {
       fileMetadata.wait();

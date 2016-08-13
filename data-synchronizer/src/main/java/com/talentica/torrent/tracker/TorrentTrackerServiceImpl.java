@@ -35,12 +35,19 @@ public class TorrentTrackerServiceImpl implements TorrentTrackerService {
   @Override
   public void newTorrentFileAvailable(File torrentFile) {
     try {
-      if (tracker == null) {
-        throw new RuntimeException("Tracker not started on port:" + port);
-      }
       TrackedTorrent trackedTorrent = TrackedTorrent.load(torrentFile);
-      tracker.announce(trackedTorrent);
+      trackedTorrent.getAnnounceList().get(0).forEach(
+          trackerUri -> announce(trackedTorrent, trackerUri.getHost(), trackerUri.getPort()));
     } catch (IOException | NoSuchAlgorithmException exception) {
+      throw new RuntimeException(exception);
+    }
+  }
+
+  private void announce(TrackedTorrent trackedTorrent, String host, int port) {
+    try {
+      Tracker tracker = new Tracker(new InetSocketAddress(host, port));
+      tracker.announce(trackedTorrent);
+    } catch (IOException exception) {
       throw new RuntimeException(exception);
     }
   }

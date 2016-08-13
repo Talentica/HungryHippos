@@ -42,17 +42,19 @@ public class FileSeederListener implements PathChildrenCacheListener {
   private static final TorrentTrackerService TORRENT_TRACKER_SERVICE =
       new TorrentTrackerServiceImpl();
 
+  private static String zkNodeToListenTo;
+
   private FileSeederListener() {}
 
   @SuppressWarnings("resource")
   public static void register(CuratorFramework client, String host) {
     PathChildrenCache childrenCache = null;
     try {
-      String zkNodeToListenTo = SEED_FILES_PARENT_NODE_PATH + host;
+      zkNodeToListenTo = SEED_FILES_PARENT_NODE_PATH + host;
       createListenerNodeIfDoesntExist(client, zkNodeToListenTo);
       childrenCache = new PathChildrenCache(client, zkNodeToListenTo, true);
       childrenCache.getListenable().addListener(new FileSeederListener());
-      childrenCache.start(StartMode.BUILD_INITIAL_CACHE);
+      childrenCache.start(StartMode.POST_INITIALIZED_EVENT);
       LOGGER.info("FileSeederListener registered successfully.");
     } catch (Exception exception) {
       LOGGER.error("Error occurred while registering FileSeederListener.", exception);
@@ -85,44 +87,47 @@ public class FileSeederListener implements PathChildrenCacheListener {
     String path = "";
     try {
       ChildData childData = event.getData();
-      path = childData.getPath();
-      if (event.getType() == Type.CHILD_ADDED) {
-        byte[] metadataAboutFileToSeed = childData.getData();
-        FileMetadata fileMetadata =
-            OBJECT_MAPPER.readValue(metadataAboutFileToSeed, FileMetadata.class);
-        File seedFilesDirectory = new File(fileMetadata.getPath());
-        File torrentFile = generateTorrentFile(client, seedFilesDirectory);
-        TORRENT_TRACKER_SERVICE.newTorrentFileAvailable(torrentFile);
-        byte[] torrentFileContent = FileUtils.readFileToByteArray(torrentFile);
-        String originHost = fileMetadata.getOriginHost();
-        TORRENT_PEER_SERVICE.seedFile(torrentFileContent, seedFilesDirectory, originHost);
-        fileMetadata
-            .setBase64EncodedTorrentFile(DatatypeConverter.printBase64Binary(torrentFileContent));
-        String fileMetadataWithTorrent = OBJECT_MAPPER.writeValueAsString(fileMetadata);
+      if (childData != null) {
+        path = childData.getPath();
+        if (event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED) {
+          byte[] metadataAboutFileToSeed = childData.getData();
+          FileMetadata fileMetadata =
+              OBJECT_MAPPER.readValue(metadataAboutFileToSeed, FileMetadata.class);
+          File fileToSeed = new File(fileMetadata.getPath());
+          File torrentFile = generateTorrentFile(client, fileToSeed);
+          TORRENT_TRACKER_SERVICE.newTorrentFileAvailable(torrentFile);
+          byte[] torrentFileContent = FileUtils.readFileToByteArray(torrentFile);
+          String originHost = fileMetadata.getOriginHost();
+          TORRENT_PEER_SERVICE.seedFile(torrentFileContent, fileToSeed, originHost);
+          fileMetadata
+              .setBase64EncodedTorrentFile(DatatypeConverter.printBase64Binary(torrentFileContent));
+          String fileMetadataWithTorrent = OBJECT_MAPPER.writeValueAsString(fileMetadata);
 
-        client.getChildren().forPath(DataSynchronizerStarter.TORRENT_PEERS_NODE_PATH)
-            .forEach(childPath -> {
-              try {
-                createDownloadReadyNodesForOtherPeers(client, seedFilesDirectory,
-                    fileMetadataWithTorrent, childPath.split("/")[childPath.split("/").length - 1]);
-              } catch (Exception exception) {
-                LOGGER.error("Error occurred while creating download ready for node: {}",
-                    childPath, exception);
-              }
-            });
-        client.delete().forPath(path);
+          client.getChildren().forPath(DataSynchronizerStarter.TORRENT_PEERS_NODE_PATH)
+              .forEach(childPath -> {
+                try {
+                  createDownloadReadyNodesForOtherPeers(client, 
+                      fileMetadataWithTorrent,
+                      childPath.split("/")[childPath.split("/").length - 1]);
+                } catch (Exception exception) {
+                  LOGGER.error("Error occurred while creating download ready for node: {}",
+                      childPath, exception);
+                }
+              });
+          client.delete().forPath(path);
+        }
       }
     } catch (Exception e) {
-      LOGGER.error("Error occurred while processing request to seed file for node with path: {}",
-          path);
+      LOGGER.error(
+          "Error occurred while processing request to seed file for node with path: " + path, e);
     }
   }
 
   private void createDownloadReadyNodesForOtherPeers(CuratorFramework client,
-      File seedFilesDirectory, String fileMetadataWithTorrent, String downloadHost)
+      String fileMetadataWithTorrent, String downloadHost)
       throws Exception {
     String fileAvailableNodePath = FileDownloaderListener.FILES_TO_DOWNLOAD_NODE_PATH + downloadHost
-        + "/" + seedFilesDirectory.getAbsolutePath();
+        + "/" + System.currentTimeMillis();
     if (client.checkExists().forPath(fileAvailableNodePath) == null) {
       client.create().creatingParentsIfNeeded().forPath(fileAvailableNodePath,
           fileMetadataWithTorrent.getBytes());
@@ -136,10 +141,11 @@ public class FileSeederListener implements PathChildrenCacheListener {
     List<URI> announceList = new ArrayList<>(1);
     client.getChildren().forPath(TorrentTrackerStarter.TRACKERS_NODE_PATH).forEach(childPath -> {
       try {
-        announceList.add(URI.create(new String(client.getData().forPath(childPath))));
+        announceList.add(URI.create(new String(
+            client.getData().forPath(TorrentTrackerStarter.TRACKERS_NODE_PATH + "/" + childPath))));
       } catch (Exception exception) {
-        LOGGER.error("Error occurred while creating trackers announce list for path: {}",
-            childPath, exception);
+        LOGGER.error("Error occurred while creating trackers announce list for path: {}", childPath,
+            exception);
       }
     });
     File torrentFile = File.createTempFile(seedFilesDirectory.getName(), ".torrent");

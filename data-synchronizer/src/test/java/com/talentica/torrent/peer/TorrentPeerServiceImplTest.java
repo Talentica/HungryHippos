@@ -75,7 +75,7 @@ public class TorrentPeerServiceImplTest {
         "localhost");
   }
 
-  @Test
+  // @Test
   public void testDownloadFile() throws InterruptedException, IOException {
     seedFile();
     File downloadDir = new File(seedFilesDirectory.getAbsolutePath() + File.separator + ".."

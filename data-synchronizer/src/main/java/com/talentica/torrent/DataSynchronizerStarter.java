@@ -31,8 +31,8 @@ public class DataSynchronizerStarter {
       if (client.checkExists().forPath(peerPath) == null) {
         client.create().creatingParentsIfNeeded().forPath(peerPath);
       }
-      synchronized (client) {
-        client.wait();
+      synchronized (args) {
+        args.wait();
       }
       LOGGER.info("Data synchronizer started successfully.");
     } catch (Exception exception) {

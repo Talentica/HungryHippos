@@ -10,6 +10,13 @@ import org.slf4j.LoggerFactory;
 import com.talentica.torrent.coordination.FileDownloaderListener;
 import com.talentica.torrent.coordination.FileSeederListener;
 
+/**
+ * This is a starting point of data synchronizer application. It synchronizes any files' content
+ * within cluster using torrent protocol.
+ * 
+ * @author nitink
+ *
+ */
 public class DataSynchronizerStarter {
 
   public static final String TORRENT_PEERS_NODE_PATH = "/torrent/peers";
@@ -31,8 +38,8 @@ public class DataSynchronizerStarter {
       if (client.checkExists().forPath(peerPath) == null) {
         client.create().creatingParentsIfNeeded().forPath(peerPath);
       }
-      synchronized (args) {
-        args.wait();
+      synchronized (client) {
+        client.wait();
       }
       LOGGER.info("Data synchronizer started successfully.");
     } catch (Exception exception) {

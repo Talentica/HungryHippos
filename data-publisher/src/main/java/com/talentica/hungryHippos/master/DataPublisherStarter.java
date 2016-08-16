@@ -50,7 +50,7 @@ public class DataPublisherStarter {
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(localShardingPath).mkdirs();
       
-      downloadAndUnzipShardingTable(destinationPath,localShardingPath);
+      localShardingPath = downloadAndUnzipShardingTable(destinationPath,localShardingPath);
 
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
@@ -155,19 +155,20 @@ public class DataPublisherStarter {
     return context;
   }
 
-  public static void downloadAndUnzipShardingTable(String distributedFilePath, String localDir) {
+  public static String downloadAndUnzipShardingTable(String distributedFilePath, String localDir) {
     Node node = RandomNodePicker.getRandomNode();
     String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
     String remoteDir = fileSystemBaseDirectory + distributedFilePath;
-
+    String filePath = localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
     ScpCommandExecutor.download("root", node.getIp(),
-        remoteDir + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz", localDir);
+        remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz", localDir);
     try {
-      TarAndGzip.untarTGzFile(localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz");
+      TarAndGzip.untarTGzFile(filePath + ".tar.gz");
     } catch (IOException e) {
       LOGGER.error("Downloading The sharding file from node : " + node.getIp() + " failed.");
       throw new RuntimeException(e);
     }
+    return filePath;
   }
 
 }

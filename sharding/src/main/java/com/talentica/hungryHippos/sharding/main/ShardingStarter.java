@@ -63,17 +63,19 @@ public class ShardingStarter {
         throw new RuntimeException(shardingTablePathOnZk + " already exists");
       }
       ZkUtils.createFileNode(shardingTablePathOnZk);
-      
+
       isFileCreated = true;
 
       String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
-          + "hungryhippos" + File.separator + System.currentTimeMillis();
+          + "hungryhippos" + File.separator + System.currentTimeMillis() + File.separator
+          + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
           context.getShardingServerConfigFilePath(), tempDir);
-      //uploadShardingData(shardingClientConfig, tempDir);
-      ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk+FileSystemConstants.ZK_PATH_SEPARATOR+FileSystemConstants.SHARDED, "");
-      long endTime = System.currentTimeMillis();      
+      uploadShardingData(shardingClientConfig, tempDir);
+      ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
+          + FileSystemConstants.SHARDED, "");
+      long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);

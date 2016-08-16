@@ -3,14 +3,17 @@
  */
 package com.talentica.hungryHippos.master;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.common.util.RandomNodePicker;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
@@ -18,7 +21,12 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
+import com.talentica.hungryHippos.utility.scp.TarAndGzip;
+import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class DataPublisherStarter {
@@ -34,10 +42,16 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
-    String localShardingPath = args[3];
     try {
       FileSystemUtils.validatePath(destinationPath, true);
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+
+      String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
+          + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
+      new File(localShardingPath).mkdirs();
+      
+      downloadAndUnzipShardingTable(destinationPath,localShardingPath);
+
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
           context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
@@ -139,6 +153,21 @@ public class DataPublisherStarter {
 
   public static ShardingApplicationContext getContext() {
     return context;
+  }
+
+  public static void downloadAndUnzipShardingTable(String distributedFilePath, String localDir) {
+    Node node = RandomNodePicker.getRandomNode();
+    String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
+    String remoteDir = fileSystemBaseDirectory + distributedFilePath;
+
+    ScpCommandExecutor.download("root", node.getIp(),
+        remoteDir + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz", localDir);
+    try {
+      TarAndGzip.untarTGzFile(localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz");
+    } catch (IOException e) {
+      LOGGER.error("Downloading The sharding file from node : " + node.getIp() + " failed.");
+      throw new RuntimeException(e);
+    }
   }
 
 }

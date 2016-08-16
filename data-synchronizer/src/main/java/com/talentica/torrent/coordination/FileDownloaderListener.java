@@ -1,36 +1,38 @@
 package com.talentica.torrent.coordination;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.concurrent.ExecutionException;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.peer.TorrentPeerService;
 import com.talentica.torrent.peer.TorrentPeerServiceImpl;
+import com.turn.ttorrent.client.Client;
+import com.turn.ttorrent.client.SharedTorrent;
 
-public class FileDownloaderListener implements PathChildrenCacheListener {
+public class FileDownloaderListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloaderListener.class);
 
   public static final String FILES_TO_DOWNLOAD_NODE_PATH = "/torrent/files-to-download/";
 
+  public static final String FILES_DOWNLOAD_SUCCESS_NODE_PATH = "/torrent/files-download-success";
+
   public static final String FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH =
       "/torrent/files-erred-while-download/";
-
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private static final TorrentPeerService TORRENT_PEER_SERVICE = new TorrentPeerServiceImpl();
 
@@ -38,100 +40,89 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
 
   private FileDownloaderListener() {}
 
-  @SuppressWarnings("resource")
+
   public static void register(CuratorFramework client, String thisHost) {
-    PathChildrenCache childrenCache = null;
-    try {
-      host = thisHost;
-      String zkNodeToListenTo = FILES_TO_DOWNLOAD_NODE_PATH + host;
-      createListenerNodeIfDoesntExist(client, zkNodeToListenTo);
-      childrenCache = new PathChildrenCache(client, zkNodeToListenTo, true);
-      childrenCache.getListenable().addListener(new FileDownloaderListener());
-      childrenCache.start(StartMode.POST_INITIALIZED_EVENT);
-      LOGGER.info("FileDownloaderListener registered successfully.");
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while registering FileDownloaderListener.", exception);
-      closeChildrenCache(childrenCache);
-      throw new RuntimeException(exception);
-    }
-  }
-
-  private static void createListenerNodeIfDoesntExist(CuratorFramework client,
-      String zkNodeToListenTo) throws Exception {
-    try {
-      boolean pathDoesntExist = client.checkExists().forPath(zkNodeToListenTo) == null;
-      if (pathDoesntExist) {
-        client.create().creatingParentsIfNeeded().forPath(zkNodeToListenTo);
-      }
-    } catch (NodeExistsException exception) {
-      LOGGER.warn("Node already exists: {}", zkNodeToListenTo);
-    }
-  }
-
-  private static void closeChildrenCache(PathChildrenCache childrenCache) {
-    try {
-      if (childrenCache != null) {
-        childrenCache.close();
-      }
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while closing path children cache.", exception);
-      throw new RuntimeException(exception);
-    }
+    host = thisHost;
+    String zkNodeToListenTo = FILES_TO_DOWNLOAD_NODE_PATH + host;
+    register(client, zkNodeToListenTo, new FileDownloaderListener());
   }
 
   @Override
-  public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
+  public void childEvent(CuratorFramework curatorClient, PathChildrenCacheEvent event) {
     String path = null;
     try {
       ChildData childData = event.getData();
       if (childData != null) {
         path = childData.getPath();
         if (checkIfNodeAddedOrUpdated(event)) {
-          byte[] metadataAboutFileToDownload = childData.getData();
-          if (metadataAboutFileToDownload != null && metadataAboutFileToDownload.length > 0) {
-            FileMetadata fileMetadata =
-                OBJECT_MAPPER.readValue(metadataAboutFileToDownload, FileMetadata.class);
-            byte[] torrentFile =
-                DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
-            File downloadDirectory = new File(fileMetadata.getPath());
-            LOGGER.info("Downloading file with node path: {}", path);
-            TORRENT_PEER_SERVICE.downloadFile(torrentFile, downloadDirectory).get();
-            LOGGER.info("Downloading finished for: {}", path);
-          }
+          startDownloadProcess(curatorClient, path, childData);
         }
       }
     } catch (Exception exception) {
-      handleError(client, path, exception);
+      handleError(curatorClient, path, exception, FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH);
     } finally {
-      cleanup(client, path);
+      cleanup(curatorClient, path);
     }
   }
 
-  private boolean checkIfNodeAddedOrUpdated(PathChildrenCacheEvent event) {
-    return event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED;
-  }
-
-  private void cleanup(CuratorFramework client, String path) {
-    try {
-      if (path != null && client.checkExists().forPath(path) != null) {
-        client.delete().forPath(path);
-      }
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while deleting node:" + path, exception);
+  private void startDownloadProcess(CuratorFramework curatorClient, String path,
+      ChildData childData) throws IOException, JsonParseException, JsonMappingException,
+      InterruptedException, ExecutionException {
+    byte[] metadataAboutFileToDownload = childData.getData();
+    if (metadataAboutFileToDownload != null && metadataAboutFileToDownload.length > 0) {
+      FileMetadata fileMetadata =
+          OBJECT_MAPPER.readValue(metadataAboutFileToDownload, FileMetadata.class);
+      byte[] torrentFile =
+          DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
+      File downloadDirectory = new File(fileMetadata.getPath());
+      LOGGER.info("Downloading file with node path: {}", path);
+      TORRENT_PEER_SERVICE.downloadFile(torrentFile, downloadDirectory,
+          new DownloadProgressObserver(curatorClient, downloadDirectory)).get();
+      LOGGER.info("Downloading finished for: {}", path);
     }
   }
 
-  private void handleError(CuratorFramework client, String path, Exception error) {
-    try {
-      LOGGER.error("Error occurred while processing request to download file on node with path: {}",
-          new Object[] {host, path});
-      LOGGER.error(error.getMessage(), error);
-      if (path != null) {
-        client.create().creatingParentsIfNeeded().forPath(
-            FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH + StringUtils.substringAfterLast(path, "/"));
+  private class DownloadProgressObserver implements Observer {
+
+    private CuratorFramework curatorClient;
+
+    private File downloadDirectory;
+
+    public DownloadProgressObserver(CuratorFramework client, File downloadDirectory) {
+      this.downloadDirectory = downloadDirectory;
+      this.curatorClient = client;
+    }
+
+    @Override
+    public void update(Observable observable, Object data) {
+      updateProgressOfFileDownload(curatorClient, downloadDirectory, observable);
+    }
+
+    private void updateProgressOfFileDownload(CuratorFramework curatorClient,
+        File downloadDirectory, Observable observable) {
+      try {
+        Client client = (Client) observable;
+        SharedTorrent torrent = client.getTorrent();
+        float progress = torrent.getCompletion();
+        LOGGER.debug("{} % file downloaded for torrent: {}",
+            new Object[] {progress, torrent.getName()});
+        if (Float.valueOf(progress).intValue() == 100) {
+          String fileDownloadSuccessNodePath =
+              FILES_DOWNLOAD_SUCCESS_NODE_PATH + downloadDirectory.getAbsolutePath() + "/" + host;
+          if (curatorClient.checkExists().forPath(fileDownloadSuccessNodePath) == null) {
+            curatorClient.create().creatingParentsIfNeeded().forPath(fileDownloadSuccessNodePath,
+                new Date().toString().getBytes());
+          } else {
+            curatorClient.setData().forPath(fileDownloadSuccessNodePath,
+                new Date().toString().getBytes());
+          }
+          LOGGER.info("File download successful for file: " + downloadDirectory.getAbsolutePath()
+              + " on host:" + host);
+        }
+      } catch (Exception exception) {
+        LOGGER.error("Error while updating progress of file download for torrent:"
+            + downloadDirectory.getAbsolutePath(), exception);
       }
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while deleting node:" + path, exception);
     }
   }
 

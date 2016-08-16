@@ -7,6 +7,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.torrent.coordination.NewTorrentAvailableListener;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
 
 public class TorrentTrackerStarter {
@@ -35,6 +36,7 @@ public class TorrentTrackerStarter {
         client.setData().forPath(trackerNodePath, trackerUrl.getBytes());
       }
       LOGGER.info("Tracker started successfully at " + trackerHost + ":" + trackerPort);
+      NewTorrentAvailableListener.register(client, trackerHost);
       synchronized (client) {
         client.wait();
       }

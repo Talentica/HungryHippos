@@ -10,10 +10,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.talentica.torrent.TorrentTrackerStarter;
 import com.turn.ttorrent.common.Torrent;
 
 public class TorrentGenerator {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TorrentGenerator.class);
+
+  public static File generateTorrentFile(CuratorFramework client, File seedFile)
+      throws Exception, IOException {
+    List<URI> announceList = new ArrayList<>(1);
+    client.getChildren().forPath(TorrentTrackerStarter.TRACKERS_NODE_PATH).forEach(childPath -> {
+      try {
+        announceList.add(URI.create(new String(
+            client.getData().forPath(TorrentTrackerStarter.TRACKERS_NODE_PATH + "/" + childPath))));
+      } catch (Exception exception) {
+        LOGGER.error("Error occurred while creating trackers announce list for path: {}", childPath,
+            exception);
+      }
+    });
+    File torrentFile = File.createTempFile(seedFile.getName(), ".torrent");
+    generateTorrentFile(seedFile.getAbsolutePath(), announceList, "SYSTEM",
+        torrentFile.getAbsolutePath());
+    return torrentFile;
+  }
+
 
   /**
    * Generates and returns torrent for the source file.
@@ -43,9 +68,8 @@ public class TorrentGenerator {
    * @param torrentFilePath - path to generate torrent file at. Please specify full path along with
    *        name of the torrent file and extension.
    */
-  public static void generateTorrentFile(String sourceFilePath, List<URI> announceList,
-      String createdBy,
-      String torrentFilePath) {
+  private static void generateTorrentFile(String sourceFilePath, List<URI> announceList,
+      String createdBy, String torrentFilePath) {
     try {
       if (!FilenameUtils.isExtension(torrentFilePath, "torrent")) {
         throw new RuntimeException("Invalid torrent file name.");
@@ -68,7 +92,7 @@ public class TorrentGenerator {
     URI trackerUri = URI.create(args[1]);
     String createdBy = args[2];
     String outputDirectory = args[3];
-    List<URI> trackers= new ArrayList<>();
+    List<URI> trackers = new ArrayList<>();
     trackers.add(trackerUri);
     generateTorrentFile(sourceFilePath, trackers, createdBy, outputDirectory);
   }

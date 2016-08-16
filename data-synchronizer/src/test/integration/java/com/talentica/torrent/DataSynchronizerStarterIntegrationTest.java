@@ -1,7 +1,11 @@
 package com.talentica.torrent;
 
+import java.io.File;
 import java.io.IOException;
 
+import javax.xml.bind.DatatypeConverter;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -13,17 +17,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.torrent.coordination.FileSeederListener;
+import com.talentica.torrent.coordination.NewTorrentAvailableListener;
+import com.talentica.torrent.util.TorrentGenerator;
 
 public class DataSynchronizerStarterIntegrationTest {
 
-  private static final String ZOOKEEPER_CONN_STRING = "localhost:2181";
+  private static final String ZOOKEEPER_CONN_STRING = "138.68.17.228:2181";
 
-  private static final String ORIGIN_HOST = "localhost";
+  private static final String ORIGIN_HOST = "138.68.17.228";
 
-  private static final String TRACKER_HOST = "localhost";
+  private static final String TRACKER_HOST = "138.68.17.228";
 
   private static final String TRACKER_PORT = "6969";
+
+  private static final String SEED_FILE_PATH = "/root/testNewFile1";
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -50,9 +57,13 @@ public class DataSynchronizerStarterIntegrationTest {
       throws JsonGenerationException, JsonMappingException, IOException, Exception {
     FileMetadata fileMetadata = new FileMetadata();
     fileMetadata.setOriginHost(ORIGIN_HOST);
-    fileMetadata.setPath("/home/nitink/hhfs/test");
+    fileMetadata.setPath(SEED_FILE_PATH);
+    File torrentFile = TorrentGenerator.generateTorrentFile(client,
+        new File("/home/nitink/hhfs/node1file/testNewFile1"));
+    fileMetadata.setBase64EncodedTorrentFile(
+        DatatypeConverter.printBase64Binary(FileUtils.readFileToByteArray(torrentFile)));
     client.create().creatingParentsIfNeeded().forPath(
-        FileSeederListener.SEED_FILES_PARENT_NODE_PATH + ORIGIN_HOST + "/"
+        NewTorrentAvailableListener.NEW_TORRENT_AVAILABLE_NODE_PATH + "/"
             + System.currentTimeMillis(),
         OBJECT_MAPPER.writeValueAsString(fileMetadata).getBytes());
     synchronized (fileMetadata) {

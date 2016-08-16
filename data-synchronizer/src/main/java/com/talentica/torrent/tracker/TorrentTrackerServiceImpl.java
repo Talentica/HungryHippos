@@ -57,6 +57,7 @@ public final class TorrentTrackerServiceImpl implements TorrentTrackerService {
       tracker.stop();
       port = -1;
     }
+    tracker = null;
   }
 
   @Override

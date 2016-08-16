@@ -13,31 +13,35 @@ import com.talentica.torrent.coordination.FileDownloaderListener;
 
 public class TestDownloadFile {
 
-  private static final String ZOOKEEPER_CONN_STRING = "localhost";
-
-  private static final String DOWNLOAD_HOST = "localhost";
-
-  private static final Thread START_DOWNLOADER_THREAD = new Thread(new Runnable() {
-    @Override
-    public void run() {
-      CuratorFramework client;
-      try {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
-        client = CuratorFrameworkFactory.newClient(ZOOKEEPER_CONN_STRING, retryPolicy);
-        client.start();
-        FileDownloaderListener.register(client, DOWNLOAD_HOST);
-        synchronized (client) {
-          client.wait();
-        }
-      } catch (Exception exception) {
-        throw new RuntimeException(exception);
-      }
-    }
-  });
+  private static final String ZOOKEEPER_CONN_STRING = "138.68.17.228:2181";
 
   public static void main(String[] args)
       throws JsonGenerationException, JsonMappingException, IOException, Exception {
-    START_DOWNLOADER_THREAD.start();
+    if (args.length < 1) {
+      System.err.println("Please provide the IP of host to download file on.");
+      System.exit(-1);
+    }
+    startDownload(args);
+  }
+
+  private static void startDownload(String[] args) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        CuratorFramework client;
+        try {
+          RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+          client = CuratorFrameworkFactory.newClient(ZOOKEEPER_CONN_STRING, retryPolicy);
+          client.start();
+          FileDownloaderListener.register(client, args[0]);
+          synchronized (client) {
+            client.wait();
+          }
+        } catch (Exception exception) {
+          throw new RuntimeException(exception);
+        }
+      }
+    }).start();
   }
 
 }

@@ -17,13 +17,13 @@ import com.talentica.torrent.coordination.FileSeederListener;
 
 public class TestSeedFile {
 
-  private static final String FILE_TO_SEED = "/home/nitink/hhfs/test";
+  private static final String FILE_TO_SEED = "/root/test";
 
-  private static final String ZOOKEEPER_CONN_STRING = "localhost:2181";
+  private static final String ZOOKEEPER_CONN_STRING = "138.68.17.228:2181";
 
-  private static final String ORIGIN_HOST = "localhost";
+  private static final String ORIGIN_HOST = "138.68.17.228";
 
-  private static final String TRACKER_HOST = "localhost";
+  private static final String TRACKER_HOST = "138.68.17.228";
 
   private static final String TRACKER_PORT = "6969";
 

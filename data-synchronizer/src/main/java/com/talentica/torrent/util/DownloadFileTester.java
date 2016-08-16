@@ -1,4 +1,4 @@
-package com.test;
+package com.talentica.torrent.util;
 
 import java.io.IOException;
 
@@ -11,14 +11,13 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 import com.talentica.torrent.coordination.FileDownloaderListener;
 
-public class TestDownloadFile {
-
-  private static final String ZOOKEEPER_CONN_STRING = "138.68.17.228:2181";
+public class DownloadFileTester {
 
   public static void main(String[] args)
       throws JsonGenerationException, JsonMappingException, IOException, Exception {
-    if (args.length < 1) {
-      System.err.println("Please provide the IP of host to download file on.");
+    if (args.length < 2) {
+      System.err.println(
+          "Please provide the IP of host to download file on and zookepper connection string.");
       System.exit(-1);
     }
     startDownload(args);
@@ -31,7 +30,7 @@ public class TestDownloadFile {
         CuratorFramework client;
         try {
           RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
-          client = CuratorFrameworkFactory.newClient(ZOOKEEPER_CONN_STRING, retryPolicy);
+          client = CuratorFrameworkFactory.newClient(args[1], retryPolicy);
           client.start();
           FileDownloaderListener.register(client, args[0]);
           synchronized (client) {

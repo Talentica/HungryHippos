@@ -815,7 +815,7 @@ public class NodesManager implements Watcher {
       throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
-    if (stat != null) {
+    if (stat != null && stat.getDataLength()!=0) {
       return ZkUtils.deserialize(zk.getData(nodePath, this, stat));
     }
     return null;

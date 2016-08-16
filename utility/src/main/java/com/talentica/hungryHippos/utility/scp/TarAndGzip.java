@@ -9,14 +9,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.kamranzafar.jtar.TarEntry;
+import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
 
 public class TarAndGzip {
 
+  static final int BUFFER = 2048;
+  
   public static void folder(File pFolder) throws IOException {
     folder(pFolder, new ArrayList<String>(), pFolder.getName());
   }
@@ -103,5 +107,49 @@ public class TarAndGzip {
       }
     }
     return skip;
+  }
+
+  public static void untarTGzFile(String sourceFilePath) throws IOException {
+    
+    File zf = new File(sourceFilePath);
+    File destFolder = zf.getParentFile();
+
+    TarInputStream tis = new TarInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(zf))));
+
+    untar(tis, destFolder.getAbsolutePath());
+
+    tis.close();
+
+}
+
+  private static void untar(TarInputStream tis, String destFolder) throws IOException {
+    BufferedOutputStream dest = null;
+
+    TarEntry entry;
+    while ((entry = tis.getNextEntry()) != null) {
+      System.out.println("Extracting: " + entry.getName());
+      int count;
+      byte data[] = new byte[BUFFER];
+
+      if (entry.isDirectory()) {
+        new File(destFolder + "/" + entry.getName()).mkdirs();
+        continue;
+      } else {
+        int di = entry.getName().lastIndexOf('/');
+        if (di != -1) {
+          new File(destFolder + "/" + entry.getName().substring(0, di)).mkdirs();
+        }
+      }
+
+      FileOutputStream fos = new FileOutputStream(destFolder + "/" + entry.getName());
+      dest = new BufferedOutputStream(fos);
+
+      while ((count = tis.read(data)) != -1) {
+        dest.write(data, 0, count);
+      }
+
+      dest.flush();
+      dest.close();
+    }
   }
 }

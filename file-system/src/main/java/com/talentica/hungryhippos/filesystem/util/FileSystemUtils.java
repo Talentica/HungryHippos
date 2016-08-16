@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.google.common.base.Strings;
+import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 /**
  * Created by rajkishoreh on 8/7/16.
@@ -95,21 +98,46 @@ public class FileSystemUtils {
     }
   }
 
+  /**
+   * Checks if the path is valid
+   * @param path
+   * @param isFile
+     */
   public static void validatePath(String path, boolean isFile) {
     if (Strings.isNullOrEmpty(path) || !path.startsWith("/")) {
       throw new RuntimeException("Invalid path");
     }
     if (isFile) {
-      if (!path.endsWith("/")) {
-        return;
-      } else {
+      if (path.endsWith("/")) {
         throw new RuntimeException("Invalid file path");
       }
     } else {
-      if (path.endsWith("/")) {
-        return;
-      } else {
+      if (!path.endsWith("/")) {
         throw new RuntimeException("Invalid directory path");
+      }
+    }
+    checkSubPaths(path);
+
+  }
+
+  /**
+   * Checks if a subpath is representing existing file
+   * @param path
+     */
+  private static void checkSubPaths(String path){
+    String[] strings =  path.split("/");
+    String fileSystemRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath();
+    String relativeNodePath = "";
+    for (int i = 1; i < strings.length-1; i++) {
+      relativeNodePath = relativeNodePath+"/"+strings[i];
+      String absoluteNodePath = fileSystemRootNode+relativeNodePath;
+      if(ZkUtils.checkIfNodeExists(absoluteNodePath)){
+        String nodeData = (String) ZkUtils.getNodeData(absoluteNodePath);
+        if(FileSystemConstants.IS_A_FILE.equals(nodeData)){
+          throw new RuntimeException("Invalid path : "+path+".\nFile with path : "+relativeNodePath+" already exists");
+        }
+      } else {
+        break;
       }
     }
   }

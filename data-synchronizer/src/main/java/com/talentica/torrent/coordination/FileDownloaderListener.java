@@ -4,6 +4,7 @@ import java.io.File;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -11,6 +12,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,9 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloaderListener.class);
 
   public static final String FILES_TO_DOWNLOAD_NODE_PATH = "/torrent/files-to-download/";
+
+  public static final String FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH =
+      "/torrent/files-erred-while-download/";
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -53,9 +58,13 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
 
   private static void createListenerNodeIfDoesntExist(CuratorFramework client,
       String zkNodeToListenTo) throws Exception {
-    boolean pathDoesntExist = client.checkExists().forPath(zkNodeToListenTo) == null;
-    if (pathDoesntExist) {
-      client.create().creatingParentsIfNeeded().forPath(zkNodeToListenTo);
+    try {
+      boolean pathDoesntExist = client.checkExists().forPath(zkNodeToListenTo) == null;
+      if (pathDoesntExist) {
+        client.create().creatingParentsIfNeeded().forPath(zkNodeToListenTo);
+      }
+    } catch (NodeExistsException exception) {
+      LOGGER.warn("Node already exists: {}", zkNodeToListenTo);
     }
   }
 
@@ -72,12 +81,12 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
 
   @Override
   public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
-    String path = "";
+    String path = null;
     try {
       ChildData childData = event.getData();
       if (childData != null) {
         path = childData.getPath();
-        if (event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED) {
+        if (checkIfNodeAddedOrUpdated(event)) {
           byte[] metadataAboutFileToDownload = childData.getData();
           if (metadataAboutFileToDownload != null && metadataAboutFileToDownload.length > 0) {
             FileMetadata fileMetadata =
@@ -85,15 +94,44 @@ public class FileDownloaderListener implements PathChildrenCacheListener {
             byte[] torrentFile =
                 DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
             File downloadDirectory = new File(fileMetadata.getPath());
+            LOGGER.info("Downloading file with node path: {}", path);
             TORRENT_PEER_SERVICE.downloadFile(torrentFile, downloadDirectory).get();
-            LOGGER.info("Downloading started for file with node path: {}", path);
+            LOGGER.info("Downloading finished for: {}", path);
           }
         }
       }
-    } catch (Exception e) {
+    } catch (Exception exception) {
+      handleError(client, path, exception);
+    } finally {
+      cleanup(client, path);
+    }
+  }
+
+  private boolean checkIfNodeAddedOrUpdated(PathChildrenCacheEvent event) {
+    return event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED;
+  }
+
+  private void cleanup(CuratorFramework client, String path) {
+    try {
+      if (path != null && client.checkExists().forPath(path) != null) {
+        client.delete().forPath(path);
+      }
+    } catch (Exception exception) {
+      LOGGER.error("Error occurred while deleting node:" + path, exception);
+    }
+  }
+
+  private void handleError(CuratorFramework client, String path, Exception error) {
+    try {
       LOGGER.error("Error occurred while processing request to download file on node with path: {}",
           new Object[] {host, path});
-      LOGGER.error(e.getMessage(), e);
+      LOGGER.error(error.getMessage(), error);
+      if (path != null) {
+        client.create().creatingParentsIfNeeded().forPath(
+            FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH + StringUtils.substringAfterLast(path, "/"));
+      }
+    } catch (Exception exception) {
+      LOGGER.error("Error occurred while deleting node:" + path, exception);
     }
   }
 

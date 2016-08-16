@@ -93,7 +93,6 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
   @Override
   public Future<Runnable> downloadFile(byte[] torrentFile, File downloadDirectory,
       Observer observer) {
-    downloadDirectory.mkdirs();
     DownloadFileTask downloadTask = new DownloadFileTask(torrentFile, downloadDirectory, observer);
     return EXECUTOR_SERVICE.submit(downloadTask, downloadTask);
   }
@@ -106,9 +105,14 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
 
     private Observer observer;
 
-    DownloadFileTask(byte[] torrentFile, File downloadDirectory, Observer observer) {
+    DownloadFileTask(byte[] torrentFile, File fileToDownload, Observer observer) {
+      if (fileToDownload.getParentFile() != null) {
+        this.downloadDirectory = fileToDownload.getParentFile();
+      } else {
+        this.downloadDirectory = fileToDownload;
+      }
+      this.downloadDirectory.mkdirs();
       this.torrentFile = torrentFile;
-      this.downloadDirectory = downloadDirectory;
       this.observer = observer;
     }
 

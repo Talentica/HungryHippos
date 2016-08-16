@@ -39,6 +39,7 @@ jar {
 
 dependencies {
   compile 'com.turn:ttorrent-core:1+'
+  compile('org.apache.commons:commons-lang3:3.1')
   compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.6+'
   compile group: 'org.apache.curator', name: 'curator-recipes', version: '3.2.0'
   compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'

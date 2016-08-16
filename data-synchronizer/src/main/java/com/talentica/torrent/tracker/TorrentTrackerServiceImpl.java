@@ -11,7 +11,16 @@ import java.util.stream.Collectors;
 import com.turn.ttorrent.tracker.TrackedTorrent;
 import com.turn.ttorrent.tracker.Tracker;
 
-public class TorrentTrackerServiceImpl implements TorrentTrackerService {
+public final class TorrentTrackerServiceImpl implements TorrentTrackerService {
+
+  private static final TorrentTrackerServiceImpl TORRENT_TRACKER_SERVICE_IMPL =
+      new TorrentTrackerServiceImpl();
+
+  private TorrentTrackerServiceImpl() {}
+
+  public static final TorrentTrackerServiceImpl getInstance() {
+    return TORRENT_TRACKER_SERVICE_IMPL;
+  }
 
   private Tracker tracker;
 
@@ -36,18 +45,8 @@ public class TorrentTrackerServiceImpl implements TorrentTrackerService {
   public void newTorrentFileAvailable(File torrentFile) {
     try {
       TrackedTorrent trackedTorrent = TrackedTorrent.load(torrentFile);
-      trackedTorrent.getAnnounceList().get(0).forEach(
-          trackerUri -> announce(trackedTorrent, trackerUri.getHost(), trackerUri.getPort()));
-    } catch (IOException | NoSuchAlgorithmException exception) {
-      throw new RuntimeException(exception);
-    }
-  }
-
-  private void announce(TrackedTorrent trackedTorrent, String host, int port) {
-    try {
-      Tracker tracker = new Tracker(new InetSocketAddress(host, port));
       tracker.announce(trackedTorrent);
-    } catch (IOException exception) {
+    } catch (IOException | NoSuchAlgorithmException exception) {
       throw new RuntimeException(exception);
     }
   }
@@ -58,6 +57,7 @@ public class TorrentTrackerServiceImpl implements TorrentTrackerService {
       tracker.stop();
       port = -1;
     }
+    tracker = null;
   }
 
   @Override

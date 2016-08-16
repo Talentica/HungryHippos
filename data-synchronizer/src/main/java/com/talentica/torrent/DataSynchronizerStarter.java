@@ -41,7 +41,7 @@ public class DataSynchronizerStarter {
       synchronized (client) {
         client.wait();
       }
-      LOGGER.info("Data synchronizer started successfully.");
+      LOGGER.info("Data synchronizer started successfully on:" + host);
     } catch (Exception exception) {
       throw new RuntimeException(exception);
     }

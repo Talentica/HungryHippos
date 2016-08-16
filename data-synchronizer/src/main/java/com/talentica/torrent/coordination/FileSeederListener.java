@@ -25,7 +25,6 @@ import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.TorrentTrackerStarter;
 import com.talentica.torrent.peer.TorrentPeerService;
 import com.talentica.torrent.peer.TorrentPeerServiceImpl;
-import com.talentica.torrent.tracker.TorrentTrackerService;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
 import com.talentica.torrent.util.TorrentGenerator;
 
@@ -38,9 +37,6 @@ public class FileSeederListener implements PathChildrenCacheListener {
   public static final String SEED_FILES_PARENT_NODE_PATH = "/torrent/files-to-seed/";
 
   private static final TorrentPeerService TORRENT_PEER_SERVICE = new TorrentPeerServiceImpl();
-
-  private static final TorrentTrackerService TORRENT_TRACKER_SERVICE =
-      new TorrentTrackerServiceImpl();
 
   private static String zkNodeToListenTo;
 
@@ -95,10 +91,11 @@ public class FileSeederListener implements PathChildrenCacheListener {
               OBJECT_MAPPER.readValue(metadataAboutFileToSeed, FileMetadata.class);
           File fileToSeed = new File(fileMetadata.getPath());
           File torrentFile = generateTorrentFile(client, fileToSeed);
-          TORRENT_TRACKER_SERVICE.newTorrentFileAvailable(torrentFile);
+          TorrentTrackerServiceImpl.getInstance().newTorrentFileAvailable(torrentFile);
           byte[] torrentFileContent = FileUtils.readFileToByteArray(torrentFile);
           String originHost = fileMetadata.getOriginHost();
-          TORRENT_PEER_SERVICE.seedFile(torrentFileContent, fileToSeed, originHost);
+          TORRENT_PEER_SERVICE.seedFile(torrentFileContent, fileToSeed.getParentFile(), originHost)
+              .get();
           fileMetadata
               .setBase64EncodedTorrentFile(DatatypeConverter.printBase64Binary(torrentFileContent));
           String fileMetadataWithTorrent = OBJECT_MAPPER.writeValueAsString(fileMetadata);
@@ -136,7 +133,7 @@ public class FileSeederListener implements PathChildrenCacheListener {
     }
   }
 
-  private File generateTorrentFile(CuratorFramework client, File seedFilesDirectory)
+  private File generateTorrentFile(CuratorFramework client, File seedFile)
       throws Exception, IOException {
     List<URI> announceList = new ArrayList<>(1);
     client.getChildren().forPath(TorrentTrackerStarter.TRACKERS_NODE_PATH).forEach(childPath -> {
@@ -148,8 +145,8 @@ public class FileSeederListener implements PathChildrenCacheListener {
             exception);
       }
     });
-    File torrentFile = File.createTempFile(seedFilesDirectory.getName(), ".torrent");
-    TorrentGenerator.generateTorrentFile(seedFilesDirectory.getAbsolutePath(), announceList,
+    File torrentFile = File.createTempFile(seedFile.getName(), ".torrent");
+    TorrentGenerator.generateTorrentFile(seedFile.getAbsolutePath(), announceList,
         "SYSTEM", torrentFile.getAbsolutePath());
     return torrentFile;
   }

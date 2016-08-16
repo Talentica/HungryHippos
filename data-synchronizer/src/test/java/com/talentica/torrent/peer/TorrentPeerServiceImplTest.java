@@ -28,8 +28,6 @@ public class TorrentPeerServiceImplTest {
 
   private TorrentPeerServiceImpl torrentPeerServiceImpl;
 
-  private TorrentTrackerServiceImpl torrentTrackerServiceImpl;
-
   private File seedFilesDirectory;
 
   private File torrentFile;
@@ -38,8 +36,7 @@ public class TorrentPeerServiceImplTest {
 
   @Before
   public void setup() throws URISyntaxException, FileNotFoundException, IOException {
-    torrentTrackerServiceImpl = new TorrentTrackerServiceImpl();
-    torrentTrackerServiceImpl.startTracker("localhost", trackerPort);
+    TorrentTrackerServiceImpl.getInstance().startTracker("localhost", trackerPort);
     torrentFile = generateSampleTorrentFile();
     torrentPeerServiceImpl = new TorrentPeerServiceImpl();
   }
@@ -70,7 +67,7 @@ public class TorrentPeerServiceImplTest {
   }
 
   private void seedFile() throws IOException {
-    torrentTrackerServiceImpl.newTorrentFileAvailable(torrentFile);
+    TorrentTrackerServiceImpl.getInstance().newTorrentFileAvailable(torrentFile);
     torrentPeerServiceImpl.seedFile(FileUtils.readFileToByteArray(torrentFile), seedFilesDirectory,
         "localhost");
   }
@@ -97,9 +94,8 @@ public class TorrentPeerServiceImplTest {
 
   @After
   public void teardown() throws URISyntaxException, FileNotFoundException, IOException {
-    torrentTrackerServiceImpl.stopTracker();
+    TorrentTrackerServiceImpl.getInstance().stopTracker();
     torrentPeerServiceImpl = null;
-    torrentTrackerServiceImpl = null;
   }
 
 }

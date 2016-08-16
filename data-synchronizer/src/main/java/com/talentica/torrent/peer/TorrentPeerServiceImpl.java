@@ -68,8 +68,9 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
         Client client = new Client(host, sharedTorrent);
         client.addObserver(observer);
         client.share();
+        LOGGER.info("Seeding file:" + seedFilesDirectory + " is successful.");
       } catch (IOException | NoSuchAlgorithmException exception) {
-        throw new RuntimeException(exception);
+        LOGGER.warn("Seeding file " + seedFilesDirectory + " failed", exception.getMessage());
       }
     }
   }

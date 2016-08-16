@@ -29,7 +29,7 @@ public class ShardingTableCopier {
 
   private static final Random RANDOM = new Random();
 
-  private static final String SHARDING_ZIP_FILE_NAME = "sharding-table";
+  public static final String SHARDING_ZIP_FILE_NAME = "sharding-table";
 
   private static final String SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH =
       "/sharding-table-available-with/";

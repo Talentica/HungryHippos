@@ -49,8 +49,8 @@ public class DataPublisherStarter {
       String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(localShardingPath).mkdirs();
-      
-      localShardingPath = downloadAndUnzipShardingTable(destinationPath,localShardingPath);
+
+      localShardingPath = downloadAndUnzipShardingTable(destinationPath, localShardingPath);
 
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
@@ -160,8 +160,10 @@ public class DataPublisherStarter {
     String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
     String remoteDir = fileSystemBaseDirectory + distributedFilePath;
     String filePath = localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    ScpCommandExecutor.download("root", node.getIp(),
-        remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz", localDir);
+    ScpCommandExecutor.download(
+        NodesManagerContext.getClientConfig().getOutput().getNodeSshUsername(), node.getIp(),
+        remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz",
+        localDir);
     try {
       TarAndGzip.untarTGzFile(filePath + ".tar.gz");
     } catch (IOException e) {

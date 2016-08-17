@@ -21,8 +21,8 @@ import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
-import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
@@ -144,7 +144,7 @@ public class ShardingStarter {
   private static void uploadShardingData(ShardingClientConfig shardingClientConfig,
       String tempDir) {
     LOGGER.info("Uploading sharding data.");
-    Output outputConfiguration = shardingClientConfig.getOutput();
+    Output outputConfiguration = NodesManagerContext.getClientConfig().getOutput();
     ShardingTableCopier shardingTableCopier =
         new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
     shardingTableCopier.copyToAnyRandomNodeInCluster();

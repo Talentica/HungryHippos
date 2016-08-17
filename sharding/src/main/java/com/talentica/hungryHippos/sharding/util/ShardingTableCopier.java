@@ -14,8 +14,8 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.scp.Jscp;
 import com.talentica.hungryHippos.utility.scp.SecureContext;
+import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 

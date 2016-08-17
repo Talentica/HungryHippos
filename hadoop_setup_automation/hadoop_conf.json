@@ -1,0 +1,27 @@
+{
+	"number_of_jobs": "2",
+
+	"jobs":
+	[	 {
+		"jar_file_path": "test_data/Hadoop-WordCount/wordcount.jar",
+		"input_file_path": "test_data/sample1.txt",
+		"class_name": "WordCount",
+		"output_file_name": "result_sample1",
+		"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+		"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+		"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar"
+	},
+
+	 {
+		"jar_file_path": "test_data/Hadoop-WordCount/wordcount.jar",
+		"input_file_path": "test_data/sample2.txt",
+		"class_name": "WordCount",
+		"output_file_name": "result_sample2",
+		"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+		"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+		"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar"
+	}
+
+	]
+
+}

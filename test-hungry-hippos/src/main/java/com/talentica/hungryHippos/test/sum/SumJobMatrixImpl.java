@@ -11,7 +11,7 @@ public class SumJobMatrixImpl implements JobMatrix {
 	@Override
 	public List<Job> getListOfJobsToExecute() {
 		List<Job> jobList = new ArrayList<>();
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 3; i++) {
 			jobList.add(new SumJob(new int[] { i }, i, 6));
 			jobList.add(new SumJob(new int[] { i }, i, 7));
 			for (int j = i + 1; j < 4; j++) {

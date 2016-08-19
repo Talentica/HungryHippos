@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
-import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;

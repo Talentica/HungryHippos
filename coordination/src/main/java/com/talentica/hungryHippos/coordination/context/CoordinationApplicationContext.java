@@ -42,6 +42,7 @@ public class CoordinationApplicationContext {
   public static final String SHARDING_SERVER_CONFIGURATION = "sharding-server-configuration";
   public static final String JOB_RUNNER_CONFIGURATION = "job-runner-configuration";
   public static final String DATA_PUBLISHER_CONFIGURATION = "datapublisher-configuration";
+  public static final String TOOLS_CONFIGURATION = "tools-configuration";
   public static final String FILE_SYSTEM = "file-system";
 
   public static Property<CoordinationProperty> getProperty() {

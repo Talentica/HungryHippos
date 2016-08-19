@@ -13,7 +13,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 
 /**
  * @author pooshans

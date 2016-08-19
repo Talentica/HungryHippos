@@ -2,7 +2,6 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.File;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

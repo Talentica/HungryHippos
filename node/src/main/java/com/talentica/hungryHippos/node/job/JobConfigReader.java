@@ -1,12 +1,5 @@
 package com.talentica.hungryHippos.node.job;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.node.JobExecutor;
-import com.talentica.hungryHippos.utility.JobEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.*;
 
 /**

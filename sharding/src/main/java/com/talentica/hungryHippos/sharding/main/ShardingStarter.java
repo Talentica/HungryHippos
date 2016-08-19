@@ -3,9 +3,16 @@ package com.talentica.hungryHippos.sharding.main;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.tools.clients.FileExtractionClient;
+import com.talentica.hungryHippos.tools.clients.FileSyncUpClient;
+import com.talentica.hungryHippos.tools.utils.RandomNodePicker;
+import com.talentica.hungryHippos.utility.RequestType;
+import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -72,7 +79,12 @@ public class ShardingStarter {
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
           context.getShardingServerConfigFilePath(), tempDir);
-      uploadShardingData(shardingClientConfig, tempDir);
+
+      Node randomNode = RandomNodePicker.getRandomNode();
+      String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
+      uploadShardingData(randomNode,shardingClientConfig, tempDir);
+      syncUpShardingFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
+      extractShardingFileInNodes(uploadDestinationPath);
       ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, "");
       long endTime = System.currentTimeMillis();
@@ -136,19 +148,40 @@ public class ShardingStarter {
 
   /**
    * Uploads Sharding related data to node
-   * 
-   * @param shardingTablePathOnZk
-   * @param shardingClientConfigFilePath
-   * @param shardingServerConfigFilePath
+
+   * @param randomNode
+   * @param shardingClientConfig
+   * @param tempDir
    */
-  private static void uploadShardingData(ShardingClientConfig shardingClientConfig,
-      String tempDir) {
+  private static void uploadShardingData(Node randomNode, ShardingClientConfig shardingClientConfig,
+                                         String tempDir) {
     LOGGER.info("Uploading sharding data.");
     Output outputConfiguration = NodesManagerContext.getClientConfig().getOutput();
     ShardingTableCopier shardingTableCopier =
         new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
-    shardingTableCopier.copyToAnyRandomNodeInCluster();
+    shardingTableCopier.copyToRandomNodeInCluster(randomNode);
     LOGGER.info("Upload completed.");
+  }
+
+  public static String getUploadDestinationPath(ShardingClientConfig shardingClientConfig){
+    String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
+    String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
+    String destinationDirectory = fileSystemBaseDirectory + distributedFilePath;
+    String uploadDestinationPath =  destinationDirectory+"/" + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
+    return uploadDestinationPath;
+  }
+
+  public static void syncUpShardingFileAcrossNodes(String filePathForSyncUp, String hostIP) throws IOException {
+    FileSyncUpClient fileSyncUpClient = new FileSyncUpClient(RequestType.SYNC_UP_FILE,filePathForSyncUp);
+    fileSyncUpClient.sendRequest(hostIP);
+  }
+
+  private static void extractShardingFileInNodes(String filePathForExtraction) throws IOException {
+    FileExtractionClient fileExtractionClient =new FileExtractionClient(RequestType.EXTRACT_FILE,filePathForExtraction);
+    List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+    for(Node node:nodes){
+      fileExtractionClient.sendRequest(node.getIp());
+    }
   }
 
 

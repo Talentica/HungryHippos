@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.common.util;
+package com.talentica.hungryHippos.utility;
 
 import java.io.File;
 import java.net.MalformedURLException;

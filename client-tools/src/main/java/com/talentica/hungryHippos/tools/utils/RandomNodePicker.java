@@ -1,10 +1,10 @@
-package com.talentica.hungryHippos.common.util;
-
-import java.util.List;
-import java.util.Random;
+package com.talentica.hungryHippos.tools.utils;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryhippos.config.cluster.Node;
+
+import java.util.List;
+import java.util.Random;
 
 public class RandomNodePicker {
   

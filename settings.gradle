@@ -18,3 +18,5 @@ include 'youtube-data-analysis'
 include 'configuration-schema'
 include 'file-system'
 include 'data-synchronizer'
+include 'client-tools'
+

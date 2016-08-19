@@ -8,8 +8,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-
 /**
  * Created by debasishc on 27/8/15.
  */

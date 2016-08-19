@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.TreeMap;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
-import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.Work;
 

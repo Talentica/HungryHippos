@@ -104,15 +104,15 @@ public class FileSystemUtils {
    * @param isFile
      */
   public static void validatePath(String path, boolean isFile) {
-    if (Strings.isNullOrEmpty(path) || !path.startsWith("/")) {
+    if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
       throw new RuntimeException("Invalid path");
     }
     if (isFile) {
-      if (path.endsWith("/")) {
+      if (path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
         throw new RuntimeException("Invalid file path");
       }
     } else {
-      if (!path.endsWith("/")) {
+      if (!path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
         throw new RuntimeException("Invalid directory path");
       }
     }
@@ -125,12 +125,12 @@ public class FileSystemUtils {
    * @param path
      */
   private static void checkSubPaths(String path){
-    String[] strings =  path.split("/");
+    String[] strings =  path.split(FileSystemConstants.ZK_PATH_SEPARATOR);
     String fileSystemRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath();
     String relativeNodePath = "";
     for (int i = 1; i < strings.length-1; i++) {
-      relativeNodePath = relativeNodePath+"/"+strings[i];
-      String absoluteNodePath = fileSystemRootNode+relativeNodePath;
+      relativeNodePath = relativeNodePath+ FileSystemConstants.ZK_PATH_SEPARATOR +strings[i];
+      String absoluteNodePath = fileSystemRootNode + relativeNodePath;
       if(ZkUtils.checkIfNodeExists(absoluteNodePath)){
         String nodeData = (String) ZkUtils.getNodeData(absoluteNodePath);
         if(FileSystemConstants.IS_A_FILE.equals(nodeData)){

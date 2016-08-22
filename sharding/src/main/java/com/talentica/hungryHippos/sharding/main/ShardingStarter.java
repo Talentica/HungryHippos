@@ -28,128 +28,121 @@ import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class ShardingStarter {
 
-  /**
-   * @param args
-   */
-  private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
-  private static ShardingApplicationContext context;
+	/**
+	 * @param args
+	 */
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShardingStarter.class);
+	private static ShardingApplicationContext context;
 
-  public static void main(String[] args) {
-    LOGGER.info("SHARDING PROCESS STARTED");
-    boolean isFileCreated = false;
-    String shardingTablePathOnZk = null;
-    try {
-      LOGGER.info("SHARDING STARTED");
-      long startTime = System.currentTimeMillis();
-      validateArguments(args);
+	public static void main(String[] args) {
+		LOGGER.info("SHARDING PROCESS STARTED");
+		boolean isFileCreated = false;
+		String shardingTablePathOnZk = null;
+		try {
+			LOGGER.info("SHARDING STARTED");
+			long startTime = System.currentTimeMillis();
+			validateArguments(args);
 
-      String clientConfigFilePath = args[0];
-      String shardingFolderPath = args[1];
+			String clientConfigFilePath = args[0];
+			String shardingFolderPath = args[1];
 
-      NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-      context = new ShardingApplicationContext(shardingFolderPath);
+			NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+			context = new ShardingApplicationContext(shardingFolderPath);
 
-      ShardingClientConfig shardingClientConfig = context.getShardingClientConfig();
+			ShardingClientConfig shardingClientConfig = context.getShardingClientConfig();
 
-      String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
-      FileSystemUtils.validatePath(distributedFilePath, true);
-      if (distributedFilePath == null || "".equals(distributedFilePath)) {
-        throw new RuntimeException("Distributed File path cannot be empty");
-      }
-      shardingTablePathOnZk =
-          ShardingApplicationContext.getShardingConfigFilePathOnZk(distributedFilePath);
-      boolean fileAlreadyExists = ZkUtils.checkIfNodeExists(shardingTablePathOnZk);
-      if (fileAlreadyExists) {
-        throw new RuntimeException(shardingTablePathOnZk + " already exists");
-      }
-      ZkUtils.createFileNode(shardingTablePathOnZk);
+			String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
+			FileSystemUtils.validatePath(distributedFilePath, true);
+			if (distributedFilePath == null || distributedFilePath.isEmpty()) {
+				throw new RuntimeException("Distributed File path cannot be empty");
+			}
+			shardingTablePathOnZk = ShardingApplicationContext.getShardingConfigFilePathOnZk(distributedFilePath);
+			boolean fileAlreadyExists = ZkUtils.checkIfNodeExists(shardingTablePathOnZk);
+			if (fileAlreadyExists) {
+				throw new RuntimeException(shardingTablePathOnZk + " already exists");
+			}
+			ZkUtils.createFileNode(shardingTablePathOnZk);
 
-      isFileCreated = true;
+			isFileCreated = true;
 
-      String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
-          + "hungryhippos" + File.separator + System.currentTimeMillis() + File.separator
-          + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-      new File(tempDir).mkdirs();
-      doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
-          context.getShardingServerConfigFilePath(), tempDir);
-      uploadShardingData(shardingClientConfig, tempDir);
-      ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
-          + FileSystemConstants.SHARDED, "");
-      long endTime = System.currentTimeMillis();
-      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
-    } catch (Exception exception) {
-      LOGGER.error("Error occurred while sharding.", exception);
-      if (isFileCreated) {
-        ZkUtils.deleteZKNode(shardingTablePathOnZk);
-      }
-    }
-  }
+			String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
+					+ "hungryhippos" + File.separator + System.currentTimeMillis() + File.separator
+					+ ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+			new File(tempDir).mkdirs();
+			doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
+					context.getShardingServerConfigFilePath(), tempDir);
+			uploadShardingData(shardingClientConfig, tempDir);
+			ZkUtils.createZKNodeIfNotPresent(
+					shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED, "");
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
+		} catch (Exception exception) {
+			LOGGER.error("Error occurred while sharding.", exception);
+			if (isFileCreated) {
+				ZkUtils.deleteZKNode(shardingTablePathOnZk);
+			}
+		}
+	}
 
-  private static void validateArguments(String[] args) {
-    if (args.length < 2) {
-      throw new RuntimeException("Missing zookeeper xml configuration file path arguments.");
-    }
-  }
+	private static void validateArguments(String[] args) {
+		if (args.length < 2) {
+			throw new RuntimeException(
+					"Missing client configuration file path or not able to locate sharding-client-config.xml on the folder provided");
+		}
+	}
 
-  /**
-   * Reads the configurations and starts sharding
-   * 
-   * @param shardingClientConfig
-   * @throws ClassNotFoundException
-   * @throws IOException
-   * @throws NoSuchMethodException
-   * @throws IllegalAccessException
-   * @throws InvocationTargetException
-   * @throws InstantiationException
-   * @throws InterruptedException
-   * @throws JAXBException
-   * @throws KeeperException
-   */
-  private static void doSharding(ShardingClientConfig shardingClientConfig,
-      String shardingClientConfigFilePath, String shardingServerConfigFilePath, String tempDir)
-      throws ClassNotFoundException, IOException, NoSuchMethodException, IllegalAccessException,
-      InvocationTargetException, InstantiationException, InterruptedException, JAXBException,
-      KeeperException {
-    LOGGER.info("SHARDING STARTED");
-    String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
-    String dataParserClassName =
-        shardingClientConfig.getInput().getDataParserConfig().getClassName();
-    DataDescription dataDescription = context.getConfiguredDataDescription();
-    DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-        .getConstructor(DataDescription.class).newInstance(dataDescription);
+	/**
+	 * Reads the configurations and starts sharding
+	 * 
+	 * @param shardingClientConfig
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 * @throws NoSuchMethodException
+	 * @throws IllegalAccessException
+	 * @throws InvocationTargetException
+	 * @throws InstantiationException
+	 * @throws InterruptedException
+	 * @throws JAXBException
+	 * @throws KeeperException
+	 */
+	private static void doSharding(ShardingClientConfig shardingClientConfig, String shardingClientConfigFilePath,
+			String shardingServerConfigFilePath, String tempDir)
+			throws ClassNotFoundException, IOException, NoSuchMethodException, IllegalAccessException,
+			InvocationTargetException, InstantiationException, InterruptedException, JAXBException, KeeperException {
+		LOGGER.info("SHARDING STARTED");
+		String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
+		String dataParserClassName = shardingClientConfig.getInput().getDataParserConfig().getClassName();
+		DataDescription dataDescription = context.getConfiguredDataDescription();
+		DataParser dataParser = (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
+				.newInstance(dataDescription);
 
-    ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
-    Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
+		ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
+		Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
-    Sharding sharding = new Sharding(clusterConfig, context);
-    sharding.doSharding(inputReaderForSharding);
-    sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
-        shardingServerConfigFilePath);
-    LOGGER.info("SHARDING DONE!!");
-  }
+		Sharding sharding = new Sharding(clusterConfig, context);
+		sharding.doSharding(inputReaderForSharding);
+		sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath, shardingServerConfigFilePath);
+		LOGGER.info("SHARDING DONE!!");
+	}
 
-  private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser)
-      throws IOException {
-    return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile,
-        dataParser);
-  }
+	private static Reader getInputReaderForSharding(String inputFile, DataParser dataParser) throws IOException {
+		return new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(inputFile, dataParser);
+	}
 
-  /**
-   * Uploads Sharding related data to node
-   * 
-   * @param shardingTablePathOnZk
-   * @param shardingClientConfigFilePath
-   * @param shardingServerConfigFilePath
-   */
-  private static void uploadShardingData(ShardingClientConfig shardingClientConfig,
-      String tempDir) {
-    LOGGER.info("Uploading sharding data.");
-    Output outputConfiguration = shardingClientConfig.getOutput();
-    ShardingTableCopier shardingTableCopier =
-        new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
-    shardingTableCopier.copyToAnyRandomNodeInCluster();
-    LOGGER.info("Upload completed.");
-  }
-
+	/**
+	 * Uploads Sharding related data to node
+	 * 
+	 * @param shardingTablePathOnZk
+	 * @param shardingClientConfigFilePath
+	 * @param shardingServerConfigFilePath
+	 */
+	private static void uploadShardingData(ShardingClientConfig shardingClientConfig, String tempDir) {
+		LOGGER.info("Uploading sharding data.");
+		Output outputConfiguration = shardingClientConfig.getOutput();
+		ShardingTableCopier shardingTableCopier = new ShardingTableCopier(tempDir, shardingClientConfig,
+				outputConfiguration);
+		shardingTableCopier.copyToAnyRandomNodeInCluster();
+		LOGGER.info("Upload completed.");
+	}
 
 }

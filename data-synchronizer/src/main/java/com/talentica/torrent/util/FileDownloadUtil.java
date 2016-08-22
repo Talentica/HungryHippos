@@ -29,7 +29,9 @@ public class FileDownloadUtil {
       public void run() {
         CuratorFramework client;
         try {
-          RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+          RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+              Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+              Environment.getCoordinationServerConnectionRetryMaxTimes());
           client = CuratorFrameworkFactory.newClient(args[1], retryPolicy);
           client.start();
           FileDownloaderListener.register(client, args[0]);

@@ -34,7 +34,9 @@ public class SeedFileUtil {
       String TRACKER_PORT = args[4];
       boolean startTracker = BooleanUtils.toBoolean(args[5]);
 
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+          Environment.getCoordinationServerConnectionRetryMaxTimes());
       client = CuratorFrameworkFactory.newClient(ZOOKEEPER_CONN_STRING, retryPolicy);
       client.start();
 

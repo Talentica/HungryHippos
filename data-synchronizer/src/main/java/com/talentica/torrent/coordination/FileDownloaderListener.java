@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.peer.TorrentPeerService;
 import com.talentica.torrent.peer.TorrentPeerServiceImpl;
+import com.talentica.torrent.util.Environment;
 import com.turn.ttorrent.client.Client;
 import com.turn.ttorrent.client.SharedTorrent;
 
@@ -27,12 +28,14 @@ public class FileDownloaderListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloaderListener.class);
 
-  public static final String FILES_TO_DOWNLOAD_NODE_PATH = "/torrent/files-to-download/";
+  public static final String FILES_TO_DOWNLOAD_NODE_PATH =
+      Environment.getPropertyValue("files.to.download.node.path");
 
-  public static final String FILES_DOWNLOAD_SUCCESS_NODE_PATH = "/torrent/files-download-success";
+  public static final String FILES_DOWNLOAD_SUCCESS_NODE_PATH =
+      Environment.getPropertyValue("files.download.success.node.path");
 
   public static final String FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH =
-      "/torrent/files-erred-while-download/";
+      Environment.getPropertyValue("files.erred.while.download.node.path");
 
   private static final TorrentPeerService TORRENT_PEER_SERVICE = new TorrentPeerServiceImpl();
 

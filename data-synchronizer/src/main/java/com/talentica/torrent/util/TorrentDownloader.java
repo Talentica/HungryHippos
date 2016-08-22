@@ -28,7 +28,9 @@ public class TorrentDownloader {
     String connectionString = args[0];
     String nodePath = args[1];
     String outputFilePath = args[2];
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+        Environment.getCoordinationServerConnectionRetryMaxTimes());
     CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
     client.start();
     if (client.checkExists().forPath(nodePath) == null) {

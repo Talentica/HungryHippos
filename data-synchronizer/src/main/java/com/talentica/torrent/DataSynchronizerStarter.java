@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.torrent.coordination.FileDownloaderListener;
 import com.talentica.torrent.coordination.FileSeederListener;
+import com.talentica.torrent.util.Environment;
 
 /**
  * This is a starting point of data synchronizer application. It synchronizes any files' content
@@ -19,8 +20,8 @@ import com.talentica.torrent.coordination.FileSeederListener;
  */
 public class DataSynchronizerStarter {
 
-  // TODO: Make paths configurable
-  public static final String TORRENT_PEERS_NODE_PATH = "/torrent/peers";
+  public static final String TORRENT_PEERS_NODE_PATH =
+      Environment.getPropertyValue("peers.node.path");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSynchronizerStarter.class);
 
@@ -30,7 +31,9 @@ public class DataSynchronizerStarter {
       validateProgramArguments(args);
       String connectionString = args[0];
       String host = args[1];
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+          Environment.getCoordinationServerConnectionRetryMaxTimes());
       client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
       client.start();
       FileSeederListener.register(client, host);

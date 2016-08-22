@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.torrent.coordination.NewTorrentAvailableListener;
+import com.talentica.torrent.util.Environment;
 import com.talentica.torrent.util.TorrentGenerator;
 
 public class DataSynchronizerStarterIntegrationTest {
@@ -47,7 +48,9 @@ public class DataSynchronizerStarterIntegrationTest {
   @Before
   public void setup() {
     START_TRACKER_DATA_SYNCHRONIZER_THREAD.start();
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+        Environment.getCoordinationServerConnectionRetryMaxTimes());
     client = CuratorFrameworkFactory.newClient(ZOOKEEPER_CONN_STRING, retryPolicy);
     client.start();
   }

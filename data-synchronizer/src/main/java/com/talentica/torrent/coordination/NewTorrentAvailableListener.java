@@ -13,15 +13,17 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
+import com.talentica.torrent.util.Environment;
 
 public class NewTorrentAvailableListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NewTorrentAvailableListener.class);
 
-  public static final String NEW_TORRENT_AVAILABLE_NODE_PATH = "/torrent/new-torrent-available";
+  public static final String NEW_TORRENT_AVAILABLE_NODE_PATH =
+      Environment.getPropertyValue("new.torrent.available.node.path");
 
   public static final String NEW_TORRENT_AVAILABLE_ERROR_NODE_PATH =
-      "/torrent/new-torrent-available-erred-requests/";
+      Environment.getPropertyValue("new.torrent.available.erred.requests.node.path");
 
   private NewTorrentAvailableListener() {}
 

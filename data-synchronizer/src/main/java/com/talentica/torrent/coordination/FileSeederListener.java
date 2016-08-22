@@ -18,15 +18,17 @@ import com.talentica.torrent.DataSynchronizerStarter;
 import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.peer.TorrentPeerService;
 import com.talentica.torrent.peer.TorrentPeerServiceImpl;
+import com.talentica.torrent.util.Environment;
 
 public class FileSeederListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileSeederListener.class);
 
-  public static final String SEED_FILES_PARENT_NODE_PATH = "/torrent/files-to-seed/";
+  public static final String SEED_FILES_PARENT_NODE_PATH =
+      Environment.getPropertyValue("files.to.seed.node.path");
 
   public static final String FILES_ERRED_WHILE_SEEDING_NODE_PATH =
-      "/torrent/files-erred-while-seeding/";
+      Environment.getPropertyValue("files.erred.while.seeding.node.path");
 
   private static final TorrentPeerService TORRENT_PEER_SERVICE = new TorrentPeerServiceImpl();
 

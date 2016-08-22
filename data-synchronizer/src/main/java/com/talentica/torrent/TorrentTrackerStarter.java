@@ -9,27 +9,28 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.torrent.coordination.NewTorrentAvailableListener;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
+import com.talentica.torrent.util.Environment;
 
 public class TorrentTrackerStarter {
 
   private static Logger LOGGER = LoggerFactory.getLogger(TorrentTrackerStarter.class);
 
-  // TODO: Make paths configurable
-  public static final String TRACKERS_NODE_PATH = "/torrent/trackers";
+  public static final String TRACKERS_NODE_PATH =
+      Environment.getPropertyValue("trackers.node.path");
 
   public static void main(String[] args) {
     try {
       validateProgramArguments(args);
       String trackerHost = args[1];
       LOGGER.info("Starting tracker on:" + trackerHost);
-      // TODO: Make it configurable
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
+          Environment.getCoordinationServerConnectionRetryMaxTimes());
       CuratorFramework client = CuratorFrameworkFactory.newClient(args[0], retryPolicy);
       client.start();
       String trackerPort = args[2];
       TorrentTrackerServiceImpl.getInstance().startTracker(trackerHost,
           Integer.parseInt(trackerPort));
-      // TODO: Tracker URL pattern configurable.
       String trackerUrl = "http://" + trackerHost + ":" + trackerPort + "/announce";
       String trackerNodePath = TRACKERS_NODE_PATH + "/" + trackerHost;
       boolean pathExists = client.checkExists().forPath(trackerNodePath) != null;

@@ -7,10 +7,11 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.tools.FileSynchronizer;
+import com.talentica.hungryHippos.tools.FilesExtractor;
 import com.talentica.hungryHippos.tools.clients.FileExtractionClient;
 import com.talentica.hungryHippos.tools.clients.FileSyncUpClient;
 import com.talentica.hungryHippos.tools.utils.RandomNodePicker;
-import com.talentica.hungryHippos.utility.RequestType;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.commons.io.FileUtils;
@@ -83,8 +84,8 @@ public class ShardingStarter {
       Node randomNode = RandomNodePicker.getRandomNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode,shardingClientConfig, tempDir);
-      syncUpShardingFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
-      extractShardingFileInNodes(uploadDestinationPath);
+      FileSynchronizer.syncUpFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
+      FilesExtractor.extractFileInNodes(uploadDestinationPath);
       ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, "");
       long endTime = System.currentTimeMillis();
@@ -176,6 +177,7 @@ public class ShardingStarter {
     return uploadDestinationPath;
   }
 
+
   /**
    * Syncs up the Sharding file across nodes
    * @param filePathForSyncUp
@@ -199,7 +201,5 @@ public class ShardingStarter {
       fileExtractionClient.sendRequest(node.getIp());
     }
   }
-
-
 
 }

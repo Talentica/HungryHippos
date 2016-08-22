@@ -42,7 +42,7 @@ public final class TorrentTrackerServiceImpl implements TorrentTrackerService {
   }
 
   @Override
-  public void newTorrentFileAvailable(File torrentFile) {
+  public void announeNewTorrent(File torrentFile) {
     try {
       TrackedTorrent trackedTorrent = TrackedTorrent.load(torrentFile);
       tracker.announce(trackedTorrent);

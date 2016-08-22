@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 import com.talentica.torrent.coordination.FileDownloaderListener;
 
-public class DownloadFileTester {
+public class FileDownloadUtil {
 
   public static void main(String[] args)
       throws JsonGenerationException, JsonMappingException, IOException, Exception {

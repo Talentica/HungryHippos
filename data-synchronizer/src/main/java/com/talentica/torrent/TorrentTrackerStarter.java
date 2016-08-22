@@ -14,6 +14,7 @@ public class TorrentTrackerStarter {
 
   private static Logger LOGGER = LoggerFactory.getLogger(TorrentTrackerStarter.class);
 
+  // TODO: Make paths configurable
   public static final String TRACKERS_NODE_PATH = "/torrent/trackers";
 
   public static void main(String[] args) {
@@ -21,12 +22,14 @@ public class TorrentTrackerStarter {
       validateProgramArguments(args);
       String trackerHost = args[1];
       LOGGER.info("Starting tracker on:" + trackerHost);
+      // TODO: Make it configurable
       RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 15);
       CuratorFramework client = CuratorFrameworkFactory.newClient(args[0], retryPolicy);
       client.start();
       String trackerPort = args[2];
       TorrentTrackerServiceImpl.getInstance().startTracker(trackerHost,
           Integer.parseInt(trackerPort));
+      // TODO: Tracker URL pattern configurable.
       String trackerUrl = "http://" + trackerHost + ":" + trackerPort + "/announce";
       String trackerNodePath = TRACKERS_NODE_PATH + "/" + trackerHost;
       boolean pathExists = client.checkExists().forPath(trackerNodePath) != null;

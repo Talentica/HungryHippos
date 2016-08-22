@@ -20,6 +20,7 @@ public class TorrentPeerServiceImpl implements TorrentPeerService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TorrentPeerServiceImpl.class);
 
+  // TODO: Make it configurable
   private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(15);
 
   @Override

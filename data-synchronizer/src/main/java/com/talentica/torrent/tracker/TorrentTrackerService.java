@@ -17,7 +17,7 @@ public interface TorrentTrackerService {
    * 
    * @param torrentFile
    */
-  public void newTorrentFileAvailable(File torrentFile);
+  public void announeNewTorrent(File torrentFile);
 
   /**
    * Stops tracker on specified port on localhost.

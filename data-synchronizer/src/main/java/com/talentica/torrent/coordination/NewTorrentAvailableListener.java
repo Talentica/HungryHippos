@@ -45,7 +45,7 @@ public class NewTorrentAvailableListener extends ChildrenUpdatedListener {
               DatatypeConverter.parseBase64Binary(fileMetadata.getBase64EncodedTorrentFile());
           File torrentFile = File.createTempFile("" + System.currentTimeMillis(), ".torrent");
           FileUtils.writeByteArrayToFile(torrentFile, torrentFileBytes);
-          TorrentTrackerServiceImpl.getInstance().newTorrentFileAvailable(torrentFile);
+          TorrentTrackerServiceImpl.getInstance().announeNewTorrent(torrentFile);
           client.create().creatingParentsIfNeeded().forPath(
               FileSeederListener.SEED_FILES_PARENT_NODE_PATH + fileMetadata.getOriginHost() + "/"
                   + System.currentTimeMillis(),

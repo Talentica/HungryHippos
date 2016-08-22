@@ -16,7 +16,7 @@ import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.TorrentTrackerStarter;
 import com.talentica.torrent.coordination.FileSeederListener;
 
-public class SeedFileTester {
+public class SeedFileUtil {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

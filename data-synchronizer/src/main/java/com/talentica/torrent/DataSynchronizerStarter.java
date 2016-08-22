@@ -19,6 +19,7 @@ import com.talentica.torrent.coordination.FileSeederListener;
  */
 public class DataSynchronizerStarter {
 
+  // TODO: Make paths configurable
   public static final String TORRENT_PEERS_NODE_PATH = "/torrent/peers";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSynchronizerStarter.class);

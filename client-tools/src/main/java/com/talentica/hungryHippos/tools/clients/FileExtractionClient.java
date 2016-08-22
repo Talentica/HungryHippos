@@ -18,8 +18,8 @@ public class FileExtractionClient extends AbstractClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileExtractionClient.class);
     private String filePath;
 
-    public FileExtractionClient(RequestType requestType, String filePath) {
-        super(requestType);
+    public FileExtractionClient(String filePath) {
+        super(RequestType.EXTRACT_FILE);
         this.filePath = filePath;
     }
 

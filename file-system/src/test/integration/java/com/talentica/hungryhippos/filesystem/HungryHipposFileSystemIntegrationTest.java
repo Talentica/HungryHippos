@@ -28,6 +28,7 @@ import com.talentica.hungryHippos.coordination.property.ZkProperty;
 public class HungryHipposFileSystemIntegrationTest {
 
 	private HungryHipposFileSystem hhfs = null;
+	private String clientConfig = "";
 
 	private NodesManager nodesManager;
 	private Property<ZkProperty> zkProperty;
@@ -41,7 +42,7 @@ public class HungryHipposFileSystemIntegrationTest {
 		 * nodesManager = Mockito.mock(NodesManager.class); zkProperty =
 		 * Mockito.mock(Property.class);
 		 */
-		hhfs = HungryHipposFileSystem.getInstance();
+		hhfs = HungryHipposFileSystem.getInstance(clientConfig);
 	}
 
 	@After

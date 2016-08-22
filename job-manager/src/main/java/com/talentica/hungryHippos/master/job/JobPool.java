@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.master.job;
 
 import java.util.Queue;
 
+import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 /**

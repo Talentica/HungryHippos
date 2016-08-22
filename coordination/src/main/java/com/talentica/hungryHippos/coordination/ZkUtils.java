@@ -289,7 +289,7 @@ public class ZkUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
-      Stat stat = zk.exists(node, nodesManager);
+      Stat stat = zk.exists(node, true);
       if (stat == null) {
         LOGGER.info("No such node {} exists.", node);
         return;
@@ -362,29 +362,6 @@ public class ZkUtils {
           default:
             LOGGER.info("[{}] Unexpected result for deleting {} ({})",
                 new Object[] {KeeperException.Code.get(rc), node, path});
-        }
-      }
-    };
-    return deleteNodeCallback;
-  }
-
-  public static AsyncCallback.VoidCallback checkCreateNodeAsync() {
-    AsyncCallback.VoidCallback deleteNodeCallback = new AsyncCallback.VoidCallback() {
-      @Override
-      public void processResult(int rc, String path, Object ctx) {
-        // String node = (String) ctx;
-        switch (KeeperException.Code.get(rc)) {
-          case CONNECTIONLOSS:
-            nodesManager.deleteNode(path);
-            LOGGER.info(
-                "ZOOKEEPER CONNECTION IS LOST/ZOOKEEPER IS NOT RUNNING. RETRYING TO DELETE...");
-            break;
-          case OK:
-            LOGGER.info("Node is {})", path);
-            break;
-          default:
-            LOGGER.info("[{}] Unexpected result for deleting {} ({})",
-                new Object[] {KeeperException.Code.get(rc), path});
         }
       }
     };

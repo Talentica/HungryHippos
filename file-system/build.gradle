@@ -1,7 +1,20 @@
 apply plugin: 'java'
 
+sourceCompatibility = 1.8
+
 repositories {
     mavenCentral()
+}
+
+
+sourceSets {
+    main {
+       output.resourcesDir = "build/classes/main"
+     }
+  }
+
+ext {
+  slf4jVersion = '1.7.10'
 }
 
 jar {
@@ -11,7 +24,13 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+
+    manifest {
+        attributes("Main-Class": "com.talentica.hungryhippos.filesystem.main.CreateFileSystemInCluster" )
+    }
 }
+
+
 
 
 dependencies {	
@@ -23,6 +42,4 @@ dependencies {
     testCompile 'org.mockito:mockito-all:1.10.19'
     testCompile 'org.powermock:powermock-module-junit4:1.6.2'
     testCompile 'org.powermock:powermock-api-mockito:1.6.2'
-
-
 }

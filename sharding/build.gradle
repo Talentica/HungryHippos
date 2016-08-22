@@ -19,7 +19,6 @@ jar {
 }
 
 dependencies {
-    compile project (':client-tools')
     compile project (':coordination')
 	compile project (':configuration-schema')
 	compile project (':file-system')

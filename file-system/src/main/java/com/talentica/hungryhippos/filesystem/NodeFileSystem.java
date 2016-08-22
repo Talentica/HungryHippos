@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
+
 public class NodeFileSystem {
 
   private static final Logger logger = LoggerFactory.getLogger(NodeFileSystem.class);
@@ -37,7 +39,7 @@ public class NodeFileSystem {
     if (null == loc) {
       return HungryHipposRootDir;
     } else if (!(loc.contains(HungryHipposRootDir))) {
-      if (loc.startsWith("/")) {
+      if (loc.startsWith(String.valueOf(File.separatorChar))) {
         loc = HungryHipposRootDir + loc;
       } else {
         loc = HungryHipposRootDir + File.separatorChar + loc;
@@ -180,8 +182,7 @@ public class NodeFileSystem {
       loc = checkNameContainsFileSystemRoot(args[0]);
       pattern = args[2];
     } else {
-      loc = checkNameContainsFileSystemRoot(loc);
-      pattern = args[1];
+    	throw new IllegalArgumentException("java Find <path>" + " -name \"<glob_pattern>\"");
     }
 
     Finder finder = new Finder(pattern);

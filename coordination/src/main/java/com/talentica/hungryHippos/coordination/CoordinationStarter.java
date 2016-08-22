@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryhippos.config.tools.ToolsConfig;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +36,7 @@ public class CoordinationStarter {
       String datapublisherConfigFilePath = args[3];
       String fileSystemConfigFilePath = args[4];
       String jobRunnerConfigFilePath = args[5];
-      String toolsConfigFilePath = args[6];
       validateFileSystem(fileSystemConfigFilePath);
-      validateDefaultRequestConfig(toolsConfigFilePath);
       CoordinationApplicationContext.setLocalClusterConfigPath(clusterConfigFilePath);
       ClusterConfig configuration =
           JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
@@ -72,9 +69,6 @@ public class CoordinationStarter {
       CoordinationApplicationContext.uploadConfigurationOnZk(manager,
           CoordinationApplicationContext.JOB_RUNNER_CONFIGURATION,
           FileUtils.readFileToString(new File(jobRunnerConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-              CoordinationApplicationContext.TOOLS_CONFIGURATION,
-              FileUtils.readFileToString(new File(toolsConfigFilePath), "UTF-8"));
 
 
       LOGGER.info("Coordination server started..");
@@ -85,9 +79,9 @@ public class CoordinationStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args == null || args.length < 7) {
+    if (args == null || args.length < 6) {
       LOGGER.error(
-          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} or 5th argument {file system configuration} or 6th argument {jobrunner configuration} or 7th arguement {defaultrequest configuration}file/files arguments.");
+          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} or 5th argument {file system configuration} or 6th argument {jobrunner configuration}file/files arguments.");
       System.exit(1);
     }
   }
@@ -101,20 +95,8 @@ public class CoordinationStarter {
         || configuration.getMaxClientRequests() <= 0 || configuration.getDataFilePrefix() == null
         || configuration.getRootDirectory() == null || "".equals(configuration.getDataFilePrefix())
         || "".equals(configuration.getRootDirectory())) {
-      throw new RuntimeException("Invalid configuration " + fileSystemConfigFilePath);
-    }
-  }
-
-  private static void validateDefaultRequestConfig(String toolsConfigFilePath)
-          throws FileNotFoundException, JAXBException {
-    ToolsConfig configuration =
-            JaxbUtil.unmarshalFromFile(toolsConfigFilePath, ToolsConfig.class);
-    if (configuration.getServerPort() == 0
-            || configuration.getQueryRetryInterval() <= 0
-            || configuration.getMaxQueryAttempts() <= 0
-            || configuration.getMaxClientRequests() <= 0
-            ) {
-      throw new RuntimeException("Invalid configuration " + toolsConfigFilePath);
+      throw new RuntimeException("Invalid configuration file or cluster configuration missing."
+          + fileSystemConfigFilePath);
     }
   }
 

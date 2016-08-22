@@ -225,7 +225,7 @@ public class NodesManager implements Watcher {
     CountDownLatch signal = new CountDownLatch(zkConfiguration.getPathMap().size());
     createPersistentNode(
         ZkUtils.zkPathSeparator + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),
-        signal);
+        null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()), signal);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), signal);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), signal);
@@ -371,7 +371,6 @@ public class NodesManager implements Watcher {
     zk.create(node, (data != null && data.length != 0) ? ZkUtils.serialize(data[0]) : null,
         ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode,
         createAsyncCallback(node, signal, createMode, data), null);
-    zk.sync(node, ZkUtils.checkCreateNodeAsync(), data);
   }
 
   /**

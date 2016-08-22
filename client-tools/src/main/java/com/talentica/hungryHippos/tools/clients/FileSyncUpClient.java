@@ -18,8 +18,8 @@ public class FileSyncUpClient extends AbstractClient {
 
     private String seedFilePath;
 
-    public FileSyncUpClient(RequestType requestType, String seedFilePath) {
-        super(requestType);
+    public FileSyncUpClient(String seedFilePath) {
+        super(RequestType.SYNC_UP_FILE);
         this.seedFilePath = seedFilePath;
     }
 

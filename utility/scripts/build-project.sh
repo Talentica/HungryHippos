@@ -1,7 +1,7 @@
 #!/bin/bash
 echo '#####Building project#####'
 cd ../../
-gradle buildDistribution build -x test
+gradle clean jar
 echo '#####Project Build completed'
 echo '####Copying file to installation directory'
 cd ./utility/scripts/

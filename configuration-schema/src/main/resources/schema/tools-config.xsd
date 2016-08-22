@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.talentica.com/hungryhippos/config/tools"
+        xmlns:tns="http://www.talentica.com/hungryhippos/config/tools"
+        elementFormDefault="qualified">
+    <element name="tools-config">
+        <complexType>
+            <sequence>
+                <element type="int" name="server-port"></element>
+                <element type="long" name="query-retry-interval"></element>
+                <element type="int" name="max-query-attempts"></element>
+                <element type="int" name="max-client-requests"></element>
+            </sequence>
+        </complexType>
+
+    </element>
+</schema>

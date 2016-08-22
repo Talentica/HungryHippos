@@ -1,0 +1,22 @@
+19-08-2016 16:17:53 ERROR ScpCommandExecutor:39 - Console OUTPUT : 
+ssh_askpass: exec(/usr/bin/ssh-askpass): No such file or directory
+Host key verification failed.
+
+19-08-2016 16:17:53 INFO  ScpCommandExecutor:45 - Console OUTPUT : 
+
+22-08-2016 14:49:03 ERROR ScpCommandExecutor:39 - Console OUTPUT : 
+Warning: Permanently added '139.59.28.135' (ECDSA) to the list of known hosts.
+Permission denied (publickey).
+
+22-08-2016 14:49:03 INFO  ScpCommandExecutor:45 - Console OUTPUT : 
+
+22-08-2016 18:26:59 ERROR ScpCommandExecutor:39 - Console OUTPUT : 
+Permission denied (publickey).
+
+22-08-2016 18:26:59 INFO  ScpCommandExecutor:45 - Console OUTPUT : 
+
+22-08-2016 18:28:29 ERROR ScpCommandExecutor:39 - Console OUTPUT : 
+Permission denied (publickey).
+
+22-08-2016 18:28:29 INFO  ScpCommandExecutor:45 - Console OUTPUT : 
+

@@ -13,12 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.common.util.RandomNodePicker;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
@@ -43,8 +43,8 @@ public class DataPublisherStarter {
     String sourcePath = args[1];
     String destinationPath = args[2];
     try {
-      FileSystemUtils.validatePath(destinationPath, true);
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      FileSystemUtils.validatePath(destinationPath, true);
 
       String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();

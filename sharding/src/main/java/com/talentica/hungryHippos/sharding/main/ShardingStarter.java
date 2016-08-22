@@ -3,26 +3,20 @@ package com.talentica.hungryHippos.sharding.main;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.tools.FileSynchronizer;
-import com.talentica.hungryHippos.tools.FilesExtractor;
-import com.talentica.hungryHippos.tools.clients.FileExtractionClient;
-import com.talentica.hungryHippos.tools.clients.FileSyncUpClient;
-import com.talentica.hungryHippos.tools.utils.RandomNodePicker;
-import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -30,7 +24,9 @@ import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
+import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class ShardingStarter {
@@ -84,8 +80,8 @@ public class ShardingStarter {
       Node randomNode = RandomNodePicker.getRandomNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode,shardingClientConfig, tempDir);
-      FileSynchronizer.syncUpFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
-      FilesExtractor.extractFileInNodes(uploadDestinationPath);
+      /*FileSynchronizer.syncUpFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
+      FilesExtractor.extractFileInNodes(uploadDestinationPath);*/
       ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, "");
       long endTime = System.currentTimeMillis();
@@ -183,23 +179,23 @@ public class ShardingStarter {
    * @param filePathForSyncUp
    * @param hostIP
    * @throws IOException
-     */
+     *//*
   public static void syncUpShardingFileAcrossNodes(String filePathForSyncUp, String hostIP) throws IOException {
     FileSyncUpClient fileSyncUpClient = new FileSyncUpClient(filePathForSyncUp);
     fileSyncUpClient.sendRequest(hostIP);
   }
 
-  /**
+  *//**
    * Extract the zipped sharding file in all nodes
    * @param filePathForExtraction
    * @throws IOException
-     */
+     *//*
   private static void extractShardingFileInNodes(String filePathForExtraction) throws IOException {
     FileExtractionClient fileExtractionClient =new FileExtractionClient(filePathForExtraction);
     List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
     for(Node node:nodes){
       fileExtractionClient.sendRequest(node.getIp());
     }
-  }
+  }*/
 
 }

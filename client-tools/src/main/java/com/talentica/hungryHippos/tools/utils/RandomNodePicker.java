@@ -13,7 +13,7 @@ public class RandomNodePicker {
   public static Node getRandomNode(){
     List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
     int totalNoOfNodes = nodes.size();
-    Node node = nodes.remove(RANDOM.nextInt(totalNoOfNodes));
+    Node node = nodes.get(RANDOM.nextInt(totalNoOfNodes));
     return node;
   }
 }

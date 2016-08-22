@@ -222,27 +222,35 @@ public class NodesManager implements Watcher {
    */
   public void defaultNodesOnStart() throws IOException {
     createServersMap();
+    CountDownLatch signal = new CountDownLatch(zkConfiguration.getPathMap().size());
     createPersistentNode(
         ZkUtils.zkPathSeparator + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),
         null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_CONFIG.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()), null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_CONFIG.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()), signal);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()),
-        null);
+        signal);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()), null);
+        signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()),
+        signal);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()), null);
+        signal);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()),
+        signal);
+    try {
+      signal.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Unable to create default nodes.");
+    }
   }
 
   /**
@@ -815,7 +823,7 @@ public class NodesManager implements Watcher {
       throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
-    if (stat != null && stat.getDataLength()!=0) {
+    if (stat != null && stat.getDataLength() != 0) {
       return ZkUtils.deserialize(zk.getData(nodePath, this, stat));
     }
     return null;
@@ -879,8 +887,19 @@ public class NodesManager implements Watcher {
    * @throws KeeperException
    * @throws InterruptedException
    */
-  public boolean checkNodeExists(String nodePath) throws KeeperException, InterruptedException {
-    Stat stat = zk.exists(nodePath, this);
-    return stat != null;
+  public boolean checkNodeExists(String nodePath) {
+    try {
+      CountDownLatch signal = new CountDownLatch(1);
+      asyncNodeExists(nodePath, signal);
+      signal.await();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+    return ZkUtils.checkNodeExists(nodePath);
+  }
+
+  public void asyncNodeExists(String nodePath, CountDownLatch signal) {
+    zk.exists(nodePath, this, ZkUtils.checkStatNodeExists(signal), null);
   }
 }

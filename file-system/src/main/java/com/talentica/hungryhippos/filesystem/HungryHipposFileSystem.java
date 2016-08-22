@@ -113,7 +113,6 @@ public class HungryHipposFileSystem {
 		}
 		return name;
 	}
-
 	/**
 	 * Create persistent znode in zookeeper
 	 *
@@ -151,15 +150,10 @@ public class HungryHipposFileSystem {
 	 * @param name
 	 * @return
 	 */
-	public boolean checkZnodeExists(String name) {
+	public boolean checkZnodeExists(String name){
 		name = checkNameContainsFileSystemRoot(name);
 		boolean exists = false;
-		try {
-			exists = nodeManager.checkNodeExists(name);
-		} catch (InterruptedException | KeeperException e) {
-			logger.error(e.getMessage());
-
-		}
+		exists = nodeManager.checkNodeExists(name);
 		return exists;
 	}
 

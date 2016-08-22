@@ -80,7 +80,7 @@ public class JobConfigPublisher {
       compareWithNodeData(jobInputNode, inputHHPath);
       String jobOutputNode = getJobOutputNode(jobNode);
       compareWithNodeData(jobOutputNode, outputHHPath);
-    } catch (KeeperException | JAXBException | InterruptedException | IOException e) {
+    } catch (JAXBException | IOException e) {
       throw new RuntimeException(e);
     }
   }

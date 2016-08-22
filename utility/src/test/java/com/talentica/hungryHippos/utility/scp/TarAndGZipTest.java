@@ -19,6 +19,7 @@ public class TarAndGZipTest {
   }
   
   @Test
+  @Ignore
   public void testuntarTGzFile() throws IOException{
     TarAndGzip.untarTGzFile(sourceFilePath);
   }

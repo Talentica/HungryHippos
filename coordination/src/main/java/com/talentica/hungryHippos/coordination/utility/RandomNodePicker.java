@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.common.util;
+package com.talentica.hungryHippos.coordination.utility;
 
 import java.util.List;
 import java.util.Random;
@@ -13,7 +13,7 @@ public class RandomNodePicker {
   public static Node getRandomNode(){
     List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
     int totalNoOfNodes = nodes.size();
-    Node node = nodes.remove(RANDOM.nextInt(totalNoOfNodes));
+    Node node = nodes.get(RANDOM.nextInt(totalNoOfNodes));
     return node;
   }
 }

@@ -11,6 +11,7 @@ public class ScpCommandExecutorTest {
   private static final String localDir = "/home/sohanc/ScpAndGzip";
   
   @Test
+  @Ignore
   public void testDownload(){
     ScpCommandExecutor.download(userName, host, remoteDir, localDir);
   }

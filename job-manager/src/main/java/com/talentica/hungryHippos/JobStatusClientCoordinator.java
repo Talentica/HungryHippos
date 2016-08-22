@@ -55,7 +55,7 @@ public class JobStatusClientCoordinator {
                     return false;
                 }
             }
-        } catch (FileNotFoundException | JAXBException | KeeperException | InterruptedException e) {
+        } catch (FileNotFoundException | JAXBException e) {
             throw new RuntimeException(e);
         }
         return true;
@@ -81,7 +81,7 @@ public class JobStatusClientCoordinator {
                     return true;
                 }
             }
-        } catch (FileNotFoundException | JAXBException | KeeperException | InterruptedException e) {
+        } catch (FileNotFoundException | JAXBException e) {
             throw new RuntimeException(e);
         }
         return false;

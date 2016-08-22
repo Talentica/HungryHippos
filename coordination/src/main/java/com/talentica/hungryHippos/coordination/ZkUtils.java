@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.zookeeper.AsyncCallback;
+import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooKeeper;
@@ -816,7 +817,7 @@ public class ZkUtils {
       CountDownLatch signal = new CountDownLatch(1);
       manager.createPersistentNode(node, signal, data);
       signal.await();
-    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+    } catch (IOException | JAXBException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
@@ -836,7 +837,7 @@ public class ZkUtils {
       CountDownLatch signal = new CountDownLatch(1);
       manager.createPersistentNode(node, signal, data);
       signal.await();
-    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+    } catch (IOException | JAXBException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
@@ -850,7 +851,7 @@ public class ZkUtils {
     try {
       NodesManager manager = NodesManagerContext.getNodesManagerInstance();
       return manager.checkNodeExists(node);
-    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+    } catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
     }
   }
@@ -867,7 +868,7 @@ public class ZkUtils {
         return;
       }
       manager.deleteNode(node);
-    } catch (IOException | JAXBException | KeeperException | InterruptedException e) {
+    } catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
     }
   }
@@ -904,7 +905,7 @@ public class ZkUtils {
       CountDownLatch signal = new CountDownLatch(1);
       manager.createPersistentNode(node, signal, FileSystemConstants.IS_A_FILE);
       signal.await();
-    } catch (IOException | JAXBException | InterruptedException | KeeperException e) {
+    } catch (IOException | JAXBException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
@@ -943,6 +944,48 @@ public class ZkUtils {
     }
     counter.await();
     signal.countDown();
+  }
+
+  private static Map<String, Boolean> cacheNodeExists;
+
+  public static boolean checkNodeExists(String node) {
+    return cacheNodeExists.get(node);
+  }
+
+
+
+  public static StatCallback checkStatNodeExists(CountDownLatch signal) {
+    if (cacheNodeExists == null) {
+      cacheNodeExists = new HashMap<>();
+    }
+    return new StatCallback() {
+      @Override
+      public void processResult(int rc, String path, Object ctx, Stat stat) {
+        switch (KeeperException.Code.get(rc)) {
+          case CONNECTIONLOSS:
+            nodesManager.asyncNodeExists(path,signal);
+            break;
+          case NODEEXISTS:
+            cacheNodeExists.put(path, (stat != null));
+            signal.countDown();
+            LOGGER.info("Node exists {}", path);
+            break;
+          case NONODE:
+            cacheNodeExists.put(path, (stat != null));
+            signal.countDown();
+            LOGGER.info("Node does not exists {}", path);
+            break;
+          case OK:
+            cacheNodeExists.put(path, (stat != null));
+            signal.countDown();
+            LOGGER.info("ZK connection established.");
+            break;
+          default:
+            LOGGER.info("Unable to do check the stat of the node.");
+        }
+      }
+    };
+
   }
 
 }

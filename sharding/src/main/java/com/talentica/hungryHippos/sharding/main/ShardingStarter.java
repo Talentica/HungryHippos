@@ -83,8 +83,8 @@ public class ShardingStarter {
       Node randomNode = RandomNodePicker.getRandomNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode,shardingClientConfig, tempDir);
-      syncUpShardingFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
-      extractShardingFileInNodes(uploadDestinationPath);
+      /*syncUpShardingFileAcrossNodes(uploadDestinationPath,randomNode.getIp());
+      extractShardingFileInNodes(uploadDestinationPath);*/
       ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, "");
       long endTime = System.currentTimeMillis();

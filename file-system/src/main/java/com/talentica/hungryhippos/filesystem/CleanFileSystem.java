@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
-
 /**
  * This class is used for cleaning files which have no reference in the zookeeper
  * 

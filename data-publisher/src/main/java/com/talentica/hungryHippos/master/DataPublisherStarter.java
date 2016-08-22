@@ -43,8 +43,8 @@ public class DataPublisherStarter {
     String sourcePath = args[1];
     String destinationPath = args[2];
     try {
-      FileSystemUtils.validatePath(destinationPath, true);
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      FileSystemUtils.validatePath(destinationPath, true);
 
       String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();

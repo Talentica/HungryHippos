@@ -163,6 +163,11 @@ public class ShardingStarter {
     LOGGER.info("Upload completed.");
   }
 
+  /**
+   * Returns the uploadDestination path of zipped sharding files
+   * @param shardingClientConfig
+   * @return
+     */
   public static String getUploadDestinationPath(ShardingClientConfig shardingClientConfig){
     String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
     String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
@@ -171,13 +176,24 @@ public class ShardingStarter {
     return uploadDestinationPath;
   }
 
+  /**
+   * Syncs up the Sharding file across nodes
+   * @param filePathForSyncUp
+   * @param hostIP
+   * @throws IOException
+     */
   public static void syncUpShardingFileAcrossNodes(String filePathForSyncUp, String hostIP) throws IOException {
-    FileSyncUpClient fileSyncUpClient = new FileSyncUpClient(RequestType.SYNC_UP_FILE,filePathForSyncUp);
+    FileSyncUpClient fileSyncUpClient = new FileSyncUpClient(filePathForSyncUp);
     fileSyncUpClient.sendRequest(hostIP);
   }
 
+  /**
+   * Extract the zipped sharding file in all nodes
+   * @param filePathForExtraction
+   * @throws IOException
+     */
   private static void extractShardingFileInNodes(String filePathForExtraction) throws IOException {
-    FileExtractionClient fileExtractionClient =new FileExtractionClient(RequestType.EXTRACT_FILE,filePathForExtraction);
+    FileExtractionClient fileExtractionClient =new FileExtractionClient(filePathForExtraction);
     List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
     for(Node node:nodes){
       fileExtractionClient.sendRequest(node.getIp());

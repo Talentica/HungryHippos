@@ -92,13 +92,16 @@ public class FileSyncUpRequestHandler implements RequestHandler {
 
     @Override
     public void handleRequest(DataInputStream dis, DataOutputStream dos) throws IOException {
+        LOGGER.info("[{}] Request handling started",Thread.currentThread().getName());
         try {
             seedFilePath = dis.readUTF();
             startSync();
             boolean status = checkSyncUpStatus();
             if (status) {
+                LOGGER.info("[{}] File sync up successful for : {}",Thread.currentThread().getName(),seedFilePath);
                 dos.writeInt(SocketMessages.SUCCESS.ordinal());
             } else {
+                LOGGER.info("[{}] File sync up failed for : {}",Thread.currentThread().getName(),seedFilePath);
                 dos.writeInt(SocketMessages.FAILED.ordinal());
             }
         } catch (Exception e) {

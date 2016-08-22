@@ -32,14 +32,17 @@ public class RequestHandlerThread extends Thread {
         try {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            LOGGER.info("[{}] {}",Thread.currentThread().getName(),SocketMessages.SERVER_AVAILABLE.name());
             dos.writeInt(SocketMessages.SERVER_AVAILABLE.ordinal());
             int requestTypeInt = dis.readInt();
             RequestType requestType =  RequestType.values()[requestTypeInt];
             RequestHandler requestHandler = getHandler(requestType);
             if(requestHandler!=null){
+                LOGGER.info("[{}] {}",Thread.currentThread().getName(),SocketMessages.VALID_REQUEST_TYPE.name());
                 dos.writeInt(SocketMessages.VALID_REQUEST_TYPE.ordinal());
                 requestHandler.handleRequest(dis,dos);
             } else{
+                LOGGER.info("[{}] {}",Thread.currentThread().getName(),SocketMessages.INVALID_REQUEST_TYPE.name());
                 dos.writeInt(SocketMessages.INVALID_REQUEST_TYPE.ordinal());
             }
         } catch (IOException e) {

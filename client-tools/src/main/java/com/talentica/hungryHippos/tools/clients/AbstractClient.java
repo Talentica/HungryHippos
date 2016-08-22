@@ -46,6 +46,7 @@ public abstract class AbstractClient {
                     LOGGER.info(SocketMessages.values()[requestTypeResponseCode].name());
                     if (SocketMessages.VALID_REQUEST_TYPE.ordinal() == requestTypeResponseCode) {
                         process(dis, dos);
+                        break;
                     } else {
                         LOGGER.error("{} : {}", RequestType.values()[requestTypeResponseCode].name(), requestType.name());
                     }

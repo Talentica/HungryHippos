@@ -19,9 +19,11 @@ public class FileExtractionRequestHandler implements RequestHandler {
 
     @Override
     public void handleRequest(DataInputStream dis, DataOutputStream dos) throws IOException {
+        LOGGER.info("[{}] Request handling started",Thread.currentThread().getName());
         try {
             String fileToExtract = dis.readUTF();
             TarAndGzip.untarTGzFile(fileToExtract);
+            LOGGER.info("[{}] Successfully extracted : {}",Thread.currentThread().getName(),fileToExtract);
             dos.writeInt(SocketMessages.SUCCESS.ordinal());
         } catch (Exception e) {
             LOGGER.error("[{}] {}",Thread.currentThread().getName(),e.toString());

@@ -34,17 +34,17 @@ public class HungryHipposFileSystem {
 	private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
 	private ZookeeperConfiguration zkConfiguration;
 	// CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
-	private static volatile HungryHipposFileSystem hfs = null;
+	private static volatile HungryHipposFileSystem hhfs = null;
 
 	// for singleton
 	private HungryHipposFileSystem(String clientConfig) {
-		if (hfs != null) {
+		if (hhfs != null) {
 			throw new IllegalStateException("Instance Already created");
 		}
 
 		try {
 			nodeManager = NodesManagerContext.getNodesManagerInstance(clientConfig);
-			CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();			
+			CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
 			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
 		} catch (JAXBException | IOException e) {
 			logger.error(e.getMessage());
@@ -53,14 +53,23 @@ public class HungryHipposFileSystem {
 	}
 
 	public static HungryHipposFileSystem getInstance(String clientConfig) {
-		if (hfs == null) {
+		if (hhfs == null) {
 			synchronized (HungryHipposFileSystem.class) {
-				if (hfs == null) {
-					hfs = new HungryHipposFileSystem(clientConfig);
+				if (hhfs == null) {
+					hhfs = new HungryHipposFileSystem(clientConfig);
 				}
 			}
 		}
-		return hfs;
+		return hhfs;
+	}
+
+	public static HungryHipposFileSystem getInstance() {
+		if (hhfs == null) {
+			throw new RuntimeException("Hungry hippos fileSystem not instantiated properly ");
+
+		}
+
+		return hhfs;
 	}
 
 	private String checkNameContainsFileSystemRoot(String name) {

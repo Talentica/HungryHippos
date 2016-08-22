@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
@@ -14,8 +13,8 @@ import com.talentica.hungryHippos.coordination.context.CoordinationApplicationCo
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.scp.Jscp;
 import com.talentica.hungryHippos.utility.scp.SecureContext;
+import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.hungryhippos.config.sharding.Output;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -26,8 +25,6 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
  *
  */
 public class ShardingTableCopier {
-
-  private static final Random RANDOM = new Random();
 
   public static final String SHARDING_ZIP_FILE_NAME = "sharding-table";
 
@@ -50,24 +47,23 @@ public class ShardingTableCopier {
 
   /**
    * Copies sharding table files from
+   * @param randomNode
    */
-  public void copyToAnyRandomNodeInCluster() {
+  public void copyToRandomNodeInCluster(Node randomNode) {
     try {
       String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
       List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
-      int totalNoOfNodes = nodes.size();
-      Node nodeToUploadShardingTableTo = nodes.remove(RANDOM.nextInt(totalNoOfNodes));
       String nodeSshUsername = outputConfiguration.getNodeSshUsername();
       String nodeSshPrivateKeyFilePath = outputConfiguration.getNodeSshPrivateKeyFilePath();
       File privateKeyFile = new File(nodeSshPrivateKeyFilePath);
-      String host = nodeToUploadShardingTableTo.getIp();
+      String host = randomNode.getIp();
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       String destinationDirectory = fileSystemBaseDirectory + distributedFilePath;
       SecureContext context = new SecureContext(nodeSshUsername, host);
       context.setPrivateKeyFile(privateKeyFile);
       Jscp.scpTarGzippedFile(context, sourceDirectoryContainingShardingFiles, destinationDirectory,
           SHARDING_ZIP_FILE_NAME);
-      updateCoordinationServerForShardingTableAvailability(nodes, nodeToUploadShardingTableTo,
+      updateCoordinationServerForShardingTableAvailability(nodes, randomNode,
           distributedFilePath);
     } catch (IOException | JAXBException exception) {
       throw new RuntimeException(exception);

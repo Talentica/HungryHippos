@@ -36,6 +36,7 @@ jar {
 dependencies {	
 	compile project (':coordination')
 	compile project (':configuration-schema')
+    compile 'com.google.code.findbugs:jsr305:3.0.0'
     testCompile 'junit:junit:4.12'
     compile 'org.slf4j:slf4j-api:1.7.10'
     compile 'log4j:log4j:1.2.17'

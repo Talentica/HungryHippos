@@ -38,6 +38,7 @@ public class DataSynchronizerStarter {
       client.start();
       FileSeederListener.register(client, host);
       FileDownloaderListener.register(client, host);
+      FileSynchronizerListener.register(client,host);
       String peerPath = TORRENT_PEERS_NODE_PATH + "/" + host;
       if (client.checkExists().forPath(peerPath) == null) {
         client.create().creatingParentsIfNeeded().forPath(peerPath);

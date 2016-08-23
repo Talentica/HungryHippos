@@ -141,4 +141,18 @@ public class FileSystemUtils {
       }
     }
   }
+
+  /**
+   * Deletes the file or removes the folder recursively
+   * @param file
+   */
+  public static void deleteFilesRecursively(File file){
+    if(file.isDirectory()){
+      String[] fileList=  file.list();
+      for (int i = 0; i < fileList.length; i++) {
+        deleteFilesRecursively(new File(fileList[i]));
+      }
+    }
+    file.delete();
+  }
 }

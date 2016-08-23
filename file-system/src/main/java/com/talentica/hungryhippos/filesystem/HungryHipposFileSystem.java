@@ -42,7 +42,6 @@ public class HungryHipposFileSystem {
 		if (hhfs != null) {
 			throw new IllegalStateException("Instance Already created");
 		}
-
 		nodeManager = NodesManagerContext.getNodesManagerInstance();
 		CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
 		HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();

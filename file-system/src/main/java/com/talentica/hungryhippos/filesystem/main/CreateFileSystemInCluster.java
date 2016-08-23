@@ -34,13 +34,13 @@ public class CreateFileSystemInCluster {
 		int errorCount = 0;
 		String[] scriptArgs = null;
 		List<Node> nodesInCluster = configuration.getNode();
-		for (Node node : nodesInCluster) {
+	/*	for (Node node : nodesInCluster) {
 			argumentsTobePassed.add(node.getIp());
 			scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
 			errorCount = ExecuteShellCommand.executeScript(scriptArgs);
 			argumentsTobePassed.remove(node.getIp());
 		}
-
+*/
 		if (errorCount == 0) {
 			NodesManagerContext.getNodesManagerInstance(clientConfig);
 			HungryHipposFileSystemMain.getCommandDetails(operation, fname);

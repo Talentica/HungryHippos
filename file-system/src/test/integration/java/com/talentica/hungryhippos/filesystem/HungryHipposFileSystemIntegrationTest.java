@@ -42,7 +42,7 @@ public class HungryHipposFileSystemIntegrationTest {
 		 * nodesManager = Mockito.mock(NodesManager.class); zkProperty =
 		 * Mockito.mock(Property.class);
 		 */
-		hhfs = HungryHipposFileSystem.getInstance(clientConfig);
+		hhfs = HungryHipposFileSystem.getInstance();
 	}
 
 	@After

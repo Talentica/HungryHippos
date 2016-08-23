@@ -55,7 +55,7 @@ public final class Environment {
     return properties.getProperty(key);
   }
 
-  private static int getPropertyValueAsInteger(String key) {
+  public static int getPropertyValueAsInteger(String key) {
     return Integer.parseInt(properties.getProperty(key));
   }
 

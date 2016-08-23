@@ -13,15 +13,19 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.torrent.util.Environment;
 import com.turn.ttorrent.client.Client;
 import com.turn.ttorrent.client.SharedTorrent;
 
 public class TorrentPeerServiceImpl implements TorrentPeerService {
 
+  private static final int THREAD_POOL_SIZE =
+      Environment.getPropertyValueAsInteger("peer.service.fixed.thread.pool.size");
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TorrentPeerServiceImpl.class);
 
-  // TODO: Make it configurable
-  private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(15);
+  private static final ExecutorService EXECUTOR_SERVICE =
+      Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
   @Override
   public Future<Runnable> seedFile(byte[] torrentFile, File seedFilesDirectory, String host) {

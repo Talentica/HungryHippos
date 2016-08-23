@@ -1,11 +1,11 @@
 package com.talentica.hungryHippos.utility.scp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class ScpCommandExecutor {
@@ -19,9 +19,16 @@ public class ScpCommandExecutor {
   }
 
   public static void upload(String userName, String host, String remoteDir, String localDir) {
+    createRemoteDirs(userName,host,remoteDir);
     ProcessBuilder builder =
         new ProcessBuilder("scp", localDir, userName + "@" + host + ":" + remoteDir);
     execute(builder);
+  }
+
+  public static void createRemoteDirs(String userName, String host, String remoteDir){
+      ProcessBuilder builder =
+              new ProcessBuilder("ssh", userName + "@" + host, "mkdir", "-p", remoteDir);
+   execute(builder);
   }
   
   private static void execute(ProcessBuilder builder){
@@ -51,6 +58,4 @@ public class ScpCommandExecutor {
       throw new RuntimeException(e1);
     }
   }
-
-
 }

@@ -125,9 +125,12 @@ public class HungryHipposFileSystem {
 		name = checkNameContainsFileSystemRoot(name);
 		try {
 			nodeManager.createPersistentNode(name, signal, data);
+			signal.await();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
 		}
 		return name;
 	}

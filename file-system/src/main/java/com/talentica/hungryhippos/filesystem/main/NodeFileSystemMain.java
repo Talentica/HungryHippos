@@ -13,7 +13,7 @@ public class NodeFileSystemMain {
 		case "delete":
 			NodeFileSystem.deleteFile(args[1]);
 			break;
-		case "deleteAll":
+		case "deleteall":
 			NodeFileSystem.deleteAllFilesInsideAFolder(args[1]);
 			break;
 		case "find":

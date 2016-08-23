@@ -1,6 +1,7 @@
 package com.talentica.hungryhippos.filesystem.main;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
@@ -89,10 +90,22 @@ public class HungryHipposFileSystemMain {
 		System.out.println("exit");
 	}
 
+	private static void printOnScreen(List<String> list) {
+
+		if (list == null) {
+			System.out.println("No Files are present");
+			return;
+		}
+
+		for (String fName : list) {
+			System.out.println(fName);
+		}
+	}
+
 	private static void runOperation(Operations op, String name) {
 		switch (op) {
 		case LS:
-			hhfs.getChildZnodes(name);
+			printOnScreen(hhfs.getChildZnodes(name));
 			break;
 		case TOUCH:
 			hhfs.createZnode(name);

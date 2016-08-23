@@ -42,15 +42,18 @@ public class CreateFileSystemInCluster {
 			flag = true;
 		}
 
-		/*
-		 * for (Node node : nodesInCluster) {
-		 * argumentsTobePassed.add(node.getIp()); scriptArgs =
-		 * argumentsTobePassed.stream().toArray(String[]::new); errorCount =
-		 * ExecuteShellCommand.executeScript(scriptArgs);
-		 * argumentsTobePassed.remove(node.getIp());
-		 * 
-		 * }
-		 */
+		if (operation.equals("ls")) {
+			runHungryHipposFileSystemMain(clientConfig, operation, fname);
+			System.exit(1);
+		}
+
+		for (Node node : nodesInCluster) { // don't execute ls on node
+			argumentsTobePassed.add(node.getIp());
+			scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
+			errorCount = ExecuteShellCommand.executeScript(scriptArgs);
+			argumentsTobePassed.remove(node.getIp());
+
+		}
 
 		if (errorCount == 0 && !flag) {
 			runHungryHipposFileSystemMain(clientConfig, operation, fname);

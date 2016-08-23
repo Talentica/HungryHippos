@@ -29,8 +29,8 @@ public class HungryHipposFileSystemMain {
 	private static String[] commands = { "ls", "touch", "mkdir", "find", "delete", "deleteall", "exit" };
 	private static HungryHipposFileSystem hhfs = null;
 
-	public static void getHHFSInstance(String clientConfig) {
-		hhfs = HungryHipposFileSystem.getInstance(clientConfig);
+	public static void getHHFSInstance() {
+		hhfs = HungryHipposFileSystem.getInstance();
 	}
 
 	public static void main(String[] args) {

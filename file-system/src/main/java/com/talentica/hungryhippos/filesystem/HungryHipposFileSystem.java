@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
@@ -33,42 +30,22 @@ public class HungryHipposFileSystem {
 	private static NodesManager nodeManager = null;
 	private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
 	private ZookeeperConfiguration zkConfiguration;
-	// CoordinationApplicationContext.getZkProperty().getValueByKey(FileSystemConstants.ROOT_NODE);
 	private static volatile HungryHipposFileSystem hhfs = null;
 
 	// for singleton
-	private HungryHipposFileSystem(String clientConfig) {
-		if (hhfs != null) {
-			throw new IllegalStateException("Instance Already created");
-		}
-
-		try {
-			nodeManager = NodesManagerContext.getNodesManagerInstance(clientConfig);
+	private HungryHipposFileSystem() {
 			CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
 			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
-		} catch (JAXBException | IOException e) {
-			logger.error(e.getMessage());
-			throw new RuntimeException(e.getMessage());
-		}
-	}
-
-	public static HungryHipposFileSystem getInstance(String clientConfig) {
-		if (hhfs == null) {
-			synchronized (HungryHipposFileSystem.class) {
-				if (hhfs == null) {
-					hhfs = new HungryHipposFileSystem(clientConfig);
-				}
-			}
-		}
-		return hhfs;
 	}
 
 	public static HungryHipposFileSystem getInstance() {
 		if (hhfs == null) {
-			throw new RuntimeException("Hungry hippos fileSystem not instantiated properly ");
-
+			synchronized (HungryHipposFileSystem.class) {
+				if (hhfs == null) {
+					hhfs = new HungryHipposFileSystem();
+				}
+			}
 		}
-
 		return hhfs;
 	}
 

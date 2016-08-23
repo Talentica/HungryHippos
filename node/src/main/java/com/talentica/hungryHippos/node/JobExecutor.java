@@ -102,17 +102,6 @@ public class JobExecutor {
   }
 
   /**
-   * @throws Exception
-   * @throws KeeperException
-   * @throws InterruptedException
-   */
-  private static void listenerOnJobMatrix()
-      throws Exception, KeeperException, InterruptedException {
-    ZkSignalListener.waitForSignal(JobExecutor.nodesManager,
-        CommonUtil.ZKJobNodeEnum.START_JOB_MATRIX.getZKJobNode());
-  }
-
-  /**
    * @param args
    * @throws JAXBException
    * @throws FileNotFoundException

@@ -1,9 +1,13 @@
 package com.talentica.hungryhippos.filesystem.main;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.ExecuteShellCommand;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -12,7 +16,7 @@ public class CreateFileSystemInCluster {
 
 	private static final String SCRIPT_LOC = "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/file-system-commands.sh";
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 		validateArguments(args);
 		List<String> argumentsTobePassed = new ArrayList<String>();
 		String clientConfig = args[0];
@@ -38,7 +42,7 @@ public class CreateFileSystemInCluster {
 		}
 
 		if (errorCount == 0) {
-			HungryHipposFileSystemMain.getHHFSInstance(clientConfig);
+			NodesManagerContext.getNodesManagerInstance(clientConfig);
 			HungryHipposFileSystemMain.getCommandDetails(operation, fname);
 		} else {
 			throw new RuntimeException("Something went wrong");

@@ -1,7 +1,11 @@
 package com.talentica.hungryhippos.filesystem.main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
+import javax.xml.bind.JAXBException;
+
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 
 /**
@@ -16,12 +20,14 @@ public class CleanFileSystemMain {
 	/**
 	 * 
 	 * @param args
+	 * @throws JAXBException 
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 
 		validateArgs(args);
-		CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR,
-				args[0]);
+		NodesManagerContext.getNodesManagerInstance(args[0]);
+		CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
 	}
 
 	private static void validateArgs(String[] args) {

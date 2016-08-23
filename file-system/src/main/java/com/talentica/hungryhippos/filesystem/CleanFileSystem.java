@@ -28,8 +28,8 @@ public class CleanFileSystem {
 	 * 
 	 * @param path
 	 */
-	public static void DeleteFilesWhichAreNotPartOFZK(String path, String clientConfig) {
-		HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance(clientConfig);
+	public static void DeleteFilesWhichAreNotPartOFZK(String path) {
+		HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
 		List<String> filesLoc = getAllFilesInaFolder(path);
 		for (String fileLoc : filesLoc) {
 			if(hhfs.checkZnodeExists(path)){

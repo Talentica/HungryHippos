@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
+
+import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +21,6 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
-import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
@@ -46,12 +48,12 @@ public class DataPublisherStarter {
       nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
       FileSystemUtils.validatePath(destinationPath, true);
 
+      String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
+      checkFilesInSync(shardingZipRemotePath);
       String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(localShardingPath).mkdirs();
-      
-      localShardingPath = downloadAndUnzipShardingTable(destinationPath,localShardingPath);
-
+      localShardingPath = downloadAndUnzipShardingTable(shardingZipRemotePath, localShardingPath);
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
           context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
@@ -155,13 +157,19 @@ public class DataPublisherStarter {
     return context;
   }
 
-  public static String downloadAndUnzipShardingTable(String distributedFilePath, String localDir) {
+  /**
+   * Downloads sharding zip from remote and unzips it in local local
+   * and returns the path of the local directory
+   * @param shardingZipRemotePath
+   * @param localDir
+   * @return
+     */
+  public static String downloadAndUnzipShardingTable(String shardingZipRemotePath, String localDir) {
     Node node = RandomNodePicker.getRandomNode();
-    String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
-    String remoteDir = fileSystemBaseDirectory + distributedFilePath;
     String filePath = localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    ScpCommandExecutor.download("root", node.getIp(),
-        remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz", localDir);
+    ScpCommandExecutor.download(
+        NodesManagerContext.getClientConfig().getOutput().getNodeSshUsername(), node.getIp(),
+        shardingZipRemotePath,localDir);
     try {
       TarAndGzip.untarTGzFile(filePath + ".tar.gz");
     } catch (IOException e) {
@@ -171,4 +179,24 @@ public class DataPublisherStarter {
     return filePath;
   }
 
+  /**
+   * Returns Sharding Zip Path in remote
+   * @param distributedFilePath
+   * @return
+     */
+  public static String getShardingZipRemotePath(String distributedFilePath){
+    String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
+    String remoteDir = fileSystemBaseDirectory + distributedFilePath;
+    String shardingZipRemotePath = remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
+    return shardingZipRemotePath;
+  }
+
+  public static void checkFilesInSync(String shardingZipRemotePath) throws Exception {
+    boolean shardingFileInSync = DataSyncCoordinator.checkSyncUpStatus(shardingZipRemotePath);
+    if(!shardingFileInSync){
+      LOGGER.error("Sharding file {} not in sync",shardingZipRemotePath);
+      throw new RuntimeException("Sharding file not in sync");
+    }
+    LOGGER.info("Sharding file {} in sync",shardingZipRemotePath);
+  }
 }

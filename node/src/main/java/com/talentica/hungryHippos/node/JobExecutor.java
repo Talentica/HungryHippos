@@ -3,25 +3,11 @@
  */
 package com.talentica.hungryHippos.node;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
-import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
@@ -29,10 +15,23 @@ import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.node.job.JobConfigReader;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -63,7 +62,9 @@ public class JobExecutor {
       LOGGER.info("Start Node initialize");
       validateArguments(args);
       initialize(args);
-      context = new ShardingApplicationContext(FileSystemContext.getRootDirectory() + inputHHPath);
+      String dataAbsolutePath = FileSystemContext.getRootDirectory() + inputHHPath;
+      String shardingTableFolderPath = dataAbsolutePath+ File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+      context = new ShardingApplicationContext(shardingTableFolderPath);
       long startTime = System.currentTimeMillis();
       JobRunner jobRunner = createJobRunner();
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
@@ -128,29 +129,6 @@ public class JobExecutor {
   }
 
   /**
-   * Loads the required classes
-   * 
-   * @throws ClassNotFoundException
-   */
-  public static Class loadClasses() {
-    String jarDirectory = JobRunnerApplicationContext.getZkJobRunnerConfig().getJarRootDirectory();
-    String jobJarPath = jarDirectory + File.separatorChar + jobUUId;
-    LOGGER.info("jobJarPath " + jobJarPath);
-    URLClassLoader urlClassLoader = ClassLoaderUtil.getURLClassLoader(jobJarPath);
-    String className = JobConfigReader.readClassName(jobUUId);
-    Class classToLoad;
-    try {
-      classToLoad =
-          Class.forName("com.talentica.hungryHippos.test.sum.SumJob", true, urlClassLoader);
-    } catch (ClassNotFoundException e) {
-      LOGGER.error(e.toString());
-      throw new RuntimeException(e);
-    }
-    LOGGER.info("Loaded {} class successfully", classToLoad.getName());
-    return classToLoad;
-  }
-
-  /**
    * Create the job runner.
    * 
    * @return JobRunner
@@ -169,22 +147,6 @@ public class JobExecutor {
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
     return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }
-
-  /**
-   * Get the list of jobs from ZK Node.
-   * 
-   * @return List<Job>
-   * @throws IOException
-   * @throws ClassNotFoundException
-   * @throws InterruptedException
-   * @throws KeeperException
-   */
-  /*private static List<JobEntity> getJobsFromZKNode()
-      throws IOException, ClassNotFoundException, InterruptedException, KeeperException {
-    List<JobEntity> jobEntities = JobConfigReader.getJobEntityList(jobUUId);
-    LOGGER.info("TOTAL JOBS FOUND {}", jobEntities.size());
-    return jobEntities;
-  }*/
 
   public static ShardingApplicationContext getShardingApplicationContext() {
     return context;

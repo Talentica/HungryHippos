@@ -15,7 +15,7 @@ import com.talentica.hungryhippos.config.cluster.Node;
 public class CreateFileSystemInCluster {
 
 	private static final String SCRIPT_LOC = "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/file-system-commands.sh";
-	
+
 	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 		validateArguments(args);
 		List<String> argumentsTobePassed = new ArrayList<String>();
@@ -34,11 +34,21 @@ public class CreateFileSystemInCluster {
 		int errorCount = 0;
 		String[] scriptArgs = null;
 		List<Node> nodesInCluster = configuration.getNode();
+
+		// remove from zookeeper first.
+		boolean flag = false;
+		if (operation.contains("delete")) {
+			runHungryHipposFileSystemMain(clientConfig, operation, fname);
+			flag = true;
+		}
+
+
 	/*	for (Node node : nodesInCluster) {
 			argumentsTobePassed.add(node.getIp());
 			scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
 			errorCount = ExecuteShellCommand.executeScript(scriptArgs);
 			argumentsTobePassed.remove(node.getIp());
+
 		}
 */
 		if (errorCount == 0) {
@@ -46,14 +56,28 @@ public class CreateFileSystemInCluster {
 			HungryHipposFileSystemMain.getCommandDetails(operation, fname);
 		} else {
 			throw new RuntimeException("Something went wrong");
+
+		}
+
+		if (errorCount == 0 && !flag) {
+			runHungryHipposFileSystemMain(clientConfig, operation, fname);
+
 		}
 
 	}
 
 	private static void validateArguments(String... args) {
 		if (args.length < 5) {
-			throw new IllegalArgumentException("Need client , Cluster Configuration details , file Operations and location");
+			throw new IllegalArgumentException(
+					"Need client , Cluster Configuration details , file Operations and location");
 		}
+	}
+
+	private static void runHungryHipposFileSystemMain(String clientConfig, String operation, String fname)
+			throws FileNotFoundException, JAXBException {
+		NodesManagerContext.getNodesManagerInstance(clientConfig);
+		HungryHipposFileSystemMain.getHHFSInstance();
+		HungryHipposFileSystemMain.getCommandDetails(operation, fname);
 	}
 
 }

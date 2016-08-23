@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< Updated upstream
 <tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
   <tns:coordination-servers>
     <tns:servers>localhost:2181</tns:servers>
@@ -8,4 +9,17 @@
     <tns:node-ssh-username>tns:node-ssh-username</tns:node-ssh-username>
     <tns:node-ssh-private-key-file-path>tns:node-ssh-private-key-file-path</tns:node-ssh-private-key-file-path>
   </tns:output>
+=======
+<tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
+	<tns:coordination-servers>
+		<tns:servers>localhost:2181</tns:servers>
+	</tns:coordination-servers>
+	<tns:session-timout>86400000</tns:session-timout>
+	<tns:output>
+		<tns:node-ssh-username>tns:node-ssh-username</tns:node-ssh-username>
+		<tns:node-ssh-private-key-file-path>tns:node-ssh-private-key-file-path</tns:node-ssh-private-key-file-path>
+	</tns:output>
+>>>>>>> Stashed changes
 </tns:client-config>

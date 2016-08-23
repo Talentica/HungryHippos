@@ -4,7 +4,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.junit.After;
@@ -34,7 +37,7 @@ public class HungryHipposFileSystemIntegrationTest {
 	private Property<ZkProperty> zkProperty;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws FileNotFoundException, JAXBException {
 		/*
 		 * PowerMockito.mockStatic(NodesManagerContext.class);
 		 * PowerMockito.mockStatic(CoordinationApplicationContext.class);
@@ -102,8 +105,8 @@ public class HungryHipposFileSystemIntegrationTest {
 	}
 
 	@Test
-	public void testUpdateFSBlockMetaData() {
-		setUp();
+	public void testUpdateFSBlockMetaData() throws FileNotFoundException, JAXBException {
+
 		try {
 			String fileZKNode = "input";
 			String fileSystemRootNodeZKPath = "/rootnode/filesystem";

@@ -1,6 +1,9 @@
 package com.talentica.hungryhippos.filesystem;
 
+import java.io.FileNotFoundException;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +18,12 @@ import org.slf4j.LoggerFactory;
 public class CleanFileSystem {
 
 	private static final Logger logger = LoggerFactory.getLogger(CleanFileSystem.class);
-	
-	private static void deleteFile(String loc){
+
+	private static void deleteFile(String loc) {
 		NodeFileSystem.deleteFile(loc);
 	}
-	private static List<String> getAllFilesInaFolder(String loc){
+
+	private static List<String> getAllFilesInaFolder(String loc) {
 		return NodeFileSystem.getAllRgularFilesPath(loc);
 	}
 
@@ -27,15 +31,17 @@ public class CleanFileSystem {
 	 * deletes the files which are not part of ZK.
 	 * 
 	 * @param path
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
 	 */
-	public static void DeleteFilesWhichAreNotPartOFZK(String path) {
+	public static void DeleteFilesWhichAreNotPartOFZK(String path) throws FileNotFoundException, JAXBException {
 		HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
 		List<String> filesLoc = getAllFilesInaFolder(path);
 		for (String fileLoc : filesLoc) {
-			if(hhfs.checkZnodeExists(path)){
+			if (hhfs.checkZnodeExists(path)) {
 				continue;
 			} else {
-				logger.info("deleting file " + fileLoc + " as its location is not present in zookeeper." );
+				logger.info("deleting file " + fileLoc + " as its location is not present in zookeeper.");
 				deleteFile(fileLoc);
 			}
 		}

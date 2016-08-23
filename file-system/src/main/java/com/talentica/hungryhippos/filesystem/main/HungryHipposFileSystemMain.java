@@ -1,9 +1,11 @@
 package com.talentica.hungryhippos.filesystem.main;
 
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+import javax.xml.bind.JAXBException;
+
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.NodeFileSystem;
 
 public class HungryHipposFileSystemMain {
 
@@ -29,21 +31,14 @@ public class HungryHipposFileSystemMain {
 	private static String[] commands = { "ls", "touch", "mkdir", "find", "delete", "deleteall", "exit" };
 	private static HungryHipposFileSystem hhfs = null;
 
-	public static void getHHFSInstance() {
+	public static void getHHFSInstance() throws FileNotFoundException, JAXBException {
 		hhfs = HungryHipposFileSystem.getInstance();
 	}
 
 	public static void main(String[] args) {
 
 		if (args == null || args.length == 0) {
-			System.out.println("Please choose what operation you want to do");
-			System.out.println("ls \"fileName\"");
-			System.out.println("touch \"fileName\"");
-			System.out.println("mkdir \"dirName\"");
-			System.out.println("find \"fileName\" ");
-			System.out.println("delete \"fileName\"");
-			System.out.println("deleteall \"fileName\"");
-			System.out.println("exit");
+			usage();
 			Scanner sc = new Scanner(System.in);
 			if (sc.hasNext()) {
 				String s = sc.nextLine();
@@ -81,6 +76,17 @@ public class HungryHipposFileSystemMain {
 			}
 		}
 
+	}
+
+	private static void usage() {
+		System.out.println("Please choose what operation you want to do");
+		System.out.println("ls \"fileName\"");
+		System.out.println("touch \"fileName\"");
+		System.out.println("mkdir \"dirName\"");
+		System.out.println("find \"fileName\" ");
+		System.out.println("delete \"fileName\"");
+		System.out.println("deleteall \"fileName\"");
+		System.out.println("exit");
 	}
 
 	private static void runOperation(Operations op, String name) {

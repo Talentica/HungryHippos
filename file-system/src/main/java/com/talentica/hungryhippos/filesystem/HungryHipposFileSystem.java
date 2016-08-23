@@ -1,8 +1,11 @@
 package com.talentica.hungryhippos.filesystem;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -11,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
@@ -33,12 +37,19 @@ public class HungryHipposFileSystem {
 	private static volatile HungryHipposFileSystem hhfs = null;
 
 	// for singleton
-	private HungryHipposFileSystem() {
-			CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
-			HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+	private HungryHipposFileSystem() throws FileNotFoundException, JAXBException {
+
+		if (hhfs != null) {
+			throw new IllegalStateException("Instance Already created");
+		}
+
+		nodeManager = NodesManagerContext.getNodesManagerInstance();
+		CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+		HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+
 	}
 
-	public static HungryHipposFileSystem getInstance() {
+	public static HungryHipposFileSystem getInstance() throws FileNotFoundException, JAXBException {
 		if (hhfs == null) {
 			synchronized (HungryHipposFileSystem.class) {
 				if (hhfs == null) {
@@ -90,6 +101,7 @@ public class HungryHipposFileSystem {
 		}
 		return name;
 	}
+
 	/**
 	 * Create persistent znode in zookeeper
 	 *
@@ -127,7 +139,7 @@ public class HungryHipposFileSystem {
 	 * @param name
 	 * @return
 	 */
-	public boolean checkZnodeExists(String name){
+	public boolean checkZnodeExists(String name) {
 		name = checkNameContainsFileSystemRoot(name);
 		boolean exists = false;
 		exists = nodeManager.checkNodeExists(name);

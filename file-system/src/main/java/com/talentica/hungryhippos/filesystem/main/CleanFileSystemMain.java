@@ -20,8 +20,13 @@ public class CleanFileSystemMain {
 	/**
 	 * 
 	 * @param args
+<<<<<<< Updated upstream
 	 * @throws JAXBException 
 	 * @throws FileNotFoundException 
+=======
+	 * @throws JAXBException
+	 * @throws FileNotFoundException
+>>>>>>> Stashed changes
 	 */
 	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 

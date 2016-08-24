@@ -1,10 +1,7 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,13 +21,11 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 public class NodeUtil {
 
-  private static final String nodeIdFile = "nodeId";
-
   private static final Logger logger = LoggerFactory.getLogger(NodeUtil.class);
 
-  private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
+  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
-  private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
+  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   public NodeUtil(String filePath) {
     String keyToValueToBucketMapFile = FileSystemContext.getRootDirectory() + filePath
@@ -55,25 +50,6 @@ public class NodeUtil {
     return bucketToNodeNumberMap;
   }
 
-  /**
-   * Read the file nodeId which contains nodeId value.
-   * 
-   * @return NodeId
-   * @throws Exception
-   */
-  public int getNodeId() throws IOException {
-    try {
-      BufferedReader in = new BufferedReader(new InputStreamReader(
-          new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-              + PathUtil.SEPARATOR_CHAR + nodeIdFile)));
-      String line = in.readLine();
-      in.close();
-      return Integer.parseInt(line);
-    } catch (IOException exception) {
-      logger.info("Unable to read the file for NODE ID. Exiting..");
-      throw exception;
-    }
-  }
 
   public void createTrieBucketToNodeNumberMap(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,

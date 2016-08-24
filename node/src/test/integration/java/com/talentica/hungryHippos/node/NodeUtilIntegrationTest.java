@@ -51,15 +51,6 @@ public class NodeUtilIntegrationTest {
   }
 
   @Test
-  public void testGetNodeId() {
-    try {
-      nodeUtil.getNodeId();
-    } catch (IOException e) {
-      assertTrue(false);
-    }
-  }
-
-  @Test
   public void testCreateTrieBucketToNodeNumberMap() {
     try {
       nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);

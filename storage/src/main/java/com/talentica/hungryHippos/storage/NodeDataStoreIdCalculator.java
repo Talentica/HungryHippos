@@ -45,10 +45,13 @@ public class NodeDataStoreIdCalculator implements Serializable {
 
   private void setKeyWiseAcceptingBuckets(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode) {
+    logger.info("bucketToNodeNumberMap size {} on Node {}",bucketToNodeNumberMap.size(),thisNode);
     for (String key : bucketToNodeNumberMap.keySet()) {
       Set<Bucket<KeyValueFrequency>> keyWiseBuckets = new HashSet<>();
       Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(key);
+      logger.info("bucketToNodeMap size {} for key {}",bucketToNodeNumberMap.size(),key);
       for (Bucket<KeyValueFrequency> bucket : bucketToNodeMap.keySet()) {
+        logger.info("Node id from bucketToNodeMap {}",bucketToNodeMap.get(bucket).getNodeId());
         if (bucketToNodeMap.get(bucket).getNodeId() == thisNode) {
           keyWiseBuckets.add(bucket);
         }

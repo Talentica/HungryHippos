@@ -13,7 +13,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 
 /**
  * @author PooshanS

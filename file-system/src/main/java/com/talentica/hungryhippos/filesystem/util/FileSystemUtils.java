@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.google.common.base.Strings;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 /**
@@ -126,7 +126,7 @@ public class FileSystemUtils {
      */
   private static void checkSubPaths(String path){
     String[] strings =  path.split(FileSystemConstants.ZK_PATH_SEPARATOR);
-    String fileSystemRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath();
+    String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath();
     String relativeNodePath = "";
     for (int i = 1; i < strings.length-1; i++) {
       relativeNodePath = relativeNodePath+ FileSystemConstants.ZK_PATH_SEPARATOR +strings[i];

@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.node.tools.handlers;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.utility.SocketMessages;
@@ -65,7 +65,7 @@ public class FileSyncUpRequestHandler implements RequestHandler {
     }
 
     private boolean checkSyncUpStatus() throws Exception {
-        List<Node> nodeList = CoordinationApplicationContext.getLocalClusterConfig().getNode();
+        List<Node> nodeList = CoordinationConfigUtil.getLocalClusterConfig().getNode();
         int totalNoOfNodes = nodeList.size();
         int requiredSuccessNodes = totalNoOfNodes - 1;
         String nodeForCheckingSuccess = FileDownloaderListener.FILES_DOWNLOAD_SUCCESS_NODE_PATH + seedFilePath;

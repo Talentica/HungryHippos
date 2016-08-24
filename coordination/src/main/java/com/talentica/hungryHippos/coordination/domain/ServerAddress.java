@@ -3,18 +3,14 @@
  */
 package com.talentica.hungryHippos.coordination.domain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author PooshanS
  *
  */
 public class ServerAddress {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAddress.class);
-    String ip;
-    String hostname;
+  private String ip;
+  private String hostname;
 
     
     ServerAddress() {

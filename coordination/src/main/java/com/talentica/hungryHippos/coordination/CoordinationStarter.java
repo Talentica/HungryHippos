@@ -9,7 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
@@ -37,7 +37,7 @@ public class CoordinationStarter {
       String fileSystemConfigFilePath = args[4];
       String jobRunnerConfigFilePath = args[5];
       validateFileSystem(fileSystemConfigFilePath);
-      CoordinationApplicationContext.setLocalClusterConfigPath(clusterConfigFilePath);
+      CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfigFilePath);
       ClusterConfig configuration =
           JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
       if (configuration.getNode().isEmpty()) {
@@ -51,23 +51,23 @@ public class CoordinationStarter {
           JaxbUtil.unmarshalFromFile(coordinationConfigFilePath, CoordinationConfig.class);
       manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
       manager.startup();
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.COORDINATION_CONFIGURATION,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.COORDINATION_CONFIGURATION,
           FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.CLUSTER_CONFIGURATION,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.CLUSTER_CONFIGURATION,
           FileUtils.readFileToString(new File(clusterConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.CLIENT_CONFIGURATION,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.CLIENT_CONFIGURATION,
           FileUtils.readFileToString(new File(clientConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.DATA_PUBLISHER_CONFIGURATION,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION,
           FileUtils.readFileToString(new File(datapublisherConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.FILE_SYSTEM,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.FILE_SYSTEM,
           FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
-      CoordinationApplicationContext.uploadConfigurationOnZk(manager,
-          CoordinationApplicationContext.JOB_RUNNER_CONFIGURATION,
+      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
+          CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION,
           FileUtils.readFileToString(new File(jobRunnerConfigFilePath), "UTF-8"));
 
 
@@ -88,6 +88,7 @@ public class CoordinationStarter {
 
   private static void validateFileSystem(String fileSystemConfigFilePath)
       throws FileNotFoundException, JAXBException {
+    // TODO output specific information and then exit
     FileSystemConfig configuration =
         JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class);
     if (configuration.getServerPort() == 0 || configuration.getFileStreamBufferSize() <= 0

@@ -27,10 +27,10 @@ import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
  * @author pooshans
  *
  */
-public class CoordinationApplicationContext {
+public class CoordinationConfigUtil {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(CoordinationApplicationContext.class);
+      LoggerFactory.getLogger(CoordinationConfigUtil.class);
   private static Property<CoordinationProperty> property;
   private static String localClusterConfigFilePath;
   private static CoordinationConfig config;
@@ -68,7 +68,7 @@ public class CoordinationApplicationContext {
     try {
       ZKNodeFile configurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
           .getObjectFromZKNode(getProperty().getValueByKey("zookeeper.config_path")
-              + ZkUtils.zkPathSeparator + CoordinationApplicationContext.COORDINATION_CONFIGURATION);
+              + ZkUtils.zkPathSeparator + CoordinationConfigUtil.COORDINATION_CONFIGURATION);
       config = JaxbUtil.unmarshal((String) configurationFile.getObj(), CoordinationConfig.class);
       return config;
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
@@ -80,7 +80,7 @@ public class CoordinationApplicationContext {
   }
 
   public static void setLocalClusterConfigPath(String localClusterConfigFilePath) {
-    CoordinationApplicationContext.localClusterConfigFilePath = localClusterConfigFilePath;
+    CoordinationConfigUtil.localClusterConfigFilePath = localClusterConfigFilePath;
   }
 
   public static ClusterConfig getLocalClusterConfig() {
@@ -100,7 +100,7 @@ public class CoordinationApplicationContext {
     }
     try {
       ZKNodeFile configurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
-          .getConfigFileFromZNode(CoordinationApplicationContext.CLUSTER_CONFIGURATION);
+          .getConfigFileFromZNode(CoordinationConfigUtil.CLUSTER_CONFIGURATION);
       clusterConfig = JaxbUtil.unmarshal((String) configurationFile.getObj(), ClusterConfig.class);
       return clusterConfig;
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {

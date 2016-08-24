@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 
@@ -22,7 +22,7 @@ public enum NodeInfo {
 	private int port;
 
     NodeInfo() {
-        ClusterConfig config = CoordinationApplicationContext.getZkClusterConfigCache();
+        ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
         List<Node> nodeList = config.getNode();
         Enumeration e;
         boolean configPresent = false;

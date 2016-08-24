@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -136,7 +136,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap(
       String shardingTablePath) {
-    String bucketCombinationPath = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String bucketCombinationPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.BUCKET_COMBINATION.getName();
@@ -151,7 +151,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<String, Map<Bucket<KeyValueFrequency>, Node>> readBucketToNodeNumberMap(
       String shardingTablePath) {
-    String keyToBucketNumberPath = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String keyToBucketNumberPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
@@ -166,7 +166,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<String, Map<Object, Bucket<KeyValueFrequency>>> readKeyToValueToBucketMap(
       String shardingTablePath) {
-    String KeyToValueToBucketPath = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String KeyToValueToBucketPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();

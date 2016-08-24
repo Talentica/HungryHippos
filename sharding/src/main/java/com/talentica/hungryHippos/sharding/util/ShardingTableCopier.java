@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 import javax.xml.bind.JAXBException;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.scp.Jscp;
 import com.talentica.hungryHippos.utility.scp.SecureContext;
@@ -52,7 +52,7 @@ public class ShardingTableCopier {
   public void copyToRandomNodeInCluster(Node randomNode) {
     try {
       String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
-      List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+      List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
       String nodeSshUsername = outputConfiguration.getNodeSshUsername();
       String nodeSshPrivateKeyFilePath = outputConfiguration.getNodeSshPrivateKeyFilePath();
       File privateKeyFile = new File(nodeSshPrivateKeyFilePath);
@@ -75,12 +75,12 @@ public class ShardingTableCopier {
       throws FileNotFoundException, JAXBException, IOException {
     int nodeIdShardingTableCopiedTo = nodeToUploadShardingTableTo.getIdentifier();
     String shardingTableCopiedOnPath =
-        CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
+        CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
             + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
     NodesManager nodesManagerInstance = NodesManagerContext.getNodesManagerInstance();
     nodesManagerInstance.createPersistentNode(
         shardingTableCopiedOnPath + nodeIdShardingTableCopiedTo, new CountDownLatch(1));
-    String shardingTableToBeCopiedOnNodePath =  CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() 
+    String shardingTableToBeCopiedOnNodePath =  CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() 
         + distributedFilePath + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
     nodes.stream().filter(node -> node.getIdentifier() != nodeIdShardingTableCopiedTo)
         .forEach(node -> {

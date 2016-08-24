@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.datapublisher.DatapublisherConfig;
@@ -23,7 +23,7 @@ public class DataPublisherApplicationContext {
     if (datapublisherConfig == null) {
       try {
         ZKNodeFile configurationFile = (ZKNodeFile) manager
-            .getConfigFileFromZNode(CoordinationApplicationContext.DATA_PUBLISHER_CONFIGURATION);
+            .getConfigFileFromZNode(CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION);
         datapublisherConfig = JaxbUtil.unmarshal((String) configurationFile.getObj(),DatapublisherConfig.class);
         return datapublisherConfig;
       } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {

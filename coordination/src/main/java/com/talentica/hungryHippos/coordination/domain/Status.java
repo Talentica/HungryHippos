@@ -3,16 +3,12 @@
  */
 package com.talentica.hungryHippos.coordination.domain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author PooshanS
  *
  */
 public class Status {
 	
-private static final Logger LOGGER = LoggerFactory.getLogger(Status.class);
     public enum Code {
         SUCCESS,
         FAILURE

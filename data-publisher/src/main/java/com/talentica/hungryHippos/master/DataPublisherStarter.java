@@ -18,7 +18,7 @@ import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.master.data.DataProvider;
@@ -131,7 +131,7 @@ public class DataPublisherStarter {
    * @param destinationPath
    */
   private static void updateFilePublishSuccessful(String destinationPath) {
-    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
@@ -145,7 +145,7 @@ public class DataPublisherStarter {
    * @param destinationPath
    */
   private static void updateFilePublishFailure(String destinationPath) {
-    String destinationPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;

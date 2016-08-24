@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import javax.xml.bind.JAXBException;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
@@ -26,7 +26,7 @@ public class ShardingTablePrinter {
 
     NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
     CoordinationConfig coordinationConfig =
-        CoordinationApplicationContext.getZkCoordinationConfigCache();
+        CoordinationConfigUtil.getZkCoordinationConfigCache();
     manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
     String shardingTablePath = args[1];
     // ShardingTableZkService service = new ShardingTableZkService();
@@ -40,7 +40,7 @@ public class ShardingTablePrinter {
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(
             shardingTablePath + File.separatorChar + "bucketCombinationToNodeNumbersMap")));
     System.out.println();
-    ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
+    ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     System.out.println("##### Node details ####");
     System.out.println();
     System.out.println("Node Id" + "\t\t" + "Node name" + "\t\t" + "Address");

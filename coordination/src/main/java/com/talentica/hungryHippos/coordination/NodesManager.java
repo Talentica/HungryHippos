@@ -33,7 +33,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.netflix.curator.utils.ZKPaths;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.ServerAddress;
 import com.talentica.hungryHippos.coordination.domain.Status;
@@ -146,7 +146,7 @@ public class NodesManager implements Watcher {
     pathMap.put(PathEnum.BASEPATH.name(), zookeeperDefaultConfig.getHostPath());
     pathMap.put(PathEnum.ALERTPATH.name(), zookeeperDefaultConfig.getAlertPath());
     pathMap.put(PathEnum.CONFIGPATH.name(),
-        CoordinationApplicationContext.getProperty().getValueByKey("zookeeper.config_path"));
+        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path"));
     pathMap.put(PathEnum.FILESYSTEM.name(), zookeeperDefaultConfig.getFilesystemPath());
     pathMap.put(PathEnum.SHARDING_TABLE.name(), zookeeperDefaultConfig.getShardingTablePath());
     pathMap.put(PathEnum.JOB_CONFIG.name(), zookeeperDefaultConfig.getJobConfigPath());
@@ -714,7 +714,7 @@ public class NodesManager implements Watcher {
   private void createServersMap() {
     List<String> checkUnique = new ArrayList<String>();
     List<Node> nodes;
-    nodes = CoordinationApplicationContext.getLocalClusterConfig().getNode();
+    nodes = CoordinationConfigUtil.getLocalClusterConfig().getNode();
 
     for (int index = 0; index < nodes.size(); index++) {
       Node node = nodes.get(index);

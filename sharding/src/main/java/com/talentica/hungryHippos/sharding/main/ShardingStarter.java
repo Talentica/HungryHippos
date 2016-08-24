@@ -4,7 +4,7 @@ import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
@@ -124,7 +124,7 @@ public class ShardingStarter {
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
         .getConstructor(DataDescription.class).newInstance(dataDescription);
 
-    ClusterConfig clusterConfig = CoordinationApplicationContext.getZkClusterConfigCache();
+    ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
     Sharding sharding = new Sharding(clusterConfig, context);

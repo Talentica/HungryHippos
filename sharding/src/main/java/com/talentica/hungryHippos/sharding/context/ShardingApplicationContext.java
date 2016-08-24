@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.sharding.Column;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
@@ -174,7 +174,7 @@ public class ShardingApplicationContext {
   }
 
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {
-    String fileSystemBasePath = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String fileSystemBasePath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();
     return fileSystemBasePath + distributedFilePath;
   }

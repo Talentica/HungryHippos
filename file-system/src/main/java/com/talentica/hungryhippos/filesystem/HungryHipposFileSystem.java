@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
@@ -43,7 +43,7 @@ public class HungryHipposFileSystem {
 			throw new IllegalStateException("Instance Already created");
 		}
 		nodeManager = NodesManagerContext.getNodesManagerInstance();
-		CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+		CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
 		HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER = coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
 
 	}
@@ -321,7 +321,7 @@ public class HungryHipposFileSystem {
 		if (null == hungryHippoFilePath || hungryHippoFilePath.isEmpty()) {
 			throw new RuntimeException("Path is null or empty");
 		}
-		String fsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
+		String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
 				.getFilesystemPath();
 		String hungryHippoFilePathNode = fsRootNode + hungryHippoFilePath;
 		boolean nodeExists = ZkUtils.checkIfNodeExists(hungryHippoFilePathNode);

@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.tools;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.tools.clients.FileExtractionClient;
 import com.talentica.hungryhippos.config.cluster.Node;
 
@@ -20,7 +20,7 @@ public class FilesExtractor {
      */
     public static void extractFileInNodes(String filePathForExtraction) throws IOException {
         FileExtractionClient fileExtractionClient =new FileExtractionClient(filePathForExtraction);
-        List<Node> nodes = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+        List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         for(Node node:nodes){
             fileExtractionClient.sendRequest(node.getIp());
         }

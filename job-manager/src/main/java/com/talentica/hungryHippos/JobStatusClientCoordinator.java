@@ -2,7 +2,7 @@ package com.talentica.hungryHippos;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -25,7 +25,7 @@ public class JobStatusClientCoordinator {
      * @param jobUUID
      */
     public static void initializeJobNodes(String jobUUID) {
-        List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+        List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         for (Node node : nodeList) {
             int nodeId = node.getIdentifier();
             String hhNode = getPendingHHNode(nodeId);
@@ -42,7 +42,7 @@ public class JobStatusClientCoordinator {
      */
     public static boolean areAllNodesCompleted(String jobUUID) {
         String completedGroup = PathEnum.COMPLETED_JOB_NODES.getPathName();
-        List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+        List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         if (nodeList.size() == 0) {
             throw new RuntimeException("Number of nodes in Configuration is zero");
         }
@@ -68,7 +68,7 @@ public class JobStatusClientCoordinator {
      */
     public static boolean hasAnyNodeFailed(String jobUUID) {
         String failedGroup = PathEnum.FAILED_JOB_NODES.getPathName();
-        List<Node> nodeList = CoordinationApplicationContext.getZkClusterConfigCache().getNode();
+        List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         if (nodeList.size() == 0) {
             throw new RuntimeException("Number of nodes in Configuration is zero");
         }

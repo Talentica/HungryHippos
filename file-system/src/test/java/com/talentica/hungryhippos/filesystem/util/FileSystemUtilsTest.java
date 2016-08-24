@@ -1,7 +1,7 @@
 package com.talentica.hungryhippos.filesystem.util;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,7 +29,7 @@ public class FileSystemUtilsTest {
     public void setup() throws FileNotFoundException, JAXBException {
         NodesManagerContext.
                 getNodesManagerInstance("/home/rajkishoreh/hungry/HungryHippos/configuration-schema/src/main/resources/schema/client-config.xml");
-        fileSystemRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
+        fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().
                 getZookeeperDefaultConfig().getFilesystemPath();
     }
 

@@ -1,7 +1,7 @@
 package com.talentica.hungryhippos.filesystem.client;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -50,7 +50,7 @@ public class DataRetrieverClient {
   public static void getHungryHippoData(String hungryHippoFilePath, String outputDirName,
       int dimension) throws Exception {
     List<String> tmpDestFileNames = new ArrayList<>();
-    String fsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
@@ -82,7 +82,7 @@ public class DataRetrieverClient {
    */
   public static String getNodeIp(String nodeId) {
     ClusterConfig clusterConfig =
-            CoordinationApplicationContext.getZkClusterConfigCache();
+            CoordinationConfigUtil.getZkClusterConfigCache();
     String nodeIp = null;
     for (Node node : clusterConfig.getNode()) {
       if (node.getIdentifier() == Integer.parseInt(nodeId)) {

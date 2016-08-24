@@ -8,7 +8,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
@@ -23,7 +23,7 @@ public class JobRunnerApplicationContext {
     if (jobRunnerConfig == null) {
       try {
         ZKNodeFile configFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
-            .getConfigFileFromZNode(CoordinationApplicationContext.JOB_RUNNER_CONFIGURATION);
+            .getConfigFileFromZNode(CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION);
         jobRunnerConfig = JaxbUtil.unmarshal((String) configFile.getObj(), JobRunnerConfig.class);
       } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
         LOGGER.info("Please upload the job-runner configuration file on zookeeper");

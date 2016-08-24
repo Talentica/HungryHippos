@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.common.job;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.PathEnum;
 
 /**
@@ -91,7 +91,7 @@ public class JobStatusCommonOperations {
      * @return
      */
     public static String getGroupNode(String group) {
-        String jobStatusRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache().
+        String jobStatusRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().
                 getZookeeperDefaultConfig().getJobStatusPath();
         String groupNode = jobStatusRootNode + "/" + group;
         return groupNode;

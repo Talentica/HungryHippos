@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.JobConfigPublisher;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.job.util.JobIDGenerator;
 import com.talentica.hungryHippos.job.util.JobJarPublisher;
@@ -50,14 +50,14 @@ public class JobOrchestrator {
       FileSystemUtils.validatePath(outputHHPath, true);
       validateOutputHHPath(outputHHPath);
       HungryHipposFileSystem.validateFileDataReady(inputHHPath);
-      String fsRootNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+      String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath();
       boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + inputHHPath
           + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
       if (!isSharded) {
         throw new RuntimeException("Not sharded file. Can not run the jobs");
       }
-      outputHHPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+      outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
       ZkUtils.createFileNode(outputHHPathNode);
       String jobUUID = JobIDGenerator.generateJobID();
@@ -135,7 +135,7 @@ public class JobOrchestrator {
     if ("".equals(outputHHPath)) {
       throw new RuntimeException("Empty output path");
     }
-    String outputHHPathNode = CoordinationApplicationContext.getZkCoordinationConfigCache()
+    String outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
     String dataReadyNode = outputHHPathNode + "/" + FileSystemConstants.DATA_READY;
     boolean nodeExists = ZkUtils.checkIfNodeExists(dataReadyNode);

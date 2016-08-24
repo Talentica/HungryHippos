@@ -4,18 +4,17 @@
 package com.talentica.hungryHippos.coordination.domain;
 
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * @author PooshanS
@@ -42,10 +41,6 @@ public class NodesManagerContext {
     return nodesManager;
   }
 
-  public static List<Server> getMonitoredServers() {
-    return nodesManager.getServers();
-  }
-
   public static NodesManager getNodesManagerInstance() throws FileNotFoundException, JAXBException {
     if(nodesManager == null){
       LOGGER.error("Nodes Manager not initialized");
@@ -57,7 +52,7 @@ public class NodesManagerContext {
   public static NodesManager getNodesManagerInstance(String clientConfigFilePath)
           throws FileNotFoundException, JAXBException {
     initialize(clientConfigFilePath);
-    CoordinationConfig coordinationConfig = CoordinationApplicationContext.getZkCoordinationConfigCache();
+    CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     nodesManager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
     return nodesManager;
   }

@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
@@ -67,7 +67,7 @@ public class ZkUtilsIntegrationTest {
 
 	@Test
 	public void testClientConfigZk() {
-    CoordinationConfig configSave = CoordinationApplicationContext.getZkCoordinationConfigCache();
+    CoordinationConfig configSave = CoordinationConfigUtil.getZkCoordinationConfigCache();
 		ZkUtils.saveObjectZkNode("/rootnode/configuration2/A/B", configSave);
     CoordinationConfig configRet =
         (CoordinationConfig) ZkUtils.readObjectZkNode("/rootnode/configuration2/A/B");

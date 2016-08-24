@@ -23,7 +23,7 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
@@ -54,7 +54,7 @@ public class DataProvider {
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
-    ClusterConfig config = CoordinationApplicationContext.getZkClusterConfigCache();
+    ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       String server = node.getIp() + ServerUtils.COLON + node.getPort();

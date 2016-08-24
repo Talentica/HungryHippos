@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.ExecuteShellCommand;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
@@ -29,8 +29,8 @@ public class CreateFileSystemInCluster {
 		argumentsTobePassed.add(userName);
 		argumentsTobePassed.add(operation);
 		argumentsTobePassed.add(fname);
-		CoordinationApplicationContext.setLocalClusterConfigPath(clusterConfig);
-		ClusterConfig configuration = CoordinationApplicationContext.getLocalClusterConfig();
+		CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfig);
+		ClusterConfig configuration = CoordinationConfigUtil.getLocalClusterConfig();
 		int errorCount = 0;
 		String[] scriptArgs = null;
 		List<Node> nodesInCluster = configuration.getNode();

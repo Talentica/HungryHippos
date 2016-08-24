@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.Server;
@@ -270,12 +270,12 @@ public class ZkUtils {
   }
 
   public static String buildNodePath(int nodeId) {
-    return CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
+    return CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
         .getHostPath() + PathUtil.SEPARATOR_CHAR + ("_node" + nodeId);
   }
 
   public static String buildNodePath(String jobuuid) {
-    return CoordinationApplicationContext.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
+    return CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
         .getHostPath() + PathUtil.SEPARATOR_CHAR + (jobuuid);
   }
 

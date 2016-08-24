@@ -39,7 +39,7 @@ public final class Environment {
   private static String loadDefaultProperties() throws IOException, FileNotFoundException {
     String propertiesFilePath =
         Environment.class.getClassLoader().getResource(DEFAULT_PROPERTIES_FILE_NAME).getPath();
-    properties.load(new FileInputStream(new File(propertiesFilePath)));
+    properties.load(Environment.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES_FILE_NAME));
     return propertiesFilePath;
   }
 

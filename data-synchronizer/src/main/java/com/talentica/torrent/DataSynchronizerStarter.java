@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.torrent.coordination.FileDownloaderListener;
 import com.talentica.torrent.coordination.FileSeederListener;
+import com.talentica.torrent.coordination.FileSynchronizerListener;
 import com.talentica.torrent.util.Environment;
 
 /**

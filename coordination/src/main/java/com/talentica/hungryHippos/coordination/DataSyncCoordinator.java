@@ -1,6 +1,10 @@
 package com.talentica.hungryHippos.coordination;
 
 import java.util.List;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.torrent.coordination.FileDownloaderListener;
+import com.talentica.torrent.coordination.FileSynchronizerListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
@@ -12,10 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.torrent.FileSynchronizerListener;
-import com.talentica.torrent.coordination.FileDownloaderListener;
 
 /**
  * This class is for coordinating with the Data-synchronizer by notifying and getting information.

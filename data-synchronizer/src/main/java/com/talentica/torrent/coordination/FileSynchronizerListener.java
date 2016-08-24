@@ -1,7 +1,7 @@
-package com.talentica.torrent;
+package com.talentica.torrent.coordination;
 
-import com.talentica.torrent.coordination.ChildrenUpdatedListener;
-import com.talentica.torrent.coordination.NewTorrentAvailableListener;
+import com.talentica.torrent.FileMetadata;
+import com.talentica.torrent.util.Environment;
 import com.talentica.torrent.util.TorrentGenerator;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -17,8 +17,10 @@ import java.io.File;
  */
 public class FileSynchronizerListener extends ChildrenUpdatedListener {
 
-    public static final String FILES_FOR_SYNC = "/torrent/files-for-sync/";
-    public static final String FILE_SYNC_FAILURES = "/torrent/file-sync-failures/";
+    public static final String FILES_FOR_SYNC = 
+        Environment.getPropertyValue("files.for.sync");
+    public static final String FILE_SYNC_FAILURES = 
+        Environment.getPropertyValue("file.sync.failures");
 
     private static String host;
 

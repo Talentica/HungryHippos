@@ -159,14 +159,15 @@ private BucketsCalculator bucketsCalculator;
     setKeysToIndexes();
     String[] keys = context.getShardingDimensions();
     int lineNo = 0;
-    FileWriter.openFile(context.getShardingServerConfig().getBadRecordsFileOut()
+    FileWriter fileWriter = new FileWriter(context.getShardingServerConfig().getBadRecordsFileOut()
         + "_sharding.err");
+    fileWriter.openFile();
     while (true) {
       DataTypes[] parts = null;
       try {
         parts = data.read();
       } catch (InvalidRowException e) {
-        FileWriter.flushData(lineNo++, e);
+        fileWriter.flushData(lineNo++, e);
         continue;
       }
       if (parts == null) {
@@ -193,7 +194,7 @@ private BucketsCalculator bucketsCalculator;
 
     logger.info("Populating frequency map from data finished");
 
-    FileWriter.close();
+    fileWriter.close();
 
     return keyValueFrequencyMap;
   }

@@ -55,13 +55,14 @@ public class RecordFilterTest {
 		int actualBadRecords = 0;
 		int expectedBadRows = 2;
 		int lineNo = 0;
-		FileWriter.openFile(badRecordsFile);
+		FileWriter fileWriter = new FileWriter(badRecordsFile);
+		fileWriter.openFile();
 		while (true) {
 			DataTypes[] parts = null;
 			try {
 				parts = data.read();
 			} catch (InvalidRowException e) {
-				FileWriter.flushData(lineNo++, e);
+			  fileWriter.flushData(lineNo++, e);
 				actualBadRecords++;
 				continue;
 			}
@@ -70,6 +71,7 @@ public class RecordFilterTest {
 				break;
 			}
 		}
+		fileWriter.close();
 		Assert.assertEquals(expectedBadRows, actualBadRecords);
 	}
 

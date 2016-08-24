@@ -1,18 +1,20 @@
 package com.talentica.hungryHippos.job.main;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URLClassLoader;
+
+import javax.xml.bind.JAXBException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.job.JobMatrix;
-import com.talentica.hungryHippos.common.util.ClassLoaderUtil;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.master.job.JobManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URLClassLoader;
+import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 
 /**
  * @author PooshanS

@@ -107,13 +107,14 @@ public class DataProvider {
     long timeForEncoding = 0;
     long timeForLookup = 0;
     int lineNo = 0;
-    FileWriter.openFile(BAD_RECORDS_FILE);
+    FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
+    fileWriter.openFile();
     while (true) {
       DataTypes[] parts = null;
       try {
         parts = input.read();
       } catch (InvalidRowException e) {
-        FileWriter.flushData(lineNo++, e);
+        fileWriter.flushData(lineNo++, e);
         continue;
       }
       if (parts == null) {
@@ -144,7 +145,7 @@ public class DataProvider {
       }
 
     }
-    FileWriter.close();
+    fileWriter.close();
     for (int j = 0; j < targets.length; j++) {
       targets[j].flush();
       targets[j].close();

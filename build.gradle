@@ -100,7 +100,7 @@ subprojects{
 	ext.outputLibsDir="build/libs"
 	ext.outputScriptsDir="src/main/resources/bin"
 	ext.javaodcDir="build/docs/javadoc"
-	ext.configDir="src/main/resources"
+	ext.configDir="src/main/resources/distribution"
 	ext.distributionHome="../build/distribution/HungryHippos-"+project.version+"/"
 
 	ext.apiDir=distributionHome +"docs"
@@ -109,7 +109,7 @@ subprojects{
 	ext.mapredLibrariesDir=distributionHome +"mapreduce/lib"
 	ext.mapredApi=distributionHome +"mapreduce/docs"
 	ext.binDir=distributionHome +"bin"
-	ext.destConfigDir=distributionHome +"config"+"/"+project.name
+	ext.destConfigDir=distributionHome +"config"
 	
 	task makeRequiredDirs() {
 		cleanupAndMakeDirs(librariesDir)

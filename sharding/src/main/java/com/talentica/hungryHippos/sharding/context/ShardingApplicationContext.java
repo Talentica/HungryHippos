@@ -40,6 +40,7 @@ public class ShardingApplicationContext {
 
 
   public ShardingApplicationContext(String shardingFolderPath) {
+    LOGGER.info("shardingFolderPath : " + shardingFolderPath);
     this.shardingFolderPath = shardingFolderPath;
     checkShardingFolderNull();
     try {

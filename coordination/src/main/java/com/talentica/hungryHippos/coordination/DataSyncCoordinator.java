@@ -1,10 +1,6 @@
 package com.talentica.hungryHippos.coordination;
 
 import java.util.List;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.torrent.coordination.FileDownloaderListener;
-import com.talentica.torrent.coordination.FileSynchronizerListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
@@ -16,6 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.torrent.coordination.FileDownloaderListener;
+import com.talentica.torrent.coordination.FileSynchronizerListener;
 
 /**
  * This class is for coordinating with the Data-synchronizer by notifying and getting information.
@@ -52,7 +52,7 @@ public class DataSyncCoordinator {
         CuratorFramework client = getCuratorFrameworkClient();
         client.start();
         client.create().creatingParentsIfNeeded().forPath(
-                FileSynchronizerListener.FILES_FOR_SYNC + "/" + hostIP + "/" +
+        FileSynchronizerListener.FILES_FOR_SYNC + hostIP + "/" +
                         +System.currentTimeMillis(), uploadDestinationPath.getBytes());
         client.close();
     }
@@ -67,7 +67,8 @@ public class DataSyncCoordinator {
     public static boolean checkSyncUpStatus(String seedFilePath) throws Exception {
         LOGGER.info("Checking Sync Up Status of :{}",seedFilePath);
         CuratorFramework client = getCuratorFrameworkClient();
-        List<Node> nodeList = CoordinationConfigUtil.getLocalClusterConfig().getNode();
+    client.start();
+    List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         int totalNoOfNodes = nodeList.size();
         int requiredSuccessNodes = totalNoOfNodes - 1;
         String nodeForCheckingSuccess = FileDownloaderListener.FILES_DOWNLOAD_SUCCESS_NODE_PATH + seedFilePath;

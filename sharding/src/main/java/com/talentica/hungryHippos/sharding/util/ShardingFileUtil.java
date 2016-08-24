@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -25,6 +28,7 @@ import com.talentica.hungryHippos.sharding.protos.KeyToValueToBucketMapProtos.Va
 
 public class ShardingFileUtil {
 
+  private static Logger LOGGER = LoggerFactory.getLogger(ShardingFileUtil.class);
   public static void dumpKeyToValueToBucketFileOnDisk(String fileName,
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucket, String folderPath) {
     new File(folderPath).mkdirs();
@@ -97,6 +101,7 @@ public class ShardingFileUtil {
 
   public static Map<String, Map<Object, Bucket<KeyValueFrequency>>> readFromFileKeyToValueToBucket(
       String filePath) {
+    LOGGER.info(" sharding filePath : " + filePath);
     Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
     try {
       KeyToValueToBucketMap keyToValueToBucketMapProtos =
@@ -116,6 +121,7 @@ public class ShardingFileUtil {
       }
     } catch (IOException e) {
       e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return keyToValueToBucketMap;
   }
@@ -155,6 +161,7 @@ public class ShardingFileUtil {
 
   public static Map<String, Map<Bucket<KeyValueFrequency>, Node>> readFromFileBucketToNodeNumber(
       String filePath) {
+    LOGGER.info(" sharding filePath : " + filePath);
     Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
     try {
       BucketToNodeNumberMap bucketToNodeNumberMapProtos =
@@ -176,6 +183,7 @@ public class ShardingFileUtil {
       }
     } catch (IOException e) {
       e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return bucketToNodeNumberMap;
   }
@@ -226,6 +234,7 @@ public class ShardingFileUtil {
 
   public static Map<BucketCombination, Set<Node>> readFromFileBucketCombinationToNodeNumber(
       String filePath) {
+    LOGGER.info(" sharding filePath : " + filePath);
     Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = new HashMap<>();
 
     try {
@@ -255,6 +264,7 @@ public class ShardingFileUtil {
       }
     } catch (IOException e) {
       e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return bucketCombinationToNodeNumberMap;
   }

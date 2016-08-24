@@ -18,6 +18,7 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -32,17 +33,18 @@ public class NodeUtil {
   private static Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   public NodeUtil(String filePath) {
-   // String keyToValueToBucketMapFile =ShardingApplicationContext.getKeytovaluetobucketMapFilePath();
     String keyToValueToBucketMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + ShardingApplicationContext.keyToValueToBucketMapFile;
+        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + File.separatorChar
+        + ShardingApplicationContext.keyToValueToBucketMapFile;
 
-    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile);
-    
-    //String bucketToNodeNumberMapFile = ShardingApplicationContext.getBuckettoNodeNumberMapFilePath();
-    
+    keyToValueToBucketMap =
+        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile);
+
     String bucketToNodeNumberMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + ShardingApplicationContext.bucketToNodeNumberMapFile;
-    bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);
+        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + File.separatorChar
+        + ShardingApplicationContext.bucketToNodeNumberMapFile;
+    bucketToNodeNumberMap =
+        ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);
   }
 
   public final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {

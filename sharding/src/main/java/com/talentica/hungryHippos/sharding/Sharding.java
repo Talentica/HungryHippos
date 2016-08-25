@@ -106,7 +106,7 @@ private BucketsCalculator bucketsCalculator;
       KeeperException, InterruptedException, JAXBException {
 
     logger.info("Calculating buckets to node numbers map started");
-
+    data.reset();
     String[] keys = context.getShardingDimensions();
     // Map<key1,Map<value1,count>>
     while (true) {

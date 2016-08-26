@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.protos.BucketCombinationToNodeNumberMapProtos.BucketCombinationMap;
 import com.talentica.hungryHippos.sharding.protos.BucketCombinationToNodeNumberMapProtos.BucketCombinationToNodeNumberMap;
 import com.talentica.hungryHippos.sharding.protos.BucketCombinationToNodeNumberMapProtos.BucketCominationToNodeNumber;
@@ -25,16 +27,19 @@ import com.talentica.hungryHippos.sharding.protos.BucketToNodeNumberProtos.Map_T
 import com.talentica.hungryHippos.sharding.protos.KeyToValueToBucketMapProtos.KeyToValueToBucket;
 import com.talentica.hungryHippos.sharding.protos.KeyToValueToBucketMapProtos.KeyToValueToBucketMap;
 import com.talentica.hungryHippos.sharding.protos.KeyToValueToBucketMapProtos.ValueToBucketMap;
+import com.talentica.hungryhippos.config.sharding.Column;
 
 public class ShardingFileUtil {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ShardingFileUtil.class);
+
   public static void dumpKeyToValueToBucketFileOnDisk(String fileName,
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucket, String folderPath) {
     new File(folderPath).mkdirs();
     String filePath = (folderPath.endsWith(String.valueOf("/")) ? folderPath + fileName
         : folderPath + "/" + fileName);
-    KeyToValueToBucketMap keyToValueToBucketProtos = keyToValueToBucketToProtoBufObject(keyToValueToBucket);
+    KeyToValueToBucketMap keyToValueToBucketProtos =
+        keyToValueToBucketToProtoBufObject(keyToValueToBucket);
     try {
       FileOutputStream output = new FileOutputStream(filePath);
       keyToValueToBucketProtos.writeTo(output);
@@ -48,7 +53,8 @@ public class ShardingFileUtil {
     new File(folderPath).mkdirs();
     String filePath = (folderPath.endsWith(String.valueOf("/")) ? folderPath + fileName
         : folderPath + "/" + fileName);
-    BucketToNodeNumberMap bucketToNodeNumberMapProtos = bucketToNodeNumberToProtoBufObject(bucketToNodeNumber);
+    BucketToNodeNumberMap bucketToNodeNumberMapProtos =
+        bucketToNodeNumberToProtoBufObject(bucketToNodeNumber);
     try {
       FileOutputStream output = new FileOutputStream(filePath);
       bucketToNodeNumberMapProtos.writeTo(output);
@@ -100,8 +106,9 @@ public class ShardingFileUtil {
   }
 
   public static Map<String, Map<Object, Bucket<KeyValueFrequency>>> readFromFileKeyToValueToBucket(
-      String filePath) {
+      String filePath, Map<String,String> dataTypeMap) {
     LOGGER.info(" sharding filePath : " + filePath);
+
     Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = new HashMap<>();
     try {
       KeyToValueToBucketMap keyToValueToBucketMapProtos =
@@ -115,7 +122,9 @@ public class ShardingFileUtil {
               valueToBucketMapProtos.getBucket();
           Bucket<KeyValueFrequency> bucket =
               new Bucket<>(bucketProtos.getId(), bucketProtos.getSize());
-          valueToBucketMap.put(valueToBucketMapProtos.getKeyValue(), bucket);
+          String type = dataTypeMap.get(keyToValueToBucketProtos.getKey());
+          Object obj = parseDataType(valueToBucketMapProtos.getKeyValue(), type);
+          valueToBucketMap.put(obj, bucket);
         }
         keyToValueToBucketMap.put(keyToValueToBucketProtos.getKey(), valueToBucketMap);
       }
@@ -268,4 +277,30 @@ public class ShardingFileUtil {
     }
     return bucketCombinationToNodeNumberMap;
   }
+  
+  public static Map<String, String> getDataTypeMap(ShardingApplicationContext context) {
+    Map<String, String> dataTypeMap = new HashMap<>();
+    List<Column> columns =
+        context.getShardingClientConfig().getInput().getDataDescription().getColumn();
+    for (Column column : columns) {
+      dataTypeMap.put(column.getName(), column.getDataType());
+    }
+    return dataTypeMap;
+  }
+
+  public static Object parseDataType(String value, String type) {
+    switch (type) {
+      case ("INT"):
+        return Integer.valueOf(value);
+      case ("FLOAT"):
+        return Float.valueOf(value);
+      case ("DOUBLE"):
+        return Double.valueOf(value);
+      case ("LONG"):
+        return Long.valueOf(value);
+      default:
+        return value;
+    }
+  }
+
 }

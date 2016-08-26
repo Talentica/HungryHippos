@@ -2,15 +2,12 @@ package com.talentica.hungryHippos.sharding.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.MapUtils;
-import com.talentica.hungryhippos.config.cluster.ClusterConfig;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * Sharding table printer utility to print sharding table for specified HH file on console.
@@ -24,10 +21,15 @@ public class ShardingTablePrinter {
 
     validateArguments(args);
     String shardingTablePath = args[0];
+    ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
+    Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
     System.out.println("###### Key to value to bucket number map ######");
-    System.out.println("\t" + "Key" + "\t" + "Value" + "\t" + "Bucket"
-        + MapUtils.getFormattedString(ShardingFileUtil.readFromFileKeyToValueToBucket(
-            shardingTablePath + File.separatorChar + "keyToValueToBucketMap")));
+    System.out
+        .println(
+            "\t" + "Key" + "\t" + "Value" + "\t" + "Bucket"
+                + MapUtils.getFormattedString(ShardingFileUtil.readFromFileKeyToValueToBucket(
+                    shardingTablePath + File.separatorChar + "keyToValueToBucketMap",
+                    dataTypeMap)));
     System.out.println();
     System.out.println("###### Bucket combination to node numbers map ######");
     System.out.println("\t" + "BucketCombination" + "\t\t\t" + "Node"

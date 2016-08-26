@@ -11,69 +11,76 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.ExecuteShellCommand;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 
 public class CreateFileSystemInCluster {
 
-	private static final String SCRIPT_LOC = "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/file-system-commands.sh";
+  private static final String SCRIPT_LOC =
+      "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/file-system-commands.sh";
 
-	public static void main(String[] args) throws FileNotFoundException, JAXBException {
-		validateArguments(args);
-		List<String> argumentsTobePassed = new ArrayList<String>();
-		String clientConfig = args[0];
-		String clusterConfig = args[1];
-		String userName = args[2];
-		String operation = args[3];
-		String fname = args[4];
-		argumentsTobePassed.add("/bin/sh");
-		argumentsTobePassed.add(SCRIPT_LOC);
-		argumentsTobePassed.add(userName);
-		argumentsTobePassed.add(operation);
-		argumentsTobePassed.add(fname);
-		CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfig);
-		ClusterConfig configuration = CoordinationConfigUtil.getLocalClusterConfig();
-		int errorCount = 0;
-		String[] scriptArgs = null;
-		List<Node> nodesInCluster = configuration.getNode();
+  public static void main(String[] args) throws FileNotFoundException, JAXBException {
+    validateArguments(args);
+    List<String> argumentsTobePassed = new ArrayList<String>();
+    String clientConfig = args[0];
+    String clusterConfig = args[1];
+    String userName = args[2];
+    String operation = args[3];
+    String fname = args[4];
+    argumentsTobePassed.add("/bin/sh");
+    argumentsTobePassed.add(SCRIPT_LOC);
+    argumentsTobePassed.add(userName);
+    argumentsTobePassed.add(operation);
+    argumentsTobePassed.add(fname);
+    CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfig);
+    ClusterConfig configuration = CoordinationConfigUtil.getLocalClusterConfig();
+    int errorCount = 0;
+    String[] scriptArgs = null;
+    List<Node> nodesInCluster = configuration.getNode();
 
-		// remove from zookeeper first.
-		boolean flag = false;
-		if (operation.contains("delete")) {
-			runHungryHipposFileSystemMain(clientConfig, operation, fname);
-			flag = true;
-		}
+    // remove from zookeeper first.
+    boolean flag = false;
+    if (operation.contains("delete")) {
+      runHungryHipposFileSystemMain(clientConfig, operation, fname);
+      flag = true;
+    }
 
-		if (operation.equals("ls")) {
-			runHungryHipposFileSystemMain(clientConfig, operation, fname);
-			System.exit(1);
-		}
+    if (operation.equals("ls")) {
+      runHungryHipposFileSystemMain(clientConfig, operation, fname);
+      System.exit(1);
+    }
 
-		for (Node node : nodesInCluster) { // don't execute ls on node
-			argumentsTobePassed.add(node.getIp());
-			scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
-			errorCount = ExecuteShellCommand.executeScript(scriptArgs);
-			argumentsTobePassed.remove(node.getIp());
+    for (Node node : nodesInCluster) { // don't execute ls on node
+      argumentsTobePassed.add(node.getIp());
+      scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
+      errorCount = ExecuteShellCommand.executeScript(false, scriptArgs);
+      argumentsTobePassed.remove(node.getIp());
 
-		}
+    }
 
-		if (errorCount == 0 && !flag) {
-			runHungryHipposFileSystemMain(clientConfig, operation, fname);
+    if (errorCount == 0 && !flag) {
+      runHungryHipposFileSystemMain(clientConfig, operation, fname);
+      HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
+      for (Node node : nodesInCluster) {
+        hhfs.updateFSBlockMetaData(fname, String.valueOf(node.getIdentifier()), 0l);
+      }
 
-		}
+    }
 
-	}
+  }
 
-	private static void validateArguments(String... args) {
-		if (args.length < 5) {
-			throw new IllegalArgumentException(
-					"Need client , Cluster Configuration details , file Operations and location");
-		}
-	}
+  private static void validateArguments(String... args) {
+    if (args.length < 5) {
+      throw new IllegalArgumentException(
+          "Need client , Cluster Configuration details , file Operations and location");
+    }
+  }
 
-	private static void runHungryHipposFileSystemMain(String clientConfig, String operation, String fname)
-			throws FileNotFoundException, JAXBException {
-		NodesManagerContext.getNodesManagerInstance(clientConfig);
-		HungryHipposFileSystemMain.getHHFSInstance();
-		HungryHipposFileSystemMain.getCommandDetails(operation, fname);
-	}
+  private static void runHungryHipposFileSystemMain(String clientConfig, String operation,
+      String fname) throws FileNotFoundException, JAXBException {
+    NodesManagerContext.getNodesManagerInstance(clientConfig);
+    HungryHipposFileSystemMain.getHHFSInstance();
+    HungryHipposFileSystemMain.getCommandDetails(operation, fname);
+
+  }
 
 }

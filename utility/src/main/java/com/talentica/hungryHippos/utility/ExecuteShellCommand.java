@@ -36,7 +36,7 @@ public class ExecuteShellCommand {
 		}
 	}
 
-	public static int executeScript(String... args) {
+	public static int executeScript(boolean showInConsole, String... args) {
 		int errorLines = 0;
 		try {
 			if (args.length < 1) {
@@ -52,6 +52,9 @@ public class ExecuteShellCommand {
 			String line = "";
 			while ((line = input.readLine()) != null) {
 				LOGGER.info(line);
+				if(showInConsole) {
+					System.out.println(line);
+				}
 			}
 
 			BufferedReader errorStream = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
@@ -60,6 +63,9 @@ public class ExecuteShellCommand {
 			while ((line = errorStream.readLine()) != null) {
 				errorLines++;
 				LOGGER.error(line);
+				if(showInConsole){
+					System.out.println(line);
+				}
 			}
 
 		} catch (Exception e) {

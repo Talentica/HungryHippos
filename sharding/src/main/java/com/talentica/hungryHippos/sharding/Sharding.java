@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -39,7 +38,7 @@ public class Sharding {
 
   // Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
   private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
-  private Map<String, Map<MutableCharArrayString, Long>> keyValueFrequencyMap = new HashMap<>();
+  private Map<String, Map<DataTypes, Long>> keyValueFrequencyMap = new HashMap<>();
 
   private Map<String, Integer> keyToIndexMap = new HashMap<>();
 
@@ -106,7 +105,7 @@ private BucketsCalculator bucketsCalculator;
       KeeperException, InterruptedException, JAXBException {
 
     logger.info("Calculating buckets to node numbers map started");
-
+    data.reset();
     String[] keys = context.getShardingDimensions();
     // Map<key1,Map<value1,count>>
     while (true) {
@@ -120,12 +119,12 @@ private BucketsCalculator bucketsCalculator;
         data.close();
         break;
       }
-      MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
+      DataTypes[] values = new DataTypes[keys.length];
       Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
       for (int i = 0; i < keys.length; i++) {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
-        values[i] = (MutableCharArrayString) parts[keyIndex].clone();
+        values[i] =  parts[keyIndex].clone();
         Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
         bucketCombinationMap.put(key, bucket);
       }
@@ -151,7 +150,7 @@ private BucketsCalculator bucketsCalculator;
   }
 
   // TODO: This method needs to be generalized
-  Map<String, Map<MutableCharArrayString, Long>> populateFrequencyFromData(Reader data)
+  Map<String, Map<DataTypes, Long>> populateFrequencyFromData(Reader data)
       throws IOException, ClassNotFoundException, KeeperException, InterruptedException,
       JAXBException {
 
@@ -173,13 +172,13 @@ private BucketsCalculator bucketsCalculator;
       if (parts == null) {
         break;
       }
-      MutableCharArrayString[] values = new MutableCharArrayString[keys.length];
+      DataTypes[] values = new DataTypes[keys.length];
 
       for (int i = 0; i < keys.length; i++) {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
-        values[i] = (MutableCharArrayString) parts[keyIndex].clone();
-        Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
+        values[i] = parts[keyIndex].clone();
+        Map<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
         if (frequencyPerValue == null) {
           frequencyPerValue = new HashMap<>();
           keyValueFrequencyMap.put(key, frequencyPerValue);
@@ -213,7 +212,7 @@ private BucketsCalculator bucketsCalculator;
       keyToValueToBucketMap.put(keys[i], valueToBucketMap);
       long frequencyOfAlreadyAddedValues = 0;
       int bucketCount = 0;
-      Map<MutableCharArrayString, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+      Map<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
       long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
       logger.info("Ideal size of bucket for {}:{}",
           new Object[] {keys[i], idealAverageSizeOfOneBucket});
@@ -257,8 +256,8 @@ private BucketsCalculator bucketsCalculator;
     String[] keys = context.getShardingDimensions();
     for (String key : keys) {
       List<KeyValueFrequency> frequencies = new ArrayList<>();
-      Map<MutableCharArrayString, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
-      for (MutableCharArrayString keyValue : keyValueToFrequencyMap.keySet()) {
+      Map<DataTypes, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
+      for (DataTypes keyValue : keyValueToFrequencyMap.keySet()) {
         frequencies.add(new KeyValueFrequency(keyValue, keyValueToFrequencyMap.get(keyValue)));
       }
       Collections.sort(frequencies);
@@ -267,11 +266,11 @@ private BucketsCalculator bucketsCalculator;
     return keyToListOfKeyValueFrequency;
   }
 
-  private long getSizeOfOneBucket(Map<MutableCharArrayString, Long> frequencyPerValue,
+  private long getSizeOfOneBucket(Map<DataTypes, Long> frequencyPerValue,
       int noOfBuckets) {
     long sizeOfOneBucket = 0;
     long totalofAllKeyValueFrequencies = 0;
-    for (MutableCharArrayString mutableCharArrayString : frequencyPerValue.keySet()) {
+    for (DataTypes mutableCharArrayString : frequencyPerValue.keySet()) {
       totalofAllKeyValueFrequencies =
           totalofAllKeyValueFrequencies + frequencyPerValue.get(mutableCharArrayString);
       sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets - 1);

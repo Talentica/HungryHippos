@@ -30,7 +30,6 @@ public class NodeDataStoreIdCalculator implements Serializable {
   private final DynamicMarshal dynamicMarshal;
   private static final Logger logger = LoggerFactory.getLogger(NodeDataStoreIdCalculator.class);
   private BucketsCalculator bucketsCalculator;
-  private ShardingApplicationContext context;
 
   public NodeDataStoreIdCalculator(
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
@@ -40,18 +39,14 @@ public class NodeDataStoreIdCalculator implements Serializable {
     keys = dataDescription.keyOrder();
     setKeyWiseAcceptingBuckets(bucketToNodeNumberMap, thisNode);
     this.dynamicMarshal = new DynamicMarshal(dataDescription);
-    this.context = context;
   }
 
   private void setKeyWiseAcceptingBuckets(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode) {
-    logger.info("bucketToNodeNumberMap size {} on Node {}",bucketToNodeNumberMap.size(),thisNode);
     for (String key : bucketToNodeNumberMap.keySet()) {
       Set<Bucket<KeyValueFrequency>> keyWiseBuckets = new HashSet<>();
       Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(key);
-      logger.info("bucketToNodeMap size {} for key {}",bucketToNodeNumberMap.size(),key);
       for (Bucket<KeyValueFrequency> bucket : bucketToNodeMap.keySet()) {
-        logger.info("Node id from bucketToNodeMap {}",bucketToNodeMap.get(bucket).getNodeId());
         if (bucketToNodeMap.get(bucket).getNodeId() == thisNode) {
           keyWiseBuckets.add(bucket);
         }

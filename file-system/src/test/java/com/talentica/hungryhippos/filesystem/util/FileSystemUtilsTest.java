@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * This is a Test class for FileSystemUtils
+ * This is a Test class for FileSystemUtils.
  * Created by rajkishoreh on 11/7/16.
  */
 @Ignore
@@ -84,14 +84,62 @@ public class FileSystemUtilsTest {
             Assert.assertTrue(true);
         }
 
-        CountDownLatch signal = new CountDownLatch(1);
+
+    }
+    @Test
+    public void testValidatePathInValid() {
         try {
-            ZkUtils.deleteRecursive(fileSystemRootNode+"/dir1",signal);
-            signal.await();
-        } catch (Exception e) {
+            String filePath = "../dir1/dir2/text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
             e.printStackTrace();
+            Assert.assertTrue(true);
         }
 
+        try {
+            String filePath = "/dir1/dir2/../text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
 
+        try {
+            String filePath = "/dir1/dir2/./text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "./dir1/dir2/text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "/dir1/dir2/text/.";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "/dir1/dir2/.text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
     }
 }

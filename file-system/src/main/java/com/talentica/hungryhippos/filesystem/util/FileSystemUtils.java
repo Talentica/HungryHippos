@@ -104,7 +104,8 @@ public class FileSystemUtils {
    * @param isFile
      */
   public static void validatePath(String path, boolean isFile) {
-    if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
+    if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
+            ||path.contains("..")||path.contains("//")||path.contains("./")||path.contains("/.")) {
       throw new RuntimeException("Invalid path");
     }
     if (isFile) {

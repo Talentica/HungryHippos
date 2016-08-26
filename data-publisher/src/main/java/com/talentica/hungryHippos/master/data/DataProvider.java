@@ -64,7 +64,6 @@ public class DataProvider {
     return servers.toArray(new String[servers.size()]);
   }
 
-  @SuppressWarnings({"unchecked"})
   public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
       String sourcePath, String destinationPath) throws Exception {
     init(nodesManager);
@@ -80,9 +79,11 @@ public class DataProvider {
         DataPublisherStarter.getContext().getBucketCombinationtoNodeNumbersMapFilePath();
     String keyToValueToBucketPath =
         DataPublisherStarter.getContext().getKeytovaluetobucketMapFilePath();
+    Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
+    
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
-    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath);
+    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
@@ -162,6 +163,6 @@ public class DataProvider {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext
         .getDataPublisherConfig(nodesManager).getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
-        DataPublisherStarter.getContext().getShardingServerConfig().getBadRecordsFileOut();
+        DataPublisherStarter.getContext().getShardingServerConfig().getBadRecordsFileOut() + "_publisher.err";
   }
 }

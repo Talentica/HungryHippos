@@ -28,15 +28,17 @@ public class NodeUtil {
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   public NodeUtil(String filePath) {
-    String keyToValueToBucketMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + File.separatorChar
+    String shardingTempFolder = FileSystemContext.getRootDirectory() + filePath
+        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+    ShardingApplicationContext context = new ShardingApplicationContext(shardingTempFolder);
+    Map<String,String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
+    String keyToValueToBucketMapFile = shardingTempFolder + File.separatorChar
         + ShardingApplicationContext.keyToValueToBucketMapFile;
 
     keyToValueToBucketMap =
-        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile);
+        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile,dataTypeMap);
 
-    String bucketToNodeNumberMapFile = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + File.separatorChar
+    String bucketToNodeNumberMapFile = shardingTempFolder + File.separatorChar
         + ShardingApplicationContext.bucketToNodeNumberMapFile;
     bucketToNodeNumberMap =
         ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);

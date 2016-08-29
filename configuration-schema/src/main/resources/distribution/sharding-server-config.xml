@@ -6,5 +6,5 @@
 	<tns:key-prefix>key</tns:key-prefix>
 	<tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
 	<tns:maximum-no-of-shard-buckets-size>50</tns:maximum-no-of-shard-buckets-size>
-	<tns:bad-records-file-out>/home/sohanc/D_drive/HungryHippos_project/HungryHippos/</tns:bad-records-file-out>
+	<tns:bad-records-file-out>/root/bad_rec.err</tns:bad-records-file-out>
 </tns:sharding-server-config>

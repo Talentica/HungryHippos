@@ -1,6 +1,9 @@
 package com.talentica.hungryHippos.common;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
@@ -27,7 +30,8 @@ public class ExecutionContextImpl implements ExecutionContext {
   public ExecutionContextImpl(DynamicMarshal dynamicMarshal, String outputHHPath) {
     this.dynamicMarshal = dynamicMarshal;
     try {
-      out = new PrintStream(FileSystemContext.getRootDirectory() + outputHHPath);
+      OutputStream os = new FileOutputStream(FileSystemContext.getRootDirectory() + outputHHPath,true);
+      out = new PrintStream(os);
     } catch (FileNotFoundException e) {
       LOGGER.error("Exception occurred while getting print stream for outoutFile.", e);
     }

@@ -289,8 +289,7 @@ public class ZkUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
-      Stat stat = zk.exists(node, true);
-      if (stat == null) {
+      if(!nodesManager.checkNodeExists(node)) {
         LOGGER.info("No such node {} exists.", node);
         return;
       }

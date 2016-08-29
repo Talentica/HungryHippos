@@ -3,14 +3,25 @@
  */
 package com.talentica.hungryHippos.node;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.JobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.node.job.JobConfigReader;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
@@ -21,17 +32,6 @@ import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
@@ -43,15 +43,11 @@ public class JobExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
 
-  private static NodesManager nodesManager;
-
   private static DataStore dataStore;
 
   private static String inputHHPath;
 
   private static String outputHHPath;
-
-  private static String PRIFIX_NODE_NAME = "_node";
 
   private static String jobUUId;
 
@@ -110,7 +106,7 @@ public class JobExecutor {
       throws FileNotFoundException, JAXBException, ClassNotFoundException {
     String clientConfigPath = args[0];
     jobUUId = args[1];
-    nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+    NodesManagerContext.getNodesManagerInstance(clientConfigPath);
     ZkSignalListener.jobuuidInBase64 = jobUUId;
     inputHHPath = JobConfigReader.readInputPath(jobUUId);
     outputHHPath = JobConfigReader.readOutputPath(jobUUId);
@@ -144,7 +140,7 @@ public class JobExecutor {
   private static List<JobEntity> getJobEntities(String localJarPath, String jobMatrixClass)
       throws InstantiationException, IllegalAccessException, ClassNotFoundException,
       FileNotFoundException, JAXBException {
-    List<JobEntity> jobEntities = new ArrayList<JobEntity>();
+    List<JobEntity> jobEntities = new ArrayList<>();
     URLClassLoader classLoader = ClassLoaderUtil.getURLClassLoader(localJarPath);
     JobMatrix jobMatrix =
         (JobMatrix) Class.forName(jobMatrixClass, true, classLoader).newInstance();

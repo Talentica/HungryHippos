@@ -12,7 +12,6 @@ import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
@@ -34,7 +33,7 @@ public class JobExecutorProcessBuilder {
         logger.info("Started JobExecutorProcessBuilder");
         validateArguments(args);
         String clientConfigPath = args[0];
-        NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+    NodesManagerContext.getNodesManagerInstance(clientConfigPath);
         int nodeId = NodeInfo.INSTANCE.getIdentifier();
         String pendingHHNode = getPendingHHNode(nodeId);
         ZkUtils.createZKNodeIfNotPresent(pendingHHNode, ""); 

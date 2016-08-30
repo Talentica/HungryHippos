@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -37,6 +38,8 @@ public class JobExecutorProcessBuilder {
         validateArguments(args);
         String clientConfigPath = args[0];
     NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+        File jobsRootDirectory = new File(JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory());
+        jobsRootDirectory.mkdirs();
         int nodeId = NodeInfo.INSTANCE.getIdentifier();
         String pendingHHNode = getPendingHHNode(nodeId);
         ZkUtils.createZKNodeIfNotPresent(pendingHHNode, ""); 
@@ -48,13 +51,12 @@ public class JobExecutorProcessBuilder {
             for(String jobUUID:jobUUIDs){
                 logger.info("Processing "+jobUUID);
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
-                String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
-                        + "hungryhippos" + File.separator +"logs" + File.separator
-                        + jobUUID+File.pathSeparator;
-                File errLogFile = FileSystemUtils.createNewFile(tempDir+JobExecutor.class.getName().toLowerCase()+".err");
+                String logDir = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory() + File.separator
+                        + jobUUID+File.separator+"logs" +File.separator;
+                File errLogFile = FileSystemUtils.createNewFile(logDir+JobExecutor.class.getName().toLowerCase()+".err");
                 processBuilder.redirectError(errLogFile);
                 logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
-                File outLogFile = FileSystemUtils.createNewFile(tempDir+JobExecutor.class.getName().toLowerCase()+".out");
+                File outLogFile = FileSystemUtils.createNewFile(logDir+JobExecutor.class.getName().toLowerCase()+".out");
                 processBuilder.redirectOutput(outLogFile);
                 logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
                 Process process = processBuilder.start();

@@ -110,13 +110,13 @@ public class JobOrchestrator {
   public static int runJobManager(String clientConfigPath, String localJarPath,
       String jobMatrixClass, String jobUUID) throws IOException, InterruptedException {
     ProcessBuilder jobManagerProcessBuilder = new ProcessBuilder("java",JobManagerStarter.class.getName(), clientConfigPath, localJarPath, jobMatrixClass, jobUUID);
-    String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
+    String logDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
             + "hungryhippos" + File.separator +"logs" + File.separator
-            + jobUUID+File.pathSeparator;
-    File errLogFile = FileSystemUtils.createNewFile(tempDir+JobManagerStarter.class.getName().toLowerCase()+".err");
+            + jobUUID+File.separator;
+    File errLogFile = FileSystemUtils.createNewFile(logDir+JobManagerStarter.class.getName().toLowerCase()+".err");
     jobManagerProcessBuilder.redirectError(errLogFile);
     logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
-    File outLogFile = FileSystemUtils.createNewFile(tempDir+JobManagerStarter.class.getName().toLowerCase()+".out");
+    File outLogFile = FileSystemUtils.createNewFile(logDir+JobManagerStarter.class.getName().toLowerCase()+".out");
     jobManagerProcessBuilder.redirectOutput(outLogFile);
     logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
     Process jobManagerProcess = jobManagerProcessBuilder.start();

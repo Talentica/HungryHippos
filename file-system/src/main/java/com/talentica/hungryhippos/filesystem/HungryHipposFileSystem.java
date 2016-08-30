@@ -49,6 +49,10 @@ public class HungryHipposFileSystem {
 
   }
 
+  public String getHHFSZROOT() {
+    return this.HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
+  }
+
   public static HungryHipposFileSystem getInstance() throws FileNotFoundException, JAXBException {
     if (hhfs == null) {
       synchronized (HungryHipposFileSystem.class) {
@@ -60,7 +64,7 @@ public class HungryHipposFileSystem {
     return hhfs;
   }
 
-  private String checkNameContainsFileSystemRoot(String name) {
+  public String checkNameContainsFileSystemRoot(String name) {
     if (!(name.contains(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER))) {
       if (name.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
         name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + name;

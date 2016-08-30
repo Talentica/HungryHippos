@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -28,15 +29,15 @@ public class ScpCommandExecutor {
   public static void uploadWithKey(String userName, String key, String host, String remoteDir,
       String localDir) {
     createRemoteDirsWithKey(userName, key, host, remoteDir);
-    ProcessBuilder builder = new ProcessBuilder("sshpass", "-f" , key , "scp", localDir,
+    ProcessBuilder builder = new ProcessBuilder("sshpass", "-f", key, "scp", localDir,
         userName + "@" + host + ":" + remoteDir);
     execute(builder);
   }
 
   public static void createRemoteDirsWithKey(String userName, String key, String host,
       String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("sshpass" , "-f", key, "ssh", 
-        userName + "@" + host, "mkdir", "-p", remoteDir);
+    ProcessBuilder builder = new ProcessBuilder("sshpass", "-f", key, "ssh", userName + "@" + host,
+        "mkdir", "-p", remoteDir);
     execute(builder);
   }
 
@@ -48,14 +49,17 @@ public class ScpCommandExecutor {
 
   public static void removeDir(String userName, String host, String remoteDir) {
     ProcessBuilder builder =
-        new ProcessBuilder("ssh", userName + "@" + host,"rm", "-r", remoteDir);
+        new ProcessBuilder("ssh", userName + "@" + host, "rm", "-r", remoteDir);
     execute(builder);
   }
+
+
 
   private static void execute(ProcessBuilder builder) {
     Process process;
     try {
-      process = builder.start();
+      process = builder.start();    
+      
       int processStatus = process.waitFor();
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
       String line = null;

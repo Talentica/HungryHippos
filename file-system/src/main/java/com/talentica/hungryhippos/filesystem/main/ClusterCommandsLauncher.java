@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
@@ -33,6 +35,16 @@ public class ClusterCommandsLauncher {
   private static boolean isJavaCmd = false;
   private static String configurationFolder;
   private static String remoteDir;
+  private static String JAVA_SCRIPT_LOC =
+      "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/run-java-class-on-all-clusters.sh";
+  private static final String CLIENT_CONFIG = "client-config.xml";
+  private static final String COORDINATION_CONFIG = "coordination-config.xml";
+  private static final String CLUSTER_CONFIG = "cluster-config.xml";
+  private static final String DATA_PUBLISHER_CONFIG = "datapublisher-config.xml";
+  private static final String File_SYSTEM_CONFIG = "filesystem-config.xml";
+  private static final String JOB_RUNNER_CONFIG = "job-runner-config.xml";
+  private static String errorFile = null;
+  private static String outPutFile = null;
 
 
   public static void main(String[] args) {
@@ -50,6 +62,7 @@ public class ClusterCommandsLauncher {
         if (isJavaCmd) {
           if (configurationFolder == null) {
             setUpConfigurationFile(line);
+            printHungryHipposJavaCommands();
           } else {
             runJavaCommands(line);
           }
@@ -79,7 +92,7 @@ public class ClusterCommandsLauncher {
       // sshpass -p "password"
       ScpCommandExecutor.uploadWithKey(userName, key, host, remoteDir, localFile);
     }
-    
+
   }
 
   private static void runDownload(String[] commands) {
@@ -105,103 +118,7 @@ public class ClusterCommandsLauncher {
     }
   }
 
-  public static void runCoordinationStarter(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "com.talentica.hungryHippos.coordination.CoordinationStarter"
-            + "../config/client-config.xml" + "../config/coordination-config.xml"
-            + "../config/cluster-config.xml" + "../config/datapublisher-config.xml"
-            + "../config/filesystem-config.xml" + "../config/job-runner-config.xml" + ">"
-            + "../logs/coordination.out" + "2" + ">" + "../logs/coordination.err" + "&");
 
-    // execute(builder);
-  }
-
-
-  public static void runDataSynchronizerStarter(String userName, String host, String remoteDir,
-      String zkIp) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "com.talentica.torrent.DataSynchronizerStarter" + zkIp + host
-            + ">" + "../logs/data-sync.out" + "2" + ">" + "../logs/data-sync.err" + "&");
-
-    // execute(builder);
-  }
-
-
-  public static void runTorrentTrackerStarter(String userName, String host, String remoteDir,
-      String zkIp, String torrentIp, int port) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "com.talentica.torrent.TorrentTrackerStarter" + zkIp + torrentIp
-            + port + ">" + "../logs/data-trac.out" + "2" + ">" + "../logs/data-trac.err" + "&");
-
-    // execute(builder);
-  }
-
-
-  public static void runShardingStarter(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "-cp" + "sharding.jar"
-            + "com.talentica.hungryHippos.sharding.main.ShardingStarter"
-            + "../config/client-config.xml" + "../config/" + ">" + "../logs/sharding.out" + "2"
-            + ">" + "../logs/sharding.er" + "&");
-
-    // execute(builder);
-  }
-
-
-  public static void runDataReceiverStarter(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "com.talentica.hungryHippos.node.DataReceiver"
-            + "../config/client-config.xml" + ">" + "../logs/datareciever.out" + "2" + ">"
-            + "../logs/datareciever.err" + "&");
-
-    // execute(builder);
-  }
-
-
-  public static void runDataPublisherStarter(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd", remoteDir + ";"
-        + "java" + "-cp" + "data-publisher.jar"
-        + "com.talentica.hungryHippos.master.DataPublisherStarter" + "../config/client-config.xml"
-        + "/home/sohanc/D_drive/HungryHippos_project/HungryHippos/sampledata.csv" + "/dir/input1"
-        + ">" + "../logs/datapub.outt" + "2" + ">" + "../logs/datapub.err" + "&");
-
-    // execute(builder);
-  }
-
-  public static void runJobOrchestrator(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "-cp" + "job-manager.jar"
-            + "com.talentica.hungryHippos.job.main.JobOrchestrator" + "../config/client-config.xml"
-            + "/home/sohanc/D_drive/HungryHippos_project/HungryHippos/test-hungry-hippos/build/libs/test-jobs.jar"
-            + " com.talentica.hungryHippos.test.sum.SumJobMatrixImpl" + "/dir/input" + "/dir/output"
-            + ">" + "../logs/job-man.out" + "2" + ">" + "../logs/job-man.err" + "&");
-
-
-
-    // execute(builder);
-  }
-
-
-
-  public static void runJobExecutorProcessBuilder(String userName, String host, String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + "com.talentica.hungryHippos.node.JobExecutorProcessBuilder"
-            + "../config/client-config.xml" + ">" + "../logs/job.out" + "2" + ">"
-            + "../logs/job.err" + "&");
-
-    // execute(builder);
-  }
-
-  public static void runCoordinationStarter1(String userName, String host, String remoteDir,
-      String ClassName, String outFile, String errFile) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host, "cd",
-        remoteDir + ";" + "java" + ClassName + "../config/client-config.xml"
-            + "../config/coordination-config.xml" + "../config/cluster-config.xml"
-            + "../config/datapublisher-config.xml" + "../config/filesystem-config.xml"
-            + "../config/job-runner-config.xml" + ">" + outFile + "2" + ">" + errFile + "&");
-
-    // execute(builder);
-  }
 
   private static void setUpConfigurationFile(String folderLoc) {
     configurationFolder = folderLoc;
@@ -218,25 +135,133 @@ public class ClusterCommandsLauncher {
   }
 
   private static void runJavaCommands(String line) {
-
+    List<String> args = new ArrayList<String>();
+    List<String> shellArgs = new ArrayList<String>();
+    shellArgs.add("/bin/sh");
+    shellArgs.add(JAVA_SCRIPT_LOC);
+    shellArgs.add(userName);
     switch (line) {
       case "1":
-        System.out.println("Coordination Starter is running");
+        System.out.println("Preparing Coordination Starter");
+
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        args.add(configurationFolder + CLIENT_CONFIG);
+        args.add(configurationFolder + COORDINATION_CONFIG);
+        args.add(configurationFolder + CLUSTER_CONFIG);
+        args.add(configurationFolder + DATA_PUBLISHER_CONFIG);
+        args.add(configurationFolder + File_SYSTEM_CONFIG);
+        args.add(configurationFolder + JOB_RUNNER_CONFIG);
+        readInput();
+
+        for (Node node : nodes) {
+        
+          shellArgs.add(node.getIp());
+          shellArgs.add(
+              buildJavaCmd("java", "com.talentica.hungryHippos.coordination.CoordinationStarter",
+                  args, outPutFile, errorFile));
+          String[] scriptArgs = shellArgs.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
+
         break;
       case "2":
         System.out.println("Sharding Starter is running");
+
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        args.add(configurationFolder + CLIENT_CONFIG);
+        args.add(configurationFolder);
+        readInput();
+
+        for (Node node : nodes) {
+          
+          shellArgs.add(node.getIp());
+          shellArgs.add(buildJavaCmd("java -cp sharding.jar",
+              "com.talentica.hungryHippos.sharding.main.ShardingStarter", args, outPutFile,
+              errorFile));
+          String[] scriptArgs = shellArgs.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
+
         break;
       case "3":
         System.out.println("DataReceiver Starter is running");
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        args.add(configurationFolder + CLIENT_CONFIG);
+        readInput();
+        for (Node node : nodes) {
+         
+          shellArgs.add(node.getIp());
+          shellArgs.add(
+              buildJavaCmd("java", "com.talentica.hungryHippos.coordination.CoordinationStarter",
+                  args, outPutFile, errorFile));
+          String[] scriptArgs = shellArgs.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
         break;
       case "4":
         System.out.println("DataPublisher Starter is running");
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        shellArgs.add(configurationFolder + CLIENT_CONFIG);
+        getInputDataForDataPublisher(args);
+        readInput();
+
+        for (Node node : nodes) {
+         
+          shellArgs.add(node.getIp());
+          shellArgs.add(buildJavaCmd("java -cp data-publisher.jar",
+              "com.talentica.hungryHippos.master.DataPublisherStarter", args, "../logs/datapub.out",
+              "../logs/datapub.err"));
+          String[] scriptArgs = shellArgs.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
         break;
       case "5":
         System.out.println("JobManager Starter is running");
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        args.add(configurationFolder + CLIENT_CONFIG);
+        getInputDataForJobManager(args);
+        readInput();
+        for (Node node : nodes) {
+         
+          shellArgs.add(node.getIp());
+          shellArgs.add(buildJavaCmd("java -cp job-manager.jar",
+              "com.talentica.hungryHippos.job.main.JobOrchestrator", args, "../logs/job-man.out",
+              "../logs/job-man.err"));
+          String[] scriptArgs = args.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
         break;
       case "6":
         System.out.println("JobExecutor Starter is running");
+        if (!configurationFolder.endsWith("/")) {
+          configurationFolder = configurationFolder + "/";
+        }
+        args.add(configurationFolder + CLIENT_CONFIG);
+
+        for (Node node : nodes) {
+        
+          shellArgs.add(node.getIp());
+          shellArgs.add(buildJavaCmd("java", "com.talentica.hungryHippos.node.JobExecutorProcessBuilder",
+              args, "../logs/job.out", "../logs/job.err"));
+          String[] scriptArgs = args.stream().toArray(String[]::new);
+          ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
+                                                              // node.getIp(), configurationFolder);
+        }
         break;
       case "7":
         isJavaCmd = false;
@@ -245,6 +270,70 @@ public class ClusterCommandsLauncher {
         System.out
             .println("improper command used. to run normal commands. please exit by typing \"7\"");
     }
+  }
+
+  private static void getInputDataForJobManager(List<String> args) {
+
+    Scanner sc = new Scanner(System.in);
+    String line = null;
+    System.out.println("Enter Jar Path");
+    line = sc.nextLine();
+    args.add(line);
+    System.out.println(" Enter Class Name");
+    line = sc.nextLine();
+    args.add(line);
+    System.out.println("Input Dir");
+    line = sc.nextLine();
+    args.add(line);
+    System.out.println("set outPut dir ");
+    line = sc.nextLine();
+    args.add(line);
+    sc.close();
+  }
+
+  private static void getInputDataForDataPublisher(List<String> args) {
+
+    Scanner sc = new Scanner(System.in);
+    System.out.println("Enter FilePath");
+    String fileLoc = sc.nextLine();
+    System.out.println(" Set Relative Distributed Dir Location");
+    String dirLoc = sc.nextLine();
+    sc.close();
+    args.add(fileLoc);
+    args.add(dirLoc);
+  }
+
+  private static void readInput() {
+    Scanner sc = new Scanner(System.in);
+    System.out.print("set outputFile:-");
+    outPutFile = sc.nextLine();
+    System.out.println();
+    System.out.print("set error File:-");
+    errorFile = sc.nextLine();
+    sc.close();
+  }
+
+  private static String buildJavaCmd(String java, String clazz, List<String> configFiles,
+      String out, String err) {
+    List<String> command = new ArrayList<>();
+    command.add(java);
+    command.add(clazz);
+    for (String configFile : configFiles) {
+      command.add(configFile);
+    }
+    command.add(">");
+    command.add(out);
+    command.add("2");
+    command.add(">");
+    command.add(err);
+
+    StringBuilder sb = new StringBuilder();
+
+    for (String arg : command) {
+      sb.append(arg);
+      sb.append(" ");
+    }
+    return sb.toString();
   }
 
   private static void runCommandOnAllNodes(String line) {
@@ -260,7 +349,7 @@ public class ClusterCommandsLauncher {
         System.out.println("Executed scp operation successfully!!!");
         break;
       case "rm":
-        runRemoveDirs(commands);        
+        runRemoveDirs(commands);
         System.out.println("Executed rm operation successfully!!!");
         break;
       case "download":
@@ -273,7 +362,7 @@ public class ClusterCommandsLauncher {
         printHungryHipposJavaCommands();
         break;
       case "runjava":
-        printHungryHipposJavaCommands();
+        System.out.println("Please type remote location of configuration folder");
         isJavaCmd = true;
         break;
       case "exit":

@@ -28,8 +28,8 @@ public class JobJarPublisher {
 
         String userName = NodesManagerContext.getClientConfig().getOutput().getNodeSshUsername();
         Node node = RandomNodePicker.getRandomNode();
-        String pathToJobRootDir = JobRunnerApplicationContext.getZkJobRunnerConfig().getJarRootDirectory();
-        String remoteDir = pathToJobRootDir + File.separatorChar + jobUUID + File.separatorChar;
+        String pathToJobRootDir = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
+        String remoteDir = pathToJobRootDir + File.separatorChar + jobUUID + File.separatorChar+"lib"+ File.separatorChar;
         File jarFile = new File(localJarPath);
         String remoteJarPath = remoteDir+jarFile.getName();
         ScpCommandExecutor.upload(userName, node.getIp(), remoteDir, localJarPath);

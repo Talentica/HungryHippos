@@ -3,16 +3,19 @@ package com.talentica.hungryHippos.node;
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingHHNode;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
@@ -34,7 +37,9 @@ public class JobExecutorProcessBuilder {
         logger.info("Started JobExecutorProcessBuilder");
         validateArguments(args);
         String clientConfigPath = args[0];
-        NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+    NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+        File jobsRootDirectory = new File(JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory());
+        jobsRootDirectory.mkdirs();
         int nodeId = NodeInfo.INSTANCE.getIdentifier();
         String pendingHHNode = getPendingHHNode(nodeId);
         ZkUtils.createZKNodeIfNotPresent(pendingHHNode, ""); 
@@ -46,15 +51,16 @@ public class JobExecutorProcessBuilder {
             for(String jobUUID:jobUUIDs){
                 logger.info("Processing "+jobUUID);
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
+                String logDir = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory() + File.separator
+                        + jobUUID+File.separator+"logs" +File.separator;
+                File errLogFile = FileSystemUtils.createNewFile(logDir+JobExecutor.class.getName().toLowerCase()+".err");
+                processBuilder.redirectError(errLogFile);
+                logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
+                File outLogFile = FileSystemUtils.createNewFile(logDir+JobExecutor.class.getName().toLowerCase()+".out");
+                processBuilder.redirectOutput(outLogFile);
+                logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
                 Process process = processBuilder.start();
                 int status =  process.waitFor();
-                BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line = null;
-                StringBuilder sb = new StringBuilder();
-                while ((line = br.readLine()) != null){
-                    sb.append(line).append("\n");
-                }
-                System.out.println("Console OUTPUT : \n"+sb.toString());
                 if(status!=0){
                    JobStatusNodeCoordinator.updateNodeJobFailed(jobUUID,nodeId);
                 }

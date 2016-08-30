@@ -156,4 +156,23 @@ public class FileSystemUtils {
     }
     file.delete();
   }
+
+  /**
+   * Creates a new file in localPath
+   * @param localPath
+   * @return
+   * @throws IOException
+     */
+  public static File createNewFile(String localPath) throws IOException {
+    File file = new File(localPath);
+    if(file.exists()){
+      file.delete();
+    }else{
+      file.getParentFile().mkdirs();
+    }
+    file.createNewFile();
+    return file;
+  }
+
+
 }

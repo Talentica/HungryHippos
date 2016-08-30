@@ -3,12 +3,15 @@ package com.talentica.hungryHippos.node;
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingHHNode;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +48,17 @@ public class JobExecutorProcessBuilder {
             for(String jobUUID:jobUUIDs){
                 logger.info("Processing "+jobUUID);
                 ProcessBuilder processBuilder = new ProcessBuilder("java",JobExecutor.class.getName(),clientConfigPath,jobUUID);
+                String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
+                        + "hungryhippos" + File.separator +"logs" + File.separator
+                        + jobUUID+File.pathSeparator;
+                File errLogFile = FileSystemUtils.createNewFile(tempDir+JobExecutor.class.getName().toLowerCase()+".err");
+                processBuilder.redirectError(errLogFile);
+                logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
+                File outLogFile = FileSystemUtils.createNewFile(tempDir+JobExecutor.class.getName().toLowerCase()+".out");
+                processBuilder.redirectOutput(outLogFile);
+                logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
                 Process process = processBuilder.start();
                 int status =  process.waitFor();
-                BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line = null;
-                StringBuilder sb = new StringBuilder();
-                while ((line = br.readLine()) != null){
-                    sb.append(line).append("\n");
-                }
-                System.out.println("Console OUTPUT : \n"+sb.toString());
                 if(status!=0){
                    JobStatusNodeCoordinator.updateNodeJobFailed(jobUUID,nodeId);
                 }

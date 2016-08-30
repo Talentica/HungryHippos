@@ -1,11 +1,13 @@
 package com.talentica.hungryHippos.job.main;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,7 @@ public class JobOrchestrator {
    */
   public static void main(String[] args) {
     logger.info("Started JobOrchestrator");
+    long startTime = System.currentTimeMillis();
     int jobStatus = -1;
     validateArguments(args);
     String clientConfigPath = args[0];
@@ -57,6 +60,7 @@ public class JobOrchestrator {
       if (!isSharded) {
         throw new RuntimeException("Not sharded file. Can not run the jobs");
       }
+
       outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
       ZkUtils.createFileNode(outputHHPathNode);
@@ -81,6 +85,9 @@ public class JobOrchestrator {
         String dataReadyNode = outputHHPathNode + "/" + FileSystemConstants.DATA_READY;
         ZkUtils.createZKNode(dataReadyNode, "");
         logger.info("Job {} Completed Successfully", jobUUID);
+        long endTime = System.currentTimeMillis();
+        logger.info("It took {} seconds of time to for running all jobs",
+                ((endTime - startTime) / 1000));
       }
     } catch (Exception e) {
       logger.error(e.toString());
@@ -103,17 +110,17 @@ public class JobOrchestrator {
   public static int runJobManager(String clientConfigPath, String localJarPath,
       String jobMatrixClass, String jobUUID) throws IOException, InterruptedException {
     ProcessBuilder jobManagerProcessBuilder = new ProcessBuilder("java",JobManagerStarter.class.getName(), clientConfigPath, localJarPath, jobMatrixClass, jobUUID);
+    String tempDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
+            + "hungryhippos" + File.separator +"logs" + File.separator
+            + jobUUID+File.pathSeparator;
+    File errLogFile = FileSystemUtils.createNewFile(tempDir+JobManagerStarter.class.getName().toLowerCase()+".err");
+    jobManagerProcessBuilder.redirectError(errLogFile);
+    logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
+    File outLogFile = FileSystemUtils.createNewFile(tempDir+JobManagerStarter.class.getName().toLowerCase()+".out");
+    jobManagerProcessBuilder.redirectOutput(outLogFile);
+    logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
     Process jobManagerProcess = jobManagerProcessBuilder.start();
-   int jobStatus = jobManagerProcess.waitFor();
-  BufferedReader br = new BufferedReader(new InputStreamReader(jobManagerProcess.getErrorStream()));
-  String line = null;
-  StringBuilder sb = new StringBuilder();
-  while ((line = br.readLine()) != null){
-      sb.append(line).append("\n");
-  }
-  System.out.println("Console OUTPUT : \n"+sb.toString());
-    logger.info("JobManager started for Job " + jobUUID);
-   
+    int jobStatus = jobManagerProcess.waitFor();
     return jobStatus;
   }
 

@@ -28,7 +28,7 @@ public class FileSystemUtilsTest {
     @Before
     public void setup() throws FileNotFoundException, JAXBException {
         NodesManagerContext.
-                getNodesManagerInstance("/home/rajkishoreh/hungry/HungryHippos/configuration-schema/src/main/resources/schema/client-config.xml");
+                getNodesManagerInstance("/home/rajkishoreh/hungry/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml");
         fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().
                 getZookeeperDefaultConfig().getFilesystemPath();
     }
@@ -135,6 +135,33 @@ public class FileSystemUtilsTest {
 
         try {
             String filePath = "/dir1/dir2/.text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "/dir1/dir2/ text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "/dir1/dir2/#text";
+            FileSystemUtils.validatePath(filePath, true);
+            Assert.assertTrue(false);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            Assert.assertTrue(true);
+        }
+
+        try {
+            String filePath = "/dir1 /dir2/#text";
             FileSystemUtils.validatePath(filePath, true);
             Assert.assertTrue(false);
         } catch (RuntimeException e) {

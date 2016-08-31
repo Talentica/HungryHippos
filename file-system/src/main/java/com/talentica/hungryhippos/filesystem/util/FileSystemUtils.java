@@ -104,17 +104,18 @@ public class FileSystemUtils {
    * @param isFile
      */
   public static void validatePath(String path, boolean isFile) {
+    String validPattern = "^[0-9A-Za-z./-]*";
     if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
-            ||path.contains("..")||path.contains("//")||path.contains("./")||path.contains("/.")) {
-      throw new RuntimeException("Invalid path");
+            ||path.contains("..")||path.contains("//")||path.contains("./")||path.contains("/.")||!path.matches(validPattern)) {
+      throw new RuntimeException("Invalid path :"+path);
     }
     if (isFile) {
       if (path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
-        throw new RuntimeException("Invalid file path");
+        throw new RuntimeException("Invalid file path :"+path);
       }
     } else {
       if (!path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
-        throw new RuntimeException("Invalid directory path");
+        throw new RuntimeException("Invalid directory path :"+path);
       }
     }
     checkSubPaths(path);

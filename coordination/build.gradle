@@ -32,5 +32,4 @@ dependencies {
     compile project (':data-synchronizer')
 	compile "org.slf4j:slf4j-api:$slf4jVersion"
 	compile "org.apache.zookeeper:zookeeper:3.4.6"
-	testCompile 'junit:junit:4.12'
 }

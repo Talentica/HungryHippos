@@ -65,8 +65,8 @@ public class JobExecutor {
       JobRunner jobRunner = createJobRunner();
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
       JobStatusNodeCoordinator.updateInProgressJob(jobUUId, nodeId);
-      String jarRootDirectory = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory()+File.separator+"lib";
-      String jobJarPath = jarRootDirectory + File.separatorChar + jobUUId;
+      String jobRootDirectory = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
+      String jobJarPath = jobRootDirectory + File.separatorChar + jobUUId+File.separator+"lib";
       String className = JobConfigReader.readClassName(jobUUId); 
       List<JobEntity> jobEntities = getJobEntities(jobJarPath,className);
       for (JobEntity jobEntity : jobEntities) {

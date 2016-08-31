@@ -134,3 +134,4 @@ installation
 /schema/
 src/generated/
 src/main/java/
+/client-tools/

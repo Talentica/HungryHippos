@@ -1,12 +1,13 @@
 package com.talentica.hungryHippos.common;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +31,14 @@ public class ExecutionContextImpl implements ExecutionContext {
   public ExecutionContextImpl(DynamicMarshal dynamicMarshal, String outputHHPath) {
     this.dynamicMarshal = dynamicMarshal;
     try {
-      OutputStream os = new FileOutputStream(FileSystemContext.getRootDirectory() + outputHHPath,true);
+      String outputFilePath = FileSystemContext.getRootDirectory() + outputHHPath;
+      File outputFile = new File(outputFilePath);
+      FileUtils.forceMkdir(outputFile.getParentFile());
+      OutputStream os = new FileOutputStream(outputFilePath, true);
       out = new PrintStream(os);
-    } catch (FileNotFoundException e) {
-      LOGGER.error("Exception occurred while getting print stream for outoutFile.", e);
+    } catch (IOException exception) {
+      LOGGER.error("Exception occurred while getting print stream for outoutFile.", exception);
+      throw new RuntimeException(exception);
     }
   }
 

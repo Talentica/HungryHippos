@@ -16,6 +16,10 @@ allprojects {
 	dependencies{
 		compile group: 'commons-io', name: 'commons-io', version: '2.5'
 		compile group:'org.eclipse.persistence',name:'org.eclipse.persistence.moxy',version:'2.5.2'
+        testCompile 'junit:junit:4.11'
+        testCompile 'org.mockito:mockito-all:1.10.+'
+        testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+        testCompile 'org.powermock:powermock-api-mockito:1.6.5'
 	}
 	
 	sourceSets {

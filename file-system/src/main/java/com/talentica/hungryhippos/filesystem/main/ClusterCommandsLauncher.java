@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
@@ -131,8 +130,8 @@ public class ClusterCommandsLauncher {
       try {
         line = br.readLine();
         if (isJavaCmd) {
-          printHungryHipposJavaCommands();
           runJavaCommands(line);
+          printHungryHipposJavaCommands();
         } else {
           runCommandOnAllNodes(line);
         }
@@ -203,27 +202,38 @@ public class ClusterCommandsLauncher {
         shellArgs.add(userName);
         for (Node node : nodes) {
           shellArgs.add(node.getIp());
-          shellArgs.add(localDir);
-          shellArgs.add(classpath);
-          shellArgs.add(buildJavaCmd("java -cp " + classpath + "node.jar",
-              "com.talentica.hungryHippos.node.DataReceiver", args, outPutFile, errorFile));
+          shellArgs.add(clusterDir);
+          String javacmd = buildJavaCmd("java -cp " + clusterClassPath + "node.jar",
+              "com.talentica.hungryHippos.node.DataReceiver", args, outPutFile, errorFile);
+          shellArgs.add(javacmd);
           scriptArgs = shellArgs.stream().toArray(String[]::new);
           ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
                                                               // node.getIp(), configurationFolder);
+          shellArgs.remove(node.getIp());
+          shellArgs.remove(clusterDir);
+          shellArgs.remove(javacmd);
         }
         break;
       case "4":
         // client
         System.out.println("Preparing enviroment to run DataPublisher Starter");
-
-        shellArgs.add(configurationFolder + CLIENT_CONFIG);
-        getInputDataForDataPublisher(args);
+        args.add(configurationFolder + CLIENT_CONFIG);
         // readInput();
         outPutFile = "../logs/datapub.out";
         errorFile = "../logs/datapub.err";
         shellArgs.add(LOCAL_JAVA_SCRIPT_LOC);
         shellArgs.add(localDir);
-        shellArgs.add(classpath);
+        try {
+          System.out.println("Enter FilePath");
+          String fileLoc = br.readLine();
+          System.out.println(" Set Relative Distributed Dir Location");
+          String dirLoc = br.readLine();
+
+          args.add(fileLoc);
+          args.add(dirLoc);
+        } catch (IOException e) {
+
+        }
         shellArgs.add(buildJavaCmd("java -cp " + classpath + "data-publisher.jar",
             "com.talentica.hungryHippos.master.DataPublisherStarter", args, outPutFile, errorFile));
         scriptArgs = shellArgs.stream().toArray(String[]::new);
@@ -240,10 +250,9 @@ public class ClusterCommandsLauncher {
         errorFile = "../logs/job-man.err";
         shellArgs.add(LOCAL_JAVA_SCRIPT_LOC);
         shellArgs.add(localDir);
-        shellArgs.add(classpath);
         shellArgs.add(buildJavaCmd("java -cp " + classpath + "node.jar",
             "com.talentica.hungryHippos.job.main.JobOrchestrator", args, outPutFile, errorFile));
-        scriptArgs = args.stream().toArray(String[]::new);
+        scriptArgs = shellArgs.stream().toArray(String[]::new);
         ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
                                                             // node.getIp(), configurationFolder);
 
@@ -254,16 +263,20 @@ public class ClusterCommandsLauncher {
         // readInput();
         outPutFile = "../logs/job.out";
         errorFile = "../logs/job.err";
-        shellArgs.add(localDir);
-        shellArgs.add(classpath);
+        shellArgs.add(JAVA_SCRIPT_LOC);
+        shellArgs.add(userName);
         for (Node node : nodes) {
           shellArgs.add(node.getIp());
-          shellArgs.add(buildJavaCmd("java -cp " + classpath + "node.jar",
+          shellArgs.add(clusterDir);
+          String javacmd = buildJavaCmd("java -cp " + clusterClassPath + "node.jar",
               "com.talentica.hungryHippos.node.JobExecutorProcessBuilder", args, outPutFile,
-              errorFile));
-          scriptArgs = args.stream().toArray(String[]::new);
+              errorFile);
+          shellArgs.add(javacmd);
+          scriptArgs = shellArgs.stream().toArray(String[]::new);
           ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
-                                                              // node.getIp(), configurationFolder);
+          shellArgs.remove(clusterDir); // node.getIp(), configurationFolder);
+          shellArgs.remove(node.getIp());
+          shellArgs.remove(javacmd);
         }
         break;
 
@@ -273,16 +286,23 @@ public class ClusterCommandsLauncher {
         outPutFile = "../logs/data-sync.out";
         errorFile = "../logs/data-sync.err";
         args.add(zkIp);
-
+        shellArgs.add(JAVA_SCRIPT_LOC);
+        shellArgs.add(userName);
         for (Node node : nodes) {
           args.add(node.getIp());
           shellArgs.add(node.getIp());
-          shellArgs.add(localDir);
-          shellArgs.add(buildJavaCmd("java -cp " + clusterClassPath + "data-synchronization.jar",
-              "com.talentica.torrent.DataSynchronizerStarter", args, outPutFile, errorFile));
-          scriptArgs = args.stream().toArray(String[]::new);
+          shellArgs.add(clusterDir);
+          String javacmd = buildJavaCmd("java -cp " + clusterClassPath + "node.jar",
+              "com.talentica.torrent.DataSynchronizerStarter", args, outPutFile, errorFile);
+          shellArgs.add(javacmd);
+          scriptArgs = shellArgs.stream().toArray(String[]::new);
           ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
                                                               // node.getIp(), configurationFolder);
+          args.remove(node.getIp());
+          shellArgs.remove(node.getIp());
+          shellArgs.remove(clusterDir);
+          shellArgs.remove(javacmd);
+
         }
 
         break;
@@ -291,21 +311,24 @@ public class ClusterCommandsLauncher {
         // readInput();
         outPutFile = "../logs/torrent-track.out";
         errorFile = "../logs/torrent-track.err";
+        shellArgs.add(JAVA_SCRIPT_LOC);
+        shellArgs.add(userName);
         args.add(zkIp);
         try {
           System.out.print("Ip of the node where you want to start TorrentTracker:-");
           String ip = br.readLine();
           System.out.println("Port number on which you want to start");
           String port = br.readLine();
-          shellArgs.add(port);
+          shellArgs.add(ip);
+          shellArgs.add(clusterDir);
           args.add(ip);
           args.add(port);
         } catch (IOException e) {
           System.out.println(e.getMessage());
         }
         shellArgs.add(buildJavaCmd("java -cp " + clusterClassPath + "node.jar",
-            "com.talentica.torrent.DataSynchronizerStarter", args, outPutFile, errorFile));
-        scriptArgs = args.stream().toArray(String[]::new);
+            "com.talentica.torrent.TorrentTrackerStarter", args, outPutFile, errorFile));
+        scriptArgs = shellArgs.stream().toArray(String[]::new);
         ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
                                                             // node.getIp(), configurationFolder);
       case "9":
@@ -326,7 +349,7 @@ public class ClusterCommandsLauncher {
       clusterConfigPath = br.readLine();
       System.out.println("input Directory from where you want to run java command in local");
       localDir = br.readLine();
-      System.out.println("input Directory from where you want to run java command in local");
+      System.out.println("input Directory from where you want to run java command in cluster");
       clusterDir = br.readLine();
       System.out.println(
           "Enter the classpath location you want to set for local where all jar files are present");
@@ -407,20 +430,6 @@ public class ClusterCommandsLauncher {
 
   }
 
-  private static void getInputDataForDataPublisher(List<String> args) {
-
-    Scanner sc = new Scanner(System.in);
-    System.out.println("Enter FilePath");
-    String fileLoc = sc.nextLine();
-    System.out.println(" Set Relative Distributed Dir Location");
-    String dirLoc = sc.nextLine();
-    sc.close();
-    args.add(fileLoc);
-    args.add(dirLoc);
-  }
-
-
-
   private static String buildJavaCmd(String java, String clazz, List<String> configFiles,
       String out, String err) {
     List<String> command = new ArrayList<>();
@@ -474,7 +483,7 @@ public class ClusterCommandsLauncher {
         printHungryHipposJavaCommands();
         break;
       case "runjava":
-        System.out.println("Please type remote location of configuration folder");
+        printHungryHipposJavaCommands();
         isJavaCmd = true;
         break;
       case "exit":

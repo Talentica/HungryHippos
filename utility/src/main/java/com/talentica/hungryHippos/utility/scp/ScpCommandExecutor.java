@@ -17,50 +17,28 @@ public class ScpCommandExecutor {
 
   public static void download(String userName, String host, String remoteDir, String localDir) {
     ProcessBuilder builder =
-        new ProcessBuilder("scp", userName + "@" + host + ":" + remoteDir, localDir);
-    execute(builder);
-  }
-
-  public static void setClassPath(String userName, String host, String location) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", userName + "@" + host,
-        "echo CLASSPATH=" + location, ">>", ".bashrc");
+        new ProcessBuilder("scp", "-o StrictHostKeyChecking=no", userName + "@" + host + ":" + remoteDir, localDir);
     execute(builder);
   }
 
   public static void upload(String userName, String host, String remoteDir, String localDir) {
     createRemoteDirs(userName, host, remoteDir);
     ProcessBuilder builder =
-        new ProcessBuilder("scp", localDir, userName + "@" + host + ":" + remoteDir);
-    execute(builder);
-  }
-
-  public static void uploadWithKey(String userName, String key, String host, String remoteDir,
-      String localDir) {
-    createRemoteDirsWithKey(userName, key, host, remoteDir);
-    ProcessBuilder builder = new ProcessBuilder("scp", "-o StrictHostKeyChecking=no", localDir,
-        userName + "@" + host + ":" + remoteDir);
-    execute(builder);
-  }
-
-  public static void createRemoteDirsWithKey(String userName, String key, String host,
-      String remoteDir) {
-    ProcessBuilder builder = new ProcessBuilder("ssh", "-o StrictHostKeyChecking=no ",
-        userName + "@" + host, "mkdir", "-p", remoteDir);
+        new ProcessBuilder("scp", "-o StrictHostKeyChecking=no", localDir, userName + "@" + host + ":" + remoteDir);
     execute(builder);
   }
 
   public static void createRemoteDirs(String userName, String host, String remoteDir) {
     ProcessBuilder builder =
-        new ProcessBuilder("ssh", userName + "@" + host, "mkdir", "-p", remoteDir);
+        new ProcessBuilder("ssh","-o StrictHostKeyChecking=no", userName + "@" + host, "mkdir", "-p", remoteDir);
     execute(builder);
   }
 
   public static void removeDir(String userName, String host, String remoteDir) {
     ProcessBuilder builder =
-        new ProcessBuilder("ssh", userName + "@" + host, "rm", "-r", remoteDir);
+        new ProcessBuilder("ssh","-o StrictHostKeyChecking=no", userName + "@" + host, "rm", "-r", remoteDir);
     execute(builder);
   }
-
 
 
   private static void execute(ProcessBuilder builder) {

@@ -23,8 +23,8 @@ public class ScpCommandExecutor {
 
   public static void upload(String userName, String host, String remoteDir, String localDir) {
     createRemoteDirs(userName, host, remoteDir);
-    ProcessBuilder builder = new ProcessBuilder("scp", "-r",  "-o StrictHostKeyChecking=no", localDir,
-        userName + "@" + host + ":" + remoteDir);
+    ProcessBuilder builder = new ProcessBuilder("scp", "-r", "-o StrictHostKeyChecking=no",
+        localDir, userName + "@" + host + ":" + remoteDir);
     execute(builder);
   }
 
@@ -59,8 +59,8 @@ public class ScpCommandExecutor {
       sb = new StringBuilder();
       while ((line = br.readLine()) != null) {
         sb.append(line).append("\n");
+        System.out.println(line);
       }
-      LOGGER.info("Console OUTPUT : \n" + sb.toString());
 
       if (processStatus != 0) {
         throw new RuntimeException("Operation " + builder.command() + " failed");
@@ -70,4 +70,11 @@ public class ScpCommandExecutor {
       throw new RuntimeException(e1);
     }
   }
+
+  public static void cat(String userName, String host, String fileName) {
+    ProcessBuilder builder = new ProcessBuilder("ssh", "-o StrictHostKeyChecking=no",
+        userName + "@" + host, "cat", fileName);
+    execute(builder);
+  }
+
 }

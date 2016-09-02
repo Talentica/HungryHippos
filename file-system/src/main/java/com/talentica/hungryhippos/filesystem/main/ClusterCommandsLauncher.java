@@ -5,7 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.xml.bind.JAXBException;
 
@@ -52,6 +59,7 @@ public class ClusterCommandsLauncher {
   private static String classpath = null;
   private static String clusterClassPath = null;
   private static String clusterConfigPath = null;
+  private static ExecutorService executorService = Executors.newFixedThreadPool(3);
 
   public static void main(String[] args) {
 
@@ -97,7 +105,7 @@ public class ClusterCommandsLauncher {
   }
 
   public static void printWelcome() {
-    System.out.println("Welcome to ClusterCommand Env");
+    System.out.println("Welcome to HungryHippos ClusterCommand Env");
     System.out.println("");
     printUsage();
   }
@@ -111,11 +119,8 @@ public class ClusterCommandsLauncher {
     System.out.println("2. rm {folder}.               \"For removing empty Folder \" ");
     System.out.println(
         "3. scp {locDir} {remoteDir}.   \"Copies the file specified (locDir) to the cluster (remoteDir).\"");
-    /*
-     * System.out.println(
-     * "4. download {remoteDir} {locDir}. \" Copies remote file to the specified locDir in current machine"
-     * );
-     */
+    System.out.println(
+        "4. download {remote host ip} {remoteDir} {locDir}. \" Copies remote file to the specified locDir in current machine");
     System.out.println("4. javahelp \"print java commands that can be executed\"");
     System.out.println("5. help \"To print the message again\"");
     System.out.println("6. runjava \"To enter Running java classes\"");
@@ -131,7 +136,9 @@ public class ClusterCommandsLauncher {
         line = br.readLine();
         if (isJavaCmd) {
           runJavaCommands(line);
-          printHungryHipposJavaCommands();
+          if (line.equals("9")) {
+            printHungryHipposJavaCommands();
+          }
         } else {
           runCommandOnAllNodes(line);
         }
@@ -250,7 +257,7 @@ public class ClusterCommandsLauncher {
         errorFile = "../logs/job-man.err";
         shellArgs.add(LOCAL_JAVA_SCRIPT_LOC);
         shellArgs.add(localDir);
-        shellArgs.add(buildJavaCmd("java -cp " + classpath + "node.jar",
+        shellArgs.add(buildJavaCmd("java -cp " + classpath + "job-manager.jar",
             "com.talentica.hungryHippos.job.main.JobOrchestrator", args, outPutFile, errorFile));
         scriptArgs = shellArgs.stream().toArray(String[]::new);
         ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
@@ -331,6 +338,7 @@ public class ClusterCommandsLauncher {
         scriptArgs = shellArgs.stream().toArray(String[]::new);
         ExecuteShellCommand.executeScript(true, scriptArgs);// runCoordinationStarter(userName,
                                                             // node.getIp(), configurationFolder);
+        break;
       case "9":
         isJavaCmd = false;
         break;
@@ -463,21 +471,16 @@ public class ClusterCommandsLauncher {
     switch (commands[0]) {
       case "mkdir":
         runMkdir(commands);
-        System.out.println("mkdir command successfully executed");
         break;
       case "scp":
         runScp(commands);
-        System.out.println("Executed scp operation successfully!!!");
         break;
       case "rm":
         runRemoveDirs(commands);
-        System.out.println("Executed rm operation successfully!!!");
         break;
       case "download":
         runDownload(commands);
-        break;
-      case "upload":
-        runUpload(commands);
+        System.out.println("completed downloading of file");
         break;
       case "javahelp":
         printHungryHipposJavaCommands();
@@ -486,6 +489,11 @@ public class ClusterCommandsLauncher {
         printHungryHipposJavaCommands();
         isJavaCmd = true;
         break;
+      case "cat":
+        runCat(commands);
+        System.out.println();
+        System.out.println("Finished Reading File");
+        break;
       case "exit":
         System.out.println("Bye!!! , Have a nice day");
         System.exit(1);
@@ -493,8 +501,8 @@ public class ClusterCommandsLauncher {
         printUsage();
         break;
       default:
-        System.out.println(
-            "Commands allowed are :- \"scp\", \"mkdir\", \"rm\", \"download\", \"upload\", \"exit\"");
+        System.out
+            .println("Commands allowed are :- \"scp\", \"mkdir\", \"rm\", \"download\", \"exit\"");
         System.out.println(
             "Miscellanous Activities allowed are running java commands on HungryHippos Jar: use \"javahelp\" ");
         System.out.println("to actual run the commands use \"runjava\".");
@@ -505,45 +513,151 @@ public class ClusterCommandsLauncher {
 
 
   private static void runMkdir(String[] commands) {
+    Map<String, Future<?>> futureDetails = new HashMap<>();
     for (Node node : nodes) {
       String host = node.getIp();
-      ScpCommandExecutor.createRemoteDirs(userName, host, commands[1]);
+      Future<?> future = executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          ScpCommandExecutor.createRemoteDirs(userName, host, commands[1]);
+
+        }
+      });
+      futureDetails.put(host, future);
+    }
+    int count = 0;
+    int length = futureDetails.size();
+    while (true) {
+      Iterator<Entry<String, Future<?>>> iterator = futureDetails.entrySet().iterator();
+      try {
+        while (iterator.hasNext()) {
+          Map.Entry<String, Future<?>> pair = (Entry<String, Future<?>>) iterator.next();
+          String host = pair.getKey();
+          Future<?> future = pair.getValue();
+          if (future.get() == null) {
+            iterator.remove();
+            System.out.println("Directory " + commands[1] + " is created on" + host);
+          }
+        }
+        {
+          if (count == length) {
+            break;
+          }
+          Thread.sleep(1000);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   private static void runScp(String[] commands) {
     String localFile = commands[1];
     String remoteDir = commands[2];
+    Map<String, Future<?>> futureDetails = new HashMap<>();
     for (Node node : nodes) {
       String host = node.getIp();
-      // sshpass -p "password"
-      System.out.println("File Transfer started on " + host);
-      ScpCommandExecutor.upload(userName, host, remoteDir, localFile);
-      System.out.println("File Transfer finished on " + host);
+      Future<?> future = executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          System.out.println("File Transfer started on " + host);
+          ScpCommandExecutor.upload(userName, host, remoteDir, localFile);
+
+        }
+      });
+      futureDetails.put(host, future);
+
     }
+    int count = 0;
+    int length = futureDetails.size();
+    Iterator<Entry<String, Future<?>>> iterator = futureDetails.entrySet().iterator();
+    while (true) {
+
+      try {
+        while (iterator.hasNext()) {
+          Map.Entry<String, Future<?>> pair = (Entry<String, Future<?>>) iterator.next();
+          String host = pair.getKey();
+          Future<?> future = pair.getValue();
+          if (future.get() == null) {
+            iterator.remove();
+            count++;
+            System.out.println("File Transfer finished on " + host);
+          } else {
+            System.out.println("File is still transfering on " + host);
+          }
+        }
+        {
+          if (count == length) {
+            break;
+          }
+          Thread.sleep(1000);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+
 
   }
 
   private static void runDownload(String[] commands) {
-    for (Node node : nodes) {
-      String host = node.getIp();
-      ScpCommandExecutor.download(userName, host, commands[1], commands[2]);
-    }
+
+    // String host = node.getIp();
+    ScpCommandExecutor.download(userName, commands[1], commands[2], commands[3]);
+
   }
 
-
-  private static void runUpload(String[] commands) {
-    for (Node node : nodes) {
-      String host = node.getIp();
-      ScpCommandExecutor.download(userName, host, commands[1], commands[2]);
-    }
+  private static void runCat(String[] commands) {
+    String host = commands[1];
+    String fileName = commands[2];
+    ScpCommandExecutor.cat(userName, host, fileName);
   }
+
 
 
   private static void runRemoveDirs(String[] commands) {
+    Map<String, Future<?>> futureDetails = new HashMap<>();
     for (Node node : nodes) {
       String host = node.getIp();
-      ScpCommandExecutor.removeDir(userName, host, commands[1]);
+      Future<?> future = executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          System.out.println("Remvoing Files started on " + host);
+          ScpCommandExecutor.removeDir(userName, host, commands[1]);
+
+        }
+      });
+      futureDetails.put(host, future);
+
+    }
+
+    int count = 0;
+    int length = futureDetails.size();
+
+    while (true) {
+      Iterator<Entry<String, Future<?>>> iterator = futureDetails.entrySet().iterator();
+      try {
+        while (iterator.hasNext()) {
+          Map.Entry<String, Future<?>> pair = (Entry<String, Future<?>>) iterator.next();
+          String host = pair.getKey();
+          Future<?> future = pair.getValue();
+          if (future.get() == null) {
+            iterator.remove();
+            System.out.println("Remvoing Files finished on " + host);
+          } else {
+            System.out.println("File is still transfering on " + host);
+          }
+        }
+        {
+          if (count == length) {
+            break;
+          }
+          Thread.sleep(1000);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 

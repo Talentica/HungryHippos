@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -cp filesystem.jar com.talentica.hungryhippos.filesystem.main.ClusterCommandsLauncher $1 $2
+java -cp /home/sudarshans/lib/file-system.jar com.talentica.hungryhippos.filesystem.main.ClusterCommandsLauncher $1 $2

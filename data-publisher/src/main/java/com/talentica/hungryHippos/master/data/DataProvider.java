@@ -36,6 +36,7 @@ import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
+import com.talentica.hungryHippos.utility.ShuffleArrayUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
@@ -81,6 +82,7 @@ public class DataProvider {
         DataPublisherStarter.getContext().getKeytovaluetobucketMapFilePath();
     Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
     
+    String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
     keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
@@ -124,7 +126,6 @@ public class DataProvider {
       }
 
       Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
-      String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
 
       for (int i = 0; i < keyOrder.length; i++) {
         String key = keyOrder[i];
@@ -141,10 +142,13 @@ public class DataProvider {
 
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      for (Node node : nodes) {
-        targets[node.getNodeId()].write(buf);
+      Node [] nodesArr = (Node[]) nodes.toArray();
+      ShuffleArrayUtil.shuffleArray(nodesArr);
+      for(int i = 1; i < nodesArr.length; i++){
+        targets[nodesArr[0].getNodeId()].write((byte)nodesArr[i].getNodeId());
       }
-
+      
+      targets[nodesArr[0].getNodeId()].write(buf);
     }
     fileWriter.close();
     for (int j = 0; j < targets.length; j++) {

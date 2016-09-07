@@ -19,23 +19,35 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class ExternalSort {
 
-  public static final int DEFAULTMAXTEMPFILES = 1024;
+  private static int defaultCharBufferSize = 8192;
+  public static long TEMPFILES;
+  public static final Logger LOGGER = LoggerFactory.getLogger(ExternalSort.class);
 
-  public static void main(String[] args) throws IOException {
-    long startTIme =  System.currentTimeMillis();
-    File inputFlatFile = new File("/home/pooshans/HungryHippos/HungryHippos/utility/sampledata.txt");    
-    File f2 = File.createTempFile("hh_", "_sorted");
-    ExternalSort.mergeSortedFiles(ExternalSort.sortInBatch(inputFlatFile, null, Charset.defaultCharset()), f2,
+  public static void main(String[] args) throws IOException, InsufficientMemoryException {
+    long startTIme = System.currentTimeMillis();
+    ExternalSort externalSort = new ExternalSort();
+    externalSort.validateArguments(args);
+    String tmpDirPath = (args.length == 2) ? args[1] : null;
+    File inputFlatFile = new File(args[0]);
+    File tmpDir = (tmpDirPath == null ? null : new File(tmpDirPath));
+    File f2 = File.createTempFile("hh_", "_sorted_flat_file", tmpDir);
+    externalSort.mergeSortedFiles(
+        externalSort.sortInBatch(inputFlatFile, tmpDir, Charset.defaultCharset()), f2,
         Charset.defaultCharset(), true);
-    System.out.println("Total time taken in sec :: "+((System.currentTimeMillis()-startTIme)/1000));
+    LOGGER.info("Total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
 
   }
 
-  public static int mergeSortedFiles(List<File> files, File outputfile, Charset cs, boolean append)
+  private int mergeSortedFiles(List<File> files, File outputfile, Charset cs, boolean append)
       throws IOException {
-    System.out.println("Started merging sorted file...");
+    long startTIme = System.currentTimeMillis();
+    LOGGER.info("Now merging sorted files...");
     ArrayList<BinaryFileBuffer> bfbs = new ArrayList<>();
     for (File f : files) {
       InputStream in = new FileInputStream(f);
@@ -50,11 +62,12 @@ public class ExternalSort {
     for (File f : files) {
       f.delete();
     }
-    System.out.println("Sorted files are merged successfully.");
+    LOGGER.info("Sorted files are merged successfully.");
+    LOGGER.info("Total merging time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
     return rowcounter;
   }
 
-  public static int mergeSortedFiles(BufferedWriter fbw, List<BinaryFileBuffer> buffers)
+  private int mergeSortedFiles(BufferedWriter fbw, List<BinaryFileBuffer> buffers)
       throws IOException {
     for (BinaryFileBuffer bfb : buffers) {
       if (!bfb.empty()) {
@@ -91,7 +104,6 @@ public class ExternalSort {
           pq.add(bfb);
         }
       }
-
     } finally {
       fbw.close();
       for (BinaryFileBuffer bfb : pq) {
@@ -101,7 +113,7 @@ public class ExternalSort {
     return rowcounter;
   }
 
-  static PriorityQueue<BinaryFileBuffer> pq =
+  private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
         @Override
         public int compare(BinaryFileBuffer i, BinaryFileBuffer j) {
@@ -109,44 +121,51 @@ public class ExternalSort {
         }
       });
 
-  public static long sizeOfBlocks(final long fileSize, final int maxTempFiles,
-      final long maxMemory) {
-    long blocksize = fileSize / maxTempFiles + (fileSize % maxTempFiles == 0 ? 0 : 1);
-
-    if (blocksize < maxMemory / 2) {
-      blocksize = maxMemory / 2;
+  private long getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
+      throws InsufficientMemoryException {
+    LOGGER.info("Input file size {} and maximum memory available {}", fileSize, maxFreeMemory);
+    long allocateMemory = maxFreeMemory / 2;
+    if (allocateMemory < (defaultCharBufferSize * 2)) {
+      throw new InsufficientMemoryException(
+          "Inssufficient memory available. Require {" + (defaultCharBufferSize * 2)
+              + "} bytes for buffer writer and available memory is {" + allocateMemory + "}");
     }
-    System.out.println("Block size in bytes :: ",);
+    TEMPFILES = (fileSize < allocateMemory) ? 1
+        : (fileSize / allocateMemory + (fileSize % allocateMemory == 0 ? 0 : 1));
+    long blocksize = allocateMemory;
+    LOGGER.info("Number of blocks {} and each block size in bytes {}", TEMPFILES, blocksize);
     return blocksize;
   }
 
-  public static long availableMemory() {
+  public long availableMemory() {
     System.gc();
     Runtime runtime = Runtime.getRuntime();
     long allocatedMemory = runtime.totalMemory() - runtime.freeMemory();
-    long presFreeMemory = runtime.maxMemory() - allocatedMemory;
-    return presFreeMemory;
+    long currentFreeMemory = runtime.maxMemory() - allocatedMemory;
+    LOGGER.info("Current free memory {}", currentFreeMemory);
+    return currentFreeMemory;
   }
 
-  public static Comparator<String> defaultcomparator = new Comparator<String>() {
+  private Comparator<String> defaultcomparator = new Comparator<String>() {
     @Override
     public int compare(String r1, String r2) {
       return r1.compareTo(r2);
     }
   };
 
-  public static List<File> sortInBatch(File file, File tmpdirectory, Charset charset)
-      throws IOException {
+  private List<File> sortInBatch(File file, File tmpDirectory, Charset charset)
+      throws IOException, InsufficientMemoryException {
     BufferedReader fbr =
         new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
-    return sortInBatch(fbr, file.length(), DEFAULTMAXTEMPFILES, availableMemory(), charset, null);
+    return sortInBatch(fbr, file.length(), availableMemory(), charset, tmpDirectory);
   }
 
-  public static List<File> sortInBatch(final BufferedReader fbr, final long datalength,
-      final int maxtmpfiles, long maxMemory, final Charset cs, final File tmpdirectory)
-      throws IOException {
+  private List<File> sortInBatch(final BufferedReader fbr, final long datalength,
+      long maxFreeMemory, final Charset cs, final File tmpdirectory)
+      throws IOException, InsufficientMemoryException {
+    long startTIme = System.currentTimeMillis();
     List<File> files = new ArrayList<>();
-    long blocksize = sizeOfBlocks(datalength, maxtmpfiles, maxMemory);
+    long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     try {
       List<String> tmplist = new ArrayList<>();
       String line = "";
@@ -155,7 +174,7 @@ public class ExternalSort {
           long currentblocksize = 0;
           while ((currentblocksize < blocksize) && ((line = fbr.readLine()) != null)) {
             tmplist.add(line);
-            currentblocksize += StringSize.estimatedSize(line);
+            currentblocksize += StringSize.estimatedSizeOfLine(line);
           }
           files.add(sortAndSave(tmplist, cs, tmpdirectory));
           tmplist.clear();
@@ -169,13 +188,17 @@ public class ExternalSort {
     } finally {
       fbr.close();
     }
+    LOGGER.info("Total sorting time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
     return files;
   }
 
-  public static File sortAndSave(List<String> tmpList, Charset cs, File tmpdirectory)
+  private int batchId = 0;
+  private File sortAndSave(List<String> tmpList, Charset cs, File tmpDirectory)
       throws IOException {
+    LOGGER.info("Batch id {} is getting sorted and saved",(batchId++));
     Collections.sort(tmpList, defaultcomparator);
-    File newtmpfile = File.createTempFile("sortInBatch", "flatfile", tmpdirectory);
+    File newtmpfile = File.createTempFile("batch", "sorted_flat_file", tmpDirectory);
+    LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
     newtmpfile.deleteOnExit();
     OutputStream out = new FileOutputStream(newtmpfile);
     try (BufferedWriter fbw = new BufferedWriter(new OutputStreamWriter(out, cs))) {
@@ -188,7 +211,7 @@ public class ExternalSort {
       }
       while (i.hasNext()) {
         String r = i.next();
-        if (defaultcomparator.compare(r, lastLine) != 0) {
+        if (defaultcomparator.compare(r, lastLine) != 0) { // check duplicate line and skip if any.
           fbw.write(r);
           fbw.newLine();
           lastLine = r;
@@ -198,41 +221,10 @@ public class ExternalSort {
     return newtmpfile;
   }
 
-}
-
-
-final class BinaryFileBuffer {
-  private BufferedReader fbr;
-  private String cache;
-
-  public BinaryFileBuffer(BufferedReader r) throws IOException {
-    this.fbr = r;
-    reload();
-  }
-
-  public void close() throws IOException {
-    this.fbr.close();
-  }
-
-  public boolean empty() {
-    return this.cache == null;
-  }
-
-  public String peek() {
-    return this.cache;
-  }
-
-  public String pop() throws IOException {
-    String answer = peek().toString();// make a copy
-    reload();
-    return answer;
-  }
-
-  private void reload() throws IOException {
-    this.cache = this.fbr.readLine();
-  }
-
-  public BufferedReader getReader() {
-    return fbr;
+  private void validateArguments(String[] args) {
+    if (args != null && args.length < 1) {
+      throw new RuntimeException(
+          "Invalid argument. Please provide 1st argument as input file and 2nd argument(optional) tmp directory.");
+    }
   }
 }

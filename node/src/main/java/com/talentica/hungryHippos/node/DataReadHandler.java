@@ -162,10 +162,11 @@ public class DataReadHandler extends ChannelHandlerAdapter {
    * @throws InterruptedException
      */
   public void publishReplicaData() throws IOException, InterruptedException {
-    Node[] nodeArray = (Node[]) nodeList.toArray();
+    Object[] nodeArray =  nodeList.toArray();
     ShuffleArrayUtil.shuffleArray(nodeArray);
     for (int i = 0; i < nodeArray.length; i++) {
-      publishData(nodeArray[i].getIp(),nodeArray[i].getPort(), nodeReplicaDataMap.get(nodeArray[i].getIdentifier()+""));
+      Node node = (Node) nodeArray[i];
+      publishData(node.getIp(),node.getPort(), nodeReplicaDataMap.get(node.getIdentifier()+""));
     }
     batchRecCount=0;
   }

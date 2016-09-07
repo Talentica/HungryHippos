@@ -127,6 +127,9 @@ public class DataRetrieverClient {
                 nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
         String dataBlockSizeStr = (String) ZkUtils.getNodeData(dataBlockZKPath);
         long dataSize = Long.parseLong(dataBlockSizeStr);
+        if(dataSize==0){
+          continue;
+        }
         String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
                 + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
         String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp

@@ -142,13 +142,15 @@ public class DataProvider {
 
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      Node [] nodesArr = (Node[]) nodes.toArray();
+      Object [] nodesArr = nodes.toArray();
       ShuffleArrayUtil.shuffleArray(nodesArr);
+      Node node_0 = (Node)nodesArr[0];
       for(int i = 1; i < nodesArr.length; i++){
-        targets[nodesArr[0].getNodeId()].write((byte)nodesArr[i].getNodeId());
+        Node node = (Node)nodesArr[i];
+        targets[node_0.getNodeId()].write((byte)node.getNodeId());
       }
       
-      targets[nodesArr[0].getNodeId()].write(buf);
+      targets[node_0.getNodeId()].write(buf);
     }
     fileWriter.close();
     for (int j = 0; j < targets.length; j++) {

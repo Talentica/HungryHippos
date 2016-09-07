@@ -25,4 +25,6 @@ public interface DataStore {
       KeeperException, InterruptedException, IOException, JAXBException;
 
   public void sync();
+
+  String getHungryHippoFilePath();
 }

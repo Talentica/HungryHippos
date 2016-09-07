@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileLock;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class FileDataStore implements DataStore, Serializable {
   private static final long serialVersionUID = -7726551156576482829L;
   private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
   private final int numFiles;
-  private OutputStream[] os;
+  private FileOutputStream[] fos;
   private DataDescription dataDescription;
   private String hungryHippoFilePath;
   private String fileNamePrefix;
@@ -48,7 +49,7 @@ public class FileDataStore implements DataStore, Serializable {
     this.context = context;
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
-    os = new OutputStream[numFiles];
+    fos = new FileOutputStream[numFiles];
     this.nodeId = nodeId;
     this.hungryHippoFilePath = hungryHippoFilePath;
     String dirloc = FileSystemContext.getRootDirectory() + hungryHippoFilePath;
@@ -64,18 +65,31 @@ public class FileDataStore implements DataStore, Serializable {
     }
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-        os[i] = new BufferedOutputStream(
-            new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES));
+        fos[i] =
+            new FileOutputStream(fileNamePrefix + i, APPEND_TO_DATA_FILES);
       }
     }
   }
 
   @Override
   public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
+      FileLock fileLock = null;
     try {
-      os[storeId].write(raw);
+        fileLock = fos[storeId].getChannel().lock();
+        fos[storeId].write(raw);
+        fos[storeId].flush();
     } catch (IOException e) {
       logger.error("Error occurred while writing data received to datastore.", e);
+    }
+      finally {
+        if(fileLock!=null){
+            try {
+                fileLock.release();
+            } catch (IOException e) {
+               logger.error("Error occurred while releasing fileLock.", e);
+                throw new RuntimeException(e);
+            }
+        }
     }
   }
 
@@ -97,13 +111,13 @@ public class FileDataStore implements DataStore, Serializable {
   public void sync() {
     for (int i = 0; i < numFiles; i++) {
       try {
-        os[i].flush();
+        fos[i].flush();
       } catch (IOException e) {
         logger.error("Error occurred while flushing " + i + "th outputstream.", e);
       } finally {
         try {
-          if (os[i] != null)
-            os[i].close();
+          if (fos[i] != null)
+            fos[i].close();
           HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,
               i + "", (new File(fileNamePrefix + i)).length());
         } catch (IOException e) {
@@ -114,5 +128,11 @@ public class FileDataStore implements DataStore, Serializable {
       }
     }
   }
+
+
+    public String getHungryHippoFilePath() {
+        return hungryHippoFilePath;
+    }
+
 
 }

@@ -102,6 +102,7 @@ public class DataProvider {
       dos.writeInt(destinationPathLength);
       dos.flush();
       targets[i].write(destinationPathInBytes);
+      targets[i].write((byte)1);
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");

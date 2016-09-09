@@ -11,12 +11,11 @@ public final class StringSize {
   private static boolean IS_64_BIT_JVM;
 
   private StringSize() {
-    
+
   }
-  
+
   static {
     IS_64_BIT_JVM = true;
-
     String arch = System.getProperty("sun.arch.data.model");
     if (arch != null) {
       if (arch.contains("32")) {
@@ -31,7 +30,7 @@ public final class StringSize {
 
   }
 
-  public static long estimatedSize(String s) {
+  public static long estimatedSizeOfLine(String s) {
     return (s.length() * 2) + OBJ_OVERHEAD;
   }
 

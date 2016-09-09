@@ -54,6 +54,7 @@ public class DataPublisherStarter {
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(localShardingPath).mkdirs();
       localShardingPath = downloadAndUnzipShardingTable(shardingZipRemotePath, localShardingPath);
+      LOGGER.info("Sharding local path {}",localShardingPath);
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
           context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();

@@ -1,26 +1,41 @@
 {
+
 	"number_of_jobs": "2",
 
 	"jobs":
-	[	 {
-		"jar_file_path": "test_data/Hadoop-WordCount/wordcount.jar",
-		"input_file_path": "test_data/sample1.txt",
-		"class_name": "WordCount",
-		"output_file_name": "result_sample1",
-		"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
-		"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
-		"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar"
-	},
+	[	
+        	{
+			"jar_file_path": "/root/hadoop_chefsolo_vagrant_new/test_data/Hadoop-WordCount/wordcount.jar",
+			"input_file_path": "test_data/sample3_guten.txt",
+			"class_name": "WordCount",
+			"output_file_name": "result_sample3_large",
+			"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+			"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+			"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar",
+			"desired_input_file_location_hdfs": "/test_hdfs1",
+			"desired_output_file_location_hdfs": "/test_output_hdfs1",
+			"_comment": "Below values are optional, keep value null if not intended to use",
+			"expected_result_file_path": "test_data/expected_result_sample3_large",
+			"desired_expected_result_location_master": "/usr/local/hadoop/jobs/expected_result_file",
+			"delete_hdfs_file":"/test_hdfs1/sample3_guten.txt"
+		},
 
-	 {
-		"jar_file_path": "test_data/Hadoop-WordCount/wordcount.jar",
-		"input_file_path": "test_data/sample2.txt",
-		"class_name": "WordCount",
-		"output_file_name": "result_sample2",
-		"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
-		"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
-		"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar"
-	}
+		 {
+			"jar_file_path": "/root/hadoop_chefsolo_vagrant_new/test_data/Hadoop-WordCount/wordcount.jar",
+			"input_file_path": "test_data/sample2.txt",
+			"class_name": "WordCount",
+			"output_file_name": "result_sample2",
+			"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+			"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+			"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar",
+			 "desired_input_file_location_hdfs": "/test_hdfs",
+                        "desired_output_file_location_hdfs": "/test_output_hdfs",
+               		 "_comment": "Below values are optional, keep value null if not intended to use",
+			 "expected_result_file_path": "",
+			"desired_expected_result_location_master": "",
+			"delete_hdfs_file": ""
+
+		}
 
 	]
 

@@ -62,7 +62,7 @@ start_yarn
 
 upload_to_hdfs /usr/local/hadoop/test.txt /test
 
-view_data_of_hdfs
+view_data_of_hdfs /
 
 run_job /usr/local/hadoop/Hadoop-WordCount/wordcount.jar WordCount /test /test_result
 

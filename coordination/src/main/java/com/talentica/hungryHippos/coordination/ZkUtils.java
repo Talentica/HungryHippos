@@ -577,7 +577,7 @@ public class ZkUtils {
         case ("java.lang.String"):
           return URLDecoder.decode(valueString, CHARSET);
         case ("MAP"):
-          Map map = new HashMap<>();
+          Map<Object,Object> map = new HashMap<Object,Object>();
           List<String> valueStrings =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : valueStrings) {
@@ -591,7 +591,7 @@ public class ZkUtils {
           }
           return map;
         case ("ITERABLE"):
-          List list = new LinkedList<>();
+          List<Object> list = new LinkedList<Object>();
           List<String> entries =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : entries) {
@@ -617,7 +617,7 @@ public class ZkUtils {
           }
           return arrayObject;
         default:
-          Class objClass = Class.forName(className);
+          Class<?> objClass = Class.forName(className);
           Object obj = objClass.newInstance();
           List<String> fieldNames =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
@@ -637,7 +637,7 @@ public class ZkUtils {
     return null;
   }
 
-  private static Class getClassFromClassName(String className) throws ClassNotFoundException {
+  private static Class<?> getClassFromClassName(String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
       Array.newInstance(getClassFromClassName(className.substring(1, className.length() - 1)), 0)
           .getClass();

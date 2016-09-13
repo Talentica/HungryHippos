@@ -30,8 +30,8 @@ public final class StringSize {
 
   }
 
-  public static long estimatedSizeOfLine(String s) {
-    return (s.length() * 2) + OBJ_OVERHEAD;
+  public static long estimatedSizeOfLine(int totalByte) {
+    return  totalByte + OBJ_OVERHEAD;
   }
 
 }

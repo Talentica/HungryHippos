@@ -3,8 +3,9 @@
  */
 package com.talentica.hungryHippos.storage.sorting;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * @author pooshans
@@ -12,38 +13,42 @@ import java.io.IOException;
  */
 public final class BinaryFileBuffer {
 
-  private BufferedReader fbr;
-  private String cache;
+  private DataInputStream dis;
+  private ByteBuffer cache;
+  byte[] bytes;
 
-  public BinaryFileBuffer(BufferedReader r) throws IOException {
-    this.fbr = r;
+  public BinaryFileBuffer(DataInputStream dis, int bufferSize) throws IOException {
+    this.dis = dis;
+    bytes = new byte[bufferSize];
+    cache = ByteBuffer.wrap(bytes);
     reload();
   }
 
   public void close() throws IOException {
-    this.fbr.close();
+    this.dis.close();
   }
 
   public boolean empty() {
-    return this.cache == null;
+    return !this.cache.hasRemaining();
   }
 
-  public String peek() {
+  public ByteBuffer peek() {
     return this.cache;
   }
 
-  public String pop() throws IOException {
-    String answer = peek().toString();
+  public ByteBuffer pop() throws IOException {
+    ByteBuffer answer = peek();
     reload();
     return answer;
   }
 
   private void reload() throws IOException {
-    this.cache = this.fbr.readLine();
+    cache.clear();
+    this.dis.readFully(bytes);
   }
 
-  public BufferedReader getReader() {
-    return fbr;
+  public DataInputStream getReader() {
+    return dis;
   }
 
 

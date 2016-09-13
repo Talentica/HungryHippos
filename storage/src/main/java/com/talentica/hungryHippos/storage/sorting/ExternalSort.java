@@ -1,16 +1,14 @@
 package com.talentica.hungryHippos.storage.sorting;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,8 +17,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 
 public class ExternalSort {
@@ -28,20 +33,117 @@ public class ExternalSort {
   private static int defaultCharBufferSize = 8192;
   public static long TEMPFILES;
   public static final Logger LOGGER = LoggerFactory.getLogger(ExternalSort.class);
+  private DimensionComparator comparator;
+  private static ShardingApplicationContext context;
+  private static FieldTypeArrayDataDescription dataDescription;
+  private DynamicMarshal dynamicMarshal;
 
-  public static void main(String[] args) throws IOException, InsufficientMemoryException {
+  public ExternalSort() throws ClassNotFoundException, FileNotFoundException, KeeperException,
+      InterruptedException, IOException, JAXBException {
+    dynamicMarshal = getDynamicMarshal();
+    comparator = new DimensionComparator(dynamicMarshal);
+    comparator.setDimenstion(new int[] {0, 1, 2});
+  }
+
+  public static void main(String[] args) throws IOException, InsufficientMemoryException,
+      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     long startTIme = System.currentTimeMillis();
+    validateArguments(args);
+    context = new ShardingApplicationContext(args[2]);
     ExternalSort externalSort = new ExternalSort();
-    externalSort.validateArguments(args);
-    String tmpDirPath = (args.length == 2) ? args[1] : null;
-    File inputFlatFile = new File(args[0]);
+    String tmpDirPath = (args.length == 3) ? args[1] : null;
+    int index = 0;
+    String dataDir = args[0];
+    dataDir = validateDirectory(dataDir);
     File tmpDir = (tmpDirPath == null ? null : new File(tmpDirPath));
-    File f2 = File.createTempFile("hh_", "_sorted_flat_file", tmpDir);
-    externalSort.mergeSortedFiles(
-        externalSort.sortInBatch(inputFlatFile, tmpDir, Charset.defaultCharset()), f2,
-        Charset.defaultCharset(), true);
-    LOGGER.info("Total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
+    while (true) {
+      File inputFlatFile = new File(dataDir + "data_" + (index));
+      if (!inputFlatFile.exists()) {
+        break;
+      }
+      DataInputStream in = new DataInputStream(new FileInputStream(inputFlatFile));
+      long dataSize = inputFlatFile.length();
+      if (dataSize <= 0) {
+        continue;
+      }
+      File f2 = File.createTempFile("hh_", "_sorted_flat_file_" + (index++), tmpDir);
+      externalSort.mergeSortedFiles(
+          externalSort.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), f2,
+          Charset.defaultCharset(), true);
+      LOGGER.info("Total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
+    }
+  }
 
+  private List<File> sortInBatch(DataInputStream file, final long datalength, File tmpDirectory,
+      Charset charset) throws IOException, InsufficientMemoryException, ClassNotFoundException,
+      KeeperException, InterruptedException, JAXBException {
+    return sortInBatch(file, datalength, availableMemory(), charset, tmpDirectory);
+  }
+
+  private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
+      long maxFreeMemory, final Charset cs, final File tmpdirectory)
+      throws IOException, InsufficientMemoryException, ClassNotFoundException, KeeperException,
+      InterruptedException, JAXBException {
+    long startTIme = System.currentTimeMillis();
+    int noOfBytesInOneDataSet = dataDescription.getSize();
+    List<File> files = new ArrayList<>();
+    long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
+    try {
+      List<byte[]> tmplist = new ArrayList<byte[]>();
+      try {
+        long dataFileSize = datalength;
+        long currentblocksize = 0;
+        byte[] bytes;
+        while (dataFileSize > 0) {
+          bytes = new byte[noOfBytesInOneDataSet];
+          if (currentblocksize < blocksize) {
+            dataInputStream.readFully(bytes);
+            dataFileSize = dataFileSize - bytes.length;
+            tmplist.add(bytes);
+            currentblocksize +=  StringSize.estimatedSizeOfLine(noOfBytesInOneDataSet);
+            bytes = null;
+          } else {
+            files.add(sortAndSave(tmplist, cs, tmpdirectory));
+            tmplist.clear();
+            currentblocksize = 0;
+          }
+        }
+        if (tmplist.size() > 0) {
+          files.add(sortAndSave(tmplist, cs, tmpdirectory));
+          tmplist.clear();
+        }
+      } catch (EOFException oef) {
+        if (tmplist.size() > 0) {
+          files.add(sortAndSave(tmplist, cs, tmpdirectory));
+          tmplist.clear();
+        }
+      }
+    } finally {
+      dataInputStream.close();
+    }
+    LOGGER.info("Total sorting time taken in sec {} ",
+        ((System.currentTimeMillis() - startTIme) / 1000));
+    return files;
+  }
+
+  private int batchId = 0;
+
+  private File sortAndSave(List<byte[]> tmpList, Charset cs, File tmpDirectory) throws IOException {
+    LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
+    Collections.sort(tmpList, comparator.getDefaultComparator());
+    File newtmpfile = File.createTempFile("batch", "sorted_flat_file", tmpDirectory);
+    LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
+    newtmpfile.deleteOnExit();
+    try (OutputStream out = new FileOutputStream(newtmpfile)) {
+      Iterator<byte[]> i = tmpList.iterator();
+      if (i.hasNext()) {
+        while (i.hasNext()) {
+          byte[] r = i.next();
+          out.write(r);
+        }
+      }
+    }
+    return newtmpfile;
   }
 
   private int mergeSortedFiles(List<File> files, File outputfile, Charset cs, boolean append)
@@ -50,53 +152,35 @@ public class ExternalSort {
     LOGGER.info("Now merging sorted files...");
     ArrayList<BinaryFileBuffer> bfbs = new ArrayList<>();
     for (File f : files) {
-      InputStream in = new FileInputStream(f);
-      BufferedReader br;
-      br = new BufferedReader(new InputStreamReader(in, cs));
-      BinaryFileBuffer bfb = new BinaryFileBuffer(br);
+      FileInputStream fis = new FileInputStream(f);
+      DataInputStream dis = new DataInputStream(fis);
+      BinaryFileBuffer bfb = new BinaryFileBuffer(dis, dataDescription.getSize());
       bfbs.add(bfb);
     }
-    BufferedWriter fbw =
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputfile, append), cs));
-    int rowcounter = mergeSortedFiles(fbw, bfbs);
+    OutputStream os = new FileOutputStream(outputfile, append);
+    int rowcounter = mergeSortedFiles(os, bfbs);
+
     for (File f : files) {
       f.delete();
     }
     LOGGER.info("Sorted files are merged successfully.");
-    LOGGER.info("Total merging time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
+    LOGGER.info("Total merging time taken in sec {} ",
+        ((System.currentTimeMillis() - startTIme) / 1000));
     return rowcounter;
   }
 
-  private int mergeSortedFiles(BufferedWriter fbw, List<BinaryFileBuffer> buffers)
-      throws IOException {
+  private int mergeSortedFiles(OutputStream os, List<BinaryFileBuffer> buffers) throws IOException {
+    int rowcounter = 0;
     for (BinaryFileBuffer bfb : buffers) {
       if (!bfb.empty()) {
         pq.add(bfb);
       }
     }
-    int rowcounter = 0;
     try {
-      String lastLine = null;
-      if (pq.size() > 0) {
-        BinaryFileBuffer bfb = pq.poll();
-        lastLine = bfb.pop();
-        fbw.write(lastLine);
-        fbw.newLine();
-        ++rowcounter;
-        if (bfb.empty()) {
-          bfb.getReader().close();
-        } else {
-          pq.add(bfb);
-        }
-      }
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
-        String r = bfb.pop();
-        if (defaultcomparator.compare(r, lastLine) != 0) {
-          fbw.write(r);
-          fbw.newLine();
-          lastLine = r;
-        }
+        ByteBuffer r = bfb.pop();
+        os.write(r.array());
         ++rowcounter;
         if (bfb.empty()) {
           bfb.getReader().close();
@@ -104,8 +188,10 @@ public class ExternalSort {
           pq.add(bfb);
         }
       }
+    } catch (EOFException eof) {
+      LOGGER.info("End of file");
     } finally {
-      fbw.close();
+      os.close();
       for (BinaryFileBuffer bfb : pq) {
         bfb.close();
       }
@@ -113,11 +199,18 @@ public class ExternalSort {
     return rowcounter;
   }
 
+  private static String validateDirectory(String dataDir) {
+    if (dataDir.charAt(dataDir.length() - 1) != File.separatorChar) {
+      dataDir = dataDir.concat("" + File.separatorChar);
+    }
+    return dataDir;
+  }
+
   private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
         @Override
         public int compare(BinaryFileBuffer i, BinaryFileBuffer j) {
-          return defaultcomparator.compare(i.peek(), j.peek());
+          return comparator.getDefaultComparator().compare(i.peek().array(), j.peek().array());
         }
       });
 
@@ -133,7 +226,6 @@ public class ExternalSort {
     TEMPFILES = (fileSize < allocateMemory) ? 1
         : (fileSize / allocateMemory + (fileSize % allocateMemory == 0 ? 0 : 1));
     long blocksize = allocateMemory;
-    LOGGER.info("Number of blocks {} and each block size in bytes {}", TEMPFILES, blocksize);
     return blocksize;
   }
 
@@ -146,85 +238,18 @@ public class ExternalSort {
     return currentFreeMemory;
   }
 
-  private Comparator<String> defaultcomparator = new Comparator<String>() {
-    @Override
-    public int compare(String r1, String r2) {
-      return r1.compareTo(r2);
-    }
-  };
-
-  private List<File> sortInBatch(File file, File tmpDirectory, Charset charset)
-      throws IOException, InsufficientMemoryException {
-    BufferedReader fbr =
-        new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
-    return sortInBatch(fbr, file.length(), availableMemory(), charset, tmpDirectory);
+  private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    dataDescription = context.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(context.getShardingDimensions());
+    DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
+    return dynamicMarshal;
   }
 
-  private List<File> sortInBatch(final BufferedReader fbr, final long datalength,
-      long maxFreeMemory, final Charset cs, final File tmpdirectory)
-      throws IOException, InsufficientMemoryException {
-    long startTIme = System.currentTimeMillis();
-    List<File> files = new ArrayList<>();
-    long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
-    try {
-      List<String> tmplist = new ArrayList<>();
-      String line = "";
-      try {
-        while (line != null) {
-          long currentblocksize = 0;
-          while ((currentblocksize < blocksize) && ((line = fbr.readLine()) != null)) {
-            tmplist.add(line);
-            currentblocksize += StringSize.estimatedSizeOfLine(line);
-          }
-          files.add(sortAndSave(tmplist, cs, tmpdirectory));
-          tmplist.clear();
-        }
-      } catch (EOFException oef) {
-        if (tmplist.size() > 0) {
-          files.add(sortAndSave(tmplist, cs, tmpdirectory));
-          tmplist.clear();
-        }
-      }
-    } finally {
-      fbr.close();
-    }
-    LOGGER.info("Total sorting time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
-    return files;
-  }
-
-  private int batchId = 0;
-  private File sortAndSave(List<String> tmpList, Charset cs, File tmpDirectory)
-      throws IOException {
-    LOGGER.info("Batch id {} is getting sorted and saved",(batchId++));
-    Collections.sort(tmpList, defaultcomparator);
-    File newtmpfile = File.createTempFile("batch", "sorted_flat_file", tmpDirectory);
-    LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
-    newtmpfile.deleteOnExit();
-    OutputStream out = new FileOutputStream(newtmpfile);
-    try (BufferedWriter fbw = new BufferedWriter(new OutputStreamWriter(out, cs))) {
-      String lastLine = null;
-      Iterator<String> i = tmpList.iterator();
-      if (i.hasNext()) {
-        lastLine = i.next();
-        fbw.write(lastLine);
-        fbw.newLine();
-      }
-      while (i.hasNext()) {
-        String r = i.next();
-        if (defaultcomparator.compare(r, lastLine) != 0) { // check duplicate line and skip if any.
-          fbw.write(r);
-          fbw.newLine();
-          lastLine = r;
-        }
-      }
-    }
-    return newtmpfile;
-  }
-
-  private void validateArguments(String[] args) {
-    if (args != null && args.length < 1) {
+  private static void validateArguments(String[] args) {
+    if (args != null && args.length < 3) {
       throw new RuntimeException(
-          "Invalid argument. Please provide 1st argument as input file and 2nd argument(optional) tmp directory.");
+          "Invalid argument. Please provide 1st argument as input file and 2nd argument tmp directory and 3rd argument sharding folder path.");
     }
   }
 }

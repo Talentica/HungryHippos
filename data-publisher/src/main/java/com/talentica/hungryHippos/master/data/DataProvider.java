@@ -7,11 +7,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
 
@@ -51,6 +48,7 @@ public class DataProvider {
 
   private static BucketsCalculator bucketsCalculator;
   private static String BAD_RECORDS_FILE;
+  private static Random random;
 
   private static String[] loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
@@ -103,6 +101,7 @@ public class DataProvider {
       dos.flush();
       targets[i].write(destinationPathInBytes);
       targets[i].write((byte)1);
+      targets[i].flush();
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -113,6 +112,8 @@ public class DataProvider {
     int lineNo = 0;
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
+    random = ThreadLocalRandom.current();
+    byte[] nextNodesInfo = new byte[DataPublisherStarter.getContext().getShardingDimensions().length-1];
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -143,15 +144,21 @@ public class DataProvider {
 
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      Object [] nodesArr = nodes.toArray();
-      ShuffleArrayUtil.shuffleArray(nodesArr);
-      Node node_0 = (Node)nodesArr[0];
-      for(int i = 1; i < nodesArr.length; i++){
-        Node node = (Node)nodesArr[i];
-        targets[node_0.getNodeId()].write((byte)node.getNodeId());
+      int randomNodeIndex = random.nextInt(nodes.size());
+      int setIndex = 0;
+      int nextNodesInfoIndex = 0;
+      Node randomNode = null;
+      for(Node node:nodes){
+        if(setIndex==randomNodeIndex){
+          randomNode = node;
+        }else{
+          nextNodesInfo[nextNodesInfoIndex] = (byte)node.getNodeId();
+          nextNodesInfoIndex++;
+        }
+        setIndex++;
       }
-      
-      targets[node_0.getNodeId()].write(buf);
+      targets[randomNode.getNodeId()].write(nextNodesInfo);
+      targets[randomNode.getNodeId()].write(buf);
     }
     fileWriter.close();
     for (int j = 0; j < targets.length; j++) {

@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node;
 
 import java.io.IOException;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,13 +40,14 @@ public class DataReceiver {
    * 
    * @throws Exception
    */
-  private void startServer() throws Exception {
+  private void startServer() {
     LOGGER.info("Start the node");
-    EventLoopGroup workerGroup = new NioEventLoopGroup();
-    EventLoopGroup bossGroup = new NioEventLoopGroup();
+    int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
+    int maxNoOfRequestThreads = noOfNodes*9;
+    EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {
       ServerBootstrap b = new ServerBootstrap();
-      b.group(bossGroup, workerGroup);
+      b.group(workerGroup);
       b.channel(NioServerSocketChannel.class);
       b.option(ChannelOption.SO_KEEPALIVE, true);
       b.childHandler(new ChannelInitializer<SocketChannel>() {
@@ -60,9 +62,10 @@ public class DataReceiver {
       f.channel().closeFuture().sync();
       LOGGER.info("Node ready to receive data");
       LOGGER.info("Wait until the connection is closed");
-    } finally {
+    } catch (Exception e){
+      LOGGER.error(e.toString());
+    } finally{
       workerGroup.shutdownGracefully();
-      bossGroup.shutdownGracefully();
       LOGGER.info("Connection is gracefully closed");
     }
   }

@@ -12,9 +12,9 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal
  * @author pooshans
  *
  */
-public class DimensionComparator {
+public class DataFileComparator {
 
-  private int[] dimenstion;
+  private int[] dimension;
 
   private DynamicMarshal dynamicMarshal;
   private ByteBuffer rowBuffer1;
@@ -22,32 +22,30 @@ public class DimensionComparator {
   private StringBuilder temp1 = new StringBuilder();
   private StringBuilder temp2 = new StringBuilder();
 
-  public DimensionComparator(DynamicMarshal dynamicMarshal) {
+  public DataFileComparator(DynamicMarshal dynamicMarshal) {
     this.dynamicMarshal = dynamicMarshal;
   }
 
   public int[] getDimenstion() {
-    return dimenstion;
+    return dimension;
   }
 
   public void setDimenstion(int[] dimenstion) {
-    this.dimenstion = dimenstion;
+    this.dimension = dimenstion;
   }
 
-
-  private Comparator<byte[]> defaultcomparator = new Comparator<byte[]>() {
+  private Comparator<byte[]> defaultDimensionComparator = new Comparator<byte[]>() {
+    int res = 0;
     @Override
     public int compare(byte[] row1, byte[] row2) {
       rowBuffer1 = ByteBuffer.wrap(row1);
       rowBuffer2 = ByteBuffer.wrap(row2);
-      int res = 0;
-      for (int dim = 0; dim < dimenstion.length; dim++) {
-        temp1.append(dynamicMarshal.readValue(dimenstion[dim], rowBuffer1));
-        temp2.append(dynamicMarshal.readValue(dimenstion[dim], rowBuffer2));
+      for (int dim = 0; dim < dimension.length; dim++) {
+        temp1.append(dynamicMarshal.readValue(dimension[dim], rowBuffer1));
+        temp2.append(dynamicMarshal.readValue(dimension[dim], rowBuffer2));
         res = temp1.toString().compareTo(temp2.toString());
         if (res != 0) {
-          reset();
-          return res;
+          break;
         }
       }
       reset();
@@ -63,7 +61,7 @@ public class DimensionComparator {
   };
 
   public Comparator<byte[]> getDefaultComparator() {
-    return defaultcomparator;
+    return defaultDimensionComparator;
   }
 
 }

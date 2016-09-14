@@ -28,21 +28,21 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 
-public class ExternalSort {
+public class DataFileSorter {
 
-  private static int defaultCharBufferSize = 8192;
-  public static long TEMPFILES;
-  public static final Logger LOGGER = LoggerFactory.getLogger(ExternalSort.class);
-  private DimensionComparator comparator;
+  public static final int DEFAULTMAXTEMPFILES = 1024;
+  public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
+  private DataFileComparator comparator;
   private static ShardingApplicationContext context;
   private static FieldTypeArrayDataDescription dataDescription;
-  private DynamicMarshal dynamicMarshal;
-  private long SEGMENT_SIZE = 536870912; // 512MB
+  private static DynamicMarshal dynamicMarshal;
+  private final long SEGMENTSIZE = 536870912; // Sorted output files will have 512MB size
+  private final static String DATAFILEPRIFIX = "data_";
 
-  public ExternalSort() throws ClassNotFoundException, FileNotFoundException, KeeperException,
+  public DataFileSorter() throws ClassNotFoundException, FileNotFoundException, KeeperException,
       InterruptedException, IOException, JAXBException {
     dynamicMarshal = getDynamicMarshal();
-    comparator = new DimensionComparator(dynamicMarshal);
+    comparator = new DataFileComparator(dynamicMarshal);
     comparator.setDimenstion(new int[] {0, 1, 2});
   }
 
@@ -50,28 +50,28 @@ public class ExternalSort {
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     long startTIme = System.currentTimeMillis();
     validateArguments(args);
-    context = new ShardingApplicationContext(args[2]);
-    ExternalSort externalSort = new ExternalSort();
-    String tmpDirPath = (args.length == 3) ? args[1] : null;
-    int index = 0;
     String dataDir = args[0];
+    String ouputDirPath = args[1];
+    String shardingDir = args[2];
+    context = new ShardingApplicationContext(shardingDir);
+    DataFileSorter dataFileSorted = new DataFileSorter();
+    int index = 0;
     dataDir = validateDirectory(dataDir);
-    File tmpDir = (tmpDirPath == null ? null : new File(tmpDirPath));
+    File tmpDir = (ouputDirPath == null ? null : new File(ouputDirPath));
+    DataInputStream in;
     while (true) {
-      File inputFlatFile = new File(dataDir + "data_" + (index++));
+      File inputFlatFile = new File(dataDir + DATAFILEPRIFIX + (index++));
       if (!inputFlatFile.exists()) {
         break;
       }
-      DataInputStream in = new DataInputStream(new FileInputStream(inputFlatFile));
+      in = new DataInputStream(new FileInputStream(inputFlatFile));
       long dataSize = inputFlatFile.length();
       if (dataSize <= 0) {
         continue;
       }
-      externalSort.mergeSortedFiles(
-          externalSort.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), tmpDir,
+      dataFileSorted.mergeSortedFiles(
+          dataFileSorted.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), tmpDir,
           Charset.defaultCharset(), true);
-
-
       LOGGER.info("Total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
     }
   }
@@ -94,14 +94,12 @@ public class ExternalSort {
     try {
       long dataFileSize = datalength;
       long currentBatchsize = 0l;
-      long totalByteRead = 0l;
       byte[] bytes;
       while (dataFileSize > 0) {
         if ((blocksize - currentBatchsize) > 0) {
           bytes = new byte[noOfBytesInOneDataSet];
           dataInputStream.readFully(bytes);
           dataFileSize = dataFileSize - bytes.length;
-          totalByteRead += bytes.length;
           tmplist.add(bytes);
           currentBatchsize += StringSize.estimatedSizeOfLine(noOfBytesInOneDataSet);
           bytes = null;
@@ -111,8 +109,6 @@ public class ExternalSort {
           currentBatchsize = 0;
         }
       }
-      LOGGER.info("Input data file size {} bytes and total bytes read {}", datalength,
-          totalByteRead);
       if (tmplist.size() > 0) {
         files.add(sortAndSave(tmplist, cs, tmpdirectory));
         tmplist.clear();
@@ -128,7 +124,6 @@ public class ExternalSort {
         tmplist.clear();
       }
       dataInputStream.close();
-      LOGGER.info("Total byte sort and saved {}",totalByteRead);
     }
     LOGGER.info("Total sorting time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
@@ -136,7 +131,6 @@ public class ExternalSort {
   }
 
   private int batchId = 0;
-  long totalByteRead = 0l;
 
   private File sortAndSave(List<byte[]> tmpList, Charset cs, File tmpDirectory) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
@@ -149,7 +143,6 @@ public class ExternalSort {
       while (rowItr.hasNext()) {
         byte[] row = rowItr.next();
         out.write(row);
-        totalByteRead += row.length;
       }
     }
     return newtmpfile;
@@ -182,9 +175,7 @@ public class ExternalSort {
     int fileId = 0;
     String prefix = "hh_";
     String suffix = "_sorted_flat_file_";
-    long outputFileSize = SEGMENT_SIZE; 
-    long totalByteRead = 0l;
-
+    long outputFileSize = SEGMENTSIZE;
     File outputfile = File.createTempFile(prefix, suffix + (fileId), outputDir);
     OutputStream os = new FileOutputStream(outputfile, append);
     for (BinaryFileBuffer bfb : buffers) {
@@ -198,7 +189,6 @@ public class ExternalSort {
         BinaryFileBuffer bfb = pq.poll();
         ByteBuffer row = bfb.pop();
         currentSize += row.array().length;
-        totalByteRead += row.array().length;
         if ((outputFileSize - currentSize) < 0) {
           os.close();
           outputfile = File.createTempFile(prefix, suffix + (++fileId), outputDir);
@@ -218,7 +208,6 @@ public class ExternalSort {
       for (BinaryFileBuffer bfb : pq) {
         bfb.close();
       }
-      LOGGER.info("Total byte read while merging sorted file {}",totalByteRead);
     }
     return rowcounter;
   }
@@ -241,15 +230,11 @@ public class ExternalSort {
   private long getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
       throws InsufficientMemoryException {
     LOGGER.info("Input file size {} and maximum memory available {}", fileSize, maxFreeMemory);
-    long allocateMemory = maxFreeMemory / 2;
-    if (allocateMemory < (defaultCharBufferSize * 2)) {
-      throw new InsufficientMemoryException(
-          "Inssufficient memory available. Require {" + (defaultCharBufferSize * 2)
-              + "} bytes for buffer writer and available memory is {" + allocateMemory + "}");
+    long blocksize = fileSize / DEFAULTMAXTEMPFILES
+        + (fileSize % DEFAULTMAXTEMPFILES == 0 ? 0 : 1);
+    if (blocksize < maxFreeMemory / 2) {
+      blocksize = maxFreeMemory / 2;
     }
-    TEMPFILES = (fileSize < allocateMemory) ? 1
-        : (fileSize / allocateMemory + (fileSize % allocateMemory == 0 ? 0 : 1));
-    long blocksize = allocateMemory;
     return blocksize;
   }
 

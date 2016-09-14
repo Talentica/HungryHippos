@@ -3,6 +3,8 @@ package com.talentica.hungryHippos.node;
 import java.io.IOException;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,7 @@ public class DataReceiver {
   private void startServer() {
     LOGGER.info("Start the node");
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
-    int maxNoOfRequestThreads = noOfNodes*9;
+    int maxNoOfRequestThreads = noOfNodes*DataPublisherApplicationContext.getNoOfDataReceiverThreads();
     EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {
       ServerBootstrap b = new ServerBootstrap();

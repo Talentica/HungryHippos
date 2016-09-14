@@ -7,7 +7,12 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
@@ -21,19 +26,18 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.master.DataPublisherStarter;
-import com.talentica.hungryHippos.master.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
-import com.talentica.hungryHippos.utility.ShuffleArrayUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
@@ -65,7 +69,7 @@ public class DataProvider {
 
   public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
       String sourcePath, String destinationPath) throws Exception {
-    init(nodesManager);
+    init();
     long start = System.currentTimeMillis();
     String[] servers = loadServers(nodesManager);
     FieldTypeArrayDataDescription dataDescription =
@@ -173,9 +177,9 @@ public class DataProvider {
 
   }
 
-  private static void init(NodesManager nodesManager) throws FileNotFoundException, JAXBException {
+  private static void init() throws FileNotFoundException, JAXBException {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext
-        .getDataPublisherConfig(nodesManager).getNoOfAttemptsToConnectToNode());
+        .getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
         DataPublisherStarter.getContext().getShardingServerConfig().getBadRecordsFileOut() + "_publisher.err";
   }

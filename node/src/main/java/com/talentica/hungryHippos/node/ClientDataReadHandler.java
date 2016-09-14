@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
@@ -63,7 +64,7 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
         replicaDataSenders = new ReplicaDataSender[nodes.size()];
         dataSize = dataDescription.getSize();
         nextNodesInfo = new byte[replicaNodesInfoDataSize];
-        maxNoOfRecords = 10000;
+        maxNoOfRecords = DataPublisherApplicationContext.getMaxRecordBufferSize();
         memoryBlocks = new byte[nodes.size()][20][];
         blockRecordCount = new int[nodes.size()];
         currentMemoryBlockId = new int[nodes.size()];
@@ -121,7 +122,7 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
 
     private void waitForDataPublishersServerConnectRetryInterval() throws InterruptedException {
         // TODO NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE value should be discussed.
-        int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(5);
+        int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext.getNoOfAttemptsToConnectToNode());
         Thread.sleep(NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE * 2);
     }
 

@@ -37,6 +37,7 @@ public class ExternalSort {
   private static ShardingApplicationContext context;
   private static FieldTypeArrayDataDescription dataDescription;
   private DynamicMarshal dynamicMarshal;
+  private long SEGMENT_SIZE = 536870912; // 512MB
 
   public ExternalSort() throws ClassNotFoundException, FileNotFoundException, KeeperException,
       InterruptedException, IOException, JAXBException {
@@ -57,7 +58,7 @@ public class ExternalSort {
     dataDir = validateDirectory(dataDir);
     File tmpDir = (tmpDirPath == null ? null : new File(tmpDirPath));
     while (true) {
-      File inputFlatFile = new File(dataDir + "data_" + (index));
+      File inputFlatFile = new File(dataDir + "data_" + (index++));
       if (!inputFlatFile.exists()) {
         break;
       }
@@ -66,10 +67,11 @@ public class ExternalSort {
       if (dataSize <= 0) {
         continue;
       }
-      File f2 = File.createTempFile("hh_", "_sorted_flat_file_" + (index++), tmpDir);
       externalSort.mergeSortedFiles(
-          externalSort.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), f2,
+          externalSort.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), tmpDir,
           Charset.defaultCharset(), true);
+
+
       LOGGER.info("Total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
     }
   }
@@ -88,38 +90,45 @@ public class ExternalSort {
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
     long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
+    List<byte[]> tmplist = new ArrayList<byte[]>();
     try {
-      List<byte[]> tmplist = new ArrayList<byte[]>();
-      try {
-        long dataFileSize = datalength;
-        long currentblocksize = 0;
-        byte[] bytes;
-        while (dataFileSize > 0) {
+      long dataFileSize = datalength;
+      long currentBatchsize = 0l;
+      long totalByteRead = 0l;
+      byte[] bytes;
+      while (dataFileSize > 0) {
+        if ((blocksize - currentBatchsize) > 0) {
           bytes = new byte[noOfBytesInOneDataSet];
-          if (currentblocksize < blocksize) {
-            dataInputStream.readFully(bytes);
-            dataFileSize = dataFileSize - bytes.length;
-            tmplist.add(bytes);
-            currentblocksize +=  StringSize.estimatedSizeOfLine(noOfBytesInOneDataSet);
-            bytes = null;
-          } else {
-            files.add(sortAndSave(tmplist, cs, tmpdirectory));
-            tmplist.clear();
-            currentblocksize = 0;
-          }
-        }
-        if (tmplist.size() > 0) {
+          dataInputStream.readFully(bytes);
+          dataFileSize = dataFileSize - bytes.length;
+          totalByteRead += bytes.length;
+          tmplist.add(bytes);
+          currentBatchsize += StringSize.estimatedSizeOfLine(noOfBytesInOneDataSet);
+          bytes = null;
+        } else {
           files.add(sortAndSave(tmplist, cs, tmpdirectory));
           tmplist.clear();
-        }
-      } catch (EOFException oef) {
-        if (tmplist.size() > 0) {
-          files.add(sortAndSave(tmplist, cs, tmpdirectory));
-          tmplist.clear();
+          currentBatchsize = 0;
         }
       }
+      LOGGER.info("Input data file size {} bytes and total bytes read {}", datalength,
+          totalByteRead);
+      if (tmplist.size() > 0) {
+        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        tmplist.clear();
+      }
+    } catch (EOFException oef) {
+      if (tmplist.size() > 0) {
+        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        tmplist.clear();
+      }
     } finally {
+      if (tmplist.size() > 0) {
+        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        tmplist.clear();
+      }
       dataInputStream.close();
+      LOGGER.info("Total byte sort and saved {}",totalByteRead);
     }
     LOGGER.info("Total sorting time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
@@ -127,6 +136,7 @@ public class ExternalSort {
   }
 
   private int batchId = 0;
+  long totalByteRead = 0l;
 
   private File sortAndSave(List<byte[]> tmpList, Charset cs, File tmpDirectory) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
@@ -135,12 +145,11 @@ public class ExternalSort {
     LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
     newtmpfile.deleteOnExit();
     try (OutputStream out = new FileOutputStream(newtmpfile)) {
-      Iterator<byte[]> i = tmpList.iterator();
-      if (i.hasNext()) {
-        while (i.hasNext()) {
-          byte[] r = i.next();
-          out.write(r);
-        }
+      Iterator<byte[]> rowItr = tmpList.iterator();
+      while (rowItr.hasNext()) {
+        byte[] row = rowItr.next();
+        out.write(row);
+        totalByteRead += row.length;
       }
     }
     return newtmpfile;
@@ -157,9 +166,7 @@ public class ExternalSort {
       BinaryFileBuffer bfb = new BinaryFileBuffer(dis, dataDescription.getSize());
       bfbs.add(bfb);
     }
-    OutputStream os = new FileOutputStream(outputfile, append);
-    int rowcounter = mergeSortedFiles(os, bfbs);
-
+    int rowcounter = mergeSortedFiles(outputfile, bfbs, append);
     for (File f : files) {
       f.delete();
     }
@@ -169,18 +176,36 @@ public class ExternalSort {
     return rowcounter;
   }
 
-  private int mergeSortedFiles(OutputStream os, List<BinaryFileBuffer> buffers) throws IOException {
+  private int mergeSortedFiles(File outputDir, List<BinaryFileBuffer> buffers, boolean append)
+      throws IOException {
     int rowcounter = 0;
+    int fileId = 0;
+    String prefix = "hh_";
+    String suffix = "_sorted_flat_file_";
+    long outputFileSize = SEGMENT_SIZE; 
+    long totalByteRead = 0l;
+
+    File outputfile = File.createTempFile(prefix, suffix + (fileId), outputDir);
+    OutputStream os = new FileOutputStream(outputfile, append);
     for (BinaryFileBuffer bfb : buffers) {
       if (!bfb.empty()) {
         pq.add(bfb);
       }
     }
     try {
+      long currentSize = 0l;
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
-        ByteBuffer r = bfb.pop();
-        os.write(r.array());
+        ByteBuffer row = bfb.pop();
+        currentSize += row.array().length;
+        totalByteRead += row.array().length;
+        if ((outputFileSize - currentSize) < 0) {
+          os.close();
+          outputfile = File.createTempFile(prefix, suffix + (++fileId), outputDir);
+          os = new FileOutputStream(outputfile, append);
+          currentSize = row.array().length;
+        }
+        os.write(row.array());
         ++rowcounter;
         if (bfb.empty()) {
           bfb.getReader().close();
@@ -188,13 +213,12 @@ public class ExternalSort {
           pq.add(bfb);
         }
       }
-    } catch (EOFException eof) {
-      LOGGER.info("End of file");
     } finally {
       os.close();
       for (BinaryFileBuffer bfb : pq) {
         bfb.close();
       }
+      LOGGER.info("Total byte read while merging sorted file {}",totalByteRead);
     }
     return rowcounter;
   }

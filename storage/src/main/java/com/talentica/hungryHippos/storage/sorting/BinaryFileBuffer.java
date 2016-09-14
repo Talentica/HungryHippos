@@ -4,8 +4,12 @@
 package com.talentica.hungryHippos.storage.sorting;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author pooshans
@@ -13,9 +17,11 @@ import java.nio.ByteBuffer;
  */
 public final class BinaryFileBuffer {
 
+  public static final Logger LOGGER = LoggerFactory.getLogger(BinaryFileBuffer.class);
   private DataInputStream dis;
   private ByteBuffer cache;
   byte[] bytes;
+  boolean isRemaining = false;
 
   public BinaryFileBuffer(DataInputStream dis, int bufferSize) throws IOException {
     this.dis = dis;
@@ -29,7 +35,7 @@ public final class BinaryFileBuffer {
   }
 
   public boolean empty() {
-    return !this.cache.hasRemaining();
+    return !isRemaining;
   }
 
   public ByteBuffer peek() {
@@ -44,7 +50,16 @@ public final class BinaryFileBuffer {
 
   private void reload() throws IOException {
     cache.clear();
-    this.dis.readFully(bytes);
+    read();
+  }
+
+  private void read() throws IOException {
+    try {
+      this.dis.readFully(bytes);
+      isRemaining = true;
+    } catch (EOFException eof) {
+      isRemaining = false;
+    }
   }
 
   public DataInputStream getReader() {

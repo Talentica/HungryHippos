@@ -40,11 +40,16 @@ public class DimensionComparator {
     public int compare(byte[] row1, byte[] row2) {
       rowBuffer1 = ByteBuffer.wrap(row1);
       rowBuffer2 = ByteBuffer.wrap(row2);
+      int res = 0;
       for (int dim = 0; dim < dimenstion.length; dim++) {
         temp1.append(dynamicMarshal.readValue(dimenstion[dim], rowBuffer1));
         temp2.append(dynamicMarshal.readValue(dimenstion[dim], rowBuffer2));
+        res = temp1.toString().compareTo(temp2.toString());
+        if (res != 0) {
+          reset();
+          return res;
         }
-      int res =  temp1.toString().compareTo(temp2.toString());
+      }
       reset();
       return res;
     }

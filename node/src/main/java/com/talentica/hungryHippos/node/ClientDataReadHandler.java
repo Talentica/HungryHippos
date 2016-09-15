@@ -31,9 +31,6 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     private DataStore dataStore;
     private ByteBuf byteBuf;
     private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
-
-    private static int dataReaderHandlerCounter = 0;
-    private int dataReaderHandlerId = -1;
     private int recordSize;
     private byte[] nextNodesInfo;
     private int replicaNodesInfoDataSize;
@@ -53,7 +50,6 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
         this.buf = new byte[dataDescription.getSize()];
         byteBuffer = ByteBuffer.wrap(this.buf);
         this.dataStore = dataStore;
-        dataReaderHandlerId = ++dataReaderHandlerCounter;
         int shardingDimensions = context.getShardingDimensions().length;
         replicaNodesInfoDataSize = shardingDimensions - 1;
         recordSize = replicaNodesInfoDataSize + dataDescription.getSize();
@@ -104,15 +100,10 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
                 replicaDataSenders[i].clearReferences();
             }
         }
-        //  waitForDataPublishersServerConnectRetryInterval();
-        dataReaderHandlerCounter--;
-        if (dataReaderHandlerCounter <= 0) {
-            dataStore.sync();
-            byteBuf.release();
-            byteBuf = null;
-            ctx.channel().close();
-            dataReaderHandlerCounter = 0;
-        }
+        dataStore.sync();
+        byteBuf.release();
+        byteBuf = null;
+        ctx.channel().close();
         nextNodesInfo = null;
         memoryBlocks = null;
         currentMemoryBlockId = null;
@@ -198,22 +189,6 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     @Override
     public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
         ctx.close(promise);
-    }
-
-    @Override
-    public int hashCode() {
-        return dataReaderHandlerId;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof ClientDataReadHandler) {
-            return dataReaderHandlerId == ((ClientDataReadHandler) obj).dataReaderHandlerId;
-        }
-        return false;
     }
 
 }

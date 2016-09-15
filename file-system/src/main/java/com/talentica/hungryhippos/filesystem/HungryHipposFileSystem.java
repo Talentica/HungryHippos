@@ -279,24 +279,27 @@ public class HungryHipposFileSystem {
 
   /**
    * This method updates the HungryHippos filesystem with the metadata of the file
-   *
-   * @param fileZKNode
+   * @param hungryHippoFilePath
    * @param nodeId
-   * @param dataFileZKNode
-   * @param datafileSize
-   * @throws Exception
-   */
-  public void updateFSBlockMetaData(String fileZKNode, String nodeId, String dataFileZKNode,
-      long datafileSize) throws Exception {
-    String fileNodeZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + fileZKNode;
-    String fileNodeZKDFSPath =
-        fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
-    String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
+   * @param dataFileId
+   * @param fileName
+   * @param fileSize
+     * @throws Exception
+     */
+  public void updateFSBlockMetaData(String hungryHippoFilePath, String nodeId, int dataFileId, String fileName,
+      long fileSize) throws Exception {
+    String hungryHippoFileZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + hungryHippoFilePath;
+    String dfsZKPath =
+        hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
+    String nodeIdZKPath = dfsZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
     String dataFileNodeZKPath =
-        nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileZKNode;
-    ZkUtils.createZKNodeIfNotPresent(fileNodeZKDFSPath, "");
+        nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileId;
+    String fileNodeZKPath =
+            dataFileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileName;
+    ZkUtils.createZKNodeIfNotPresent(dfsZKPath, "");
     ZkUtils.createZKNodeIfNotPresent(nodeIdZKPath, "");
-    ZkUtils.createZKNode(dataFileNodeZKPath, datafileSize + "");
+    ZkUtils.createZKNodeIfNotPresent(dataFileNodeZKPath, "");
+    ZkUtils.createZKNode(fileNodeZKPath, fileSize + "");
   }
 
   /**

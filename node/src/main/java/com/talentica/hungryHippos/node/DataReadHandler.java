@@ -29,9 +29,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
   private ByteBuf byteBuf;
   private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 
-  private static int dataReaderHandlerCounter = 0;
-  private int dataReaderHandlerId = -1;
-
 
   public DataReadHandler(DataDescription dataDescription, DataStore dataStore,
       byte[] remainingBufferData, NodeUtil nodeUtil, ShardingApplicationContext context)
@@ -42,7 +39,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
     this.buf = new byte[dataDescription.getSize()];
     byteBuffer = ByteBuffer.wrap(this.buf);
     this.dataStore = dataStore;
-    dataReaderHandlerId = ++dataReaderHandlerCounter;
     nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
         nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription,context);
   }
@@ -58,14 +54,10 @@ public class DataReadHandler extends ChannelHandlerAdapter {
   public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
     LOGGER.info("Inside handlerRemoved");
     writeDataInStore();
-    dataReaderHandlerCounter--;
-    if (dataReaderHandlerCounter <= 0) {
-      dataStore.sync();
-      byteBuf.release();
-      byteBuf = null;
-      ctx.channel().close();
-      dataReaderHandlerCounter = 0;
-    }
+    dataStore.sync();
+    byteBuf.release();
+    byteBuf = null;
+    ctx.channel().close();
     LOGGER.info("Exiting handlerRemoved");
   }
 
@@ -121,22 +113,6 @@ public class DataReadHandler extends ChannelHandlerAdapter {
   @Override
   public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
     ctx.close(promise);
-  }
-
-  @Override
-  public int hashCode() {
-    return dataReaderHandlerId;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj instanceof DataReadHandler) {
-      return dataReaderHandlerId == ((DataReadHandler) obj).dataReaderHandlerId;
-    }
-    return false;
   }
 
 }

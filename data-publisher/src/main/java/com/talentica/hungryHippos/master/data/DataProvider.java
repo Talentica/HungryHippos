@@ -118,6 +118,7 @@ public class DataProvider {
     fileWriter.openFile();
     random = ThreadLocalRandom.current();
     byte[] nextNodesInfo = new byte[DataPublisherStarter.getContext().getShardingDimensions().length-1];
+    int flushTriggerCount = 0;
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -163,6 +164,13 @@ public class DataProvider {
       }
       targets[randomNode.getNodeId()].write(nextNodesInfo);
       targets[randomNode.getNodeId()].write(buf);
+      flushTriggerCount++;
+      if(flushTriggerCount>100000){
+        for (int j = 0; j < targets.length; j++) {
+          targets[j].flush();
+        }
+        flushTriggerCount =0;
+      }
     }
     fileWriter.close();
     for (int j = 0; j < targets.length; j++) {

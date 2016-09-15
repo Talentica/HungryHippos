@@ -109,7 +109,7 @@ public class FileDataStore implements DataStore, Serializable {
                   if (os[i] != null)
                       os[i].close();
                   HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,
-                          i + "/" + uniqueFileName, (new File(dataFilePrefix + i + File.separatorChar + uniqueFileName)).length());
+                          i , uniqueFileName, (new File(dataFilePrefix + i + File.separatorChar + uniqueFileName)).length());
               } catch (IOException e) {
                   logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
               } catch (Exception e) {

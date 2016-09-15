@@ -289,7 +289,7 @@ public class ZkUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
-      if(!nodesManager.checkNodeExists(node)) {
+      if (!nodesManager.checkNodeExists(node)) {
         LOGGER.info("No such node {} exists.", node);
         return;
       }
@@ -517,6 +517,18 @@ public class ZkUtils {
       LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: " + e.getMessage());
       LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
     }
+
+  }
+
+  public static Stat getStat(String nodePath) {
+
+    Stat stat = null;
+    try {
+      stat = zk.exists(nodePath, nodesManager);
+    } catch (KeeperException | InterruptedException e) {
+      LOGGER.error(e.getMessage());
+    }
+    return stat;
   }
 
   /**
@@ -962,7 +974,7 @@ public class ZkUtils {
       public void processResult(int rc, String path, Object ctx, Stat stat) {
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
-            nodesManager.asyncNodeExists(path,signal);
+            nodesManager.asyncNodeExists(path, signal);
             break;
           case NODEEXISTS:
             cacheNodeExists.put(path, (stat != null));

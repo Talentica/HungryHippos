@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,9 @@ public class HungryHipposFileSystem {
   private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
   private ZookeeperConfiguration zkConfiguration;
   private static volatile HungryHipposFileSystem hhfs = null;
+  private static String HUNGRYHIPPOS_FS_NODE = null;
+
+
 
   // for singleton
   private HungryHipposFileSystem() throws FileNotFoundException, JAXBException {
@@ -71,6 +75,9 @@ public class HungryHipposFileSystem {
       } else {
         name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + FileSystemConstants.ZK_PATH_SEPARATOR + name;
       }
+    }
+    if (name.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
+      name = name.substring(0, name.length() - 1);
     }
     return name;
   }
@@ -155,6 +162,18 @@ public class HungryHipposFileSystem {
   }
 
   /**
+   * To check whether a znode already exits on specified directory structure.
+   *
+   * @param name
+   * @return
+   */
+  public Stat getZnodeStat(String name) {
+    name = checkNameContainsFileSystemRoot(name);
+
+    return ZkUtils.getStat(name);
+  }
+
+  /**
    * set znode value to the data.
    *
    * @param name
@@ -231,11 +250,12 @@ public class HungryHipposFileSystem {
    * @param name
    */
   public void deleteNode(String name) {
+    name = checkNameContainsFileSystemRoot(name);
     if (name.equals(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER)) {
       logger.info("Cannot delete the root folder.");
       return;
     }
-    name = checkNameContainsFileSystemRoot(name);
+
     nodeManager.deleteNode(name);
   }
 

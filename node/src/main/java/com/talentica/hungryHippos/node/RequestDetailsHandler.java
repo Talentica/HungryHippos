@@ -12,6 +12,8 @@ import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +22,7 @@ import java.io.IOException;
  * Created by rajkishoreh on 22/7/16.
  */
 public class RequestDetailsHandler extends ChannelHandlerAdapter {
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(RequestDetailsHandler.class);
   private ByteBuf byteBuf;
   private String nodeId;
 
@@ -54,11 +56,14 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
       filePathLength = byteBuf.readInt();
       isFilePathLengthRead = true;
     }
-    if (byteBuf.readableBytes() >= filePathLength && isFilePathLengthRead) {
+    if (byteBuf.readableBytes() >= filePathLength +1 && isFilePathLengthRead) {
 
       String hhFilePath = readHHFilePath();
+      byte[] senderType = new byte[1];
+      byteBuf.readBytes(senderType);
       byte[] remainingBufferData = new byte[byteBuf.readableBytes()];
       byteBuf.readBytes(remainingBufferData);
+
       String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
       String shardingTableFolderPath = dataAbsolutePath+ File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       updateFilesIfRequired(shardingTableFolderPath);
@@ -70,8 +75,16 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
       DataStore dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
           dataDescription, hhFilePath, nodeId,context);
       ctx.pipeline().remove(DataReceiver.REQUEST_DETAILS_HANDLER);
-      ctx.pipeline().addLast(DataReceiver.DATA_HANDLER,
-          new DataReadHandler(dataDescription, dataStore, remainingBufferData, nodeUtil,context));
+      if(senderType[0]==(byte) 1){
+        LOGGER.info("SenderType Client");
+        ctx.pipeline().addLast(DataReceiver.DATA_HANDLER,
+                new ClientDataReadHandler(dataDescription, dataStore, remainingBufferData, nodeUtil,context));
+      } else {
+        LOGGER.info("SenderType Node");
+        ctx.pipeline().addLast(DataReceiver.DATA_HANDLER,
+                new DataReadHandler(dataDescription, dataStore, remainingBufferData, nodeUtil,context));
+      }
+
     }
   }
 

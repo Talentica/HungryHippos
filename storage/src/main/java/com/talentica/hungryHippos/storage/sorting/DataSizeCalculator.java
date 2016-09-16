@@ -1,7 +1,7 @@
 
 package com.talentica.hungryHippos.storage.sorting;
 
-public final class StringSize {
+public final class DataSizeCalculator {
 
   private static int OBJ_HEADER;
   private static int ARR_HEADER;
@@ -10,7 +10,7 @@ public final class StringSize {
   private static int OBJ_OVERHEAD;
   private static boolean IS_64_BIT_JVM;
 
-  private StringSize() {
+  private DataSizeCalculator() {
 
   }
 
@@ -30,7 +30,7 @@ public final class StringSize {
 
   }
 
-  public static long estimatedSizeOfLine(int totalByte) {
+  public static long estimatedSizeOfRow(int totalByte) {
     return  totalByte + OBJ_OVERHEAD;
   }
 

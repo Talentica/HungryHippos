@@ -46,7 +46,7 @@ public class DataFileSorter {
   public DataFileSorter() throws ClassNotFoundException, FileNotFoundException, KeeperException,
       InterruptedException, IOException, JAXBException {
     dynamicMarshal = getDynamicMarshal();
-    comparator = new DataFileComparator(dynamicMarshal,dataDescription.getSize());
+    comparator = new DataFileComparator(dynamicMarshal, dataDescription.getSize());
     comparator.setDimenstion(new int[] {0, 1, 2});
   }
 
@@ -70,19 +70,26 @@ public class DataFileSorter {
       if (!inputFlatFile.exists()) {
         break;
       }
-      LOGGER.info("Sorting for file [{}] is started...",inputFlatFile.getName());
-      outputfile = File.createTempFile(OUTPUT_DATAFILE_PRIFIX, OUTPUT_DATAFILE_SUFFIX + (index), tmpDir);
+      LOGGER.info("Sorting for file [{}] is started...", inputFlatFile.getName());
+      outputfile =
+          File.createTempFile(OUTPUT_DATAFILE_PRIFIX, OUTPUT_DATAFILE_SUFFIX + (index), tmpDir);
       in = new DataInputStream(new FileInputStream(inputFlatFile));
       long dataSize = inputFlatFile.length();
       if (dataSize <= 0) {
         continue;
       }
-      dataFileSorted.mergeSortedFiles(
-          dataFileSorted.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), outputfile,
-          Charset.defaultCharset(), true);
+      List<File> files = dataFileSorted.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset());
+      if (files.size() == 1) {
+        File file = files.get(0);
+        file.renameTo(outputfile);
+        LOGGER.info("Rename the file if there is single sorted file.");
+      } else {
+        dataFileSorted.mergeSortedFiles(files, outputfile, Charset.defaultCharset(), true);
+      }
       index++;
     }
-    LOGGER.info("Completed file sorting and total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
+    LOGGER.info("Completed file sorting and total time taken in sec {} ",
+        ((System.currentTimeMillis() - startTIme) / 1000));
   }
 
   private List<File> sortInBatch(DataInputStream file, final long datalength, File tmpDirectory,
@@ -146,13 +153,14 @@ public class DataFileSorter {
 
   private int batchId = 0;
 
-  private File sortAndSave( Queue<byte[]> tmplist, Charset cs, File tmpDirectory) throws IOException {
+  private File sortAndSave(Queue<byte[]> tmplist, Charset cs, File tmpDirectory)
+      throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
     File newtmpfile = File.createTempFile("tmp_", "_sorted_file", tmpDirectory);
     LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
     newtmpfile.deleteOnExit();
     try (OutputStream out = new FileOutputStream(newtmpfile)) {
-      while(!tmplist.isEmpty()){
+      while (!tmplist.isEmpty()) {
         out.write(tmplist.poll());
       }
     }

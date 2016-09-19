@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.storage.sorting;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -31,6 +30,7 @@ public final class BinaryFileBuffer {
     lastByteRead = new byte[bufferSize];
     readByteBuffer = ByteBuffer.wrap(readBytes);
     lastRowByteBuffer = ByteBuffer.wrap(lastByteRead);
+    isRemaining = (dis.available() > 0);
     reload();
   }
 
@@ -38,7 +38,7 @@ public final class BinaryFileBuffer {
     this.dis.close();
   }
 
-  public boolean empty() {
+  public boolean empty() throws IOException {
     return !isRemaining;
   }
 
@@ -53,22 +53,21 @@ public final class BinaryFileBuffer {
   }
 
   private ByteBuffer copyRow(ByteBuffer answer) {
-    for(int i  =0; i < answer.array().length ; i++){
+    for (int i = 0; i < answer.array().length; i++) {
       lastByteRead[i] = answer.get(i);
     }
     return lastRowByteBuffer;
   }
-  
+
   private void reload() throws IOException {
     readByteBuffer.clear();
     read();
   }
 
   private void read() throws IOException {
-    try {
+    if (dis.available() > 0) {
       this.dis.readFully(readBytes);
-      isRemaining = true;
-    } catch (EOFException eof) {
+    } else {
       isRemaining = false;
     }
   }
@@ -76,6 +75,4 @@ public final class BinaryFileBuffer {
   public DataInputStream getReader() {
     return dis;
   }
-
-
 }

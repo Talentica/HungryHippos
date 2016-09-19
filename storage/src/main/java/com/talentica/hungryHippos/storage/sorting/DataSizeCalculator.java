@@ -1,6 +1,10 @@
 
 package com.talentica.hungryHippos.storage.sorting;
 
+/**
+ * @author pooshans
+ *
+ */
 public final class DataSizeCalculator {
 
   private static int OBJ_HEADER;

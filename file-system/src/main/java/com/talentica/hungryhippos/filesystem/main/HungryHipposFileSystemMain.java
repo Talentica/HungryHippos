@@ -140,19 +140,22 @@ public class HungryHipposFileSystemMain {
 
   private static void showMetaData(List<String> list, String name) {
     System.out.println("fileName:- " + fileName(name));
+    name = name.endsWith("/") ? name.substring(0, name.length() - 1) : name;
     if (list == null || list.isEmpty()) {
       System.out.println("MetaData is not set");
     }
     if (list.contains(FileSystemConstants.SHARDED)) {
       System.out.println("sharded:- true");
     }
-    int size = 0;
+    long size = 0;
     if (list.contains(FileSystemConstants.DFS_NODE)) {
       List<String> nodeDetails = hhfs.getChildZnodes(name + "/" + FileSystemConstants.DFS_NODE);
+
       System.out.print("File is Distributed on Following nodes:- ");
       for (String node : nodeDetails) {
         System.out.print("   " + node);
       }
+      System.out.println();
       String dimension = null;
       for (String node : nodeDetails) {
         List<String> childs =
@@ -160,9 +163,18 @@ public class HungryHipposFileSystemMain {
         if (dimension == null) {
           dimension = String.valueOf((int) (Math.log(childs.size()) / Math.log(2)));
         }
-        for (String child : childs) {
-          size += Integer.valueOf(
-              hhfs.getData(name + "/" + FileSystemConstants.DFS_NODE + "/" + node + "/" + child));
+        try {
+          for (String child : childs) {
+            List<String> childsChild = hhfs.getChildZnodes(
+                name + "/" + FileSystemConstants.DFS_NODE + "/" + node + "/" + child);
+            for (String leaf : childsChild) {
+              size += Long.valueOf(hhfs.getData(name + "/" + FileSystemConstants.DFS_NODE + "/"
+                  + node + "/" + child + "/" + leaf));
+            }
+
+          }
+        } catch (NumberFormatException e) {
+          System.out.println("size is stored in serialized form");
         }
       }
 
@@ -191,7 +203,7 @@ public class HungryHipposFileSystemMain {
     switch (op) {
       case LS:
         String data = hhfs.getData(name);
-        if (data != null && data.equals(FileSystemConstants.IS_A_FILE)) {
+        if (data != null && data.contains(FileSystemConstants.IS_A_FILE)) {
           System.out.println(name + " " + FileSystemConstants.IS_A_FILE);
         } else {
           printOnScreen(hhfs.getChildZnodes(name));

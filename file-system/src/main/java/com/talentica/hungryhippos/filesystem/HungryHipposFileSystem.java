@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * 
@@ -50,7 +51,12 @@ public class HungryHipposFileSystem {
     CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER =
         coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+    HUNGRYHIPPOS_FS_NODE = FileSystemContext.getRootDirectory();
 
+  }
+
+  public String getHHFSNodeRoot() {
+    return HUNGRYHIPPOS_FS_NODE;
   }
 
   public String getHHFSZROOT() {
@@ -199,7 +205,10 @@ public class HungryHipposFileSystem {
     name = checkNameContainsFileSystemRoot(name);
     String nodeData = null;
     try {
-      nodeData = nodeManager.getStringFromZKNode(name);
+      Object data = nodeManager.getObjectFromZKNode(name);
+      if (data != null) {
+        nodeData = (String) data;
+      }
     } catch (KeeperException | InterruptedException | ClassNotFoundException | IOException e) {
       logger.error(e.getMessage());
 

@@ -85,7 +85,7 @@ public class HungryHipposCommandLauncher {
       Class<?> consoleC = Class.forName("jline.ConsoleReader");
       Object console = consoleC.getConstructor().newInstance();
       Class<?> completorC =
-          Class.forName("com.talentica.hungryhippos.filesystem.main.TestCompletor");
+          Class.forName("com.talentica.hungryhippos.filesystem.main.TabCompletor");
       Object completor = completorC.getConstructor().newInstance();
       Method addCompletor = consoleC.getMethod("addCompletor", Class.forName("jline.Completor"));
       addCompletor.invoke(console, completor);
@@ -164,6 +164,8 @@ public class HungryHipposCommandLauncher {
       case "cat":
         CatCommand.execute(parser, str);
         break;
+      case "head":
+        HeadCommand.execute(parser, str);
       case "exit":
         System.exit(1);
       default:

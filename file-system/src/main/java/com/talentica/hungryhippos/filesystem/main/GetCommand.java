@@ -1,5 +1,6 @@
 package com.talentica.hungryhippos.filesystem.main;
 
+import java.io.File;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -33,15 +34,22 @@ public class GetCommand {
         return;
       }
       String hungryHippoFilePath = line.getArgList().get(1);
+      hungryHippoFilePath = hungryHippoFilePath.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
+          ? hungryHippoFilePath.substring(0, hungryHippoFilePath.length() - 1)
+          : hungryHippoFilePath;
       HungryHipposFileSystem hhfs = HungryHipposCommandLauncher.getHHFSInstance();
+      String nodeHHFSDir = hhfs.getHHFSNodeRoot();
+      nodeHHFSDir = nodeHHFSDir.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
+          ? nodeHHFSDir.substring(0, nodeHHFSDir.length() - 1) : nodeHHFSDir;
+
       String data = hhfs.getData(hungryHippoFilePath);
-      if (!data.equals(FileSystemConstants.IS_A_FILE)) {
+      if (!data.contains(FileSystemConstants.IS_A_FILE)) {
         System.out.println("The location " + hungryHippoFilePath
             + " is not a file. Please provide a valid file path");
         return;
       }
 
-      String outputDirName = System.getProperty("user.dir");
+      String outputDirName = System.getProperty("user.home");
       int dimension = 0;
       if (line.hasOption("d")) {
         dimension = Integer.valueOf(line.getArgList().get(2));
@@ -50,16 +58,20 @@ public class GetCommand {
         String userName = HungryHipposCommandLauncher.getUserName();
         String host = HungryHipposCommandLauncher.getNodesInCluster().get(0).getIp();
         List<String> children = hhfs.getChildZnodes(hungryHippoFilePath);
+        boolean isSharded = false;
         for (String child : children) {
-          if (!(child.equals(FileSystemConstants.SHARDED))) {
-            System.out.println("The File mentioned is not sharded, dont use -s option for this "
-                + hungryHippoFilePath);
-            return;
+          if ((child.equals(FileSystemConstants.SHARDED))) {
+            isSharded = true;
+            break;
           }
         }
-        String remoteDir = hhfs.getData(hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-            + FileSystemConstants.SHARDED);
-        ScpCommandExecutor.download(userName, host, remoteDir, outputDirName);
+        if (isSharded) {
+          String remoteDir = nodeHHFSDir + File.separatorChar + hungryHippoFilePath
+              + File.separatorChar + "sharding-table.tar.gz";
+          ScpCommandExecutor.download(userName, host, remoteDir, outputDirName);
+        } else {
+          System.out.println("File is not sharded , don't use -s option");
+        }
       } else {
         DataRetrieverClient.getHungryHippoData(hungryHippoFilePath, outputDirName);
       }

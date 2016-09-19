@@ -64,14 +64,14 @@ public class DataRetrieverClient {
       String nodeIp = getNodeIp(nodeId);
       List<String> dataBlockNodes = ZkUtils.getChildren(nodeIdZKPath);
       if (isSharded) {
-        downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath,
-            hungryHippoFilePath, outputDirName, nodeIp, tmpDestFileNames);
+        downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath, hungryHippoFilePath,
+            outputDirName, nodeIp, tmpDestFileNames);
       } else {
-        downloadUnShardedFile(nodeIdZKPath, hungryHippoFilePath, outputDirName,
-            nodeIp, tmpDestFileNames);
+        downloadUnShardedFile(nodeIdZKPath, hungryHippoFilePath, outputDirName, nodeIp,
+            tmpDestFileNames);
       }
     }
-    combineFiles(tmpDestFileNames,hungryHippoFilePath,outputDirName);
+    combineFiles(tmpDestFileNames, hungryHippoFilePath, outputDirName);
   }
 
   /**
@@ -81,8 +81,7 @@ public class DataRetrieverClient {
    * @return
    */
   public static String getNodeIp(String nodeId) {
-    ClusterConfig clusterConfig =
-            CoordinationConfigUtil.getZkClusterConfigCache();
+    ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     String nodeIp = null;
     for (Node node : clusterConfig.getNode()) {
       if (node.getIdentifier() == Integer.parseInt(nodeId)) {
@@ -114,27 +113,30 @@ public class DataRetrieverClient {
    * @throws JAXBException
    */
   public static void downloadShardedFile(List<String> dataBlockNodes, int dimension,
-                                         String nodeIdZKPath, String hungryHippoFilePath,
-                                         String outputDirName, String nodeIp, List<String> tmpDestFileNames)
-          throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
-          JAXBException {
+      String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
+      List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
+      IOException, KeeperException, JAXBException {
     int seq = 0;
     for (String dataBlockNode : dataBlockNodes) {
       int dataBlockIntVal = Integer.parseInt(dataBlockNode);
       int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
       if ((dataBlockIntVal & dimensionOperand) == dimensionOperand) {
         String dataBlockZKPath =
-                nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
-        String dataBlockSizeStr = (String) ZkUtils.getNodeData(dataBlockZKPath);
-        long dataSize = Long.parseLong(dataBlockSizeStr);
-        String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-                + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
-        String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
-                + FileSystemConstants.DOWNLOAD_FILE_PREFIX
-                + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
-        retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
-        tmpDestFileNames.add(tmpDestFileName);
-        seq++;
+            nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
+        List<String> child = ZkUtils.getChildren(dataBlockZKPath);
+        for (String chi : child) {
+          String dataBlockSizeStr =
+              (String) ZkUtils.getNodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
+          long dataSize = Long.parseLong(dataBlockSizeStr);
+          String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
+              + FileSystemContext.getDataFilePrefix() + dataBlockIntVal + FileSystemConstants.ZK_PATH_SEPARATOR + chi;
+          String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
+              + FileSystemConstants.DOWNLOAD_FILE_PREFIX
+              + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
+          retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
+          tmpDestFileNames.add(tmpDestFileName);
+          seq++;
+        }
       }
     }
   }
@@ -153,14 +155,15 @@ public class DataRetrieverClient {
    * @throws KeeperException
    * @throws JAXBException
    */
-  public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
-                                           List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
-          IOException, KeeperException, JAXBException {
+  public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath,
+      String outputDirName, String nodeIp, List<String> tmpDestFileNames)
+      throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
+      JAXBException {
     String dataBlockSizeStr = (String) ZkUtils.getNodeData(nodeIdZKPath);
     long dataSize = Long.parseLong(dataBlockSizeStr);
     String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
-            + FileSystemConstants.DOWNLOAD_FILE_PREFIX
-            + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
+        + FileSystemConstants.DOWNLOAD_FILE_PREFIX
+        + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
     retrieveDataBlocks(nodeIp, hungryHippoFilePath, tmpDestFileName, dataSize);
     tmpDestFileNames.add(tmpDestFileName);
   }
@@ -168,16 +171,18 @@ public class DataRetrieverClient {
 
   /**
    * Combines list of temporary files into single file
+   * 
    * @param tmpDestFileNames
    * @param hungryHippoFilePath
    * @param outputDirName
    * @throws IOException
    */
-  private static void combineFiles(List<String> tmpDestFileNames,String hungryHippoFilePath, String outputDirName ) throws IOException {
+  private static void combineFiles(List<String> tmpDestFileNames, String hungryHippoFilePath,
+      String outputDirName) throws IOException {
     if (!tmpDestFileNames.isEmpty()) {
       String fileName = (new File(hungryHippoFilePath)).getName();
       FileSystemUtils.combineFiles(tmpDestFileNames,
-              outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + fileName);
+          outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + fileName);
       FileSystemUtils.deleteFiles(tmpDestFileNames);
     }
   }
@@ -191,15 +196,15 @@ public class DataRetrieverClient {
    * @param dataSize
    */
   public static void retrieveDataBlocks(String nodeIp, String hungryHippoFilePath,
-                                        String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException,
-          JAXBException, KeeperException, IOException {
+      String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException,
+      JAXBException, KeeperException, IOException {
 
     int port = FileSystemContext.getServerPort();
     int noOfAttempts = FileSystemContext.getMaxQueryAttempts();
     int fileStreamBufferSize = FileSystemContext.getFileStreamBufferSize();
     long retryTimeInterval = FileSystemContext.getQueryRetryInterval();
     retrieveDataBlocks(nodeIp, hungryHippoFilePath, outputFile, fileStreamBufferSize, dataSize,
-            port, retryTimeInterval, noOfAttempts);
+        port, retryTimeInterval, noOfAttempts);
   }
 
   /**

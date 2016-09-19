@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is used for cleaning files which have no reference in the
+ * This class is used for cleaning files which has no reference in the
  * zookeeper
  * 
  * @author sudarshans

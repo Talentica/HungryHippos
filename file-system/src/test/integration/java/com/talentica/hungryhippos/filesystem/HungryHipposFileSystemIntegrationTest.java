@@ -110,9 +110,10 @@ public class HungryHipposFileSystemIntegrationTest {
 		try {
 			String fileZKNode = "input";
 			String fileSystemRootNodeZKPath = "/rootnode/filesystem";
-			String dataFileZKNode = "0";
+			int dataFileZKNode = 0;
 			long datafileSize = 1000L;
 			String nodeIp = "localhost";
+			String nodeId = "0";
 			String fileNodeZKPath = fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
 
 			/*
@@ -134,7 +135,7 @@ public class HungryHipposFileSystemIntegrationTest {
 			 * ROOT_NODE)) .thenReturn(fileSystemRootNodeZKPath);
 			 */
 
-			hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, datafileSize);
+			hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode,nodeId, datafileSize);
 			assertTrue(true);
 		} catch (Exception e) {
 			e.printStackTrace();

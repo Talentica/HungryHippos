@@ -35,9 +35,9 @@ public class DataFileSorter {
   private static ShardingApplicationContext context;
   private static FieldTypeArrayDataDescription dataDescription;
   private static DynamicMarshal dynamicMarshal;
-  private final static String DATAFILEPRIFIX = "data_";
-  private final static String prefix = "sorted_";
-  private final static String suffix = "_data_";
+  private final static String INPUT_DATAFILE_PRIFIX = "data_";
+  private final static String OUTPUT_DATAFILE_PRIFIX = "sorted_";
+  private final static String OUTPUT_DATAFILE_SUFFIX = "_data_";
 
   public DataFileSorter() throws ClassNotFoundException, FileNotFoundException, KeeperException,
       InterruptedException, IOException, JAXBException {
@@ -62,12 +62,12 @@ public class DataFileSorter {
     File outputfile;
     File inputFlatFile;
     while (true) {
-      inputFlatFile = new File(dataDir + DATAFILEPRIFIX + (index));
+      inputFlatFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (index));
       if (!inputFlatFile.exists()) {
         break;
       }
       LOGGER.info("Sorting for file [{}] is started...",inputFlatFile.getName());
-      outputfile = File.createTempFile(prefix, suffix + (index), tmpDir);
+      outputfile = File.createTempFile(OUTPUT_DATAFILE_PRIFIX, OUTPUT_DATAFILE_SUFFIX + (index), tmpDir);
       in = new DataInputStream(new FileInputStream(inputFlatFile));
       long dataSize = inputFlatFile.length();
       if (dataSize <= 0) {
@@ -77,7 +77,6 @@ public class DataFileSorter {
           dataFileSorted.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset()), outputfile,
           Charset.defaultCharset(), true);
       index++;
-      break;
     }
     LOGGER.info("Completed file sorting and total time taken in sec {} ", ((System.currentTimeMillis() - startTIme) / 1000));
   }

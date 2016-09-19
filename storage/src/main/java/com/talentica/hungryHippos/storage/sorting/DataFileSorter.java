@@ -11,11 +11,10 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 import javax.xml.bind.JAXBException;
 
@@ -97,7 +96,7 @@ public class DataFileSorter {
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
     long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
-    List<byte[]> tmplist = new ArrayList<byte[]>();
+    Queue<byte[]> tmplist = new PriorityQueue<byte[]>(comparator);
     LOGGER.info("Sorting in batch started...");
     try {
       long dataFileSize = datalength;
@@ -108,7 +107,7 @@ public class DataFileSorter {
           bytes = new byte[noOfBytesInOneDataSet];
           dataInputStream.readFully(bytes);
           dataFileSize = dataFileSize - bytes.length;
-          tmplist.add(bytes);
+          tmplist.offer(bytes);
           currentBatchsize += DataSizeCalculator.estimatedSizeOfRow(noOfBytesInOneDataSet);
           bytes = null;
         } else {
@@ -144,18 +143,14 @@ public class DataFileSorter {
 
   private int batchId = 0;
 
-  private File sortAndSave( List<byte[]> tmplist, Charset cs, File tmpDirectory) throws IOException {
+  private File sortAndSave( Queue<byte[]> tmplist, Charset cs, File tmpDirectory) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
-    LOGGER.info("Sorting started...");
-    Collections.sort(tmplist, comparator);
-    LOGGER.info("Sorting completed...");
     File newtmpfile = File.createTempFile("tmp_", "_sorted_file", tmpDirectory);
     LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
     newtmpfile.deleteOnExit();
     try (OutputStream out = new FileOutputStream(newtmpfile)) {
-      Iterator<byte[]> rowItr = tmplist.iterator();
-      while (rowItr.hasNext()) {
-        out.write(rowItr.next());
+      while(!tmplist.isEmpty()){
+        out.write(tmplist.poll());
       }
     }
     return newtmpfile;

@@ -19,14 +19,18 @@ public final class BinaryFileBuffer {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(BinaryFileBuffer.class);
   private DataInputStream dis;
-  private ByteBuffer cache;
-  byte[] bytes;
+  private ByteBuffer readByteBuffer;
+  private ByteBuffer lastRowByteBuffer;
+  byte[] readBytes;
+  byte[] lastByteRead;
   boolean isRemaining = false;
 
   public BinaryFileBuffer(DataInputStream dis, int bufferSize) throws IOException {
     this.dis = dis;
-    bytes = new byte[bufferSize];
-    cache = ByteBuffer.wrap(bytes);
+    readBytes = new byte[bufferSize];
+    lastByteRead = new byte[bufferSize];
+    readByteBuffer = ByteBuffer.wrap(readBytes);
+    lastRowByteBuffer = ByteBuffer.wrap(lastByteRead);
     reload();
   }
 
@@ -39,23 +43,30 @@ public final class BinaryFileBuffer {
   }
 
   public ByteBuffer peek() {
-    return this.cache;
+    return this.readByteBuffer;
   }
 
   public ByteBuffer pop() throws IOException {
-    ByteBuffer answer = peek();
+    ByteBuffer answer = copyRow(peek());
     reload();
     return answer;
   }
 
+  private ByteBuffer copyRow(ByteBuffer answer) {
+    for(int i  =0; i < answer.array().length ; i++){
+      lastByteRead[i] = answer.get(i);
+    }
+    return lastRowByteBuffer;
+  }
+  
   private void reload() throws IOException {
-    cache.clear();
+    readByteBuffer.clear();
     read();
   }
 
   private void read() throws IOException {
     try {
-      this.dis.readFully(bytes);
+      this.dis.readFully(readBytes);
       isRemaining = true;
     } catch (EOFException eof) {
       isRemaining = false;

@@ -40,8 +40,7 @@ public class DataFileComparator implements Comparator<byte[]> {
 
   @Override
   public int compare(byte[] row1, byte[] row2) {
-    rowBuffer1.clear();
-    rowBuffer2.clear();
+    clear();
     rowBuffer1.put(row1);
     rowBuffer2.put(row2);
     for (int dim = 0; dim < dimenstion.length; dim++) {
@@ -50,16 +49,15 @@ public class DataFileComparator implements Comparator<byte[]> {
       temp2 = (MutableCharArrayString) dynamicMarshal.readValue(dimenstion[dim], rowBuffer2);
       res = temp1.compareTo(temp2);
       if (res != 0) {
-       reset();
+       clear();
         return res;
       }
     }
-    reset();
     return res;
   }
   
-  private void reset(){
-    rowBuffer1.flip();
-    rowBuffer2.flip();
+  private void clear(){
+    rowBuffer1.clear();
+    rowBuffer2.clear();
   }
 }

@@ -121,7 +121,6 @@ public class DataFileSorter {
           bytes = null;
         } else {
           files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
-          tmplist.clear();
           currentBatchsize = 0;
           availableMemory();
           batchId++;
@@ -129,21 +128,18 @@ public class DataFileSorter {
       }
       if (tmplist.size() > 0) {
         files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
-        tmplist.clear();
         availableMemory();
         batchId++;
       }
     } catch (EOFException oef) {
       if (tmplist.size() > 0) {
         files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
-        tmplist.clear();
         availableMemory();
         batchId++;
       }
     } finally {
       if (tmplist.size() > 0) {
         files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
-        tmplist.clear();
         batchId++;
       }
       dataInputStream.close();

@@ -53,6 +53,9 @@ public class DataFileSorter {
   public static void main(String[] args) throws IOException, InsufficientMemoryException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     long startTIme = System.currentTimeMillis();
+    DataInputStream in;
+    File outputfile;
+    File inputFile;
     validateArguments(args);
     String dataDir = args[0];
     String ouputDirPath = args[1];
@@ -61,45 +64,40 @@ public class DataFileSorter {
     DataFileSorter dataFileSorted = new DataFileSorter();
     int index = 0;
     dataDir = validateDirectory(dataDir);
-    File tmpDir = (ouputDirPath == null ? null : new File(ouputDirPath));
-    DataInputStream in;
-    File outputfile;
-    File inputFlatFile;
+    File outputDir = new File(ouputDirPath);
     while (true) {
-      inputFlatFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (index));
-      if (!inputFlatFile.exists()) {
+      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (index));
+      if (!inputFile.exists()) {
         break;
       }
-      LOGGER.info("Sorting for file [{}] is started...", inputFlatFile.getName());
+      LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
       outputfile =
-          File.createTempFile(OUTPUT_DATAFILE_PRIFIX, OUTPUT_DATAFILE_SUFFIX + (index), tmpDir);
-      in = new DataInputStream(new FileInputStream(inputFlatFile));
-      long dataSize = inputFlatFile.length();
+          File.createTempFile(OUTPUT_DATAFILE_PRIFIX, OUTPUT_DATAFILE_SUFFIX + (index), outputDir);
+      in = new DataInputStream(new FileInputStream(inputFile));
+      long dataSize = inputFile.length();
       if (dataSize <= 0) {
         continue;
       }
-      List<File> files = dataFileSorted.sortInBatch(in, dataSize, tmpDir, Charset.defaultCharset());
-      if (files.size() == 1) {
-        File file = files.get(0);
-        file.renameTo(outputfile);
-        LOGGER.info("Rename the file if there is single sorted file.");
-      } else {
+      List<File> files =
+          dataFileSorted.sortInBatch(in, dataSize, outputDir, Charset.defaultCharset(), outputfile);
+      if (files.size() > 1) { // merge should happen for at least two files
         dataFileSorted.mergeSortedFiles(files, outputfile, Charset.defaultCharset(), true);
       }
+      deleteInputFile(inputFile, outputfile);
       index++;
     }
     LOGGER.info("Completed file sorting and total time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
   }
 
-  private List<File> sortInBatch(DataInputStream file, final long datalength, File tmpDirectory,
-      Charset charset) throws IOException, InsufficientMemoryException, ClassNotFoundException,
-      KeeperException, InterruptedException, JAXBException {
-    return sortInBatch(file, datalength, availableMemory(), charset, tmpDirectory);
+  private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
+      Charset charset, final File outputFile) throws IOException, InsufficientMemoryException,
+      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+    return sortInBatch(file, datalength, availableMemory(), charset, outputDirectory, outputFile);
   }
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
-      long maxFreeMemory, final Charset cs, final File tmpdirectory)
+      long maxFreeMemory, final Charset cs, final File outputdirectory, final File outputFile)
       throws IOException, InsufficientMemoryException, ClassNotFoundException, KeeperException,
       InterruptedException, JAXBException {
     long startTIme = System.currentTimeMillis();
@@ -108,6 +106,7 @@ public class DataFileSorter {
     long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     Queue<byte[]> tmplist = new PriorityQueue<byte[]>(comparator);
     LOGGER.info("Sorting in batch started...");
+    int batchId = 0;
     try {
       long dataFileSize = datalength;
       long currentBatchsize = 0l;
@@ -121,42 +120,49 @@ public class DataFileSorter {
           currentBatchsize += DataSizeCalculator.estimatedSizeOfRow(noOfBytesInOneDataSet);
           bytes = null;
         } else {
-          files.add(sortAndSave(tmplist, cs, tmpdirectory));
+          files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
           tmplist.clear();
           currentBatchsize = 0;
           availableMemory();
+          batchId++;
         }
       }
       if (tmplist.size() > 0) {
-        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
         tmplist.clear();
         availableMemory();
+        batchId++;
       }
     } catch (EOFException oef) {
       if (tmplist.size() > 0) {
-        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
         tmplist.clear();
         availableMemory();
+        batchId++;
       }
     } finally {
       if (tmplist.size() > 0) {
-        files.add(sortAndSave(tmplist, cs, tmpdirectory));
+        files.add(sortAndSave(tmplist, cs, outputdirectory,batchId));
         tmplist.clear();
+        batchId++;
       }
       dataInputStream.close();
       availableMemory();
+    }
+    if (files.size() == 1) {
+      File file = files.get(0);
+      file.renameTo(outputFile);
+      LOGGER.info("Renamed the file as there is single sorted file only.");
     }
     LOGGER.info("Total sorting time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
     return files;
   }
 
-  private int batchId = 0;
-
-  private File sortAndSave(Queue<byte[]> tmplist, Charset cs, File tmpDirectory)
+  private File sortAndSave(Queue<byte[]> tmplist, Charset cs, File outputDirectory,int batchId)
       throws IOException {
-    LOGGER.info("Batch id {} is getting sorted and saved", (batchId++));
-    File newtmpfile = File.createTempFile("tmp_", "_sorted_file", tmpDirectory);
+    LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
+    File newtmpfile = File.createTempFile("tmp_", "_sorted_file", outputDirectory);
     LOGGER.info("Temporary directory {}", newtmpfile.getAbsolutePath());
     newtmpfile.deleteOnExit();
     try (OutputStream out = new FileOutputStream(newtmpfile)) {
@@ -258,6 +264,11 @@ public class DataFileSorter {
     dataDescription.setKeyOrder(context.getShardingDimensions());
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
     return dynamicMarshal;
+  }
+
+  private static void deleteInputFile(File inputFile, File outputfile) {
+    inputFile.delete();
+    outputfile.renameTo(inputFile);
   }
 
   private static void validateArguments(String[] args) {

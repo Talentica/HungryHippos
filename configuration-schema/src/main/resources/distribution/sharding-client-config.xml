@@ -4,8 +4,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-client-config.xsd ">
 	<tns:input>
-		<tns:sample-file-path>/home/pooshans/HungryHippos/HungryHippos/utility/sampledata.csv</tns:sample-file-path>
-		<tns:distributed-file-path>/pooshan/dir/input</tns:distributed-file-path>
+		<tns:sample-file-path>/home/nitink/hh/sampledata.csv</tns:sample-file-path>
+		<tns:distributed-file-path>/nitink/input</tns:distributed-file-path>
 		<tns:data-description>
 			<tns:column>
 				<tns:name>key1</tns:name>
@@ -55,9 +55,9 @@
 		</tns:data-description>
 		<tns:data-parser-config>
 			<tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
-			<tns:jar-file-path>/home/pooshans/HungryHippos/HungryHippos/test-hungry-hippos/build/libs/test-jobs.jar</tns:jar-file-path>
+			<tns:jar-file-path>/home/nitink/myfolder/git/HungryHippos/test-hungry-hippos/build/libs/test-jobs.jar</tns:jar-file-path>
 		</tns:data-parser-config>
 	</tns:input>
-	<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>
+	<tns:sharding-dimensions>key1</tns:sharding-dimensions>
 	<tns:maximum-size-of-single-block-data>80</tns:maximum-size-of-single-block-data>
 </tns:sharding-client-config>

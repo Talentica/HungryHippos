@@ -6,13 +6,13 @@
 	<tns:zookeeper-default-config>
 		<tns:tick-time>5000</tns:tick-time>
 		<tns:retry>5</tns:retry>
-		<tns:namespace-path>rootnode</tns:namespace-path>
-		<tns:host-path>/rootnode/hostsnode</tns:host-path>
-		<tns:alert-path>/rootnode/alertsnode</tns:alert-path>
-		<tns:filesystem-path>/rootnode/file-system</tns:filesystem-path>
-		<tns:sharding-table-path>/rootnode/sharding-table</tns:sharding-table-path>
-        <tns:job-config-path>/rootnode/job-config</tns:job-config-path>
-        <tns:job-status-path>/rootnode/job-status</tns:job-status-path>
+		<tns:namespace-path>hungryhippos</tns:namespace-path>
+		<tns:host-path>/hungryhippos/hostsnode</tns:host-path>
+		<tns:alert-path>/hungryhippos/alertsnode</tns:alert-path>
+		<tns:filesystem-path>/hungryhippos/file-system</tns:filesystem-path>
+		<tns:sharding-table-path>/hungryhippos/sharding-table</tns:sharding-table-path>
+        <tns:job-config-path>/hungryhippos/job-config</tns:job-config-path>
+        <tns:job-status-path>/hungryhippos/job-status</tns:job-status-path>
 		<tns:cleanup>Y</tns:cleanup>
 	</tns:zookeeper-default-config>
 </tns:coordination-config>

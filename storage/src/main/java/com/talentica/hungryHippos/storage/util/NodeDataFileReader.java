@@ -35,43 +35,47 @@ public class NodeDataFileReader {
 
   public static void main(String[] args) throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
-    if (args.length != 2) {
+    if (args.length != 3) {
       System.out.println(
-          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
+          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> <client-config-file-path> <sharding-table-folder-path> e.g. java -jar storage.jar ~/home/ ./client-config.xml ./sharding");
       System.exit(0);
     }
     String clientConfigFilePath = args[1];
     NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-    context = new ShardingApplicationContext(args[0]);
+    context = new ShardingApplicationContext(args[2]);
     int noOfKeys = context.getShardingDimensions().length;
     for (int i = 0; i < 1 << noOfKeys; i++) {
-      String dataFileName = args[0] + File.separatorChar + FileSystemContext.getDataFilePrefix() + i;
-      FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
-      DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-      File readableDataFile = new File(dataFileName + "_read");
-      FileWriter fileWriter = new FileWriter(readableDataFile);
-      try {
-        DynamicMarshal dynamicMarshal = getDynamicMarshal();
-        int noOfBytesInOneDataSet = dataDescription.getSize();
-        while (dataInputStream.available() > 0) {
-          byte[] bytes = new byte[noOfBytesInOneDataSet];
-          dataInputStream.readFully(bytes);
-          ByteBuffer buffer = ByteBuffer.wrap(bytes);
-          for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
-            Object readableData = dynamicMarshal.readValue(index, buffer);
-            if (index != 0) {
-              fileWriter.write(",");
+      String dataFilesFolder =
+          args[0] + File.separatorChar + FileSystemContext.getDataFilePrefix() + i;
+      File[] files = new File(dataFilesFolder).listFiles();
+      for (File encodedFile : files) {
+        FileInputStream fileInputStream = new FileInputStream(encodedFile);
+        DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+        File readableDataFile = new File(encodedFile.getAbsolutePath() + "_read");
+        FileWriter fileWriter = new FileWriter(readableDataFile);
+        try {
+          DynamicMarshal dynamicMarshal = getDynamicMarshal();
+          int noOfBytesInOneDataSet = dataDescription.getSize();
+          while (dataInputStream.available() > 0) {
+            byte[] bytes = new byte[noOfBytesInOneDataSet];
+            dataInputStream.readFully(bytes);
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
+              Object readableData = dynamicMarshal.readValue(index, buffer);
+              if (index != 0) {
+                fileWriter.write(",");
+              }
+              fileWriter.write(readableData.toString());
             }
-            fileWriter.write(readableData.toString());
+            fileWriter.write("\n");
           }
-          fileWriter.write("\n");
+        } finally {
+          fileWriter.flush();
+          fileWriter.close();
+          fileInputStream.close();
         }
-      } finally {
-        fileWriter.flush();
-        fileWriter.close();
-        fileInputStream.close();
       }
-      LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
+      LOGGER.info("Output readable data file is written in: " + dataFilesFolder);
     }
   }
 

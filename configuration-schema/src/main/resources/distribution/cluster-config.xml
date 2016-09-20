@@ -6,31 +6,7 @@
 	<tns:node>
 		<tns:identifier>0</tns:identifier>
 		<tns:name>node0</tns:name>
-		<tns:ip>138.68.24.131</tns:ip>
-		<tns:port>2324</tns:port>
-	</tns:node>
-	<tns:node>
-		<tns:identifier>1</tns:identifier>
-		<tns:name>node1</tns:name>
-		<tns:ip>138.68.26.162</tns:ip>
-		<tns:port>2324</tns:port>
-	</tns:node>
-	<tns:node>
-		<tns:identifier>2</tns:identifier>
-		<tns:name>node2</tns:name>
-		<tns:ip>138.68.22.5</tns:ip>
-		<tns:port>2324</tns:port>
-	</tns:node>
-	<tns:node>
-		<tns:identifier>3</tns:identifier>
-		<tns:name>node3</tns:name>
-		<tns:ip>138.68.22.71</tns:ip>
-		<tns:port>2324</tns:port>
-	</tns:node>
-	<tns:node>
-		<tns:identifier>4</tns:identifier>
-		<tns:name>node4</tns:name>
-		<tns:ip>138.68.25.8</tns:ip>
+		<tns:ip>localhost</tns:ip>
 		<tns:port>2324</tns:port>
 	</tns:node>
 </tns:cluster-config>

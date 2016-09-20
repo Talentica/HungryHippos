@@ -3,13 +3,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
 	<tns:coordination-servers>
-		<tns:servers>138.68.24.131:2181,138.68.26.162:2181,138.68.22.5:2181,138.68.22.71:2181,138.68.25.8:2181
-		</tns:servers>
+		<tns:servers>localhost:2181</tns:servers>
 	</tns:coordination-servers>
 	<tns:session-timout>86400000</tns:session-timout>
 	<tns:output>
-		<tns:node-ssh-username>root</tns:node-ssh-username>
-		<tns:node-ssh-private-key-file-path>/home/pooshans/.ssh/id_rsa
-		</tns:node-ssh-private-key-file-path>
+		<tns:node-ssh-username>nitink</tns:node-ssh-username>
+		<tns:node-ssh-private-key-file-path>/home/nitink/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
 	</tns:output>
 </tns:client-config>

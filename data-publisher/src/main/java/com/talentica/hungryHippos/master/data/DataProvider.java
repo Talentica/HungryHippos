@@ -7,12 +7,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
@@ -146,24 +141,15 @@ public class DataProvider {
         Object value = parts[i].clone();
         dynamicMarshal.writeValue(i, value, byteBuffer);
       }
-
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      int randomNodeIndex = random.nextInt(nodes.size());
-      int setIndex = 0;
-      int nextNodesInfoIndex = 0;
-      Node randomNode = null;
-      for(Node node:nodes){
-        if(setIndex==randomNodeIndex){
-          randomNode = node;
-        }else{
-          nextNodesInfo[nextNodesInfoIndex] = (byte)node.getNodeId();
-          nextNodesInfoIndex++;
-        }
-        setIndex++;
+      Iterator<Node> nodeIterator= nodes.iterator();
+      Node receivingNode = nodeIterator.next();
+      for (int i = 1; i < keyOrder.length; i++) {
+       byte nodeId = (byte) nodeIterator.next().getNodeId();
+       targets[receivingNode.getNodeId()].write(nodeId);
       }
-      targets[randomNode.getNodeId()].write(nextNodesInfo);
-      targets[randomNode.getNodeId()].write(buf);
+      targets[receivingNode.getNodeId()].write(buf);
       flushTriggerCount++;
       if(flushTriggerCount>100000){
         for (int j = 0; j < targets.length; j++) {

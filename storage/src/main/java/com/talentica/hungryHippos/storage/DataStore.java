@@ -3,6 +3,7 @@ package com.talentica.hungryHippos.storage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
 
 import javax.xml.bind.JAXBException;
 
@@ -14,15 +15,18 @@ import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
  * Created by debasishc on 27/8/15.
  */
 public interface DataStore {
-  public void storeRow(int storeId, ByteBuffer row, byte[] raw);
+  void storeRow(int storeId, byte[] raw);
 
   /**
    * A moving stream.
-   * 
+   *
    * @return
    */
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, FileNotFoundException,
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException;
 
   public void sync();
+
+  String getHungryHippoFilePath();
+
 }

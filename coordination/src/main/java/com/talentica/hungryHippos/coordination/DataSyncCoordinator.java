@@ -71,6 +71,7 @@ public class DataSyncCoordinator {
     List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         int totalNoOfNodes = nodeList.size();
         int requiredSuccessNodes = totalNoOfNodes - 1;
+        if(requiredSuccessNodes == 0) return true;
         String nodeForCheckingSuccess = FileDownloaderListener.FILES_DOWNLOAD_SUCCESS_NODE_PATH + seedFilePath;
         String nodeForCheckingFailure = FileDownloaderListener.FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH
                 + StringUtils.substringAfterLast(seedFilePath, "/");

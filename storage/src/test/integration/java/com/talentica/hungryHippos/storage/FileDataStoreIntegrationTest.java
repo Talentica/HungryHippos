@@ -51,7 +51,7 @@ public class FileDataStoreIntegrationTest {
     String test = "test";
     ByteBuffer row = ByteBuffer.allocate(50);
     byte[] raw = test.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-    fileDataStore.storeRow(storeId, row, raw);
+    fileDataStore.storeRow(storeId, raw);
     try {
       String loc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator + "data"
           + File.separator + "data_" + 1;

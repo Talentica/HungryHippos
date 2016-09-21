@@ -125,11 +125,15 @@ public class DataRetrieverClient {
             nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
         List<String> child = ZkUtils.getChildren(dataBlockZKPath);
         for (String chi : child) {
-          String dataBlockSizeStr =
-              (String) ZkUtils.getNodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
+          String dataBlockSizeStr = (String) ZkUtils
+              .getNodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
           long dataSize = Long.parseLong(dataBlockSizeStr);
+          if (dataSize == 0) {
+            continue;
+          }
           String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-              + FileSystemContext.getDataFilePrefix() + dataBlockIntVal + FileSystemConstants.ZK_PATH_SEPARATOR + chi;
+              + FileSystemContext.getDataFilePrefix() + dataBlockIntVal
+              + FileSystemConstants.ZK_PATH_SEPARATOR + chi;
           String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
               + FileSystemConstants.DOWNLOAD_FILE_PREFIX
               + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
@@ -137,6 +141,8 @@ public class DataRetrieverClient {
           tmpDestFileNames.add(tmpDestFileName);
           seq++;
         }
+
+
       }
     }
   }

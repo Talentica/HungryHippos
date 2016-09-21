@@ -23,11 +23,20 @@ public class RMCommand {
     options.addOption("r", "deleteall", false, "deletes the folder and subfolder if present");
     options.addOption("n", "to remove it from all the nodes in the cluster", false,
         "deletes the folder and subfolder if present");
+    options.addOption("h", "help", false, "");
   }
 
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);
+      if (line.hasOption("h")) {
+        usage();
+        return;
+      }
+      if (line.getArgList() == null || line.getArgList().size() < 2) {
+        System.out.println("Argument can't be empty");
+        return;
+      }
       String path = line.getArgList().get(1);
       if (line.hasOption("r")) {
         HungryHipposFileSystemMain.getCommandDetails("deleteall", path);

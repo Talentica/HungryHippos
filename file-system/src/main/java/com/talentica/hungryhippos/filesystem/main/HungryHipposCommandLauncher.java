@@ -1,6 +1,5 @@
 package com.talentica.hungryhippos.filesystem.main;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -17,16 +16,12 @@ import org.apache.commons.cli.DefaultParser;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.utility.ExecuteShellCommand;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 
 public class HungryHipposCommandLauncher {
 
@@ -35,27 +30,20 @@ public class HungryHipposCommandLauncher {
   private static HungryHipposFileSystem hhfs = null;
   protected static final Map<String, String> commandMap = new HashMap<String, String>();
   protected static final List<?> HHFScommand = new ArrayList<String>();
-  private static final String SCRIPT_LOC =
-      "/home/sudarshans/RD/HH_NEW/HungryHippos/utility/scripts/file-system-commands.sh";
   private static String userName = null;
   private static String key = null;
   private static String clientConfig = null;
-  private static String clusterConfig = null;
-  private static String clientConfigPath = null;
-  private static String operation = "";
-  private static String fname = "";
+
   private static List<Node> nodesInCluster = null;
-  private static String currentDir = null;
-  private static String rootDir = null;
+
 
   static {
     commandMap.put("ls", "[fileName]");
     commandMap.put("rm", "[fileName]");
-    // commandMap.put("cd", "[file path]");
-    // commandMap.put("pwd", "");
     commandMap.put("cat", "[fileName/host]");
-    commandMap.put("download", "fileName/host");
-    commandMap.put("exit", "");
+    commandMap.put("get", "fileName/host");
+    commandMap.put("head", "HHFileLocation/FileToBeRead");
+    commandMap.put("exit", "exit the application");
   }
 
 
@@ -166,8 +154,10 @@ public class HungryHipposCommandLauncher {
         break;
       case "head":
         HeadCommand.execute(parser, str);
+        break;
       case "exit":
         System.exit(1);
+
       default:
         System.out.println("Not yet implemented");
     }

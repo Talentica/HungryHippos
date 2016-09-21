@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXBException;
 
@@ -139,15 +141,16 @@ public class HungryHipposFileSystemMain {
   }
 
   private static void showMetaData(List<String> list, String name) {
-    System.out.println("fileName:- " + fileName(name));
+
     name = name.endsWith("/") ? name.substring(0, name.length() - 1) : name;
-    if (list == null || list.isEmpty()) {
-      System.out.println("MetaData is not set");
-    }
     if (list.contains(FileSystemConstants.SHARDED)) {
+      System.out.println("File Name:- " + fileName(name));
       System.out.println("sharded:- true");
+    } else {
+      System.out.println("Folder Name:- " + fileName(name));
+      printOnScreen(hhfs.getChildZnodes(name));
     }
-    long size = 0;
+
     if (list.contains(FileSystemConstants.DFS_NODE)) {
       List<String> nodeDetails = hhfs.getChildZnodes(name + "/" + FileSystemConstants.DFS_NODE);
 
@@ -157,19 +160,38 @@ public class HungryHipposFileSystemMain {
       }
       System.out.println();
       String dimension = null;
+      ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+      final String name1 = name;
+      HungryHipposFileSystemMain.Size size = new HungryHipposFileSystemMain().new Size();
       for (String node : nodeDetails) {
         List<String> childs =
             hhfs.getChildZnodes(name + "/" + FileSystemConstants.DFS_NODE + "/" + node);
         if (dimension == null) {
           dimension = String.valueOf((int) (Math.log(childs.size()) / Math.log(2)));
         }
+
+
         try {
           for (String child : childs) {
+
             List<String> childsChild = hhfs.getChildZnodes(
                 name + "/" + FileSystemConstants.DFS_NODE + "/" + node + "/" + child);
+
+
             for (String leaf : childsChild) {
-              size += Long.valueOf(hhfs.getData(name + "/" + FileSystemConstants.DFS_NODE + "/"
-                  + node + "/" + child + "/" + leaf));
+
+              executorService.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                  long length = Long.valueOf(hhfs.getData(name1 + "/" + FileSystemConstants.DFS_NODE
+                      + "/" + node + "/" + child + "/" + leaf));
+                  size.addSize(length);
+                }
+
+              });
+
             }
 
           }
@@ -177,13 +199,12 @@ public class HungryHipposFileSystemMain {
           System.out.println("size is stored in serialized form");
         }
       }
-
-      System.out.println();
       System.out.println("Dimension:- " + dimension);
-      System.out.println("size of the file Combined :- " + size / 1000 + " kb");
+      System.out.println("size of the file Combined :- " + size.getSize() / 1000 + " kb");
       Stat stat = hhfs.getZnodeStat(name);
       System.out.println("Created On:-" + getDateString(stat.getCtime()));
       System.out.println("Modified On:-" + getDateString(stat.getMtime()));
+      System.out.println();
     }
   }
 
@@ -204,7 +225,7 @@ public class HungryHipposFileSystemMain {
       case LS:
         String data = hhfs.getData(name);
         if (data != null && data.contains(FileSystemConstants.IS_A_FILE)) {
-          System.out.println(name + " " + FileSystemConstants.IS_A_FILE);
+          System.out.println(fileName(name) + " " + FileSystemConstants.IS_A_FILE);
         } else {
           printOnScreen(hhfs.getChildZnodes(name));
         }
@@ -229,6 +250,19 @@ public class HungryHipposFileSystemMain {
       default:
     }
 
+  }
+
+
+  private class Size {
+    long size = 0l;
+
+    synchronized void addSize(long l) {
+      size += l;
+    }
+
+    long getSize() {
+      return size;
+    }
   }
 
 }

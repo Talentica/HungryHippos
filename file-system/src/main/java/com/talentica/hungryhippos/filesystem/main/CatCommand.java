@@ -21,17 +21,27 @@ public class CatCommand {
   static {
     options.addOption("r", "remote location", false,
         "download file of particular dimension from nodes");
+    options.addOption("h", "help", false, "The cat command will be removed");
 
   }
 
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);
+      if (line.hasOption("h")) {
+        usage();
+        return;
+      }
+      if (line.getArgList() == null || line.getArgList().size() < 2) {
+        System.out.println("Argument can't be empty");
+        return;
+      }
+
       String fileName = line.getArgList().get(1);
 
       if (line.hasOption("r")) {
 
-       // ScpCommandExecutor.cat(TestLauncher.getUserName(), host, fileName);
+        // ScpCommandExecutor.cat(TestLauncher.getUserName(), host, fileName);
       } else {
 
         try (Stream<String> stream = Files.lines(Paths.get(fileName))) {

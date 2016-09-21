@@ -59,16 +59,17 @@ public class JobExecutor {
       validateArguments(args);
       initialize(args);
       String dataAbsolutePath = FileSystemContext.getRootDirectory() + inputHHPath;
-      String shardingTableFolderPath = dataAbsolutePath+ File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+      String shardingTableFolderPath =
+          dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       context = new ShardingApplicationContext(shardingTableFolderPath);
       long startTime = System.currentTimeMillis();
       JobRunner jobRunner = createJobRunner();
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
-      JobStatusNodeCoordinator.updateInProgressJob(jobUUId, nodeId);
-      String jobRootDirectory = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
-      String jobJarPath = jobRootDirectory + File.separatorChar + jobUUId+File.separator+"lib";
-      String className = JobConfigReader.readClassName(jobUUId); 
-      List<JobEntity> jobEntities = getJobEntities(jobJarPath,className);
+      String jobRootDirectory =
+          JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
+      String jobJarPath = jobRootDirectory + File.separatorChar + jobUUId + File.separator + "lib";
+      String className = JobConfigReader.readClassName(jobUUId);
+      List<JobEntity> jobEntities = getJobEntities(jobJarPath, className);
       for (JobEntity jobEntity : jobEntities) {
         int jobEntityId = jobEntity.getJobId();
         JobStatusNodeCoordinator.updateStartedJobEntity(jobUUId, jobEntityId, nodeId);
@@ -85,6 +86,7 @@ public class JobExecutor {
           ((endTime - startTime) / 1000));
       LOGGER.info("ALL JOBS ARE FINISHED");
     } catch (Exception exception) {
+      JobStatusNodeCoordinator.updateNodeJobFailed(jobUUId, NodeInfo.INSTANCE.getIdentifier());
       LOGGER.error("Error occured while executing node starter program.", exception);
       System.exit(1);
     }
@@ -93,7 +95,7 @@ public class JobExecutor {
   private static void validateArguments(String[] args) {
     if (args.length < 2) {
       throw new RuntimeException(
-          "Either missing 1st argument {zookeeper configuration} or 2nd argument {coordination configuration}");
+          "Either missing 1st argument {path to client configuration xml} or 2nd argument {job uuid}");
     }
   }
 

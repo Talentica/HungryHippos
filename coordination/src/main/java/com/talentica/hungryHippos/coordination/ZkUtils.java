@@ -577,7 +577,7 @@ public class ZkUtils {
         case ("java.lang.String"):
           return URLDecoder.decode(valueString, CHARSET);
         case ("MAP"):
-          Map<Object,Object> map = new HashMap<Object,Object>();
+          Map<Object,Object> map = new HashMap<>();
           List<String> valueStrings =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : valueStrings) {
@@ -591,7 +591,7 @@ public class ZkUtils {
           }
           return map;
         case ("ITERABLE"):
-          List<Object> list = new LinkedList<Object>();
+          List<Object> list = new LinkedList<>();
           List<String> entries =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : entries) {
@@ -972,7 +972,7 @@ public class ZkUtils {
           case NONODE:
             cacheNodeExists.put(path, (stat != null));
             signal.countDown();
-            LOGGER.info("Node does not exists {}", path);
+            LOGGER.debug("Node does not exists {}", path);
             break;
           case OK:
             cacheNodeExists.put(path, (stat != null));

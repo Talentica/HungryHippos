@@ -1,5 +1,14 @@
 package com.talentica.hungryHippos.node;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
@@ -7,16 +16,11 @@ import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryhippos.config.cluster.Node;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * Created by rajkishoreh on 8/9/16.
@@ -35,10 +39,11 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     private byte[] nextNodesInfo;
     private int replicaNodesInfoDataSize;
     private int dataSize;
-    private ReplicaDataSender[] replicaDataSenders;
-    private byte[][][] memoryBlocks;
-    private int[] currentMemoryBlockId;
-    private int[] blockRecordCount;
+    private Map<Integer,ReplicaDataSender> replicaDataSenders;
+    private Map<Integer,byte[][]> memoryBlocks;
+    //private byte[][][] memoryBlocks;
+    private Map<Integer,Integer> currentMemoryBlockId;
+    private Map<Integer,Integer> blockRecordCount;
     private int maxNoOfRecords;
 
     public ClientDataReadHandler(DataDescription dataDescription, DataStore dataStore,
@@ -57,24 +62,29 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
         nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
                 nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
         List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        replicaDataSenders = new ReplicaDataSender[nodes.size()];
+        replicaDataSenders = new HashMap<Integer,ReplicaDataSender>();
         dataSize = dataDescription.getSize();
         nextNodesInfo = new byte[replicaNodesInfoDataSize];
         maxNoOfRecords = DataPublisherApplicationContext.getMaxRecordBufferSize();
-        memoryBlocks = new byte[nodes.size()][20][];
-        blockRecordCount = new int[nodes.size()];
-        currentMemoryBlockId = new int[nodes.size()];
-        for (int i = 0; i < nodes.size(); i++) {
-            String nodeIp = nodes.get(i).getIp();
+        memoryBlocks = new HashMap<Integer,byte[][]>();
+        //memoryBlocks = new byte[nodes.size()][20][];
+        blockRecordCount = new HashMap<Integer,Integer>();
+        currentMemoryBlockId = new HashMap<Integer,Integer>();
+        for (Node node : nodes) {
+            String nodeIp = node.getIp();
+            
             if (!nodeIp.equals(NodeInfo.INSTANCE.getIp())) {
-                int port = Integer.parseInt(nodes.get(i).getPort());
-                blockRecordCount[i] = 0;
-                for (int j = 0; j < memoryBlocks[i].length; j++) {
-                    memoryBlocks[i][j] = new byte[dataSize * maxNoOfRecords];
+                int nodeId = node.getIdentifier();
+                int port = Integer.parseInt(node.getPort());
+                blockRecordCount.put(nodeId, 0);
+                byte[][] nodeMemoryBlocks = new byte[20][];
+                memoryBlocks.put(nodeId, nodeMemoryBlocks);
+                for (int j = 0; j < 20; j++) {
+                    memoryBlocks.get(nodeId)[j] = new byte[dataSize * maxNoOfRecords];
                 }
-                currentMemoryBlockId[i] = 0;
-                replicaDataSenders[i] = new ReplicaDataSender(nodeIp, port, dataStore.getHungryHippoFilePath(), memoryBlocks[i]);
-                replicaDataSenders[i].start();
+                currentMemoryBlockId.put(nodeId, 0);
+                replicaDataSenders.put(nodeId, new ReplicaDataSender(nodeIp, port, dataStore.getHungryHippoFilePath(), memoryBlocks.get(nodeId)));
+                replicaDataSenders.get(nodeId).start();
             }
         }
     }
@@ -91,14 +101,14 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException, IOException {
         LOGGER.info("Inside handlerRemoved");
         writeDataInStore();
-        for (int i = 0; i < replicaDataSenders.length; i++) {
-            if (replicaDataSenders[i] != null) {
-                replicaDataSenders[i].kill();
-                replicaDataSenders[i].join();
-                replicaDataSenders[i].publishRemainingReplicaData(blockRecordCount[i]*dataSize, currentMemoryBlockId[i]);
-                replicaDataSenders[i].closeConnection();
-                replicaDataSenders[i].clearReferences();
-            }
+        for(int nodeId : replicaDataSenders.keySet()){
+          if (replicaDataSenders.get(nodeId) != null) {
+            replicaDataSenders.get(nodeId).kill();
+            replicaDataSenders.get(nodeId).join();
+            replicaDataSenders.get(nodeId).publishRemainingReplicaData(blockRecordCount.get(nodeId)*dataSize, currentMemoryBlockId.get(nodeId));
+            replicaDataSenders.get(nodeId).closeConnection();
+            replicaDataSenders.get(nodeId).clearReferences();
+        }
         }
         dataStore.sync();
         byteBuf.release();
@@ -143,9 +153,9 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
             byteBuf.readBytes(buf);
             for (int i = 0; i < replicaNodesInfoDataSize; i++) {
                 int nodeId = (int) nextNodesInfo[i];
-                System.arraycopy(buf, 0, memoryBlocks[nodeId][currentMemoryBlockId[nodeId]], blockRecordCount[nodeId] * dataSize, dataSize);
-                blockRecordCount[nodeId]++;
-                if (blockRecordCount[nodeId] == maxNoOfRecords) {
+                System.arraycopy(buf, 0, memoryBlocks.get(nodeId)[currentMemoryBlockId.get(nodeId)], blockRecordCount.get(nodeId) * dataSize, dataSize);
+                blockRecordCount.put(nodeId, blockRecordCount.get(nodeId) + 1);
+                if (blockRecordCount.get(nodeId) == maxNoOfRecords) {
                     switchBlock(nodeId);
                 }
             }
@@ -156,17 +166,17 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     }
 
     private void switchBlock(int nodeId){
-        replicaDataSenders[nodeId].setMemoryBlockStatus(ReplicaDataSender.Status.ENABLE_BLOCK_READ, currentMemoryBlockId[nodeId]);
-        currentMemoryBlockId[nodeId] = -1;
-        while (currentMemoryBlockId[nodeId]==-1) {
-            for (int j = 0; j < memoryBlocks[nodeId].length; j++) {
-                if(replicaDataSenders[nodeId].getMemoryBlockStatus(j) == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE){
-                    currentMemoryBlockId[nodeId] = j;
+        replicaDataSenders.get(nodeId).setMemoryBlockStatus(ReplicaDataSender.Status.ENABLE_BLOCK_READ, currentMemoryBlockId.get(nodeId));
+        currentMemoryBlockId.put(nodeId, -1);
+        while (currentMemoryBlockId.get(nodeId)==-1) {
+            for (int j = 0; j < memoryBlocks.get(nodeId).length; j++) {
+                if(replicaDataSenders.get(nodeId).getMemoryBlockStatus(j) == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE){
+                    currentMemoryBlockId.put(nodeId, j);
                     break;
                 }
             }
         }
-        blockRecordCount[nodeId] = 0;
+        blockRecordCount.put(nodeId, 0);
     }
 
 

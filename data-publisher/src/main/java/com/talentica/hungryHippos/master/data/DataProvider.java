@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,9 +53,18 @@ public class DataProvider {
   private static String BAD_RECORDS_FILE;
   private static Random random;
 
-  private static String[] loadServers(NodesManager nodesManager) throws Exception {
+  private static Map<Integer,String> loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
-    ArrayList<String> servers = new ArrayList<>();
+    Map<Integer,String> servers = new HashMap<Integer,String>();
+    ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
+    List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
+    for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
+      String server = node.getIp() + ServerUtils.COLON + node.getPort();
+      servers.put(node.getIdentifier(),server);
+    }
+    LOGGER.info("There are {} servers", servers.size());
+    return servers;
+    /*ArrayList<String> servers = new ArrayList<>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
@@ -64,14 +72,14 @@ public class DataProvider {
       servers.add(server);
     }
     LOGGER.info("There are {} servers", servers.size());
-    return servers.toArray(new String[servers.size()]);
+    return servers.toArray(new String[servers.size()]);*/
   }
 
   public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
       String sourcePath, String destinationPath) throws Exception {
     init();
     long start = System.currentTimeMillis();
-    String[] servers = loadServers(nodesManager);
+    Map<Integer,String> servers = loadServers(nodesManager);
     FieldTypeArrayDataDescription dataDescription =
         DataPublisherStarter.getContext().getConfiguredDataDescription();
     dataDescription.setKeyOrder(DataPublisherStarter.getContext().getShardingDimensions());
@@ -89,23 +97,26 @@ public class DataProvider {
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
     keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
-    OutputStream[] targets = new OutputStream[servers.length];
+    Map<Integer,OutputStream> targets = new HashMap<>();
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
-    Socket[] sockets = new Socket[servers.length];
+    Map<Integer,Socket> sockets = new HashMap<>();
     DataOutputStream dos = null;
     byte[] destinationPathInBytes = destinationPath.getBytes(Charset.defaultCharset());
     int destinationPathLength = destinationPathInBytes.length;
-    for (int i = 0; i < servers.length; i++) {
-      String server = servers[i];
-      sockets[i] = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
-      targets[i] = new BufferedOutputStream(sockets[i].getOutputStream(), 8388608);
-      dos = new DataOutputStream(sockets[i].getOutputStream());
+    
+    for(Integer nodeId : servers.keySet()){
+      String server = servers.get(nodeId);
+      Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+      sockets.put(nodeId, socket);
+      BufferedOutputStream bos = new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
+      targets.put(nodeId, bos);
+      dos = new DataOutputStream(sockets.get(nodeId).getOutputStream());
       dos.writeInt(destinationPathLength);
       dos.flush();
-      targets[i].write(destinationPathInBytes);
-      targets[i].write((byte)1);
-      targets[i].flush();
+      targets.get(nodeId).write(destinationPathInBytes);
+      targets.get(nodeId).write((byte)1);
+      targets.get(nodeId).flush();
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -162,21 +173,21 @@ public class DataProvider {
         }
         setIndex++;
       }
-      targets[randomNode.getNodeId()].write(nextNodesInfo);
-      targets[randomNode.getNodeId()].write(buf);
+      targets.get(randomNode.getNodeId()).write(nextNodesInfo);
+      targets.get(randomNode.getNodeId()).write(buf);
       flushTriggerCount++;
       if(flushTriggerCount>100000){
-        for (int j = 0; j < targets.length; j++) {
-          targets[j].flush();
+        for(Integer nodeId : targets.keySet()){
+          targets.get(nodeId).flush();
         }
         flushTriggerCount =0;
       }
     }
     fileWriter.close();
-    for (int j = 0; j < targets.length; j++) {
-      targets[j].flush();
-      targets[j].close();
-      sockets[j].close();
+    for(Integer nodeId : targets.keySet()){
+      targets.get(nodeId).flush();
+      targets.get(nodeId).close();
+      sockets.get(nodeId).close();
     }
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));

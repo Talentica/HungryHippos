@@ -176,6 +176,21 @@ public class HungryHipposFileSystem {
    * @param name
    * @return
    */
+  public String getNodeData(String name) {
+    name = checkNameContainsFileSystemRoot(name);
+    String nodeData = null;
+
+    nodeData = (String) ZkUtils.getNodeData(name);
+
+    return nodeData;
+  }
+
+  /**
+   * get value inside the znode in string format.
+   *
+   * @param name
+   * @return
+   */
   public String getData(String name) {
     name = checkNameContainsFileSystemRoot(name);
     String nodeData = null;
@@ -279,23 +294,22 @@ public class HungryHipposFileSystem {
 
   /**
    * This method updates the HungryHippos filesystem with the metadata of the file
+   * 
    * @param hungryHippoFilePath
    * @param nodeId
    * @param dataFileId
    * @param fileName
    * @param fileSize
-     * @throws Exception
-     */
-  public void updateFSBlockMetaData(String hungryHippoFilePath, String nodeId, int dataFileId, String fileName,
-      long fileSize) throws Exception {
+   * @throws Exception
+   */
+  public void updateFSBlockMetaData(String hungryHippoFilePath, String nodeId, int dataFileId,
+      String fileName, long fileSize) throws Exception {
     String hungryHippoFileZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + hungryHippoFilePath;
-    String dfsZKPath =
-        hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
+    String dfsZKPath = hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR
+        + FileSystemConstants.DFS_NODE;
     String nodeIdZKPath = dfsZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
-    String dataFileNodeZKPath =
-        nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileId;
-    String fileNodeZKPath =
-            dataFileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileName;
+    String dataFileNodeZKPath = nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileId;
+    String fileNodeZKPath = dataFileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileName;
     ZkUtils.createZKNodeIfNotPresent(dfsZKPath, "");
     ZkUtils.createZKNodeIfNotPresent(nodeIdZKPath, "");
     ZkUtils.createZKNodeIfNotPresent(dataFileNodeZKPath, "");

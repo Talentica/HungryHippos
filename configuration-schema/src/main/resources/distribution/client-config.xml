@@ -7,7 +7,7 @@
 	</tns:coordination-servers>
 	<tns:session-timout>86400000</tns:session-timout>
 	<tns:output>
-		<tns:node-ssh-username>nitink</tns:node-ssh-username>
-		<tns:node-ssh-private-key-file-path>/home/nitink/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
+		<tns:node-ssh-username>sudarshans</tns:node-ssh-username>
+		<tns:node-ssh-private-key-file-path>/home/sudarshans/.ssh/id_rsa</tns:node-ssh-private-key-file-path>
 	</tns:output>
 </tns:client-config>

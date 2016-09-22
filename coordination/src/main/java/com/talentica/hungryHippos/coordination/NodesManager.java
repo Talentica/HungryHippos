@@ -239,12 +239,10 @@ public class NodesManager implements Watcher {
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()),
         null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()),
-        null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()), null);
     createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()),
         null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()),
-        null);
+    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()), null);
   }
 
   /**
@@ -362,7 +360,9 @@ public class NodesManager implements Watcher {
 
   private void createNode(final String node, CountDownLatch signal, CreateMode createMode,
       Object... data) throws IOException {
-    zk.create(node, (data != null && data.length != 0) ? ZkUtils.serialize(data[0]) : null,
+    zk.create(node,
+        (data != null && data.length != 0 && data[0] instanceof String)
+            ? ((String) data[0]).getBytes() : null,
         ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode,
         createAsyncCallback(node, signal, createMode, data), null);
   }
@@ -808,7 +808,7 @@ public class NodesManager implements Watcher {
     Stat stat = null;
     stat = zk.exists(buildConfigPath(fileName), this);
     if (stat != null) {
-      return ZkUtils.deserialize(zk.getData(buildConfigPath(fileName), this, stat));
+      return zk.getData(buildConfigPath(fileName), this, stat);
     }
     return null;
   }
@@ -818,7 +818,7 @@ public class NodesManager implements Watcher {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
     if (stat != null && stat.getDataLength() != 0) {
-      return ZkUtils.deserialize(zk.getData(nodePath, this, stat));
+      return new String(zk.getData(nodePath, this, stat), Charsets.UTF_8);
     }
     return null;
   }
@@ -868,8 +868,10 @@ public class NodesManager implements Watcher {
       throws KeeperException, InterruptedException, ClassNotFoundException, IOException {
     Stat stat = null;
     stat = zk.exists(nodePath, this);
+
     if (stat != null) {
-      zk.setData(nodePath, ZkUtils.serialize(data), stat.getVersion());
+      zk.setData(nodePath, data instanceof String ? ((String) data).getBytes() : null,
+          stat.getVersion());
     }
   }
 

@@ -9,13 +9,11 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
@@ -29,8 +27,7 @@ import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
  */
 public class CoordinationConfigUtil {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(CoordinationConfigUtil.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CoordinationConfigUtil.class);
   private static Property<CoordinationProperty> property;
   private static String localClusterConfigFilePath;
   private static CoordinationConfig config;
@@ -52,30 +49,21 @@ public class CoordinationConfigUtil {
     return property;
   }
 
-  public static void uploadConfigurationOnZk(NodesManager manager, String nodeName,
-      String configurationFile) throws IOException, JAXBException, InterruptedException {
+  public static void uploadConfigurationOnZk(String nodeName,
+      Object configurationFile) throws IOException, JAXBException, InterruptedException {
     LOGGER.info("Updating coordination configuration on zookeeper");
-    ZKNodeFile configFile = new ZKNodeFile(nodeName, configurationFile);
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    manager.saveConfigFileToZNode(configFile, countDownLatch);
-    countDownLatch.await();
+    ZkUtils.saveObjectZkNode(nodeName, configurationFile);    
   }
 
   public static CoordinationConfig getZkCoordinationConfigCache() {
     if (config != null) {
       return config;
     }
-    try {
-      ZKNodeFile configurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
-          .getObjectFromZKNode(getProperty().getValueByKey("zookeeper.config_path")
-              + ZkUtils.zkPathSeparator + CoordinationConfigUtil.COORDINATION_CONFIGURATION);
-      config = JaxbUtil.unmarshal((String) configurationFile.getObj(), CoordinationConfig.class);
-      return config;
-    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
-      LOGGER.info("Please upload the sharding configuration file on zookeeper");
-    } catch (JAXBException e1) {
-      LOGGER.info("Unable to unmarshal the coordination xml configuration.");
-    }
+    String configurationFile =
+        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.COORDINATION_CONFIGURATION;
+    config = (CoordinationConfig) ZkUtils.readObjectZkNode(configurationFile);
+
     return config;
   }
 
@@ -98,17 +86,14 @@ public class CoordinationConfigUtil {
     if (clusterConfig != null) {
       return clusterConfig;
     }
-    try {
-      ZKNodeFile configurationFile = (ZKNodeFile) NodesManagerContext.getNodesManagerInstance()
-          .getConfigFileFromZNode(CoordinationConfigUtil.CLUSTER_CONFIGURATION);
-      clusterConfig = JaxbUtil.unmarshal((String) configurationFile.getObj(), ClusterConfig.class);
-      return clusterConfig;
-    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException e) {
-      LOGGER.info("Please upload the sharding configuration file on zookeeper");
-    } catch (JAXBException e1) {
-      LOGGER.info("Unable to unmarshal the coordination xml configuration.");
-    }
+
+    String configurationFile =
+        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.CLUSTER_CONFIGURATION;
+    clusterConfig = (ClusterConfig) ZkUtils.readObjectZkNode(configurationFile);
+
     return clusterConfig;
+
   }
 
 }

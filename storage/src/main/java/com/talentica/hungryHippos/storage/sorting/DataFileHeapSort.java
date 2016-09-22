@@ -13,10 +13,12 @@ public class DataFileHeapSort {
   private byte[] chunk;
   private int rowSize;
   private DataFileComparator comparator;
+  ;
 
-  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal) {
+  public <T> DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal, DataFileComparator comparator) {
     this.rowSize = rowSize;
-    this.comparator = new DataFileComparator(dynamicMarshal, rowSize);
+    this.comparator = comparator;
+   
   }
 
   public void setChunk(byte[] chunk) {
@@ -28,39 +30,47 @@ public class DataFileHeapSort {
     buildHeap(chunk, totalElement);
     for (int i = (totalElement - 1); i > 0; i--) {
       byte[] temp = readRowChunkAt(0);
-      copyRowChunk(readRowChunkAt(i), readRowChunkAt(0));
-      copyRowChunk(readRowChunkAt(i), temp);
+      swapChunkRowAt((i), (0));
+      copyToChunkAt(temp,(i));
       doHeap(chunk, 1, i);
     }
   }
 
   private byte[] readRowChunkAt(int position) {
-    byte[] row = new byte[rowSize];
-    for (int i = position; i < rowSize; i++) {
+    byte[] row  = new byte[rowSize];
+    for (int i = position; i < (position + rowSize); i++) {
       row[i - position] = chunk[i];
     }
     return row;
   }
 
-  private void copyRowChunk(byte[] fromRowChunk, byte[] toRowChunk) {
+  private void copyToChunkAt(byte[] fromRowChunk, int position) {
     for (int i = 0; i < rowSize; i++) {
-      toRowChunk[i] = fromRowChunk[i];
+      chunk[position++] = fromRowChunk[i];
+    }
+  }
+  
+  private void swapChunkRowAt(int fromPosition, int toPosition){
+    int counter = 0;
+    while(counter < rowSize){
+      chunk[toPosition++] = chunk[fromPosition++];
+      counter++;
     }
   }
 
-  private void buildHeap(byte[] array, int heapSize) {
-    if (array == null) {
+  private void buildHeap(byte[] chunk, int heapSize) {
+    if (chunk == null) {
       throw new NullPointerException("null");
     }
-    if (array.length <= 0 || heapSize <= 0) {
+    if (chunk.length <= 0 || heapSize <= 0) {
       throw new IllegalArgumentException("illegal");
     }
-    if (heapSize > array.length) {
-      heapSize = array.length;
+    if (heapSize > (chunk.length / rowSize)) {
+      heapSize = (chunk.length / rowSize);
     }
 
     for (int i = heapSize / 2; i > 0; i--) {
-      doHeap(array, i, heapSize);
+      doHeap(chunk, i, heapSize);
     }
   }
 
@@ -80,8 +90,8 @@ public class DataFileHeapSort {
     }
     if (largest != index) {
       byte[] temp = readRowChunkAt(index - 1);
-      copyRowChunk(readRowChunkAt(largest - 1), readRowChunkAt(index - 1));
-      copyRowChunk(temp, readRowChunkAt(largest - 1));
+      swapChunkRowAt((largest - 1),(index - 1));
+      copyToChunkAt(temp, (largest - 1));
       doHeap(chunk, largest, heapSize);
     }
   }

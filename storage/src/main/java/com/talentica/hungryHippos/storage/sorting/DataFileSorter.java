@@ -46,7 +46,7 @@ public class DataFileSorter {
     dynamicMarshal = getDynamicMarshal();
     comparator = new DataFileComparator(dynamicMarshal, dataDescription.getSize());
     comparator.setDimenstion(new int[] {0, 1, 2});
-    dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal);
+    dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal, comparator);
   }
 
   public static void main(String[] args) throws IOException, InsufficientMemoryException,
@@ -102,22 +102,31 @@ public class DataFileSorter {
     long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     long objectOverhead = DataSizeCalculator.getObjectOverhead();
     int effectiveBlockSizeBytes =
-        (int) ((blocksize) / (1 + (objectOverhead / noOfBytesInOneDataSet)));
+        ((int) ((blocksize / 2) / (noOfBytesInOneDataSet + objectOverhead)))
+            * noOfBytesInOneDataSet;
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
     try {
       long dataFileSize = datalength;
       byte[] chunk;
       while (dataFileSize > 0) {
-        chunk = new byte[effectiveBlockSizeBytes];
+        if (dataFileSize > effectiveBlockSizeBytes) {
+          chunk = new byte[effectiveBlockSizeBytes];
+        } else { // remaining chunk
+          chunk = new byte[(int) dataFileSize];
+        }
         dataInputStream.readFully(chunk);
         dataFileSize = dataFileSize - chunk.length;
-        files.add(
-            sortAndSave(chunk, cs, outputdirectory, batchId, (dataFileSize == 0 && batchId == 0)));
+        if (dataFileSize == 0 && batchId == 0) {
+          files.add(sortAndSave(chunk, cs, outputFile, batchId, true));
+        } else {
+          files.add(sortAndSave(chunk, cs, outputdirectory, batchId, false));
+        }
         availableMemory();
+        batchId++;
       }
     } catch (Exception e) {
-      LOGGER.error("Unable to process due to {}", e);
+      LOGGER.error("Unable to process due to {}", e.getMessage());
       throw e;
     } finally {
       dataInputStream.close();
@@ -131,17 +140,19 @@ public class DataFileSorter {
   private File sortAndSave(byte[] chunk, Charset cs, File output, int batchId,
       boolean isSingalBatch) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
-    LOGGER.info("Sorting started...");
+    LOGGER.info("Sorting started for chunk size {}...",chunk.length);
     dataFileHeapSort.setChunk(chunk);
     dataFileHeapSort.heapSort();
     LOGGER.info("Sorting completed.");
     File file;
     RandomAccessFile raf = null;
+    long position = 0;
     if (isSingalBatch) {
       try {
         raf = new RandomAccessFile(output, "rw");
+        raf.seek(position);
         raf.write(chunk);
-
+        position = raf.getFilePointer();
       } catch (IOException e) {
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
@@ -158,6 +169,7 @@ public class DataFileSorter {
         out.write(chunk);
       }
     }
+    availableMemory();
     return file;
   }
 
@@ -193,14 +205,15 @@ public class DataFileSorter {
       }
     }
     RandomAccessFile raf = new RandomAccessFile(outputfile, "rw");
-    int position = 0;
+    long position = 0l;
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
         ByteBuffer row = bfb.pop();
         raf.seek(position);
         raf.write(row.array());
-        position = position + row.array().length - 1;
+        // position = position + row.array().length - 1;
+        position = raf.getFilePointer();
         ++rowcounter;
         if (bfb.empty()) {
           bfb.getReader().close();

@@ -100,19 +100,23 @@ public class DataFileSorter {
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
     long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
-    long objectOverhead = DataSizeCalculator.getObjectOverhead();
     int effectiveBlockSizeBytes =
-        ((int) ((blocksize / 2) / (noOfBytesInOneDataSet + objectOverhead)))
+        ((int) ((blocksize) / (noOfBytesInOneDataSet + DataSizeCalculator.getArrayOverhead())))
             * noOfBytesInOneDataSet;
+    byte[] chunk = null;
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
     try {
       long dataFileSize = datalength;
-      byte[] chunk;
       while (dataFileSize > 0) {
         if (dataFileSize > effectiveBlockSizeBytes) {
-          chunk = new byte[effectiveBlockSizeBytes];
+          if (chunk == null) {
+            chunk = new byte[effectiveBlockSizeBytes];
+          }
+          availableMemory();
         } else { // remaining chunk
+          chunk = null;
+          availableMemory();
           chunk = new byte[(int) dataFileSize];
         }
         dataInputStream.readFully(chunk);
@@ -140,19 +144,16 @@ public class DataFileSorter {
   private File sortAndSave(byte[] chunk, Charset cs, File output, int batchId,
       boolean isSingalBatch) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
-    LOGGER.info("Sorting started for chunk size {}...",chunk.length);
+    LOGGER.info("Sorting started for chunk size {}...", chunk.length);
     dataFileHeapSort.setChunk(chunk);
     dataFileHeapSort.heapSort();
     LOGGER.info("Sorting completed.");
     File file;
-    RandomAccessFile raf = null;
-    long position = 0;
     if (isSingalBatch) {
+      RandomAccessFile raf = new RandomAccessFile(output, "rw");
       try {
-        raf = new RandomAccessFile(output, "rw");
-        raf.seek(position);
+        raf.seek(0l);
         raf.write(chunk);
-        position = raf.getFilePointer();
       } catch (IOException e) {
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
@@ -165,8 +166,12 @@ public class DataFileSorter {
       file = File.createTempFile("tmp_", "_sorted_file", output);
       LOGGER.info("Temporary directory {}", file.getAbsolutePath());
       file.deleteOnExit();
-      try (OutputStream out = new FileOutputStream(file)) {
+      OutputStream out = new FileOutputStream(file);
+      try {
         out.write(chunk);
+      } finally {
+        if (out != null)
+          out.close();
       }
     }
     availableMemory();
@@ -195,6 +200,8 @@ public class DataFileSorter {
     return rowcounter;
   }
 
+  private RandomAccessFile raf;
+  
   private int mergeSortedFiles(File outputfile, List<BinaryFileBuffer> buffers, boolean append)
       throws IOException {
     int rowcounter = 0;
@@ -204,7 +211,7 @@ public class DataFileSorter {
         pq.add(bfb);
       }
     }
-    RandomAccessFile raf = new RandomAccessFile(outputfile, "rw");
+    raf = new RandomAccessFile(outputfile, "rw");
     long position = 0l;
     try {
       while (pq.size() > 0) {
@@ -212,7 +219,6 @@ public class DataFileSorter {
         ByteBuffer row = bfb.pop();
         raf.seek(position);
         raf.write(row.array());
-        // position = position + row.array().length - 1;
         position = raf.getFilePointer();
         ++rowcounter;
         if (bfb.empty()) {
@@ -244,6 +250,8 @@ public class DataFileSorter {
           return comparator.compare(i.peek().array(), j.peek().array());
         }
       });
+  
+  
 
   private long getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
       throws InsufficientMemoryException {
@@ -252,16 +260,20 @@ public class DataFileSorter {
     if (blocksize < maxFreeMemory) {
       blocksize = maxFreeMemory;
     }
-    return blocksize;
+    return blocksize - DataSizeCalculator.getObjectOverhead();
   }
 
   public long availableMemory() {
-    System.gc();
     Runtime runtime = Runtime.getRuntime();
-    long allocatedMemory = runtime.totalMemory() - runtime.freeMemory();
-    long currentFreeMemory = runtime.maxMemory() - allocatedMemory;
-    LOGGER.info("Current free memory {}", currentFreeMemory);
-    return currentFreeMemory;
+    long allocatedMemoryBefore = runtime.totalMemory() - runtime.freeMemory();
+    long currentFreeMemoryBefore = runtime.maxMemory() - allocatedMemoryBefore;
+    LOGGER.info("Current memory before GC call {}", currentFreeMemoryBefore);
+    System.gc();
+    long allocatedMemoryAfter = runtime.totalMemory() - runtime.freeMemory();
+    long currentFreeMemoryAfter = runtime.maxMemory() - allocatedMemoryAfter;
+    LOGGER.info("Current free memory after GC call {}", currentFreeMemoryAfter);
+    LOGGER.info("Total memory freed {}", (currentFreeMemoryAfter - currentFreeMemoryBefore));
+    return currentFreeMemoryAfter;
   }
 
   private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,

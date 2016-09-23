@@ -13,12 +13,15 @@ public class DataFileHeapSort {
   private byte[] chunk;
   private int rowSize;
   private DataFileComparator comparator;
-  ;
-
-  public <T> DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal, DataFileComparator comparator) {
+  byte[] row1;
+  byte[] row2;
+  byte[] tmpRow;
+  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal, DataFileComparator comparator) {
     this.rowSize = rowSize;
     this.comparator = comparator;
-   
+    row1  = new byte[rowSize];
+    row2 = new byte[rowSize];
+    tmpRow = new byte[rowSize];
   }
 
   public void setChunk(byte[] chunk) {
@@ -29,70 +32,82 @@ public class DataFileHeapSort {
     int totalElement = chunk.length / rowSize;
     buildHeap(chunk, totalElement);
     for (int i = (totalElement - 1); i > 0; i--) {
-      byte[] temp = readRowChunkAt(0);
-      swapChunkRowAt((i), (0));
+      //clear();
+      byte[] temp = readChunkRowAt(0,tmpRow);
+      copyChunkRowAt((i), (0));
       copyToChunkAt(temp,(i));
       doHeap(chunk, 1, i);
     }
   }
 
-  private byte[] readRowChunkAt(int position) {
-    byte[] row  = new byte[rowSize];
-    for (int i = position; i < (position + rowSize); i++) {
-      row[i - position] = chunk[i];
+  private byte[] readChunkRowAt(int index,byte[] row) {
+    int position = index * rowSize;
+    for (int pointer = position; pointer < (position + rowSize); pointer++) {
+      row[pointer - position] = chunk[pointer];
     }
     return row;
   }
 
-  private void copyToChunkAt(byte[] fromRowChunk, int position) {
-    for (int i = 0; i < rowSize; i++) {
-      chunk[position++] = fromRowChunk[i];
+  private void copyToChunkAt(byte[] fromRowChunk, int index) {
+    int position = index * rowSize;
+    for (int pointer = 0; pointer < rowSize; pointer++) {
+      chunk[position + pointer] = fromRowChunk[pointer];
     }
   }
   
-  private void swapChunkRowAt(int fromPosition, int toPosition){
+  private void copyChunkRowAt(int fromIndex, int toindex){
     int counter = 0;
+    int fromPosition = fromIndex * rowSize;
+    int toPosition = toindex * rowSize;
     while(counter < rowSize){
-      chunk[toPosition++] = chunk[fromPosition++];
+      chunk[toPosition + counter] = chunk[fromPosition + counter];
       counter++;
     }
   }
 
   private void buildHeap(byte[] chunk, int heapSize) {
     if (chunk == null) {
-      throw new NullPointerException("null");
+      throw new NullPointerException("No chunk to sort");
     }
     if (chunk.length <= 0 || heapSize <= 0) {
-      throw new IllegalArgumentException("illegal");
+      throw new IllegalArgumentException("No records to sort.");
     }
     if (heapSize > (chunk.length / rowSize)) {
       heapSize = (chunk.length / rowSize);
     }
 
-    for (int i = heapSize / 2; i > 0; i--) {
-      doHeap(chunk, i, heapSize);
+    for (int index = heapSize / 2; index > 0; index--) {
+      doHeap(chunk, index, heapSize);
     }
   }
 
   private void doHeap(byte[] chunk, int index, int heapSize) {
     int left = index * 2;
-    int right = index * 2 + 1;
+    int right = left + 1;
     int largest;
+    //clear();
     if (left <= heapSize
-        && comparator.compare(readRowChunkAt(left - 1), readRowChunkAt(index - 1)) > 0) {
+        && comparator.compare(readChunkRowAt(left - 1,row1), readChunkRowAt(index - 1,row2)) > 0) {
       largest = left;
     } else {
       largest = index;
     }
+    //clear();
     if (right <= heapSize
-        && comparator.compare(readRowChunkAt(right - 1), readRowChunkAt(largest - 1)) > 0) {
+        && comparator.compare(readChunkRowAt(right - 1,row1), readChunkRowAt(largest - 1,row2)) > 0) {
       largest = right;
     }
     if (largest != index) {
-      byte[] temp = readRowChunkAt(index - 1);
-      swapChunkRowAt((largest - 1),(index - 1));
+      byte[] temp = readChunkRowAt(index - 1,tmpRow);
+      copyChunkRowAt((largest - 1),(index - 1));
       copyToChunkAt(temp, (largest - 1));
       doHeap(chunk, largest, heapSize);
     }
   }
+  
+  /*public void clear(){
+    Arrays.fill( row1, (byte) 0 );
+    Arrays.fill( row2, (byte) 0 );
+    Arrays.fill( tmpRow, (byte) 0 );
+  }*/
 }

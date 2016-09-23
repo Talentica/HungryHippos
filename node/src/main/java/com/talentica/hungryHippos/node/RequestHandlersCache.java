@@ -31,13 +31,11 @@ public enum RequestHandlersCache {
     }
     if (fileIdToRequestHandlerMap.get(fileId) == null) {
       try {
-        // TODO Read hhpath details from zookeeper
         String path = CoordinationConfigUtil.getZkCoordinationConfigCache()
             .getZookeeperDefaultConfig().getFileidHhfsMapPath();
-        ZkUtils.getStringDataFromNode(path,fileId+"");
-        String hhPath = "";
+        String hhFilePath = ZkUtils.getStringDataFromNode(path,fileId+"");
         RequestHandlingTool requestHandlingTool =
-            new RequestHandlingTool(fileId, hhPath, nodeId + "");
+            new RequestHandlingTool(fileId, hhFilePath, nodeId + "");
         fileIdToRequestHandlerMap.put(fileId, requestHandlingTool);
       } catch (IOException | InterruptedException | ClassNotFoundException | KeeperException
           | JAXBException e) {
@@ -47,5 +45,8 @@ public enum RequestHandlersCache {
     return fileIdToRequestHandlerMap.get(fileId);
   }
 
+    public void removeRequestHandlingTool(int nodeId, int fileId){
+        nodeIdToFileIdToRequestHandlersMap.get(nodeId).remove(fileId);
+    }
 
 }

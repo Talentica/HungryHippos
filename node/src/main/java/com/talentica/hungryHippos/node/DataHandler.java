@@ -121,6 +121,7 @@ public class DataHandler extends ChannelHandlerAdapter {
                 System.arraycopy(dataForFileWrite, 0, currentMemoryArray, currentIndex + replicaNodesInfoDataSize + INT_BYTE_SIZE, dataForFileWrite.length);
                 nodeIdToCurrentMemoryArrayLastByteIndexMap.put(nodeId, currentIndex + dataSize);
             }
+            RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient,fileId);
         }else{
             requestHandlingTool.storeData();
             for (int i = 0; i < replicaNodesInfoDataSize; i++) {

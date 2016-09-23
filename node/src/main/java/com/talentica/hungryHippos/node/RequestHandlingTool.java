@@ -10,6 +10,8 @@ import com.talentica.hungryHippos.utility.scp.TarAndGzip;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
@@ -21,6 +23,7 @@ import java.nio.ByteBuffer;
  */
 public class RequestHandlingTool {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlingTool.class);
     private NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
     private int recordSize;
     private int replicaNodesInfoDataSize;
@@ -29,9 +32,14 @@ public class RequestHandlingTool {
     private byte[] dataForFileWrite;
     private ByteBuffer byteBuffer;
     private byte[] fileIdInBytes;
+    private String nodeFileName;
+    private String hhFilePath;
 
     public RequestHandlingTool(int fileId,String hhFilePath, String nodeFileName) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+        this.nodeFileName = nodeFileName;
+        this.hhFilePath = hhFilePath;
         fileIdInBytes = ByteBuffer.allocate(DataHandler.INT_BYTE_SIZE).putInt(fileId).array();
+        LOGGER.info("File :{}",hhFilePath);
         String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
         String shardingTableFolderPath =
                 dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
@@ -77,20 +85,12 @@ public class RequestHandlingTool {
         dataStore.storeRow(storeId, dataForFileWrite);
     }
 
-    public NodeDataStoreIdCalculator getNodeDataStoreIdCalculator() {
-        return nodeDataStoreIdCalculator;
-    }
-
     public int getRecordSize() {
         return recordSize;
     }
 
     public int getReplicaNodesInfoDataSize() {
         return replicaNodesInfoDataSize;
-    }
-
-    public DataStore getDataStore() {
-        return dataStore;
     }
 
     public byte[] getNextNodesInfo() {
@@ -101,11 +101,11 @@ public class RequestHandlingTool {
         return dataForFileWrite;
     }
 
-    public ByteBuffer getByteBuffer() {
-        return byteBuffer;
-    }
-
     public void closeDataStore(){
+        LOGGER.info("Closing datastore for Node {}: File {}",nodeFileName, hhFilePath);
+        byteBuffer = null;
+        nextNodesInfo = null;
+        dataForFileWrite =null;
         dataStore.sync();
     }
 

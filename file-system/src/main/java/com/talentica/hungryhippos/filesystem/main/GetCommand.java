@@ -1,6 +1,7 @@
 package com.talentica.hungryhippos.filesystem.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -15,22 +16,24 @@ import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.NodeFileSystem;
 import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-
-import javafx.scene.shape.Path;
 
 public class GetCommand {
 
 
   private static Options options = new Options();
+  private static HungryHipposFileSystem hhfs = null;
+  private static String nodeHHFSDir = null;
+  private static String hungryHippoFilePath = null;
+  private static String outputDirName = System.getProperty("user.home");
 
   static {
-    options.addOption("d", "dimension", false,
+    options.addOption("d", "dimension", true,
         "download file of particular dimension from nodes. i.e get -d zookeeperPath 2");
     options.addOption("s", "sharded File", false, "download sharded file associated with the file");
+    options.addOption("n", "node", true, "from which node you want to see the data.");
     options.addOption("h", "help", false, "");
+    options.addOption("o", "output folder", true, "The folder where output file has to be stored");
   }
 
   public static void execute(CommandLineParser parser, String... args) {
@@ -42,21 +45,21 @@ public class GetCommand {
       }
 
       if (line.hasOption("s") && line.hasOption("d")) {
-        System.out.println("choose either -d or -s. clubbing two options is not supported");
+        System.out.println("choose either -d or -s. clubbing this two options is not supported");
         return;
       }
       if (line.getArgList() == null || line.getArgList().size() < 2) {
         System.out.println("Argument can't be empty");
         return;
       }
-      String hungryHippoFilePath = line.getArgList().get(1);
-      hungryHippoFilePath = hungryHippoFilePath.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
-          ? hungryHippoFilePath.substring(0, hungryHippoFilePath.length() - 1)
-          : hungryHippoFilePath;
-      HungryHipposFileSystem hhfs = HungryHipposCommandLauncher.getHHFSInstance();
-      String nodeHHFSDir = hhfs.getHHFSNodeRoot();
-      nodeHHFSDir = nodeHHFSDir.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
-          ? nodeHHFSDir.substring(0, nodeHHFSDir.length() - 1) : nodeHHFSDir;
+
+      hungryHippoFilePath = line.getArgList().get(1);
+      hungryHippoFilePath = removeLeftSlashAtEnd(hungryHippoFilePath);
+
+      hhfs = HungryHipposCommandLauncher.getHHFSInstance();
+
+      nodeHHFSDir = hhfs.getHHFSNodeRoot();
+      nodeHHFSDir = removeLeftSlashAtEnd(nodeHHFSDir);
 
       String data = hhfs.getData(hungryHippoFilePath);
       if (!data.contains(FileSystemConstants.IS_A_FILE)) {
@@ -65,34 +68,21 @@ public class GetCommand {
         return;
       }
 
-      String outputDirName =
-          System.getProperty("user.home") + File.separatorChar + fileName(hungryHippoFilePath);
+      if (line.hasOption("o")) {
+        outputDirName = line.getOptionValue("o");
+      } else {
+        outputDirName += File.separatorChar + fileName(hungryHippoFilePath);
+      }
+
       if (!Files.exists(Paths.get(outputDirName))) {
         Files.createDirectory(Paths.get(outputDirName));
       }
       int dimension = 0;
       if (line.hasOption("d")) {
-        dimension = Integer.valueOf(line.getArgList().get(2));
+        dimension = Integer.valueOf(line.getOptionValue("d"));
         DataRetrieverClient.getHungryHippoData(hungryHippoFilePath, outputDirName, dimension);
       } else if (line.hasOption("s")) {
-        String userName = HungryHipposCommandLauncher.getUserName();
-        String host = HungryHipposCommandLauncher.getNodesInCluster().get(0).getIp();
-        List<String> children = hhfs.getChildZnodes(hungryHippoFilePath);
-        boolean isSharded = false;
-        for (String child : children) {
-          if ((child.equals(FileSystemConstants.SHARDED))) {
-            isSharded = true;
-            break;
-          }
-        }
-        if (isSharded) {
-          String remoteDir =
-              nodeHHFSDir + hungryHippoFilePath + File.separatorChar + "sharding-table.tar.gz";
-          ScpCommandExecutor.download(userName, host, remoteDir, outputDirName);
-          TarAndGzip.untarTGzFile(outputDirName + File.separatorChar + "sharding-table.tar.gz");
-        } else {
-          System.out.println("File is not sharded , don't use -s option");
-        }
+        getShardedFile();
       } else {
         DataRetrieverClient.getHungryHippoData(hungryHippoFilePath, outputDirName);
       }
@@ -102,6 +92,42 @@ public class GetCommand {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private static void getShardedFile() throws IOException {
+    List<String> children = hhfs.getChildZnodes(hungryHippoFilePath);
+    boolean isSharded = validateFileIsSharded(children);
+    if (isSharded) {
+      runScpAndUntarFile();
+    } else {
+      System.out.println("File is not sharded , don't use -s option");
+    }
+  }
+
+  private static boolean validateFileIsSharded(List<String> children) {
+    boolean isSharded = false;
+    for (String child : children) {
+      if ((child.contains(FileSystemConstants.SHARDED))) {
+        isSharded = true;
+        break;
+      }
+    }
+    return isSharded;
+  }
+
+  private static void runScpAndUntarFile() throws IOException {
+    String userName = HungryHipposCommandLauncher.getUserName();
+    String host = HungryHipposCommandLauncher.getNodesInCluster().get(0).getIp();
+    String remoteDir =
+        nodeHHFSDir + hungryHippoFilePath + File.separatorChar + "sharding-table.tar.gz";
+    ScpCommandExecutor.download(userName, host, remoteDir, outputDirName);
+    TarAndGzip.untarTGzFile(outputDirName + File.separatorChar + "sharding-table.tar.gz");
+  }
+
+  private static String removeLeftSlashAtEnd(String path) {
+
+    return path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
+        ? path.substring(0, path.length() - 1) : path;
   }
 
   public static void usage() {

@@ -58,7 +58,12 @@ public class DataRetrieverClient {
     boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
     HungryHipposFileSystem.validateFileDataReady(hungryHippoFilePath);
-    FileSystemUtils.createDirectory(outputDirName);
+    // creates a directory if its not existing, if dir already exists it returns false;
+    boolean folderExists = FileSystemUtils.createDirectory(outputDirName);
+    if (folderExists) {
+      LOGGER.warn("Folder with name {}", outputDirName, " exists");
+      return;
+    }
     for (String nodeId : nodeIds) {
       String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
       String nodeIp = getNodeIp(nodeId);

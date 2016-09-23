@@ -44,14 +44,16 @@ public class FileSystemUtils {
    *
    * @param dirName
    */
-  public static void createDirectory(String dirName) {
+  public static boolean createDirectory(String dirName) {
+    boolean flag = false;
     File directory = new File(dirName);
     if (!directory.exists()) {
-      directory.mkdirs();
+      flag = directory.mkdirs();
     }
     if (!directory.isDirectory()) {
       throw new RuntimeException(dirName + " is exists and is not a directory");
     }
+    return flag;
   }
 
   /**
@@ -100,22 +102,24 @@ public class FileSystemUtils {
 
   /**
    * Checks if the path is valid
+   * 
    * @param path
    * @param isFile
-     */
+   */
   public static void validatePath(String path, boolean isFile) {
     String validPattern = "^[0-9A-Za-z./-]*";
     if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
-            ||path.contains("..")||path.contains("//")||path.contains("./")||path.contains("/.")||!path.matches(validPattern)) {
-      throw new RuntimeException("Invalid path :"+path);
+        || path.contains("..") || path.contains("//") || path.contains("./") || path.contains("/.")
+        || !path.matches(validPattern)) {
+      throw new RuntimeException("Invalid path :" + path);
     }
     if (isFile) {
       if (path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
-        throw new RuntimeException("Invalid file path :"+path);
+        throw new RuntimeException("Invalid file path :" + path);
       }
     } else {
       if (!path.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
-        throw new RuntimeException("Invalid directory path :"+path);
+        throw new RuntimeException("Invalid directory path :" + path);
       }
     }
     checkSubPaths(path);
@@ -124,19 +128,22 @@ public class FileSystemUtils {
 
   /**
    * Checks if a subpath is representing existing file
+   * 
    * @param path
-     */
-  private static void checkSubPaths(String path){
-    String[] strings =  path.split(FileSystemConstants.ZK_PATH_SEPARATOR);
-    String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath();
+   */
+  private static void checkSubPaths(String path) {
+    String[] strings = path.split(FileSystemConstants.ZK_PATH_SEPARATOR);
+    String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+        .getZookeeperDefaultConfig().getFilesystemPath();
     String relativeNodePath = "";
-    for (int i = 1; i < strings.length-1; i++) {
-      relativeNodePath = relativeNodePath+ FileSystemConstants.ZK_PATH_SEPARATOR +strings[i];
+    for (int i = 1; i < strings.length - 1; i++) {
+      relativeNodePath = relativeNodePath + FileSystemConstants.ZK_PATH_SEPARATOR + strings[i];
       String absoluteNodePath = fileSystemRootNode + relativeNodePath;
-      if(ZkUtils.checkIfNodeExists(absoluteNodePath)){
+      if (ZkUtils.checkIfNodeExists(absoluteNodePath)) {
         String nodeData = (String) ZkUtils.getNodeData(absoluteNodePath);
-        if(FileSystemConstants.IS_A_FILE.equals(nodeData)){
-          throw new RuntimeException("Invalid path : "+path+".\nFile with path : "+relativeNodePath+" already exists");
+        if (FileSystemConstants.IS_A_FILE.equals(nodeData)) {
+          throw new RuntimeException("Invalid path : " + path + ".\nFile with path : "
+              + relativeNodePath + " already exists");
         }
       } else {
         break;
@@ -146,11 +153,12 @@ public class FileSystemUtils {
 
   /**
    * Deletes the file or removes the folder recursively
+   * 
    * @param file
    */
-  public static void deleteFilesRecursively(File file){
-    if(file.isDirectory()){
-      String[] fileList=  file.list();
+  public static void deleteFilesRecursively(File file) {
+    if (file.isDirectory()) {
+      String[] fileList = file.list();
       for (int i = 0; i < fileList.length; i++) {
         deleteFilesRecursively(new File(fileList[i]));
       }
@@ -160,15 +168,16 @@ public class FileSystemUtils {
 
   /**
    * Creates a new file in localPath
+   * 
    * @param localPath
    * @return
    * @throws IOException
-     */
+   */
   public static File createNewFile(String localPath) throws IOException {
     File file = new File(localPath);
-    if(file.exists()){
+    if (file.exists()) {
       file.delete();
-    }else{
+    } else {
       file.getParentFile().mkdirs();
     }
     file.createNewFile();

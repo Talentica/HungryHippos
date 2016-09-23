@@ -52,7 +52,7 @@ public class HeadCommand {
           ShardedFile.read(fileToRead, shardingClientConfigLoc, numberOfLines);
         }
       } catch (Exception e) {
-
+        e.printStackTrace();
       }
 
     } catch (ParseException e) {

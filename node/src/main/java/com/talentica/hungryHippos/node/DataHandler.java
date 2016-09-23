@@ -24,7 +24,7 @@ public class DataHandler extends ChannelHandlerAdapter {
     private Map<Integer, Integer> nodeIdToCurrentMemoryArrayIndexMap;
     private Map<Integer, Integer> nodeIdToCurrentMemoryArrayLastByteIndexMap;
     private Map<Integer, int[]> nodeIdToMemoryArrayLastByteIndex;
-    private Map<Integer, BossReplicaDataSender.Status[]> nodeIdToMemoryArrayStatusMap;
+    private Map<Integer, ReplicaDataSender.Status[]> nodeIdToMemoryArrayStatusMap;
     public static final int INT_BYTE_SIZE = 4;
     private int memoryBlockCapacity;
     private boolean flagToReadFileId = true;
@@ -38,13 +38,13 @@ public class DataHandler extends ChannelHandlerAdapter {
         nodeIdClient = getNodeId(senderIp);
         LOGGER.info("Connected to {}",senderIp);
         byteBuf = ctx.alloc().buffer(2000);
-        BossReplicaDataSender bossReplicaDataSender = BossReplicaDataSender.INSTANCE;
-        nodeIdToCurrentMemoryArrayLastByteIndexMap = bossReplicaDataSender.getNodeIdToCurrentMemoryArrayLastByteIndexMap();
-        nodeIdToCurrentMemoryArrayIndexMap = bossReplicaDataSender.getNodeIdToCurrentMemoryArrayIndexMap();
-        nodeIdToMemoryArraysMap = bossReplicaDataSender.getNodeIdToMemoryArraysMap();
-        nodeIdToMemoryArrayLastByteIndex = bossReplicaDataSender.getNodeIdToMemoryArrayLastByteIndex();
-        nodeIdToMemoryArrayStatusMap = bossReplicaDataSender.getNodeIdToMemoryArrayStatusMap();
-        memoryBlockCapacity = bossReplicaDataSender.getMemoryBlockCapacity();
+        ReplicaDataSender replicaDataSender = ReplicaDataSender.INSTANCE;
+        nodeIdToCurrentMemoryArrayLastByteIndexMap = replicaDataSender.getNodeIdToCurrentMemoryArrayLastByteIndexMap();
+        nodeIdToCurrentMemoryArrayIndexMap = replicaDataSender.getNodeIdToCurrentMemoryArrayIndexMap();
+        nodeIdToMemoryArraysMap = replicaDataSender.getNodeIdToMemoryArraysMap();
+        nodeIdToMemoryArrayLastByteIndex = replicaDataSender.getNodeIdToMemoryArrayLastByteIndex();
+        nodeIdToMemoryArrayStatusMap = replicaDataSender.getNodeIdToMemoryArrayStatusMap();
+        memoryBlockCapacity = replicaDataSender.getMemoryBlockCapacity();
         requestHandlersCache = RequestHandlersCache.INSTANCE;
     }
 
@@ -150,11 +150,11 @@ public class DataHandler extends ChannelHandlerAdapter {
     private void switchMemoryArray(int nodeId, int currentIndex) {
         int currentMemoryArray = nodeIdToCurrentMemoryArrayIndexMap.get(nodeId);
         nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArray] = currentIndex;
-        nodeIdToMemoryArrayStatusMap.get(nodeId)[currentMemoryArray] = BossReplicaDataSender.Status.ENABLE_BLOCK_READ;
+        nodeIdToMemoryArrayStatusMap.get(nodeId)[currentMemoryArray] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
         nodeIdToCurrentMemoryArrayIndexMap.put(nodeId, null);
         while (nodeIdToCurrentMemoryArrayIndexMap.get(nodeId) == null) {
             for (int j = 0; j < nodeIdToMemoryArraysMap.get(nodeId).length; j++) {
-                if (nodeIdToMemoryArrayStatusMap.get(nodeId)[j] == BossReplicaDataSender.Status.ENABLE_BLOCK_WRITE) {
+                if (nodeIdToMemoryArrayStatusMap.get(nodeId)[j] == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE) {
                     nodeIdToCurrentMemoryArrayIndexMap.put(nodeId, j);
                     break;
                 }

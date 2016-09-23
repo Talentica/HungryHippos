@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.master.data;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -47,7 +44,6 @@ public class DataProvider {
 
   private static BucketsCalculator bucketsCalculator;
   private static String BAD_RECORDS_FILE;
-  private static Random random;
 
   private static Map<Integer,String> loadServers(NodesManager nodesManager) throws Exception {
     LOGGER.info("Load the server form the configuration file");
@@ -60,15 +56,6 @@ public class DataProvider {
     }
     LOGGER.info("There are {} servers", servers.size());
     return servers;
-    /*ArrayList<String> servers = new ArrayList<>();
-    ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
-    List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
-    for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
-      String server = node.getIp() + ServerUtils.COLON + node.getPort();
-      servers.add(server);
-    }
-    LOGGER.info("There are {} servers", servers.size());
-    return servers.toArray(new String[servers.size()]);*/
   }
 
   public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
@@ -97,21 +84,12 @@ public class DataProvider {
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
     Map<Integer,Socket> sockets = new HashMap<>();
-    DataOutputStream dos = null;
-    byte[] destinationPathInBytes = destinationPath.getBytes(Charset.defaultCharset());
-    int destinationPathLength = destinationPathInBytes.length;
-    
     for(Integer nodeId : servers.keySet()){
       String server = servers.get(nodeId);
       Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
       sockets.put(nodeId, socket);
       BufferedOutputStream bos = new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
       targets.put(nodeId, bos);
-      dos = new DataOutputStream(sockets.get(nodeId).getOutputStream());
-      dos.writeInt(destinationPathLength);
-      dos.flush();
-      targets.get(nodeId).write(destinationPathInBytes);
-      targets.get(nodeId).flush();
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -122,8 +100,10 @@ public class DataProvider {
     int lineNo = 0;
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
-    random = ThreadLocalRandom.current();
     int flushTriggerCount = 0;
+    //TODO generate fileId and update zookeeper
+    int fileId = 0;
+    byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -156,6 +136,7 @@ public class DataProvider {
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
       Iterator<Node> nodeIterator= nodes.iterator();
       Node receivingNode = nodeIterator.next();
+      targets.get(receivingNode.getNodeId()).write(fileIdInBytes);
       for (int i = 1; i < keyOrder.length; i++) {
         byte nodeId = (byte) nodeIterator.next().getNodeId();
         targets.get(receivingNode.getNodeId()).write(nodeId);
@@ -171,6 +152,7 @@ public class DataProvider {
     }
     fileWriter.close();
     for(Integer nodeId : targets.keySet()){
+      sendEndOfFileSignal(fileIdInBytes, buf, keyOrder, targets, nodeId);
       targets.get(nodeId).flush();
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
@@ -180,6 +162,15 @@ public class DataProvider {
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));
     LOGGER.info("Time taken in lookup: " + (timeForLookup));
 
+  }
+
+  private static void sendEndOfFileSignal(byte[] fileIdInBytes, byte[] buf, String[] keyOrder, Map<Integer, OutputStream> targets, Integer nodeId) throws IOException {
+    targets.get(nodeId).write(fileIdInBytes);
+    byte nodeIdByte = (byte) nodeId.intValue();
+    for (int i = 1; i < keyOrder.length; i++) {
+      targets.get(nodeId).write(nodeIdByte);
+    }
+    targets.get(nodeId).write(buf);
   }
 
   private static void init() throws FileNotFoundException, JAXBException {

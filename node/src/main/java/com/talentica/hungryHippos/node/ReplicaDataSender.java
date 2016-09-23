@@ -1,155 +1,154 @@
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
-
 import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by rajkishoreh on 8/9/16.
+ * Created by rajkishoreh on 22/9/16.
  */
-public class ReplicaDataSender extends Thread {
+public enum ReplicaDataSender {
+    INSTANCE;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReplicaDataSender.class);
+    private Map<Integer,BufferedOutputStream> nodeIdToBosMap;
+    private WorkerReplicaDataSender workerReplicaDataSender;
+    private Map<Integer,byte[][]> nodeIdToMemoryArraysMap;
+    private Map<Integer,Integer> nodeIdToCurrentMemoryArrayIndexMap;
+    private Map<Integer,Integer> nodeIdToCurrentMemoryArrayLastByteIndexMap;
+    private Map<Integer,int[]> nodeIdToMemoryArrayLastByteIndex;
+    private Map<Integer,Status[]> nodeIdToMemoryArrayStatusMap;
+    private int memoryBlockCapacity;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ReplicaDataSender.class);
-  private Socket socket;
-  private BufferedOutputStream bos;
-  private String destinationPath;
-  private boolean keepAlive = true;
-  private byte[][] memoryArrayBlocks;
-
-  public enum Status {
-    SENDING_BLOCK, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ
-  }
-
-  private Status[] memoryBlockStatus;
-
-  public ReplicaDataSender(String nodeIp, int port, String destinationPath, byte[][] memoryArrayBlocks)
-      throws IOException {
-    this.destinationPath = destinationPath;
-    this.memoryArrayBlocks = memoryArrayBlocks;
-    this.memoryBlockStatus = new Status[memoryArrayBlocks.length];
-    for (int i = 0; i < memoryArrayBlocks.length; i++) {
-      this.memoryBlockStatus[i] = Status.ENABLE_BLOCK_WRITE;
+    public enum Status {
+        SENDING_BLOCK, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ
     }
-    establishConnection(nodeIp, port);
-  }
 
-  /**
-   * @throws IOException
-   */
-  private void establishConnection(String nodeIp, int port) throws IOException {
-    LOGGER.info("Establishing Connections");
-
-    LOGGER.info("Connecting to {}", nodeIp);
-    byte[] destinationPathInBytes = destinationPath.getBytes(Charset.defaultCharset());
-    int destinationPathLength = destinationPathInBytes.length;
-    int noOfAttemptsToConnectToNode = DataPublisherApplicationContext.getNoOfAttemptsToConnectToNode();
-    while (true) {
-      try {
-        socket = new Socket(nodeIp, port);
-        break;
-      } catch (IOException e) {
-        if (noOfAttemptsToConnectToNode == 0) {
-          throw new RuntimeException("Couldn't connect to server " + nodeIp);
+    ReplicaDataSender(){
+        nodeIdToMemoryArraysMap = new HashMap<>();
+        nodeIdToCurrentMemoryArrayLastByteIndexMap = new HashMap<>();
+        nodeIdToCurrentMemoryArrayIndexMap = new HashMap<>();
+        List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+        memoryBlockCapacity = 10*1024*1024;
+        nodeIdToBosMap = new HashMap<>();
+        this.nodeIdToMemoryArrayLastByteIndex = new HashMap<>();
+        this.nodeIdToMemoryArrayStatusMap = new HashMap<>();
+        int memoryArraySize = 10;
+        for (Node node : nodes) {
+            String nodeIp = node.getIp();
+            if (!nodeIp.equals(NodeInfo.INSTANCE.getIp())) {
+                initialize(memoryArraySize, node);
+            }
         }
-        LOGGER.error(e.toString());
-        LOGGER.info("Retrying connection after 1 second");
+        workerReplicaDataSender = new WorkerReplicaDataSender();
+        workerReplicaDataSender.start();
+    }
+
+    private void initialize(int memoryArraySize, Node node) {
+        int nodeId = node.getIdentifier();
+        nodeIdToCurrentMemoryArrayLastByteIndexMap.put(nodeId, 0);
+        byte[][] memoryArrayBlock = new byte[memoryArraySize][];
+        nodeIdToMemoryArraysMap.put(nodeId, memoryArrayBlock);
+        this.nodeIdToMemoryArrayLastByteIndex.put(nodeId,new int[memoryArraySize]);
+        Status[] statuses = new Status[memoryArraySize];
+        for (int j = 0; j < memoryArraySize; j++) {
+            nodeIdToMemoryArraysMap.get(nodeId)[j] = new byte[memoryBlockCapacity];
+            statuses[j] = Status.ENABLE_BLOCK_WRITE;
+        }
+        this.nodeIdToMemoryArrayStatusMap.put(nodeId,statuses);
+        nodeIdToCurrentMemoryArrayIndexMap.put(nodeId, 0);
+        Socket socket = NodeConnectionPool.INSTANCE.getNodeConnectionMap().get(nodeId);
+        BufferedOutputStream bos = null;
         try {
-          Thread.sleep(DataPublisherApplicationContext.getServersConnectRetryIntervalInMs());
-        } catch (InterruptedException e1) {
-          LOGGER.error(e1.toString());
+            bos = new BufferedOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            LOGGER.info(e.toString());
+            throw new RuntimeException(e);
         }
-        noOfAttemptsToConnectToNode--;
-      }
+        nodeIdToBosMap.put(nodeId,bos);
     }
-    DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-    bos = new BufferedOutputStream(socket.getOutputStream(), 8388608);
-    dos.writeInt(destinationPathLength);
-    dos.flush();
-    bos.write(destinationPathInBytes);
-    bos.flush();
-    LOGGER.info("Connected to {}", nodeIp);
-    LOGGER.info("Established Connections");
-  }
+
+    private class WorkerReplicaDataSender extends Thread {
+
+        private boolean keepAlive = true;
+
+        @Override
+        public void run() {
+            LOGGER.info("Started publishing replica data");
+            while (keepAlive) {
+                try {
+                    publishReplicaData();
+                } catch (IOException e) {
+                    LOGGER.error(e.toString());
+                    throw new RuntimeException(e);
+                }
+            }
+            try {
+                publishReplicaData();
+            } catch (IOException e) {
+                LOGGER.error(e.toString());
+            }
+            LOGGER.info("Completed publishing replica data");
+        }
+
+        /**
+         * Publishes the replica data to the all the other nodes
+         *
+         * @throws IOException
+         */
+        private void publishReplicaData() throws IOException {
+            for(Map.Entry<Integer,Status[]> entry:nodeIdToMemoryArrayStatusMap.entrySet()){
+                Status[] statuses = entry.getValue();
+                int nodeId = entry.getKey();
+                for (int i = 0; i < statuses.length; i++) {
+                    if(statuses[i]==Status.ENABLE_BLOCK_READ){
+                        statuses[i]=Status.SENDING_BLOCK;
+                        nodeIdToBosMap.get(nodeId).write(nodeIdToMemoryArraysMap.get(nodeId)[i],
+                                0, nodeIdToMemoryArrayLastByteIndex.get(nodeId)[i]);
+                        nodeIdToBosMap.get(nodeId).flush();
+                        statuses[i]=Status.ENABLE_BLOCK_WRITE;
+                    }
+
+                }
+            }
+        }
 
 
-  @Override
-  public void run() {
-    LOGGER.info("Started publishing replica data");
-    while (keepAlive) {
-      try {
-        publishReplicaData();
-      } catch (IOException e) {
-        LOGGER.error(e.toString());
-        throw new RuntimeException(e);
-      }
+        public void kill() {
+            keepAlive = false;
+        }
     }
-    try {
-      publishReplicaData();
-    } catch (IOException e) {
-      LOGGER.error(e.toString());
+
+    public Map<Integer, byte[][]> getNodeIdToMemoryArraysMap() {
+        return nodeIdToMemoryArraysMap;
     }
-    LOGGER.info("Completed publishing replica data");
-  }
 
-  /**
-   * Publishes the replica data to the all the other nodes
-   *
-   * @throws IOException
-   */
-  private void publishReplicaData() throws IOException {
-    for (int i = 0; i < memoryArrayBlocks.length; i++) {
-      if (memoryBlockStatus[i] == Status.ENABLE_BLOCK_READ) {
-        memoryBlockStatus[i] = Status.SENDING_BLOCK;
-        bos.write(memoryArrayBlocks[i]);
-        bos.flush();
-        memoryBlockStatus[i] = Status.ENABLE_BLOCK_WRITE;
-      }
+    public Map<Integer, Integer> getNodeIdToCurrentMemoryArrayIndexMap() {
+        return nodeIdToCurrentMemoryArrayIndexMap;
     }
-  }
 
-  public void publishRemainingReplicaData(int length, int blockIdx) throws IOException {
-    bos.write(memoryArrayBlocks[blockIdx], 0, length);
-    bos.flush();
-  }
-
-
-  public void kill() {
-    keepAlive = false;
-  }
-
-  public Status getMemoryBlockStatus(int blockIdx) {
-    return memoryBlockStatus[blockIdx];
-  }
-
-  public void setMemoryBlockStatus(Status memoryBlock1Status, int blockIdx) {
-    this.memoryBlockStatus[blockIdx] = memoryBlock1Status;
-  }
-
-  public void closeConnection() {
-    try {
-      if (bos != null) {
-        bos.flush();
-        bos.close();
-      }
-      if (socket != null) {
-        socket.close();
-      }
-    } catch (IOException e) {
-      LOGGER.error(e.toString());
+    public Map<Integer, Integer> getNodeIdToCurrentMemoryArrayLastByteIndexMap() {
+        return nodeIdToCurrentMemoryArrayLastByteIndexMap;
     }
-    LOGGER.info("Closed connections");
-  }
 
+    public int getMemoryBlockCapacity() {
+        return memoryBlockCapacity;
+    }
 
-  public void clearReferences() {
-    memoryArrayBlocks = null;
-    memoryBlockStatus = null;
-  }
+    public Map<Integer, int[]> getNodeIdToMemoryArrayLastByteIndex() {
+        return nodeIdToMemoryArrayLastByteIndex;
+    }
+
+    public Map<Integer, Status[]> getNodeIdToMemoryArrayStatusMap() {
+        return nodeIdToMemoryArrayStatusMap;
+    }
+
 }

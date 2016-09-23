@@ -25,8 +25,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class DataReceiver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
-
-  public static final String REQUEST_DETAILS_HANDLER = "REQUEST_DETAILS_HANDLER";
   public static final String DATA_HANDLER = "DATA_HANDLER";
 
   private int port;
@@ -56,7 +54,7 @@ public class DataReceiver {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
-          pipeline.addLast(REQUEST_DETAILS_HANDLER, new RequestDetailsHandler(nodeId));
+          pipeline.addLast(DATA_HANDLER, new DataHandler());
         }
       });
       LOGGER.info("binding to port " + port);

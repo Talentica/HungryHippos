@@ -14,7 +14,7 @@
 		<sequence>
 			<element name="tick-time" type="string" default="5000" />
 			<element name="retry" type="string" default="5" />
-			<element name="namespace-path" type="string" default="rootnode" />
+			<element name="namespace-path" type="string" default="/rootnode" />
 			<element name="host-path" type="string" default="/rootnode/hostsnode" />
 			<element name="alert-path" type="string" default="/rootnode/alertsnode" />
 			<element name="filesystem-path" type="string" default="/rootnode/file-system" />

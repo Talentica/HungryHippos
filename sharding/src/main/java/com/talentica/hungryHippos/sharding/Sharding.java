@@ -3,15 +3,7 @@ package com.talentica.hungryHippos.sharding;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 
@@ -54,21 +46,18 @@ public class Sharding {
       new HashMap<>();
 private ShardingApplicationContext context;
 private BucketsCalculator bucketsCalculator;
+  private String[] keys;
 
   public Sharding(ClusterConfig clusterConfig,ShardingApplicationContext context) {
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
+    keys = context.getShardingDimensions();
     List<com.talentica.hungryhippos.config.cluster.Node> clusterNodes = clusterConfig.getNode();
     for(com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes){
       Node node = new Node(300000, clusterNode.getIdentifier());
       fillupQueue.offer(node);
       nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
     }
-    /*for (int i = 0; i < clusterConfig.getNode().size(); i++) {
-      Node node = new Node(300000, i);
-      fillupQueue.offer(node);
-      nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
-    }*/
   }
 
   public void doSharding(Reader input)
@@ -351,10 +340,9 @@ private BucketsCalculator bucketsCalculator;
     if (keyName == null) {
       // exit case
       // lets check which nodes it goes.
-      Set<Node> nodesForBucketCombination = new HashSet<>();
-      for (Map.Entry<String, Bucket<KeyValueFrequency>> buckets : source.getBucketsCombination()
-          .entrySet()) {
-        Node n = bucketToNodeNumberMap.get(buckets.getKey()).get(buckets.getValue());
+      Set<Node> nodesForBucketCombination = new LinkedHashSet<>();
+      for (int i = keys.length -1; i >= 0; i--) {
+        Node n = bucketToNodeNumberMap.get(keys[i]).get(source.getBucketsCombination().get(keys[i]));
         if (n != null) {
           nodesForBucketCombination.add(n);
         }

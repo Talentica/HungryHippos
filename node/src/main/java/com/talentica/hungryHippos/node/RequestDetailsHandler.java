@@ -61,11 +61,8 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
       filePathLength = byteBuf.readInt();
       isFilePathLengthRead = true;
     }
-    if (byteBuf.readableBytes() >= filePathLength + 1 && isFilePathLengthRead) {
-
+    if (byteBuf.readableBytes() >= filePathLength && isFilePathLengthRead) {
       String hhFilePath = readHHFilePath();
-      byte[] senderType = new byte[1];
-      byteBuf.readBytes(senderType);
       byte[] remainingBufferData = new byte[byteBuf.readableBytes()];
       byteBuf.readBytes(remainingBufferData);
 
@@ -78,29 +75,18 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
       dataDescription.setKeyOrder(context.getShardingDimensions());
       NodeUtil nodeUtil = new NodeUtil(hhFilePath);
       String senderIp = ctx.channel().remoteAddress().toString();
-      String nodeFileName =
-          senderType[0] == (byte) 1 ? NodeInfo.INSTANCE.getId() : getNodeId(senderIp);
+      String nodeFileName = getNodeId(senderIp);
       DataStore dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
           dataDescription, hhFilePath, nodeId, context,nodeFileName);
       ctx.pipeline().remove(DataReceiver.REQUEST_DETAILS_HANDLER);
-
-
-      if (senderType[0] == (byte) 1) {
-        LOGGER.info("SenderType Client");
         ctx.pipeline().addLast(DataReceiver.DATA_HANDLER, new ClientDataReadHandler(dataDescription,
             dataStore, remainingBufferData, nodeUtil, context));
-      } else {
-        LOGGER.info("SenderType Node");
-        ctx.pipeline().addLast(DataReceiver.DATA_HANDLER, new DataReadHandler(dataDescription,
-            dataStore, remainingBufferData, nodeUtil, context));
-      }
-
     }
   }
 
   /**
    * Updates the sharding files if required
-   * 
+   *
    * @param shardingTableFolderPath
    * @throws IOException
    */
@@ -120,7 +106,7 @@ public class RequestDetailsHandler extends ChannelHandlerAdapter {
 
   /**
    * Returns HHFilePath using the filePathLength
-   * 
+   *
    * @return
    */
   private String readHHFilePath() {

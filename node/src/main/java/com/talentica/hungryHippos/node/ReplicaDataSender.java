@@ -21,7 +21,7 @@ public class ReplicaDataSender extends Thread {
   private BufferedOutputStream bos;
   private String destinationPath;
   private boolean keepAlive = true;
-  private byte[][] memoryBlocks;
+  private byte[][] memoryArrayBlocks;
 
   public enum Status {
     SENDING_BLOCK, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ
@@ -29,12 +29,12 @@ public class ReplicaDataSender extends Thread {
 
   private Status[] memoryBlockStatus;
 
-  public ReplicaDataSender(String nodeIp, int port, String destinationPath, byte[][] memoryBlocks)
+  public ReplicaDataSender(String nodeIp, int port, String destinationPath, byte[][] memoryArrayBlocks)
       throws IOException {
     this.destinationPath = destinationPath;
-    this.memoryBlocks = memoryBlocks;
-    this.memoryBlockStatus = new Status[memoryBlocks.length];
-    for (int i = 0; i < memoryBlocks.length; i++) {
+    this.memoryArrayBlocks = memoryArrayBlocks;
+    this.memoryBlockStatus = new Status[memoryArrayBlocks.length];
+    for (int i = 0; i < memoryArrayBlocks.length; i++) {
       this.memoryBlockStatus[i] = Status.ENABLE_BLOCK_WRITE;
     }
     establishConnection(nodeIp, port);
@@ -73,7 +73,6 @@ public class ReplicaDataSender extends Thread {
     dos.writeInt(destinationPathLength);
     dos.flush();
     bos.write(destinationPathInBytes);
-    bos.write((byte) -1);
     bos.flush();
     LOGGER.info("Connected to {}", nodeIp);
     LOGGER.info("Established Connections");
@@ -105,10 +104,10 @@ public class ReplicaDataSender extends Thread {
    * @throws IOException
    */
   private void publishReplicaData() throws IOException {
-    for (int i = 0; i < memoryBlocks.length; i++) {
+    for (int i = 0; i < memoryArrayBlocks.length; i++) {
       if (memoryBlockStatus[i] == Status.ENABLE_BLOCK_READ) {
         memoryBlockStatus[i] = Status.SENDING_BLOCK;
-        bos.write(memoryBlocks[i]);
+        bos.write(memoryArrayBlocks[i]);
         bos.flush();
         memoryBlockStatus[i] = Status.ENABLE_BLOCK_WRITE;
       }
@@ -116,7 +115,7 @@ public class ReplicaDataSender extends Thread {
   }
 
   public void publishRemainingReplicaData(int length, int blockIdx) throws IOException {
-    bos.write(memoryBlocks[blockIdx], 0, length);
+    bos.write(memoryArrayBlocks[blockIdx], 0, length);
     bos.flush();
   }
 
@@ -150,7 +149,7 @@ public class ReplicaDataSender extends Thread {
 
 
   public void clearReferences() {
-    memoryBlocks = null;
+    memoryArrayBlocks = null;
     memoryBlockStatus = null;
   }
 }

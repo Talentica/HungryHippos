@@ -7,11 +7,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
@@ -115,7 +111,6 @@ public class DataProvider {
       dos.writeInt(destinationPathLength);
       dos.flush();
       targets.get(nodeId).write(destinationPathInBytes);
-      targets.get(nodeId).write((byte)1);
       targets.get(nodeId).flush();
     }
 
@@ -128,7 +123,6 @@ public class DataProvider {
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
     random = ThreadLocalRandom.current();
-    byte[] nextNodesInfo = new byte[DataPublisherStarter.getContext().getShardingDimensions().length-1];
     int flushTriggerCount = 0;
     while (true) {
       DataTypes[] parts = null;
@@ -160,21 +154,13 @@ public class DataProvider {
 
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      int randomNodeIndex = random.nextInt(nodes.size());
-      int setIndex = 0;
-      int nextNodesInfoIndex = 0;
-      Node randomNode = null;
-      for(Node node:nodes){
-        if(setIndex==randomNodeIndex){
-          randomNode = node;
-        }else{
-          nextNodesInfo[nextNodesInfoIndex] = (byte)node.getNodeId();
-          nextNodesInfoIndex++;
-        }
-        setIndex++;
+      Iterator<Node> nodeIterator= nodes.iterator();
+      Node receivingNode = nodeIterator.next();
+      for (int i = 1; i < keyOrder.length; i++) {
+        byte nodeId = (byte) nodeIterator.next().getNodeId();
+        targets.get(receivingNode.getNodeId()).write(nodeId);
       }
-      targets.get(randomNode.getNodeId()).write(nextNodesInfo);
-      targets.get(randomNode.getNodeId()).write(buf);
+      targets.get(receivingNode.getNodeId()).write(buf);
       flushTriggerCount++;
       if(flushTriggerCount>100000){
         for(Integer nodeId : targets.keySet()){

@@ -27,7 +27,6 @@ import io.netty.channel.ChannelPromise;
  */
 public class ClientDataReadHandler extends ChannelHandlerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientDataReadHandler.class);
-    private DataDescription dataDescription;
     private byte[] buf;
     private byte[] previousHandlerUnprocessedData;
     private byte[] bufferForReset;
@@ -38,20 +37,17 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
     private int recordSize;
     private byte[] nextNodesInfo;
     private int replicaNodesInfoDataSize;
-    private int dataSize;
     private Map<Integer,ReplicaDataSender> replicaDataSenders;
-    private Map<Integer,byte[][]> memoryBlocks;
-    //private byte[][][] memoryBlocks;
-    private Map<Integer,Integer> currentMemoryBlockId;
-    private Map<Integer,Integer> blockRecordCount;
-    private int maxNoOfRecords;
+    private Map<Integer,byte[][]> nodeIdToMemoryArrayBlocksMap;
+    private Map<Integer,Integer> nodeIdToCurrentMemoryBlockMap;
+    private Map<Integer,Integer> nodeIdToCurrentMemoryBlockIndexMap;
+    private int memoryBlockCapacity;
 
     public ClientDataReadHandler(DataDescription dataDescription, DataStore dataStore,
                                  byte[] remainingBufferData, NodeUtil nodeUtil, ShardingApplicationContext context)
             throws IOException {
         LOGGER.info("Inside ClientDataReadHandler Constructor");
         this.previousHandlerUnprocessedData = remainingBufferData;
-        this.dataDescription = dataDescription;
         this.buf = new byte[dataDescription.getSize()];
         byteBuffer = ByteBuffer.wrap(this.buf);
         this.dataStore = dataStore;
@@ -63,27 +59,26 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
                 nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
         List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         replicaDataSenders = new HashMap<Integer,ReplicaDataSender>();
-        dataSize = dataDescription.getSize();
         nextNodesInfo = new byte[replicaNodesInfoDataSize];
-        maxNoOfRecords = DataPublisherApplicationContext.getMaxRecordBufferSize();
-        memoryBlocks = new HashMap<Integer,byte[][]>();
-        //memoryBlocks = new byte[nodes.size()][20][];
-        blockRecordCount = new HashMap<Integer,Integer>();
-        currentMemoryBlockId = new HashMap<Integer,Integer>();
+        int maxNoOfRecords = DataPublisherApplicationContext.getMaxRecordBufferSize();
+        memoryBlockCapacity = maxNoOfRecords*recordSize;
+        nodeIdToMemoryArrayBlocksMap = new HashMap<Integer,byte[][]>();
+        nodeIdToCurrentMemoryBlockIndexMap = new HashMap<Integer,Integer>();
+        nodeIdToCurrentMemoryBlockMap = new HashMap<Integer,Integer>();
+        int memoryArraySize = 10;
         for (Node node : nodes) {
             String nodeIp = node.getIp();
-            
             if (!nodeIp.equals(NodeInfo.INSTANCE.getIp())) {
                 int nodeId = node.getIdentifier();
                 int port = Integer.parseInt(node.getPort());
-                blockRecordCount.put(nodeId, 0);
-                byte[][] nodeMemoryBlocks = new byte[20][];
-                memoryBlocks.put(nodeId, nodeMemoryBlocks);
-                for (int j = 0; j < 20; j++) {
-                    memoryBlocks.get(nodeId)[j] = new byte[dataSize * maxNoOfRecords];
+                nodeIdToCurrentMemoryBlockIndexMap.put(nodeId, 0);
+                byte[][] memoryArrayBlock = new byte[memoryArraySize][];
+                nodeIdToMemoryArrayBlocksMap.put(nodeId, memoryArrayBlock);
+                for (int j = 0; j < memoryArraySize; j++) {
+                    nodeIdToMemoryArrayBlocksMap.get(nodeId)[j] = new byte[memoryBlockCapacity];
                 }
-                currentMemoryBlockId.put(nodeId, 0);
-                replicaDataSenders.put(nodeId, new ReplicaDataSender(nodeIp, port, dataStore.getHungryHippoFilePath(), memoryBlocks.get(nodeId)));
+                nodeIdToCurrentMemoryBlockMap.put(nodeId, 0);
+                replicaDataSenders.put(nodeId, new ReplicaDataSender(nodeIp, port, dataStore.getHungryHippoFilePath(), nodeIdToMemoryArrayBlocksMap.get(nodeId)));
                 replicaDataSenders.get(nodeId).start();
             }
         }
@@ -105,7 +100,7 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
           if (replicaDataSenders.get(nodeId) != null) {
             replicaDataSenders.get(nodeId).kill();
             replicaDataSenders.get(nodeId).join();
-            replicaDataSenders.get(nodeId).publishRemainingReplicaData(blockRecordCount.get(nodeId)*dataSize, currentMemoryBlockId.get(nodeId));
+            replicaDataSenders.get(nodeId).publishRemainingReplicaData(nodeIdToCurrentMemoryBlockIndexMap.get(nodeId), nodeIdToCurrentMemoryBlockMap.get(nodeId));
             replicaDataSenders.get(nodeId).closeConnection();
             replicaDataSenders.get(nodeId).clearReferences();
         }
@@ -115,9 +110,9 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
         byteBuf = null;
         ctx.channel().close();
         nextNodesInfo = null;
-        memoryBlocks = null;
-        currentMemoryBlockId = null;
-        blockRecordCount= null;
+        nodeIdToMemoryArrayBlocksMap = null;
+        nodeIdToCurrentMemoryBlockMap = null;
+        nodeIdToCurrentMemoryBlockIndexMap = null;
         LOGGER.info("Exiting handlerRemoved");
     }
 
@@ -152,11 +147,20 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
             byteBuf.readBytes(nextNodesInfo);
             byteBuf.readBytes(buf);
             for (int i = 0; i < replicaNodesInfoDataSize; i++) {
-                int nodeId = (int) nextNodesInfo[i];
-                System.arraycopy(buf, 0, memoryBlocks.get(nodeId)[currentMemoryBlockId.get(nodeId)], blockRecordCount.get(nodeId) * dataSize, dataSize);
-                blockRecordCount.put(nodeId, blockRecordCount.get(nodeId) + 1);
-                if (blockRecordCount.get(nodeId) == maxNoOfRecords) {
-                    switchBlock(nodeId);
+                if(nextNodesInfo[i]!=(byte)-1){
+                    int nodeId = (int) nextNodesInfo[i];
+                    int currentIndex = nodeIdToCurrentMemoryBlockIndexMap.get(nodeId);
+                    byte[] currentMemoryBlock = nodeIdToMemoryArrayBlocksMap.get(nodeId)[nodeIdToCurrentMemoryBlockMap.get(nodeId)];
+                    for (int j = 0; j <= i; j++) {
+                        currentMemoryBlock[currentIndex+j] = (byte) -1;
+                    }
+                    System.arraycopy(nextNodesInfo,i+1,currentMemoryBlock,currentIndex+i+1, replicaNodesInfoDataSize-(i+1));
+                    System.arraycopy(buf,0,currentMemoryBlock,currentIndex+replicaNodesInfoDataSize,buf.length);
+                    nodeIdToCurrentMemoryBlockIndexMap.put(nodeId, currentIndex + recordSize);
+                    if (nodeIdToCurrentMemoryBlockIndexMap.get(nodeId) >= memoryBlockCapacity) {
+                        switchMemoryBlock(nodeId);
+                    }
+                    break;
                 }
             }
             int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
@@ -165,18 +169,18 @@ public class ClientDataReadHandler extends ChannelHandlerAdapter {
 
     }
 
-    private void switchBlock(int nodeId){
-        replicaDataSenders.get(nodeId).setMemoryBlockStatus(ReplicaDataSender.Status.ENABLE_BLOCK_READ, currentMemoryBlockId.get(nodeId));
-        currentMemoryBlockId.put(nodeId, -1);
-        while (currentMemoryBlockId.get(nodeId)==-1) {
-            for (int j = 0; j < memoryBlocks.get(nodeId).length; j++) {
+    private void switchMemoryBlock(int nodeId){
+        replicaDataSenders.get(nodeId).setMemoryBlockStatus(ReplicaDataSender.Status.ENABLE_BLOCK_READ, nodeIdToCurrentMemoryBlockMap.get(nodeId));
+        nodeIdToCurrentMemoryBlockMap.put(nodeId, null);
+        while (nodeIdToCurrentMemoryBlockMap.get(nodeId)==null) {
+            for (int j = 0; j < nodeIdToMemoryArrayBlocksMap.get(nodeId).length; j++) {
                 if(replicaDataSenders.get(nodeId).getMemoryBlockStatus(j) == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE){
-                    currentMemoryBlockId.put(nodeId, j);
+                    nodeIdToCurrentMemoryBlockMap.put(nodeId, j);
                     break;
                 }
             }
         }
-        blockRecordCount.put(nodeId, 0);
+        nodeIdToCurrentMemoryBlockIndexMap.put(nodeId, 0);
     }
 
 

@@ -52,7 +52,7 @@ public class FileDataStore implements DataStore, Serializable {
 
   public FileDataStore(int numDimensions, DataDescription dataDescription,
       String hungryHippoFilePath, String nodeId, boolean readOnly,
-      ShardingApplicationContext context, String fileName) throws IOException {
+      ShardingApplicationContext context,String fileName) throws IOException {
     this.context = context;
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
@@ -80,6 +80,12 @@ public class FileDataStore implements DataStore, Serializable {
     }
   }
 
+  public FileDataStore(int numDimensions, DataDescription dataDescription,
+      String hungryHippoFilePath, String nodeId, boolean readOnly,
+      ShardingApplicationContext context) throws IOException{
+    this(numDimensions, dataDescription,
+        hungryHippoFilePath, nodeId, readOnly, context,"<fileName>");
+  }
 
   @Override
   public void storeRow(int storeId, byte[] raw) {

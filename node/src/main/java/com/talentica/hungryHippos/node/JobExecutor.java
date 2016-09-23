@@ -129,7 +129,7 @@ public class JobExecutor {
     dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
-        inputHHPath, NodeInfo.INSTANCE.getId(), true, context,"<fileName>");
+        inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
     return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }
 

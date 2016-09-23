@@ -21,6 +21,7 @@
 			<element name="sharding-table-path" type="string" default="/rootnode/sharding-table" />
 			<element name="job-config-path" type="string" default="/rootnode/job-config" />
 			<element name="job-status-path" type="string" default="/rootnode/job-status" />
+			<element name="fileid-hhfs-map-path" type="string" default="/rootnode/fileid-hhfs-map" />
 			<element name="cleanup" type="string" default="Y" />
 		</sequence>
 	</complexType>

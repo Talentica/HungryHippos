@@ -167,6 +167,7 @@ public class NodesManager implements Watcher {
         + ZkUtils.zkPathSeparator + PathEnum.COMPLETED_JOB_NODES.getPathName());
     pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
         + ZkUtils.zkPathSeparator + PathEnum.FAILED_JOB_NODES.getPathName());
+    pathMap.put(PathEnum.FILEID_HHFS_MAP.name(), zookeeperDefaultConfig.getFileidHhfsMapPath());
 
     zkConfiguration = new ZookeeperConfiguration(pathMap);
     return zkConfiguration;
@@ -222,29 +223,9 @@ public class NodesManager implements Watcher {
    */
   public void defaultNodesOnStart() throws IOException {
     createServersMap();
-    createPersistentNode(
-        ZkUtils.zkPathSeparator + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_CONFIG.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()), null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()),
-        null);
-    createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()),
-        null);
+    for(String key : zkConfiguration.getPathMap().keySet()){
+      createPersistentNode(zkConfiguration.getPathMap().get(key),null);
+    }
   }
 
   /**
@@ -258,6 +239,16 @@ public class NodesManager implements Watcher {
   public void createPersistentNode(final String node, CountDownLatch signal, Object... data)
       throws IOException {
     createNode(node, signal, CreateMode.PERSISTENT, data);
+  }
+  
+  public void createPersistentNodeSeq(final String node, CountDownLatch signal, String data) throws KeeperException, InterruptedException{
+    createNodeSeq(node,signal,CreateMode.PERSISTENT,data);
+  }
+  
+  private void createNodeSeq(final String node, CountDownLatch signal, CreateMode createMode,
+      String data) throws KeeperException, InterruptedException{
+    zk.create(node, (data != null && data.length() != 0) ? data.getBytes() : null,
+        ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
   }
 
   public void createPersistentNodeSync(final String node) throws IOException, InterruptedException {
@@ -895,5 +886,9 @@ public class NodesManager implements Watcher {
 
   public void asyncNodeExists(String nodePath, CountDownLatch signal) {
     zk.exists(nodePath, this, ZkUtils.checkStatNodeExists(signal), null);
+  }
+  
+  public byte[] getZkNodeData(String zkPath) throws KeeperException, InterruptedException{
+    return zk.getData(zkPath, false, null);
   }
 }

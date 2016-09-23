@@ -9,6 +9,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +19,7 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
@@ -62,6 +65,8 @@ public class DataProvider {
       String sourcePath, String destinationPath) throws Exception {
     init();
     long start = System.currentTimeMillis();
+    String fileIdToHHpath = CoordinationConfigUtil.getZkCoordinationConfigCache().
+        getZookeeperDefaultConfig().getFileidHhfsMapPath() + ZkUtils.zkPathSeparator;
     Map<Integer,String> servers = loadServers(nodesManager);
     FieldTypeArrayDataDescription dataDescription =
         DataPublisherStarter.getContext().getConfiguredDataDescription();
@@ -101,8 +106,7 @@ public class DataProvider {
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
     int flushTriggerCount = 0;
-    //TODO generate fileId and update zookeeper
-    int fileId = 0;
+    int fileId = fileIdToHHPathMap(fileIdToHHpath,destinationPath);
     byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
     while (true) {
       DataTypes[] parts = null;
@@ -157,6 +161,7 @@ public class DataProvider {
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
     }
+    ZkUtils.deleteZKNode(fileIdToHHpath + fileId);
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));
@@ -178,5 +183,21 @@ public class DataProvider {
         .getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
         DataPublisherStarter.getContext().getShardingServerConfig().getBadRecordsFileOut() + "_publisher.err";
+  }
+  
+  private static int fileIdToHHPathMap(String path,String inputHHPath){
+    int i = 0;
+    while(true){
+      try {
+          ZkUtils.createZKNodeSeq(path + i, inputHHPath);
+          return i;
+      } catch (KeeperException | InterruptedException e) {
+          if(e instanceof NodeExistsException){
+            i++;
+          }else{
+            throw new RuntimeException(e);
+          }
+        }
+      }
   }
 }

@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.KeeperException;
@@ -821,6 +822,17 @@ public class ZkUtils {
     }
   }
 
+  public static void createZKNodeSeq(String node,String data) throws KeeperException, InterruptedException{
+      NodesManager manager;
+      try {
+        manager = NodesManagerContext.getNodesManagerInstance();
+        CountDownLatch signal = new CountDownLatch(1);
+        manager.createPersistentNodeSeq(node, signal, data);
+        signal.await();
+        } catch (FileNotFoundException | JAXBException e) {
+          throw new RuntimeException(e);
+      }
+  }
   /**
    * Creates Zookeeper node if the it doesn't exist
    * 
@@ -885,6 +897,18 @@ public class ZkUtils {
       return configValue;
     } catch (IOException | KeeperException | InterruptedException | JAXBException
         | ClassNotFoundException e) {
+      LOGGER.error(e.toString());
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public static String getStringDataFromNode(String ... path){
+    String zkPath = StringUtils.join(path, zkPathSeparator);
+    try{
+      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      byte[] data = manager.getZkNodeData(zkPath);
+      return new String(data);
+    }catch (IOException | KeeperException | InterruptedException | JAXBException e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }

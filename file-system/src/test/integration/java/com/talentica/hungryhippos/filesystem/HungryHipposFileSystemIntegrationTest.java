@@ -45,8 +45,10 @@ public class HungryHipposFileSystemIntegrationTest {
      * 
      * nodesManager = Mockito.mock(NodesManager.class); zkProperty = Mockito.mock(Property.class);
      */
+
     NodesManager nodeManager = NodesManagerContext.getNodesManagerInstance(
         "/home/sudarshans/RD/HH_NEW/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml");
+
     hhfs = HungryHipposFileSystem.getInstance();
   }
 
@@ -103,7 +105,9 @@ public class HungryHipposFileSystemIntegrationTest {
   @Test
   public void testGetData() {
     String s = hhfs.getData("test1");
+
     String s1 = hhfs.getNodeData("test1");
+
     assertNotNull(s);
   }
 
@@ -113,10 +117,13 @@ public class HungryHipposFileSystemIntegrationTest {
     try {
       String fileZKNode = "input";
       String fileSystemRootNodeZKPath = "/rootnode/filesystem";
+
       int dataFileZKNode = 0;
       long datafileSize = 1000L;
       String nodeIp = "localhost";
       String nodeId = "0";
+
+
       String fileNodeZKPath =
           fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
 
@@ -133,7 +140,11 @@ public class HungryHipposFileSystemIntegrationTest {
        * .thenReturn(fileSystemRootNodeZKPath);
        */
 
+
       hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, nodeId, datafileSize);
+
+      hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, datafileSize);
+
       assertTrue(true);
     } catch (Exception e) {
       e.printStackTrace();

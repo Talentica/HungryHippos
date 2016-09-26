@@ -6,6 +6,7 @@ repositories {
     mavenCentral()
 }
 
+configurations.compile { transitive = false }
 
 sourceSets {
     main {
@@ -19,12 +20,12 @@ ext {
 
 jar {
 	version=null
+	
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
-
     manifest {
         attributes("Main-Class": "com.talentica.hungryhippos.filesystem.main.CreateFileSystemInCluster" )
     }
@@ -33,11 +34,13 @@ jar {
 
 
 
+
 dependencies {	
 	compile project (':coordination')
 	compile project (':configuration-schema')
     compile 'com.google.code.findbugs:jsr305:3.0.0'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.3'
     testCompile 'junit:junit:4.12'
     compile 'org.slf4j:slf4j-api:1.7.10'
-    compile 'log4j:log4j:1.2.17'
+    compile 'log4j:log4j:1.2.17'    
 }

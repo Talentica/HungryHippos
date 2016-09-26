@@ -490,6 +490,18 @@ public class ZkUtils {
       LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: " + e.getMessage());
       LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
     }
+
+  }
+
+  public static Stat getStat(String nodePath) {
+
+    Stat stat = null;
+    try {
+      stat = zk.exists(nodePath, nodesManager);
+    } catch (KeeperException | InterruptedException e) {
+      LOGGER.error(e.getMessage());
+    }
+    return stat;
   }
 
   /**

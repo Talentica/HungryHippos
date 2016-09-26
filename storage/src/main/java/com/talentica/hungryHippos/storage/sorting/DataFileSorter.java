@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
@@ -40,47 +41,98 @@ public class DataFileSorter {
   private static DynamicMarshal dynamicMarshal;
   private final static String INPUT_DATAFILE_PRIFIX = "data_";
   private DataFileHeapSort dataFileHeapSort;
+  private int[] shardDims;
+  int[] sortOrderDims;
+  private String dataDir;
+  private String shardingDir;
+  private DataFileSorter dataFileSorted;
+  private int numFiles;
 
-  public DataFileSorter() throws ClassNotFoundException, FileNotFoundException, KeeperException,
-      InterruptedException, IOException, JAXBException {
+  public DataFileSorter(String dataDir, String shardingDir) throws ClassNotFoundException,
+      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+    context = new ShardingApplicationContext(shardingDir);
+    shardDims = context.getShardingIndexes();
     dynamicMarshal = getDynamicMarshal();
     comparator = new DataFileComparator(dynamicMarshal, dataDescription.getSize());
-    comparator.setDimenstion(new int[] {0, 1, 2});
     dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal, comparator);
+    sortOrderDims = new int[shardDims.length];
+    this.dataDir = dataDir;
+    this.shardingDir = shardingDir;
+    numFiles = 1 << shardDims.length;
   }
 
-  public static void main(String[] args) throws IOException, InsufficientMemoryException,
-      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
-    long startTIme = System.currentTimeMillis();
-    DataInputStream in;
+  public static void main(String[] args) throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException, InsufficientMemoryException {
+    DataFileSorter sorter = new DataFileSorter(args[0], args[1]);
+    sorter.doSortingDefault();
+  }
+
+  /** To sort the data based on job's primary dimensions.
+   * 
+   * @param job
+   * @throws FileNotFoundException
+   * @throws ClassNotFoundException
+   * @throws IOException
+   * @throws InsufficientMemoryException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
+  public void doSortingJobWise(Job job)
+      throws FileNotFoundException, ClassNotFoundException, IOException,
+      InsufficientMemoryException, KeeperException, InterruptedException, JAXBException {
+    int primDims = job.getPrimaryDimension();
+    int keyIdBit = 1 << primDims;
     File inputFile;
-    validateArguments(args);
-    String dataDir = args[0];
-    String ouputDirPath = args[1];
-    String shardingDir = args[2];
-    context = new ShardingApplicationContext(shardingDir);
-    DataFileSorter dataFileSorted = new DataFileSorter();
-    int index = 0;
+    for (int fileId = 0; fileId < numFiles; fileId++) {
+      if ((keyIdBit & fileId) > 0) {
+        inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
+        doSorting(inputFile, primDims);
+      }
+    }
+  }
+
+  /** To do the sorting once the data is ready.
+   *   
+   * @throws IOException
+   * @throws InsufficientMemoryException
+   * @throws ClassNotFoundException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
+  public void doSortingDefault() throws IOException, InsufficientMemoryException,
+      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
-    File outputDir = new File(ouputDirPath);
-    while (true) {
-      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (index));
+    dataFileSorted = new DataFileSorter(dataDir, shardingDir);
+    File inputFile;
+    for (int fileId = 0; fileId < dataFileSorted.shardDims.length; fileId++) {
+      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (fileId << 1));
       if (!inputFile.exists()) {
         break;
       }
-      LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
-      in = new DataInputStream(new FileInputStream(inputFile));
       long dataSize = inputFile.length();
       if (dataSize <= 0) {
         continue;
       }
-      List<File> files =
-          dataFileSorted.sortInBatch(in, dataSize, outputDir, Charset.defaultCharset(), inputFile);
+      doSorting(inputFile, fileId);
+    }
+  }
 
-      if (files.size() > 1) { // merge should happen for at least two files
-        dataFileSorted.mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
-      }
-      index++;
+  private void doSorting(File inputFile, int key)
+      throws FileNotFoundException, IOException, InsufficientMemoryException,
+      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+    long startTIme = System.currentTimeMillis();
+    DataInputStream in = null;
+    File outputDir = new File(dataDir);
+    dataFileSorted.comparator
+        .setDimenstion(dataFileSorted.getSortingOrderDims(sortOrderDims, key << 1));
+    LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
+    in = new DataInputStream(new FileInputStream(inputFile));
+    List<File> files = dataFileSorted.sortInBatch(in, inputFile.length(), outputDir,
+        Charset.defaultCharset(), inputFile);
+    if (files.size() > 1) { // merge should happen for at least two files
+      dataFileSorted.mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
     }
     LOGGER.info("Completed file sorting and total time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
@@ -201,7 +253,7 @@ public class DataFileSorter {
   }
 
   private RandomAccessFile raf;
-  
+
   private int mergeSortedFiles(File outputfile, List<BinaryFileBuffer> buffers, boolean append)
       throws IOException {
     int rowcounter = 0;
@@ -250,8 +302,8 @@ public class DataFileSorter {
           return comparator.compare(i.peek().array(), j.peek().array());
         }
       });
-  
-  
+
+
 
   private long getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
       throws InsufficientMemoryException {
@@ -282,6 +334,13 @@ public class DataFileSorter {
     dataDescription.setKeyOrder(context.getShardingDimensions());
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
     return dynamicMarshal;
+  }
+
+  private int[] getSortingOrderDims(int[] sortOrderDims, int startPos) {
+    for (int i = 0; i < shardDims.length; i++) {
+      sortOrderDims[i] = shardDims[(i + startPos) % shardDims.length];
+    }
+    return sortOrderDims;
   }
 
   private static void validateArguments(String[] args) {

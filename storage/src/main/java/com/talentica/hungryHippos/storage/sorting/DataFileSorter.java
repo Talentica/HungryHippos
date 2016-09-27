@@ -85,7 +85,7 @@ public class DataFileSorter {
     int keyIdBit = 1 << primDims;
     File inputFile;
     for (int fileId = 0; fileId < numFiles; fileId++) {
-      if ((keyIdBit & fileId) > 0) {
+      if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
         inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
         doSorting(inputFile, primDims);
       }

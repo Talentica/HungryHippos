@@ -49,7 +49,6 @@ public class DataFileHeapSort {
   }
   
   private void copyChunkRowAt(int fromIndex, int toindex){
-    int counter = 0;
     int fromPosition = fromIndex * rowSize;
     int toPosition = toindex * rowSize;
     System.arraycopy(chunk, fromPosition, chunk, toPosition, rowSize);

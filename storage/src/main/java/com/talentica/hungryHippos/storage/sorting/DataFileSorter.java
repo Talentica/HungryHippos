@@ -42,7 +42,7 @@ public class DataFileSorter {
   private final static String INPUT_DATAFILE_PRIFIX = "data_";
   private DataFileHeapSort dataFileHeapSort;
   private int[] shardDims;
-  int[] sortOrderDims;
+  private int[] sortDims;
   private String dataDir;
   private String shardingDir;
   private DataFileSorter dataFileSorted;
@@ -55,7 +55,7 @@ public class DataFileSorter {
     dynamicMarshal = getDynamicMarshal();
     comparator = new DataFileComparator(dynamicMarshal, dataDescription.getSize());
     dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal, comparator);
-    sortOrderDims = new int[shardDims.length];
+    sortDims = new int[shardDims.length];
     this.dataDir = dataDir;
     this.shardingDir = shardingDir;
     numFiles = 1 << shardDims.length;
@@ -122,7 +122,7 @@ public class DataFileSorter {
     DataInputStream in = null;
     File outputDir = new File(dataDir);
     dataFileSorted.comparator
-        .setDimenstion(dataFileSorted.getSortingOrderDims(sortOrderDims, key << 1));
+        .setDimenstion(dataFileSorted.getSortingOrderDims(sortDims, key << 1));
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
     List<File> files = dataFileSorted.sortInBatch(in, inputFile.length(), outputDir,

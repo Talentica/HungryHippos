@@ -238,12 +238,9 @@ public class HungryHipposFileSystemMain {
         hhfs.deleteNodeRecursive(name);
         break;
       case SHOW:
-        List<String> childNodes = hhfs.getChildZnodes(name);
-        if (childNodes != null) {
-          showMetaData(childNodes, name);
-        } else {
-
-        }
+        List<String> childNodes = hhfs.getChildZnodes(name);       
+         showMetaData(childNodes, name);
+     
       default:
     }
 

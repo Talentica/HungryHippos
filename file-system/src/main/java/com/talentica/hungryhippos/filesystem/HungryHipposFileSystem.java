@@ -2,6 +2,7 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -314,6 +315,9 @@ public class HungryHipposFileSystem {
     name = checkNameContainsFileSystemRoot(name);
     try {
       childZnodes = nodeManager.getChildren(name);
+      if (childZnodes == null) {
+        childZnodes = new ArrayList<>();
+      }
     } catch (KeeperException | InterruptedException e) {
       logger.error(e.getMessage());
 

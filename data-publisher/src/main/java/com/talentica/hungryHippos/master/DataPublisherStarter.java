@@ -68,9 +68,9 @@ public class DataPublisherStarter {
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
-      updateFilePublishFailure(destinationPath);
-      LOGGER.error("Error occured while executing publishing data on nodes.", exception);
       exception.printStackTrace();
+      LOGGER.error("Error occured while executing publishing data on nodes.", exception);
+      updateFilePublishFailure(destinationPath);
     }
   }
 

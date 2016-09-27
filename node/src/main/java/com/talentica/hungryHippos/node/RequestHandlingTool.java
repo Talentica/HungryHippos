@@ -38,7 +38,7 @@ public class RequestHandlingTool {
     public RequestHandlingTool(int fileId,String hhFilePath, String nodeFileName) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
         this.nodeFileName = nodeFileName;
         this.hhFilePath = hhFilePath;
-        fileIdInBytes = ByteBuffer.allocate(DataHandler.INT_BYTE_SIZE).putInt(fileId).array();
+        fileIdInBytes = ByteBuffer.allocate(DataHandler.FILE_ID_BYTE_SIZE).putInt(fileId).array();
         LOGGER.info("File :{}",hhFilePath);
         String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
         String shardingTableFolderPath =

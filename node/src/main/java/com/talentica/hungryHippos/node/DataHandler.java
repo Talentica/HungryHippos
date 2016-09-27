@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -21,62 +22,71 @@ public class DataHandler extends ChannelHandlerAdapter {
     private RequestHandlersCache requestHandlersCache;
     private int nodeIdClient;
     private Map<Integer, byte[][]> nodeIdToMemoryArraysMap;
-    private Map<Integer, Integer> nodeIdToCurrentMemoryArrayIndexMap;
-    private Map<Integer, Integer> nodeIdToCurrentMemoryArrayLastByteIndexMap;
+    private int currentMemoryArrayId;
     private Map<Integer, int[]> nodeIdToMemoryArrayLastByteIndex;
     private Map<Integer, ReplicaDataSender.Status[]> nodeIdToMemoryArrayStatusMap;
-    public static final int INT_BYTE_SIZE = 4;
+    public static final int FILE_ID_BYTE_SIZE = 4;
     private int memoryBlockCapacity;
-    private boolean flagToReadFileId = true;
+    private boolean flagToReadFileId;
     private int fileId;
     private RequestHandlingTool requestHandlingTool = null;
     private byte[] fileIdInBytes;
+    private String senderIp;
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        String senderIp = ctx.channel().remoteAddress().toString();
+        senderIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
         nodeIdClient = getNodeId(senderIp);
-        LOGGER.info("Connected to {}",senderIp);
+        LOGGER.info("Connected to {}", senderIp);
         byteBuf = ctx.alloc().buffer(2000);
         ReplicaDataSender replicaDataSender = ReplicaDataSender.INSTANCE;
-        nodeIdToCurrentMemoryArrayLastByteIndexMap = replicaDataSender.getNodeIdToCurrentMemoryArrayLastByteIndexMap();
-        nodeIdToCurrentMemoryArrayIndexMap = replicaDataSender.getNodeIdToCurrentMemoryArrayIndexMap();
         nodeIdToMemoryArraysMap = replicaDataSender.getNodeIdToMemoryArraysMap();
         nodeIdToMemoryArrayLastByteIndex = replicaDataSender.getNodeIdToMemoryArrayLastByteIndex();
         nodeIdToMemoryArrayStatusMap = replicaDataSender.getNodeIdToMemoryArrayStatusMap();
         memoryBlockCapacity = replicaDataSender.getMemoryBlockCapacity();
         requestHandlersCache = RequestHandlersCache.INSTANCE;
+        flagToReadFileId = true;
+        LOGGER.info("Handler successfully added for {}", senderIp);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ByteBuf msgB = (ByteBuf) msg;
-        byteBuf.writeBytes(msgB);
-        msgB.release();
-        while (byteBuf.readableBytes() >= INT_BYTE_SIZE && flagToReadFileId) {
-            switchFileId();
-        }
-        while (byteBuf.readableBytes() >= requestHandlingTool.getRecordSize()) {
-            processData();
-            flagToReadFileId = true;
-            if (byteBuf.readableBytes() >= INT_BYTE_SIZE) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        try {
+            ByteBuf msgB = (ByteBuf) msg;
+            byteBuf.writeBytes(msgB);
+            msgB.release();
+            while (byteBuf.readableBytes() >= FILE_ID_BYTE_SIZE && flagToReadFileId) {
                 switchFileId();
-            } else {
-                break;
             }
+            while (byteBuf.readableBytes() >= requestHandlingTool.getRecordSize()) {
+                processData();
+                flagToReadFileId = true;
+                if (byteBuf.readableBytes() >= FILE_ID_BYTE_SIZE) {
+                    switchFileId();
+                } else {
+                    break;
+                }
+            }
+            reInitializeByteBuf();
+        }catch (Exception e){
+            e.printStackTrace();
+            LOGGER.error("Exception from Node {} : {}", nodeIdClient, e.getMessage());
+            throw new RuntimeException(e);
         }
-        reInitializeByteBuf();
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        LOGGER.info("Disconnected from {}",ctx.channel().remoteAddress());
+        LOGGER.info("Disconnected from {}", senderIp);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOGGER.info(cause.toString());
+        LOGGER.error("Exception from Node {} : {}", nodeIdClient, cause.getMessage());
         ctx.fireExceptionCaught(cause);
+        cause.printStackTrace();
+        LOGGER.error("Disconnecting from {}", senderIp);
+        ctx.channel().close();
     }
 
     private void switchFileId() {
@@ -105,41 +115,43 @@ public class DataHandler extends ChannelHandlerAdapter {
         byteBuf.readBytes(dataForFileWrite);
         int replicaNodesInfoDataSize = requestHandlingTool.getReplicaNodesInfoDataSize();
         fileIdInBytes = requestHandlingTool.getFileIdInBytes();
-        int dataSize = requestHandlingTool.getRecordSize() + INT_BYTE_SIZE;
-        if(nextNodesInfo[0]==(byte) nodeIdClient){
+        int dataSize = requestHandlingTool.getRecordSize() + FILE_ID_BYTE_SIZE;
+        if (nextNodesInfo[0] == (byte) nodeIdClient) {
             requestHandlingTool.closeDataStore();
-            for(Integer nodeId:nodeIdToMemoryArraysMap.keySet()){
-                int currentIndex = nodeIdToCurrentMemoryArrayLastByteIndexMap.get(nodeId);
-                if ((currentIndex + dataSize) > memoryBlockCapacity) {
-                    switchMemoryArray(nodeId, currentIndex);
-                    currentIndex = 0;
+            if(nodeIdClient==NodeInfo.INSTANCE.getIdentifier()){
+                for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
+                    acquireMemoryArrayLock(nodeId,dataSize);
+                    int currentIndex = nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArrayId];
+                    byte[] currentMemoryArray = nodeIdToMemoryArraysMap.get(nodeId)[currentMemoryArrayId];
+                    System.arraycopy(fileIdInBytes, 0, currentMemoryArray, currentIndex, FILE_ID_BYTE_SIZE);
+                    currentIndex+=FILE_ID_BYTE_SIZE;
+                    nextNodesInfo[0] = (byte) NodeInfo.INSTANCE.getIdentifier();
+                    System.arraycopy(nextNodesInfo, 0, currentMemoryArray, currentIndex, replicaNodesInfoDataSize);
+                    currentIndex+=replicaNodesInfoDataSize;
+                    System.arraycopy(dataForFileWrite, 0, currentMemoryArray, currentIndex, dataForFileWrite.length);
+                    currentIndex+=dataForFileWrite.length;
+                    realeaseMemoryForReading(nodeId, currentIndex);
                 }
-                byte[] currentMemoryArray = nodeIdToMemoryArraysMap.get(nodeId)[nodeIdToCurrentMemoryArrayIndexMap.get(nodeId)];
-                System.arraycopy(fileIdInBytes, 0, currentMemoryArray, currentIndex, INT_BYTE_SIZE);
-                nextNodesInfo[0] =(byte) NodeInfo.INSTANCE.getIdentifier();
-                System.arraycopy(nextNodesInfo, 0, currentMemoryArray, currentIndex + INT_BYTE_SIZE, replicaNodesInfoDataSize);
-                System.arraycopy(dataForFileWrite, 0, currentMemoryArray, currentIndex + replicaNodesInfoDataSize + INT_BYTE_SIZE, dataForFileWrite.length);
-                nodeIdToCurrentMemoryArrayLastByteIndexMap.put(nodeId, currentIndex + dataSize);
             }
-            RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient,fileId);
-        }else{
+            RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient, fileId);
+        } else {
             requestHandlingTool.storeData();
             for (int i = 0; i < replicaNodesInfoDataSize; i++) {
                 int nodeId = (int) nextNodesInfo[i];
                 if (nextNodesInfo[i] != (byte) -1) {
-                    int currentIndex = nodeIdToCurrentMemoryArrayLastByteIndexMap.get(nodeId);
-                    if ((currentIndex + dataSize) > memoryBlockCapacity) {
-                        switchMemoryArray(nodeId, currentIndex);
-                        currentIndex = 0;
-                    }
-                    byte[] currentMemoryArray = nodeIdToMemoryArraysMap.get(nodeId)[nodeIdToCurrentMemoryArrayIndexMap.get(nodeId)];
-                    System.arraycopy(fileIdInBytes, 0, currentMemoryArray, currentIndex, INT_BYTE_SIZE);
+                    acquireMemoryArrayLock(nodeId,dataSize);
+                    int currentIndex = nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArrayId];
+                    byte[] currentMemoryArray = nodeIdToMemoryArraysMap.get(nodeId)[currentMemoryArrayId];
+                    System.arraycopy(fileIdInBytes, 0, currentMemoryArray, currentIndex, FILE_ID_BYTE_SIZE);
+                    currentIndex += FILE_ID_BYTE_SIZE;
                     for (int j = 0; j <= i; j++) {
                         currentMemoryArray[currentIndex + j] = (byte) -1;
                     }
-                    System.arraycopy(nextNodesInfo, i + 1, currentMemoryArray, currentIndex + i + 1 + INT_BYTE_SIZE, replicaNodesInfoDataSize - (i + 1));
-                    System.arraycopy(dataForFileWrite, 0, currentMemoryArray, currentIndex + replicaNodesInfoDataSize + INT_BYTE_SIZE, dataForFileWrite.length);
-                    nodeIdToCurrentMemoryArrayLastByteIndexMap.put(nodeId, currentIndex + dataSize);
+                    currentIndex += i + 1;
+                    System.arraycopy(nextNodesInfo, i + 1, currentMemoryArray, currentIndex, replicaNodesInfoDataSize - (i + 1));
+                    currentIndex += replicaNodesInfoDataSize - (i + 1);
+                    System.arraycopy(dataForFileWrite, 0, currentMemoryArray, currentIndex, dataForFileWrite.length);
+                    releaseMemoryArrayForWriting(nodeId,currentIndex+ dataForFileWrite.length);
                     break;
                 }
             }
@@ -147,21 +159,35 @@ public class DataHandler extends ChannelHandlerAdapter {
 
     }
 
+    private void realeaseMemoryForReading(Integer nodeId, int currentIndex) {
+        nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArrayId]= currentIndex;
+        nodeIdToMemoryArrayStatusMap.get(nodeId)[currentMemoryArrayId] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
+    }
 
-    private void switchMemoryArray(int nodeId, int currentIndex) {
-        int currentMemoryArray = nodeIdToCurrentMemoryArrayIndexMap.get(nodeId);
-        nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArray] = currentIndex;
-        nodeIdToMemoryArrayStatusMap.get(nodeId)[currentMemoryArray] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
-        nodeIdToCurrentMemoryArrayIndexMap.put(nodeId, null);
-        while (nodeIdToCurrentMemoryArrayIndexMap.get(nodeId) == null) {
-            for (int j = 0; j < nodeIdToMemoryArraysMap.get(nodeId).length; j++) {
-                if (nodeIdToMemoryArrayStatusMap.get(nodeId)[j] == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE) {
-                    nodeIdToCurrentMemoryArrayIndexMap.put(nodeId, j);
-                    break;
+
+    private void acquireMemoryArrayLock(int nodeId,int dataSize) {
+        currentMemoryArrayId = -1;
+        while (currentMemoryArrayId <0) {
+            for (int j = 0; j < nodeIdToMemoryArrayStatusMap.get(nodeId).length; j++) {
+                ReplicaDataSender.Status status = nodeIdToMemoryArrayStatusMap.get(nodeId)[j];
+                synchronized (status) {
+                    if (nodeIdToMemoryArrayStatusMap.get(nodeId)[j] == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE ) {
+                        if(nodeIdToMemoryArrayLastByteIndex.get(nodeId)[j]+dataSize>memoryBlockCapacity){
+                            nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
+                            continue;
+                        }
+                        currentMemoryArrayId = j;
+                        nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.LOCK_BLOCK_WRITE;
+                        break;
+                    }
                 }
             }
         }
-        nodeIdToCurrentMemoryArrayLastByteIndexMap.put(nodeId, 0);
+    }
+
+    private void releaseMemoryArrayForWriting(int nodeId, int currentIndex){
+        nodeIdToMemoryArrayLastByteIndex.get(nodeId)[currentMemoryArrayId] = currentIndex;
+        nodeIdToMemoryArrayStatusMap.get(nodeId)[currentMemoryArrayId] = ReplicaDataSender.Status.ENABLE_BLOCK_WRITE;
     }
 
     private int getNodeId(String ip) {

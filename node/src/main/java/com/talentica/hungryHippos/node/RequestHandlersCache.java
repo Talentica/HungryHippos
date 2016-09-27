@@ -4,6 +4,8 @@ import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -15,7 +17,7 @@ import java.util.Map;
  */
 public enum RequestHandlersCache {
   INSTANCE;
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlersCache.class);
   Map<Integer, Map<Integer, RequestHandlingTool>> nodeIdToFileIdToRequestHandlersMap;
 
   RequestHandlersCache() {
@@ -34,12 +36,15 @@ public enum RequestHandlersCache {
         String path = CoordinationConfigUtil.getZkCoordinationConfigCache()
             .getZookeeperDefaultConfig().getFileidHhfsMapPath();
         String hhFilePath = ZkUtils.getStringDataFromNode(path,fileId+"");
+        LOGGER.info("FileId :{} \nFilePath :{}",fileId,hhFilePath);
         RequestHandlingTool requestHandlingTool =
             new RequestHandlingTool(fileId, hhFilePath, nodeId + "");
         fileIdToRequestHandlerMap.put(fileId, requestHandlingTool);
       } catch (IOException | InterruptedException | ClassNotFoundException | KeeperException
           | JAXBException e) {
+        LOGGER.error(e.toString());
         e.printStackTrace();
+        throw new RuntimeException(e);
       }
     }
     return fileIdToRequestHandlerMap.get(fileId);

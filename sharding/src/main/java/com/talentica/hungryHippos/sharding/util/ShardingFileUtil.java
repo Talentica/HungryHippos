@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -263,7 +259,7 @@ public class ShardingFileUtil {
           bucketCombinationMap.put(bucketCombinationProtos.getKey(), bucket);
         }
         BucketCombination bucketCombination = new BucketCombination(bucketCombinationMap);
-        Set<Node> nodes = new HashSet<>();
+        Set<Node> nodes = new LinkedHashSet<>();
         for (com.talentica.hungryHippos.sharding.protos.BucketCombinationToNodeNumberMapProtos.Node nodeProtos : bucketCominationToNodeNumberProtos
             .getNodesList()) {
           Node node = new Node(nodeProtos.getNodeCapacity(), nodeProtos.getNodeId());

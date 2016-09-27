@@ -181,7 +181,7 @@ public class NodesManager implements Watcher {
    */
   public void startup() throws Exception {
     CountDownLatch signal = new CountDownLatch(1);
-    ZkUtils.deleteRecursive(ZkUtils.zkPathSeparator + pathMap.get(PathEnum.NAMESPACE.name()),
+    ZkUtils.deleteRecursive(pathMap.get(PathEnum.NAMESPACE.name()),
         signal);
     signal.await();
     defaultNodesOnStart();
@@ -241,11 +241,11 @@ public class NodesManager implements Watcher {
     createNode(node, signal, CreateMode.PERSISTENT, data);
   }
   
-  public void createPersistentNodeSeq(final String node, CountDownLatch signal, String data) throws KeeperException, InterruptedException{
-    createNodeSeq(node,signal,CreateMode.PERSISTENT,data);
+  public void createPersistentNodeSeq(final String node, String data) throws KeeperException, InterruptedException{
+    createNodeSeq(node,CreateMode.PERSISTENT,data);
   }
   
-  private void createNodeSeq(final String node, CountDownLatch signal, CreateMode createMode,
+  private void createNodeSeq(final String node,CreateMode createMode,
       String data) throws KeeperException, InterruptedException{
     zk.create(node, (data != null && data.length() != 0) ? data.getBytes() : null,
         ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);

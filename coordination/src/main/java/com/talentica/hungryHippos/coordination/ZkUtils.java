@@ -826,9 +826,7 @@ public class ZkUtils {
       NodesManager manager;
       try {
         manager = NodesManagerContext.getNodesManagerInstance();
-        CountDownLatch signal = new CountDownLatch(1);
-        manager.createPersistentNodeSeq(node, signal, data);
-        signal.await();
+        manager.createPersistentNodeSeq(node,  data);
         } catch (FileNotFoundException | JAXBException e) {
           throw new RuntimeException(e);
       }

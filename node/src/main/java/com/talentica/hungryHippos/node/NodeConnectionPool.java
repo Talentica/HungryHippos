@@ -59,8 +59,9 @@ public enum NodeConnectionPool {
                 }
             }
             logger.info("Connected to {}", nodeIp);
-            logger.info("Established Connections");
+
         }
+        logger.info("Established Connections");
     }
 
     public Map<Integer, Socket> getNodeConnectionMap() {

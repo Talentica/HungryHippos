@@ -78,9 +78,9 @@ public class ShardingStarter {
       Node randomNode = RandomNodePicker.getRandomNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode, shardingClientConfig, tempDir);
-      DataSyncCoordinator.notifyFileSync(randomNode.getIp(),uploadDestinationPath);
+      DataSyncCoordinator.notifyFileSync(randomNode.getIp(), uploadDestinationPath);
       ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
-                    + FileSystemConstants.SHARDED, "");
+          + FileSystemConstants.SHARDED, uploadDestinationPath);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
@@ -142,31 +142,33 @@ public class ShardingStarter {
 
   /**
    * Uploads Sharding related data to node
-
+   * 
    * @param randomNode
    * @param shardingClientConfig
    * @param tempDir
    */
   private static void uploadShardingData(Node randomNode, ShardingClientConfig shardingClientConfig,
-                                         String tempDir) {
+      String tempDir) {
     LOGGER.info("Uploading sharding data.");
     Output outputConfiguration = NodesManagerContext.getClientConfig().getOutput();
     ShardingTableCopier shardingTableCopier =
         new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
-    shardingTableCopier.copyToRandomNodeInCluster(randomNode);
+     shardingTableCopier.copyToRandomNodeInCluster(randomNode);
     LOGGER.info("Upload completed.");
   }
 
   /**
    * Returns the uploadDestination path of zipped sharding files
+   * 
    * @param shardingClientConfig
    * @return
-     */
-  public static String getUploadDestinationPath(ShardingClientConfig shardingClientConfig){
+   */
+  public static String getUploadDestinationPath(ShardingClientConfig shardingClientConfig) {
     String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
     String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
     String destinationDirectory = fileSystemBaseDirectory + distributedFilePath;
-    String uploadDestinationPath =  destinationDirectory+"/" + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
+    String uploadDestinationPath =
+        destinationDirectory + "/" + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
     return uploadDestinationPath;
   }
 

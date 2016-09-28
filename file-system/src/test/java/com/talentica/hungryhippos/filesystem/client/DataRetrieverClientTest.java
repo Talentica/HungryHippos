@@ -170,3 +170,24 @@
 // }
 //
 // }
+
+package com.talentica.hungryhippos.filesystem.client;
+
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBException;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
+@Ignore
+public class DataRetrieverClientTest {
+
+  @Test
+  public void testRetrieveDataBlocks() throws FileNotFoundException, JAXBException {
+
+    DataRetrieverClient.retrieveDataBlocks_test("127.0.0.1",
+        "/sudarshans/input/data_1/5e5b5750-c967-42ec-be0b-389d726b6eaf", 165, 165, 9898, 10, 5,
+        "//home//sudarshans//RD//HH_NEW//HungryHippos//configuration-schema//src//main//resources//distribution//sharding-client-config.xml");
+  }
+}

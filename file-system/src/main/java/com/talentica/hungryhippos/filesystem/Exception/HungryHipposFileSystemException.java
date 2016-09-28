@@ -1,17 +1,28 @@
 package com.talentica.hungryhippos.filesystem.Exception;
 
-import org.apache.zookeeper.KeeperException;
-
 /**
  * Exception Class used on FileSystem.
  * 
  * @author sudarshans
  *
  */
-public class HungryHipposFileSystemException extends KeeperException {
+public class HungryHipposFileSystemException extends Exception {
 
-  public HungryHipposFileSystemException(Code code) {
-    super(code);
+  private String msg = null;
+
+  public HungryHipposFileSystemException(String msg) {
+    super(msg);
+    this.msg = msg;
+  }
+
+  public HungryHipposFileSystemException(String msg, Throwable cause) {
+    super(msg, cause);
+    this.msg = msg;
+  }
+
+  @Override
+  public String toString() {
+    return this.msg;
   }
 
   /**

@@ -182,7 +182,7 @@ public class NodeFileSystem {
       loc = checkNameContainsFileSystemRoot(args[0]);
       pattern = args[2];
     } else {
-    	throw new IllegalArgumentException("java Find <path>" + " -name \"<glob_pattern>\"");
+      throw new IllegalArgumentException("java Find <path>" + " -name \"<glob_pattern>\"");
     }
 
     Finder finder = new Finder(pattern);
@@ -191,7 +191,7 @@ public class NodeFileSystem {
     } catch (IOException e) {
       throw new RuntimeException("system corrupted");
     }
-   
+
     return finder.done();
   }
 

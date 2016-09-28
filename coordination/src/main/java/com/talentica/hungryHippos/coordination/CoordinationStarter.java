@@ -2,19 +2,22 @@ package com.talentica.hungryHippos.coordination;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.config.datapublisher.DatapublisherConfig;
 import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
+import com.talentica.hungryhippos.config.jobrunner.JobRunnerConfig;
 
 /**
  * Starts coordination server and updates configuration about cluster environment.
@@ -26,49 +29,38 @@ public class CoordinationStarter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CoordinationStarter.class);
 
+  private static String clientConfigFilePath;
+  private static String coordinationConfigFilePath;
+  private static String clusterConfigFilePath;
+  private static String datapublisherConfigFilePath;
+  private static String fileSystemConfigFilePath;
+  private static String jobRunnerConfigFilePath;
+
+  private static ClusterConfig clusterConfig;
+  private static CoordinationConfig coordinationConfig;
+
   public static void main(String[] args) {
     try {
       LOGGER.info("Starting coordination server..");
+
       validateArguments(args);
-      String clientConfigFilePath = args[0];
-      String coordinationConfigFilePath = args[1];
-      String clusterConfigFilePath = args[2];
-      String datapublisherConfigFilePath = args[3];
-      String fileSystemConfigFilePath = args[4];
-      String jobRunnerConfigFilePath = args[5];
+      setArguments(args);
       validateFileSystem(fileSystemConfigFilePath);
+
+
+
+      String rootPath = getAndValidateRoot();
+
       CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfigFilePath);
-      ClusterConfig configuration =
-          JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
-      if (configuration.getNode().isEmpty()) {
-        throw new RuntimeException("Invalid configuration file or cluster configuration missing."
-            + coordinationConfigFilePath);
-      }
 
-      NodesManager manager = NodesManagerContext.initialize(clientConfigFilePath);
+      clusterConfig = JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
+      validateClusterIsnotEmpty(clusterConfig);
 
-      CoordinationConfig coordinationConfig =
+      coordinationConfig =
           JaxbUtil.unmarshalFromFile(coordinationConfigFilePath, CoordinationConfig.class);
-      manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-      manager.startup();
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.COORDINATION_CONFIGURATION,
-          FileUtils.readFileToString(new File(coordinationConfigFilePath), "UTF-8"));
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.CLUSTER_CONFIGURATION,
-          FileUtils.readFileToString(new File(clusterConfigFilePath), "UTF-8"));
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.CLIENT_CONFIGURATION,
-          FileUtils.readFileToString(new File(clientConfigFilePath), "UTF-8"));
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION,
-          FileUtils.readFileToString(new File(datapublisherConfigFilePath), "UTF-8"));
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.FILE_SYSTEM,
-          FileUtils.readFileToString(new File(fileSystemConfigFilePath), "UTF-8"));
-      CoordinationConfigUtil.uploadConfigurationOnZk(manager,
-          CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION,
-          FileUtils.readFileToString(new File(jobRunnerConfigFilePath), "UTF-8"));
+      startNodeManager(coordinationConfig);
+
+      uploadConfigurationOnZk(rootPath);
 
 
       LOGGER.info("Coordination server started..");
@@ -86,6 +78,15 @@ public class CoordinationStarter {
     }
   }
 
+  private static void setArguments(String... args) {
+    clientConfigFilePath = args[0];
+    coordinationConfigFilePath = args[1];
+    clusterConfigFilePath = args[2];
+    datapublisherConfigFilePath = args[3];
+    fileSystemConfigFilePath = args[4];
+    jobRunnerConfigFilePath = args[5];
+  }
+
   private static void validateFileSystem(String fileSystemConfigFilePath)
       throws FileNotFoundException, JAXBException {
     // TODO output specific information and then exit
@@ -100,5 +101,56 @@ public class CoordinationStarter {
           + fileSystemConfigFilePath);
     }
   }
+
+
+  private static String getAndValidateRoot() {
+    String rootPath = CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path");
+    rootPath = rootPath.endsWith(String.valueOf(File.separatorChar))
+        ? rootPath.substring(0, rootPath.length() - 1) : rootPath;
+    return rootPath;
+  }
+
+
+  private static void validateClusterIsnotEmpty(ClusterConfig clusterConfig) {
+    if (clusterConfig.getNode().isEmpty()) {
+      throw new RuntimeException("Invalid configuration file or cluster configuration missing."
+          + coordinationConfigFilePath);
+    }
+  }
+
+  private static void startNodeManager(CoordinationConfig coordinationConfig) throws Exception {
+    NodesManager manager = NodesManagerContext.initialize(clientConfigFilePath);
+    manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+    manager.startup();
+  }
+
+  private static void uploadConfigurationOnZk(String rootPath)
+      throws FileNotFoundException, IOException, JAXBException, InterruptedException {
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.COORDINATION_CONFIGURATION,
+        coordinationConfig);
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.CLUSTER_CONFIGURATION,
+        clusterConfig);
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.CLIENT_CONFIGURATION,
+        JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class));
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION,
+        JaxbUtil.unmarshalFromFile(datapublisherConfigFilePath, DatapublisherConfig.class));
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.FILE_SYSTEM,
+        JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class));
+
+    CoordinationConfigUtil.uploadConfigurationOnZk(
+        rootPath + File.separatorChar + CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION,
+        JaxbUtil.unmarshalFromFile(jobRunnerConfigFilePath, JobRunnerConfig.class));
+  }
+
 
 }

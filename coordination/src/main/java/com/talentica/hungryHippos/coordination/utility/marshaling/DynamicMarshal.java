@@ -11,7 +11,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
 /**
  * Created by debasishc on 1/9/15.
  */
-public class DynamicMarshal implements Serializable {
+public class DynamicMarshal implements Serializable{
 
   private static final long serialVersionUID = -5800537222182360030L;
 
@@ -19,11 +19,41 @@ public class DynamicMarshal implements Serializable {
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
-
+  private byte[] chunk;
+  private int[] dimensions;
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
-
+  
+  public void setChunk(byte[] chunk){
+    this.chunk = chunk;
+  }
+  
+  public void setDimensions(int[] dimensions){
+    this.dimensions = dimensions;
+  }
+  private int columnPos1 = 0;
+  private int columnPos2 = 0;
+  public int compare(int row1Index,int row2Index){
+    int res = 0;
+    int rowSize = dataDescription.getSize();
+    for (int dim = 0; dim < dimensions.length; dim++) {
+      columnPos1 = 0;
+      columnPos2 = 0;
+      DataLocator locator = dataDescription.locateField(dim);
+      columnPos1 = row1Index * rowSize + locator.getOffset();
+      columnPos2 = row2Index * rowSize + locator.getOffset();
+      for(int pointer = 0 ; pointer < locator.getSize() ; pointer++ ){
+        if(chunk[columnPos1] != chunk[columnPos2]) {
+          return chunk[columnPos1] - chunk[columnPos2];
+        }
+        columnPos1++;
+        columnPos2++;
+      }
+    }
+    return res;
+  }
+  
   public Object readValue(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -127,4 +157,5 @@ public class DynamicMarshal implements Serializable {
         throw new IllegalArgumentException("Invalid data format");
     }
   }
+
 }

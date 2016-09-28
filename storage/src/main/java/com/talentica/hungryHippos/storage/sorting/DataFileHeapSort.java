@@ -12,27 +12,25 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal
 public class DataFileHeapSort {
   private byte[] chunk;
   private int rowSize;
-  private DataFileComparator comparator;
-  private byte[] tmpRow1;
-  private byte[] tmpRow2;
+  private byte[] tmpRow;
+  private DynamicMarshal dynamicMarshal;
 
-  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal,
-      DataFileComparator comparator) {
+  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal) {
     this.rowSize = rowSize;
-    this.comparator = comparator;
-    tmpRow1 = new byte[rowSize];
-    tmpRow2 = new byte[rowSize];
+    this.dynamicMarshal = dynamicMarshal;
+    this.tmpRow = new byte[rowSize];
   }
 
   public void setChunk(byte[] chunk) {
     this.chunk = chunk;
+    this.dynamicMarshal.setChunk(chunk);
   }
 
   public void heapSort() {
     int totalElement = chunk.length / rowSize;
     buildHeap(chunk, totalElement);
     for (int i = (totalElement - 1); i > 0; i--) {
-      byte[] temp = readChunkRowAt(0, tmpRow1);
+      byte[] temp = readChunkRowAt(0, tmpRow);
       copyChunkRowAt((i), (0));
       copyToChunkAt(temp, (i));
       siftDown(chunk, 1, i);
@@ -63,8 +61,8 @@ public class DataFileHeapSort {
     if (chunk.length <= 0 || heapSize <= 0) {
       throw new IllegalArgumentException("No records to sort.");
     }
-    for (int index = 1 ; index <= heapSize ; index++) {
-        shiftUp(index);
+    for (int index = 1; index <= heapSize; index++) {
+      shiftUp(index);
     }
   }
 
@@ -72,11 +70,10 @@ public class DataFileHeapSort {
     int parentIndex;
     if (nodeIndex != 1) {
       parentIndex = getParentIndex(nodeIndex);
-      if (comparator.compare(readChunkRowAt(parentIndex -1, tmpRow1),
-          readChunkRowAt(nodeIndex -1, tmpRow2)) < 0) {
-        byte[] temp = readChunkRowAt(parentIndex -1, tmpRow1);
-        copyChunkRowAt((nodeIndex -1), (parentIndex -1));
-        copyToChunkAt(temp, (nodeIndex -1));
+      if (dynamicMarshal.compare(parentIndex - 1, nodeIndex - 1) < 0) {
+        byte[] temp = readChunkRowAt(parentIndex - 1, tmpRow);
+        copyChunkRowAt((nodeIndex - 1), (parentIndex - 1));
+        copyToChunkAt(temp, (nodeIndex - 1));
         shiftUp(parentIndex);
       }
     }
@@ -86,22 +83,21 @@ public class DataFileHeapSort {
     return (nodeIndex) / 2;
   }
 
+
   private void siftDown(byte[] chunk, int index, int heapSize) {
     int leftChild = index * 2;
     int rightChild = leftChild + 1;
     int largest;
-    if (leftChild <= heapSize && comparator.compare(readChunkRowAt(leftChild - 1, tmpRow1),
-        readChunkRowAt(index - 1, tmpRow2)) > 0) {
+    if (leftChild <= heapSize && dynamicMarshal.compare(leftChild - 1, index - 1) > 0) {
       largest = leftChild;
     } else {
       largest = index;
     }
-    if (rightChild <= heapSize && comparator.compare(readChunkRowAt(rightChild - 1, tmpRow1),
-        readChunkRowAt(largest - 1, tmpRow2)) > 0) {
+    if (rightChild <= heapSize && dynamicMarshal.compare(rightChild - 1, largest - 1) > 0) {
       largest = rightChild;
     }
     if (largest != index) {
-      byte[] temp = readChunkRowAt(index - 1, tmpRow1);
+      byte[] temp = readChunkRowAt(index - 1, tmpRow);
       copyChunkRowAt((largest - 1), (index - 1));
       copyToChunkAt(temp, (largest - 1));
       siftDown(chunk, largest, heapSize);

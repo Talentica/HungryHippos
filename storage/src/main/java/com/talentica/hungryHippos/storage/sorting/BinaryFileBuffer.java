@@ -46,20 +46,7 @@ public final class BinaryFileBuffer {
     return this.readByteBuffer;
   }
 
-  public ByteBuffer pop() throws IOException {
-    ByteBuffer answer = copyRow(peek());
-    reload();
-    return answer;
-  }
-
-  private ByteBuffer copyRow(ByteBuffer answer) {
-    for (int i = 0; i < answer.array().length; i++) {
-      lastByteRead[i] = answer.get(i);
-    }
-    return lastRowByteBuffer;
-  }
-
-  private void reload() throws IOException {
+  public void reload() throws IOException {
     readByteBuffer.clear();
     read();
   }

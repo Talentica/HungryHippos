@@ -13,12 +13,14 @@ public class DataFileHeapSort {
   private byte[] chunk;
   private int rowSize;
   private DataFileComparator comparator;
-  byte[] tmpRow1;
-  byte[] tmpRow2;
-  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal, DataFileComparator comparator) {
+  private byte[] tmpRow1;
+  private byte[] tmpRow2;
+
+  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal,
+      DataFileComparator comparator) {
     this.rowSize = rowSize;
     this.comparator = comparator;
-    tmpRow1  = new byte[rowSize];
+    tmpRow1 = new byte[rowSize];
     tmpRow2 = new byte[rowSize];
   }
 
@@ -30,14 +32,14 @@ public class DataFileHeapSort {
     int totalElement = chunk.length / rowSize;
     buildHeap(chunk, totalElement);
     for (int i = (totalElement - 1); i > 0; i--) {
-      byte[] temp = readChunkRowAt(0,tmpRow1);
+      byte[] temp = readChunkRowAt(0, tmpRow1);
       copyChunkRowAt((i), (0));
-      copyToChunkAt(temp,(i));
-      doHeap(chunk, 1, i);
+      copyToChunkAt(temp, (i));
+      siftDown(chunk, 1, i);
     }
   }
 
-  private byte[] readChunkRowAt(int index,byte[] row) {
+  private byte[] readChunkRowAt(int index, byte[] row) {
     int position = index * rowSize;
     System.arraycopy(chunk, position, row, 0, rowSize);
     return row;
@@ -47,8 +49,8 @@ public class DataFileHeapSort {
     int position = index * rowSize;
     System.arraycopy(fromRowChunk, 0, chunk, position, rowSize);
   }
-  
-  private void copyChunkRowAt(int fromIndex, int toindex){
+
+  private void copyChunkRowAt(int fromIndex, int toindex) {
     int fromPosition = fromIndex * rowSize;
     int toPosition = toindex * rowSize;
     System.arraycopy(chunk, fromPosition, chunk, toPosition, rowSize);
@@ -61,34 +63,48 @@ public class DataFileHeapSort {
     if (chunk.length <= 0 || heapSize <= 0) {
       throw new IllegalArgumentException("No records to sort.");
     }
-    if (heapSize > (chunk.length / rowSize)) {
-      heapSize = (chunk.length / rowSize);
-    }
-
-    for (int index = heapSize / 2; index > 0; index--) {
-      doHeap(chunk, index, heapSize);
+    for (int index = 1 ; index <= heapSize ; index++) {
+        shiftUp(index);
     }
   }
 
-  private void doHeap(byte[] chunk, int index, int heapSize) {
-    int left = index * 2;
-    int right = left + 1;
+  private void shiftUp(int nodeIndex) {
+    int parentIndex;
+    if (nodeIndex != 1) {
+      parentIndex = getParentIndex(nodeIndex);
+      if (comparator.compare(readChunkRowAt(parentIndex -1, tmpRow1),
+          readChunkRowAt(nodeIndex -1, tmpRow2)) < 0) {
+        byte[] temp = readChunkRowAt(parentIndex -1, tmpRow1);
+        copyChunkRowAt((nodeIndex -1), (parentIndex -1));
+        copyToChunkAt(temp, (nodeIndex -1));
+        shiftUp(parentIndex);
+      }
+    }
+  }
+
+  private int getParentIndex(int nodeIndex) {
+    return (nodeIndex) / 2;
+  }
+
+  private void siftDown(byte[] chunk, int index, int heapSize) {
+    int leftChild = index * 2;
+    int rightChild = leftChild + 1;
     int largest;
-    if (left <= heapSize
-        && comparator.compare(readChunkRowAt(left - 1,tmpRow1), readChunkRowAt(index - 1,tmpRow2)) > 0) {
-      largest = left;
+    if (leftChild <= heapSize && comparator.compare(readChunkRowAt(leftChild - 1, tmpRow1),
+        readChunkRowAt(index - 1, tmpRow2)) > 0) {
+      largest = leftChild;
     } else {
       largest = index;
     }
-    if (right <= heapSize
-        && comparator.compare(readChunkRowAt(right - 1,tmpRow1), readChunkRowAt(largest - 1,tmpRow2)) > 0) {
-      largest = right;
+    if (rightChild <= heapSize && comparator.compare(readChunkRowAt(rightChild - 1, tmpRow1),
+        readChunkRowAt(largest - 1, tmpRow2)) > 0) {
+      largest = rightChild;
     }
     if (largest != index) {
-      byte[] temp = readChunkRowAt(index - 1,tmpRow1);
-      copyChunkRowAt((largest - 1),(index - 1));
+      byte[] temp = readChunkRowAt(index - 1, tmpRow1);
+      copyChunkRowAt((largest - 1), (index - 1));
       copyToChunkAt(temp, (largest - 1));
-      doHeap(chunk, largest, heapSize);
+      siftDown(chunk, largest, heapSize);
     }
   }
 }

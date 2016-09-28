@@ -36,13 +36,13 @@ public class DataFileSorter {
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
   private DataFileComparator comparator;
-  private static ShardingApplicationContext context;
-  private static FieldTypeArrayDataDescription dataDescription;
-  private static DynamicMarshal dynamicMarshal;
+  private ShardingApplicationContext context;
+  private FieldTypeArrayDataDescription dataDescription;
+  private DynamicMarshal dynamicMarshal;
   private final static String INPUT_DATAFILE_PRIFIX = "data_";
   private DataFileHeapSort dataFileHeapSort;
   private int[] shardDims;
-  int[] sortOrderDims;
+  private int[] sortDims;
   private String dataDir;
   private String shardingDir;
   private DataFileSorter dataFileSorted;
@@ -55,19 +55,14 @@ public class DataFileSorter {
     dynamicMarshal = getDynamicMarshal();
     comparator = new DataFileComparator(dynamicMarshal, dataDescription.getSize());
     dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal, comparator);
-    sortOrderDims = new int[shardDims.length];
+    sortDims = new int[shardDims.length];
     this.dataDir = dataDir;
     this.shardingDir = shardingDir;
     numFiles = 1 << shardDims.length;
   }
 
-  public static void main(String[] args) throws ClassNotFoundException, FileNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException, InsufficientMemoryException {
-    DataFileSorter sorter = new DataFileSorter(args[0], args[1]);
-    sorter.doSortingDefault();
-  }
-
-  /** To sort the data based on job's primary dimensions.
+  /**
+   * To sort the data based on job's primary dimensions.
    * 
    * @param job
    * @throws FileNotFoundException
@@ -92,8 +87,9 @@ public class DataFileSorter {
     }
   }
 
-  /** To do the sorting once the data is ready.
-   *   
+  /**
+   * To do the sorting once the data is ready.
+   * 
    * @throws IOException
    * @throws InsufficientMemoryException
    * @throws ClassNotFoundException
@@ -107,7 +103,7 @@ public class DataFileSorter {
     dataFileSorted = new DataFileSorter(dataDir, shardingDir);
     File inputFile;
     for (int fileId = 0; fileId < dataFileSorted.shardDims.length; fileId++) {
-      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (fileId << 1));
+      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
       if (!inputFile.exists()) {
         break;
       }
@@ -126,7 +122,7 @@ public class DataFileSorter {
     DataInputStream in = null;
     File outputDir = new File(dataDir);
     dataFileSorted.comparator
-        .setDimenstion(dataFileSorted.getSortingOrderDims(sortOrderDims, key << 1));
+        .setDimenstion(dataFileSorted.getSortingOrderDims(sortDims, key << 1));
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
     List<File> files = dataFileSorted.sortInBatch(in, inputFile.length(), outputDir,
@@ -151,10 +147,9 @@ public class DataFileSorter {
     long startTIme = System.currentTimeMillis();
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
-    long blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
+    int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     int effectiveBlockSizeBytes =
-        ((int) ((blocksize) / (noOfBytesInOneDataSet + DataSizeCalculator.getArrayOverhead())))
-            * noOfBytesInOneDataSet;
+        ((int) ((blocksize) / (noOfBytesInOneDataSet))) * noOfBytesInOneDataSet;
     byte[] chunk = null;
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
@@ -305,14 +300,21 @@ public class DataFileSorter {
 
 
 
-  private long getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
+  private int getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
       throws InsufficientMemoryException {
     LOGGER.info("Input file size {} and maximum memory available {}", fileSize, maxFreeMemory);
     long blocksize = fileSize / DEFAULTMAXTEMPFILES + (fileSize % DEFAULTMAXTEMPFILES == 0 ? 0 : 1);
+    blocksize = blocksize - DataSizeCalculator.getObjectOverhead();
     if (blocksize < maxFreeMemory) {
-      blocksize = maxFreeMemory;
+      blocksize = (2 * maxFreeMemory) / 3; // java retain
+                                                                                    // 1/3 of the
+                                                                                    // heap size.
     }
-    return blocksize - DataSizeCalculator.getObjectOverhead();
+    if (blocksize > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    } else {
+      return (int) blocksize;
+    }
   }
 
   public long availableMemory() {
@@ -328,8 +330,8 @@ public class DataFileSorter {
     return currentFreeMemoryAfter;
   }
 
-  private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+  private DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException,
+      KeeperException, InterruptedException, IOException, JAXBException {
     dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -341,12 +343,5 @@ public class DataFileSorter {
       sortOrderDims[i] = shardDims[(i + startPos) % shardDims.length];
     }
     return sortOrderDims;
-  }
-
-  private static void validateArguments(String[] args) {
-    if (args != null && args.length < 3) {
-      throw new RuntimeException(
-          "Invalid argument. Please provide 1st argument as input file and 2nd argument tmp directory and 3rd argument sharding folder path.");
-    }
   }
 }

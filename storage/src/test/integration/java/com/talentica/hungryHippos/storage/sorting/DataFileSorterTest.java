@@ -3,10 +3,13 @@
  */
 package com.talentica.hungryHippos.storage.sorting;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,57 +20,29 @@ import org.junit.Test;
 public class DataFileSorterTest {
 
   private String inputDataDir;
-  private String ouputDataDir;
   private String shardingConfDir;
+  private DataFileSorter sorter;
+  int[] input;
+  int[] expOutput;
+  int rowSize;
 
   @Before
-  public void setUp() {
-    File file = new File("");
-    inputDataDir = file.getAbsolutePath();
-    ouputDataDir = file.getAbsolutePath();
-    shardingConfDir = file.getAbsolutePath() + File.separatorChar + "/src/test/resources";
-
+  public void setUp() throws ClassNotFoundException, FileNotFoundException, KeeperException,
+      InterruptedException, IOException, JAXBException {
+    inputDataDir = "/home/pooshans/Desktop/data";
+    shardingConfDir =
+        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution";
+    sorter = new DataFileSorter(inputDataDir, shardingConfDir);
   }
 
   @Test
-  public void test() {
-    ProcessBuilder jobManagerProcessBuilder = new ProcessBuilder("java",
-        DataFileSorter.class.getName(), inputDataDir, ouputDataDir, shardingConfDir);
+  public void testDataFileSort() {
     try {
-      jobManagerProcessBuilder.start();
-      System.out.println("Data file sorting is started...");
-    } catch (IOException e) {
-      System.out.println("Unable to start the data file sorter");
+      sorter.doSortingDefault();
+      Assert.assertTrue(true);
+    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
+        | JAXBException | InsufficientMemoryException e) {
+      Assert.assertFalse(true);
     }
   }
-  
-  @Test
-  public void testDataDimension(){
-      int[] dim = new int[]{0,2,5};
-      int[] newDim = new int[3];
-      for(int fileId = 0 ; fileId < 7 ;fileId++){
-                   int startPos = 2;
-                   for (int i = 0; i < dim.length; i++) {
-                     newDim[i] = dim[(i + startPos) % dim.length];
-                 }
-                   System.out.println(Arrays.toString(newDim));
-      }
-  }
-  
-  void leftRotate(int arr[], int d) 
-  {
-      int i;
-      for (i = 0; i < d; i++)
-          leftRotatebyOne(arr);
-  }
-
-  void leftRotatebyOne(int arr[]) 
-  {
-      int i, temp;
-      temp = arr[0];
-      for (i = 0; i < arr.length - 1; i++)
-          arr[i] = arr[i + 1];
-      arr[i] = temp;
-  }
-
 }

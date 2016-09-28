@@ -24,6 +24,7 @@ ips=($(awk -F ':' '{print $1}' ip_file_tmp.txt))
 #retrieve all zookeeper Ips
 zookeeper_ips=($(awk -F ':' '{print $1}' ip_file_zookeeper.txt))
 
+
 mkdir -p distr
 
 #Copy original distr/* to distr/
@@ -69,6 +70,9 @@ do
 	ssh root@$ip 'chown hhuser:hungryhippos -R /home/hhuser/distr'
         ssh root@$ip 'echo CLASSPATH=/home/hhuser/distr/lib >> /home/hhuser/.bashrc '
 		
+	#kill all hungryhippos processess in any before starting them
+	ssh hhuser@$ip pkill -f "talentica"
+
 	if [ $zookeeper_flag -le $total_zookeepers ] 
 	then
 	cat append_to_zoo_cfg| ssh hhuser@$ip 'cat  >> /home/hhuser/zookeeper-3.5.1-alpha/conf/zoo.cfg '

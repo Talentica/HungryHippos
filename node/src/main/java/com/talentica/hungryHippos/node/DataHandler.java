@@ -170,15 +170,17 @@ public class DataHandler extends ChannelHandlerAdapter {
         while (currentMemoryArrayId <0) {
             for (int j = 0; j < nodeIdToMemoryArrayStatusMap.get(nodeId).length; j++) {
                 ReplicaDataSender.Status status = nodeIdToMemoryArrayStatusMap.get(nodeId)[j];
-                synchronized (status) {
-                    if (nodeIdToMemoryArrayStatusMap.get(nodeId)[j] == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE ) {
-                        if(nodeIdToMemoryArrayLastByteIndex.get(nodeId)[j]+dataSize>memoryBlockCapacity){
-                            nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
-                            continue;
+                if(status == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE ){
+                    synchronized (status) {
+                        if (status == ReplicaDataSender.Status.ENABLE_BLOCK_WRITE ) {
+                            if(nodeIdToMemoryArrayLastByteIndex.get(nodeId)[j]+dataSize>memoryBlockCapacity){
+                                nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.ENABLE_BLOCK_READ;
+                                continue;
+                            }
+                            currentMemoryArrayId = j;
+                            nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.LOCK_BLOCK_WRITE;
+                            break;
                         }
-                        currentMemoryArrayId = j;
-                        nodeIdToMemoryArrayStatusMap.get(nodeId)[j] = ReplicaDataSender.Status.LOCK_BLOCK_WRITE;
-                        break;
                     }
                 }
             }

@@ -16,6 +16,9 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
+
+@Ignore
 public class GetCommandTest {
 
   String folder = "/sudarshans/input";

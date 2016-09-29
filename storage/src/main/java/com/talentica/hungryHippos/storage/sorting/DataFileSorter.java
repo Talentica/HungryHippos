@@ -225,8 +225,10 @@ public class DataFileSorter {
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
       } finally {
-        if (bout != null)
+        if (bout != null){
+          bout.flush();
           bout.close();
+        }
       }
       file = output;
     } else {
@@ -242,9 +244,10 @@ public class DataFileSorter {
             "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
       } finally {
-        out.flush();
-        if (out != null)
+        if (out != null){
+          out.flush();
           out.close();
+        }
       }
     }
     return file;
@@ -291,12 +294,11 @@ public class DataFileSorter {
       long totalTime = 0l;
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
-        ByteBuffer row = bfb.peek();
+        ByteBuffer row = bfb.pop();
         startTime = System.currentTimeMillis();
         bout.write(row.array());
         bout.flush();
         totalTime = totalTime + (System.currentTimeMillis() - startTime);
-        bfb.reload();
         ++rowcounter;
         if (bfb.empty()) {
           bfb.getReader().close();
@@ -306,8 +308,10 @@ public class DataFileSorter {
       }
       LOGGER.info("Total time taken in ms to write data during merging {}", totalTime);
     } finally {
+      if(bout != null){
       bout.flush();
       bout.close();
+      }
       for (BinaryFileBuffer bfb : pq) {
         bfb.close();
       }

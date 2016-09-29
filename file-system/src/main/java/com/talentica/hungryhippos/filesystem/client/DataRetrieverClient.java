@@ -1,13 +1,20 @@
 package com.talentica.hungryhippos.filesystem.client;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.hungryhippos.config.sharding.Column;
+import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+
+import org.apache.commons.io.Charsets;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,20 +68,25 @@ public class DataRetrieverClient {
     boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
     HungryHipposFileSystem.validateFileDataReady(hungryHippoFilePath);
-    FileSystemUtils.createDirectory(outputDirName);
+    // creates a directory if its not existing, if dir already exists it returns false;
+    boolean folderExists = FileSystemUtils.createDirectory(outputDirName);
+    if (folderExists) {
+      LOGGER.warn("Folder with name {}", outputDirName, " exists");
+      return;
+    }
     for (String nodeId : nodeIds) {
       String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
       String nodeIp = getNodeIp(nodeId);
       List<String> dataBlockNodes = ZkUtils.getChildren(nodeIdZKPath);
       if (isSharded) {
-        downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath,
-            hungryHippoFilePath, outputDirName, nodeIp, tmpDestFileNames);
+        downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath, hungryHippoFilePath,
+            outputDirName, nodeIp, tmpDestFileNames);
       } else {
-        downloadUnShardedFile(nodeIdZKPath, hungryHippoFilePath, outputDirName,
-            nodeIp, tmpDestFileNames);
+        downloadUnShardedFile(nodeIdZKPath, hungryHippoFilePath, outputDirName, nodeIp,
+            tmpDestFileNames);
       }
     }
-    combineFiles(tmpDestFileNames,hungryHippoFilePath,outputDirName);
+    combineFiles(tmpDestFileNames, hungryHippoFilePath, outputDirName);
   }
 
   /**
@@ -81,8 +96,7 @@ public class DataRetrieverClient {
    * @return
    */
   public static String getNodeIp(String nodeId) {
-    ClusterConfig clusterConfig =
-            CoordinationConfigUtil.getZkClusterConfigCache();
+    ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     String nodeIp = null;
     for (Node node : clusterConfig.getNode()) {
       if (node.getIdentifier() == Integer.parseInt(nodeId)) {
@@ -114,30 +128,36 @@ public class DataRetrieverClient {
    * @throws JAXBException
    */
   public static void downloadShardedFile(List<String> dataBlockNodes, int dimension,
-                                         String nodeIdZKPath, String hungryHippoFilePath,
-                                         String outputDirName, String nodeIp, List<String> tmpDestFileNames)
-          throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
-          JAXBException {
+      String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
+      List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
+      IOException, KeeperException, JAXBException {
     int seq = 0;
     for (String dataBlockNode : dataBlockNodes) {
       int dataBlockIntVal = Integer.parseInt(dataBlockNode);
       int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
       if ((dataBlockIntVal & dimensionOperand) == dimensionOperand) {
         String dataBlockZKPath =
-                nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
-        String dataBlockSizeStr = (String) ZkUtils.getNodeData(dataBlockZKPath);
-        long dataSize = Long.parseLong(dataBlockSizeStr);
-        if(dataSize==0){
-          continue;
+            nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
+        List<String> child = ZkUtils.getChildren(dataBlockZKPath);
+        for (String chi : child) {
+          String dataBlockSizeStr = (String) ZkUtils
+              .getNodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
+          long dataSize = Long.parseLong(dataBlockSizeStr);
+          if (dataSize == 0) {
+            continue;
+          }
+          String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
+              + FileSystemContext.getDataFilePrefix() + dataBlockIntVal
+              + FileSystemConstants.ZK_PATH_SEPARATOR + chi;
+          String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
+              + FileSystemConstants.DOWNLOAD_FILE_PREFIX
+              + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
+          retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
+          tmpDestFileNames.add(tmpDestFileName);
+          seq++;
         }
-        String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-                + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
-        String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
-                + FileSystemConstants.DOWNLOAD_FILE_PREFIX
-                + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
-        retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
-        tmpDestFileNames.add(tmpDestFileName);
-        seq++;
+
+
       }
     }
   }
@@ -156,14 +176,15 @@ public class DataRetrieverClient {
    * @throws KeeperException
    * @throws JAXBException
    */
-  public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
-                                           List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
-          IOException, KeeperException, JAXBException {
+  public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath,
+      String outputDirName, String nodeIp, List<String> tmpDestFileNames)
+      throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
+      JAXBException {
     String dataBlockSizeStr = (String) ZkUtils.getNodeData(nodeIdZKPath);
     long dataSize = Long.parseLong(dataBlockSizeStr);
     String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
-            + FileSystemConstants.DOWNLOAD_FILE_PREFIX
-            + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
+        + FileSystemConstants.DOWNLOAD_FILE_PREFIX
+        + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
     retrieveDataBlocks(nodeIp, hungryHippoFilePath, tmpDestFileName, dataSize);
     tmpDestFileNames.add(tmpDestFileName);
   }
@@ -171,16 +192,18 @@ public class DataRetrieverClient {
 
   /**
    * Combines list of temporary files into single file
+   * 
    * @param tmpDestFileNames
    * @param hungryHippoFilePath
    * @param outputDirName
    * @throws IOException
    */
-  private static void combineFiles(List<String> tmpDestFileNames,String hungryHippoFilePath, String outputDirName ) throws IOException {
+  private static void combineFiles(List<String> tmpDestFileNames, String hungryHippoFilePath,
+      String outputDirName) throws IOException {
     if (!tmpDestFileNames.isEmpty()) {
       String fileName = (new File(hungryHippoFilePath)).getName();
       FileSystemUtils.combineFiles(tmpDestFileNames,
-              outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + fileName);
+          outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + fileName);
       FileSystemUtils.deleteFiles(tmpDestFileNames);
     }
   }
@@ -194,15 +217,15 @@ public class DataRetrieverClient {
    * @param dataSize
    */
   public static void retrieveDataBlocks(String nodeIp, String hungryHippoFilePath,
-                                        String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException,
-          JAXBException, KeeperException, IOException {
+      String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException,
+      JAXBException, KeeperException, IOException {
 
     int port = FileSystemContext.getServerPort();
     int noOfAttempts = FileSystemContext.getMaxQueryAttempts();
     int fileStreamBufferSize = FileSystemContext.getFileStreamBufferSize();
     long retryTimeInterval = FileSystemContext.getQueryRetryInterval();
     retrieveDataBlocks(nodeIp, hungryHippoFilePath, outputFile, fileStreamBufferSize, dataSize,
-            port, retryTimeInterval, noOfAttempts);
+        port, retryTimeInterval, noOfAttempts);
   }
 
   /**
@@ -247,6 +270,150 @@ public class DataRetrieverClient {
               break;
             }
             raf.write(inputBuffer, 0, len);
+            fileSize = fileSize - len;
+          }
+          if (fileSize > 0) {
+            LOGGER.info("Download Incomplete. Retrying after {} milliseconds", retryTimeInterval);
+            Thread.sleep(retryTimeInterval);
+            continue;
+          }
+          LOGGER.info(dis.readUTF());
+          break;
+        } else {
+          LOGGER.info("{} Retrying after {} milliseconds", processStatus, retryTimeInterval);
+          Thread.sleep(retryTimeInterval);
+        }
+      } catch (IOException e) {
+        LOGGER.error(e.toString());
+      } catch (InterruptedException e) {
+        LOGGER.error(e.toString());
+      }
+    }
+    if (i == maxQueryAttempts) {
+      throw new RuntimeException("Data Retrieval Failed");
+    }
+  }
+
+
+  /**
+   * This method is for requesting the DataRequestHandlerServer for the files
+   *
+   * @param nodeIp
+   * @param hungryHippoFilePath
+   * @param outputFile
+   * @param dataSize
+   * @param port
+   * @param retryTimeInterval
+   * @param maxQueryAttempts
+   * @throws JAXBException
+   * @throws FileNotFoundException
+   */
+  public static void retrieveDataBlocks_test(String nodeIp, String hungryHippoFilePath,
+      int fileStreamBufferSize, int dataSize, int port, long retryTimeInterval,
+      int maxQueryAttempts, String shardingClientConfigLoc)
+      throws FileNotFoundException, JAXBException {
+
+    int i = 0;
+    ShardingClientConfig shardedConfig =
+        JaxbUtil.unmarshalFromFile(shardingClientConfigLoc, ShardingClientConfig.class);
+    List<Column> columns = shardedConfig.getInput().getDataDescription().getColumn();
+    String[] dataTypeDescription = new String[columns.size()];
+    FieldTypeArrayDataDescription dataDescription = null;
+    for (int index = 0; index < columns.size(); index++) {
+      String element = columns.get(index).getDataType() + "-" + columns.get(index).getSize();
+      dataTypeDescription[index] = element;
+    }
+    dataDescription = FieldTypeArrayDataDescription.createDataDescription(dataTypeDescription,
+        shardedConfig.getMaximumSizeOfSingleBlockData());
+    DynamicMarshal dm = new DynamicMarshal(dataDescription);
+
+    for (i = 0; i < maxQueryAttempts; i++) {
+      try (Socket client = new Socket(nodeIp, port);
+          DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+          DataInputStream dis = new DataInputStream(client.getInputStream())) {
+        String processStatus = dis.readUTF();
+        if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {
+          LOGGER.info("{} Recieving data ", processStatus);
+          dos.writeUTF(hungryHippoFilePath);
+          dos.writeLong(0);
+          int len;
+          byte[] inputBuffer = new byte[(int) dataSize];
+          while (dataSize > 0) {
+            len = dis.read(inputBuffer);
+            dataSize -= len;
+
+            int size = dataDescription.getSize();
+
+            int srcPos = 0;
+            while (len > 0) {
+              int destPos = 0;
+              byte[] dest = new byte[size];
+              System.arraycopy(inputBuffer, srcPos, dest, destPos, size);
+              for (int c = 0; c < dataDescription.getNumberOfDataFields(); c++) {
+                Object readableData = dm.readValue(c, ByteBuffer.wrap(dest));
+
+                if (c != 0 && c != dataDescription.getNumberOfDataFields()) {
+                  System.out.print(",");
+                }
+                System.out.print(readableData);
+              }
+              srcPos = srcPos + size;
+              len -= dataDescription.getSize();
+              System.out.println();
+            }
+
+          }
+          LOGGER.info(dis.readUTF());
+          break;
+        } else {
+          LOGGER.info("{} Retrying after {} milliseconds", processStatus, retryTimeInterval);
+          Thread.sleep(retryTimeInterval);
+        }
+      } catch (IOException e) {
+        LOGGER.error(e.toString());
+      } catch (InterruptedException e) {
+        LOGGER.error(e.toString());
+      }
+    }
+    if (i == maxQueryAttempts) {
+      throw new RuntimeException("Data Retrieval Failed");
+    }
+  }
+
+
+  /**
+   * This method is for requesting the DataRequestHandlerServer for the files
+   *
+   * @param nodeIp
+   * @param hungryHippoFilePath
+   * @param outputFile
+   * @param dataSize
+   * @param port
+   * @param retryTimeInterval
+   * @param maxQueryAttempts
+   */
+  public static void retrieveDataBlocks_output(String nodeIp, String hungryHippoFilePath,
+      int fileStreamBufferSize, int port, long retryTimeInterval, int maxQueryAttempts) {
+
+
+    int i = 0;
+    for (i = 0; i < maxQueryAttempts; i++) {
+      try (Socket client = new Socket(nodeIp, port);
+          DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+          DataInputStream dis = new DataInputStream(client.getInputStream());) {
+        String processStatus = dis.readUTF();
+        if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {
+          dos.writeUTF(hungryHippoFilePath);
+          dos.writeLong(0);
+          int len;
+          byte[] inputBuffer = new byte[fileStreamBufferSize];
+          long fileSize = fileStreamBufferSize;
+          while (fileSize > 0) {
+            len = dis.read(inputBuffer);
+            if (len < 0) {
+              break;
+            }
+
             fileSize = fileSize - len;
           }
           if (fileSize > 0) {

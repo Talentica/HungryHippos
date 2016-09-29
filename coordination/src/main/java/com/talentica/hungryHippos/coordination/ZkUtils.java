@@ -81,28 +81,6 @@ public class ZkUtils {
     return zkFile;
   }
 
-  /**
-   * To serialize the object
-   * 
-   * @param obj
-   * @return byte[]
-   * @throws IOException
-   */
-  public static byte[] serialize(Object obj) throws IOException {
-    return SerializationUtils.serialize((Serializable) obj);
-  }
-
-  /**
-   * To deserialize the byte[]
-   * 
-   * @param obj
-   * @return Object
-   * @throws IOException
-   * @throws ClassNotFoundException
-   */
-  public static Object deserialize(byte[] obj) throws IOException, ClassNotFoundException {
-    return (obj == null) ? null : SerializationUtils.deserialize(obj);
-  }
 
   /**
    * Get current timestamp in format yyyy-MM-dd_HH:mm:ss
@@ -262,12 +240,7 @@ public class ZkUtils {
     return null;
   }
 
-  public static Object externalizeNodeValue(byte[] value)
-      throws ClassNotFoundException, IOException {
-    if (value == null)
-      return null;
-    return ZkUtils.deserialize(value);
-  }
+
 
   public static String buildNodePath(int nodeId) {
     return CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
@@ -289,7 +262,7 @@ public class ZkUtils {
    */
   public static void deleteRecursive(String node, CountDownLatch signal) throws Exception {
     try {
-      if(!nodesManager.checkNodeExists(node)) {
+      if (!nodesManager.checkNodeExists(node)) {
         LOGGER.info("No such node {} exists.", node);
         return;
       }
@@ -517,6 +490,18 @@ public class ZkUtils {
       LOGGER.info("Unable to check node :: " + nodePath + " Exception is :: " + e.getMessage());
       LOGGER.info(" PLEASE CHECK, ZOOKEEPER SERVER IS RUNNING or NOT!!");
     }
+
+  }
+
+  public static Stat getStat(String nodePath) {
+
+    Stat stat = null;
+    try {
+      stat = zk.exists(nodePath, nodesManager);
+    } catch (KeeperException | InterruptedException e) {
+      LOGGER.error(e.getMessage());
+    }
+    return stat;
   }
 
   /**
@@ -576,8 +561,11 @@ public class ZkUtils {
           return Double.valueOf(valueString);
         case ("java.lang.String"):
           return URLDecoder.decode(valueString, CHARSET);
+        case ("boolean"):
+          return Boolean.valueOf(valueString);
         case ("MAP"):
-          Map<Object,Object> map = new HashMap<>();
+          Map<Object, Object> map = new HashMap<Object, Object>();
+
           List<String> valueStrings =
               nodesManager.getChildren(parentNode + zkPathSeparator + classNameParen);
           for (String entryNum : valueStrings) {
@@ -962,7 +950,7 @@ public class ZkUtils {
       public void processResult(int rc, String path, Object ctx, Stat stat) {
         switch (KeeperException.Code.get(rc)) {
           case CONNECTIONLOSS:
-            nodesManager.asyncNodeExists(path,signal);
+            nodesManager.asyncNodeExists(path, signal);
             break;
           case NODEEXISTS:
             cacheNodeExists.put(path, (stat != null));

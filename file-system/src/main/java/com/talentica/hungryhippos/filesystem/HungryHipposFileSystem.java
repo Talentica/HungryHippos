@@ -2,12 +2,14 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * 
@@ -35,6 +38,9 @@ public class HungryHipposFileSystem {
   private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
   private ZookeeperConfiguration zkConfiguration;
   private static volatile HungryHipposFileSystem hhfs = null;
+  private static String HUNGRYHIPPOS_FS_NODE = null;
+
+
 
   // for singleton
   private HungryHipposFileSystem() throws FileNotFoundException, JAXBException {
@@ -46,7 +52,12 @@ public class HungryHipposFileSystem {
     CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER =
         coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+    HUNGRYHIPPOS_FS_NODE = FileSystemContext.getRootDirectory();
 
+  }
+
+  public String getHHFSNodeRoot() {
+    return HUNGRYHIPPOS_FS_NODE;
   }
 
   public String getHHFSZROOT() {
@@ -71,6 +82,9 @@ public class HungryHipposFileSystem {
       } else {
         name = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + FileSystemConstants.ZK_PATH_SEPARATOR + name;
       }
+    }
+    if (name.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
+      name = name.substring(0, name.length() - 1);
     }
     return name;
   }
@@ -155,6 +169,18 @@ public class HungryHipposFileSystem {
   }
 
   /**
+   * To check whether a znode already exits on specified directory structure.
+   *
+   * @param name
+   * @return
+   */
+  public Stat getZnodeStat(String name) {
+    name = checkNameContainsFileSystemRoot(name);
+
+    return ZkUtils.getStat(name);
+  }
+
+  /**
    * set znode value to the data.
    *
    * @param name
@@ -176,11 +202,29 @@ public class HungryHipposFileSystem {
    * @param name
    * @return
    */
+  public String getNodeData(String name) {
+    name = checkNameContainsFileSystemRoot(name);
+    String nodeData = null;
+
+    nodeData = (String) ZkUtils.getNodeData(name);
+
+    return nodeData;
+  }
+
+  /**
+   * get value inside the znode in string format.
+   *
+   * @param name
+   * @return
+   */
   public String getData(String name) {
     name = checkNameContainsFileSystemRoot(name);
     String nodeData = null;
     try {
-      nodeData = nodeManager.getStringFromZKNode(name);
+      Object data = nodeManager.getObjectFromZKNode(name);
+      if (data != null) {
+        nodeData = (String) data;
+      }
     } catch (KeeperException | InterruptedException | ClassNotFoundException | IOException e) {
       logger.error(e.getMessage());
 
@@ -231,11 +275,12 @@ public class HungryHipposFileSystem {
    * @param name
    */
   public void deleteNode(String name) {
+    name = checkNameContainsFileSystemRoot(name);
     if (name.equals(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER)) {
       logger.info("Cannot delete the root folder.");
       return;
     }
-    name = checkNameContainsFileSystemRoot(name);
+
     nodeManager.deleteNode(name);
   }
 
@@ -270,6 +315,9 @@ public class HungryHipposFileSystem {
     name = checkNameContainsFileSystemRoot(name);
     try {
       childZnodes = nodeManager.getChildren(name);
+      if (childZnodes == null) {
+        childZnodes = new ArrayList<>();
+      }
     } catch (KeeperException | InterruptedException e) {
       logger.error(e.getMessage());
 
@@ -279,23 +327,22 @@ public class HungryHipposFileSystem {
 
   /**
    * This method updates the HungryHippos filesystem with the metadata of the file
+   * 
    * @param hungryHippoFilePath
    * @param nodeId
    * @param dataFileId
    * @param fileName
    * @param fileSize
-     * @throws Exception
-     */
-  public void updateFSBlockMetaData(String hungryHippoFilePath, String nodeId, int dataFileId, String fileName,
-      long fileSize) throws Exception {
+   * @throws Exception
+   */
+  public void updateFSBlockMetaData(String hungryHippoFilePath, String nodeId, int dataFileId,
+      String fileName, long fileSize) throws Exception {
     String hungryHippoFileZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + hungryHippoFilePath;
-    String dfsZKPath =
-        hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
+    String dfsZKPath = hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR
+        + FileSystemConstants.DFS_NODE;
     String nodeIdZKPath = dfsZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
-    String dataFileNodeZKPath =
-        nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileId;
-    String fileNodeZKPath =
-            dataFileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileName;
+    String dataFileNodeZKPath = nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFileId;
+    String fileNodeZKPath = dataFileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileName;
     ZkUtils.createZKNodeIfNotPresent(dfsZKPath, "");
     ZkUtils.createZKNodeIfNotPresent(nodeIdZKPath, "");
     ZkUtils.createZKNodeIfNotPresent(dataFileNodeZKPath, "");

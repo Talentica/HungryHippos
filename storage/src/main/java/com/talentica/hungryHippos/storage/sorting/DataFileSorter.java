@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -76,11 +78,27 @@ public class DataFileSorter {
       InsufficientMemoryException, KeeperException, InterruptedException, JAXBException {
     int primDims = job.getPrimaryDimension();
     int keyIdBit = 1 << primDims;
-    File inputFile;
+    File inputDir;
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
-        doSorting(inputFile, primDims);
+        inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
+        List<String> filesPresentinFolder = new ArrayList<>();
+        if (inputDir.isDirectory()) {
+          Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
+            if (Files.isRegularFile(filePath)) {
+              filesPresentinFolder.add(filePath.toString());
+            }
+          });
+        }
+        for (String file : filesPresentinFolder) {
+          File inputFile = new File(file);
+          long dataSize = inputFile.length();
+          if (dataSize <= 0) {
+            continue;
+          }
+          doSorting(inputDir, primDims);
+        }
+       
       }
     }
   }
@@ -98,17 +116,29 @@ public class DataFileSorter {
   public void doSortingDefault() throws IOException, InsufficientMemoryException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
-    File inputFile;
+    File inputDir;
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
-      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
-      if (!inputFile.exists()) {
+      inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
+      if (!inputDir.exists()) {
         break;
       }
-      long dataSize = inputFile.length();
-      if (dataSize <= 0) {
-        continue;
+      List<String> filesPresentinFolder = new ArrayList<>();
+      if (inputDir.isDirectory()) {
+        Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
+          if (Files.isRegularFile(filePath)) {
+            filesPresentinFolder.add(filePath.toString());
+          }
+        });
       }
-      doSorting(inputFile, fileId);
+
+      for (String file : filesPresentinFolder) {
+        File inputFile = new File(file);
+        long dataSize = inputFile.length();
+        if (dataSize <= 0) {
+          continue;
+        }
+        doSorting(inputFile, fileId);
+      }
     }
   }
 
@@ -122,8 +152,8 @@ public class DataFileSorter {
     this.comparator.setDimensions(sortDims);
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
-    List<File> files = sortInBatch(in, inputFile.length(), outputDir,
-        Charset.defaultCharset(), inputFile);
+    List<File> files =
+        sortInBatch(in, inputFile.length(), outputDir, Charset.defaultCharset(), inputFile);
     if (files.size() > 1) { // merge should happen for at least two files
       mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
     }
@@ -225,7 +255,7 @@ public class DataFileSorter {
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
       } finally {
-        if (bout != null){
+        if (bout != null) {
           bout.flush();
           bout.close();
         }
@@ -244,7 +274,7 @@ public class DataFileSorter {
             "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
       } finally {
-        if (out != null){
+        if (out != null) {
           out.flush();
           out.close();
         }
@@ -308,9 +338,9 @@ public class DataFileSorter {
       }
       LOGGER.info("Total time taken in ms to write data during merging {}", totalTime);
     } finally {
-      if(bout != null){
-      bout.flush();
-      bout.close();
+      if (bout != null) {
+        bout.flush();
+        bout.close();
       }
       for (BinaryFileBuffer bfb : pq) {
         bfb.close();
@@ -335,7 +365,7 @@ public class DataFileSorter {
       });
 
   private int columnPos = 0;
-  
+
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
     for (int dim = 0; dim < shardDims.length; dim++) {
@@ -381,7 +411,7 @@ public class DataFileSorter {
     return currentFreeMemoryAfter;
   }
 
-  private int[] orderDimensions( int startPos) {
+  private int[] orderDimensions(int startPos) {
     for (int i = 0; i < shardDims.length; i++) {
       sortDims[i] = shardDims[(i + startPos) % shardDims.length];
     }

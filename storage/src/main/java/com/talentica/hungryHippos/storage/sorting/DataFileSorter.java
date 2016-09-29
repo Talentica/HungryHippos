@@ -79,10 +79,10 @@ public class DataFileSorter {
     int primDims = job.getPrimaryDimension();
     int keyIdBit = 1 << primDims;
     File inputDir;
+    List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
         inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
-        List<String> filesPresentinFolder = new ArrayList<>();
         if (inputDir.isDirectory()) {
           Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
             if (Files.isRegularFile(filePath)) {
@@ -98,7 +98,7 @@ public class DataFileSorter {
           }
           doSorting(inputDir, primDims);
         }
-       
+        filesPresentinFolder.clear();
       }
     }
   }
@@ -117,12 +117,12 @@ public class DataFileSorter {
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
     File inputDir;
+    List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
       inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
       if (!inputDir.exists()) {
         break;
       }
-      List<String> filesPresentinFolder = new ArrayList<>();
       if (inputDir.isDirectory()) {
         Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
           if (Files.isRegularFile(filePath)) {
@@ -139,6 +139,7 @@ public class DataFileSorter {
         }
         doSorting(inputFile, fileId);
       }
+      filesPresentinFolder.clear();
     }
   }
 

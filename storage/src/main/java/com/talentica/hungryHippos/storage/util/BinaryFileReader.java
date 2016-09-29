@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
@@ -34,15 +33,13 @@ public class BinaryFileReader {
 
   public static void main(String[] args) throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
-    if (args.length != 3) {
+    if (args.length != 2) {
       System.out.println(
-          "Usage pattern: java -jar <jar name> <path to parent folder of data folder> e.g. java -jar storage.jar ~/home/");
+          "Argument required sharding folder and data file name");
       System.exit(0);
     }
-    String clientConfigFilePath = args[1];
-    NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
     context = new ShardingApplicationContext(args[0]);
-      String dataFileName = args[2];
+      String dataFileName = args[1];
       FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
       DataInputStream dataInputStream = new DataInputStream(fileInputStream);
       File readableDataFile = new File(dataFileName + "_read");

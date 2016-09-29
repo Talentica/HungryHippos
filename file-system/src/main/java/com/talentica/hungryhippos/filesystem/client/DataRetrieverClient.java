@@ -309,7 +309,7 @@ public class DataRetrieverClient {
    * @throws FileNotFoundException
    */
   public static void retrieveDataBlocks_test(String nodeIp, String hungryHippoFilePath,
-      int fileStreamBufferSize, long dataSize, int port, long retryTimeInterval,
+      int fileStreamBufferSize, int dataSize, int port, long retryTimeInterval,
       int maxQueryAttempts, String shardingClientConfigLoc)
       throws FileNotFoundException, JAXBException {
 
@@ -379,4 +379,65 @@ public class DataRetrieverClient {
       throw new RuntimeException("Data Retrieval Failed");
     }
   }
+  
+  
+  /**
+   * This method is for requesting the DataRequestHandlerServer for the files
+   *
+   * @param nodeIp
+   * @param hungryHippoFilePath
+   * @param outputFile
+   * @param dataSize
+   * @param port
+   * @param retryTimeInterval
+   * @param maxQueryAttempts
+   */
+  public static void retrieveDataBlocks_output(String nodeIp, String hungryHippoFilePath,
+      int fileStreamBufferSize, int port, long retryTimeInterval,
+      int maxQueryAttempts) {
+
+
+    int i = 0;
+    for (i = 0; i < maxQueryAttempts; i++) {
+      try (Socket client = new Socket(nodeIp, port);
+          DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+          DataInputStream dis = new DataInputStream(client.getInputStream());
+        ) {
+        String processStatus = dis.readUTF();
+        if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {         
+          dos.writeUTF(hungryHippoFilePath);
+          dos.writeLong(0);         
+          int len;
+          byte[] inputBuffer = new byte[fileStreamBufferSize];
+          long fileSize = fileStreamBufferSize;
+          while (fileSize > 0) {
+            len = dis.read(inputBuffer);
+            if (len < 0) {
+              break;
+            }
+          
+            fileSize = fileSize - len;
+          }
+          if (fileSize > 0) {
+            LOGGER.info("Download Incomplete. Retrying after {} milliseconds", retryTimeInterval);
+            Thread.sleep(retryTimeInterval);
+            continue;
+          }
+          LOGGER.info(dis.readUTF());
+          break;
+        } else {
+          LOGGER.info("{} Retrying after {} milliseconds", processStatus, retryTimeInterval);
+          Thread.sleep(retryTimeInterval);
+        }
+      } catch (IOException e) {
+        LOGGER.error(e.toString());
+      } catch (InterruptedException e) {
+        LOGGER.error(e.toString());
+      }
+    }
+    if (i == maxQueryAttempts) {
+      throw new RuntimeException("Data Retrieval Failed");
+    }
+  }
+
 }

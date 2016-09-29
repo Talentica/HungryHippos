@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -33,23 +35,29 @@ public class ShardedFile {
     dataDescription = FieldTypeArrayDataDescription.createDataDescription(dataTypeDescription,
         shardedConfig.getMaximumSizeOfSingleBlockData());
     DynamicMarshal dm = new DynamicMarshal(dataDescription);
+    long size = Files.size(Paths.get(filePath));
+    int lineSize = dataDescription.getSize();
     FileInputStream fis = new FileInputStream(file);
     DataInputStream dis = new DataInputStream(fis);
-    BinaryFileBuffer bf = new BinaryFileBuffer(dis, dataDescription.getSize());
+    BinaryFileBuffer bf = new BinaryFileBuffer(dis, lineSize);
     int line = 0;
     ByteBuffer byteBuf;
-    while (line <= numberOfLines) {
+    while (line <= numberOfLines && size > 0) {
       byteBuf = bf.pop();
 
       for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
         Object readableData = dm.readValue(i, byteBuf);
-        System.out.print(readableData);
-        if (i != 0 && i != dataDescription.getNumberOfDataFields() - 1) {
+
+        if (i != 0 && i != dataDescription.getNumberOfDataFields()) {
           System.out.print(",");
         }
+        System.out.print(readableData);
       }
       System.out.println();
       line++;
+      size -= lineSize;
+
+      byteBuf = null;
     }
   }
 

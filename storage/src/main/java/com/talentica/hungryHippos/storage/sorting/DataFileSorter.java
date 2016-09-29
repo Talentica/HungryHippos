@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -101,18 +103,32 @@ public class DataFileSorter {
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
     dataFileSorted = new DataFileSorter(dataDir, shardingDir);
-    File inputFile;
+    File inputDir;
     for (int fileId = 0; fileId < dataFileSorted.shardDims.length; fileId++) {
-      inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
-      if (!inputFile.exists()) {
+      inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
+      if (!inputDir.exists()) {
         break;
       }
-      long dataSize = inputFile.length();
-      if (dataSize <= 0) {
-        continue;
+      List<String> filesPresentinFolder = new ArrayList<>();
+      if (inputDir.isDirectory()) {
+        Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
+          if (Files.isRegularFile(filePath)) {
+            filesPresentinFolder.add(filePath.toString());
+          }
+        });
       }
-      doSorting(inputFile, fileId);
+
+      for (String file : filesPresentinFolder) {
+        File inputFile = new File(file);
+        long dataSize = inputFile.length();
+        if (dataSize <= 0) {
+          continue;
+        }
+        doSorting(inputFile, fileId);
+      }
+
     }
+
   }
 
   private void doSorting(File inputFile, int key)
@@ -121,8 +137,7 @@ public class DataFileSorter {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
-    dataFileSorted.comparator
-        .setDimenstion(dataFileSorted.getSortingOrderDims(sortDims, key << 1));
+    dataFileSorted.comparator.setDimenstion(dataFileSorted.getSortingOrderDims(sortDims, key << 1));
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
     List<File> files = dataFileSorted.sortInBatch(in, inputFile.length(), outputDir,
@@ -307,8 +322,8 @@ public class DataFileSorter {
     blocksize = blocksize - DataSizeCalculator.getObjectOverhead();
     if (blocksize < maxFreeMemory) {
       blocksize = (2 * maxFreeMemory) / 3; // java retain
-                                                                                    // 1/3 of the
-                                                                                    // heap size.
+                                           // 1/3 of the
+                                           // heap size.
     }
     if (blocksize > Integer.MAX_VALUE) {
       return Integer.MAX_VALUE;

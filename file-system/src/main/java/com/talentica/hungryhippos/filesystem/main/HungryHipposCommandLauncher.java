@@ -90,7 +90,7 @@ public class HungryHipposCommandLauncher implements Observer {
 
     Class<?> consoleC = Class.forName("jline.ConsoleReader");
     Object console = consoleC.getConstructor().newInstance();
-    Class<?> completorC = Class.forName("com.talentica.hungryhippos.filesystem.main.TabCompletor");
+    Class<?> completorC = Class.forName("com.talentica.hungryhippos.filesystem.helper.TabCompletor");
     Object completor = completorC.getConstructor().newInstance();
     Method addCompletor = consoleC.getMethod("addCompletor", Class.forName("jline.Completor"));
     addCompletor.invoke(console, completor);

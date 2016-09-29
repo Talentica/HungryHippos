@@ -96,7 +96,6 @@ public class DataFileSorterTest {
 
     expect(job.getPrimaryDimension()).andReturn(2).times(1);
     replay(job);
-
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 
     try {

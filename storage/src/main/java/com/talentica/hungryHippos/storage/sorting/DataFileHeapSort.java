@@ -3,8 +3,6 @@
  */
 package com.talentica.hungryHippos.storage.sorting;
 
-import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
-
 /**
  * @author pooshans
  *
@@ -13,17 +11,17 @@ public class DataFileHeapSort {
   private byte[] chunk;
   private int rowSize;
   private byte[] tmpRow;
-  private DynamicMarshal dynamicMarshal;
+  private DataFileComparator comparator;
 
-  public DataFileHeapSort(int rowSize, DynamicMarshal dynamicMarshal) {
+  public DataFileHeapSort(int rowSize,DataFileComparator comparator) {
     this.rowSize = rowSize;
-    this.dynamicMarshal = dynamicMarshal;
+    this.comparator = comparator;
     this.tmpRow = new byte[rowSize];
   }
 
   public void setChunk(byte[] chunk) {
     this.chunk = chunk;
-    this.dynamicMarshal.setChunk(chunk);
+    this.comparator.setChunk(chunk);
   }
 
   public void heapSort() {
@@ -70,7 +68,7 @@ public class DataFileHeapSort {
     int parentIndex;
     if (nodeIndex != 1) {
       parentIndex = getParentIndex(nodeIndex);
-      if (dynamicMarshal.compare(parentIndex - 1, nodeIndex - 1) < 0) {
+      if (comparator.compare(parentIndex - 1, nodeIndex - 1) < 0) {
         byte[] temp = readChunkRowAt(parentIndex - 1, tmpRow);
         copyChunkRowAt((nodeIndex - 1), (parentIndex - 1));
         copyToChunkAt(temp, (nodeIndex - 1));
@@ -88,12 +86,12 @@ public class DataFileHeapSort {
     int leftChild = index * 2;
     int rightChild = leftChild + 1;
     int largest;
-    if (leftChild <= heapSize && dynamicMarshal.compare(leftChild - 1, index - 1) > 0) {
+    if (leftChild <= heapSize && comparator.compare(leftChild - 1, index - 1) > 0) {
       largest = leftChild;
     } else {
       largest = index;
     }
-    if (rightChild <= heapSize && dynamicMarshal.compare(rightChild - 1, largest - 1) > 0) {
+    if (rightChild <= heapSize && comparator.compare(rightChild - 1, largest - 1) > 0) {
       largest = rightChild;
     }
     if (largest != index) {

@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
-import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 
@@ -37,29 +36,27 @@ public class DataFileSorter {
 
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
+  private final static String INPUT_DATAFILE_PRIFIX = "data_";
   private ShardingApplicationContext context;
   private FieldTypeArrayDataDescription dataDescription;
-  private DynamicMarshal dynamicMarshal;
-  private final static String INPUT_DATAFILE_PRIFIX = "data_";
   private DataFileHeapSort dataFileHeapSort;
   private int[] shardDims;
   private int[] sortDims;
   private String dataDir;
-  private String shardingDir;
-  private DataFileSorter dataFileSorted;
   private int numFiles;
+  private DataFileComparator comparator;
 
   public DataFileSorter(String dataDir, String shardingDir) throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    context = new ShardingApplicationContext(shardingDir);
-    shardDims = context.getShardingIndexes();
-    dynamicMarshal = getDynamicMarshal();
-    dynamicMarshal.setDimensions(shardDims);
-    dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), dynamicMarshal);
-    sortDims = new int[shardDims.length];
+    this.context = new ShardingApplicationContext(shardingDir);
+    this.dataDescription = context.getConfiguredDataDescription();
+    this.dataDescription.setKeyOrder(context.getShardingDimensions());
+    this.shardDims = context.getShardingIndexes();
+    this.comparator = new DataFileComparator(dataDescription);
+    this.dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), comparator);
+    this.sortDims = new int[shardDims.length];
     this.dataDir = dataDir;
-    this.shardingDir = shardingDir;
-    numFiles = 1 << shardDims.length;
+    this.numFiles = 1 << shardDims.length;
   }
 
   /**
@@ -101,9 +98,8 @@ public class DataFileSorter {
   public void doSortingDefault() throws IOException, InsufficientMemoryException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
-    dataFileSorted = new DataFileSorter(dataDir, shardingDir);
     File inputFile;
-    for (int fileId = 0; fileId < dataFileSorted.shardDims.length; fileId++) {
+    for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
       inputFile = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
       if (!inputFile.exists()) {
         break;
@@ -122,14 +118,14 @@ public class DataFileSorter {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
-    dataFileSorted.orderDimensions(sortDims, key << 1);
-    dynamicMarshal.setDimensions(sortDims);
+    sortDims = orderDimensions(key << 1);
+    this.comparator.setDimensions(sortDims);
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
-    List<File> files = dataFileSorted.sortInBatch(in, inputFile.length(), outputDir,
+    List<File> files = sortInBatch(in, inputFile.length(), outputDir,
         Charset.defaultCharset(), inputFile);
     if (files.size() > 1) { // merge should happen for at least two files
-      dataFileSorted.mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
+      mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
     }
     LOGGER.info("Completed file sorting and total time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
@@ -151,16 +147,16 @@ public class DataFileSorter {
     int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     int effectiveBlockSizeBytes =
         ((int) ((blocksize) / (noOfBytesInOneDataSet))) * noOfBytesInOneDataSet;
-    byte[] chunk ;
-    if(blocksize > datalength){
+    byte[] chunk;
+    if (blocksize > datalength) {
       chunk = new byte[(int) datalength];
-    }else{
+    } else {
       chunk = new byte[effectiveBlockSizeBytes];
     }
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
     long dataFileSize = datalength;
-    int readBytesLength = 0; 
+    int readBytesLength = 0;
     long startTimeChunkRead;
     try {
       while (dataFileSize > 0) {
@@ -168,26 +164,29 @@ public class DataFileSorter {
         if (dataFileSize > effectiveBlockSizeBytes) {
           startTimeChunkRead = System.currentTimeMillis();
           dataInputStream.readFully(chunk);
-          LOGGER.info("Time taken to read the chunk in ms {}",(System.currentTimeMillis() - startTimeChunkRead));
+          LOGGER.info("Time taken to read the chunk in ms {}",
+              (System.currentTimeMillis() - startTimeChunkRead));
           readBytesLength = effectiveBlockSizeBytes;
         } else { // remaining chunk or for singal block which totally fit in memory.
           startTimeChunkRead = System.currentTimeMillis();
-          dataInputStream.readFully(chunk,0,(int)dataFileSize);
-          LOGGER.info("Time taken to read the chunk in ms {}",(System.currentTimeMillis() - startTimeChunkRead));
+          dataInputStream.readFully(chunk, 0, (int) dataFileSize);
+          LOGGER.info("Time taken to read the chunk in ms {}",
+              (System.currentTimeMillis() - startTimeChunkRead));
           readBytesLength = (int) dataFileSize;
         }
         dataFileSize = dataFileSize - chunk.length;
         if (dataFileSize == 0 && batchId == 0) {
-          files.add(sortAndSave(chunk, cs, outputFile, batchId, true,readBytesLength));
+          files.add(sortAndSave(chunk, cs, outputFile, batchId, true, readBytesLength));
         } else {
-          files.add(sortAndSave(chunk, cs, outputdirectory, batchId, false,readBytesLength));
+          files.add(sortAndSave(chunk, cs, outputdirectory, batchId, false, readBytesLength));
         }
         batchId++;
       }
-    } catch(EOFException eof){
+    } catch (EOFException eof) {
       dataFileSize = dataFileSize - chunk.length;
-      files.add(sortAndSave(chunk, cs, outputdirectory, batchId, (dataFileSize == 0 && batchId == 0),readBytesLength));
-    }catch (Exception e) {
+      files.add(sortAndSave(chunk, cs, outputdirectory, batchId,
+          (dataFileSize == 0 && batchId == 0), readBytesLength));
+    } catch (Exception e) {
       LOGGER.error("Unable to process due to {}", e.getMessage());
       throw e;
     } finally {
@@ -199,25 +198,29 @@ public class DataFileSorter {
   }
 
   private File sortAndSave(byte[] chunk, Charset cs, File output, int batchId,
-      boolean isSingalBatch,int lenght) throws IOException {
+      boolean isSingalBatch, int lenght) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
     LOGGER.info("Sorting started for chunk size {}...", chunk.length);
+    long sortStartTime = System.currentTimeMillis();
     dataFileHeapSort.setChunk(chunk);
+    LOGGER.info("Sorting started...");
     dataFileHeapSort.heapSort();
-    LOGGER.info("Sorting completed.");
+    LOGGER.info("Sorting completed in time ms {}.", (System.currentTimeMillis() - sortStartTime));
     File file;
     if (isSingalBatch) {
-      if(output.exists()){
+      if (output.exists()) {
         output.delete();
         output.createNewFile();
       }
       FileOutputStream fos = new FileOutputStream(output);
-      BufferedOutputStream bout=new BufferedOutputStream(fos);  
+      BufferedOutputStream bout = new BufferedOutputStream(fos);
       try {
         long startTime = System.currentTimeMillis();
         bout.write(chunk);
         bout.flush();
-        LOGGER.info("Total time taken in ms to write data after sorting and saving batch id {} ,  {}",batchId,(System.currentTimeMillis() - startTime));
+        LOGGER.info(
+            "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
+            batchId, (System.currentTimeMillis() - startTime));
       } catch (IOException e) {
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
@@ -233,9 +236,11 @@ public class DataFileSorter {
       OutputStream out = new FileOutputStream(file);
       try {
         long startTime = System.currentTimeMillis();
-        out.write(chunk,0,lenght);
+        out.write(chunk, 0, lenght);
         out.flush();
-        LOGGER.info("Total time taken in ms to write data after sorting and saving batch id {} ,  {}",batchId,(System.currentTimeMillis() - startTime));
+        LOGGER.info(
+            "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
+            batchId, (System.currentTimeMillis() - startTime));
       } finally {
         out.flush();
         if (out != null)
@@ -270,18 +275,17 @@ public class DataFileSorter {
   private int mergeSortedFiles(File outputfile, List<BinaryFileBuffer> buffers, boolean append)
       throws IOException {
     int rowcounter = 0;
-    OutputStream os = new FileOutputStream(outputfile, append);
     for (BinaryFileBuffer bfb : buffers) {
       if (!bfb.empty()) {
         pq.add(bfb);
       }
     }
-    if(outputfile.exists()) {
+    if (outputfile.exists()) {
       outputfile.delete();
       outputfile.createNewFile();
-      }
+    }
     FileOutputStream fos = new FileOutputStream(outputfile);
-    BufferedOutputStream bout=new BufferedOutputStream(fos);  
+    BufferedOutputStream bout = new BufferedOutputStream(fos);
     try {
       long startTime;
       long totalTime = 0l;
@@ -291,7 +295,7 @@ public class DataFileSorter {
         startTime = System.currentTimeMillis();
         bout.write(row.array());
         bout.flush();
-        totalTime = totalTime + (System.currentTimeMillis() -startTime);
+        totalTime = totalTime + (System.currentTimeMillis() - startTime);
         ++rowcounter;
         bfb.reload();
         if (bfb.empty()) {
@@ -300,7 +304,7 @@ public class DataFileSorter {
           pq.add(bfb);
         }
       }
-      LOGGER.info("Total time taken in ms to write data during merging {}",totalTime);
+      LOGGER.info("Total time taken in ms to write data during merging {}", totalTime);
     } finally {
       bout.flush();
       bout.close();
@@ -325,13 +329,13 @@ public class DataFileSorter {
           return compareRow(i.peek().array(), j.peek().array());
         }
       });
-  
-  private int compareRow(byte[] row1,byte[] row2){
+
+  private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
     for (int dim = 0; dim < shardDims.length; dim++) {
       DataLocator locator = dataDescription.locateField(dim);
-      for(int pointer = 0 ; pointer < locator.getSize() ; pointer++ ){
-        if(row1[pointer] != row2[pointer]) {
+      for (int pointer = 0; pointer < locator.getSize(); pointer++) {
+        if (row1[pointer] != row2[pointer]) {
           return row1[pointer] - row2[pointer];
         }
       }
@@ -346,8 +350,8 @@ public class DataFileSorter {
     blocksize = blocksize - DataSizeCalculator.getObjectOverhead();
     if (blocksize < maxFreeMemory) {
       blocksize = (2 * maxFreeMemory) / 3; // java retain
-                                                                                    // 1/3 of the
-                                                                                    // heap size.
+                                           // 1/3 of the
+                                           // heap size.
     }
     if (blocksize > Integer.MAX_VALUE) {
       return Integer.MAX_VALUE;
@@ -369,17 +373,10 @@ public class DataFileSorter {
     return currentFreeMemoryAfter;
   }
 
-  private DynamicMarshal getDynamicMarshal() throws ClassNotFoundException, FileNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException {
-    dataDescription = context.getConfiguredDataDescription();
-    dataDescription.setKeyOrder(context.getShardingDimensions());
-    DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-    return dynamicMarshal;
-  }
-
-  private void orderDimensions(int[] sortOrderDims, int startPos) {
+  private int[] orderDimensions( int startPos) {
     for (int i = 0; i < shardDims.length; i++) {
-      sortOrderDims[i] = shardDims[(i + startPos) % shardDims.length];
+      sortDims[i] = shardDims[(i + startPos) % shardDims.length];
     }
+    return sortDims;
   }
 }

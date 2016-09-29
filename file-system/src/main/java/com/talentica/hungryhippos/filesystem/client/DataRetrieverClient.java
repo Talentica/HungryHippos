@@ -351,7 +351,7 @@ public class DataRetrieverClient {
               System.arraycopy(inputBuffer, srcPos, dest, destPos, size);
               for (int c = 0; c < dataDescription.getNumberOfDataFields(); c++) {
                 Object readableData = dm.readValue(c, ByteBuffer.wrap(dest));
-               
+
                 if (c != 0 && c != dataDescription.getNumberOfDataFields()) {
                   System.out.print(",");
                 }
@@ -379,8 +379,8 @@ public class DataRetrieverClient {
       throw new RuntimeException("Data Retrieval Failed");
     }
   }
-  
-  
+
+
   /**
    * This method is for requesting the DataRequestHandlerServer for the files
    *
@@ -393,20 +393,18 @@ public class DataRetrieverClient {
    * @param maxQueryAttempts
    */
   public static void retrieveDataBlocks_output(String nodeIp, String hungryHippoFilePath,
-      int fileStreamBufferSize, int port, long retryTimeInterval,
-      int maxQueryAttempts) {
+      int fileStreamBufferSize, int port, long retryTimeInterval, int maxQueryAttempts) {
 
 
     int i = 0;
     for (i = 0; i < maxQueryAttempts; i++) {
       try (Socket client = new Socket(nodeIp, port);
           DataOutputStream dos = new DataOutputStream(client.getOutputStream());
-          DataInputStream dis = new DataInputStream(client.getInputStream());
-        ) {
+          DataInputStream dis = new DataInputStream(client.getInputStream());) {
         String processStatus = dis.readUTF();
-        if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {         
+        if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {
           dos.writeUTF(hungryHippoFilePath);
-          dos.writeLong(0);         
+          dos.writeLong(0);
           int len;
           byte[] inputBuffer = new byte[fileStreamBufferSize];
           long fileSize = fileStreamBufferSize;
@@ -415,7 +413,7 @@ public class DataRetrieverClient {
             if (len < 0) {
               break;
             }
-          
+
             fileSize = fileSize - len;
           }
           if (fileSize > 0) {

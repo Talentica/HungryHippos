@@ -3,61 +3,50 @@
  */
 package com.talentica.hungryHippos.storage.sorting;
 
-import java.nio.ByteBuffer;
-import java.util.Comparator;
-
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataLocator;
 
 /**
  * @author pooshans
  *
  */
-public class DataFileComparator implements Comparator<byte[]> {
+public class DataFileComparator {
 
-  private int[] dimenstion;
-
-  private DynamicMarshal dynamicMarshal;
-  private ByteBuffer rowBuffer1 = null;
-  private ByteBuffer rowBuffer2 = null;
-  private MutableCharArrayString temp1 = null;
-  private MutableCharArrayString temp2 = null;
-  private int res;
-  public DataFileComparator(DynamicMarshal dynamicMarshal,int bufferSize) {
-    this.dynamicMarshal = dynamicMarshal;
-    rowBuffer1 = ByteBuffer.allocate(bufferSize);
-    rowBuffer2 = ByteBuffer.allocate(bufferSize);
+  private byte[] chunk;
+  private int[] dimensions;
+  
+  private DataDescription dataDescription;
+  public DataFileComparator(DataDescription dataDescription){
+    this.dataDescription = dataDescription;
   }
-
-  public int[] getDimenstion() {
-    return dimenstion;
+  
+  public void setChunk(byte[] chunk){
+    this.chunk = chunk;
   }
-
-  public void setDimenstion(int[] dimenstion) {
-    this.dimenstion = dimenstion;
+  
+  public void setDimensions(int[] dimensions){
+    this.dimensions = dimensions;
   }
-
-
-  @Override
-  public int compare(byte[] row1, byte[] row2) {
-    clear();
-    rowBuffer1.put(row1);
-    rowBuffer2.put(row2);
-    for (int dim = 0; dim < dimenstion.length; dim++) {
-      res = 0;
-      temp1 = ((MutableCharArrayString) dynamicMarshal.readValue(dimenstion[dim], rowBuffer1)).clone();
-      temp2 = (MutableCharArrayString) dynamicMarshal.readValue(dimenstion[dim], rowBuffer2);
-      res = temp1.compareTo(temp2);
-      if (res != 0) {
-       clear();
-        return res;
+  
+  private int columnPos1 = 0;
+  private int columnPos2 = 0;
+  
+  public int compare(int row1Index,int row2Index){
+    int res = 0;
+    int rowSize = dataDescription.getSize();
+    for (int dim = 0; dim < dimensions.length; dim++) {
+      DataLocator locator = dataDescription.locateField(dimensions[dim]);
+      columnPos1 = row1Index * rowSize + locator.getOffset();
+      columnPos2 = row2Index * rowSize + locator.getOffset();
+      for(int pointer = 0 ; pointer < locator.getSize() ; pointer++ ){
+        if(chunk[columnPos1] != chunk[columnPos2]) {
+          return chunk[columnPos1] - chunk[columnPos2];
+        }
+        columnPos1++;
+        columnPos2++;
       }
     }
     return res;
   }
   
-  private void clear(){
-    rowBuffer1.clear();
-    rowBuffer2.clear();
-  }
 }

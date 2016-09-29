@@ -35,7 +35,7 @@ public class DataFileSorterTest {
   private String shardingConfDir;
   private DataFileSorter sorter;
   private String resource = "/src/test/resources";
-  private String testFile = "/shardedDir/data_1/6da89208-1ded-4878-8346-b116ee7cfeaf";
+  private String testFile = "/6da89208-1ded-4878-8346-b116ee7cfeaf";
   private String testFilePath = null;
   @Mock
   private Job job = null;
@@ -76,6 +76,25 @@ public class DataFileSorterTest {
   public void testDoSortingJobWise() throws IOException {
 
     expect(job.getPrimaryDimension()).andReturn(1).times(1);
+    replay(job);
+
+    long beforeSortSize = Files.size(Paths.get(testFilePath));
+
+    try {
+      sorter.doSortingJobWise(job);
+    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
+        | JAXBException | InsufficientMemoryException e) {
+      Assert.assertFalse(true);
+    }
+
+    long afterSortSize = Files.size(Paths.get(testFilePath));
+    Assert.assertEquals(beforeSortSize, afterSortSize);
+  }
+  
+  @Test
+  public void testDoSortingJobWise_PD_2() throws IOException {
+
+    expect(job.getPrimaryDimension()).andReturn(2).times(1);
     replay(job);
 
     long beforeSortSize = Files.size(Paths.get(testFilePath));

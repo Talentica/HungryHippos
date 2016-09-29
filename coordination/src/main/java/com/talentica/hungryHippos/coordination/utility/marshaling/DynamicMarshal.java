@@ -11,7 +11,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
 /**
  * Created by debasishc on 1/9/15.
  */
-public class DynamicMarshal implements Serializable {
+public class DynamicMarshal implements Serializable{
 
   private static final long serialVersionUID = -5800537222182360030L;
 
@@ -19,11 +19,11 @@ public class DynamicMarshal implements Serializable {
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
-
+  
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
-
+  
   public Object readValue(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -127,4 +127,5 @@ public class DynamicMarshal implements Serializable {
         throw new IllegalArgumentException("Invalid data format");
     }
   }
+
 }

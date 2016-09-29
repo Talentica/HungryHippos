@@ -35,7 +35,7 @@ public class DataFileComparator {
     int res = 0;
     int rowSize = dataDescription.getSize();
     for (int dim = 0; dim < dimensions.length; dim++) {
-      DataLocator locator = dataDescription.locateField(dim);
+      DataLocator locator = dataDescription.locateField(dimensions[dim]);
       columnPos1 = row1Index * rowSize + locator.getOffset();
       columnPos2 = row2Index * rowSize + locator.getOffset();
       for(int pointer = 0 ; pointer < locator.getSize() ; pointer++ ){

@@ -296,8 +296,8 @@ public class DataFileSorter {
         bout.write(row.array());
         bout.flush();
         totalTime = totalTime + (System.currentTimeMillis() - startTime);
-        ++rowcounter;
         bfb.reload();
+        ++rowcounter;
         if (bfb.empty()) {
           bfb.getReader().close();
         } else {
@@ -330,14 +330,18 @@ public class DataFileSorter {
         }
       });
 
+  private int columnPos = 0;
+  
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
     for (int dim = 0; dim < shardDims.length; dim++) {
-      DataLocator locator = dataDescription.locateField(dim);
+      DataLocator locator = dataDescription.locateField(shardDims[dim]);
+      columnPos = locator.getOffset();
       for (int pointer = 0; pointer < locator.getSize(); pointer++) {
-        if (row1[pointer] != row2[pointer]) {
-          return row1[pointer] - row2[pointer];
+        if (row1[columnPos] != row2[columnPos]) {
+          return row1[columnPos] - row2[columnPos];
         }
+        columnPos++;
       }
     }
     return res;

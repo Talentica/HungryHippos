@@ -13,7 +13,9 @@ import com.talentica.hungryHippos.client.domain.ValueSet;
 import com.talentica.hungryHippos.client.domain.Work;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.storage.DataFileAccess;
 import com.talentica.hungryHippos.storage.RowProcessor;
+import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 
@@ -74,21 +76,40 @@ public class DataRowProcessor implements RowProcessor {
 
   private int totalNoOfRowsProcessed = 0;
 
+  private StoreAccess storeAccess;
+
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
       JobRunnerApplicationContext.getZkJobRunnerConfig().getMinFreeMemoryInMbs();
 
   long startTime = System.currentTimeMillis();
 
-  public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath) {
+  public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath,
+      StoreAccess storeAccess) {
     this.jobEntity = jobEntity;
     this.dynamicMarshal = dynamicMarshal;
+    this.storeAccess = storeAccess;
     this.keys = jobEntity.getJob().getDimensions();
     this.executionContext = new ExecutionContextImpl(dynamicMarshal, outputHHPath);
     workClassType = jobEntity.getJob().createNewWork().getClass();
   }
 
   @Override
-  public void processRow(ByteBuffer row) {
+  public void process() {
+    for (DataFileAccess dataFileAccess : storeAccess) {
+      for (DataFileAccess dataFile : dataFileAccess) {
+        while (dataFile.isNextReadAvailable()) {
+          processRow(dataFile.readNext());
+        }
+      }
+    }
+    finishUp();
+    if (!isAdditionalValueSetsPresentForProcessing()) {
+      return;
+    }
+    process();
+  }
+
+  private void processRow(ByteBuffer row) {
     ValueSet valueSet = new ValueSet(keys);
     for (int i = 0; i < keys.length; i++) {
       Object value = dynamicMarshal.readValue(keys[i], row);
@@ -297,8 +318,7 @@ public class DataRowProcessor implements RowProcessor {
     countOfRows++;
   }
 
-  @Override
-  public void finishUp() {
+  private void finishUp() {
     processedTillValueSetInLastBatches = maxValueSetOfCurrentBatch;
     for (Entry<ValueSet, List<Work>> e : valuesetToWorkTreeMap.entrySet()) {
       for (Work work : e.getValue()) {
@@ -323,7 +343,7 @@ public class DataRowProcessor implements RowProcessor {
     System.gc();
   }
 
-  public boolean isAdditionalValueSetsPresentForProcessing() {
+  private boolean isAdditionalValueSetsPresentForProcessing() {
     return additionalValueSetsPresentForProcessing;
   }
 

@@ -1,18 +1,24 @@
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -28,10 +34,10 @@ public class FileDataStore implements DataStore, Serializable {
   private DataDescription dataDescription;
   private String hungryHippoFilePath;
   private String nodeId;
- private ShardingApplicationContext context;
+  private transient ShardingApplicationContext context;
   private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
-    private String uniqueFileName;
-    private String dataFilePrefix;
+  private String uniqueFileName;
+  private String dataFilePrefix;
 
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
@@ -39,36 +45,38 @@ public class FileDataStore implements DataStore, Serializable {
   public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
   public FileDataStore(int numDimensions, DataDescription dataDescription,
-      String hungryHippoFilePath, String nodeId, ShardingApplicationContext context) throws IOException, InterruptedException,
-      ClassNotFoundException, KeeperException, JAXBException {
-    this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false,context);
+      String hungryHippoFilePath, String nodeId, ShardingApplicationContext context)
+      throws IOException, InterruptedException, ClassNotFoundException, KeeperException,
+      JAXBException {
+    this(numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context);
   }
 
   public FileDataStore(int numDimensions, DataDescription dataDescription,
-      String hungryHippoFilePath, String nodeId, boolean readOnly, ShardingApplicationContext context) throws IOException {
+      String hungryHippoFilePath, String nodeId, boolean readOnly,
+      ShardingApplicationContext context) throws IOException {
     this.context = context;
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
     this.nodeId = nodeId;
     this.hungryHippoFilePath = hungryHippoFilePath;
-    this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath + File.separator + DATA_FILE_BASE_NAME;
-      this.uniqueFileName = UUID.randomUUID().toString();
+    this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
+        + File.separator + DATA_FILE_BASE_NAME;
+    this.uniqueFileName = UUID.randomUUID().toString();
 
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
-          String filePath = dataFilePrefix + i+"/"+uniqueFileName;
-          File file = new File(filePath);
-          if (!file.getParentFile().exists()) {
-              boolean flag = file.getParentFile().mkdirs();
-              if (flag) {
-                  logger.info("created data folder");
-              } else {
-                  logger.info("Not able to create dataFolder");
-              }
+        String filePath = dataFilePrefix + i + "/" + uniqueFileName;
+        File file = new File(filePath);
+        if (!file.getParentFile().exists()) {
+          boolean flag = file.getParentFile().mkdirs();
+          if (flag) {
+            logger.info("created data folder");
+          } else {
+            logger.info("Not able to create dataFolder");
           }
-        os[i] =
-            new FileOutputStream(filePath, APPEND_TO_DATA_FILES);
+        }
+        os[i] = new FileOutputStream(filePath, APPEND_TO_DATA_FILES);
       }
     }
   }
@@ -84,8 +92,8 @@ public class FileDataStore implements DataStore, Serializable {
   }
 
   @Override
-  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException {
+  public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, KeeperException,
+      InterruptedException, IOException, JAXBException {
     int shardingIndexSequence = context.getShardingIndexSequence(keyId);
     FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
     if (storeAccess == null) {
@@ -93,37 +101,37 @@ public class FileDataStore implements DataStore, Serializable {
           shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
-    storeAccess.clear();
     return storeAccess;
   }
 
   @Override
   public void sync() {
-      for (int i = 0; i < numFiles; i++) {
-          try {
-              os[i].flush();
-          } catch (IOException e) {
-              logger.error("Error occurred while flushing " + i + "th outputstream.", e);
-          } finally {
-              try {
-                  if (os[i] != null)
-                      os[i].close();
-                  HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId,
-                          i , uniqueFileName, (new File(dataFilePrefix + i + File.separatorChar + uniqueFileName)).length());
-              } catch (IOException e) {
-                  logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
-              } catch (Exception e) {
-                  logger.error(e.toString());
-              }
-          }
+    for (int i = 0; i < numFiles; i++) {
+      try {
+        os[i].flush();
+      } catch (IOException e) {
+        logger.error("Error occurred while flushing " + i + "th outputstream.", e);
+      } finally {
+        try {
+          if (os[i] != null)
+            os[i].close();
+          HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId, i,
+              uniqueFileName,
+              (new File(dataFilePrefix + i + File.separatorChar + uniqueFileName)).length());
+        } catch (IOException e) {
+          logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+        } catch (Exception e) {
+          logger.error(e.toString());
+        }
       }
+    }
   }
 
 
-    @Override
-    public String getHungryHippoFilePath() {
-        return hungryHippoFilePath;
-    }
+  @Override
+  public String getHungryHippoFilePath() {
+    return hungryHippoFilePath;
+  }
 
 
 }

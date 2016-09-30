@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
-import com.talentica.hungryHippos.common.JobRunner;
+import com.talentica.hungryHippos.common.UnsortedDataJobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
@@ -63,7 +63,7 @@ public class JobExecutor {
           dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       context = new ShardingApplicationContext(shardingTableFolderPath);
       long startTime = System.currentTimeMillis();
-      JobRunner jobRunner = createJobRunner();
+      UnsortedDataJobRunner jobRunner = createJobRunner();
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
       String jobRootDirectory =
           JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
@@ -125,14 +125,14 @@ public class JobExecutor {
    * @throws KeeperException
    * @throws ClassNotFoundException
    */
-  private static JobRunner createJobRunner() throws IOException, ClassNotFoundException,
+  private static UnsortedDataJobRunner createJobRunner() throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    return new JobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
+    return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
   }
 
   public static ShardingApplicationContext getShardingApplicationContext() {

@@ -54,6 +54,7 @@ public class DataFileSorter {
     this.dataDescription = context.getConfiguredDataDescription();
     this.dataDescription.setKeyOrder(context.getShardingDimensions());
     this.shardDims = context.getShardingIndexes();
+    this.sortDimensions(this.shardDims);
     this.comparator = new DataFileComparator(dataDescription);
     this.dataFileHeapSort = new DataFileHeapSort(dataDescription.getSize(), comparator);
     this.sortDims = new int[shardDims.length];
@@ -153,8 +154,7 @@ public class DataFileSorter {
     this.comparator.setDimensions(sortDims);
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));
-    List<File> files =
-        sortInBatch(in, inputFile.length(), outputDir, Charset.defaultCharset(), inputFile);
+    List<File> files = sortInBatch(in, inputFile.length(), outputDir, inputFile);
     if (files.size() > 1) { // merge should happen for at least two files
       mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
     }
@@ -163,13 +163,13 @@ public class DataFileSorter {
   }
 
   private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
-      Charset charset, final File outputFile) throws IOException, InsufficientMemoryException,
+      final File outputFile) throws IOException, InsufficientMemoryException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
-    return sortInBatch(file, datalength, availableMemory(), charset, outputDirectory, outputFile);
+    return sortInBatch(file, datalength, availableMemory(), outputDirectory, outputFile);
   }
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
-      long maxFreeMemory, final Charset cs, final File outputdirectory, final File outputFile)
+      long maxFreeMemory, final File outputdirectory, final File outputFile)
       throws IOException, InsufficientMemoryException, ClassNotFoundException, KeeperException,
       InterruptedException, JAXBException {
     long startTime = System.currentTimeMillis();
@@ -207,16 +207,16 @@ public class DataFileSorter {
         }
         dataFileSize = dataFileSize - chunk.length;
         if (dataFileSize == 0 && batchId == 0) {
-          files.add(sortAndSave(chunk, cs, outputFile, batchId, true, readBytesLength));
+          files.add(sortAndSave(chunk, outputFile, batchId, true, readBytesLength));
         } else {
-          files.add(sortAndSave(chunk, cs, outputdirectory, batchId, false, readBytesLength));
+          files.add(sortAndSave(chunk, outputdirectory, batchId, false, readBytesLength));
         }
         batchId++;
       }
     } catch (EOFException eof) {
       dataFileSize = dataFileSize - chunk.length;
-      files.add(sortAndSave(chunk, cs, outputdirectory, batchId,
-          (dataFileSize == 0 && batchId == 0), readBytesLength));
+      files.add(sortAndSave(chunk, outputdirectory, batchId, (dataFileSize == 0 && batchId == 0),
+          readBytesLength));
     } catch (Exception e) {
       LOGGER.error("Unable to process due to {}", e.getMessage());
       throw e;
@@ -228,8 +228,8 @@ public class DataFileSorter {
     return files;
   }
 
-  private File sortAndSave(byte[] chunk, Charset cs, File output, int batchId,
-      boolean isSingalBatch, int lenght) throws IOException {
+  private File sortAndSave(byte[] chunk, File output, int batchId, boolean isSingalBatch,
+      int lenght) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
     LOGGER.info("Sorting started for chunk size {}...", chunk.length);
     long sortStartTime = System.currentTimeMillis();
@@ -410,6 +410,18 @@ public class DataFileSorter {
     LOGGER.info("Current free memory after GC call {}", currentFreeMemoryAfter);
     LOGGER.info("Total memory freed {}", (currentFreeMemoryAfter - currentFreeMemoryBefore));
     return currentFreeMemoryAfter;
+  }
+
+  private void sortDimensions(int[] dimes) {
+    for (int i = 0; i < dimes.length - 1; i++) {
+      for (int j = 1; j < dimes.length - i; j++) {
+        if (dimes[j - 1] > dimes[j]) {
+          int temp = dimes[j];
+          dimes[j] = dimes[j - 1];
+          dimes[j - 1] = temp;
+        }
+      }
+    }
   }
 
   private int[] orderDimensions(int startPos) {

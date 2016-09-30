@@ -1,7 +1,8 @@
-package com.talentica.hungryHippos.node;
+package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

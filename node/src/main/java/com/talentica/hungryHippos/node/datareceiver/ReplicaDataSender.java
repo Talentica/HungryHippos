@@ -1,6 +1,7 @@
-package com.talentica.hungryHippos.node;
+package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +22,12 @@ public enum ReplicaDataSender {
     private Map<Integer, BufferedOutputStream> nodeIdToBosMap;
     private WorkerReplicaDataSender workerReplicaDataSender;
     private Map<Integer, byte[][]> nodeIdToMemoryArraysMap;
-    private Map<Integer, int[]> nodeIdToMemoryArrayLastByteIndex;
+    private Map<Integer, int[]> nodeIdToMemoryArrayStoredDataLength;
     private Map<Integer, Status[]> nodeIdToMemoryArrayStatusMap;
     private int memoryBlockCapacity;
 
     public enum Status {
-        TRANSFER_IN_PROGRESS, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ, LOCK_BLOCK_WRITE
+        TRANSFER_IN_PROGRESS, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ, WRITE_IN_PROGRESS
     }
 
     ReplicaDataSender() {
@@ -34,7 +35,7 @@ public enum ReplicaDataSender {
         List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         memoryBlockCapacity = 2 * 1024 * 1024;
         nodeIdToBosMap = new HashMap<>();
-        this.nodeIdToMemoryArrayLastByteIndex = new HashMap<>();
+        this.nodeIdToMemoryArrayStoredDataLength = new HashMap<>();
         this.nodeIdToMemoryArrayStatusMap = new HashMap<>();
         int memoryArraySize = 10;
         for (Node node : nodes) {
@@ -51,7 +52,7 @@ public enum ReplicaDataSender {
         int nodeId = node.getIdentifier();
         byte[][] memoryArrayBlock = new byte[memoryArraySize][];
         nodeIdToMemoryArraysMap.put(nodeId, memoryArrayBlock);
-        this.nodeIdToMemoryArrayLastByteIndex.put(nodeId, new int[memoryArraySize]);
+        this.nodeIdToMemoryArrayStoredDataLength.put(nodeId, new int[memoryArraySize]);
         Status[] statuses = new Status[memoryArraySize];
         for (int j = 0; j < memoryArraySize; j++) {
             nodeIdToMemoryArraysMap.get(nodeId)[j] = new byte[memoryBlockCapacity];
@@ -99,11 +100,12 @@ public enum ReplicaDataSender {
                 Status[] statuses = entry.getValue();
                 int nodeId = entry.getKey();
                 for (int i = 0; i < statuses.length; i++) {
-                    if (statuses[i] == Status.ENABLE_BLOCK_READ) {
+                    Status status = statuses[i];
+                    if (status == Status.ENABLE_BLOCK_READ) {
                         statuses[i] = Status.TRANSFER_IN_PROGRESS;
                         try {
                             nodeIdToBosMap.get(nodeId).write(nodeIdToMemoryArraysMap.get(nodeId)[i],
-                                    0, nodeIdToMemoryArrayLastByteIndex.get(nodeId)[i]);
+                                    0, nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i]);
                             nodeIdToBosMap.get(nodeId).flush();
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -111,12 +113,12 @@ public enum ReplicaDataSender {
                             NodeConnectionPool.INSTANCE.reConnect(nodeId);
                             addBufferedOutputStream(nodeId);
                         }
-                        nodeIdToMemoryArrayLastByteIndex.get(nodeId)[i] = 0;
+                        nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i] = 0;
                         statuses[i] = Status.ENABLE_BLOCK_WRITE;
                     }
-
                 }
             }
+
         }
 
 
@@ -133,8 +135,8 @@ public enum ReplicaDataSender {
         return memoryBlockCapacity;
     }
 
-    public Map<Integer, int[]> getNodeIdToMemoryArrayLastByteIndex() {
-        return nodeIdToMemoryArrayLastByteIndex;
+    public Map<Integer, int[]> getNodeIdToMemoryArrayStoredDataLength() {
+        return nodeIdToMemoryArrayStoredDataLength;
     }
 
     public Map<Integer, Status[]> getNodeIdToMemoryArrayStatusMap() {

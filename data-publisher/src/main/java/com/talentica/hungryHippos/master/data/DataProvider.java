@@ -161,7 +161,7 @@ public class DataProvider {
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
     }
-    ZkUtils.deleteZKNode(fileIdToHHpath + fileId);
+    //ZkUtils.deleteZKNode(fileIdToHHpath + fileId);
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));

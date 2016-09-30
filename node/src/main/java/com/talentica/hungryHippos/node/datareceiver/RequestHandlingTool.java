@@ -1,6 +1,8 @@
-package com.talentica.hungryHippos.node;
+package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.node.NodeUtil;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -32,52 +34,28 @@ public class RequestHandlingTool {
     private byte[] dataForFileWrite;
     private ByteBuffer byteBuffer;
     private byte[] fileIdInBytes;
-    private String nodeFileName;
+    private int nodeIdClient;
     private String hhFilePath;
+    private int fileId;
 
-    public RequestHandlingTool(int fileId,String hhFilePath, String nodeFileName) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
-        this.nodeFileName = nodeFileName;
+    public RequestHandlingTool(int fileId,String hhFilePath, int nodeIdClient) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
+        this.fileId = fileId;
+        this.nodeIdClient = nodeIdClient;
         this.hhFilePath = hhFilePath;
-        fileIdInBytes = ByteBuffer.allocate(DataHandler.FILE_ID_BYTE_SIZE).putInt(fileId).array();
-        LOGGER.info("File :{}",hhFilePath);
-        String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
-        String shardingTableFolderPath =
-                dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-        updateFilesIfRequired(shardingTableFolderPath);
-        ShardingApplicationContext context = new ShardingApplicationContext(shardingTableFolderPath);
-        FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
-        dataDescription.setKeyOrder(context.getShardingDimensions());
-        NodeUtil nodeUtil = new NodeUtil(hhFilePath);
+        RequestHandlingShardingInfo requestHandlingShardingInfo = RequestHandlingShardingInfoCache.INSTANCE.get(nodeIdClient,fileId,hhFilePath);
+        fileIdInBytes = requestHandlingShardingInfo.getFileIdInBytes();;
+        ShardingApplicationContext context = requestHandlingShardingInfo.getContext();
+        FieldTypeArrayDataDescription dataDescription = requestHandlingShardingInfo.getDataDescription();
+        NodeUtil nodeUtil = requestHandlingShardingInfo.getNodeUtil();
+        replicaNodesInfoDataSize = requestHandlingShardingInfo.getReplicaNodesInfoDataSize();
+        recordSize = requestHandlingShardingInfo.getRecordSize();
         dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
-                dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, nodeFileName);
+                dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, nodeIdClient+"");
         nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
                 nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
-        int shardingDimensions = context.getShardingDimensions().length;
-        replicaNodesInfoDataSize = shardingDimensions - 1;
-        recordSize = replicaNodesInfoDataSize + dataDescription.getSize();
         nextNodesInfo = new byte[replicaNodesInfoDataSize];
         dataForFileWrite = new byte[dataDescription.getSize()];
         byteBuffer = ByteBuffer.wrap(this.dataForFileWrite);
-    }
-
-    /**
-     * Updates the sharding files if required
-     *
-     * @param shardingTableFolderPath
-     * @throws IOException
-     */
-    private void updateFilesIfRequired(String shardingTableFolderPath) throws IOException {
-        String shardingTableZipPath = shardingTableFolderPath + ".tar.gz";
-        File shardingTableFolder = new File(shardingTableFolderPath);
-        File shardingTableZip = new File(shardingTableZipPath);
-        if (shardingTableFolder.exists()) {
-            if (shardingTableFolder.lastModified() < shardingTableZip.lastModified()) {
-                FileSystemUtils.deleteFilesRecursively(shardingTableFolder);
-                TarAndGzip.untarTGzFile(shardingTableZipPath);
-            }
-        } else {
-            TarAndGzip.untarTGzFile(shardingTableZipPath);
-        }
     }
 
     public void storeData(){
@@ -101,12 +79,14 @@ public class RequestHandlingTool {
         return dataForFileWrite;
     }
 
-    public void closeDataStore(){
-        LOGGER.info("Closing datastore for Node {}: File {}",nodeFileName, hhFilePath);
+    public void close(){
+        LOGGER.info("Closing datastore for Node {}: File {}", nodeIdClient, hhFilePath);
         byteBuffer = null;
         nextNodesInfo = null;
         dataForFileWrite =null;
         dataStore.sync();
+        RequestHandlingShardingInfoCache.INSTANCE.handleRemove(nodeIdClient,fileId);
+        RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient, fileId);
     }
 
     public byte[] getFileIdInBytes() {

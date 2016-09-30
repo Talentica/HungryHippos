@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 
+import com.talentica.hungryHippos.node.datareceiver.DataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

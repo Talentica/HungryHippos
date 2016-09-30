@@ -3,8 +3,9 @@
  */
 package com.talentica.hungryHippos.storage.sorting;
 
-import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.zookeeper.KeeperException;
 import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
-import org.easymock.TestSubject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,6 +107,26 @@ public class DataFileSorterTest {
 
     long afterSortSize = Files.size(Paths.get(testFilePath));
     Assert.assertEquals(beforeSortSize, afterSortSize);
+  }
+  
+  @Test
+  public void testSortDimensions(){
+    int[] dimensions = new int[] {2,0,4};
+    int[] expected = new int[] {0,2,4};
+    sortDimensions(dimensions);
+    Assert.assertArrayEquals(expected, expected);
+  }
+  
+  private void sortDimensions(int[] dimes) {
+    for (int i = 0; i < dimes.length - 1; i++) {
+      for (int j = 1; j < dimes.length - i; j++) {
+        if (dimes[j - 1] > dimes[j]) {
+          int temp = dimes[j];
+          dimes[j] = dimes[j - 1];
+          dimes[j - 1] = temp;
+        }
+      }
+    }
   }
 
 }

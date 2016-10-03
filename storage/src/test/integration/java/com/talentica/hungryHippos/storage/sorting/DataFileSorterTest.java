@@ -76,13 +76,13 @@ public class DataFileSorterTest {
   @Test
   public void testDoSortingJobWise() throws IOException {
 
-    expect(job.getPrimaryDimension()).andReturn(1).times(1);
+    expect(0).andReturn(1).times(1);
     replay(job);
 
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 
     try {
-      sorter.doSortingJobWise(job);
+      sorter.doSortingJobWise(0, job);
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
         | JAXBException | InsufficientMemoryException e) {
       Assert.assertFalse(true);
@@ -95,12 +95,12 @@ public class DataFileSorterTest {
   @Test
   public void testDoSortingJobWise_PD_2() throws IOException {
 
-    expect(job.getPrimaryDimension()).andReturn(2).times(1);
+    expect(2).andReturn(2).times(1);
     replay(job);
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 
     try {
-      sorter.doSortingJobWise(job);
+      sorter.doSortingJobWise(2, job);
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
         | JAXBException | InsufficientMemoryException e) {
       Assert.assertFalse(true);

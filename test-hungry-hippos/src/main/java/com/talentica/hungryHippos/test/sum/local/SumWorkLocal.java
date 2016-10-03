@@ -14,12 +14,10 @@ public class SumWorkLocal implements Work, Serializable {
    */
   private static final long serialVersionUID = -5931349264723731947L;
   protected int[] dimensions;
-  protected int primaryDimension;
   private Double sumFor6thColumn = 0.0;
 
-  public SumWorkLocal(int[] dimensions, int primaryDimension) {
+  public SumWorkLocal(int[] dimensions) {
     this.dimensions = dimensions;
-    this.primaryDimension = primaryDimension;
   }
 
   @Override

@@ -111,7 +111,9 @@ public class PrimaryDimensionwiseJobsCollection {
     return start;
   }
 
-
+  public int getPrimaryDimensionIndex() {
+    return primaryDimensionIndex;
+  }
 
   @Override
   public int hashCode() {

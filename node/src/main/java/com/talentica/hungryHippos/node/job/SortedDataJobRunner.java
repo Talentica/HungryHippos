@@ -1,12 +1,15 @@
-package com.talentica.hungryHippos.common;
+package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.common.DataRowProcessor;
+import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -24,7 +27,7 @@ public class SortedDataJobRunner implements JobRunner {
   private static final long serialVersionUID = -4997999584207490930L;
   private Logger LOGGER = LoggerFactory.getLogger(SortedDataJobRunner.class);
   private DataStore dataStore;
-  private String nodeId;
+  private int nodeId;
   private DynamicMarshal dynamicMarshal = null;
   private String outputHHPath;
   private DataFileSorter dataFileSorter;
@@ -33,20 +36,19 @@ public class SortedDataJobRunner implements JobRunner {
       String outputHHPath, ShardingApplicationContext context)
       throws IOException, InsufficientMemoryException {
     this.dataStore = dataStore;
-    this.nodeId = nodeId;
+    this.nodeId = Integer.parseInt(nodeId);
     dynamicMarshal = new DynamicMarshal(dataDescription);
     this.outputHHPath = outputHHPath;
     this.dataFileSorter = new DataFileSorter(outputHHPath, context);
     this.dataFileSorter.doSortingDefault();
   }
 
-  @Override
-  public void run(JobEntity jobEntity) {
+  public void run(int primaryDimensionIndex, JobEntity jobEntity) {
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
-      dataFileSorter.doSortingJobWise(jobEntity.getJob());
-      StoreAccess storeAccess = dataStore.getStoreAccess(jobEntity.getJob().getPrimaryDimension());
+      dataFileSorter.doSortingJobWise(primaryDimensionIndex, jobEntity.getJob());
+      StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
           new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
       rowProcessor.process();
@@ -56,6 +58,11 @@ public class SortedDataJobRunner implements JobRunner {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
+
   }
 
 }

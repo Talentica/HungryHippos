@@ -7,13 +7,16 @@ import com.talentica.hungryHippos.test.sum.SumJob;
  * Created by debasishc on 5/10/15.
  */
 public class TestJobUniqueCount extends SumJob {
-    public TestJobUniqueCount(int[] dimensions, int primaryDimension, int valueIndex) {
-        super(dimensions,primaryDimension,valueIndex);
-    }
 
-    @Override
-    public Work createNewWork() {
-        return new UniqueCountWork(dimensions,primaryDimension,valueIndex);
-    }
+  private static final long serialVersionUID = 3943488225202378443L;
+
+  public TestJobUniqueCount(int[] dimensions, int valueIndex) {
+    super(dimensions, valueIndex);
+  }
+
+  @Override
+  public Work createNewWork() {
+    return new UniqueCountWork(dimensions, valueIndex);
+  }
 
 }

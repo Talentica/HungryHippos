@@ -18,14 +18,15 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
-import com.talentica.hungryHippos.common.JobRunner;
-import com.talentica.hungryHippos.common.SortedDataJobRunner;
-import com.talentica.hungryHippos.common.UnsortedDataJobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
+import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.node.job.JobConfigReader;
+import com.talentica.hungryHippos.node.job.JobRunner;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
+import com.talentica.hungryHippos.node.job.SortedDataJobRunner;
+import com.talentica.hungryHippos.node.job.UnsortedDataJobRunner;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -74,16 +75,9 @@ public class JobExecutor {
       String jobJarPath = jobRootDirectory + File.separatorChar + jobUUId + File.separator + "lib";
       String className = JobConfigReader.readClassName(jobUUId);
       List<JobEntity> jobEntities = getJobEntities(jobJarPath, className);
-      for (JobEntity jobEntity : jobEntities) {
-        int jobEntityId = jobEntity.getJobId();
-        JobStatusNodeCoordinator.updateStartedJobEntity(jobUUId, jobEntityId, nodeId);
-        Object[] loggerJobArgument = new Object[] {jobEntityId};
-        LOGGER.info("Starting execution of job: {}", loggerJobArgument);
-        jobRunner.run(jobEntity);
-        LOGGER.info("Finished with execution of job: {}", loggerJobArgument);
-        JobStatusNodeCoordinator.updateCompletedJobEntity(jobUUId, jobEntityId, nodeId);
-      }
-      jobEntities.clear();
+      List<PrimaryDimensionwiseJobsCollection> jobsCollectionList =
+          PrimaryDimensionwiseJobsCollection.from(jobEntities, context);
+      jobRunner.run(jobUUId, jobsCollectionList);
       JobStatusNodeCoordinator.updateNodeJobCompleted(jobUUId, nodeId);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to execute all jobs.",

@@ -148,7 +148,7 @@ public class CreateFileSystemInCluster {
     {
 
       for (Node node : nodesInCluster) {
-        hhfs.updateFSBlockMetaData(fname, String.valueOf(node.getIdentifier()), 0l);
+        hhfs.updateFSBlockMetaData(fname, node.getIdentifier(), 0l);
       }
 
     }

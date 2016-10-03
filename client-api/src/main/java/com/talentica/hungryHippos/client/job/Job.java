@@ -28,12 +28,4 @@ public interface Job {
 	 */
 	int[] getDimensions();
 
-	/**
-	 * Primary dimension of the data set is required to do perform underlying
-	 * operation. Primary dimension must be one of the dimensions defined.
-	 * 
-	 * @return Primary dimension of the data set.
-	 */
-	int getPrimaryDimension();
-
 }

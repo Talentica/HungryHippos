@@ -9,7 +9,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +19,7 @@ import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 /*
  * @RunWith(PowerMockRunner.class)
@@ -140,10 +140,8 @@ public class HungryHipposFileSystemIntegrationTest {
        * .thenReturn(fileSystemRootNodeZKPath);
        */
 
-
       hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, nodeId, datafileSize);
-
-      hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, datafileSize);
+      hhfs.updateFSBlockMetaData(fileZKNode, Integer.parseInt(nodeId), datafileSize);
 
       assertTrue(true);
     } catch (Exception e) {

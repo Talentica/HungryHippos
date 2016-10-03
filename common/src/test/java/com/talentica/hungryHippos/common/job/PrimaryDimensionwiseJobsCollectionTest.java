@@ -97,10 +97,6 @@ public class PrimaryDimensionwiseJobsCollectionTest {
       return dimensions;
     }
 
-    @Override
-    public int getPrimaryDimension() {
-      return 0;
-    }
   }
 
   public static void main(String[] args) {

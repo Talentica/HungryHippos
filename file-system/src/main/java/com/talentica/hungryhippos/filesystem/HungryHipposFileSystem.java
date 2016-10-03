@@ -357,7 +357,7 @@ public class HungryHipposFileSystem {
    * @param datafileSize
    * @throws Exception
    */
-  public void updateFSBlockMetaData(String fileZKNode, String nodeId, long datafileSize) {
+  public void updateFSBlockMetaData(String fileZKNode, int nodeId, long datafileSize) {
     String fileNodeZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + fileZKNode;
     logger.info("HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER " + HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER);
     String fileNodeZKDFSPath =

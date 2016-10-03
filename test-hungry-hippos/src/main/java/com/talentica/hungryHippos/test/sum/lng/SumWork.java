@@ -14,13 +14,11 @@ public class SumWork implements Work, Serializable {
 	 */
 	private static final long serialVersionUID = -5931349264723731947L;
 	protected int[] dimensions;
-	protected int primaryDimension;
 	protected int valueIndex;
 	private long sum;
 
-	public SumWork(int[] dimensions, int primaryDimension, int valueIndex) {
+  public SumWork(int[] dimensions, int valueIndex) {
 		this.dimensions = dimensions;
-		this.primaryDimension = primaryDimension;
 		this.valueIndex = valueIndex;
 	}
 

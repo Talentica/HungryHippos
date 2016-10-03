@@ -71,11 +71,10 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingJobWise(Job job)
+  public void doSortingJobWise(int primaryDimensionIndex, Job job)
       throws FileNotFoundException, ClassNotFoundException, IOException,
       InsufficientMemoryException, KeeperException, InterruptedException, JAXBException {
-    int primDims = job.getPrimaryDimension();
-    int keyIdBit = 1 << primDims;
+    int keyIdBit = 1 << primaryDimensionIndex;
     File inputDir;
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
@@ -95,7 +94,7 @@ public class DataFileSorter {
           if (dataSize <= 0) {
             continue;
           }
-          doSorting(inputDir, primDims);
+          doSorting(inputDir, primaryDimensionIndex);
         }
         filesPresentinFolder.clear();
       }

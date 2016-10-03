@@ -57,13 +57,13 @@ public class DataFileSorterTest {
   }
 
   @Test
-  public void testDataFileSort() throws IOException {
+  public void testDataFileSort() throws IOException, KeeperException, InterruptedException, JAXBException {
 
     long beforeSortSize = Files.size(Paths.get(testFilePath));
     try {
       sorter.doSortingDefault();
-    } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
-        | JAXBException | InsufficientMemoryException e) {
+    } catch (IOException
+        | InsufficientMemoryException e) {
       Assert.assertFalse(true);
     }
 

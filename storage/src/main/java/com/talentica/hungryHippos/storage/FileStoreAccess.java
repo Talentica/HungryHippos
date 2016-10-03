@@ -13,12 +13,12 @@ public class FileStoreAccess implements StoreAccess {
   private String hungryHippoFilePath;
   private String base;
   private DataDescription dataDescription;
-  private int currentFileId = -1;
+  private int currentFileId = 0;
 
-  public FileStoreAccess(String hungryHippoFilePath, String base, int keyId,
+  public FileStoreAccess(String hungryHippoFilePath, String base, int primaryDimension,
       int numFiles, DataDescription dataDescription) {
     this.hungryHippoFilePath = hungryHippoFilePath;
-    this.primaryDimension = keyId;
+    this.primaryDimension = primaryDimension;
     this.numFiles = numFiles;
     this.base = base;
     this.dataDescription = dataDescription;
@@ -35,8 +35,8 @@ public class FileStoreAccess implements StoreAccess {
       }
 
       private int getNextFileId() {
-        for (int i = currentFileId; i < numFiles; i++) {
-          if ((primaryDimension & i) > 0) {
+        for (int i = currentFileId + 1; i < numFiles; i++) {
+          if (((1 << primaryDimension) & i) > 0) {
             return i;
           }
         }

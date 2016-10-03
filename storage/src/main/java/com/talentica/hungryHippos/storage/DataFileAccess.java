@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.storage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -24,28 +23,31 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
 
   private File[] dataFiles;
 
+  private DataDescription dataDescription;
+
   public DataFileAccess(DataDescription dataDescription, File dataFilesDirectory) {
+    initialize(dataDescription);
+    dataFiles = dataFilesDirectory.listFiles();
+  }
+
+  private void initialize(DataDescription dataDescription) {
+    this.dataDescription = dataDescription;
+    byteBufferBytes = new byte[dataDescription.getSize()];
+    byteBuffer = ByteBuffer.wrap(byteBufferBytes);
+  }
+
+  private void setCurrentDataFile(File dataFile) {
     try {
-      byteBufferBytes = new byte[dataDescription.getSize()];
-      byteBuffer = ByteBuffer.wrap(byteBufferBytes);
-      initialize(dataFilesDirectory);
-      dataFiles = dataFilesDirectory.listFiles();
+      dataInputStream = new DataInputStream(new FileInputStream(dataFile));
+      currentDataFileSize = dataFile.length();
     } catch (IOException exception) {
       throw new RuntimeException(exception);
     }
   }
 
-  private void initialize(File dataFile) throws FileNotFoundException {
-    dataInputStream = new DataInputStream(new FileInputStream(dataFile));
-    currentDataFileSize = dataFile.length();
-  }
-
-  private DataFileAccess(File dataFile) {
-    try {
-      initialize(dataFile);
-    } catch (IOException exception) {
-      throw new RuntimeException(exception);
-    }
+  private DataFileAccess(File dataFile, DataDescription dataDescription) {
+    initialize(dataDescription);
+    setCurrentDataFile(dataFile);
   }
 
   private void closeDatsInputStream(DataInputStream in) throws IOException {
@@ -60,14 +62,16 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
 
       @Override
       public boolean hasNext() {
-        return dataFiles != null && currentFileIndex < dataFiles.length;
+        return dataFiles != null && currentFileIndex < dataFiles.length - 1;
       }
 
       @Override
       public DataFileAccess next() {
         if (hasNext()) {
           currentFileIndex++;
-          return new DataFileAccess(dataFiles[currentFileIndex]);
+          File dataFile = dataFiles[currentFileIndex];
+          setCurrentDataFile(dataFile);
+          return new DataFileAccess(dataFile, dataDescription);
         }
         return null;
       }
@@ -78,7 +82,6 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
     try {
       if (isNextReadAvailable()) {
         byteBuffer.clear();
-        byteBuffer.flip();
         dataInputStream.readFully(byteBufferBytes);
         currentDataFileSize = currentDataFileSize - byteBufferBytes.length;
         return byteBuffer;
@@ -93,6 +96,7 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
     try {
       if (currentDataFileSize <= 0) {
         closeDatsInputStream(dataInputStream);
+        return false;
       }
     } catch (IOException exception) {
       throw new RuntimeException(exception);

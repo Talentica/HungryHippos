@@ -2,13 +2,11 @@ package com.talentica.hungryHippos.node;
 
 import java.io.IOException;
 
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 
@@ -75,7 +73,7 @@ public class DataReceiver {
   public static void main(String[] args) {
     try {
       validateArguments(args);
-      NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
+      NodesManagerContext.getNodesManagerInstance(args[0]);
       LOGGER.info("Start Node initialize");
       int nodePort = NodeInfo.INSTANCE.getPort();
       String nodeId = NodeInfo.INSTANCE.getId();

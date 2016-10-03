@@ -95,8 +95,8 @@ public class DataRowProcessor implements RowProcessor {
 
   @Override
   public void process() {
-    for (DataFileAccess dataFileAccess : storeAccess) {
-      for (DataFileAccess dataFile : dataFileAccess) {
+    for (DataFileAccess dataFolder : storeAccess) {
+      for (DataFileAccess dataFile : dataFolder) {
         while (dataFile.isNextReadAvailable()) {
           processRow(dataFile.readNext());
         }

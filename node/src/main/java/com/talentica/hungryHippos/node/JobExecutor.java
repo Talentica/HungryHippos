@@ -12,7 +12,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,26 +53,21 @@ public class JobExecutor {
 
   private static String jobUUId;
 
-  private static ShardingApplicationContext context;
+  private static final String SORTED_META_FILE_NAME = ".sorted";
 
-  private static boolean isJobExecutionForSort = false; //need to configure through property file
+  private static ShardingApplicationContext context;
 
   public static void main(String[] args) {
     try {
       LOGGER.info("Start Node initialize");
       validateArguments(args);
       initialize(args);
-      String dataAbsolutePath = FileSystemContext.getRootDirectory() + inputHHPath;
+      String dataFolderPath = FileSystemContext.getRootDirectory() + inputHHPath;
       String shardingTableFolderPath =
-          dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+          dataFolderPath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       context = new ShardingApplicationContext(shardingTableFolderPath);
       long startTime = System.currentTimeMillis();
-      JobRunner jobRunner;
-      if (!isJobExecutionForSort) {
-        jobRunner = createJobRunner();
-      } else {
-        jobRunner = createSortedJobRunner();
-      }
+      JobRunner jobRunner = createJobRunner(dataFolderPath);
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
       String jobRootDirectory =
           JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
@@ -125,37 +119,20 @@ public class JobExecutor {
 
   }
 
-  /**
-   * Create the job runner.
-   * 
-   * @return JobRunner
-   * @throws IOException
-   * @throws JAXBException
-   * @throws InterruptedException
-   * @throws KeeperException
-   * @throws ClassNotFoundException
-   */
-  private static UnsortedDataJobRunner createJobRunner() throws IOException, ClassNotFoundException,
-      KeeperException, InterruptedException, JAXBException {
+  private static JobRunner createJobRunner(String inputFilePath)
+      throws IOException, InsufficientMemoryException {
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
-        outputHHPath);
-  }
-
-  private static SortedDataJobRunner createSortedJobRunner()
-      throws IOException, ClassNotFoundException, KeeperException, InterruptedException,
-      JAXBException, InsufficientMemoryException {
-    FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
-    dataDescription.setKeyOrder(context.getShardingDimensions());
-    NodeUtil nodeUtil = new NodeUtil(inputHHPath);
-    dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
-        inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
-        outputHHPath, context);
+    if (new File(inputFilePath + File.separator + SORTED_META_FILE_NAME).exists()) {
+      return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
+          outputHHPath, context);
+    } else {
+      return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
+          outputHHPath);
+    }
   }
 
   public static ShardingApplicationContext getShardingApplicationContext() {

@@ -3,9 +3,6 @@ package com.talentica.hungryHippos.common;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.bind.JAXBException;
-
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +31,7 @@ public class SortedDataJobRunner implements JobRunner {
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String outputHHPath, ShardingApplicationContext context)
-      throws ClassNotFoundException, IOException, InsufficientMemoryException, KeeperException,
-      InterruptedException, JAXBException {
+      throws IOException, InsufficientMemoryException {
     this.dataStore = dataStore;
     this.nodeId = nodeId;
     dynamicMarshal = new DynamicMarshal(dataDescription);

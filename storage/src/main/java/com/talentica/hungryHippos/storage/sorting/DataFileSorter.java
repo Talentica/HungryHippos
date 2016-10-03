@@ -47,9 +47,7 @@ public class DataFileSorter {
   private int numFiles;
   private DataFileComparator comparator;
 
-  public DataFileSorter(String dataDir, ShardingApplicationContext context)
-      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
-      IOException, JAXBException {
+  public DataFileSorter(String dataDir, ShardingApplicationContext context) {
     this.dataDescription = context.getConfiguredDataDescription();
     this.dataDescription.setKeyOrder(context.getShardingDimensions());
     this.shardDims = context.getShardingIndexes();
@@ -114,8 +112,7 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingDefault() throws IOException, InsufficientMemoryException,
-      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+  public void doSortingDefault() throws IOException, InsufficientMemoryException {
     dataDir = validateDirectory(dataDir);
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
@@ -144,9 +141,7 @@ public class DataFileSorter {
     }
   }
 
-  private void doSorting(File inputFile, int key)
-      throws FileNotFoundException, IOException, InsufficientMemoryException,
-      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+  private void doSorting(File inputFile, int key) throws IOException, InsufficientMemoryException {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
@@ -163,21 +158,20 @@ public class DataFileSorter {
   }
 
   private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
-      final File outputFile) throws IOException, InsufficientMemoryException,
-      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+      final File outputFile) throws InsufficientMemoryException, IOException {
     return sortInBatch(file, datalength, availableMemory(), outputDirectory, outputFile);
   }
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       long maxFreeMemory, final File outputdirectory, final File outputFile)
-      throws IOException, InsufficientMemoryException, ClassNotFoundException, KeeperException,
-      InterruptedException, JAXBException {
+      throws InsufficientMemoryException, IOException
+  {
     long startTime = System.currentTimeMillis();
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
     int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     int effectiveBlockSizeBytes =
-        ((int) ((blocksize) / (noOfBytesInOneDataSet))) * noOfBytesInOneDataSet;
+        ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
     byte[] chunk;
     if (blocksize > datalength) {
       chunk = new byte[(int) datalength];

@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -28,6 +27,7 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 
 /**
@@ -39,7 +39,6 @@ public class DataFileSorter {
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
   private final static String INPUT_DATAFILE_PRIFIX = "data_";
-  private ShardingApplicationContext context;
   private FieldTypeArrayDataDescription dataDescription;
   private DataFileHeapSort dataFileHeapSort;
   private int[] shardDims;
@@ -48,9 +47,9 @@ public class DataFileSorter {
   private int numFiles;
   private DataFileComparator comparator;
 
-  public DataFileSorter(String dataDir, String shardingDir) throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
-    this.context = new ShardingApplicationContext(shardingDir);
+  public DataFileSorter(String dataDir, ShardingApplicationContext context)
+      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
+      IOException, JAXBException {
     this.dataDescription = context.getConfiguredDataDescription();
     this.dataDescription.setKeyOrder(context.getShardingDimensions());
     this.shardDims = context.getShardingIndexes();
@@ -83,7 +82,8 @@ public class DataFileSorter {
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + fileId);
+        inputDir = new File(FileSystemContext.getRootDirectory()
+            + dataDir + File.separator + INPUT_DATAFILE_PRIFIX + fileId);
         if (inputDir.isDirectory()) {
           Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
             if (Files.isRegularFile(filePath)) {
@@ -117,10 +117,10 @@ public class DataFileSorter {
   public void doSortingDefault() throws IOException, InsufficientMemoryException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     dataDir = validateDirectory(dataDir);
-    File inputDir;
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
-      inputDir = new File(dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId));
+      dataDir = dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId);
+      File inputDir = new File(dataDir);
       if (!inputDir.exists()) {
         break;
       }
@@ -156,7 +156,7 @@ public class DataFileSorter {
     in = new DataInputStream(new FileInputStream(inputFile));
     List<File> files = sortInBatch(in, inputFile.length(), outputDir, inputFile);
     if (files.size() > 1) { // merge should happen for at least two files
-      mergeSortedFiles(files, inputFile, Charset.defaultCharset(), true);
+      mergeSortedFiles(files, inputFile, true);
     }
     LOGGER.info("Completed file sorting and total time taken in sec {} ",
         ((System.currentTimeMillis() - startTIme) / 1000));
@@ -285,7 +285,7 @@ public class DataFileSorter {
   }
 
 
-  private int mergeSortedFiles(List<File> files, File outputfile, Charset cs, boolean append)
+  private int mergeSortedFiles(List<File> files, File outputfile, boolean append)
       throws IOException {
     long startTIme = System.currentTimeMillis();
     LOGGER.info("Now merging sorted files...");

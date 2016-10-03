@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.talentica.hungryHippos.client.job.Job;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 /**
  * @author pooshans
@@ -52,7 +53,7 @@ public class DataFileSorterTest {
     testFilePath = file.getAbsolutePath() + resource + testFile;
     inputDataDir = file.getAbsolutePath() + resource + File.separatorChar + "shardedDir";
     shardingConfDir = file.getAbsolutePath() + resource;
-    sorter = new DataFileSorter(inputDataDir, shardingConfDir);
+    sorter = new DataFileSorter(inputDataDir, new ShardingApplicationContext(shardingConfDir));
   }
 
   @Test
@@ -90,7 +91,7 @@ public class DataFileSorterTest {
     long afterSortSize = Files.size(Paths.get(testFilePath));
     Assert.assertEquals(beforeSortSize, afterSortSize);
   }
-  
+
   @Test
   public void testDoSortingJobWise_PD_2() throws IOException {
 
@@ -108,15 +109,15 @@ public class DataFileSorterTest {
     long afterSortSize = Files.size(Paths.get(testFilePath));
     Assert.assertEquals(beforeSortSize, afterSortSize);
   }
-  
+
   @Test
-  public void testSortDimensions(){
-    int[] dimensions = new int[] {2,0,4};
-    int[] expected = new int[] {0,2,4};
+  public void testSortDimensions() {
+    int[] dimensions = new int[] {2, 0, 4};
+    int[] expected = new int[] {0, 2, 4};
     sortDimensions(dimensions);
     Assert.assertArrayEquals(expected, expected);
   }
-  
+
   private void sortDimensions(int[] dimes) {
     for (int i = 0; i < dimes.length - 1; i++) {
       for (int j = 1; j < dimes.length - i; j++) {

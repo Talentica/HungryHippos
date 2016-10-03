@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
+import com.talentica.hungryHippos.common.JobRunner;
+import com.talentica.hungryHippos.common.SortedDataJobRunner;
 import com.talentica.hungryHippos.common.UnsortedDataJobRunner;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
@@ -29,6 +31,7 @@ import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -53,6 +56,8 @@ public class JobExecutor {
 
   private static ShardingApplicationContext context;
 
+  private static boolean isJobExecutionForSort = false; //need to configure through property file
+
   public static void main(String[] args) {
     try {
       LOGGER.info("Start Node initialize");
@@ -63,7 +68,12 @@ public class JobExecutor {
           dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       context = new ShardingApplicationContext(shardingTableFolderPath);
       long startTime = System.currentTimeMillis();
-      UnsortedDataJobRunner jobRunner = createJobRunner();
+      JobRunner jobRunner;
+      if (!isJobExecutionForSort) {
+        jobRunner = createJobRunner();
+      } else {
+        jobRunner = createSortedJobRunner();
+      }
       int nodeId = NodeInfo.INSTANCE.getIdentifier();
       String jobRootDirectory =
           JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
@@ -132,7 +142,20 @@ public class JobExecutor {
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(), outputHHPath);
+    return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
+        outputHHPath);
+  }
+
+  private static SortedDataJobRunner createSortedJobRunner()
+      throws IOException, ClassNotFoundException, KeeperException, InterruptedException,
+      JAXBException, InsufficientMemoryException {
+    FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
+    dataDescription.setKeyOrder(context.getShardingDimensions());
+    NodeUtil nodeUtil = new NodeUtil(inputHHPath);
+    dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
+        inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
+    return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
+        outputHHPath, context);
   }
 
   public static ShardingApplicationContext getShardingApplicationContext() {

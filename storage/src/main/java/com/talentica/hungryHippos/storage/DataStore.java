@@ -1,15 +1,10 @@
 package com.talentica.hungryHippos.storage;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.BlockingQueue;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
-
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
 /**
  * Created by debasishc on 27/8/15.

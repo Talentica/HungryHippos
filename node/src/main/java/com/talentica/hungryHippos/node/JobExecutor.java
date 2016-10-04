@@ -20,7 +20,6 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
-import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.node.job.JobConfigReader;
@@ -34,7 +33,6 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -55,8 +53,6 @@ public class JobExecutor {
   private static String outputHHPath;
 
   private static String jobUUId;
-
-  private static final String SORTED_META_FILE_NAME = "data_1.sorted";
 
   private static ShardingApplicationContext context;
 
@@ -122,7 +118,7 @@ public class JobExecutor {
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    boolean isSorting =  (boolean) ZkUtils.readObjectZkNode(inputFilePath  + "/" + FileSystemConstants.DATA_FILE_SORTING);
+    boolean isSorting =  context.getShardingClientConfig().isDataFileSorting();
     if (isSorting) {
       return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
           inputFilePath, context);

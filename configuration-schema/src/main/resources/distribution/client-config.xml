@@ -8,5 +8,4 @@
 		<tns:node-ssh-username>pooshans</tns:node-ssh-username>
 		<tns:node-ssh-private-key-file-path>/home/pooshans/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
 	</tns:output>
-  <tns:data-file-sorting>true</tns:data-file-sorting>
 </tns:client-config>

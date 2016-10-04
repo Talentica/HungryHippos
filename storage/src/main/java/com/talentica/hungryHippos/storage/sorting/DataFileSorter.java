@@ -39,6 +39,7 @@ public class DataFileSorter {
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
   private final static String INPUT_DATAFILE_PRIFIX = "data_";
+  private final static String LOCK_FILE = "lock";
   private FieldTypeArrayDataDescription dataDescription;
   private DataFileHeapSort dataFileHeapSort;
   private int[] shardDims;
@@ -79,8 +80,8 @@ public class DataFileSorter {
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        inputDir = new File(FileSystemContext.getRootDirectory()
-            + dataDir + File.separator + INPUT_DATAFILE_PRIFIX + fileId);
+        inputDir = new File(FileSystemContext.getRootDirectory() + dataDir + File.separator
+            + INPUT_DATAFILE_PRIFIX + fileId);
         if (inputDir.isDirectory()) {
           Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
             if (Files.isRegularFile(filePath)) {
@@ -113,6 +114,8 @@ public class DataFileSorter {
    */
   public void doSortingDefault() throws IOException, InsufficientMemoryException {
     dataDir = validateDirectory(dataDir);
+    File lockFile = new File(dataDir + File.separatorChar + LOCK_FILE);
+    createLockFile(lockFile);
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
       dataDir = dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId);
@@ -137,6 +140,20 @@ public class DataFileSorter {
         doSorting(inputFile, fileId);
       }
       filesPresentinFolder.clear();
+    }
+    unlockFile(lockFile);
+  }
+
+  private void createLockFile(File lockFile) throws IOException {
+    if (lockFile.exists()) {
+      lockFile.delete();
+    }
+    lockFile.createNewFile();
+  }
+
+  private void unlockFile(File lockFile) {
+    if (lockFile.exists()) {
+      lockFile.delete();
     }
   }
 
@@ -163,14 +180,12 @@ public class DataFileSorter {
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       long maxFreeMemory, final File outputdirectory, final File outputFile)
-      throws InsufficientMemoryException, IOException
-  {
+      throws InsufficientMemoryException, IOException {
     long startTime = System.currentTimeMillis();
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
     int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
-    int effectiveBlockSizeBytes =
-        ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
+    int effectiveBlockSizeBytes = ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
     byte[] chunk;
     if (blocksize > datalength) {
       chunk = new byte[(int) datalength];

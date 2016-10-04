@@ -1,6 +1,8 @@
 package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -26,11 +28,14 @@ public class SortedDataJobRunner implements JobRunner {
 
   private static final long serialVersionUID = -4997999584207490930L;
   private Logger LOGGER = LoggerFactory.getLogger(SortedDataJobRunner.class);
+  private static final String LOCK_FILE = "lock";
+  private static final String primDimSort = "prim-dim";
   private DataStore dataStore;
   private int nodeId;
   private DynamicMarshal dynamicMarshal = null;
   private String inputHHPath;
   private DataFileSorter dataFileSorter;
+  private File primDimFile;
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, ShardingApplicationContext context)
@@ -39,15 +44,20 @@ public class SortedDataJobRunner implements JobRunner {
     this.nodeId = Integer.parseInt(nodeId);
     dynamicMarshal = new DynamicMarshal(dataDescription);
     this.inputHHPath = inputHHPath;
-    this.dataFileSorter = new DataFileSorter(inputHHPath, context);
-    this.dataFileSorter.doSortingDefault();
+    this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
+    this.primDimFile = new File(this.inputHHPath + File.separatorChar + primDimSort);
   }
 
   public void run(int primaryDimensionIndex, JobEntity jobEntity) {
+    waitFileUnlock();
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
-      dataFileSorter.doSortingJobWise(primaryDimensionIndex, jobEntity.getJob());
+      boolean isPrimDimSorted = isFileSortedOnPrimDim(primaryDimensionIndex);
+      if (!isPrimDimSorted) {
+        dataFileSorter.doSortingJobWise(primaryDimensionIndex, jobEntity.getJob());
+        setPrimDimForSorting(primaryDimensionIndex);
+      }
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
           new DataRowProcessor(dynamicMarshal, jobEntity, inputHHPath, storeAccess);
@@ -58,6 +68,37 @@ public class SortedDataJobRunner implements JobRunner {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }
+  }
+
+  private void waitFileUnlock() {
+    File lockFile = new File(this.inputHHPath + File.separatorChar + LOCK_FILE);
+    while (true) {
+      if (!lockFile.exists()) {
+        break;
+      }
+    }
+  }
+
+  private void setPrimDimForSorting(int primDim) throws IOException {
+    FileOutputStream fos = new FileOutputStream(primDimFile, false);
+    fos.write(primDim);
+    fos.flush();
+    fos.close();
+  }
+
+  @SuppressWarnings("resource")
+  private boolean isFileSortedOnPrimDim(int primDim) throws IOException {
+    if (!primDimFile.exists()) {
+      primDimFile.createNewFile();
+    }
+    FileInputStream fis = new FileInputStream(primDimFile);
+    if (primDimFile.exists()) {
+      if ((int)fis.read() == primDim) {
+        return true;
+      }
+    }
+    fis.close();
+    return false;
   }
 
   @Override
@@ -72,7 +113,5 @@ public class SortedDataJobRunner implements JobRunner {
         JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
       }
     }
-  
   }
-
 }

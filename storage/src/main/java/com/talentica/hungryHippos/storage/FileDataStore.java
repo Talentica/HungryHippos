@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
+import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -38,7 +40,6 @@ public class FileDataStore implements DataStore, Serializable {
   private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
   private String uniqueFileName;
   private String dataFilePrefix;
-
   private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
       new HashMap<>();
 
@@ -63,7 +64,6 @@ public class FileDataStore implements DataStore, Serializable {
     this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
         + File.separator + DATA_FILE_BASE_NAME;
     this.uniqueFileName = UUID.randomUUID().toString();
-
     if (!readOnly) {
       for (int i = 0; i < numFiles; i++) {
         String filePath = dataFilePrefix + i + "/" + uniqueFileName;
@@ -125,8 +125,14 @@ public class FileDataStore implements DataStore, Serializable {
         }
       }
     }
+    try {
+      if (context.getShardingClientConfig().isDataFileSorting()) {
+        new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context).doSortingDefault();
+      }
+    } catch (IOException | InsufficientMemoryException e) {
+      logger.error(e.toString());
+    }
   }
-
 
   @Override
   public String getHungryHippoFilePath() {

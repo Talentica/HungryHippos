@@ -65,7 +65,8 @@ public class DataPublisherStarter {
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);
       updateFilePublishSuccessful(destinationPath);
-
+      updateDataFileSortingFlag(destinationPath);
+      
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
@@ -138,6 +139,13 @@ public class DataPublisherStarter {
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
     ZkUtils.deleteZKNode(pathForFailureNode);
     ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
+  }
+  
+  private static void updateDataFileSortingFlag(String destinationPath){
+    String sortingPathNode = FileSystemContext.getRootDirectory() + destinationPath;
+    String sortingFlagNode = sortingPathNode + "/" + FileSystemConstants.DATA_FILE_SORTING;
+    boolean sortingFlag = NodesManagerContext.getClientConfig().isDataFileSorting();
+    ZkUtils.saveObjectZkNode(sortingFlagNode, sortingFlag);
   }
 
   /**

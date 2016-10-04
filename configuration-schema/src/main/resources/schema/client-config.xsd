@@ -11,6 +11,7 @@
 					nillable="false" />
 				<element name="session-timout" type="string" default="86400000" />
 				<element type="tns:output" name="output" />
+				<element type="boolean" name="data-file-sorting"  default="false"/>
 			</sequence>
 		</complexType>
 	</element>

@@ -1,14 +1,11 @@
 package com.talentica.hungryHippos.node;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -43,7 +40,8 @@ public class DataReceiver {
   private void startServer() {
     LOGGER.info("Start the node");
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
-    int maxNoOfRequestThreads = noOfNodes*DataPublisherApplicationContext.getNoOfDataReceiverThreads();
+    int maxNoOfRequestThreads =
+        noOfNodes * DataPublisherApplicationContext.getNoOfDataReceiverThreads();
     EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {
       ServerBootstrap b = new ServerBootstrap();
@@ -62,9 +60,9 @@ public class DataReceiver {
       f.channel().closeFuture().sync();
       LOGGER.info("Node ready to receive data");
       LOGGER.info("Wait until the connection is closed");
-    } catch (Exception e){
+    } catch (Exception e) {
       LOGGER.error(e.toString());
-    } finally{
+    } finally {
       workerGroup.shutdownGracefully();
       LOGGER.info("Connection is gracefully closed");
     }
@@ -87,19 +85,6 @@ public class DataReceiver {
   private static void validateArguments(String[] args) {
     if (args.length < 1) {
       throw new RuntimeException("Please provide client-config.xml to connect to zookeeper.");
-    }
-  }
-
-  /**
-   * @param exception
-   * @throws Exception
-   */
-  private static void errorHandler(Exception exception) throws Exception {
-    LOGGER.error("Error occured while executing node starter program.", exception);
-    try {
-      ZkSignalListener.createErrorEncounterSignal(NodesManagerContext.getNodesManagerInstance());
-    } catch (IOException | InterruptedException e) {
-      LOGGER.info("Unable to create the node on zk due to {}", e.getMessage());
     }
   }
 

@@ -29,17 +29,17 @@ public class SortedDataJobRunner implements JobRunner {
   private DataStore dataStore;
   private int nodeId;
   private DynamicMarshal dynamicMarshal = null;
-  private String outputHHPath;
+  private String inputHHPath;
   private DataFileSorter dataFileSorter;
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
-      String outputHHPath, ShardingApplicationContext context)
+      String inputHHPath, ShardingApplicationContext context)
       throws IOException, InsufficientMemoryException {
     this.dataStore = dataStore;
     this.nodeId = Integer.parseInt(nodeId);
     dynamicMarshal = new DynamicMarshal(dataDescription);
-    this.outputHHPath = outputHHPath;
-    this.dataFileSorter = new DataFileSorter(outputHHPath, context);
+    this.inputHHPath = inputHHPath;
+    this.dataFileSorter = new DataFileSorter(inputHHPath, context);
     this.dataFileSorter.doSortingDefault();
   }
 
@@ -50,10 +50,10 @@ public class SortedDataJobRunner implements JobRunner {
       dataFileSorter.doSortingJobWise(primaryDimensionIndex, jobEntity.getJob());
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
-          new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
+          new DataRowProcessor(dynamicMarshal, jobEntity, inputHHPath, storeAccess);
       rowProcessor.process();
-      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
-          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(inputHHPath, nodeId,
+          (new File(FileSystemContext.getRootDirectory() + inputHHPath)).length());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -62,7 +62,17 @@ public class SortedDataJobRunner implements JobRunner {
 
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
-
+    for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
+      int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
+      for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
+        JobEntity jobEntity = jobSCollection.jobAt(i);
+        int jobEntityId = jobEntity.getJobId();
+        JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
+        run(primaryDimensionIndex, jobEntity);
+        JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
+      }
+    }
+  
   }
 
 }

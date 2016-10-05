@@ -42,7 +42,6 @@ public class UnsortedDataJobRunner implements JobRunner {
 
   public void run(int primaryDimensionIndex, JobEntity jobEntity) {
     try {
-      LOGGER.info("Starting execution of job: {}", jobEntity.getJobId());
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
@@ -51,7 +50,6 @@ public class UnsortedDataJobRunner implements JobRunner {
       rowProcessor.process();
       HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
           (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
-      LOGGER.info("Finished with execution of job: {}", jobEntity.getJobId());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -60,14 +58,18 @@ public class UnsortedDataJobRunner implements JobRunner {
 
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
-    for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
-      int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
-      for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
-        JobEntity jobEntity = jobSCollection.jobAt(i);
+    for (PrimaryDimensionwiseJobsCollection dimensionWiseJob : jobsCollectionList) {
+      int primaryDimensionIndex = dimensionWiseJob.getPrimaryDimensionIndex();
+      LOGGER.info("Executing {} jobs for primary dimension: {}",
+          new Object[] {jobsCollectionList.size(), primaryDimensionIndex});
+      for (int i = 0; i < dimensionWiseJob.getNumberOfJobs(); i++) {
+        JobEntity jobEntity = dimensionWiseJob.jobAt(i);
         int jobEntityId = jobEntity.getJobId();
         JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
+        LOGGER.info("Execution of job: {} started", new Object[] {jobEntity});
         run(primaryDimensionIndex, jobEntity);
         JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
+        LOGGER.info("Execution of job: {} finished", new Object[] {jobEntity});
       }
     }
   }

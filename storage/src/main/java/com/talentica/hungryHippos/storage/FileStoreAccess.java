@@ -56,4 +56,9 @@ public class FileStoreAccess implements StoreAccess {
     };
   }
 
+  @Override
+  public void reset() {
+    currentFileId = 0;
+  }
+
 }

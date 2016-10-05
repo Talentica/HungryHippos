@@ -5,4 +5,6 @@ package com.talentica.hungryHippos.storage;
  */
 public interface StoreAccess extends Iterable<DataFileAccess> {
 
+  public void reset();
+
 }

@@ -14,18 +14,22 @@ public class SumJobLocal implements Job, Serializable {
    * 
    */
   private static final long serialVersionUID = -4111336293020419218L;
+
   protected int[] dimensions;
+
+  private int valueIndex = -1;
 
   public SumJobLocal() {}
 
-  public SumJobLocal(int[] dimensions, int primaryDimension) {
+  public SumJobLocal(int[] dimensions, int valueIndex) {
     this.dimensions = dimensions;
+    this.valueIndex = valueIndex;
   }
 
 
   @Override
   public Work createNewWork() {
-    return new SumWorkLocal(dimensions);
+    return new SumWorkLocal(dimensions, valueIndex);
   }
 
   @Override
@@ -40,7 +44,8 @@ public class SumJobLocal implements Job, Serializable {
   @Override
   public String toString() {
     if (dimensions != null) {
-      return "\nSumJob{{dimensions:" + Arrays.toString(dimensions) + ", valueIndex:3 & 6" + "}}";
+      return "\nSumJob{dimensions:" + Arrays.toString(dimensions) + "valueIndex:" + this.valueIndex
+          + "}";
     }
     return super.toString();
   }

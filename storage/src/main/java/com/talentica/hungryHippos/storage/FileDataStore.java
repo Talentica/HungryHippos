@@ -101,6 +101,7 @@ public class FileDataStore implements DataStore, Serializable {
           shardingIndexSequence, numFiles, dataDescription);
       primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
     }
+    storeAccess.reset();
     return storeAccess;
   }
 

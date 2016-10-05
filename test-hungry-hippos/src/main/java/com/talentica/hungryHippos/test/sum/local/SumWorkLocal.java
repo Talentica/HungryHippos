@@ -13,26 +13,31 @@ public class SumWorkLocal implements Work, Serializable {
    * 
    */
   private static final long serialVersionUID = -5931349264723731947L;
-  protected int[] dimensions;
-  private Double sumFor6thColumn = 0.0;
 
-  public SumWorkLocal(int[] dimensions) {
+  protected int[] dimensions;
+
+  private int valueIndex = -1;
+
+  private Double sum = 0.0;
+
+  public SumWorkLocal(int[] dimensions, int valueIndex) {
     this.dimensions = dimensions;
+    this.valueIndex = valueIndex;
   }
 
   @Override
   public void processRow(ExecutionContext executionContext) {
-    sumFor6thColumn = sumFor6thColumn + ((Double) executionContext.getValue(6));
+    sum = sum + ((Double) executionContext.getValue(valueIndex));
   }
 
   @Override
   public void calculate(ExecutionContext executionContext) {
-    executionContext.saveValue(6, sumFor6thColumn, "Sum");
+    executionContext.saveValue(valueIndex, sum, "Sum");
   }
 
   @Override
   public void reset() {
-    sumFor6thColumn = 0d;
+    sum = 0d;
   }
 
 }

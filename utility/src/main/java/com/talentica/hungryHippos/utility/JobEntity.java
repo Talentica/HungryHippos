@@ -5,6 +5,8 @@ package com.talentica.hungryHippos.utility;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import com.talentica.hungryHippos.client.job.Job;
 
 /**
@@ -64,6 +66,11 @@ public class JobEntity implements Serializable {
   @Override
   public int hashCode() {
     return this.jobId;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
   }
 
 }

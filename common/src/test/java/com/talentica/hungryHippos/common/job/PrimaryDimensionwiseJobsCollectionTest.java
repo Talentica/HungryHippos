@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.common.job;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
@@ -22,7 +23,7 @@ public class PrimaryDimensionwiseJobsCollectionTest {
   private ShardingApplicationContext context;
 
   @Test
-  public void testFrom() {
+  public void testFrom1() {
     Mockito.when(context.getShardingIndexes()).thenReturn(new int[] {0, 1, 4, 6});
     List<JobEntity> jobs = new ArrayList<>();
     jobs.add(new JobEntity(new TestJob(new int[] {3, 10, 0}))); // 0
@@ -79,12 +80,47 @@ public class PrimaryDimensionwiseJobsCollectionTest {
     Assert.assertEquals(2, objectWithPrimaryIndex1.getNumberOfJobs());
   }
 
+  @Test
+  public void testFrom2() {
+    Mockito.when(context.getShardingIndexes()).thenReturn(new int[] {0, 1, 2});
+    List<JobEntity> jobs = new ArrayList<>();
+    for (int i = 0; i < 1; i++) {
+      jobs.add(new JobEntity(new TestJob(new int[] {i}, 6)));
+      jobs.add(new JobEntity(new TestJob(new int[] {i}, 7)));
+      for (int j = i + 1; j < 4; j++) {
+        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 6)));
+        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 7)));
+        for (int k = j + 1; k < 4; k++) {
+          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 6)));
+          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 7)));
+        }
+      }
+    }
+    // System.out.println("Jobs size:" + jobs.size());
+    // jobs.stream().forEach(System.out::println);
+    List<PrimaryDimensionwiseJobsCollection> jobsCollection =
+        PrimaryDimensionwiseJobsCollection.from(jobs, context);
+    Assert.assertNotNull(jobsCollection);
+    int totalCountOfJobs = 0;
+    for (PrimaryDimensionwiseJobsCollection dimwiseJob : jobsCollection) {
+      totalCountOfJobs = totalCountOfJobs + dimwiseJob.getNumberOfJobs();
+    }
+    Assert.assertEquals(jobs.size(), totalCountOfJobs);
+  }
+
   public static class TestJob implements Job {
 
     private int[] dimensions;
 
+    private int valueIndex;
+
     public TestJob(int[] dimensions) {
       this.dimensions = dimensions;
+    }
+
+    public TestJob(int[] dimensions, int valueIndex) {
+      this(dimensions);
+      this.valueIndex = valueIndex;
     }
 
     @Override
@@ -97,48 +133,12 @@ public class PrimaryDimensionwiseJobsCollectionTest {
       return dimensions;
     }
 
-  }
-
-  public static void main(String[] args) {
-    int[] primaryDims = new int[] {1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1};
-    int start = -1;
-    int end = -1;
-    int lastSum = 0;
-    int currentSum = 0;
-    int tempStart = -1;
-    int tempEnd = -1;
-    int initialSum = 0;
-
-    for (int j = 0; j < primaryDims.length; j++) {
-      if (primaryDims[j] == 1) {
-        if (tempStart == -1) {
-          tempStart = j;
-        }
-        tempEnd = j;
-        currentSum++;
-      } else {
-        if (primaryDims[0] == 1 && initialSum == 0) {
-          initialSum = currentSum;
-        }
-        currentSum = 0;
-        tempStart = -1;
-        tempEnd = -1;
-      }
-
-      if (currentSum >= lastSum) {
-        start = tempStart;
-        end = tempEnd;
-        lastSum = currentSum;
-      }
-
-    }
-    if (primaryDims[0] == 1 && primaryDims[primaryDims.length - 1] == 1
-        && (currentSum + initialSum) >= lastSum) {
-      start = tempStart;
-      end = initialSum - 1;
+    @Override
+    public String toString() {
+      return "TestJob{Dimensions:" + Arrays.toString(dimensions) + ",valueIndex:" + valueIndex
+          + "}";
     }
 
-    System.out.println("Start:" + start + ", End:" + end);
   }
 
 }

@@ -175,6 +175,6 @@ public class DataProvider {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext
         .getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
-        DataPublisherStarter.getContext().getShardingServerConfig().getBadRecordsFileOut() + "_publisher.err";
+        DataPublisherStarter.getContext().getShardingClientConfig().getBadRecordsFileOut() + "_publisher.err";
   }
 }

@@ -8,7 +8,6 @@
 				<element type="string" name="key-prefix" />
 				<element type="string" name="maximum-shard-file-size-in-bytes"></element>
 				<element type="string" name="maximum-no-of-shard-buckets-size"></element>
-				<element type="string" name="bad-records-file-out" />
 			</sequence>
 		</complexType>
 	</element>

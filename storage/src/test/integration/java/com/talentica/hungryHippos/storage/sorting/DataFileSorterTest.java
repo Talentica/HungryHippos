@@ -81,7 +81,7 @@ public class DataFileSorterTest {
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 
     try {
-      sorter.doSortingJobWise(0);
+      sorter.doSortingPrimaryDimensionWise(0);
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
         | JAXBException e) {
       Assert.assertFalse(true);
@@ -99,7 +99,7 @@ public class DataFileSorterTest {
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 
     try {
-      sorter.doSortingJobWise(2);
+      sorter.doSortingPrimaryDimensionWise(2);
     } catch (ClassNotFoundException | KeeperException | InterruptedException | IOException
         | JAXBException e) {
       Assert.assertFalse(true);

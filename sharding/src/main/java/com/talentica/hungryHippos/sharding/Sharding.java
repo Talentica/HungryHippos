@@ -152,7 +152,7 @@ private BucketsCalculator bucketsCalculator;
     setKeysToIndexes();
     String[] keys = context.getShardingDimensions();
     int lineNo = 0;
-    FileWriter fileWriter = new FileWriter(context.getShardingServerConfig().getBadRecordsFileOut()
+    FileWriter fileWriter = new FileWriter(context.getShardingClientConfig().getBadRecordsFileOut()
         + "_sharding.err");
     fileWriter.openFile();
     while (true) {

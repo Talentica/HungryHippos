@@ -37,7 +37,8 @@ public class DataFileSorter {
 
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
-  private final static String INPUT_DATAFILE_PRIFIX = "data_";
+  private static final String INPUT_DATAFILE_PRIFIX = "data_";
+  private static final String DATA_FILE_SORTED = "prim-dim-sorted";
   private final static String LOCK_FILE = "lock";
   private FieldTypeArrayDataDescription dataDescription;
   private DataFileHeapSort dataFileHeapSort;
@@ -71,15 +72,22 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingJobWise(int primaryDimensionIndex)
-      throws FileNotFoundException, ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
+  public void doSortingPrimaryDimensionWise(int primaryDimensionIndex) throws FileNotFoundException,
+      ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
     int keyIdBit = 1 << primaryDimensionIndex;
     File inputDir;
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        inputDir = new File(FileSystemContext.getRootDirectory() + dataDir + File.separator
-            + INPUT_DATAFILE_PRIFIX + fileId);
+        String absoluteDataFilePath = FileSystemContext.getRootDirectory() + dataDir
+            + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
+        inputDir = new File(absoluteDataFilePath);
+        File sortedFileFlag =
+            new File(absoluteDataFilePath + File.separatorChar + DATA_FILE_SORTED);
+        boolean isDataFileSorted = isFileSortedOnPrimDim(sortedFileFlag, primaryDimensionIndex);
+        if (isDataFileSorted) { // if data file already sorted it should skip.
+          continue;
+        }
         if (inputDir.isDirectory()) {
           Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
             if (Files.isRegularFile(filePath)) {
@@ -95,9 +103,32 @@ public class DataFileSorter {
           }
           doSorting(inputDir, primaryDimensionIndex);
         }
+        setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
         filesPresentinFolder.clear();
       }
     }
+  }
+
+  private void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
+    FileOutputStream fos = new FileOutputStream(primDimFile, false);
+    fos.write(primDim);
+    fos.flush();
+    fos.close();
+  }
+
+  @SuppressWarnings("resource")
+  private boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
+    if (!primDimFile.exists()) {
+      primDimFile.createNewFile();
+    }
+    FileInputStream fis = new FileInputStream(primDimFile);
+    if (primDimFile.exists()) {
+      if ((int) fis.read() == primDim) {
+        return true;
+      }
+    }
+    fis.close();
+    return false;
   }
 
   /**
@@ -177,8 +208,7 @@ public class DataFileSorter {
   }
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
-      long maxFreeMemory, final File outputdirectory, final File outputFile)
-      throws IOException {
+      long maxFreeMemory, final File outputdirectory, final File outputFile) throws IOException {
     long startTime = System.currentTimeMillis();
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();

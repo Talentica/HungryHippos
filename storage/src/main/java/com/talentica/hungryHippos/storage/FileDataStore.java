@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
-import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -130,7 +129,7 @@ public class FileDataStore implements DataStore, Serializable {
       if (context.getShardingClientConfig().isDataFileSorting()) {
         new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context).doSortingDefault();
       }
-    } catch (IOException | InsufficientMemoryException e) {
+    } catch (IOException e) {
       logger.error(e.toString());
     }
   }

@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +21,6 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
-import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
@@ -38,8 +40,7 @@ public class SortedDataJobRunner implements JobRunner {
   private File primDimFile;
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
-      String inputHHPath, ShardingApplicationContext context)
-      throws IOException, InsufficientMemoryException {
+      String inputHHPath, ShardingApplicationContext context) throws IOException {
     this.dataStore = dataStore;
     this.nodeId = Integer.parseInt(nodeId);
     dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -49,15 +50,9 @@ public class SortedDataJobRunner implements JobRunner {
   }
 
   public void run(int primaryDimensionIndex, JobEntity jobEntity) {
-    waitFileUnlock();
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
-      boolean isPrimDimSorted = isFileSortedOnPrimDim(primaryDimensionIndex);
-      if (!isPrimDimSorted) {
-        dataFileSorter.doSortingJobWise(primaryDimensionIndex, jobEntity.getJob());
-        setPrimDimForSorting(primaryDimensionIndex);
-      }
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
           new DataRowProcessor(dynamicMarshal, jobEntity, inputHHPath, storeAccess);
@@ -93,7 +88,7 @@ public class SortedDataJobRunner implements JobRunner {
     }
     FileInputStream fis = new FileInputStream(primDimFile);
     if (primDimFile.exists()) {
-      if ((int)fis.read() == primDim) {
+      if ((int) fis.read() == primDim) {
         return true;
       }
     }
@@ -103,15 +98,26 @@ public class SortedDataJobRunner implements JobRunner {
 
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
-    for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
-      int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
-      for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
-        JobEntity jobEntity = jobSCollection.jobAt(i);
-        int jobEntityId = jobEntity.getJobId();
-        JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
-        run(primaryDimensionIndex, jobEntity);
-        JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
+    waitFileUnlock();
+    try {
+      for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
+        int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
+        boolean isPrimDimSorted = isFileSortedOnPrimDim(primaryDimensionIndex);
+        if (!isPrimDimSorted) {
+          dataFileSorter.doSortingJobWise(primaryDimensionIndex);
+          setPrimDimForSorting(primaryDimensionIndex);
+        }
+        for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
+          JobEntity jobEntity = jobSCollection.jobAt(i);
+          int jobEntityId = jobEntity.getJobId();
+          JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
+          run(primaryDimensionIndex, jobEntity);
+          JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
+        }
       }
+    } catch (IOException | ClassNotFoundException | KeeperException | InterruptedException
+        | JAXBException e) {
+      LOGGER.error(e.toString());
     }
   }
 }

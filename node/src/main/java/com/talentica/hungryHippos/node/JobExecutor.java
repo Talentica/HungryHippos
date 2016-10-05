@@ -31,7 +31,6 @@ import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.sorting.InsufficientMemoryException;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -112,7 +111,7 @@ public class JobExecutor {
   }
 
   private static JobRunner createJobRunner(String inputFilePath)
-      throws IOException, InsufficientMemoryException {
+      throws IOException {
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);

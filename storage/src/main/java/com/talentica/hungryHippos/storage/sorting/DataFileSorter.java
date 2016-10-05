@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -72,9 +71,8 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingJobWise(int primaryDimensionIndex, Job job)
-      throws FileNotFoundException, ClassNotFoundException, IOException,
-      InsufficientMemoryException, KeeperException, InterruptedException, JAXBException {
+  public void doSortingJobWise(int primaryDimensionIndex)
+      throws FileNotFoundException, ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
     int keyIdBit = 1 << primaryDimensionIndex;
     File inputDir;
     List<String> filesPresentinFolder = new ArrayList<>();
@@ -112,7 +110,7 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingDefault() throws IOException, InsufficientMemoryException {
+  public void doSortingDefault() throws IOException {
     dataDir = validateDirectory(dataDir);
     File lockFile = new File(dataDir + File.separatorChar + LOCK_FILE);
     createLockFile(lockFile);
@@ -157,7 +155,7 @@ public class DataFileSorter {
     }
   }
 
-  private void doSorting(File inputFile, int key) throws IOException, InsufficientMemoryException {
+  private void doSorting(File inputFile, int key) throws IOException {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
@@ -174,13 +172,13 @@ public class DataFileSorter {
   }
 
   private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
-      final File outputFile) throws InsufficientMemoryException, IOException {
+      final File outputFile) throws IOException {
     return sortInBatch(file, datalength, availableMemory(), outputDirectory, outputFile);
   }
 
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       long maxFreeMemory, final File outputdirectory, final File outputFile)
-      throws InsufficientMemoryException, IOException {
+      throws IOException {
     long startTime = System.currentTimeMillis();
     int noOfBytesInOneDataSet = dataDescription.getSize();
     List<File> files = new ArrayList<>();
@@ -390,8 +388,7 @@ public class DataFileSorter {
     return res;
   }
 
-  private int getSizeOfBlocks(final long fileSize, final long maxFreeMemory)
-      throws InsufficientMemoryException {
+  private int getSizeOfBlocks(final long fileSize, final long maxFreeMemory) {
     LOGGER.info("Input file size {} and maximum memory available {}", fileSize, maxFreeMemory);
     long blocksize = fileSize / DEFAULTMAXTEMPFILES + (fileSize % DEFAULTMAXTEMPFILES == 0 ? 0 : 1);
     blocksize = blocksize - DataSizeCalculator.getObjectOverhead();

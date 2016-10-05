@@ -61,7 +61,7 @@ public class UnsortedDataJobRunner implements JobRunner {
     for (PrimaryDimensionwiseJobsCollection dimensionWiseJob : jobsCollectionList) {
       int primaryDimensionIndex = dimensionWiseJob.getPrimaryDimensionIndex();
       LOGGER.info("Executing {} jobs for primary dimension: {}",
-          new Object[] {jobsCollectionList.size(), primaryDimensionIndex});
+          new Object[] {dimensionWiseJob.getNumberOfJobs(), primaryDimensionIndex});
       for (int i = 0; i < dimensionWiseJob.getNumberOfJobs(); i++) {
         JobEntity jobEntity = dimensionWiseJob.jobAt(i);
         int jobEntityId = jobEntity.getJobId();

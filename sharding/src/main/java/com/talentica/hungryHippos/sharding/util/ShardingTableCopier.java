@@ -8,9 +8,9 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.scp.Jscp;
 import com.talentica.hungryHippos.utility.scp.SecureContext;
 import com.talentica.hungryhippos.config.client.Output;
@@ -47,6 +47,7 @@ public class ShardingTableCopier {
 
   /**
    * Copies sharding table files from
+   * 
    * @param randomNode
    */
   public void copyToRandomNodeInCluster(Node randomNode) {
@@ -63,31 +64,31 @@ public class ShardingTableCopier {
       context.setPrivateKeyFile(privateKeyFile);
       Jscp.scpTarGzippedFile(context, sourceDirectoryContainingShardingFiles, destinationDirectory,
           SHARDING_ZIP_FILE_NAME);
-      updateCoordinationServerForShardingTableAvailability(nodes, randomNode,
-          distributedFilePath);
-    } catch (IOException | JAXBException exception) {
+      updateCoordinationServerForShardingTableAvailability(nodes, randomNode, distributedFilePath);
+    } catch (IOException | JAXBException | HungryHippoException exception) {
       throw new RuntimeException(exception);
     }
   }
 
   private void updateCoordinationServerForShardingTableAvailability(List<Node> nodes,
       Node nodeToUploadShardingTableTo, String distributedFilePath)
-      throws FileNotFoundException, JAXBException, IOException {
+      throws FileNotFoundException, JAXBException, IOException, HungryHippoException {
     int nodeIdShardingTableCopiedTo = nodeToUploadShardingTableTo.getIdentifier();
-    String shardingTableCopiedOnPath =
-        CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
-            + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
-    NodesManager nodesManagerInstance = NodesManagerContext.getNodesManagerInstance();
-    nodesManagerInstance.createPersistentNode(
+    String shardingTableCopiedOnPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
+        .getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
+        + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
+    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    curator.createPersistentNode(
         shardingTableCopiedOnPath + nodeIdShardingTableCopiedTo, new CountDownLatch(1));
-    String shardingTableToBeCopiedOnNodePath =  CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFilesystemPath() 
-        + distributedFilePath + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
+    String shardingTableToBeCopiedOnNodePath =
+        CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
+            .getFilesystemPath() + distributedFilePath + SHARDING_TABLE_TO_BE_COPIED_ON_NODE_PATH;
     nodes.stream().filter(node -> node.getIdentifier() != nodeIdShardingTableCopiedTo)
         .forEach(node -> {
           try {
-            nodesManagerInstance.createPersistentNode(
+            curator.createPersistentNode(
                 shardingTableToBeCopiedOnNodePath + node.getIdentifier(), new CountDownLatch(1));
-          } catch (IOException exception) {
+          } catch (HungryHippoException exception) {
             throw new RuntimeException(exception);
           }
         });

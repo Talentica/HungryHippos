@@ -4,14 +4,11 @@
 package com.talentica.hungryHippos.coordination.domain;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 import org.apache.commons.lang3.SerializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
 
 /**
  * @author PooshanS

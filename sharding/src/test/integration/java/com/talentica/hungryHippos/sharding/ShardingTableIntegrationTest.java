@@ -12,7 +12,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 
 /**
  * @author pooshans
@@ -21,10 +22,12 @@ import com.talentica.hungryHippos.coordination.ZkUtils;
 public class ShardingTableIntegrationTest {
   private ShardingTableZkService shardingTable;
   private static final String shardingPath = "/dir/dir1/input";
+  private HungryHippoCurator curator;
 
   @Before
   public void setUp() throws Exception {
     shardingTable = new ShardingTableZkService();
+    
   }
 
   @Test
@@ -33,19 +36,21 @@ public class ShardingTableIntegrationTest {
     try {
       shardingTable.zkUploadBucketCombinationToNodeNumbersMap(shardingPath);
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException | HungryHippoException e) {
       Assert.assertFalse(true);
     }
   }
 
   @Test
   @Ignore
-  public void testBucketToNodeNumber() throws IllegalArgumentException, IllegalAccessException,
-      IOException, InterruptedException {
+  public void testBucketToNodeNumber()
+      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
     try {
       shardingTable.zkUploadBucketToNodeNumberMap(shardingPath);
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException | HungryHippoException e) {
       Assert.assertFalse(true);
     }
   }
@@ -57,7 +62,8 @@ public class ShardingTableIntegrationTest {
     try {
       shardingTable.zkUploadKeyToValueToBucketMap(shardingPath);
       Assert.assertTrue(true);
-    } catch (IllegalArgumentException | IllegalAccessException | IOException | InterruptedException e) {
+    } catch (IllegalArgumentException | IllegalAccessException | IOException
+        | InterruptedException | HungryHippoException e) {
       Assert.assertFalse(true);
     }
   }
@@ -97,7 +103,7 @@ public class ShardingTableIntegrationTest {
   @Test
   public void testBucketToNodeNumberObject() throws Exception {
     try {
-      ZkUtils.saveObjectZkNode("/rootnode/test",
+      curator.createPersistentNode("/rootnode/test",
           shardingTable.getKeyToValueToBucketMap());
       Assert.assertTrue(true);
     } catch (IllegalArgumentException e) {
@@ -107,7 +113,7 @@ public class ShardingTableIntegrationTest {
 
   @Test
   public <V, K> void testGetBucketToNodeNumberObject() throws Exception {
-      Object object  = ZkUtils.readObjectZkNode("/rootnode/test");
-      Assert.assertNotNull(object);
- }
+    Object object = curator.readObject("/rootnode/test");
+    Assert.assertNotNull(object);
+  }
 }

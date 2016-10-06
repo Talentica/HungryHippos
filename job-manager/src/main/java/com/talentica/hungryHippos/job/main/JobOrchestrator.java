@@ -1,9 +1,7 @@
 package com.talentica.hungryHippos.job.main;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import javax.xml.bind.JAXBException;
 
@@ -12,12 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.JobConfigPublisher;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.job.util.JobIDGenerator;
 import com.talentica.hungryHippos.job.util.JobJarPublisher;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
@@ -27,6 +27,7 @@ import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 public class JobOrchestrator {
 
   private static final Logger logger = LoggerFactory.getLogger(JobOrchestrator.class);
+  private static HungryHippoCurator curator;
 
   /**
    * This the entry point of the class
@@ -47,15 +48,23 @@ public class JobOrchestrator {
     String inputHHPath = args[3];
     String outputHHPath = args[4];
     String outputHHPathNode = null;
+
     try {
-      NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+
+      ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      String connectString = clientConfig.getCoordinationServers().getServers();
+      String userName = clientConfig.getOutput().getNodeSshUsername();
+      curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+
       FileSystemUtils.validatePath(inputHHPath, true);
       FileSystemUtils.validatePath(outputHHPath, true);
       validateOutputHHPath(outputHHPath);
-      HungryHipposFileSystem.validateFileDataReady(inputHHPath);
+      HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
+      hhfs.validateFileDataReady(inputHHPath);
       String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath();
-      boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + inputHHPath
+      boolean isSharded = curator.checkExists(fsRootNode + inputHHPath
           + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
       if (!isSharded) {
         throw new RuntimeException("Not sharded file. Can not run the jobs");
@@ -63,10 +72,10 @@ public class JobOrchestrator {
 
       outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
-      ZkUtils.createFileNode(outputHHPathNode);
+      curator.createPersistentNode(outputHHPathNode);
       String jobUUID = JobIDGenerator.generateJobID();
       logger.info("Publishing Jar for Job {}", jobUUID);
-      boolean isJarPublished = JobJarPublisher.publishJar(jobUUID, localJarPath);
+      boolean isJarPublished = JobJarPublisher.publishJar(jobUUID, localJarPath, userName);
       logger.info("Published Jar for Job {} : {}", jobUUID, isJarPublished);
       boolean isConfigPublished = false;
       if (isJarPublished) {
@@ -78,19 +87,19 @@ public class JobOrchestrator {
       if (isConfigPublished) {
         jobStatus = runJobManager(clientConfigPath, localJarPath, jobMatrixClass, jobUUID);
       }
-      if (jobStatus != 0) {        
+      if (jobStatus != 0) {
         logger.error("Job for {} Failed", jobUUID);
-        throw new RuntimeException("Job Failed");       
+        throw new RuntimeException("Job Failed");
       } else {
         String dataReadyNode = outputHHPathNode + "/" + FileSystemConstants.DATA_READY;
-        ZkUtils.createZKNode(dataReadyNode, "");
+        curator.createPersistentNode(dataReadyNode);
         logger.info("Job {} Completed Successfully", jobUUID);
         long endTime = System.currentTimeMillis();
         logger.info("It took {} seconds of time to for running all jobs",
-                ((endTime - startTime) / 1000));
+            ((endTime - startTime) / 1000));
       }
     } catch (Exception e) {
-      logger.error(e.toString());
+      e.printStackTrace();
       System.exit(1);
     }
 
@@ -109,16 +118,18 @@ public class JobOrchestrator {
    */
   public static int runJobManager(String clientConfigPath, String localJarPath,
       String jobMatrixClass, String jobUUID) throws IOException, InterruptedException {
-    ProcessBuilder jobManagerProcessBuilder = new ProcessBuilder("java",JobManagerStarter.class.getName(), clientConfigPath, localJarPath, jobMatrixClass, jobUUID);
+    ProcessBuilder jobManagerProcessBuilder = new ProcessBuilder("java",
+        JobManagerStarter.class.getName(), clientConfigPath, localJarPath, jobMatrixClass, jobUUID);
     String logDir = FileUtils.getUserDirectoryPath() + File.separator + "temp" + File.separator
-            + "hungryhippos" + File.separator +"logs" + File.separator
-            + jobUUID+File.separator;
-    File errLogFile = FileSystemUtils.createNewFile(logDir+JobManagerStarter.class.getName().toLowerCase()+".err");
+        + "hungryhippos" + File.separator + "logs" + File.separator + jobUUID + File.separator;
+    File errLogFile = FileSystemUtils
+        .createNewFile(logDir + JobManagerStarter.class.getName().toLowerCase() + ".err");
     jobManagerProcessBuilder.redirectError(errLogFile);
-    logger.info("stderr Log file : "+errLogFile.getAbsolutePath());
-    File outLogFile = FileSystemUtils.createNewFile(logDir+JobManagerStarter.class.getName().toLowerCase()+".out");
+    logger.info("stderr Log file : " + errLogFile.getAbsolutePath());
+    File outLogFile = FileSystemUtils
+        .createNewFile(logDir + JobManagerStarter.class.getName().toLowerCase() + ".out");
     jobManagerProcessBuilder.redirectOutput(outLogFile);
-    logger.info("stdout Log file : "+outLogFile.getAbsolutePath());
+    logger.info("stdout Log file : " + outLogFile.getAbsolutePath());
     Process jobManagerProcess = jobManagerProcessBuilder.start();
     int jobStatus = jobManagerProcess.waitFor();
     return jobStatus;
@@ -138,14 +149,14 @@ public class JobOrchestrator {
     }
   }
 
-  private static void validateOutputHHPath(String outputHHPath) {
+  private static void validateOutputHHPath(String outputHHPath) throws HungryHippoException {
     if ("".equals(outputHHPath)) {
       throw new RuntimeException("Empty output path");
     }
     String outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
     String dataReadyNode = outputHHPathNode + "/" + FileSystemConstants.DATA_READY;
-    boolean nodeExists = ZkUtils.checkIfNodeExists(dataReadyNode);
+    boolean nodeExists = curator.checkExists(dataReadyNode);
     if (nodeExists) {
       throw new RuntimeException(outputHHPath + " already exists");
     }

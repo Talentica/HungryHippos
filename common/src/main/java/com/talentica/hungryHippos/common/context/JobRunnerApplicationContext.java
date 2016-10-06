@@ -3,8 +3,9 @@ package com.talentica.hungryHippos.common.context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryhippos.config.jobrunner.JobRunnerConfig;
 
 public class JobRunnerApplicationContext {
@@ -14,11 +15,18 @@ public class JobRunnerApplicationContext {
 
   public static JobRunnerConfig getZkJobRunnerConfig() {
     if (jobRunnerConfig == null) {
-     
-        String configFile =  CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION;
-        jobRunnerConfig = (JobRunnerConfig) ZkUtils.readObjectZkNode(configFile);
-      
+
+      String configFile =
+          CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
+              + CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION;
+      try {
+        jobRunnerConfig = (JobRunnerConfig) HungryHippoCurator.getAlreadyInstantiated()
+            .readObject(configFile);
+      } catch (HungryHippoException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
     }
     return jobRunnerConfig;
   }

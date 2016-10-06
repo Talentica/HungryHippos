@@ -2,13 +2,13 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.File;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -30,7 +30,12 @@ public class FileSystemStarter {
       LOGGER.info("Uploading FileSystem configuration");
       validateArguments(args);
       String fileSystemConfigFilePath = args[0];
-      NodesManagerContext.getNodesManagerInstance(args[1]);
+      String clientConfigFilePath = args[1];
+      ClientConfig clientConfig =
+          JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      String connectString = clientConfig.getCoordinationServers().getServers();
+     HungryHippoCurator curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       FileSystemConfig configuration =
           JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class);
       if (configuration.getServerPort() == 0 || configuration.getFileStreamBufferSize() <= 0

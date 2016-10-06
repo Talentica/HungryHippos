@@ -6,12 +6,10 @@ package com.talentica.hungryHippos.droplet.main;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -24,7 +22,7 @@ public class DeleteDropletsMain {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(DeleteDropletsMain.class);
 	private static String jobUUId;
-	private static NodesManager nodesManager;
+	private static HungryHippoCurator curator;
 
 	public static void main(String[] args) {
 		validateProgramArguments(args);
@@ -43,14 +41,14 @@ public class DeleteDropletsMain {
 	}
 
 	private static void waitForSignalOfDeleteDroplets() {
-		String buildPath = DeleteDropletsMain.nodesManager
+		String buildPath = DeleteDropletsMain.curator
 				.buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DROP_DROPLETS
 						.getZKJobNode());
 		CountDownLatch signal = new CountDownLatch(1);
 		try {
-			ZkUtils.waitForSignal(buildPath, signal);
+			//ZkUtils.waitForSignal(buildPath, signal); //commented by sudarshan 
 			signal.await();
-		} catch (KeeperException | InterruptedException e) {
+		} catch ( InterruptedException e) {
 			LOGGER.info("Unable to wait for the signal of output zip and transfer signal");
 		}
 

@@ -183,7 +183,7 @@ public class HungryHipposFileSystemMain {
 
             for (String leaf : childsChild) {
 
-              long length = Long.valueOf(hhfs.getData(name1 + FileSystemConstants.ZK_PATH_SEPARATOR
+              long length = Long.valueOf(hhfs.getNodeData(name1 + FileSystemConstants.ZK_PATH_SEPARATOR
                   + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node
                   + FileSystemConstants.ZK_PATH_SEPARATOR + child
                   + FileSystemConstants.ZK_PATH_SEPARATOR + leaf));
@@ -221,7 +221,7 @@ public class HungryHipposFileSystemMain {
   private static void runOperation(Operations op, String name) {
     switch (op) {
       case LS:
-        String data = hhfs.getData(name);
+        String data = hhfs.getNodeData(name);
         if (data != null && data.contains(FileSystemConstants.IS_A_FILE)) {
           System.out.println(fileName(name) + " " + FileSystemConstants.IS_A_FILE);
         } else {
@@ -233,9 +233,6 @@ public class HungryHipposFileSystemMain {
         break;
       case MKDIR:
         hhfs.createZnode(name);
-        break;
-      case FIND:
-        hhfs.findZnodePath(name);
         break;
       case DELETE:
         hhfs.deleteNode(name);

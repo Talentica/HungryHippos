@@ -16,9 +16,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
@@ -27,7 +26,7 @@ import com.talentica.hungryHippos.utility.JobEntity;
 public class JobConfigPublisher {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(JobConfigPublisher.class);
-
+  private static HungryHippoCurator curator;
 
   /**
    * Publishes Job configurations to the zookeeper
@@ -42,13 +41,17 @@ public class JobConfigPublisher {
       String outputHHPath) {
     try {
       String jobNode = getJobNode(jobUUID);
-      ZkUtils.createZKNode(jobNode, "");
+      if (curator == null) {
+        curator = HungryHippoCurator.getAlreadyInstantiated();
+      }
+
+      curator.createPersistentNode(jobNode);
       String jobClassNode = getJobClassNode(jobNode);
-      ZkUtils.createZKNode(jobClassNode, jobMatrixClass);
+      curator.createPersistentNode(jobClassNode, jobMatrixClass);
       String jobInputNode = getJobInputNode(jobNode);
-      ZkUtils.createZKNode(jobInputNode, inputHHPath);
+      curator.createPersistentNode(jobInputNode, inputHHPath);
       String jobOutputNode = getJobOutputNode(jobNode);
-      ZkUtils.createZKNode(jobOutputNode, outputHHPath);
+      curator.createPersistentNode(jobOutputNode, outputHHPath);
       validateConfigNodes(jobUUID, jobMatrixClass, inputHHPath, outputHHPath);
       return true;
     } catch (Exception e) {
@@ -68,9 +71,12 @@ public class JobConfigPublisher {
   private static void validateConfigNodes(String jobUUID, String jobMatrixClass, String inputHHPath,
       String outputHHPath) {
     try {
-      NodesManager manager = NodesManagerContext.getNodesManagerInstance();
+      if (curator == null) {
+        curator = HungryHippoCurator.getAlreadyInstantiated();
+      }
+
       String jobNode = getJobNode(jobUUID);
-      boolean jobNodeExists = manager.checkNodeExists(jobNode);
+      boolean jobNodeExists = curator.checkExists(jobNode);
       if (!jobNodeExists) {
         throw new RuntimeException(jobNode + " not created");
       }
@@ -80,7 +86,7 @@ public class JobConfigPublisher {
       compareWithNodeData(jobInputNode, inputHHPath);
       String jobOutputNode = getJobOutputNode(jobNode);
       compareWithNodeData(jobOutputNode, outputHHPath);
-    } catch (JAXBException | IOException e) {
+    } catch (HungryHippoException e) {
       throw new RuntimeException(e);
     }
   }
@@ -121,7 +127,11 @@ public class JobConfigPublisher {
     try {
       String jobNode = getJobNode(jobUUID);
       String jobEntityIdNode = getJobEntityIdNode(jobNode, jobEntity.getJobId() + "");
-      ZkUtils.createZKNode(jobEntityIdNode, null);
+      if (curator == null) {
+        curator = HungryHippoCurator.getAlreadyInstantiated();
+      }
+
+      curator.createPersistentNode(jobEntityIdNode);
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);

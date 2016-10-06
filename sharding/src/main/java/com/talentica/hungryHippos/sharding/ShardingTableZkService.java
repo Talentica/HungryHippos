@@ -14,8 +14,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
@@ -31,9 +32,10 @@ public class ShardingTableZkService {
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
   private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
+  private HungryHippoCurator curator = null;
 
   public ShardingTableZkService() {
-    
+    curator = HungryHippoCurator.getAlreadyInstantiated();
   }
 
   /**
@@ -44,10 +46,11 @@ public class ShardingTableZkService {
    * @throws IllegalArgumentException
    * @throws IllegalAccessException
    */
-  public void zkUploadBucketCombinationToNodeNumbersMap(String path)
-      throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
-    ZkUtils.saveObjectZkNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
-        + File.separatorChar + ZkNodeName.BUCKET_COMBINATION.getName(),
+  public void zkUploadBucketCombinationToNodeNumbersMap(String path) throws IOException,
+      InterruptedException, IllegalArgumentException, IllegalAccessException, HungryHippoException {
+    curator.createPersistentNode(
+        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
+            + ZkNodeName.BUCKET_COMBINATION.getName(),
         getBucketCombinationToNodeNumbersMap());
   }
 
@@ -59,10 +62,11 @@ public class ShardingTableZkService {
    * @throws IllegalArgumentException
    * @throws IllegalAccessException
    */
-  public void zkUploadBucketToNodeNumberMap(String path)
-      throws IOException, InterruptedException, IllegalArgumentException, IllegalAccessException {
-    ZkUtils.saveObjectZkNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
-        + File.separatorChar + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName(),
+  public void zkUploadBucketToNodeNumberMap(String path) throws IOException, InterruptedException,
+      IllegalArgumentException, IllegalAccessException, HungryHippoException {
+    curator.createPersistentNode(
+        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
+            + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName(),
         getBucketToNodeNumberMap());
   }
 
@@ -74,10 +78,11 @@ public class ShardingTableZkService {
    * @throws IOException
    * @throws InterruptedException
    */
-  public void zkUploadKeyToValueToBucketMap(String path)
-      throws IllegalArgumentException, IllegalAccessException, IOException, InterruptedException {
-    ZkUtils.saveObjectZkNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
-        + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName(),
+  public void zkUploadKeyToValueToBucketMap(String path) throws IllegalArgumentException,
+      IllegalAccessException, IOException, InterruptedException, HungryHippoException {
+    curator.createPersistentNode(
+        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
+            + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName(),
         getKeyToValueToBucketMap());
   }
 
@@ -118,9 +123,10 @@ public class ShardingTableZkService {
    */
   @SuppressWarnings("unchecked")
   public Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumbersMap() {
-    try (ObjectInputStream bucketCombinationToNodeNumbersMapStream = new ObjectInputStream(
-        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
+    try (ObjectInputStream bucketCombinationToNodeNumbersMapStream =
+        new ObjectInputStream(new FileInputStream(
+            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
+                + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
       return (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapStream
           .readObject();
     } catch (IOException | ClassNotFoundException e) {
@@ -140,8 +146,13 @@ public class ShardingTableZkService {
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.BUCKET_COMBINATION.getName();
-    bucketCombinationToNodeNumbersMap =
-        (Map<BucketCombination, Set<Node>>) ZkUtils.readObjectZkNode(bucketCombinationPath);
+    try {
+      bucketCombinationToNodeNumbersMap =
+          (Map<BucketCombination, Set<Node>>) curator.readObject(bucketCombinationPath);
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return bucketCombinationToNodeNumbersMap;
   }
 
@@ -155,8 +166,13 @@ public class ShardingTableZkService {
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
-    bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) ZkUtils
-        .readObjectZkNode(keyToBucketNumberPath);
+    try {
+      bucketToNodeNumberMap = (Map<String, Map<Bucket<KeyValueFrequency>, Node>>) curator
+          .readObject(keyToBucketNumberPath);
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return bucketToNodeNumberMap;
   }
 
@@ -170,8 +186,13 @@ public class ShardingTableZkService {
         .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
-    keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) ZkUtils
-        .readObjectZkNode(KeyToValueToBucketPath);
+    try {
+      keyToValueToBucketMap = (Map<String, Map<Object, Bucket<KeyValueFrequency>>>) curator
+          .readObject(KeyToValueToBucketPath);
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return keyToValueToBucketMap;
   }
 }

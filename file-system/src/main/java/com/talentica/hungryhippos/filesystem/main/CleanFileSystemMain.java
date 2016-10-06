@@ -5,7 +5,8 @@ import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 
 /**
@@ -16,22 +17,24 @@ import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 public class CleanFileSystemMain {
 
 	private static final String ROOT_DIR = "HungryHipposFs";
+	private static String clientConfig;
 
 	/**
 	 * 
 	 * @param args
-<<<<<<< Updated upstream
+
 	 * @throws JAXBException 
 	 * @throws FileNotFoundException 
-=======
+
 	 * @throws JAXBException
 	 * @throws FileNotFoundException
->>>>>>> Stashed changes
+
 	 */
 	public static void main(String[] args) throws FileNotFoundException, JAXBException {
 
 		validateArgs(args);
-		NodesManagerContext.getNodesManagerInstance(args[0]);
+		clientConfig = args[0];
+		ClientConfig config = JaxbUtil.unmarshalFromFile(clientConfig, ClientConfig.class);
 		CleanFileSystem.DeleteFilesWhichAreNotPartOFZK(System.getProperty("user.dir") + File.separatorChar + ROOT_DIR);
 	}
 

@@ -19,9 +19,10 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.client.job.JobMatrix;
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
+
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+
 import com.talentica.hungryHippos.node.job.JobConfigReader;
 import com.talentica.hungryHippos.node.job.JobRunner;
 import com.talentica.hungryHippos.node.job.JobStatusNodeCoordinator;
@@ -33,6 +34,8 @@ import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
 import com.talentica.hungryHippos.utility.JobEntity;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
@@ -103,21 +106,23 @@ public class JobExecutor {
       throws FileNotFoundException, JAXBException, ClassNotFoundException {
     String clientConfigPath = args[0];
     jobUUId = args[1];
-    NodesManagerContext.getNodesManagerInstance(clientConfigPath);
-    ZkSignalListener.jobuuidInBase64 = jobUUId;
+    ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
+    int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+    String connectString = clientConfig.getCoordinationServers().getServers();
+    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+
     inputHHPath = JobConfigReader.readInputPath(jobUUId);
     outputHHPath = JobConfigReader.readOutputPath(jobUUId);
 
   }
 
-  private static JobRunner createJobRunner(String inputFilePath)
-      throws IOException {
+  private static JobRunner createJobRunner(String inputFilePath) throws IOException {
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     NodeUtil nodeUtil = new NodeUtil(inputHHPath);
     dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(), dataDescription,
         inputHHPath, NodeInfo.INSTANCE.getId(), true, context);
-    boolean isSorting =  context.getShardingClientConfig().isDataFileSorting();
+    boolean isSorting = context.getShardingClientConfig().isDataFileSorting();
     if (isSorting) {
       return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
           inputFilePath, context);

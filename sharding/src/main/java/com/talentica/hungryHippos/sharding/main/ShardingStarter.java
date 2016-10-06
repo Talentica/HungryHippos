@@ -3,15 +3,17 @@ package com.talentica.hungryHippos.sharding.main;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -30,7 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ShardingStarter {
 
-
+  private static ClientConfig clientConfig;
   /**
    * @param args
    */
@@ -41,6 +43,7 @@ public class ShardingStarter {
     LOGGER.info("SHARDING PROCESS STARTED");
     boolean isFileCreated = false;
     String shardingTablePathOnZk = null;
+    HungryHippoCurator curator = null;
     try {
       LOGGER.info("SHARDING STARTED");
       long startTime = System.currentTimeMillis();
@@ -49,7 +52,11 @@ public class ShardingStarter {
       String clientConfigFilePath = args[0];
       String shardingFolderPath = args[1];
 
-      NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      clientConfig =
+          JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      String connectString = clientConfig.getCoordinationServers().getServers();
+      curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       context = new ShardingApplicationContext(shardingFolderPath);
 
       ShardingClientConfig shardingClientConfig = context.getShardingClientConfig();
@@ -61,11 +68,11 @@ public class ShardingStarter {
       }
       shardingTablePathOnZk =
           ShardingApplicationContext.getShardingConfigFilePathOnZk(distributedFilePath);
-      boolean fileAlreadyExists = ZkUtils.checkIfNodeExists(shardingTablePathOnZk);
+      boolean fileAlreadyExists = curator.checkExists(shardingTablePathOnZk);
       if (fileAlreadyExists) {
         throw new RuntimeException(shardingTablePathOnZk + " already exists");
       }
-      ZkUtils.createFileNode(shardingTablePathOnZk);
+      curator.createPersistentNode(shardingTablePathOnZk, FileSystemConstants.IS_A_FILE);
 
       isFileCreated = true;
 
@@ -79,14 +86,19 @@ public class ShardingStarter {
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode, shardingClientConfig, tempDir);
       DataSyncCoordinator.notifyFileSync(randomNode.getIp(), uploadDestinationPath);
-      ZkUtils.createZKNodeIfNotPresent(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
+      curator.createPersistentNode(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, uploadDestinationPath);
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
       if (isFileCreated) {
-        ZkUtils.deleteZKNode(shardingTablePathOnZk);
+        try {
+          curator.delete(shardingTablePathOnZk);
+        } catch (HungryHippoException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -150,10 +162,10 @@ public class ShardingStarter {
   private static void uploadShardingData(Node randomNode, ShardingClientConfig shardingClientConfig,
       String tempDir) {
     LOGGER.info("Uploading sharding data.");
-    Output outputConfiguration = NodesManagerContext.getClientConfig().getOutput();
+    Output outputConfiguration = clientConfig.getOutput();
     ShardingTableCopier shardingTableCopier =
         new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
-     shardingTableCopier.copyToRandomNodeInCluster(randomNode);
+    shardingTableCopier.copyToRandomNodeInCluster(randomNode);
     LOGGER.info("Upload completed.");
   }
 

@@ -7,36 +7,37 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
-
-import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.CommonUtil;
+import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 public class DataPublisherStarter {
 
-  private static NodesManager nodesManager;
+  private static HungryHippoCurator curator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
   private static ShardingApplicationContext context;
+  private static String userName = null;
 
   public static void main(String[] args) {
 
@@ -44,8 +45,14 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
+
     try {
-      nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+      ClientConfig clientConfig =
+          JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+      String connectString = clientConfig.getCoordinationServers().getServers();
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      userName = clientConfig.getOutput().getNodeSshUsername();
+      curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       FileSystemUtils.validatePath(destinationPath, true);
 
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
@@ -54,7 +61,7 @@ public class DataPublisherStarter {
           + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
       new File(localShardingPath).mkdirs();
       localShardingPath = downloadAndUnzipShardingTable(shardingZipRemotePath, localShardingPath);
-      LOGGER.info("Sharding local path {}",localShardingPath);
+      LOGGER.info("Sharding local path {}", localShardingPath);
       context = new ShardingApplicationContext(localShardingPath);
       String dataParserClassName =
           context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
@@ -63,7 +70,7 @@ public class DataPublisherStarter {
               .newInstance(context.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
-      DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);
+      DataProvider.publishDataToNodes(dataParser, sourcePath, destinationPath);
       updateFilePublishSuccessful(destinationPath);
       
       long endTime = System.currentTimeMillis();
@@ -87,14 +94,13 @@ public class DataPublisherStarter {
    */
   private static void dataPublishingFailed() {
     CountDownLatch signal = new CountDownLatch(1);
-    String alertPathForDataPublisherFailure = nodesManager
+    String alertPathForDataPublisherFailure = curator
         .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
-    signal = new CountDownLatch(1);
+
     try {
-      DataPublisherStarter.nodesManager.createPersistentNode(alertPathForDataPublisherFailure,
-          signal);
-      signal.await();
-    } catch (IOException | InterruptedException e) {
+      DataPublisherStarter.curator.createPersistentNode(alertPathForDataPublisherFailure);
+
+    } catch (HungryHippoException e) {
       LOGGER.info("Unable to create the sharding failure path");
     }
     createErrorEncounterSignal();
@@ -102,29 +108,16 @@ public class DataPublisherStarter {
 
   private static void createErrorEncounterSignal() {
     LOGGER.info("ERROR_ENCOUNTERED signal is sent");
-    String alertErrorEncounterDataPublisher = DataPublisherStarter.nodesManager
+    String alertErrorEncounterDataPublisher = DataPublisherStarter.curator
         .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
-    CountDownLatch signal = new CountDownLatch(1);
     try {
-      DataPublisherStarter.nodesManager.createPersistentNode(alertErrorEncounterDataPublisher,
-          signal);
-      signal.await();
-    } catch (IOException | InterruptedException e) {
+      DataPublisherStarter.curator.createPersistentNode(alertErrorEncounterDataPublisher);
+
+    } catch (HungryHippoException e) {
       LOGGER.info("Unable to create the sharding failure path");
     }
   }
 
-  private static void sendSignalToNodes(NodesManager nodesManager) throws InterruptedException {
-    CountDownLatch signal = new CountDownLatch(1);
-    try {
-      nodesManager.createPersistentNode(nodesManager.buildAlertPathByName(
-          CommonUtil.ZKJobNodeEnum.START_NODE_FOR_DATA_RECIEVER.getZKJobNode()), signal);
-    } catch (IOException e) {
-      LOGGER.info("Unable to send the signal node on zk due to {}", e);
-    }
-
-    signal.await();
-  }
 
   /**
    * Updates file published successfully
@@ -136,8 +129,14 @@ public class DataPublisherStarter {
         .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
-    ZkUtils.deleteZKNode(pathForFailureNode);
-    ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
+
+    try {
+      curator.deletePersistentNodeIfExits(pathForFailureNode);
+      curator.createPersistentNodeIfNotPresent(pathForSuccessNode);
+    } catch (HungryHippoException e) {
+      LOGGER.error("creation of File update failed" + e.getLocalizedMessage());
+    }
+
   }
   
   /**
@@ -150,8 +149,13 @@ public class DataPublisherStarter {
         .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
     String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
-    ZkUtils.deleteZKNode(pathForSuccessNode);
-    ZkUtils.createZKNodeIfNotPresent(pathForFailureNode, "");
+
+    try {
+      curator.deletePersistentNodeIfExits(pathForSuccessNode);
+      curator.createPersistentNodeIfNotPresent(pathForFailureNode);
+    } catch (HungryHippoException e) {
+      LOGGER.error(e.getMessage());
+    }
   }
 
   public static ShardingApplicationContext getContext() {
@@ -159,18 +163,18 @@ public class DataPublisherStarter {
   }
 
   /**
-   * Downloads sharding zip from remote and unzips it in local local
-   * and returns the path of the local directory
+   * Downloads sharding zip from remote and unzips it in local local and returns the path of the
+   * local directory
+   * 
    * @param shardingZipRemotePath
    * @param localDir
    * @return
-     */
-  public static String downloadAndUnzipShardingTable(String shardingZipRemotePath, String localDir) {
+   */
+  public static String downloadAndUnzipShardingTable(String shardingZipRemotePath,
+      String localDir) {
     Node node = RandomNodePicker.getRandomNode();
     String filePath = localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    ScpCommandExecutor.download(
-        NodesManagerContext.getClientConfig().getOutput().getNodeSshUsername(), node.getIp(),
-        shardingZipRemotePath,localDir);
+    ScpCommandExecutor.download(userName, node.getIp(), shardingZipRemotePath, localDir);
     try {
       TarAndGzip.untarTGzFile(filePath + ".tar.gz");
     } catch (IOException e) {
@@ -182,22 +186,24 @@ public class DataPublisherStarter {
 
   /**
    * Returns Sharding Zip Path in remote
+   * 
    * @param distributedFilePath
    * @return
-     */
-  public static String getShardingZipRemotePath(String distributedFilePath){
+   */
+  public static String getShardingZipRemotePath(String distributedFilePath) {
     String fileSystemBaseDirectory = FileSystemContext.getRootDirectory();
     String remoteDir = fileSystemBaseDirectory + distributedFilePath;
-    String shardingZipRemotePath = remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
+    String shardingZipRemotePath =
+        remoteDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME + ".tar.gz";
     return shardingZipRemotePath;
   }
 
   public static void checkFilesInSync(String shardingZipRemotePath) throws Exception {
     boolean shardingFileInSync = DataSyncCoordinator.checkSyncUpStatus(shardingZipRemotePath);
-    if(!shardingFileInSync){
-      LOGGER.error("Sharding file {} not in sync",shardingZipRemotePath);
+    if (!shardingFileInSync) {
+      LOGGER.error("Sharding file {} not in sync", shardingZipRemotePath);
       throw new RuntimeException("Sharding file not in sync");
     }
-    LOGGER.info("Sharding file {} in sync",shardingZipRemotePath);
+    LOGGER.info("Sharding file {} in sync", shardingZipRemotePath);
   }
 }

@@ -13,9 +13,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
@@ -24,7 +24,7 @@ public class NodeJobsServiceIntegrationTest {
 
   private NodeJobsService nodeService = null;;
   private Node node = null;
-  private NodesManager nodesManager = null;
+  private HungryHippoCurator curator = null;
   private long nodeCapacity = 2000l;
   private int nodeId = 1;
   private String clientConfigFilePath =
@@ -33,17 +33,16 @@ public class NodeJobsServiceIntegrationTest {
   @Before
   public void setUp() throws Exception {
     node = new Node(nodeCapacity, nodeId);
-    NodesManager manager = NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
-    CoordinationConfig coordinationConfig =
-        CoordinationConfigUtil.getZkCoordinationConfigCache();
-    manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-    nodeService = new NodeJobsService(node, nodesManager);
+    curator = HungryHippoCurator.getInstance("localhost:2181");
+    CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
+    curator.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+    nodeService = new NodeJobsService(node, curator);
   }
 
   @After
   public void tearDown() throws Exception {
     node = null;
-    nodesManager = null;
+    curator = null;
     nodeService = null;
   }
 
@@ -70,7 +69,7 @@ public class NodeJobsServiceIntegrationTest {
     JobEntity jobEntity = new JobEntity();
     CountDownLatch signal = new CountDownLatch(1);
     String jobUUId = "123";
-    nodesManager.connectZookeeper("localhost:2181", 2000);
+
     try {
       nodeService.sendJobRunnableNotificationToNode(jobEntity, signal, jobUUId);
     } catch (ClassNotFoundException | IOException | InterruptedException | KeeperException e) {

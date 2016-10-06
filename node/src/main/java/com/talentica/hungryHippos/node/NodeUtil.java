@@ -8,7 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -28,15 +29,15 @@ public class NodeUtil {
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   public NodeUtil(String filePath) {
-    String shardingTempFolder = FileSystemContext.getRootDirectory() + filePath
-        + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+    String shardingTempFolder = FileSystemContext.getRootDirectory() + filePath + File.separatorChar
+        + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
     ShardingApplicationContext context = new ShardingApplicationContext(shardingTempFolder);
-    Map<String,String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
+    Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
     String keyToValueToBucketMapFile = shardingTempFolder + File.separatorChar
         + ShardingApplicationContext.keyToValueToBucketMapFile;
 
     keyToValueToBucketMap =
-        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile,dataTypeMap);
+        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketMapFile, dataTypeMap);
 
     String bucketToNodeNumberMapFile = shardingTempFolder + File.separatorChar
         + ShardingApplicationContext.bucketToNodeNumberMapFile;
@@ -55,23 +56,23 @@ public class NodeUtil {
 
   public void createTrieBucketToNodeNumberMap(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      NodesManager nodesManager) throws IOException {
-    String buildPath = nodesManager.buildConfigPath("bucketToNodeNumberMap");
+      HungryHippoCurator curator) throws IOException, HungryHippoException {
+    String buildPath = curator.buildConfigPath("bucketToNodeNumberMap");
 
     for (String keyName : bucketToNodeNumberMap.keySet()) {
       String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + keyName;
-      nodesManager.createPersistentNode(keyNodePath, null);
+      curator.createPersistentNodeIfNotPresent(keyNodePath);
       logger.info("Path {} is created", keyNodePath);
       Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(keyName);
       for (Bucket<KeyValueFrequency> bucketKey : bucketToNodeMap.keySet()) {
         String buildBucketNodePath = keyNodePath;
-        nodesManager.createPersistentNode(buildBucketNodePath, null);
+        curator.createPersistentNodeIfNotPresent(buildBucketNodePath);
         String buildBucketKeyPath =
             buildBucketNodePath + PathUtil.SEPARATOR_CHAR + bucketKey.toString();
-        nodesManager.createPersistentNode(buildBucketKeyPath, null);
+        curator.createPersistentNode(buildBucketKeyPath, null);
         String buildNodePath = buildBucketKeyPath + PathUtil.SEPARATOR_CHAR
             + bucketToNodeMap.get(bucketKey).toString();
-        nodesManager.createPersistentNode(buildNodePath, null);
+        curator.createPersistentNodeIfNotPresent(buildNodePath);
         // nodesManager.createPersistentNode(buildBucketNodePath, null);
         logger.info("Path {} is created", buildBucketNodePath);
       }
@@ -80,21 +81,21 @@ public class NodeUtil {
 
   public void createTrieKeyToValueToBucketMap(
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
-      NodesManager nodesManager) throws IOException {
-    String buildPath = nodesManager.buildConfigPath("keyToValueToBucketMap");
+      HungryHippoCurator curator) throws IOException, HungryHippoException {
+    String buildPath = curator.buildConfigPath("keyToValueToBucketMap");
     for (String keyName : keyToValueToBucketMap.keySet()) {
       String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + keyName;
-      nodesManager.createPersistentNode(keyNodePath, null);
+      curator.createPersistentNodeIfNotPresent(keyNodePath);
       logger.info("Path {} is created", keyNodePath);
       Map<Object, Bucket<KeyValueFrequency>> valueBucketMap = keyToValueToBucketMap.get(keyName);
       for (Object valueKey : valueBucketMap.keySet()) {
         String buildValueBucketPath = keyNodePath;
-        nodesManager.createPersistentNode(buildValueBucketPath, null);
+        curator.createPersistentNodeIfNotPresent(buildValueBucketPath);
         String buildValueKeyPath = buildValueBucketPath + PathUtil.SEPARATOR_CHAR + valueKey;
-        nodesManager.createPersistentNode(buildValueKeyPath, null);
+        curator.createPersistentNodeIfNotPresent(buildValueKeyPath);
         String buildBucketPath =
             buildValueKeyPath + PathUtil.SEPARATOR_CHAR + valueBucketMap.get(valueKey).toString();
-        nodesManager.createPersistentNode(buildBucketPath, null);
+        curator.createPersistentNodeIfNotPresent(buildBucketPath);
         // nodesManager.createPersistentNode(buildValueBucketPath,
         // null);
 
@@ -105,15 +106,15 @@ public class NodeUtil {
 
   public void createTrieBucketCombinationToNodeNumbersMap(
       Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap,
-      NodesManager nodesManager) throws IOException {
-    String buildPath = nodesManager.buildConfigPath("bucketCombinationToNodeNumbersMap");
+      HungryHippoCurator curator) throws IOException, HungryHippoException {
+    String buildPath = curator.buildConfigPath("bucketCombinationToNodeNumbersMap");
     for (BucketCombination bucketCombinationKey : bucketCombinationToNodeNumbersMap.keySet()) {
       String keyNodePath = buildPath + PathUtil.SEPARATOR_CHAR + bucketCombinationKey.toString();
       Set<Node> nodes = bucketCombinationToNodeNumbersMap.get(bucketCombinationKey);
       for (Node node : nodes) {
         String buildBucketCombinationNodeNumberPath =
             keyNodePath + PathUtil.SEPARATOR_CHAR + node.toString();
-        nodesManager.createPersistentNode(buildBucketCombinationNodeNumberPath, null);
+        curator.createPersistentNodeIfNotPresent(buildBucketCombinationNodeNumberPath);
         logger.info("Path {} is created", buildBucketCombinationNodeNumberPath);
       }
     }

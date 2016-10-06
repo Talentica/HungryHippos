@@ -1,13 +1,10 @@
 package com.talentica.hungryHippos.node.job;
 
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.node.JobExecutor;
-import com.talentica.hungryHippos.utility.JobEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.*;
+import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getConfigNodeData;
+import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobClassNode;
+import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobInputNode;
+import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobNode;
+import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobOutputNode;
 
 /**
  * This class is for Nodes to fetch the configurations for the job

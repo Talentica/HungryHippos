@@ -19,7 +19,6 @@ import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
-import com.talentica.hungryHippos.coordination.NodesManager;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
@@ -49,7 +48,7 @@ public class DataProvider {
   private static String BAD_RECORDS_FILE;
   private static Random random;
 
-  private static String[] loadServers(NodesManager nodesManager) throws Exception {
+  private static String[] loadServers() throws Exception {
     LOGGER.info("Load the server form the configuration file");
     ArrayList<String> servers = new ArrayList<>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
@@ -62,11 +61,11 @@ public class DataProvider {
     return servers.toArray(new String[servers.size()]);
   }
 
-  public static void publishDataToNodes(NodesManager nodesManager, DataParser dataParser,
-      String sourcePath, String destinationPath) throws Exception {
+  public static void publishDataToNodes(DataParser dataParser, String sourcePath,
+      String destinationPath) throws Exception {
     init();
     long start = System.currentTimeMillis();
-    String[] servers = loadServers(nodesManager);
+    String[] servers = loadServers();
     FieldTypeArrayDataDescription dataDescription =
         DataPublisherStarter.getContext().getConfiguredDataDescription();
     dataDescription.setKeyOrder(DataPublisherStarter.getContext().getShardingDimensions());
@@ -77,13 +76,16 @@ public class DataProvider {
         DataPublisherStarter.getContext().getBucketCombinationtoNodeNumbersMapFilePath();
     String keyToValueToBucketPath =
         DataPublisherStarter.getContext().getKeytovaluetobucketMapFilePath();
-    Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
-    
+    Map<String, String> dataTypeMap =
+        ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
+
     String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
-    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
-    bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
+    keyToValueToBucketMap =
+        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath, dataTypeMap);
+    bucketsCalculator =
+        new BucketsCalculator(keyToValueToBucketMap, DataPublisherStarter.getContext());
     OutputStream[] targets = new OutputStream[servers.length];
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
@@ -99,7 +101,7 @@ public class DataProvider {
       dos.writeInt(destinationPathLength);
       dos.flush();
       targets[i].write(destinationPathInBytes);
-      targets[i].write((byte)1);
+      targets[i].write((byte) 1);
       targets[i].flush();
     }
 
@@ -112,7 +114,8 @@ public class DataProvider {
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
     random = ThreadLocalRandom.current();
-    byte[] nextNodesInfo = new byte[DataPublisherStarter.getContext().getShardingDimensions().length-1];
+    byte[] nextNodesInfo =
+        new byte[DataPublisherStarter.getContext().getShardingDimensions().length - 1];
     int flushTriggerCount = 0;
     while (true) {
       DataTypes[] parts = null;
@@ -143,19 +146,19 @@ public class DataProvider {
       }
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      Iterator<Node> nodeIterator= nodes.iterator();
+      Iterator<Node> nodeIterator = nodes.iterator();
       Node receivingNode = nodeIterator.next();
       for (int i = 1; i < keyOrder.length; i++) {
-       byte nodeId = (byte) nodeIterator.next().getNodeId();
-       targets[receivingNode.getNodeId()].write(nodeId);
+        byte nodeId = (byte) nodeIterator.next().getNodeId();
+        targets[receivingNode.getNodeId()].write(nodeId);
       }
       targets[receivingNode.getNodeId()].write(buf);
       flushTriggerCount++;
-      if(flushTriggerCount>100000){
+      if (flushTriggerCount > 100000) {
         for (int j = 0; j < targets.length; j++) {
           targets[j].flush();
         }
-        flushTriggerCount =0;
+        flushTriggerCount = 0;
       }
     }
     fileWriter.close();
@@ -172,8 +175,8 @@ public class DataProvider {
   }
 
   private static void init() throws FileNotFoundException, JAXBException {
-    NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(DataPublisherApplicationContext
-        .getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
+    NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
+        DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
         DataPublisherStarter.getContext().getShardingClientConfig().getBadRecordsFileOut() + "_publisher.err";
   }

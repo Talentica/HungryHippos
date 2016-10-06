@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
@@ -119,13 +119,20 @@ public class CoordinationStarter {
   }
 
   private static void startNodeManager(CoordinationConfig coordinationConfig) throws Exception {
-    NodesManager manager = NodesManagerContext.initialize(clientConfigFilePath);
-    manager.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-    manager.startup();
+
+    ClientConfig clientConfig =
+        JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+    String servers = clientConfig.getCoordinationServers().getServers();
+    int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+    HungryHippoCurator curator = HungryHippoCurator.getInstance(servers, sessionTimeOut);
+    curator.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
+    curator.startup();
   }
 
-  private static void uploadConfigurationOnZk(String rootPath)
-      throws FileNotFoundException, IOException, JAXBException, InterruptedException {
+
+
+  private static void uploadConfigurationOnZk(String rootPath) throws FileNotFoundException,
+      IOException, JAXBException, InterruptedException, HungryHippoException {
 
     CoordinationConfigUtil.uploadConfigurationOnZk(
         rootPath + File.separatorChar + CoordinationConfigUtil.COORDINATION_CONFIGURATION,

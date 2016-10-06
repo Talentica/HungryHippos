@@ -18,8 +18,8 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.client.Output;
@@ -42,7 +42,8 @@ public class HungryHipposCommandLauncher implements Observer {
   protected final List<?> HHFScommand = new ArrayList<String>();
   private String userName = null;
   private String key = null;
-  private String clientConfig = null;
+  private String connectString = null;
+  private int sessionTimeOut;
   private List<Node> nodesInCluster = null;
 
   static {
@@ -64,7 +65,7 @@ public class HungryHipposCommandLauncher implements Observer {
     validateArguments(args);
     HungryHipposCommandLauncher hhcl = new HungryHipposCommandLauncher();
     hhcl.setClientConfig(args[0]);
-    NodesManagerContext.getNodesManagerInstance(args[0]);
+    HungryHippoCurator.getInstance(hhcl.connectString, hhcl.sessionTimeOut);
     hhcl.setNodesInCluster();
     hhfs = HungryHipposFileSystemMain.getHHFSInstance();
 
@@ -90,7 +91,8 @@ public class HungryHipposCommandLauncher implements Observer {
 
     Class<?> consoleC = Class.forName("jline.ConsoleReader");
     Object console = consoleC.getConstructor().newInstance();
-    Class<?> completorC = Class.forName("com.talentica.hungryhippos.filesystem.helper.TabCompletor");
+    Class<?> completorC =
+        Class.forName("com.talentica.hungryhippos.filesystem.helper.TabCompletor");
     Object completor = completorC.getConstructor().newInstance();
     Method addCompletor = consoleC.getMethod("addCompletor", Class.forName("jline.Completor"));
     addCompletor.invoke(console, completor);
@@ -138,7 +140,7 @@ public class HungryHipposCommandLauncher implements Observer {
       case "rm":
         RMCommand.execute(parser, str);
         break;
-      case "get":     
+      case "get":
         GetCommand.execute(parser, str);
         break;
       case "cat":
@@ -170,6 +172,9 @@ public class HungryHipposCommandLauncher implements Observer {
     Output output = clientConfig.getOutput();
     userName = output.getNodeSshUsername();
     key = output.getNodeSshPrivateKeyFilePath();
+    connectString = clientConfig.getCoordinationServers().getServers();
+    sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+
   }
 
   @Override

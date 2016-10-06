@@ -5,16 +5,14 @@ package com.talentica.hungryHippos.coordination.context;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
@@ -41,6 +39,8 @@ public class CoordinationConfigUtil {
   public static final String DATA_PUBLISHER_CONFIGURATION = "datapublisher-configuration";
   public static final String FILE_SYSTEM = "file-system";
   public static final String TOOLS_CONFIGURATION = "tools-configuration";
+  private static final String ZK_PATH_SEPERATOR = "/";
+  private static HungryHippoCurator curator;
 
   public static Property<CoordinationProperty> getProperty() {
     if (property == null) {
@@ -49,10 +49,14 @@ public class CoordinationConfigUtil {
     return property;
   }
 
-  public static void uploadConfigurationOnZk(String nodeName,
-      Object configurationFile) throws IOException, JAXBException, InterruptedException {
-    LOGGER.info("Updating coordination configuration on zookeeper");
-    ZkUtils.saveObjectZkNode(nodeName, configurationFile);    
+  public static void uploadConfigurationOnZk(String nodeName, Object configurationFile)
+      throws IOException, JAXBException, InterruptedException, HungryHippoException {
+    LOGGER.info("uploading  {}  on zookeeper", nodeName);
+    if (curator == null) {
+      curator = HungryHippoCurator.getAlreadyInstantiated();
+    }
+    curator.createPersistentNode(nodeName, configurationFile);
+    LOGGER.info("uploaded  {}  on zookeeper succesfully", nodeName);
   }
 
   public static CoordinationConfig getZkCoordinationConfigCache() {
@@ -60,9 +64,17 @@ public class CoordinationConfigUtil {
       return config;
     }
     String configurationFile =
-        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.COORDINATION_CONFIGURATION;
-    config = (CoordinationConfig) ZkUtils.readObjectZkNode(configurationFile);
+        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
+            + CoordinationConfigUtil.COORDINATION_CONFIGURATION;
+    try {
+      if (curator == null) {
+        curator = HungryHippoCurator.getAlreadyInstantiated();
+      }
+      config = (CoordinationConfig) curator.readObject(configurationFile);
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
 
     return config;
   }
@@ -89,8 +101,16 @@ public class CoordinationConfigUtil {
 
     String configurationFile =
         CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.CLUSTER_CONFIGURATION;
-    clusterConfig = (ClusterConfig) ZkUtils.readObjectZkNode(configurationFile);
+            + ZK_PATH_SEPERATOR + CoordinationConfigUtil.CLUSTER_CONFIGURATION;
+    try {
+      if (curator == null) {
+        curator = HungryHippoCurator.getAlreadyInstantiated();
+      }
+      clusterConfig = (ClusterConfig) curator.readObject(configurationFile);
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
 
     return clusterConfig;
 

@@ -34,7 +34,7 @@ public class FileDataStore implements DataStore, Serializable {
   private OutputStream[] os;
   private DataDescription dataDescription;
   private String hungryHippoFilePath;
-  private String nodeId;
+  private int nodeId;
   private transient ShardingApplicationContext context;
   private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
   private String uniqueFileName;
@@ -58,7 +58,7 @@ public class FileDataStore implements DataStore, Serializable {
     this.numFiles = 1 << numDimensions;
     this.dataDescription = dataDescription;
     os = new OutputStream[numFiles];
-    this.nodeId = nodeId;
+    this.nodeId = Integer.valueOf(nodeId);
     this.hungryHippoFilePath = hungryHippoFilePath;
     this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
         + File.separator + DATA_FILE_BASE_NAME;
@@ -127,7 +127,8 @@ public class FileDataStore implements DataStore, Serializable {
     }
     try {
       if (context.getShardingClientConfig().isDataFileSorting()) {
-        new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context).doSortingDefault();
+        new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context)
+            .doSortingDefault();
       }
     } catch (IOException e) {
       logger.error(e.toString());

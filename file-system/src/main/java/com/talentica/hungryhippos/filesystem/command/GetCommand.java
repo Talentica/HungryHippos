@@ -64,7 +64,7 @@ public class GetCommand {
       nodeHHFSDir = hhfs.getHHFSNodeRoot();
       nodeHHFSDir = removeLeftSlashAtEnd(nodeHHFSDir);
 
-      String data = hhfs.getData(hungryHippoFilePath);
+      String data = hhfs.getNodeData(hungryHippoFilePath);
       if (data == null || !data.contains(FileSystemConstants.IS_A_FILE)) {
         System.out.println("The location " + hungryHippoFilePath
             + " is not a file. Please provide a valid file path");

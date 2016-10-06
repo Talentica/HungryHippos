@@ -15,8 +15,7 @@ import org.junit.Test;
 // import org.mockito.Mockito;
 // import org.powermock.api.mockito.PowerMockito;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
@@ -34,7 +33,7 @@ public class HungryHipposFileSystemIntegrationTest {
   private HungryHipposFileSystem hhfs = null;
   private String clientConfig = "";
 
-  private NodesManager nodesManager;
+  private HungryHippoCurator curator;
   private Property<ZkProperty> zkProperty;
 
   @Before
@@ -46,8 +45,8 @@ public class HungryHipposFileSystemIntegrationTest {
      * nodesManager = Mockito.mock(NodesManager.class); zkProperty = Mockito.mock(Property.class);
      */
 
-    NodesManager nodeManager = NodesManagerContext.getNodesManagerInstance(
-        "/home/sudarshans/RD/HH_NEW/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml");
+    curator = HungryHippoCurator.getInstance("");
+
 
     hhfs = HungryHipposFileSystem.getInstance();
   }
@@ -103,15 +102,6 @@ public class HungryHipposFileSystemIntegrationTest {
   }
 
   @Test
-  public void testGetData() {
-    String s = hhfs.getData("test1");
-
-    String s1 = hhfs.getNodeData("test1");
-
-    assertNotNull(s);
-  }
-
-  @Test
   public void testUpdateFSBlockMetaData() throws FileNotFoundException, JAXBException {
 
     try {
@@ -140,7 +130,7 @@ public class HungryHipposFileSystemIntegrationTest {
        * .thenReturn(fileSystemRootNodeZKPath);
        */
 
-      hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, nodeId, datafileSize);
+      // hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, nodeId, datafileSize);
       hhfs.updateFSBlockMetaData(fileZKNode, Integer.parseInt(nodeId), datafileSize);
 
       assertTrue(true);

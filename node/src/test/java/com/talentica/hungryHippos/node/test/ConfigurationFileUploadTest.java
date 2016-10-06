@@ -17,15 +17,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.node.NodeUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.Sharding;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
@@ -36,7 +35,7 @@ import com.talentica.hungryHippos.utility.PathUtil;
 @Ignore
 public class ConfigurationFileUploadTest {
 
-  private NodesManager nodesManager;
+  private HungryHippoCurator curator;
   private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap;
@@ -69,9 +68,10 @@ public class ConfigurationFileUploadTest {
       LOGGER.info("Unable to read bucketToNodeNumberMap. Please put the file in current directory");
     }
 
-    try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream = new ObjectInputStream(
-        new FileInputStream(new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath()
-            + PathUtil.SEPARATOR_CHAR + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
+    try (ObjectInputStream bucketCombinationToNodeNumbersMapInputStream =
+        new ObjectInputStream(new FileInputStream(
+            new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + PathUtil.SEPARATOR_CHAR
+                + ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile))) {
       bucketCombinationToNodeNumbersMap =
           (Map<BucketCombination, Set<Node>>) bucketCombinationToNodeNumbersMapInputStream
               .readObject();
@@ -84,18 +84,19 @@ public class ConfigurationFileUploadTest {
 
   @Test
   @Ignore
-  public void createUploadConfigFile() throws IOException, InterruptedException {
-    nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
-    nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
+  public void createUploadConfigFile()
+      throws IOException, InterruptedException, HungryHippoException {
+    nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, curator);
+    nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, curator);
     nodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
-        nodesManager);
-    nodesManager.createPersistentNode("/rootnode/hostsnode/test/child", null);
+        curator);
+    curator.createPersistentNode("/rootnode/hostsnode/test/child", null);
     Thread.sleep(3000);
 
     // String buildPath = nodesManager.buildConfigPath("/rootnode/hostsnode/test/child");
     Set<LeafBean> leafs;
     try {
-      leafs = ZkUtils.searchLeafNode("/rootnode/hostsnode/test", null, null);
+      leafs = curator.searchLeafNode("/rootnode/hostsnode/test", null);
       for (LeafBean leaf : leafs) {
         LOGGER.info("Path is {} AND node name {}", leaf.getPath(), leaf.getName());
       }

@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.google.common.base.Strings;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 /**
@@ -136,17 +137,23 @@ public class FileSystemUtils {
     String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();
     String relativeNodePath = "";
+    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
     for (int i = 1; i < strings.length - 1; i++) {
       relativeNodePath = relativeNodePath + FileSystemConstants.ZK_PATH_SEPARATOR + strings[i];
       String absoluteNodePath = fileSystemRootNode + relativeNodePath;
-      if (ZkUtils.checkIfNodeExists(absoluteNodePath)) {
-        String nodeData = (String) ZkUtils.getNodeData(absoluteNodePath);
-        if (FileSystemConstants.IS_A_FILE.equals(nodeData)) {
-          throw new RuntimeException("Invalid path : " + path + ".\nFile with path : "
-              + relativeNodePath + " already exists");
+      try {
+        if (curator.checkExists(absoluteNodePath)) {
+          String nodeData = (String) curator.getZnodeData(absoluteNodePath);
+          if (FileSystemConstants.IS_A_FILE.equals(nodeData)) {
+            throw new RuntimeException("Invalid path : " + path + ".\nFile with path : "
+                + relativeNodePath + " already exists");
+          }
+        } else {
+          break;
         }
-      } else {
-        break;
+      } catch (HungryHippoException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     }
   }

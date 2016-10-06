@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.job.main;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URLClassLoader;
 
 import javax.xml.bind.JAXBException;
@@ -10,11 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.job.JobMatrix;
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.master.job.JobManager;
 import com.talentica.hungryHippos.utility.ClassLoaderUtil;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
  * @author PooshanS
@@ -26,7 +26,7 @@ public class JobManagerStarter {
    * @param args
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerStarter.class);
-  private static NodesManager nodesManager;
+  private static HungryHippoCurator curator;
 
   public static void main(String[] args) {
     System.out.println("In Job Manager Main.");
@@ -38,7 +38,10 @@ public class JobManagerStarter {
       String jobUUId = args[3];
 
       System.out.println("Job Manager Started.");
-      nodesManager = NodesManagerContext.getNodesManagerInstance(clientConfigPath);
+      ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
+      String connectString = clientConfig.getCoordinationServers().getServers();
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       Object jobMatrix = getJobMatrix(localJarPath, jobMatrixClass);
       validateJobMatrixClass(jobMatrix);
       initialize(jobUUId);
@@ -49,31 +52,20 @@ public class JobManagerStarter {
       long endTime = System.currentTimeMillis();
       System.out.println("Job Manager Completed.");
       LOGGER.info("It took {} seconds of time to for running all jobs.",
-              ((endTime - startTime) / 1000));
+          ((endTime - startTime) / 1000));
 
     } catch (Exception exception) {
-      errorHandler(exception);
       System.exit(1);
     }
   }
 
-  /**
-   * @param exception
-   */
-  private static void errorHandler(Exception exception) {
-    LOGGER.error("Error occured while executing master starter program.", exception);
-    try {
-      ZkSignalListener.createErrorEncounterSignal(nodesManager);
-    } catch (IOException | InterruptedException e) {
-      LOGGER.info("Unable to create the node on zk due to {}", e.getMessage());
-    }
-  }
+
 
   /**
    *
    * @param jobUUId
    * @throws Exception
-     */
+   */
   private static void initialize(String jobUUId) throws Exception {
     LOGGER.info("Job UUID is {}", jobUUId);
     ZkSignalListener.jobuuidInBase64 = jobUUId;
@@ -90,14 +82,15 @@ public class JobManagerStarter {
 
   private static void validateArguments(String[] args) {
     if (args.length < 4) {
-      System.out
-          .println("Missing {zookeeper xml configuration} or {local JarPath} or {JobMatrix Class name} or {Job UUID} arguments.");
+      System.out.println(
+          "Missing {zookeeper xml configuration} or {local JarPath} or {JobMatrix Class name} or {Job UUID} arguments.");
       System.exit(1);
     }
   }
 
-  private static Object getJobMatrix(String localJarPath, String jobMatrixClass) throws InstantiationException, IllegalAccessException,
-      ClassNotFoundException, FileNotFoundException, JAXBException {
+  private static Object getJobMatrix(String localJarPath, String jobMatrixClass)
+      throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+      FileNotFoundException, JAXBException {
     URLClassLoader classLoader = ClassLoaderUtil.getURLClassLoader(localJarPath);
     Object jobMatrix = Class.forName(jobMatrixClass, true, classLoader).newInstance();
     return jobMatrix;

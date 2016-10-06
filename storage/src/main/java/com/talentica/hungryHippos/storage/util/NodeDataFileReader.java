@@ -15,9 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
@@ -41,7 +43,11 @@ public class NodeDataFileReader {
       System.exit(0);
     }
     String clientConfigFilePath = args[1];
-    NodesManagerContext.getNodesManagerInstance(clientConfigFilePath);
+    ClientConfig clientConfig =
+        JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+    int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+    String connectString = clientConfig.getCoordinationServers().getServers();
+    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     context = new ShardingApplicationContext(args[2]);
     int noOfKeys = context.getShardingDimensions().length;
     for (int i = 0; i < 1 << noOfKeys; i++) {

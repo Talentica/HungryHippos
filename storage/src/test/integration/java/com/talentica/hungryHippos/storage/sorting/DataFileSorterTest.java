@@ -57,7 +57,8 @@ public class DataFileSorterTest {
   }
 
   @Test
-  public void testDataFileSort() throws IOException, KeeperException, InterruptedException, JAXBException {
+  public void testDataFileSort()
+      throws IOException, KeeperException, InterruptedException, JAXBException {
 
     long beforeSortSize = Files.size(Paths.get(testFilePath));
     try {
@@ -70,6 +71,24 @@ public class DataFileSorterTest {
     Assert.assertEquals(beforeSortSize, afterSortSize);
   }
 
+
+  @Test
+  public void testDataFileSort_external() throws IOException, ClassNotFoundException,
+      KeeperException, InterruptedException, JAXBException {
+    testFilePath = "/home/sudarshans/hh1/filesystem/test/input";
+    sorter = null;
+    inputDataDir = testFilePath;
+    sorter = new DataFileSorter(inputDataDir, new ShardingApplicationContext(shardingConfDir));
+    long beforeSortSize = Files.size(Paths.get(testFilePath));
+    try {
+      sorter.doSortingDefault();
+    } catch ( IOException  e) {
+      Assert.assertFalse(true);
+    }
+
+    long afterSortSize = Files.size(Paths.get(testFilePath));
+    Assert.assertEquals(beforeSortSize, afterSortSize);
+  }
 
 
   @Test

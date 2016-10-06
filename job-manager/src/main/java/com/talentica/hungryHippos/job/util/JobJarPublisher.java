@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.job.util;
 
 import com.talentica.hungryHippos.common.context.JobRunnerApplicationContext;
 import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -16,30 +15,33 @@ import java.io.File;
  */
 public class JobJarPublisher {
 
-    private static final Logger logger = LoggerFactory.getLogger(JobJarPublisher.class);
+  private static final Logger logger = LoggerFactory.getLogger(JobJarPublisher.class);
 
-    /**
-     * Sends the Jar file to each HH node
-     * @param jobUUID
-     * @param localJarPath
-     * @return
-     */
-    public static boolean publishJar(String jobUUID, String localJarPath) {
+  /**
+   * Sends the Jar file to each HH node
+   * 
+   * @param jobUUID
+   * @param localJarPath
+   * @return
+   */
+  public static boolean publishJar(String jobUUID, String localJarPath, String userName) {
 
-        String userName = NodesManagerContext.getClientConfig().getOutput().getNodeSshUsername();
-        Node node = RandomNodePicker.getRandomNode();
-        String pathToJobRootDir = JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
-        String remoteDir = pathToJobRootDir + File.separatorChar + jobUUID + File.separatorChar+"lib"+ File.separatorChar;
-        File jarFile = new File(localJarPath);
-        String remoteJarPath = remoteDir+jarFile.getName();
-        ScpCommandExecutor.upload(userName, node.getIp(), remoteDir, localJarPath);
-        try {
-            DataSyncCoordinator.notifyFileSync(node.getIp(),remoteJarPath);
-            return DataSyncCoordinator.checkSyncUpStatus(remoteJarPath);
-        } catch (Exception e) {
-            logger.error(e.toString());
-            throw new RuntimeException(e);
-        }
+
+    Node node = RandomNodePicker.getRandomNode();
+    String pathToJobRootDir =
+        JobRunnerApplicationContext.getZkJobRunnerConfig().getJobsRootDirectory();
+    String remoteDir = pathToJobRootDir + File.separatorChar + jobUUID + File.separatorChar + "lib"
+        + File.separatorChar;
+    File jarFile = new File(localJarPath);
+    String remoteJarPath = remoteDir + jarFile.getName();
+    ScpCommandExecutor.upload(userName, node.getIp(), remoteDir, localJarPath);
+    try {
+      DataSyncCoordinator.notifyFileSync(node.getIp(), remoteJarPath);
+      return DataSyncCoordinator.checkSyncUpStatus(remoteJarPath);
+    } catch (Exception e) {
+      logger.error(e.toString());
+      throw new RuntimeException(e);
     }
+  }
 
 }

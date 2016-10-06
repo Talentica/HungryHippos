@@ -10,13 +10,12 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
 import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 @Ignore
 public class GetCommandTest {
@@ -31,7 +30,7 @@ public class GetCommandTest {
   @Before
   public void setUp() throws HungryHipposFileSystemException {
     try {
-      NodesManagerContext.getNodesManagerInstance(clientConfig);
+   //   NodesManagerContext.getNodesManagerInstance(clientConfig);
       HungryHipposFileSystemMain.getHHFSInstance();
     } catch (FileNotFoundException | JAXBException e) {
       throw new HungryHipposFileSystemException(e.getMessage());

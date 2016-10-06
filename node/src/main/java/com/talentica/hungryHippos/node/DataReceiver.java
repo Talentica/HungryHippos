@@ -3,9 +3,11 @@ package com.talentica.hungryHippos.node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -71,7 +73,11 @@ public class DataReceiver {
   public static void main(String[] args) {
     try {
       validateArguments(args);
-      NodesManagerContext.getNodesManagerInstance(args[0]);
+      ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
+      String connectString = clientConfig.getCoordinationServers().getServers();
+      int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      HungryHippoCurator curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+
       LOGGER.info("Start Node initialize");
       int nodePort = NodeInfo.INSTANCE.getPort();
       String nodeId = NodeInfo.INSTANCE.getId();

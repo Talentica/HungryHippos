@@ -11,15 +11,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
 public class NodeUtilIntegrationTest {
-  private NodesManager nodesManager;
+  private HungryHippoCurator curator;
   private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap =
       new HashMap<BucketCombination, Set<Node>>();
   private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
@@ -33,7 +33,7 @@ public class NodeUtilIntegrationTest {
 
   @Before
   public void setUp() throws Exception {
-    nodesManager = NodesManagerContext.initialize(clientConfig);
+    curator = HungryHippoCurator.getInstance("localhost:2181");
     nodeUtil = new NodeUtil(basePath + "/HungryHippos");
   }
 
@@ -53,8 +53,8 @@ public class NodeUtilIntegrationTest {
   @Test
   public void testCreateTrieBucketToNodeNumberMap() {
     try {
-      nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, nodesManager);
-    } catch (IOException e) {
+      nodeUtil.createTrieBucketToNodeNumberMap(bucketToNodeNumberMap, curator);
+    } catch (HungryHippoException | IOException e) {
       assertTrue(false);
     }
   }
@@ -62,8 +62,8 @@ public class NodeUtilIntegrationTest {
   @Test
   public void testCreateTrieKeyToValueToBucketMap() {
     try {
-      nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, nodesManager);
-    } catch (IOException e) {
+      nodeUtil.createTrieKeyToValueToBucketMap(keyToValueToBucketMap, curator);
+    } catch (HungryHippoException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -73,8 +73,8 @@ public class NodeUtilIntegrationTest {
   public void testCreateTrieBucketCombinationToNodeNumbersMap() {
     try {
       nodeUtil.createTrieBucketCombinationToNodeNumbersMap(bucketCombinationToNodeNumbersMap,
-          nodesManager);
-    } catch (IOException e) {
+          curator);
+    } catch (HungryHippoException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }

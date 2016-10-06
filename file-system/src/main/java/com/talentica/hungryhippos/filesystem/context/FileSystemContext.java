@@ -1,19 +1,19 @@
 package com.talentica.hungryhippos.filesystem.context;
 
-import com.talentica.hungryHippos.coordination.NodesManager;
-import com.talentica.hungryHippos.coordination.ZkUtils;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.NodesManagerContext;
-import com.talentica.hungryHippos.coordination.domain.ZKNodeFile;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
+import java.io.IOException;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
+
 
 /**
  * This class is for handling the filesystem configuration Created by rajkishoreh on 4/7/16.
@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 public class FileSystemContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemContext.class);
+  private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
 
   private static FileSystemConfig fileSystemConfig;
 
@@ -33,12 +34,13 @@ public class FileSystemContext {
    * @throws InterruptedException
    */
   public static void uploadFileSystemConfig(String fileSystemConfigFile)
-      throws IOException, JAXBException, InterruptedException {
+      throws IOException, JAXBException, InterruptedException, HungryHippoException {
+
     LOGGER.info("Updating filesystem configuration on zookeeper");
     String fileSystemConfigurationFile =
         CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-            + ZkUtils.zkPathSeparator + CoordinationConfigUtil.FILE_SYSTEM;
-    ZkUtils.saveObjectZkNode(fileSystemConfigurationFile,
+            + HungryHippoCurator.ZK_PATH_SEPERATOR + CoordinationConfigUtil.FILE_SYSTEM;
+    curator.createPersistentNode(fileSystemConfigurationFile,
         JaxbUtil.unmarshalFromFile(fileSystemConfigFile, FileSystemConfig.class));
 
   }
@@ -59,9 +61,9 @@ public class FileSystemContext {
       if (fileSystemConfig == null) {
 
         String fileSystemConfigurationFile =
-            CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-                + ZkUtils.zkPathSeparator + CoordinationConfigUtil.FILE_SYSTEM;
-        fileSystemConfig = (FileSystemConfig) ZkUtils.readObjectZkNode(fileSystemConfigurationFile);
+            CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
+                + CoordinationConfigUtil.FILE_SYSTEM;
+        fileSystemConfig = (FileSystemConfig) curator.readObject(fileSystemConfigurationFile);
       }
     } catch (Exception e) {
       throw new RuntimeException(e.toString());

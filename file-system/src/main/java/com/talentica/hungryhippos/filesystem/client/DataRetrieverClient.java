@@ -1,8 +1,9 @@
 package com.talentica.hungryhippos.filesystem.client;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.coordination.ZkUtils;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
@@ -64,10 +65,12 @@ public class DataRetrieverClient {
         .getZookeeperDefaultConfig().getFilesystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
-    List<String> nodeIds = ZkUtils.getChildren(fileNodeZKDFSPath);
-    boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + hungryHippoFilePath
+    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    List<String> nodeIds = curator.getChildren(fileNodeZKDFSPath);
+    boolean isSharded = curator.checkExists(fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
-    HungryHipposFileSystem.validateFileDataReady(hungryHippoFilePath);
+    HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
+    hhfs.validateFileDataReady(hungryHippoFilePath);
     // creates a directory if its not existing, if dir already exists it returns false;
     boolean folderExists = FileSystemUtils.createDirectory(outputDirName);
     if (folderExists) {
@@ -77,7 +80,7 @@ public class DataRetrieverClient {
     for (String nodeId : nodeIds) {
       String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
       String nodeIp = getNodeIp(nodeId);
-      List<String> dataBlockNodes = ZkUtils.getChildren(nodeIdZKPath);
+      List<String> dataBlockNodes = curator.getChildren(nodeIdZKPath);
       if (isSharded) {
         downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath, hungryHippoFilePath,
             outputDirName, nodeIp, tmpDestFileNames);
@@ -130,7 +133,7 @@ public class DataRetrieverClient {
   public static void downloadShardedFile(List<String> dataBlockNodes, int dimension,
       String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
       List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
-      IOException, KeeperException, JAXBException {
+      IOException, KeeperException, JAXBException, HungryHippoException {
     int seq = 0;
     for (String dataBlockNode : dataBlockNodes) {
       int dataBlockIntVal = Integer.parseInt(dataBlockNode);
@@ -138,10 +141,11 @@ public class DataRetrieverClient {
       if ((dataBlockIntVal & dimensionOperand) == dimensionOperand) {
         String dataBlockZKPath =
             nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
-        List<String> child = ZkUtils.getChildren(dataBlockZKPath);
+        HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+        List<String> child = curator.getChildren(dataBlockZKPath);
         for (String chi : child) {
-          String dataBlockSizeStr = (String) ZkUtils
-              .getNodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
+          String dataBlockSizeStr = (String) curator
+              .getZnodeData(dataBlockZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + chi);
           long dataSize = Long.parseLong(dataBlockSizeStr);
           if (dataSize == 0) {
             continue;
@@ -179,8 +183,9 @@ public class DataRetrieverClient {
   public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath,
       String outputDirName, String nodeIp, List<String> tmpDestFileNames)
       throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
-      JAXBException {
-    String dataBlockSizeStr = (String) ZkUtils.getNodeData(nodeIdZKPath);
+      JAXBException, HungryHippoException {
+    String dataBlockSizeStr =
+        (String) HungryHippoCurator.getAlreadyInstantiated().getZnodeData(nodeIdZKPath);
     long dataSize = Long.parseLong(dataBlockSizeStr);
     String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
         + FileSystemConstants.DOWNLOAD_FILE_PREFIX

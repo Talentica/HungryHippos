@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 
 /**
@@ -79,7 +78,7 @@ public class DataFileSorter {
     List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        String absoluteDataFilePath = FileSystemContext.getRootDirectory() + dataDir
+        String absoluteDataFilePath = dataDir
             + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
         inputDir = new File(absoluteDataFilePath);
         File sortedFileFlag =
@@ -101,7 +100,7 @@ public class DataFileSorter {
           if (dataSize <= 0) {
             continue;
           }
-          doSorting(inputDir, primaryDimensionIndex);
+          doSorting(inputFile, primaryDimensionIndex);
         }
         setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
         filesPresentinFolder.clear();

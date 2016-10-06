@@ -33,14 +33,16 @@ public class SortedDataJobRunner implements JobRunner {
   private int nodeId;
   private DynamicMarshal dynamicMarshal;
   private String inputHHPath;
+  private String outputHHPath;
   private DataFileSorter dataFileSorter;
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
-      String inputHHPath, ShardingApplicationContext context) throws IOException {
+      String inputHHPath, String outputHHPath, ShardingApplicationContext context) throws IOException {
     this.dataStore = dataStore;
     this.nodeId = Integer.parseInt(nodeId);
     this.dynamicMarshal = new DynamicMarshal(dataDescription);
     this.inputHHPath = inputHHPath;
+    this.outputHHPath = outputHHPath;
     this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
   }
 
@@ -50,10 +52,10 @@ public class SortedDataJobRunner implements JobRunner {
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
-          new DataRowProcessor(dynamicMarshal, jobEntity, inputHHPath, storeAccess);
+          new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
       rowProcessor.process();
-      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(inputHHPath, nodeId,
-          (new File(FileSystemContext.getRootDirectory() + inputHHPath)).length());
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
+          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -86,7 +88,8 @@ public class SortedDataJobRunner implements JobRunner {
       }
     } catch (IOException | ClassNotFoundException | KeeperException | InterruptedException
         | JAXBException e) {
-      LOGGER.error(e.toString());
+        e.printStackTrace();
+        throw new RuntimeException(e);
     }
   }
 }

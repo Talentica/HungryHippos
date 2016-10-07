@@ -90,6 +90,10 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
 			this.values[index] = (Comparable) value;
 		}
 	}
+	
+	public int[] getKeyIndexes(){
+	  return keyIndexes;
+	}
 
 	@Override
 	public int hashCode() {

@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.storage.DataFileAccess;
 
 
 /**
@@ -87,7 +87,7 @@ public class DataFileSorter {
           continue;
         }
         if (inputDir.isDirectory()) {
-          for (File inputFile : inputDir.listFiles(fileNameFilter)) {
+          for (File inputFile : inputDir.listFiles(DataFileAccess.fileNameFilter)) {
             long dataSize = inputFile.length();
             if (dataSize <= 0) {
               continue;
@@ -145,7 +145,7 @@ public class DataFileSorter {
     unlockFile(lockFile);
   }
 
-  private void createLockFile(File lockFile) throws IOException {
+  private synchronized void  createLockFile(File lockFile) throws IOException {
     if (lockFile.exists()) {
       lockFile.delete();
     }
@@ -438,14 +438,7 @@ public class DataFileSorter {
     return sortDims;
   }
 
-  private FilenameFilter fileNameFilter = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return !(DataFileSorter.DATA_FILE_SORTED.equalsIgnoreCase(name));
-    }
-  };
-  
-  private void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
+  private synchronized void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
     FileOutputStream fos = new FileOutputStream(primDimFile, false);
     fos.write(primDim);
     fos.flush();
@@ -453,7 +446,7 @@ public class DataFileSorter {
   }
 
   @SuppressWarnings("resource")
-  private boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
+  private synchronized boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
     if (!primDimFile.exists()) {
       primDimFile.createNewFile();
     }

@@ -33,6 +33,10 @@ public class PrimaryDimensionwiseJobsCollection {
   public int getNumberOfJobs() {
     return jobs.size();
   }
+  
+  public List<JobEntity> getJobs(){
+    return jobs;
+  }
 
   public static List<PrimaryDimensionwiseJobsCollection> from(List<JobEntity> jobs,
       ShardingApplicationContext context) {

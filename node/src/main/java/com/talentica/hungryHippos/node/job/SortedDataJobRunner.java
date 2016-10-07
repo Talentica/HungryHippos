@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.common.DataRowProcessor;
+import com.talentica.hungryHippos.common.SortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -37,7 +38,8 @@ public class SortedDataJobRunner implements JobRunner {
   private DataFileSorter dataFileSorter;
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
-      String inputHHPath, String outputHHPath, ShardingApplicationContext context) throws IOException {
+      String inputHHPath, String outputHHPath, ShardingApplicationContext context)
+      throws IOException {
     this.dataStore = dataStore;
     this.nodeId = Integer.parseInt(nodeId);
     this.dynamicMarshal = new DynamicMarshal(dataDescription);
@@ -46,13 +48,13 @@ public class SortedDataJobRunner implements JobRunner {
     this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
   }
 
-  public void run(int primaryDimensionIndex, JobEntity jobEntity) {
+  public void run(int primaryDimensionIndex, List<JobEntity> jobEntities) {
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
-          new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
+          new SortedDataRowProcessor(dynamicMarshal, jobEntities, outputHHPath, storeAccess);
       rowProcessor.process();
       HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
           (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
@@ -62,7 +64,7 @@ public class SortedDataJobRunner implements JobRunner {
     }
   }
 
-  private void waitFileUnlock() {
+  private synchronized void waitFileUnlock() {
     File lockFile = new File(this.inputHHPath + File.separatorChar + LOCK_FILE);
     while (true) {
       if (!lockFile.exists()) {
@@ -82,14 +84,20 @@ public class SortedDataJobRunner implements JobRunner {
           JobEntity jobEntity = jobSCollection.jobAt(i);
           int jobEntityId = jobEntity.getJobId();
           JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
-          run(primaryDimensionIndex, jobEntity);
+        }
+        
+        run(primaryDimensionIndex, jobSCollection.getJobs());
+        
+        for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
+          JobEntity jobEntity = jobSCollection.jobAt(i);
+          int jobEntityId = jobEntity.getJobId();
           JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
         }
       }
     } catch (IOException | ClassNotFoundException | KeeperException | InterruptedException
         | JAXBException e) {
-        e.printStackTrace();
-        throw new RuntimeException(e);
+      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 }

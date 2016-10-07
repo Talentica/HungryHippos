@@ -105,7 +105,7 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
     return currentDataFileSize > 0;
   }
 
-  private FilenameFilter fileNameFilter = new FilenameFilter() {
+  public static FilenameFilter fileNameFilter = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String name) {
       return !(DataFileSorter.DATA_FILE_SORTED.equalsIgnoreCase(name));

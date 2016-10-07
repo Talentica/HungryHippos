@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -37,7 +38,7 @@ public class DataFileSorter {
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
   private static final String INPUT_DATAFILE_PRIFIX = "data_";
-  private static final String DATA_FILE_SORTED = "prim-dim-sorted";
+  public static final String DATA_FILE_SORTED = "primdim.sorted";
   private final static String LOCK_FILE = "lock";
   private FieldTypeArrayDataDescription dataDescription;
   private DataFileHeapSort dataFileHeapSort;
@@ -75,11 +76,9 @@ public class DataFileSorter {
       ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
     int keyIdBit = 1 << primaryDimensionIndex;
     File inputDir;
-    List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        String absoluteDataFilePath = dataDir
-            + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
+        String absoluteDataFilePath = dataDir + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
         inputDir = new File(absoluteDataFilePath);
         File sortedFileFlag =
             new File(absoluteDataFilePath + File.separatorChar + DATA_FILE_SORTED);
@@ -88,47 +87,21 @@ public class DataFileSorter {
           continue;
         }
         if (inputDir.isDirectory()) {
-          Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
-            if (Files.isRegularFile(filePath)) {
-              filesPresentinFolder.add(filePath.toString());
+          for (File inputFile : inputDir.listFiles(fileNameFilter)) {
+            long dataSize = inputFile.length();
+            if (dataSize <= 0) {
+              continue;
             }
-          });
-        }
-        for (String file : filesPresentinFolder) {
-          File inputFile = new File(file);
-          long dataSize = inputFile.length();
-          if (dataSize <= 0) {
-            continue;
+            doSorting(inputFile, primaryDimensionIndex);
           }
-          doSorting(inputFile, primaryDimensionIndex);
+        }else{
+          continue;
         }
         setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
-        filesPresentinFolder.clear();
       }
     }
   }
 
-  private void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
-    FileOutputStream fos = new FileOutputStream(primDimFile, false);
-    fos.write(primDim);
-    fos.flush();
-    fos.close();
-  }
-
-  @SuppressWarnings("resource")
-  private boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
-    if (!primDimFile.exists()) {
-      primDimFile.createNewFile();
-    }
-    FileInputStream fis = new FileInputStream(primDimFile);
-    if (primDimFile.exists()) {
-      if ((int) fis.read() == primDim) {
-        return true;
-      }
-    }
-    fis.close();
-    return false;
-  }
 
   /**
    * To do the sorting once the data is ready.
@@ -463,5 +436,34 @@ public class DataFileSorter {
       sortDims[i] = shardDims[(i + startPos) % shardDims.length];
     }
     return sortDims;
+  }
+
+  private FilenameFilter fileNameFilter = new FilenameFilter() {
+    @Override
+    public boolean accept(File dir, String name) {
+      return !(DataFileSorter.DATA_FILE_SORTED.equalsIgnoreCase(name));
+    }
+  };
+  
+  private void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
+    FileOutputStream fos = new FileOutputStream(primDimFile, false);
+    fos.write(primDim);
+    fos.flush();
+    fos.close();
+  }
+
+  @SuppressWarnings("resource")
+  private boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
+    if (!primDimFile.exists()) {
+      primDimFile.createNewFile();
+    }
+    FileInputStream fis = new FileInputStream(primDimFile);
+    if (primDimFile.exists()) {
+      if ((int) fis.read() == primDim) {
+        return true;
+      }
+    }
+    fis.close();
+    return false;
   }
 }

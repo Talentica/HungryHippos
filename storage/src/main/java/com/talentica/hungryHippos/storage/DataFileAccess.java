@@ -3,11 +3,13 @@ package com.talentica.hungryHippos.storage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
 
 public class DataFileAccess implements Iterable<DataFileAccess> {
 
@@ -27,7 +29,7 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
 
   public DataFileAccess(DataDescription dataDescription, File dataFilesDirectory) {
     initialize(dataDescription);
-    dataFiles = dataFilesDirectory.listFiles();
+    dataFiles = dataFilesDirectory.listFiles(fileNameFilter);
   }
 
   private void initialize(DataDescription dataDescription) {
@@ -96,7 +98,6 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
     try {
       if (currentDataFileSize <= 0) {
         closeDatsInputStream(dataInputStream);
-        return false;
       }
     } catch (IOException exception) {
       throw new RuntimeException(exception);
@@ -104,4 +105,10 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
     return currentDataFileSize > 0;
   }
 
+  private FilenameFilter fileNameFilter = new FilenameFilter() {
+    @Override
+    public boolean accept(File dir, String name) {
+      return !(DataFileSorter.DATA_FILE_SORTED.equalsIgnoreCase(name));
+    }
+  };
 }

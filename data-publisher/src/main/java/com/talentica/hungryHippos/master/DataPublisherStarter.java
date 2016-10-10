@@ -63,7 +63,6 @@ public class DataPublisherStarter {
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
       DataProvider.publishDataToNodes(nodesManager, dataParser, sourcePath, destinationPath);
-      updateFilePublishSuccessful(destinationPath);
 
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
@@ -123,20 +122,6 @@ public class DataPublisherStarter {
     }
 
     signal.await();
-  }
-
-  /**
-   * Updates file published successfully
-   * 
-   * @param destinationPath
-   */
-  private static void updateFilePublishSuccessful(String destinationPath) {
-    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
-    String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
-    String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
-    ZkUtils.deleteZKNode(pathForFailureNode);
-    ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
   }
 
   /**

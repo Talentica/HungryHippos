@@ -53,7 +53,9 @@ public class RequestHandlingTool {
                 dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, nodeIdClient+"");
         nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
                 nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
-        nextNodesInfo = new byte[replicaNodesInfoDataSize];
+        if(replicaNodesInfoDataSize>0){
+            nextNodesInfo = new byte[replicaNodesInfoDataSize];
+        }
         dataForFileWrite = new byte[dataDescription.getSize()];
         byteBuffer = ByteBuffer.wrap(this.dataForFileWrite);
     }
@@ -91,5 +93,9 @@ public class RequestHandlingTool {
 
     public byte[] getFileIdInBytes() {
         return fileIdInBytes;
+    }
+
+    public String getHhFilePath() {
+        return hhFilePath;
     }
 }

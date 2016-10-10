@@ -26,6 +26,7 @@ public enum ReplicaDataSender {
     private Map<Integer, Status[]> nodeIdToMemoryArrayStatusMap;
     private int memoryBlockCapacity;
 
+
     public enum Status {
         TRANSFER_IN_PROGRESS, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ, WRITE_IN_PROGRESS
     }
@@ -79,6 +80,7 @@ public enum ReplicaDataSender {
 
         private boolean keepAlive = true;
 
+
         @Override
         public void run() {
             LOGGER.info("Started publishing replica data");
@@ -100,21 +102,27 @@ public enum ReplicaDataSender {
                 Status[] statuses = entry.getValue();
                 int nodeId = entry.getKey();
                 for (int i = 0; i < statuses.length; i++) {
-                    Status status = statuses[i];
-                    if (status == Status.ENABLE_BLOCK_READ) {
+                    if (statuses[i] == Status.ENABLE_BLOCK_READ) {
                         statuses[i] = Status.TRANSFER_IN_PROGRESS;
-                        try {
-                            nodeIdToBosMap.get(nodeId).write(nodeIdToMemoryArraysMap.get(nodeId)[i],
-                                    0, nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i]);
-                            nodeIdToBosMap.get(nodeId).flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            LOGGER.error(e.toString());
-                            NodeConnectionPool.INSTANCE.reConnect(nodeId);
-                            addBufferedOutputStream(nodeId);
+                        boolean sentFlag = false;
+                        if (nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i] > 0) {
+                            while (!sentFlag) {
+                                try {
+                                    nodeIdToBosMap.get(nodeId).write(nodeIdToMemoryArraysMap.get(nodeId)[i],
+                                            0, nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i]);
+                                    nodeIdToBosMap.get(nodeId).flush();
+                                    sentFlag = true;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    LOGGER.error(e.toString());
+                                    NodeConnectionPool.INSTANCE.reConnect(nodeId);
+                                    addBufferedOutputStream(nodeId);
+                                }
+                            }
                         }
                         nodeIdToMemoryArrayStoredDataLength.get(nodeId)[i] = 0;
                         statuses[i] = Status.ENABLE_BLOCK_WRITE;
+
                     }
                 }
             }
@@ -125,6 +133,8 @@ public enum ReplicaDataSender {
         public void kill() {
             keepAlive = false;
         }
+
+
     }
 
     public Map<Integer, byte[][]> getNodeIdToMemoryArraysMap() {

@@ -3,7 +3,10 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.coordination.ZkUtils;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -13,75 +16,72 @@ import java.util.*;
 public enum EndOfDataTracker {
     INSTANCE;
 
-    private Map<Integer, Set<Integer>> fileIdToNodeSetMap;
-    private String path;
-    private Set<Integer> fileIdsToTrack;
+    private static Logger LOGGER = LoggerFactory.getLogger(EndOfDataTracker.class);
+    private List<Node> nodeList;
+    private Map<Integer,Map<Integer,Integer>> fileToDimensionIdxToSignalCount;
 
     EndOfDataTracker() {
-        fileIdToNodeSetMap = new HashMap<>();
-        fileIdsToTrack = new HashSet<>();
-        path = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                .getZookeeperDefaultConfig().getFileidHhfsMapPath();
+        fileToDimensionIdxToSignalCount = new HashMap<>();
+        nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+
     }
 
-    public synchronized void addAllNodes(int fileId) {
-        fileIdsToTrack.add(fileId);
-        List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        Set nodesSet = new HashSet<>();
-        for (Node node : nodes) {
-            if (node.getIdentifier() != NodeInfo.INSTANCE.getIdentifier()) {
-                nodesSet.add(node.getIdentifier());
-            }
+    public synchronized  int getCountDown(int fileId, int dimensionIdx){
+        Map<Integer,Integer> dimensionIdxToSignalCount = fileToDimensionIdxToSignalCount.get(fileId);
+        if(dimensionIdxToSignalCount==null){
+            dimensionIdxToSignalCount = new HashMap<>();
+            fileToDimensionIdxToSignalCount.put(fileId,dimensionIdxToSignalCount);
         }
-        fileIdToNodeSetMap.put(fileId, nodesSet);
-        String fileIdToNodeLink = getFileIdToNodeLink(fileId);
-        ZkUtils.createZKNode(fileIdToNodeLink, null);
-    }
-
-    private String getFileIdToNodeLink(int fileId) {
-        return path + ZkUtils.zkPathSeparator
-                + fileId + ZkUtils.zkPathSeparator + NodeInfo.INSTANCE.getIdentifier();
-    }
-
-    public synchronized void addNode(int fileId, int nodeId) {
-
-        if (fileIdToNodeSetMap.get(fileId) == null) {
-            addAllNodes(fileId);
-        } else {
-            fileIdToNodeSetMap.get(fileId).add(nodeId);
+        if(dimensionIdxToSignalCount.get(dimensionIdx)==null){
+            dimensionIdxToSignalCount.put(dimensionIdx,nodeList.size()-1);
         }
-        String fileIdToNodeLink = getFileIdToNodeLink(fileId);
-        ZkUtils.createZKNodeIfNotPresent(fileIdToNodeLink, null);
-
+        int count = dimensionIdxToSignalCount.get(dimensionIdx);
+        count--;
+        dimensionIdxToSignalCount.put(dimensionIdx,count);
+       return count;
     }
 
-    public synchronized void removeNode(int fileId, int nodeId) {
-        if (fileIdToNodeSetMap.get(fileId) != null) {
-            fileIdToNodeSetMap.get(fileId).remove(nodeId);
-            if (fileIdToNodeSetMap.get(fileId).isEmpty()) {
-                String fileIdToNodeLink = getFileIdToNodeLink(fileId);
-                ZkUtils.deleteZKNode(fileIdToNodeLink);
+    public synchronized void remove(int fileId){
+        fileToDimensionIdxToSignalCount.remove(fileId);
+        String hhFileIdNodePath = getHHFileIdNodePath(fileId);
+        ZkUtils.deleteZKNode(hhFileIdNodePath);
+        String hhFileIdPath= getHHFileIdPath(fileId);
+        if(ZkUtils.checkIfNodeExists(hhFileIdPath)){
+            List<String> children = ZkUtils.getChildren(hhFileIdPath);
+            if(children==null || children.isEmpty()){
+                ZkUtils.deleteZKNode(hhFileIdPath);
             }
         }
 
     }
 
-    public synchronized void remove(int fileId) {
-        fileIdToNodeSetMap.remove(fileId);
-        fileIdsToTrack.remove(fileId);
-        if(checkFileIdEmptyForAllNodes(fileId)){
-            ZkUtils.deleteZKNode(path+ZkUtils.zkPathSeparator+fileId);
-        }
+    /**
+     * Updates file published successfully
+     *
+     * @param destinationPath
+     */
+    public synchronized void updateFilePublishSuccessful(String destinationPath) {
+        String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+                .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+        String pathForSuccessNode = destinationPathNode +ZkUtils.zkPathSeparator + FileSystemConstants.DATA_READY;
+        String pathForFailureNode = destinationPathNode + ZkUtils.zkPathSeparator+ FileSystemConstants.PUBLISH_FAILED;
+        ZkUtils.deleteZKNode(pathForFailureNode);
+        ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
+    }
+
+    public synchronized void createNodeLink(int fileId){
+        String hhFileIdNodePath = getHHFileIdNodePath(fileId);
+        ZkUtils.createZKNodeIfNotPresent(hhFileIdNodePath,null);
+    }
+
+    private String getHHFileIdNodePath(int fileId) {
+        String hhFileIdPath = getHHFileIdPath(fileId);
+        return hhFileIdPath+ ZkUtils.zkPathSeparator+ NodeInfo.INSTANCE.getIdentifier();
     }
 
 
-    public synchronized void addNodeIfTracked(int fileId, int nodeId) {
-        if (fileIdsToTrack.contains(fileId)) {
-            addNode(fileId, nodeId);
-        }
-    }
-
-    public synchronized boolean checkFileIdEmptyForAllNodes(int fileId) {
-        return ZkUtils.getChildren(path+ZkUtils.zkPathSeparator+fileId).isEmpty();
+    private String getHHFileIdPath(int fileId) {
+        String hhFileIdRootPath = CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig().getFileidHhfsMapPath();
+        return hhFileIdRootPath+ ZkUtils.zkPathSeparator+fileId;
     }
 }

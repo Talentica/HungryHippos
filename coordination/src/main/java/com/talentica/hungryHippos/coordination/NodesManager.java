@@ -456,31 +456,10 @@ public class NodesManager implements Watcher {
                                      // counter and hence lock is released.
         break;
       case NodeChildrenChanged:
-        try {
-          List<String> servers =
-              zk.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()), this);
-          Collections.sort(servers);
-          LOGGER.info("Server modified. Watched servers NOW: {}", servers.toString());
-          Map<String, Set<Server>> diffs = computeDiff(servers);
-          LOGGER.info("Removed Servers: {}", diffs.get(REMOVED));
-          LOGGER.info("Added servers: {}", diffs.get(ADDED));
-          processDiffs(diffs);
-
-        } catch (KeeperException | InterruptedException e) {
-          LOGGER.info("There was an error retrieving the list of " + "servers [{}]",
-              e.getLocalizedMessage(), e);
-        }
+        LOGGER.info("A node children changed: {}", watchedEvent.getPath());
         break;
       case NodeDataChanged:
         LOGGER.info("A node changed: {} {}", watchedEvent.getPath(), watchedEvent.getState());
-        try {
-          Server server = getServerInfo(watchedEvent.getPath());
-          registrationListener.updateServer(server);
-          zk.exists(watchedEvent.getPath(), this);
-        } catch (KeeperException | InterruptedException ex) {
-          LOGGER.info("There was an error while updating the data " + "associated with node {}: {}",
-              watchedEvent.getPath(), ex.getLocalizedMessage());
-        }
         break;
       case NodeDeleted:
         LOGGER.info("A node is deleted: {} ", watchedEvent.getPath());

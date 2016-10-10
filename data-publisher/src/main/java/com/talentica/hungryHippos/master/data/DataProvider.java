@@ -81,11 +81,14 @@ public class DataProvider {
     Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
     
     String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
+    boolean keyOrderOne = keyOrder.length==1;
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
     keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
     Map<Integer,OutputStream> targets = new HashMap<>();
+    int fileId = fileIdToHHPathMap(fileIdToHHpath,destinationPath);
+    byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
     Map<Integer,Socket> sockets = new HashMap<>();
@@ -95,6 +98,10 @@ public class DataProvider {
       sockets.put(nodeId, socket);
       BufferedOutputStream bos = new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
       targets.put(nodeId, bos);
+      if(keyOrderOne){
+        bos.write(fileIdInBytes);
+        bos.flush();
+      }
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -106,8 +113,8 @@ public class DataProvider {
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
     int flushTriggerCount = 0;
-    int fileId = fileIdToHHPathMap(fileIdToHHpath,destinationPath);
-    byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
+
+
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -140,10 +147,12 @@ public class DataProvider {
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
       Iterator<Node> nodeIterator= nodes.iterator();
       Node receivingNode = nodeIterator.next();
-      targets.get(receivingNode.getNodeId()).write(fileIdInBytes);
-      for (int i = 1; i < keyOrder.length; i++) {
-        byte nodeId = (byte) nodeIterator.next().getNodeId();
-        targets.get(receivingNode.getNodeId()).write(nodeId);
+      if(!keyOrderOne){
+        targets.get(receivingNode.getNodeId()).write(fileIdInBytes);
+        for (int i = 1; i < keyOrder.length; i++) {
+          byte nodeId = (byte) nodeIterator.next().getNodeId();
+          targets.get(receivingNode.getNodeId()).write(nodeId);
+        }
       }
       targets.get(receivingNode.getNodeId()).write(buf);
       flushTriggerCount++;
@@ -155,8 +164,11 @@ public class DataProvider {
       }
     }
     fileWriter.close();
+
     for(Integer nodeId : targets.keySet()){
-      sendEndOfFileSignal(fileIdInBytes, buf, keyOrder, targets, nodeId);
+      if(!keyOrderOne){
+        sendEndOfFileSignal(fileIdInBytes, buf, keyOrder, targets, nodeId);
+      }
       targets.get(nodeId).flush();
       targets.get(nodeId).close();
       sockets.get(nodeId).close();

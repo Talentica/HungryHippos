@@ -4,6 +4,8 @@
 package com.talentica.hungryHippos.utility;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -19,6 +21,15 @@ public class JobEntity implements Serializable {
   private static int counter;
   private Job job;
   private String status;
+  private List<JobEntity> childJobEntity = new ArrayList<>();
+
+  public List<JobEntity> getChildJobEntity() {
+    return childJobEntity;
+  }
+
+  public void setChildJobEntity(List<JobEntity> childJobEntity) {
+    this.childJobEntity = childJobEntity;
+  }
 
   public JobEntity(Job job) {
     this();

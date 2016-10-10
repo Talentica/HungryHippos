@@ -36,7 +36,8 @@ public class SortedDataJobRunner implements JobRunner {
   private String inputHHPath;
   private String outputHHPath;
   private DataFileSorter dataFileSorter;
-
+  private DataDescription dataDescription;
+  private ShardingApplicationContext context;
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, String outputHHPath, ShardingApplicationContext context)
       throws IOException {
@@ -45,6 +46,8 @@ public class SortedDataJobRunner implements JobRunner {
     this.dynamicMarshal = new DynamicMarshal(dataDescription);
     this.inputHHPath = inputHHPath;
     this.outputHHPath = outputHHPath;
+    this.dataDescription = dataDescription;
+    this.context = context;
     this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
   }
 
@@ -53,8 +56,8 @@ public class SortedDataJobRunner implements JobRunner {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
-      RowProcessor rowProcessor =
-          new SortedDataRowProcessor(dynamicMarshal, jobEntities, outputHHPath, storeAccess);
+      RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
+          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription,context);
       rowProcessor.process();
       HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
           (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
@@ -72,7 +75,7 @@ public class SortedDataJobRunner implements JobRunner {
       }
     }
   }
-
+  
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
     waitFileUnlock();
@@ -85,9 +88,9 @@ public class SortedDataJobRunner implements JobRunner {
           int jobEntityId = jobEntity.getJobId();
           JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
         }
-        
+
         run(primaryDimensionIndex, jobSCollection.getJobs());
-        
+
         for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
           JobEntity jobEntity = jobSCollection.jobAt(i);
           int jobEntityId = jobEntity.getJobId();

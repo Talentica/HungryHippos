@@ -431,9 +431,9 @@ public class DataFileSorter {
     }
   }
 
-  private int[] orderDimensions(int startPos) {
+  private int[] orderDimensions(int primaryDimension) {
     for (int i = 0; i < shardDims.length; i++) {
-      sortDims[i] = shardDims[(i + startPos) % shardDims.length];
+      sortDims[i] = shardDims[(i + primaryDimension) % shardDims.length];
     }
     return sortDims;
   }

@@ -111,4 +111,8 @@ public class DataFileAccess implements Iterable<DataFileAccess> {
       return !(DataFileSorter.DATA_FILE_SORTED.equalsIgnoreCase(name));
     }
   };
+  
+  public DataInputStream getDataFileInputStream(){
+    return dataInputStream;
+  }
 }

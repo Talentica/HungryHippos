@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
 
@@ -41,8 +42,8 @@ public class SortedDataRowProcessor implements RowProcessor {
   private DynamicMarshal dynamicMarshal;
   private ExecutionContextImpl executionContext;
   private List<JobEntity> jobEntities;
-  private Map<Integer, TreeMap<ValueSet, Work>> jobToValuesetWorkMap =
-      new TreeMap<Integer, TreeMap<ValueSet, Work>>();
+  private Map<ValueSet, TreeMap<ValueSet, Work>> jobToValuesetWorkMap =
+      new TreeMap<ValueSet, TreeMap<ValueSet, Work>>();
   private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
   private int totalNoOfRowsProcessed = 0;
   private StoreAccess storeAccess;
@@ -57,7 +58,7 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   public SortedDataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities,
       String outputHHPath, StoreAccess storeAccess, int primaryDimension,
-      DataDescription dataDescription,ShardingApplicationContext context) throws IOException {
+      DataDescription dataDescription, ShardingApplicationContext context) throws IOException {
     this.jobEntities = jobEntities;
     this.dynamicMarshal = dynamicMarshal;
     this.storeAccess = storeAccess;
@@ -94,18 +95,25 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void processRow(ByteBuffer row) {
     for (JobEntity jobEntity : jobEntities) {
       ValueSet valueSet = new ValueSet(jobEntity.getJob().getDimensions());
+      ValueSet flagValueSet = new ValueSet(jobEntity.getDimensionsFlush());
       for (int i = 0; i < jobEntity.getJob().getDimensions().length; i++) {
         Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
         valueSet.setValue(value, i);
       }
-      Work reducer = prepareReducersBatch(valueSet, jobEntity);
+
+      for (int i = 0; i < jobEntity.getDimensionsFlush().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsFlush()[i], row);
+        flagValueSet.setValue(value, i);
+      }
+
+      Work reducer = prepareReducersBatch(valueSet, flagValueSet, jobEntity);
       processReducers(reducer, row);
     }
   }
 
-  private Work prepareReducersBatch(ValueSet valueSet, JobEntity jobEntity) {
+  private Work prepareReducersBatch(ValueSet valueSet, ValueSet flagValueSet, JobEntity jobEntity) {
     Work reducer = null;
-    reducer = addReducer(valueSet, jobEntity);
+    reducer = addReducer(valueSet, flagValueSet, jobEntity);
     logProgress();
     return reducer;
   }
@@ -133,34 +141,29 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
-  private Work addReducer(ValueSet valueSet, JobEntity jobEntity) {
-    TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity.getJobId());
+  private Work addReducer(ValueSet valueSet, ValueSet flagValueSet, JobEntity jobEntity) {
+    TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(flagValueSet);
     if (valuesetToWorkTreeMap == null) {
-      valuesetToWorkTreeMap = new TreeMap<>();
-      jobToValuesetWorkMap.put(jobEntity.getJobId(), valuesetToWorkTreeMap);
+      TreeMap<ValueSet, Work> actualValuesetToWorkTreeMap = jobToValuesetWorkMap.get(valueSet);
+      finishUp(actualValuesetToWorkTreeMap);
+      actualValuesetToWorkTreeMap.clear();
+      jobToValuesetWorkMap.put(flagValueSet, actualValuesetToWorkTreeMap);
     }
-    Work work = valuesetToWorkTreeMap.get(valueSet);
+    TreeMap<ValueSet, Work> newValueSetToTreeMap = jobToValuesetWorkMap.get(flagValueSet);
+    Work work = newValueSetToTreeMap.get(valueSet);
     if (work == null) {
-      if (!valuesetToWorkTreeMap.isEmpty()) {
-        ValueSet existingValueSet = valuesetToWorkTreeMap.firstKey();
-        work = valuesetToWorkTreeMap.get(existingValueSet);
-        finishUp(existingValueSet, work); // Finish up
-                                                                                 // existing value
-                                                                                 // set.
-        valuesetToWorkTreeMap.remove(existingValueSet);
-        work.reset();
-      }else{
-      work = jobEntity.getJob().createNewWork();   // on start of job execution
-      }
-      valuesetToWorkTreeMap.put(valueSet, work); // put new value set
+      work = jobEntity.getJob().createNewWork();
+      newValueSetToTreeMap.put(valueSet, work); // put new value set
     }
     return work;
   }
-  
 
-  private void finishUp(ValueSet valueSet, Work work) {
-    executionContext.setKeys(valueSet);
-    work.calculate(executionContext);
+
+  private void finishUp(TreeMap<ValueSet, Work> valuesetToWorkTreeMap) {
+    for (Entry<ValueSet, Work> e : valuesetToWorkTreeMap.entrySet()) {
+      executionContext.setKeys(e.getKey());
+      e.getValue().calculate(executionContext);
+    }
   }
 
   private void buildDataFileAccess() throws IOException {
@@ -172,6 +175,20 @@ public class SortedDataRowProcessor implements RowProcessor {
           pq.add(bfb);
         }
       }
+    }
+  }
+
+  private void prepareJobsFlushFlag() {
+    for (JobEntity jobEntity : jobEntities) {
+      List<Integer> dimns = new ArrayList<>();
+      for (int jobDim = 0; jobDim < jobEntity.getJob().getDimensions().length; jobDim++) {
+        for (int index = 0; index < context.getShardingIndexes().length; index++) {
+          if (jobEntity.getJob().getDimensions()[jobDim] == context.getShardingIndexes()[index]) {
+            dimns.add(jobEntity.getJob().getDimensions()[jobDim]);
+          }
+        }
+      }
+      jobEntity.setDimensionsFlush(dimns.stream().mapToInt(i -> i).toArray());
     }
   }
 
@@ -197,7 +214,7 @@ public class SortedDataRowProcessor implements RowProcessor {
         }
       });
 
-  
+
   private int[] orderDimensions(int primaryDimension) {
     int[] sortDims = new int[shardDims.length];
     for (int i = 0; i < shardDims.length; i++) {

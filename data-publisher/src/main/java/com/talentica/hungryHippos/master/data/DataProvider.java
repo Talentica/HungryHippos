@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
@@ -173,12 +174,29 @@ public class DataProvider {
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
     }
-    //ZkUtils.deleteZKNode(fileIdToHHpath + fileId);
+    if(keyOrderOne){
+      ZkUtils.deleteZKNode(fileIdToHHpath + fileId);
+      updateFilePublishSuccessful(destinationPath);
+    }
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));
     LOGGER.info("Time taken in encoding: " + (timeForEncoding));
     LOGGER.info("Time taken in lookup: " + (timeForLookup));
 
+  }
+
+  /**
+   * Updates file published successfully
+   *
+   * @param destinationPath
+   */
+  public static void updateFilePublishSuccessful(String destinationPath) {
+    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+            .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String pathForSuccessNode = destinationPathNode +ZkUtils.zkPathSeparator + FileSystemConstants.DATA_READY;
+    String pathForFailureNode = destinationPathNode + ZkUtils.zkPathSeparator+ FileSystemConstants.PUBLISH_FAILED;
+    ZkUtils.deleteZKNode(pathForFailureNode);
+    ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
   }
 
   private static void sendEndOfFileSignal(byte[] fileIdInBytes, byte[] buf, String[] keyOrder, Map<Integer, OutputStream> targets, Integer nodeId) throws IOException {

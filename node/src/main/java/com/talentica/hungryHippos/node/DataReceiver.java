@@ -29,11 +29,9 @@ public class DataReceiver {
   public static final String DATA_HANDLER = "DATA_HANDLER";
 
   private int port;
-  private String nodeId;
 
-  public DataReceiver(int port, String nodeId) {
+  public DataReceiver(int port) {
     this.port = port;
-    this.nodeId = nodeId;
   }
 
   /**
@@ -44,7 +42,7 @@ public class DataReceiver {
   private void startServer() {
     LOGGER.info("Start the node");
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
-    int maxNoOfRequestThreads = noOfNodes*DataPublisherApplicationContext.getNoOfDataReceiverThreads();
+    int maxNoOfRequestThreads = noOfNodes+DataPublisherApplicationContext.getNoOfDataReceiverThreads();
     EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {
       ServerBootstrap b = new ServerBootstrap();
@@ -74,11 +72,10 @@ public class DataReceiver {
   public static void main(String[] args) {
     try {
       validateArguments(args);
-      NodesManager manager = NodesManagerContext.getNodesManagerInstance(args[0]);
+      NodesManagerContext.getNodesManagerInstance(args[0]);
       LOGGER.info("Start Node initialize");
       int nodePort = NodeInfo.INSTANCE.getPort();
-      String nodeId = NodeInfo.INSTANCE.getId();
-      DataReceiver dataReceiver = new DataReceiver(nodePort, nodeId);
+      DataReceiver dataReceiver = new DataReceiver(nodePort);
       dataReceiver.startServer();
     } catch (Exception e) {
       e.printStackTrace();

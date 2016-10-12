@@ -3,5 +3,5 @@
   <tns:no-of-attempts-to-connect-to-node>50</tns:no-of-attempts-to-connect-to-node>
   <tns:servers-connect-retry-interval-in-ms>2000</tns:servers-connect-retry-interval-in-ms>
   <tns:no-of-data-receiver-threads>9</tns:no-of-data-receiver-threads>
-  <tns:max-record-buffer-size>10000</tns:max-record-buffer-size>
+  <tns:no-of-bytes-in-each-memory-array>2097152</tns:no-of-bytes-in-each-memory-array>
 </tns:datapublisher-config>

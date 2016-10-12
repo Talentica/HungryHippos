@@ -54,11 +54,11 @@ public class DataPublisherApplicationContext {
     }
     return datapublisherConfig.getNoOfDataReceiverThreads();
   }
-  
-  public static int getMaxRecordBufferSize(){
+
+  public static int getNoOfBytesInEachMemoryArray(){
     if(datapublisherConfig == null){
       datapublisherConfig = getDataPublisherConfig();
     }
-    return datapublisherConfig.getMaxRecordBufferSize();
+    return datapublisherConfig.getNoOfBytesInEachMemoryArray();
   }
 }

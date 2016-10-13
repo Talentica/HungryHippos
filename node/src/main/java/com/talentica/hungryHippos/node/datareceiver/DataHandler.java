@@ -118,22 +118,19 @@ public class DataHandler extends ChannelHandlerAdapter {
         int replicaNodesInfoDataSize = requestHandlingTool.getReplicaNodesInfoDataSize();
         fileIdInBytes = requestHandlingTool.getFileIdInBytes();
         int dataSize = requestHandlingTool.getRecordSize() + FILE_ID_BYTE_SIZE;
-
-
+        boolean writeDataFile = true;
         for (int i = 0; i < replicaNodesInfoDataSize; i++) {
-
             if (nextNodesInfo[i] != (byte) -1) {
                 if (nextNodesInfo[i] != NodeInfo.INSTANCE.getIdentifier()) {
                     receiverNodeId = (int) nextNodesInfo[i];
                     writeDataForNextNode(nextNodesInfo, dataForFileWrite, replicaNodesInfoDataSize, dataSize, i);
-                    requestHandlingTool.storeData();
                 } else {
+                    writeDataFile = false;
                     if (nodeIdClient == NodeInfo.INSTANCE.getIdentifier()) {
                         for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
                             this.receiverNodeId = nodeId;
                             writeEndOfDataSignal(nextNodesInfo, dataForFileWrite, replicaNodesInfoDataSize, dataSize);
                         }
-                        EndOfDataTracker.INSTANCE.createNodeLink(fileId);
                     } else {
                         int signalCountDown = EndOfDataTracker.INSTANCE.getCountDown(fileId, i);
                         LOGGER.info("NodeIdClient {} Current count for FileId {} for dimension Index {} is :{}", nodeIdClient, fileId, i, signalCountDown);
@@ -153,10 +150,14 @@ public class DataHandler extends ChannelHandlerAdapter {
                             }
                         }
                     }
-
                 }
+
                 break;
             }
+
+        }
+        if(writeDataFile){
+            requestHandlingTool.storeData();
         }
 
     }

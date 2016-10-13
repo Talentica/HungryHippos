@@ -102,6 +102,8 @@ public class DataProvider {
       if(keyOrderOne){
         bos.write(fileIdInBytes);
         bos.flush();
+      }else{
+        createNodeLink(fileIdToHHpath+fileId,nodeId);
       }
     }
 
@@ -206,6 +208,10 @@ public class DataProvider {
       targets.get(nodeId).write(nodeIdByte);
     }
     targets.get(nodeId).write(buf);
+  }
+
+  public static void createNodeLink(String fileIdToHHpath,int nodeId){
+    ZkUtils.createZKNodeIfNotPresent(fileIdToHHpath+ZkUtils.zkPathSeparator+nodeId,null);
   }
 
   private static void init() throws FileNotFoundException, JAXBException {

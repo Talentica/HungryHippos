@@ -15,8 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class is for retrieving the sharded files from the HungryHippos Distributed File System
@@ -55,23 +54,63 @@ public class DataRetrieverClient {
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     List<String> nodeIds = ZkUtils.getChildren(fileNodeZKDFSPath);
+    Set<String> nodeIdSet = new HashSet<>();
+    nodeIdSet.addAll(nodeIds);
     boolean isSharded = ZkUtils.checkIfNodeExists(fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);
     HungryHipposFileSystem.validateFileDataReady(hungryHippoFilePath);
     FileSystemUtils.createDirectory(outputDirName);
-    for (String nodeId : nodeIds) {
+    int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
+    for (String nodeId : nodeIdSet) {
+      long dataFileSize = 0;
       String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
       String nodeIp = getNodeIp(nodeId);
-      List<String> dataBlockNodes = ZkUtils.getChildren(nodeIdZKPath);
       if (isSharded) {
-        downloadShardedFile(dataBlockNodes, dimension, nodeIdZKPath,
-            hungryHippoFilePath, outputDirName, nodeIp, tmpDestFileNames);
+        downloadShardedFile(hungryHippoFilePath, outputDirName, tmpDestFileNames, nodeIdSet, dimensionOperand, nodeId, dataFileSize, nodeIdZKPath, nodeIp);
       } else {
-        downloadUnShardedFile(nodeIdZKPath, hungryHippoFilePath, outputDirName,
+        downloadUnShardedFile(nodeIdZKPath,Integer.parseInt(nodeId), hungryHippoFilePath, outputDirName,
             nodeIp, tmpDestFileNames);
       }
     }
     combineFiles(tmpDestFileNames,hungryHippoFilePath,outputDirName);
+  }
+
+  /**
+   * Downloads a sharded files from a node
+   *
+   * @param hungryHippoFilePath
+   * @param outputDirName
+   * @param tmpDestFileNames
+   * @param nodeIdSet
+   * @param dimensionOperand
+   * @param nodeId
+   * @param dataFileSize
+   * @param nodeIdZKPath
+   * @param nodeIp
+   * @throws InterruptedException
+   * @throws ClassNotFoundException
+   * @throws JAXBException
+     * @throws KeeperException
+     * @throws IOException
+     */
+  private static void downloadShardedFile(String hungryHippoFilePath, String outputDirName, List<String> tmpDestFileNames, Set<String> nodeIdSet,
+                                          int dimensionOperand, String nodeId, long dataFileSize, String nodeIdZKPath, String nodeIp) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+    List<String> dataFolderList = ZkUtils.getChildren(nodeIdZKPath);
+    for(String dataFolder:dataFolderList){
+      String dataFolderZKPath = nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFolder;
+      int dataFolderIntVal = Integer.parseInt(dataFolder);
+      if ((dataFolderIntVal & dimensionOperand) == dimensionOperand) {
+        for (String dataFile : nodeIdSet) {
+          String dataFileZKPath = dataFolderZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataFile;
+          String dataFileSizeStr = (String) ZkUtils.getNodeData(dataFileZKPath);
+          dataFileSize += Long.parseLong(dataFileSizeStr);
+        }
+      }
+    }
+    String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
+            + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
+    retrieveDataBlocks(nodeIp,Integer.parseInt(nodeId), hungryHippoFilePath, tmpDestFileName, dataFileSize , dimensionOperand);
+    tmpDestFileNames.add(tmpDestFileName);
   }
 
   /**
@@ -98,54 +137,10 @@ public class DataRetrieverClient {
 
 
   /**
-   * Downloads a sharded files from a node
-   *
-   * @param dataBlockNodes
-   * @param dimension
-   * @param nodeIdZKPath
-   * @param hungryHippoFilePath
-   * @param outputDirName
-   * @param nodeIp
-   * @param tmpDestFileNames
-   * @throws InterruptedException
-   * @throws ClassNotFoundException
-   * @throws IOException
-   * @throws KeeperException
-   * @throws JAXBException
-   */
-  public static void downloadShardedFile(List<String> dataBlockNodes, int dimension,
-                                         String nodeIdZKPath, String hungryHippoFilePath,
-                                         String outputDirName, String nodeIp, List<String> tmpDestFileNames)
-          throws InterruptedException, ClassNotFoundException, IOException, KeeperException,
-          JAXBException {
-    int seq = 0;
-    for (String dataBlockNode : dataBlockNodes) {
-      int dataBlockIntVal = Integer.parseInt(dataBlockNode);
-      int dimensionOperand = FileSystemUtils.getDimensionOperand(dimension);
-      if ((dataBlockIntVal & dimensionOperand) == dimensionOperand) {
-        String dataBlockZKPath =
-                nodeIdZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + dataBlockNode;
-        String dataBlockSizeStr = (String) ZkUtils.getNodeData(dataBlockZKPath);
-        long dataSize = Long.parseLong(dataBlockSizeStr);
-        if(dataSize==0){
-          continue;
-        }
-        String filePath = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-                + FileSystemContext.getDataFilePrefix() + dataBlockIntVal;
-        String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
-                + FileSystemConstants.DOWNLOAD_FILE_PREFIX
-                + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-") + seq;
-        retrieveDataBlocks(nodeIp, filePath, tmpDestFileName, dataSize);
-        tmpDestFileNames.add(tmpDestFileName);
-        seq++;
-      }
-    }
-  }
-
-  /**
    * Downloads an Unsharded file from a node
    *
    * @param nodeIdZKPath
+   * @param nodeId
    * @param hungryHippoFilePath
    * @param outputDirName
    * @param nodeIp
@@ -154,9 +149,9 @@ public class DataRetrieverClient {
    * @throws ClassNotFoundException
    * @throws IOException
    * @throws KeeperException
-   * @throws JAXBException
-   */
-  public static void downloadUnShardedFile(String nodeIdZKPath, String hungryHippoFilePath, String outputDirName, String nodeIp,
+     * @throws JAXBException
+     */
+  public static void downloadUnShardedFile(String nodeIdZKPath, int nodeId, String hungryHippoFilePath, String outputDirName, String nodeIp,
                                            List<String> tmpDestFileNames) throws InterruptedException, ClassNotFoundException,
           IOException, KeeperException, JAXBException {
     String dataBlockSizeStr = (String) ZkUtils.getNodeData(nodeIdZKPath);
@@ -164,7 +159,7 @@ public class DataRetrieverClient {
     String tmpDestFileName = outputDirName + FileSystemConstants.ZK_PATH_SEPARATOR + nodeIp
             + FileSystemConstants.DOWNLOAD_FILE_PREFIX
             + hungryHippoFilePath.replaceAll(FileSystemConstants.ZK_PATH_SEPARATOR, "-");
-    retrieveDataBlocks(nodeIp, hungryHippoFilePath, tmpDestFileName, dataSize);
+    retrieveDataBlocks(nodeIp, nodeId, hungryHippoFilePath, tmpDestFileName, dataSize,-1);
     tmpDestFileNames.add(tmpDestFileName);
   }
 
@@ -189,19 +184,26 @@ public class DataRetrieverClient {
    * This method forwards the request with configuration for retrieving data
    *
    * @param nodeIp
+   * @param nodeId
    * @param hungryHippoFilePath
    * @param outputFile
    * @param dataSize
-   */
-  public static void retrieveDataBlocks(String nodeIp, String hungryHippoFilePath,
-                                        String outputFile, long dataSize) throws InterruptedException, ClassNotFoundException,
+   * @param dimensionOperand
+   * @throws InterruptedException
+   * @throws ClassNotFoundException
+   * @throws JAXBException
+   * @throws KeeperException
+     * @throws IOException
+     */
+  public static void retrieveDataBlocks(String nodeIp, int nodeId, String hungryHippoFilePath,
+                                        String outputFile, long dataSize, int dimensionOperand) throws InterruptedException, ClassNotFoundException,
           JAXBException, KeeperException, IOException {
 
     int port = FileSystemContext.getServerPort();
     int noOfAttempts = FileSystemContext.getMaxQueryAttempts();
     int fileStreamBufferSize = FileSystemContext.getFileStreamBufferSize();
     long retryTimeInterval = FileSystemContext.getQueryRetryInterval();
-    retrieveDataBlocks(nodeIp, hungryHippoFilePath, outputFile, fileStreamBufferSize, dataSize,
+    retrieveDataBlocks(nodeIp, nodeId, hungryHippoFilePath, outputFile, fileStreamBufferSize, dataSize, dimensionOperand,
             port, retryTimeInterval, noOfAttempts);
   }
 
@@ -209,15 +211,18 @@ public class DataRetrieverClient {
    * This method is for requesting the DataRequestHandlerServer for the files
    *
    * @param nodeIp
+   * @param nodeId
    * @param hungryHippoFilePath
    * @param outputFile
+   * @param fileStreamBufferSize
    * @param dataSize
+   * @param dimensionOperand
    * @param port
    * @param retryTimeInterval
    * @param maxQueryAttempts
    */
-  public static void retrieveDataBlocks(String nodeIp, String hungryHippoFilePath,
-      String outputFile, int fileStreamBufferSize, long dataSize, int port, long retryTimeInterval,
+  public static void retrieveDataBlocks(String nodeIp, int nodeId, String hungryHippoFilePath,
+      String outputFile, int fileStreamBufferSize, long dataSize,int dimensionOperand, int port, long retryTimeInterval,
       int maxQueryAttempts) {
 
     if (dataSize == (new File(outputFile)).length()) {
@@ -236,6 +241,8 @@ public class DataRetrieverClient {
         if (FileSystemConstants.DATA_SERVER_AVAILABLE.equals(processStatus)) {
           LOGGER.info("{} Recieving data into {}", processStatus, outputFile);
           dos.writeUTF(hungryHippoFilePath);
+          dos.writeInt(dimensionOperand);
+          dos.writeInt(nodeId);
           dos.writeLong(raf.length());
           raf.seek(raf.length());
           int len;
@@ -262,6 +269,7 @@ public class DataRetrieverClient {
         }
       } catch (IOException e) {
         LOGGER.error(e.toString());
+        e.printStackTrace();
       } catch (InterruptedException e) {
         LOGGER.error(e.toString());
       }

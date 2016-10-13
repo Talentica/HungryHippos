@@ -69,11 +69,6 @@ public enum EndOfDataTracker {
         ZkUtils.createZKNodeIfNotPresent(pathForSuccessNode, "");
     }
 
-    public synchronized void createNodeLink(int fileId){
-        String hhFileIdNodePath = getHHFileIdNodePath(fileId);
-        ZkUtils.createZKNodeIfNotPresent(hhFileIdNodePath,null);
-    }
-
     private String getHHFileIdNodePath(int fileId) {
         String hhFileIdPath = getHHFileIdPath(fileId);
         return hhFileIdPath+ ZkUtils.zkPathSeparator+ NodeInfo.INSTANCE.getIdentifier();

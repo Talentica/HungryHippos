@@ -125,7 +125,7 @@ public class JobExecutor {
     boolean isSorting = context.getShardingClientConfig().isDataFileSorting();
     if (isSorting) {
       return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
-          inputFilePath, context);
+          inputFilePath,outputHHPath, context);
     } else {
       return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
           outputHHPath);

@@ -20,6 +20,9 @@ public class JobEntity implements Serializable {
   private Job job;
   private String status;
 
+  private int[] dimensionsPointer;
+  
+  
   public JobEntity(Job job) {
     this();
     this.job = job;
@@ -72,5 +75,15 @@ public class JobEntity implements Serializable {
   public String toString() {
     return ToStringBuilder.reflectionToString(this);
   }
+
+  public int[] getDimensionsPointer() {
+    return dimensionsPointer;
+  }
+
+  public void setDimensionsPointer(int[] dimensionsPointer) {
+    this.dimensionsPointer = dimensionsPointer;
+  }
+  
+  
 
 }

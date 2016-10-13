@@ -52,7 +52,7 @@ public class DataFileSorterTest {
     File file = new File("");
     testFilePath = file.getAbsolutePath() + resource + testFile;
     inputDataDir = file.getAbsolutePath() + resource + File.separatorChar + "shardedDir";
-    shardingConfDir = file.getAbsolutePath() + resource;
+    shardingConfDir = "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution";
     sorter = new DataFileSorter(inputDataDir, new ShardingApplicationContext(shardingConfDir));
   }
 
@@ -94,8 +94,8 @@ public class DataFileSorterTest {
   @Test
   public void testDoSortingJobWise() throws IOException {
 
-    expect(0).andReturn(1).times(1);
-    replay(job);
+    /*expect(0).andReturn(1).times(1);
+    replay(job);*/
 
     long beforeSortSize = Files.size(Paths.get(testFilePath));
 

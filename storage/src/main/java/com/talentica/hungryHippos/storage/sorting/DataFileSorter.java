@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import com.talentica.hungryHippos.storage.DataFileAccess;
 
 
 /**
@@ -38,7 +38,7 @@ public class DataFileSorter {
   public static final int DEFAULTMAXTEMPFILES = 1024;
   public static final Logger LOGGER = LoggerFactory.getLogger(DataFileSorter.class);
   private static final String INPUT_DATAFILE_PRIFIX = "data_";
-  private static final String DATA_FILE_SORTED = "prim-dim-sorted";
+  public static final String DATA_FILE_SORTED = "primdim.sorted";
   private final static String LOCK_FILE = "lock";
   private FieldTypeArrayDataDescription dataDescription;
   private DataFileHeapSort dataFileHeapSort;
@@ -76,11 +76,9 @@ public class DataFileSorter {
       ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
     int keyIdBit = 1 << primaryDimensionIndex;
     File inputDir;
-    List<String> filesPresentinFolder = new ArrayList<>();
     for (int fileId = 0; fileId < numFiles; fileId++) {
       if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        String absoluteDataFilePath = FileSystemContext.getRootDirectory() + dataDir
-            + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
+        String absoluteDataFilePath = dataDir + File.separator + INPUT_DATAFILE_PRIFIX + fileId;
         inputDir = new File(absoluteDataFilePath);
         File sortedFileFlag =
             new File(absoluteDataFilePath + File.separatorChar + DATA_FILE_SORTED);
@@ -89,47 +87,21 @@ public class DataFileSorter {
           continue;
         }
         if (inputDir.isDirectory()) {
-          Files.walk(Paths.get(inputDir.getAbsolutePath())).forEach(filePath -> {
-            if (Files.isRegularFile(filePath)) {
-              filesPresentinFolder.add(filePath.toString());
+          for (File inputFile : inputDir.listFiles(DataFileAccess.fileNameFilter)) {
+            long dataSize = inputFile.length();
+            if (dataSize <= 0) {
+              continue;
             }
-          });
-        }
-        for (String file : filesPresentinFolder) {
-          File inputFile = new File(file);
-          long dataSize = inputFile.length();
-          if (dataSize <= 0) {
-            continue;
+            doSorting(inputFile, primaryDimensionIndex);
           }
-          doSorting(inputDir, primaryDimensionIndex);
+        }else{
+          continue;
         }
         setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
-        filesPresentinFolder.clear();
       }
     }
   }
 
-  private void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
-    FileOutputStream fos = new FileOutputStream(primDimFile, false);
-    fos.write(primDim);
-    fos.flush();
-    fos.close();
-  }
-
-  @SuppressWarnings("resource")
-  private boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
-    if (!primDimFile.exists()) {
-      primDimFile.createNewFile();
-    }
-    FileInputStream fis = new FileInputStream(primDimFile);
-    if (primDimFile.exists()) {
-      if ((int) fis.read() == primDim) {
-        return true;
-      }
-    }
-    fis.close();
-    return false;
-  }
 
   /**
    * To do the sorting once the data is ready.
@@ -173,7 +145,7 @@ public class DataFileSorter {
     unlockFile(lockFile);
   }
 
-  private void createLockFile(File lockFile) throws IOException {
+  private synchronized void  createLockFile(File lockFile) throws IOException {
     if (lockFile.exists()) {
       lockFile.delete();
     }
@@ -459,10 +431,34 @@ public class DataFileSorter {
     }
   }
 
-  private int[] orderDimensions(int startPos) {
+  private int[] orderDimensions(int primaryDimension) {
     for (int i = 0; i < shardDims.length; i++) {
-      sortDims[i] = shardDims[(i + startPos) % shardDims.length];
+      sortDims[i] = shardDims[(i + primaryDimension) % shardDims.length];
     }
     return sortDims;
   }
+
+
+  private synchronized void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
+    FileOutputStream fos = new FileOutputStream(primDimFile, false);
+    fos.write(primDim);
+    fos.flush();
+    fos.close();
+  }
+
+  @SuppressWarnings("resource")
+  private synchronized boolean isFileSortedOnPrimDim(File primDimFile, int primDim) throws IOException {
+    if (!primDimFile.exists()) {
+      primDimFile.createNewFile();
+    }
+    FileInputStream fis = new FileInputStream(primDimFile);
+    if (primDimFile.exists()) {
+      if ((int) fis.read() == primDim) {
+        return true;
+      }
+    }
+    fis.close();
+    return false;
+  }
 }
+

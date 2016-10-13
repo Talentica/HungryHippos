@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.common.DataRowProcessor;
+import com.talentica.hungryHippos.common.SortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -33,34 +34,40 @@ public class SortedDataJobRunner implements JobRunner {
   private int nodeId;
   private DynamicMarshal dynamicMarshal;
   private String inputHHPath;
+  private String outputHHPath;
   private DataFileSorter dataFileSorter;
-
+  private DataDescription dataDescription;
+  private ShardingApplicationContext context;
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
-      String inputHHPath, ShardingApplicationContext context) throws IOException {
+      String inputHHPath, String outputHHPath, ShardingApplicationContext context)
+      throws IOException {
     this.dataStore = dataStore;
     this.nodeId = Integer.parseInt(nodeId);
     this.dynamicMarshal = new DynamicMarshal(dataDescription);
     this.inputHHPath = inputHHPath;
+    this.outputHHPath = outputHHPath;
+    this.dataDescription = dataDescription;
+    this.context = context;
     this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
   }
 
-  public void run(int primaryDimensionIndex, JobEntity jobEntity) {
+  public void run(int primaryDimensionIndex, List<JobEntity> jobEntities) {
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
-      RowProcessor rowProcessor =
-          new DataRowProcessor(dynamicMarshal, jobEntity, inputHHPath, storeAccess);
+      RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
+          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription,context);
       rowProcessor.process();
-      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(inputHHPath, nodeId,
-          (new File(FileSystemContext.getRootDirectory() + inputHHPath)).length());
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
+          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
     }
   }
 
-  private void waitFileUnlock() {
+  private synchronized void waitFileUnlock() {
     File lockFile = new File(this.inputHHPath + File.separatorChar + LOCK_FILE);
     while (true) {
       if (!lockFile.exists()) {
@@ -68,7 +75,7 @@ public class SortedDataJobRunner implements JobRunner {
       }
     }
   }
-
+  
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
     waitFileUnlock();
@@ -80,13 +87,20 @@ public class SortedDataJobRunner implements JobRunner {
           JobEntity jobEntity = jobSCollection.jobAt(i);
           int jobEntityId = jobEntity.getJobId();
           JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
-          run(primaryDimensionIndex, jobEntity);
+        }
+
+        run(primaryDimensionIndex, jobSCollection.getJobs());
+
+        for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
+          JobEntity jobEntity = jobSCollection.jobAt(i);
+          int jobEntityId = jobEntity.getJobId();
           JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
         }
       }
     } catch (IOException | ClassNotFoundException | KeeperException | InterruptedException
         | JAXBException e) {
-      LOGGER.error(e.toString());
+      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 }

@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.common;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -48,10 +49,9 @@ public class SortedDataRowProcessor implements RowProcessor {
   private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
   private int totalNoOfRowsProcessed = 0;
   private StoreAccess storeAccess;
-  private int primaryDimension;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
-  private int[] shardDims;
+  private int[] sharDim;
   private Map<Integer, ValueSet> currentValueSetPointerJobMap;
   private Map<Integer, ValueSet> lastValueSetPointerJobMap;
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
@@ -65,32 +65,24 @@ public class SortedDataRowProcessor implements RowProcessor {
     this.jobEntities = jobEntities;
     this.dynamicMarshal = dynamicMarshal;
     this.storeAccess = storeAccess;
-    this.primaryDimension = primaryDimension;
     this.executionContext = new ExecutionContextImpl(dynamicMarshal, outputHHPath);
     this.dataDescription = dataDescription;
     this.context = context;
-    this.shardDims = context.getShardingIndexes();
+    this.sharDim = new int[context.getShardingIndexes().length];
+    this.orderDimensions(primaryDimension);
     this.buildDataFileAccess();
     this.currentValueSetPointerJobMap = new HashMap<Integer, ValueSet>();
     this.lastValueSetPointerJobMap = new HashMap<Integer, ValueSet>();
-    this.shardDims = orderDimensions(primaryDimension);
     this.prepareJobsFlushFlag();
   }
 
 
   @Override
   public void process() {
-    ByteBuffer row;
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
-        row = bfb.pop();
-        processRow(row);
-        if (bfb.empty()) {
-          bfb.getReader().close();
-        } else {
-          pq.add(bfb);
-        }
+        run(bfb);
       }
       flushRemaining();
     } catch (IOException e) {
@@ -100,12 +92,26 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
 
+  private void run(BinaryFileBuffer bfb) throws IOException {
+    ByteBuffer row;
+    row = bfb.pop();
+    processRow(row);
+    if (bfb.empty()) {
+      bfb.getReader().close();
+    } else {
+      pq.add(bfb);
+    }
+  }
+
+
   private void flushRemaining() {
     for (JobEntity jobEntity : jobEntities) {
       TreeMap<ValueSet, Work> valuesetToWorkTreeMap =
           jobToValuesetWorkMap.get(jobEntity.getJobId());
+      LOGGER.info("Flusing for job id {}", jobEntity.getJobId());
       if (!valuesetToWorkTreeMap.isEmpty()) {
         finishUp(valuesetToWorkTreeMap);
+        valuesetToWorkTreeMap.clear();
       }
     }
   }
@@ -122,7 +128,7 @@ public class SortedDataRowProcessor implements RowProcessor {
 
 
   private boolean prepareValueSet(ByteBuffer row, JobEntity jobEntity, ValueSet valueSet,
-      ValueSet valueSetPointer) {
+      ValueSet currentValueSetPointer) {
     boolean isFlushable = false;
     for (int i = 0; i < jobEntity.getJob().getDimensions().length; i++) {
       Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
@@ -136,10 +142,11 @@ public class SortedDataRowProcessor implements RowProcessor {
       }
       lastValueSetPointerJobMap.put(jobEntity.getJobId(), vsIdentifier);
     } else {
-      ValueSet vs = lastValueSetPointerJobMap.get(jobEntity.getJobId());
-      if (vs.compareTo(valueSetPointer) != 0) {
+      ValueSet lastValueSetPointer = lastValueSetPointerJobMap.get(jobEntity.getJobId());
+      if (lastValueSetPointer.compareTo(currentValueSetPointer) != 0) {
         isFlushable = true;
-        lastValueSetPointerJobMap.put(jobEntity.getJobId(), valueSetPointer.copy(vs));
+        lastValueSetPointerJobMap.put(jobEntity.getJobId(),
+            currentValueSetPointer.copy(lastValueSetPointer));
       }
     }
     return isFlushable;
@@ -170,16 +177,21 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void logProgress() {
     totalNoOfRowsProcessed++;
     if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
-      LOGGER.info(
-          "*********  Processing in progress. {} no. of rows processed... and current batch size {} *********",
-          new Object[] {totalNoOfRowsProcessed, jobToValuesetWorkMap.size()});
+      /*
+       * LOGGER.info(
+       * "*********  Processing in progress. {} no. of rows processed... and current batch size {} *********"
+       * , new Object[] {totalNoOfRowsProcessed, jobToValuesetWorkMap.size()}); LOGGER.info(
+       * "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}."
+       * , new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
+       * MemoryStatus.getUsedMemory(), MemoryStatus.getTotalmemory(), MemoryStatus.getFreeMemory(),
+       * MemoryStatus.getMaxMemory()}); LOGGER.info("Size of batch(jobToValuesetWorkMap) is: {}",
+       * new Object[] {jobToValuesetWorkMap.size()});
+       */
       LOGGER.info(
           "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
           new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
               MemoryStatus.getUsedMemory(), MemoryStatus.getTotalmemory(),
               MemoryStatus.getFreeMemory(), MemoryStatus.getMaxMemory()});
-      LOGGER.info("Size of batch(jobToValuesetWorkMap) is: {}",
-          new Object[] {jobToValuesetWorkMap.size()});
       System.gc();
     }
   }
@@ -198,6 +210,7 @@ public class SortedDataRowProcessor implements RowProcessor {
       jobToValuesetWorkMap.put(jobEntity.getJobId(), valuesetToWorkTreeMap);
     }
     if (isJobFlush && !valuesetToWorkTreeMap.isEmpty()) {
+      LOGGER.info("Flusing result for job id {}", jobEntity.getJobId());
       finishUp(valuesetToWorkTreeMap);
       valuesetToWorkTreeMap.clear();
     }
@@ -205,6 +218,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     if (work == null) {
       work = jobEntity.getJob().createNewWork();
       valuesetToWorkTreeMap.put(valueSet, work); // put new value set
+      jobToValuesetWorkMap.put(jobEntity.getJobId(), valuesetToWorkTreeMap);
     }
     return work;
   }
@@ -214,6 +228,7 @@ public class SortedDataRowProcessor implements RowProcessor {
       executionContext.setKeys(e.getKey());
       e.getValue().calculate(executionContext);
     }
+    executionContext.flush();
   }
 
   private void buildDataFileAccess() throws IOException {
@@ -241,21 +256,26 @@ public class SortedDataRowProcessor implements RowProcessor {
       jobEntity.setDimensionsPointer(dimns.stream().mapToInt(i -> i).toArray());
       dimns.clear();
     }
+    LOGGER.info("All recent jobs {}", Arrays.toString(jobEntities.toArray()));
   }
+
+
+  private int columnPos = 0;
 
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
-    DataLocator locator = dataDescription.locateField(primaryDimension);
-    int columnPos = locator.getOffset();
-    for (int pointer = 0; pointer < locator.getSize(); pointer++) {
-      if (row1[columnPos] != row2[columnPos]) {
-        return row1[columnPos] - row2[columnPos];
+    for (int dim = 0; dim < sharDim.length; dim++) {
+      DataLocator locator = dataDescription.locateField(sharDim[dim]);
+      columnPos = locator.getOffset();
+      for (int pointer = 0; pointer < locator.getSize(); pointer++) {
+        if (row1[columnPos] != row2[columnPos]) {
+          return row1[columnPos] - row2[columnPos];
+        }
+        columnPos++;
       }
-      columnPos++;
     }
     return res;
   }
-
 
   private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
@@ -265,14 +285,10 @@ public class SortedDataRowProcessor implements RowProcessor {
         }
       });
 
-
-  private int[] orderDimensions(int primaryDimension) {
-    int[] sortDims = new int[shardDims.length];
-    for (int i = 0; i < shardDims.length; i++) {
-      sortDims[i] = shardDims[(i + primaryDimension) % shardDims.length];
+  private void orderDimensions(int primaryDimension) {
+    for (int i = 0; i < context.getShardingIndexes().length; i++) {
+      sharDim[i] = context.getShardingIndexes()[(i + primaryDimension)
+          % context.getShardingIndexes().length];
     }
-    return sortDims;
   }
-
-
 }

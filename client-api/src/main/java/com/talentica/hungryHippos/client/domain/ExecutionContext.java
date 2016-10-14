@@ -71,4 +71,6 @@ public interface ExecutionContext {
 	 * @return ValueSet is Key-index and value pair.
 	 */
 	ValueSet getKeys();
+	
+	void flush();
 }

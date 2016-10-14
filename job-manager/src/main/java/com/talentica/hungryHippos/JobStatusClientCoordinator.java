@@ -37,11 +37,11 @@ public class JobStatusClientCoordinator {
       String hhNode = getPendingHHNode(nodeId);
       curator = HungryHippoCurator.getAlreadyInstantiated();
       try {
-        curator.createPersistentNode(hhNode);
+        curator.createPersistentNodeIfNotPresent(hhNode);
         String pendingJobIdNode = getPendingJobIdNode(nodeId, jobUUID);
-        curator.createPersistentNode(pendingJobIdNode);
+        curator.createPersistentNodeIfNotPresent(pendingJobIdNode);
       } catch (HungryHippoException e) {
-        e.printStackTrace(); // TODO
+        throw new RuntimeException(e.getMessage());
       }
 
     }
@@ -110,10 +110,9 @@ public class JobStatusClientCoordinator {
     String completedJobsGroup = PathEnum.COMPLETED_JOBS.getPathName();
     String completedJobIdNode = getJobIdNode(completedJobsGroup, jobUUID);
     try {
-      curator.createPersistentNode(completedJobIdNode);
+      curator.createPersistentNodeIfNotPresent(completedJobIdNode);
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new RuntimeException(e.getMessage());
     }
 
   }
@@ -127,10 +126,9 @@ public class JobStatusClientCoordinator {
     String failedJobsGroup = PathEnum.FAILED_JOBS.getPathName();
     String failedJobIdNode = getJobIdNode(failedJobsGroup, jobUUID);
     try {
-      curator.createPersistentNode(failedJobIdNode, "");
+      curator.createPersistentNodeIfNotPresent(failedJobIdNode, "");
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      throw new RuntimeException(e.getMessage());
     }
   }
 

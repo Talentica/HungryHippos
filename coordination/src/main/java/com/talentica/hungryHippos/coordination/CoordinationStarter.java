@@ -40,20 +40,22 @@ public class CoordinationStarter {
   private static CoordinationConfig coordinationConfig;
 
   public static void main(String[] args) {
+    
     try {
       LOGGER.info("Starting coordination server..");
 
       validateArguments(args);
+      
       setArguments(args);
+      
       validateFileSystem(fileSystemConfigFilePath);
-
-
 
       String rootPath = getAndValidateRoot();
 
       CoordinationConfigUtil.setLocalClusterConfigPath(clusterConfigFilePath);
 
       clusterConfig = JaxbUtil.unmarshalFromFile(clusterConfigFilePath, ClusterConfig.class);
+
       validateClusterIsnotEmpty(clusterConfig);
 
       coordinationConfig =
@@ -61,7 +63,6 @@ public class CoordinationStarter {
       startNodeManager(coordinationConfig);
 
       uploadConfigurationOnZk(rootPath);
-
 
       LOGGER.info("Coordination server started..");
     } catch (Exception exception) {

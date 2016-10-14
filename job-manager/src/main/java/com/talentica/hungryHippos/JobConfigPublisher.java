@@ -131,7 +131,7 @@ public class JobConfigPublisher {
         curator = HungryHippoCurator.getAlreadyInstantiated();
       }
 
-      curator.createPersistentNode(jobEntityIdNode);
+      curator.createPersistentNodeIfNotPresent(jobEntityIdNode);
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);

@@ -102,7 +102,7 @@ public class HungryHippoCurator {
    */
   private void connectToZookeeper(String connectString) {
     if (this.curatorFramework == null) {
-      int baseSleepTime = 1000;
+      int baseSleepTime = 10000;
       int maxRetry = 3;
       ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(baseSleepTime, maxRetry);
       this.curatorFramework = CuratorFrameworkFactory.newClient(connectString, retryPolicy);
@@ -120,7 +120,7 @@ public class HungryHippoCurator {
    */
   private void connectToZookeeper(String connectString, int sessionTimeOut) {
     if (curatorFramework == null) {
-      int connectionTimeOut = 15 * 1000;
+      int connectionTimeOut = 15 * 10000;
       int baseSleepTime = 1000;
       int maxRetry = 3;
       ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(baseSleepTime, maxRetry);
@@ -345,20 +345,29 @@ public class HungryHippoCurator {
     }
     return stat;
   }
-
+  
   public Stat setZnodeDataAsync(String path, Object data) throws HungryHippoException {
     Stat stat = null;
-    try {
-      CuratorListener listener = new CuratorListener() {
+    try {           
 
-        @Override
-        public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-          // TODO Auto-generated method stub
+      if (data == null) {
+        stat = curatorFramework.setData().inBackground().forPath(path);
+      } else if (data instanceof String) {
+        stat = curatorFramework.setData().inBackground().forPath(path, ((String) data).getBytes());
+      } else {
+        saveObjectZkNode(path, data);
+      }
 
-        }
-      };
+    } catch (Exception e) {
+      throw new HungryHippoException(e.getMessage());
+    }
+    return stat;
+  }
+
+  public Stat setZnodeDataAsync(String path, Object data, CuratorListener listener) throws HungryHippoException {
+    Stat stat = null;
+    try {      
       curatorFramework.getCuratorListenable().addListener(listener);
-
 
       if (data == null) {
         stat = curatorFramework.setData().inBackground().forPath(path);
@@ -407,6 +416,17 @@ public class HungryHippoCurator {
     return stat != null ? true : false;
   }
 
+  public boolean checkExistsAsync(String path)
+      throws HungryHippoException {
+    Stat stat = null;
+    try {
+      curatorFramework.checkExists().inBackground().forPath(path);
+
+    } catch (Exception e) {
+      throw new HungryHippoException(e.getMessage());
+    }
+    return stat != null ? true : false;
+  }
 
   public boolean checkExistsAsync(String path, BackgroundCallback callback)
       throws HungryHippoException {
@@ -827,6 +847,7 @@ public class HungryHippoCurator {
 
     cleanUp(nameSpacePath);
     cleanUp(configPath);
+    cleanUp("/torrent"); //need to remove hardcoded value.
 
     defaultNodesOnStart();
   }

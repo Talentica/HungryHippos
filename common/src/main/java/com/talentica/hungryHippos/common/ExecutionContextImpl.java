@@ -82,4 +82,9 @@ public class ExecutionContextImpl implements ExecutionContext {
   public ValueSet getKeys() {
     return keys;
   }
+
+  @Override
+  public void flush() {
+    out.flush();
+  }
 }

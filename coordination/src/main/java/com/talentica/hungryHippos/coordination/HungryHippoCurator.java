@@ -34,6 +34,8 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
@@ -49,6 +51,8 @@ import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 
 public class HungryHippoCurator {
+  
+  private static final Logger logger = LoggerFactory.getLogger(HungryHippoCurator.class);
 
   private CuratorFramework curatorFramework = null;
   private static HungryHippoCurator hungryHippoCurator = null;
@@ -845,7 +849,7 @@ public class HungryHippoCurator {
     String nameSpacePath = ZK_PATH_SEPERATOR + pathMap.get(PathEnum.NAMESPACE.name());
     String configPath = pathMap.get(PathEnum.CONFIGPATH.name());
 
-    cleanUp(nameSpacePath);
+    cleanUp(nameSpacePath);   
     cleanUp(configPath);
     cleanUp("/torrent"); //need to remove hardcoded value.
 
@@ -855,6 +859,7 @@ public class HungryHippoCurator {
   private void cleanUp(String path) throws HungryHippoException {
     if (hungryHippoCurator.checkExists(path)) {
       hungryHippoCurator.gurantedDeleteRecursive(path);
+     logger.info("Deleted {}", path);
     }
 
   }

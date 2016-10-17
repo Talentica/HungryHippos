@@ -12,24 +12,18 @@ public class SumJobMatrixImpl implements JobMatrix {
   public List<Job> getListOfJobsToExecute() {
     List<Job> jobList = new ArrayList<>();
     int jobId = 0;
-  /*  jobList.add(new SumJob(new int[] {0}, 6,jobId++));
-    jobList.add(new SumJob(new int[] {0,1}, 6,jobId++));
-    jobList.add(new SumJob(new int[] {0,1}, 7,jobId++));*/
-    jobList.add(new SumJob(new int[] {0}, 6,jobId++));
-    jobList.add(new SumJob(new int[] {0,2}, 6,jobId++));
-    jobList.add(new SumJob(new int[] {0,2}, 7,jobId++));
-   /* for (int i = 0; i < 3; i++) {
-      jobList.add(new SumJob(new int[] {i}, 6, jobid++));
-      jobList.add(new SumJob(new int[] {i}, 7, jobid++));
+    for (int i = 0; i < 3; i++) {
+      jobList.add(new SumJob(new int[] {i}, 6, jobId++));
+      jobList.add(new SumJob(new int[] {i}, 7, jobId++));
       for (int j = i + 1; j < 4; j++) {
-        jobList.add(new SumJob(new int[] {i, j}, 6, jobid++));
-        jobList.add(new SumJob(new int[] {i, j}, 7, jobid++));
+        jobList.add(new SumJob(new int[] {i, j}, 6, jobId++));
+        jobList.add(new SumJob(new int[] {i, j}, 7, jobId++));
         for (int k = j + 1; k < 4; k++) {
-          jobList.add(new SumJob(new int[] {i, j, k}, 6, jobid++));
-          jobList.add(new SumJob(new int[] {i, j, k}, 7, jobid++));
+          jobList.add(new SumJob(new int[] {i, j, k}, 6, jobId++));
+          jobList.add(new SumJob(new int[] {i, j, k}, 7, jobId++));
         }
       }
-    }*/
+    }
     return jobList;
   }
 

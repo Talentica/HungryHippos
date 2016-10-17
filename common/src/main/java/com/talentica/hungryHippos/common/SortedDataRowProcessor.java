@@ -136,7 +136,7 @@ public class SortedDataRowProcessor implements RowProcessor {
                                                                        // data set is sorted in
                                                                        // ascending order.
         LOGGER.info(
-            "current value set is larger than last value set :: last valueset {} and current valueset {} for job id {}",
+            "last valueset is larger than current valueset :: last valueset {} and current valueset {} for job id {}",
             lastValueSet.toString(), currentValueSetPointer.toString(), jobEntity.getJobId());
       }
     }
@@ -239,10 +239,10 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void prepareJobsFlushFlag() {
     List<Integer> dimns = new ArrayList<>();
     for (JobEntity jobEntity : jobEntities) {
-      for (int jobDim = 0; jobDim < jobEntity.getJob().getDimensions().length; jobDim++) {
-        for (int index = 0; index < context.getShardingIndexes().length; index++) {
-          if (jobEntity.getJob().getDimensions()[jobDim] == context.getShardingIndexes()[index]) {
-            dimns.add(jobEntity.getJob().getDimensions()[jobDim]);
+      for (int sortDim = 0; sortDim < sortedDimensions.length; sortDim++) {
+        for (int index = 0; index < jobEntity.getJob().getDimensions().length; index++) {
+          if (jobEntity.getJob().getDimensions()[index] == sortedDimensions[sortDim]) {
+            dimns.add(sortedDimensions[sortDim]);
           }
         }
       }

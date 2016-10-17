@@ -86,6 +86,7 @@ public class SortedDataJobRunner implements JobRunner {
     try {
       for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
         int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
+        LOGGER.info("Sorting started for primary dimension {}",primaryDimensionIndex);
         dataFileSorter.doSortingPrimaryDimensionWise(primaryDimensionIndex);
         for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
           JobEntity jobEntity = jobSCollection.jobAt(i);

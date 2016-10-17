@@ -64,6 +64,11 @@ public interface ExecutionContext {
 	 * @param metric
 	 */
 	void saveValue(int jobId, int calculationIndex , Object value, String metric);
+	
+	/**
+	 * @param value
+	 */
+	void saveValue(Object value);
 
 	/**
 	 * To set the keys for particular key-index value pair.

@@ -72,6 +72,11 @@ public class ExecutionContextImpl implements ExecutionContext {
     out.println(metric + " metric calculation result for column index " + calculationIndex + " and "
         + keys.toString() + " is ====>" + value);
   }
+  
+  @Override
+  public void saveValue(Object value){
+    out.println(value);
+  }
 
   @Override
   public void setKeys(ValueSet valueSet) {

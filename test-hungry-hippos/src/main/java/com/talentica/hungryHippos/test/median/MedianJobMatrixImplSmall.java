@@ -11,8 +11,9 @@ public class MedianJobMatrixImplSmall implements JobMatrix {
   @Override
   public List<Job> getListOfJobsToExecute() {
     List<Job> jobList = new ArrayList<>();
-    jobList.add(new MedianJob(new int[] {0, 1, 3}, 6));
-    jobList.add(new MedianJob(new int[] {0, 1, 3}, 7));
+    int jobId = 0;
+    jobList.add(new MedianJob(new int[] {0, 1, 3}, 6,jobId++));
+    jobList.add(new MedianJob(new int[] {0, 1, 3}, 7,jobId++));
     return jobList;
   }
 

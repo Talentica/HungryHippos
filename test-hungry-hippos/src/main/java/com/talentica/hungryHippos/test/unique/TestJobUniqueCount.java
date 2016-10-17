@@ -9,14 +9,14 @@ import com.talentica.hungryHippos.test.sum.SumJob;
 public class TestJobUniqueCount extends SumJob {
 
   private static final long serialVersionUID = 3943488225202378443L;
-
+  static int jobId = 0;
   public TestJobUniqueCount(int[] dimensions, int valueIndex) {
-    super(dimensions, valueIndex);
+    super(dimensions, valueIndex,jobId++);
   }
 
   @Override
   public Work createNewWork() {
-    return new UniqueCountWork(dimensions, valueIndex);
+    return new UniqueCountWork(dimensions, valueIndex,jobId);
   }
 
 }

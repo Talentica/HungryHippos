@@ -16,11 +16,13 @@ public class MedianWork implements Work, Serializable {
   private static final long serialVersionUID = -5931349264723731947L;
   protected int[] dimensions;
   protected int valueIndex;
+  private int jobId;
   private MedianCalculator medianCalculator = new MedianCalculator();
 
-  public MedianWork(int[] dimensions, int valueIndex) {
+  public MedianWork(int[] dimensions, int valueIndex,int jobId) {
     this.dimensions = dimensions;
     this.valueIndex = valueIndex;
+    this.jobId = jobId;
   }
 
   @Override
@@ -36,6 +38,12 @@ public class MedianWork implements Work, Serializable {
   @Override
   public void reset() {
     medianCalculator.clear();
+  }
+
+  @Override
+  public int getJobId() {
+    // TODO Auto-generated method stub
+    return 0;
   }
 
 }

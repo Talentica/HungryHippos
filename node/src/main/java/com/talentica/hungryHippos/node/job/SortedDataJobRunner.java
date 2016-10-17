@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -38,6 +39,7 @@ public class SortedDataJobRunner implements JobRunner {
   private DataFileSorter dataFileSorter;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
+
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, String outputHHPath, ShardingApplicationContext context)
       throws IOException {
@@ -52,12 +54,14 @@ public class SortedDataJobRunner implements JobRunner {
   }
 
   public void run(int primaryDimensionIndex, List<JobEntity> jobEntities) {
+    LOGGER.info("Start running the jobs {} having primary dimension {}",
+        Arrays.toString(jobEntities.toArray()), primaryDimensionIndex);
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
           DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
-          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription,context);
+          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription, context);
       rowProcessor.process();
       HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
           (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
@@ -75,13 +79,14 @@ public class SortedDataJobRunner implements JobRunner {
       }
     }
   }
-  
+
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
     waitFileUnlock();
     try {
       for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
         int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
+        LOGGER.info("Sorting started for primary dimension {}",primaryDimensionIndex);
         dataFileSorter.doSortingPrimaryDimensionWise(primaryDimensionIndex);
         for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
           JobEntity jobEntity = jobSCollection.jobAt(i);

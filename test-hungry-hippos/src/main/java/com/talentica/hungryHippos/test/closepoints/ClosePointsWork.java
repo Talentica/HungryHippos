@@ -18,15 +18,17 @@ public class ClosePointsWork implements Work, Serializable{
   protected int longitudeIndex;
   protected double latitude;
   protected double longitude;
+  private int jobId;
   protected List<Record> records = new ArrayList<Record>();
   
   public ClosePointsWork(int[] dimensions, int latitudeIndex, int longitudeIndex,
-      double latitude, double longitude){
+      double latitude, double longitude,int jobId){
     this.dimensions = dimensions;
     this.latitudeIndex = latitudeIndex;
     this.longitudeIndex = longitudeIndex;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.jobId = jobId;
   }
 
   @Override
@@ -77,6 +79,11 @@ public class ClosePointsWork implements Work, Serializable{
   
   private static double rad2deg(double rad) {
     return (rad * 180 / Math.PI);
+  }
+
+  @Override
+  public int getJobId() {
+  return jobId;
   }
 
 }

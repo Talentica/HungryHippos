@@ -19,6 +19,7 @@ public class KNNWork implements Work, Serializable{
   protected int latitudeIndex;
   protected int longitudeIndex;
   protected int k;
+  private int jobId;
   private double minLat = Double.MAX_VALUE;
   private double maxLat = Double.MIN_VALUE;
   private double minLong = Double.MAX_VALUE;
@@ -31,11 +32,12 @@ public class KNNWork implements Work, Serializable{
   private List<Record>[][] map = new List[divisionFactor][divisionFactor]; 
   protected List<Record> records = new ArrayList<Record>();
 
-  public KNNWork(int[] dimensions,int latitudeIndex,int longitudeIndex,int k){
+  public KNNWork(int[] dimensions,int latitudeIndex,int longitudeIndex,int k, int jobId){
     this.dimensions = dimensions;
     this.latitudeIndex = latitudeIndex;
     this.longitudeIndex = longitudeIndex;
     this.k = k;
+    this.jobId = jobId;
   }
   
   @Override
@@ -208,6 +210,11 @@ public class KNNWork implements Work, Serializable{
   @Override
   public void reset() {
     records = null;
+  }
+
+  @Override
+  public int getJobId() {
+   return jobId;
   }
 
   

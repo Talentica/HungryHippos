@@ -57,6 +57,17 @@ public interface ExecutionContext {
 	 */
 	void saveValue(int calculationIndex, Object value, String metric);
 	
+	/**
+	 * @param jobId
+	 * @param calculationIndex
+	 * @param value
+	 * @param metric
+	 */
+	void saveValue(int jobId, int calculationIndex , Object value, String metric);
+	
+	/**
+	 * @param value
+	 */
 	void saveValue(Object value);
 
 	/**

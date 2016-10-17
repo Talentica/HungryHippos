@@ -11,7 +11,7 @@ public class ClosePointMatrixImpl implements JobMatrix{
   @Override
   public List<Job> getListOfJobsToExecute() {
     List<Job> jobList = new ArrayList<>();
-    jobList.add(new ClosePointsJob(new int[]{9},5,6,41.499914,-81.559426));
+    jobList.add(new ClosePointsJob(new int[]{9},5,6,41.499914,-81.559426,0));
     return jobList;
   }
 

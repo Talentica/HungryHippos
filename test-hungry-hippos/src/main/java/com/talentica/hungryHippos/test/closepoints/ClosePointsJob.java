@@ -17,24 +17,25 @@ public class ClosePointsJob implements Job,Serializable{
   protected int longitudeIndex;
   protected double latitude;
   protected double longitude;
-  
+  private int  jobId;
   public ClosePointsJob(){}
 
   public ClosePointsJob(int[] dimensions, int latitudeIndex,
-      int longitudeIndex, double latitude, double longitude) {
+      int longitudeIndex, double latitude, double longitude,int jobId) {
     super();
     this.dimensions = dimensions;
     this.latitudeIndex = latitudeIndex;
     this.longitudeIndex = longitudeIndex;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.jobId = jobId;
   }
 
 
 
   @Override
   public Work createNewWork() {
-    return new ClosePointsWork(dimensions,latitudeIndex,longitudeIndex,latitude,longitude);
+    return new ClosePointsWork(dimensions,latitudeIndex,longitudeIndex,latitude,longitude,jobId);
   }
 
   @Override
@@ -49,6 +50,11 @@ public class ClosePointsJob implements Job,Serializable{
                   + ", latitudeIndex:" + latitudeIndex + ", longitudeIndex" + longitudeIndex +"}}";
       }
       return super.toString();
+  }
+
+  @Override
+  public int getJobId() {
+    return jobId;
   }
   
 }

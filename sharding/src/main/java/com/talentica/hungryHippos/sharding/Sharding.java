@@ -52,8 +52,9 @@ private BucketsCalculator bucketsCalculator;
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
     keys = context.getShardingDimensions();
-    for (int i = 0; i < clusterConfig.getNode().size(); i++) {
-      Node node = new Node(300000, i);
+    List<com.talentica.hungryhippos.config.cluster.Node> clusterNodes = clusterConfig.getNode();
+    for(com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes){
+      Node node = new Node(300000, clusterNode.getIdentifier());
       fillupQueue.offer(node);
       nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
     }

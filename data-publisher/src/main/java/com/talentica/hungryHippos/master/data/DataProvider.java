@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.master.data;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -12,6 +9,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +19,10 @@ import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
@@ -46,26 +48,32 @@ public class DataProvider {
 
   private static BucketsCalculator bucketsCalculator;
   private static String BAD_RECORDS_FILE;
-  private static Random random;
+  private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
 
-  private static String[] loadServers() throws Exception {
+
+  private static Map<Integer,String> loadServers() throws Exception {
+
     LOGGER.info("Load the server form the configuration file");
-    ArrayList<String> servers = new ArrayList<>();
+    Map<Integer,String> servers = new HashMap<Integer,String>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       String server = node.getIp() + ServerUtils.COLON + node.getPort();
-      servers.add(server);
+      servers.put(node.getIdentifier(),server);
     }
     LOGGER.info("There are {} servers", servers.size());
-    return servers.toArray(new String[servers.size()]);
+    return servers;
   }
 
   public static void publishDataToNodes(DataParser dataParser, String sourcePath,
       String destinationPath) throws Exception {
     init();
     long start = System.currentTimeMillis();
-    String[] servers = loadServers();
+
+    String fileIdToHHpath = CoordinationConfigUtil.getZkCoordinationConfigCache().
+        getZookeeperDefaultConfig().getFileidHhfsMapPath() + HungryHippoCurator.ZK_PATH_SEPERATOR;
+    Map<Integer,String> servers = loadServers();
+
     FieldTypeArrayDataDescription dataDescription =
         DataPublisherStarter.getContext().getConfiguredDataDescription();
     dataDescription.setKeyOrder(DataPublisherStarter.getContext().getShardingDimensions());
@@ -80,29 +88,30 @@ public class DataProvider {
         ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
 
     String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
+    boolean keyOrderOne = keyOrder.length==1;
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
-    keyToValueToBucketMap =
-        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath, dataTypeMap);
-    bucketsCalculator =
-        new BucketsCalculator(keyToValueToBucketMap, DataPublisherStarter.getContext());
-    OutputStream[] targets = new OutputStream[servers.length];
+
+    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
+    bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
+    Map<Integer,OutputStream> targets = new HashMap<>();
+    int fileId = fileIdToHHPathMap(fileIdToHHpath,destinationPath);
+    byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
-    Socket[] sockets = new Socket[servers.length];
-    DataOutputStream dos = null;
-    byte[] destinationPathInBytes = destinationPath.getBytes(Charset.defaultCharset());
-    int destinationPathLength = destinationPathInBytes.length;
-    for (int i = 0; i < servers.length; i++) {
-      String server = servers[i];
-      sockets[i] = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
-      targets[i] = new BufferedOutputStream(sockets[i].getOutputStream(), 8388608);
-      dos = new DataOutputStream(sockets[i].getOutputStream());
-      dos.writeInt(destinationPathLength);
-      dos.flush();
-      targets[i].write(destinationPathInBytes);
-      targets[i].write((byte) 1);
-      targets[i].flush();
+    Map<Integer,Socket> sockets = new HashMap<>();
+    for(Integer nodeId : servers.keySet()){
+      String server = servers.get(nodeId);
+      Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
+      sockets.put(nodeId, socket);
+      BufferedOutputStream bos = new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
+      targets.put(nodeId, bos);
+      if(keyOrderOne){
+        bos.write(fileIdInBytes);
+        bos.flush();
+      }else{
+        createNodeLink(fileIdToHHpath+fileId,nodeId);
+      }
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -113,10 +122,10 @@ public class DataProvider {
     int lineNo = 0;
     FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
     fileWriter.openFile();
-    random = ThreadLocalRandom.current();
-    byte[] nextNodesInfo =
-        new byte[DataPublisherStarter.getContext().getShardingDimensions().length - 1];
+
     int flushTriggerCount = 0;
+
+
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -146,26 +155,43 @@ public class DataProvider {
       }
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
-      Iterator<Node> nodeIterator = nodes.iterator();
+
+      Iterator<Node> nodeIterator= nodes.iterator();
       Node receivingNode = nodeIterator.next();
-      for (int i = 1; i < keyOrder.length; i++) {
-        byte nodeId = (byte) nodeIterator.next().getNodeId();
-        targets[receivingNode.getNodeId()].write(nodeId);
+      if(!keyOrderOne){
+        targets.get(receivingNode.getNodeId()).write(fileIdInBytes);
+        for (int i = 1; i < keyOrder.length; i++) {
+          byte nodeId = (byte) nodeIterator.next().getNodeId();
+          targets.get(receivingNode.getNodeId()).write(nodeId);
+        }
+
       }
-      targets[receivingNode.getNodeId()].write(buf);
+
+      targets.get(receivingNode.getNodeId()).write(buf);
+
       flushTriggerCount++;
-      if (flushTriggerCount > 100000) {
-        for (int j = 0; j < targets.length; j++) {
-          targets[j].flush();
+
+      if(flushTriggerCount>100000){
+        for(Integer nodeId : targets.keySet()){
+          targets.get(nodeId).flush();
+
         }
         flushTriggerCount = 0;
       }
     }
     fileWriter.close();
-    for (int j = 0; j < targets.length; j++) {
-      targets[j].flush();
-      targets[j].close();
-      sockets[j].close();
+
+    for(Integer nodeId : targets.keySet()){
+      if(!keyOrderOne){
+        sendEndOfFileSignal(fileIdInBytes, buf, keyOrder, targets, nodeId);
+      }
+      targets.get(nodeId).flush();
+      targets.get(nodeId).close();
+      sockets.get(nodeId).close();
+    }
+    if(keyOrderOne){  
+      curator.gurantedDelete(fileIdToHHpath + fileId);
+      updateFilePublishSuccessful(destinationPath);
     }
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));
@@ -174,10 +200,64 @@ public class DataProvider {
 
   }
 
+  /**
+   * Updates file published successfully
+   *
+   * @param destinationPath
+   */
+  public static void updateFilePublishSuccessful(String destinationPath) {
+    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+            .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String pathForSuccessNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.DATA_READY;
+    String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.PUBLISH_FAILED;
+    try {
+      curator.gurantedDelete(pathForFailureNode);
+      curator.createPersistentNodeIfNotPresent(pathForSuccessNode, "");
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+  }
+
+  private static void sendEndOfFileSignal(byte[] fileIdInBytes, byte[] buf, String[] keyOrder, Map<Integer, OutputStream> targets, Integer nodeId) throws IOException {
+    targets.get(nodeId).write(fileIdInBytes);
+    byte nodeIdByte = (byte) nodeId.intValue();
+    for (int i = 1; i < keyOrder.length; i++) {
+      targets.get(nodeId).write(nodeIdByte);
+    }
+    targets.get(nodeId).write(buf);
+  }
+
+  public static void createNodeLink(String fileIdToHHpath,int nodeId){
+    try {
+      curator.createPersistentNodeIfNotPresent(fileIdToHHpath + HungryHippoCurator.ZK_PATH_SEPERATOR + nodeId,"");
+    } catch (HungryHippoException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
   private static void init() throws FileNotFoundException, JAXBException {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
         DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
         DataPublisherStarter.getContext().getShardingClientConfig().getBadRecordsFileOut() + "_publisher.err";
+  }
+  
+  private static int fileIdToHHPathMap(String path,String inputHHPath){
+    int i = 0;
+    while(true){
+      try {
+          curator.createPersistentNode(path + i, inputHHPath);
+          return i;
+      } catch (HungryHippoException e) {
+          if(e instanceof HungryHippoException){
+            i++;
+          }else{
+            throw new RuntimeException(e);
+          }
+        }
+      }
   }
 }

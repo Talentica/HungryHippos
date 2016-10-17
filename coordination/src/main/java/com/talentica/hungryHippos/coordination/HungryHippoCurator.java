@@ -279,7 +279,7 @@ public class HungryHippoCurator {
     return location;
   }
 
-  public String createZnodeSeq(String path) throws HungryHippoException {
+  public String createPersistentZnodeSeq(String path) throws HungryHippoException {
     String location = null;
 
     try {
@@ -293,7 +293,7 @@ public class HungryHippoCurator {
 
 
 
-  public String createZnodeSeq(String path, Object data) throws HungryHippoException {
+  public String createPersistentZnodeSeq(String path, Object data) throws HungryHippoException {
     String location = null;
 
     try {
@@ -749,6 +749,7 @@ public class HungryHippoCurator {
         + ZK_PATH_SEPERATOR + PathEnum.COMPLETED_JOB_NODES.getPathName());
     pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
         + ZK_PATH_SEPERATOR + PathEnum.FAILED_JOB_NODES.getPathName());
+    pathMap.put(PathEnum.FILEID_HHFS_MAP.name(), zookeeperDefaultConfig.getFileidHhfsMapPath());
 
     zkConfiguration = new ZookeeperConfiguration(pathMap);
 
@@ -758,7 +759,7 @@ public class HungryHippoCurator {
   public void cleanUpZkNodeRecursively() throws Exception, InterruptedException {
 
     hungryHippoCurator
-        .gurantedDeleteRecursive(ZK_PATH_SEPERATOR + pathMap.get(PathEnum.NAMESPACE.name()));
+        .gurantedDeleteRecursive(pathMap.get(PathEnum.NAMESPACE.name()));
 
   }
 
@@ -846,12 +847,12 @@ public class HungryHippoCurator {
    * @throws Exception
    */
   public void startup() throws HungryHippoException {
-    String nameSpacePath = ZK_PATH_SEPERATOR + pathMap.get(PathEnum.NAMESPACE.name());
+    String nameSpacePath = pathMap.get(PathEnum.NAMESPACE.name());
     String configPath = pathMap.get(PathEnum.CONFIGPATH.name());
 
     cleanUp(nameSpacePath);   
     cleanUp(configPath);
-    cleanUp("/torrent"); //need to remove hardcoded value.
+    cleanUp("/torrent"); //TODO need to remove hardcoded value.
 
     defaultNodesOnStart();
   }
@@ -873,8 +874,9 @@ public class HungryHippoCurator {
    */
   public void defaultNodesOnStart() throws HungryHippoException {
     createServersMap();
+    //TODO populate from map using loop.
     hungryHippoCurator.createPersistentNode(
-        ZK_PATH_SEPERATOR + zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
+        zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
     hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()));
     hungryHippoCurator
@@ -905,6 +907,10 @@ public class HungryHippoCurator {
         zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()));
     hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()));
+   
+    hungryHippoCurator
+    .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILEID_HHFS_MAP.name()));
+    
   }
 
 

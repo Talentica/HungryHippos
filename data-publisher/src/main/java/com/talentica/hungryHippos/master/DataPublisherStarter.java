@@ -70,15 +70,16 @@ public class DataPublisherStarter {
               .newInstance(context.getConfiguredDataDescription());
       LOGGER.info("Initializing nodes manager.");
       long startTime = System.currentTimeMillis();
+
       DataProvider.publishDataToNodes(dataParser, sourcePath, destinationPath);
-      updateFilePublishSuccessful(destinationPath);
-      
+
+
       long endTime = System.currentTimeMillis();
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
-      updateFilePublishFailure(destinationPath);
-      LOGGER.error("Error occured while executing publishing data on nodes.", exception);
       exception.printStackTrace();
+      LOGGER.error("Error occured while executing publishing data on nodes.", exception);
+      updateFilePublishFailure(destinationPath);
     }
   }
 
@@ -119,25 +120,6 @@ public class DataPublisherStarter {
   }
 
 
-  /**
-   * Updates file published successfully
-   * 
-   * @param destinationPath
-   */
-  private static void updateFilePublishSuccessful(String destinationPath) {
-    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
-    String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
-    String pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
-
-    try {
-      curator.deletePersistentNodeIfExits(pathForFailureNode);
-      curator.createPersistentNodeIfNotPresent(pathForSuccessNode);
-    } catch (HungryHippoException e) {
-      LOGGER.error("creation of File update failed" + e.getLocalizedMessage());
-    }
-
-  }
   
   /**
    * Updates file pubising failed

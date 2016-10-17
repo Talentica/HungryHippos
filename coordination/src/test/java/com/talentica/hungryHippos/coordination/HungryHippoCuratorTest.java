@@ -66,7 +66,7 @@ public class HungryHippoCuratorTest {
     String data = "hi";
     String loc = null;
     try {
-      loc = hhc.createZnodeSeq(path, data);
+      loc = hhc.createPersistentZnodeSeq(path, data);
     } catch (HungryHippoException e) {
       assertTrue(false);// exception should not occur;
     }
@@ -78,7 +78,7 @@ public class HungryHippoCuratorTest {
     String path = "/test_seq2";
     String loc = null;
     try {
-      loc = hhc.createZnodeSeq(path);
+      loc = hhc.createPersistentZnodeSeq(path);
     } catch (HungryHippoException e) {
       assertTrue(false);// exception should not occur;
     }

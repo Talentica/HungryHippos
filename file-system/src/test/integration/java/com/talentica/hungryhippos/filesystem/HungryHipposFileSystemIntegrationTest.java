@@ -19,6 +19,9 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.property.ZkProperty;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 
 /*
  * @RunWith(PowerMockRunner.class)
@@ -45,10 +48,10 @@ public class HungryHipposFileSystemIntegrationTest {
      * nodesManager = Mockito.mock(NodesManager.class); zkProperty = Mockito.mock(Property.class);
      */
 
-    curator = HungryHippoCurator.getInstance("");
+ //   curator = HungryHippoCurator.getInstance("");
 
-
-    hhfs = HungryHipposFileSystem.getInstance();
+//
+ //   hhfs = HungryHipposFileSystem.getInstance();
   }
 
   @After
@@ -101,43 +104,40 @@ public class HungryHipposFileSystemIntegrationTest {
 
   }
 
+
+
   @Test
   public void testUpdateFSBlockMetaData() throws FileNotFoundException, JAXBException {
-
     try {
       String fileZKNode = "input";
       String fileSystemRootNodeZKPath = "/rootnode/filesystem";
-
-      int dataFileZKNode = 0;
+      int dataFolderZKNode = 0;
       long datafileSize = 1000L;
-      String nodeIp = "localhost";
-      String nodeId = "0";
-
-
+      int nodeId = 0;
+      String fileName = "0";
       String fileNodeZKPath =
           fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
+      hhfs.createZnode(fileNodeZKPath, FileSystemConstants.IS_A_FILE);
 
-      /*
-       * PowerMockito.when(NodesManagerContext.getNodesManagerInstance()). thenReturn(nodesManager);
-       * PowerMockito.when(CoordinationApplicationContext.getZkProperty()) .thenReturn(zkProperty);
-       * 
-       * Mockito.when(nodesManager.checkNodeExists(fileNodeZKPath)). thenReturn(false);
-       * Mockito.when(nodesManager.checkNodeExists(nodeIpZKPath)). thenReturn(false);
-       * Mockito.when(nodesManager.getObjectFromZKNode(fileNodeZKPath)). thenReturn("0");
-       * Mockito.doNothing().when(nodesManager).createPersistentNode( Mockito.anyString(), new
-       * CountDownLatch(1), Mockito.eq(Mockito.any()));
-       * Mockito.when(zkProperty.getValueByKey(FileSystemConstants. ROOT_NODE))
-       * .thenReturn(fileSystemRootNodeZKPath);
-       */
-
-      // hhfs.updateFSBlockMetaData(fileZKNode, nodeIp, dataFileZKNode, nodeId, datafileSize);
-      hhfs.updateFSBlockMetaData(fileZKNode, Integer.parseInt(nodeId), datafileSize);
-
+      hhfs.updateFSBlockMetaData(fileZKNode, nodeId, dataFolderZKNode, fileName, datafileSize);
       assertTrue(true);
     } catch (Exception e) {
       e.printStackTrace();
       assertTrue(false);
     }
   }
+  
+  @Test
+  public void downloadOutput() throws Exception{
+    String clientConfigFilePath = "/home/sudarshans/config/client-config.xml";
+    ClientConfig clientConfig =
+        JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+    String connectString = clientConfig.getCoordinationServers().getServers();
+    int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+    System.out.println("Here");
+    DataRetrieverClient.getHungryHippoData("/dir/output1", "/home/sudarshans/server/out", 0);
+  }
+
 
 }

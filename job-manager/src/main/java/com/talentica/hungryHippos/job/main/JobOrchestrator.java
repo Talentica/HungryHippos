@@ -72,7 +72,7 @@ public class JobOrchestrator {
 
       outputHHPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath() + outputHHPath;
-      curator.createPersistentNode(outputHHPathNode);
+      curator.createPersistentNode(outputHHPathNode, FileSystemConstants.IS_A_FILE);
       String jobUUID = JobIDGenerator.generateJobID();
       logger.info("Publishing Jar for Job {}", jobUUID);
       boolean isJarPublished = JobJarPublisher.publishJar(jobUUID, localJarPath, userName);

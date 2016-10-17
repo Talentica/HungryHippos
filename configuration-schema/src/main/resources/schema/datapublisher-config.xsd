@@ -9,7 +9,7 @@
 				<element type="int" name="no-of-attempts-to-connect-to-node" />
 				<element type="int" name="servers-connect-retry-interval-in-ms" />
 				<element type="int" name="no-of-data-receiver-threads" />
-				<element type="int" name="max-record-buffer-size" />
+				<element type="int" name="no-of-bytes-in-each-memory-array" />
 			</sequence>
 		</complexType>
 	</element>

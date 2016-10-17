@@ -56,6 +56,8 @@ public interface ExecutionContext {
 	 *            name of the matrix such as sum, median etc.
 	 */
 	void saveValue(int calculationIndex, Object value, String metric);
+	
+	void saveValue(Object value);
 
 	/**
 	 * To set the keys for particular key-index value pair.

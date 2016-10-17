@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,16 +43,16 @@ public class SortedDataRowProcessor implements RowProcessor {
   private DynamicMarshal dynamicMarshal;
   private ExecutionContextImpl executionContext;
   private List<JobEntity> jobEntities;
-  private Map<Integer, TreeMap<ValueSet, Work>> jobToValuesetWorkMap =
-      new TreeMap<Integer, TreeMap<ValueSet, Work>>();
-  private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
+  private Map<JobEntity, TreeMap<ValueSet, Work>> jobToValuesetWorkMap =
+      new TreeMap<JobEntity, TreeMap<ValueSet, Work>>();
+  private Logger LOGGER = LoggerFactory.getLogger(SortedDataRowProcessor.class);
   private int totalNoOfRowsProcessed = 0;
   private StoreAccess storeAccess;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
-  private int[] sharDim;
-  private Map<Integer, ValueSet> currentValueSetPointerJobMap;
-  private Map<Integer, ValueSet> lastValueSetPointerJobMap;
+  private int[] sortedDimensions;
+  private Map<JobEntity, ValueSet> currentValueSetPointerJobMap;
+  private Map<JobEntity, ValueSet> lastValueSetPointerJobMap;
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
       JobRunnerApplicationContext.getZkJobRunnerConfig().getMinFreeMemoryInMbs();
 
@@ -68,21 +67,29 @@ public class SortedDataRowProcessor implements RowProcessor {
     this.executionContext = new ExecutionContextImpl(dynamicMarshal, outputHHPath);
     this.dataDescription = dataDescription;
     this.context = context;
-    this.sharDim = new int[context.getShardingIndexes().length];
+    this.sortedDimensions = new int[context.getShardingIndexes().length];
     this.orderDimensions(primaryDimension);
     this.buildDataFileAccess();
-    this.currentValueSetPointerJobMap = new HashMap<Integer, ValueSet>();
-    this.lastValueSetPointerJobMap = new HashMap<Integer, ValueSet>();
+    this.currentValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
+    this.lastValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
     this.prepareJobsFlushFlag();
   }
 
 
   @Override
   public void process() {
+    LOGGER.info("Sorted dimensions {}",Arrays.toString(sortedDimensions));
+    LOGGER.info("Size of the priority queue {}",pq.size());
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
-        run(bfb);
+        ByteBuffer row = bfb.pop();
+        processRow(row);
+        if (bfb.empty()) {
+          bfb.getReader().close();
+        } else {
+          pq.add(bfb);
+        }
       }
       flushRemaining();
     } catch (IOException e) {
@@ -91,36 +98,12 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
-
-  private void run(BinaryFileBuffer bfb) throws IOException {
-    ByteBuffer row;
-    row = bfb.pop();
-    processRow(row);
-    if (bfb.empty()) {
-      bfb.getReader().close();
-    } else {
-      pq.add(bfb);
-    }
-  }
-
-
-  private void flushRemaining() {
-    for (JobEntity jobEntity : jobEntities) {
-      TreeMap<ValueSet, Work> valuesetToWorkTreeMap =
-          jobToValuesetWorkMap.get(jobEntity.getJobId());
-      LOGGER.info("Flusing for job id {}", jobEntity.getJobId());
-      if (!valuesetToWorkTreeMap.isEmpty()) {
-        finishUp(valuesetToWorkTreeMap);
-        valuesetToWorkTreeMap.clear();
-      }
-    }
-  }
-
   private void processRow(ByteBuffer row) {
     for (JobEntity jobEntity : jobEntities) {
       ValueSet valueSet = new ValueSet(jobEntity.getJob().getDimensions());
-      ValueSet valueSetPointer = getValueSetPointer(row, jobEntity);
-      boolean isJobFlushable = prepareValueSet(row, jobEntity, valueSet, valueSetPointer);
+      updateCurrentValueSetPointer(row, jobEntity);
+      ValueSet currentValueSetPointer = currentValueSetPointerJobMap.get(jobEntity);
+      boolean isJobFlushable = prepareValueSet(row, jobEntity, valueSet, currentValueSetPointer);
       Work reducer = prepareReducersBatch(valueSet, isJobFlushable, jobEntity);
       processReducers(reducer, row);
     }
@@ -134,36 +117,56 @@ public class SortedDataRowProcessor implements RowProcessor {
       Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
       valueSet.setValue(value, i);
     }
-    if (lastValueSetPointerJobMap.get(jobEntity.getJobId()) == null) {
-      ValueSet vsIdentifier = new ValueSet(jobEntity.getDimensionsPointer());
+    if (lastValueSetPointerJobMap.get(jobEntity) == null) {
+      ValueSet lastValueSet = new ValueSet(jobEntity.getDimensionsPointer());
       for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
         Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
-        vsIdentifier.setValue(value, i);
+        lastValueSet.setValue(value, i);
       }
-      lastValueSetPointerJobMap.put(jobEntity.getJobId(), vsIdentifier);
+      lastValueSetPointerJobMap.put(jobEntity, lastValueSet);
     } else {
-      ValueSet lastValueSetPointer = lastValueSetPointerJobMap.get(jobEntity.getJobId());
-      if (lastValueSetPointer.compareTo(currentValueSetPointer) != 0) {
+      ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
+      if (lastValueSet.compareTo(currentValueSetPointer) < 0) { // if last valueSet is smaller than
+                                                                // the current value set then set
+                                                                // last valueset to current valueset
         isFlushable = true;
-        lastValueSetPointerJobMap.put(jobEntity.getJobId(),
-            currentValueSetPointer.copy(lastValueSetPointer));
+        updateLastValueSet(row, jobEntity);
+      } else if (lastValueSet.compareTo(currentValueSetPointer) > 0) { // ideally this case should
+                                                                       // not be executed as working
+                                                                       // data set is sorted in
+                                                                       // ascending order.
+        LOGGER.info(
+            "current value set is larger than last value set :: last valueset {} and current valueset {} for job id {}",
+            lastValueSet.toString(), currentValueSetPointer.toString(), jobEntity.getJobId());
       }
     }
     return isFlushable;
   }
 
 
-  private ValueSet getValueSetPointer(ByteBuffer row, JobEntity jobEntity) {
-    ValueSet valueSetPointer = currentValueSetPointerJobMap.get(jobEntity.getJobId());
-    if (valueSetPointer == null) {
-      valueSetPointer = new ValueSet(jobEntity.getDimensionsPointer());
+  private void updateLastValueSet(ByteBuffer row, JobEntity jobEntity) {
+    ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
+    ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
+    copyValueSet(currentValueSet, lastValueSet);
+  }
+
+
+  private void updateCurrentValueSetPointer(ByteBuffer row, JobEntity jobEntity) {
+    ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
+    if (currentValueSet == null) {
+      currentValueSet = new ValueSet(jobEntity.getDimensionsPointer());
+      for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
+        currentValueSet.setValue(value, i);
+      }
+      currentValueSetPointerJobMap.put(jobEntity, currentValueSet);
+    } else {
+      ValueSet newCurrentValueSet = currentValueSetPointerJobMap.get(jobEntity);
+      for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
+        newCurrentValueSet.setValue(value, i);
+      }
     }
-    for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
-      Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
-      valueSetPointer.setValue(value, i);
-    }
-    currentValueSetPointerJobMap.put(jobEntity.getJobId(), valueSetPointer);
-    return valueSetPointer;
   }
 
   private Work prepareReducersBatch(ValueSet valueSet, boolean isJobFlushable,
@@ -177,16 +180,6 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void logProgress() {
     totalNoOfRowsProcessed++;
     if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
-      /*
-       * LOGGER.info(
-       * "*********  Processing in progress. {} no. of rows processed... and current batch size {} *********"
-       * , new Object[] {totalNoOfRowsProcessed, jobToValuesetWorkMap.size()}); LOGGER.info(
-       * "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}."
-       * , new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
-       * MemoryStatus.getUsedMemory(), MemoryStatus.getTotalmemory(), MemoryStatus.getFreeMemory(),
-       * MemoryStatus.getMaxMemory()}); LOGGER.info("Size of batch(jobToValuesetWorkMap) is: {}",
-       * new Object[] {jobToValuesetWorkMap.size()});
-       */
       LOGGER.info(
           "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
           new Object[] {MemoryStatus.getMaximumFreeMemoryThatCanBeAllocated(),
@@ -204,21 +197,21 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
   private Work addReducer(ValueSet valueSet, boolean isJobFlush, JobEntity jobEntity) {
-    TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity.getJobId());
+    TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
     if (valuesetToWorkTreeMap == null) {
       valuesetToWorkTreeMap = new TreeMap<ValueSet, Work>();
-      jobToValuesetWorkMap.put(jobEntity.getJobId(), valuesetToWorkTreeMap);
+      jobToValuesetWorkMap.put(jobEntity, valuesetToWorkTreeMap);
     }
     if (isJobFlush && !valuesetToWorkTreeMap.isEmpty()) {
-      LOGGER.info("Flusing result for job id {}", jobEntity.getJobId());
       finishUp(valuesetToWorkTreeMap);
       valuesetToWorkTreeMap.clear();
     }
     Work work = valuesetToWorkTreeMap.get(valueSet);
     if (work == null) {
       work = jobEntity.getJob().createNewWork();
+      valuesetToWorkTreeMap = new TreeMap<ValueSet, Work>();
       valuesetToWorkTreeMap.put(valueSet, work); // put new value set
-      jobToValuesetWorkMap.put(jobEntity.getJobId(), valuesetToWorkTreeMap);
+      jobToValuesetWorkMap.put(jobEntity, valuesetToWorkTreeMap);
     }
     return work;
   }
@@ -261,11 +254,10 @@ public class SortedDataRowProcessor implements RowProcessor {
 
 
   private int columnPos = 0;
-
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
-    for (int dim = 0; dim < sharDim.length; dim++) {
-      DataLocator locator = dataDescription.locateField(sharDim[dim]);
+    for (int dim = 0; dim < sortedDimensions.length; dim++) {
+      DataLocator locator = dataDescription.locateField(sortedDimensions[dim]);
       columnPos = locator.getOffset();
       for (int pointer = 0; pointer < locator.getSize(); pointer++) {
         if (row1[columnPos] != row2[columnPos]) {
@@ -287,8 +279,28 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   private void orderDimensions(int primaryDimension) {
     for (int i = 0; i < context.getShardingIndexes().length; i++) {
-      sharDim[i] = context.getShardingIndexes()[(i + primaryDimension)
+      sortedDimensions[i] = context.getShardingIndexes()[(i + primaryDimension)
           % context.getShardingIndexes().length];
     }
+  }
+
+  private void flushRemaining() {
+    for (JobEntity jobEntity : jobEntities) {
+      TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
+      if (!valuesetToWorkTreeMap.isEmpty()) {
+        LOGGER.info("Flusing for job id {}", jobEntity.getJobId());
+        finishUp(valuesetToWorkTreeMap);
+        valuesetToWorkTreeMap.clear();
+      }
+    }
+  }
+
+  public ValueSet copyValueSet(ValueSet vsFrom, ValueSet vsTo) {
+    if (vsFrom.getKeyIndexes().length != vsTo.getKeyIndexes().length)
+      throw new RuntimeException("Unable to copy the value set");
+    for (int i = 0; i < vsFrom.getKeyIndexes().length; i++) {
+      vsTo.setValue(vsFrom.getValues()[i], i);
+    }
+    return vsTo;
   }
 }

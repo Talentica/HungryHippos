@@ -18,6 +18,7 @@ public class TopVideosWork implements Work, Serializable {
   private TreeMap<Double, List<YoutubeVideo>> topRatedVideos = new TreeMap<>();
 
   private double topRating = -1;
+  private int  jobId;
 
   public TopVideosWork(int[] dimensions) {
     this.dimensions = dimensions;
@@ -64,6 +65,11 @@ public class TopVideosWork implements Work, Serializable {
   @Override
   public void reset() {
     topRatedVideos.clear();
+  }
+
+  @Override
+  public int getJobId() {
+    return jobId;
   }
 
 }

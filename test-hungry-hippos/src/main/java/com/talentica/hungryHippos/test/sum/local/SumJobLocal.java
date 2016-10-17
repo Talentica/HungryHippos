@@ -18,18 +18,19 @@ public class SumJobLocal implements Job, Serializable {
   protected int[] dimensions;
 
   private int valueIndex = -1;
-
+  private int jobId;
   public SumJobLocal() {}
 
-  public SumJobLocal(int[] dimensions, int valueIndex) {
+  public SumJobLocal(int[] dimensions, int valueIndex,int jobId) {
     this.dimensions = dimensions;
     this.valueIndex = valueIndex;
+    this.jobId = jobId;
   }
 
 
   @Override
   public Work createNewWork() {
-    return new SumWorkLocal(dimensions, valueIndex);
+    return new SumWorkLocal(dimensions, valueIndex,jobId);
   }
 
   @Override
@@ -48,6 +49,12 @@ public class SumJobLocal implements Job, Serializable {
           + "}";
     }
     return super.toString();
+  }
+
+  @Override
+  public int getJobId() {
+    // TODO Auto-generated method stub
+    return 0;
   }
 
 }

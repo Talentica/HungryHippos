@@ -33,4 +33,10 @@ public class TopVideosByRatingJob implements Job, Serializable {
     return super.toString();
   }
 
+  @Override
+  public int getJobId() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
 }

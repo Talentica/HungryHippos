@@ -13,27 +13,22 @@ import com.talentica.hungryHippos.client.job.Job;
  * @author PooshanS
  *
  */
-public class JobEntity implements Serializable {
+public class JobEntity implements Serializable, Comparable<JobEntity> {
   private static final long serialVersionUID = 7062343992924390450L;
-  private int jobId;
-  private static int counter;
   private Job job;
   private String status;
 
   private int[] dimensionsPointer;
-  
-  
+
+  public JobEntity() {}
+
   public JobEntity(Job job) {
-    this();
     this.job = job;
   }
 
-  public JobEntity() {
-    jobId = counter++;
-  }
 
   public int getJobId() {
-    return jobId;
+    return job.getJobId();
   }
 
   public Job getJob() {
@@ -59,7 +54,7 @@ public class JobEntity implements Serializable {
       result = false;
     } else {
       JobEntity jobEntity = (JobEntity) object;
-      if (this.jobId == jobEntity.getJobId()) {
+      if (this.job.getJobId() == jobEntity.getJobId()) {
         result = true;
       }
     }
@@ -68,7 +63,7 @@ public class JobEntity implements Serializable {
 
   @Override
   public int hashCode() {
-    return this.jobId;
+    return this.job.getJobId();
   }
 
   @Override
@@ -83,7 +78,19 @@ public class JobEntity implements Serializable {
   public void setDimensionsPointer(int[] dimensionsPointer) {
     this.dimensionsPointer = dimensionsPointer;
   }
-  
-  
+
+  @Override
+  public int compareTo(JobEntity o) {
+    if (this.equals(o)) {
+      return 0;
+    } else if(this.job.getJobId() < o.getJobId() ){
+      return -1;
+    }else if(this.job.getJobId() > o.getJobId() ){
+      return 1;
+    }
+    return 0;
+  }
+
+
 
 }

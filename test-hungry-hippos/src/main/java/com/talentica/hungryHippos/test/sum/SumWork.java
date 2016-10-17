@@ -16,10 +16,12 @@ public class SumWork implements Work, Serializable {
   protected int[] dimensions;
   protected int valueIndex;
   private double sum;
+  private int jobId;
 
-  public SumWork(int[] dimensions, int valueIndex) {
+  public SumWork(int[] dimensions, int valueIndex,int jobId) {
     this.dimensions = dimensions;
     this.valueIndex = valueIndex;
+    this.jobId = jobId;
   }
 
   @Override
@@ -29,12 +31,17 @@ public class SumWork implements Work, Serializable {
 
   @Override
   public void calculate(ExecutionContext executionContext) {
-    executionContext.saveValue(valueIndex, sum, "Sum");
+    executionContext.saveValue(jobId,valueIndex, sum, "Sum");
   }
 
   @Override
   public void reset() {
     sum = 0;
+  }
+
+  @Override
+  public int getJobId() {
+   return jobId;
   }
 
 }

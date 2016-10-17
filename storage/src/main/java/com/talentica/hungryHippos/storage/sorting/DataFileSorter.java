@@ -162,7 +162,7 @@ public class DataFileSorter {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
-    sortDims = orderDimensions(key << 1);
+    sortDims = orderDimensions(key);
     this.comparator.setDimensions(sortDims);
     LOGGER.info("Sorting for file [{}] is started...", inputFile.getName());
     in = new DataInputStream(new FileInputStream(inputFile));

@@ -16,10 +16,12 @@ public class SumWork implements Work, Serializable {
 	protected int[] dimensions;
 	protected int valueIndex;
 	private long sum;
+	private int jobId;
 
-  public SumWork(int[] dimensions, int valueIndex) {
+  public SumWork(int[] dimensions, int valueIndex,int jobId) {
 		this.dimensions = dimensions;
 		this.valueIndex = valueIndex;
+		this.jobId = jobId;
 	}
 
 	@Override
@@ -36,5 +38,10 @@ public class SumWork implements Work, Serializable {
 	public void reset() {
 		sum = 0;
 	}
+
+  @Override
+  public int getJobId() {
+   return jobId;
+  }
 
 }

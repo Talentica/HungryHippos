@@ -136,13 +136,4 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
     }
     return 0;
   }
-
-  public ValueSet copy(ValueSet vsTo) {
-    if (values.length != vsTo.keyIndexes.length)
-      throw new RuntimeException("Unable to copy the value set");
-    for (int i = 0; i < values.length; i++) {
-      vsTo.getValues()[i] = values[i];
-    }
-    return vsTo;
-  }
 }

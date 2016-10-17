@@ -16,17 +16,19 @@ public class SumJob implements Job,Serializable{
 	private static final long serialVersionUID = -4111336293020419218L;
 	protected int [] dimensions;
     protected int valueIndex;
+    protected int jobId;
     public SumJob(){}
 
-    public SumJob(int[] dimensions, int primaryDimension, int valueIndex) {
+    public SumJob(int[] dimensions, int primaryDimension, int valueIndex,int jobId) {
         this.dimensions = dimensions;
         this.valueIndex = valueIndex;
+        this.jobId = jobId;
     }
 
 
     @Override
     public Work createNewWork() {
-    return new SumWork(dimensions, valueIndex);
+    return new SumWork(dimensions, valueIndex,jobId);
     }
 
     @Override
@@ -46,5 +48,10 @@ public class SumJob implements Job,Serializable{
 		}
 		return super.toString();
 	}
+
+  @Override
+  public int getJobId() {
+   return jobId;
+  }
 
 }

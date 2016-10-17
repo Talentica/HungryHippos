@@ -16,9 +16,9 @@ public class UniqueCountWork extends SumWork {
    */
   private static final long serialVersionUID = 1L;
   HashSet<CharSequence> uniqueValues = new HashSet<>();
-
-  public UniqueCountWork(int[] dimensions, int valueIndex) {
-    super(dimensions, valueIndex);
+  private int  jobId;
+  public UniqueCountWork(int[] dimensions, int valueIndex,int jobId) {
+    super(dimensions, valueIndex,jobId);
   }
 
 

@@ -1,14 +1,11 @@
 package com.talentica.hungryHippos.hadoopTest;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Reducer;
-
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
+
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
 
 /**
  * Created by debasishc on 12/10/15.

@@ -17,12 +17,14 @@ public class SumWorkLocal implements Work, Serializable {
   protected int[] dimensions;
 
   private int valueIndex = -1;
+  private int  jobId;
 
   private Double sum = 0.0;
 
-  public SumWorkLocal(int[] dimensions, int valueIndex) {
+  public SumWorkLocal(int[] dimensions, int valueIndex,int jobId) {
     this.dimensions = dimensions;
     this.valueIndex = valueIndex;
+    this.jobId = jobId;
   }
 
   @Override
@@ -38,6 +40,11 @@ public class SumWorkLocal implements Work, Serializable {
   @Override
   public void reset() {
     sum = 0d;
+  }
+
+  @Override
+  public int getJobId() {
+   return jobId;
   }
 
 }

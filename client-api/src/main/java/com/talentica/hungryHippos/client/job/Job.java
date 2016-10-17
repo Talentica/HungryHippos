@@ -27,5 +27,6 @@ public interface Job {
 	 * @return array of the dimensions of data set.
 	 */
 	int[] getDimensions();
-
+	
+    int getJobId();
 }

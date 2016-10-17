@@ -87,4 +87,10 @@ public class ExecutionContextImpl implements ExecutionContext {
   public void flush() {
     out.flush();
   }
+
+  @Override
+  public void saveValue(int jobId, int calculationIndex, Object value, String metric) {
+    out.println(metric + " metric calculation resultfor job id :: "+ jobId+ " calculationIdex "+ calculationIndex + " and "
+        + keys.toString() + " is ====> " + value);
+  }
 }

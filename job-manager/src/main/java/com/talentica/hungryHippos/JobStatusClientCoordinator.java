@@ -5,14 +5,10 @@ import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.ge
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingHHNode;
 import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingJobIdNode;
 
-import java.io.FileNotFoundException;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryhippos.config.cluster.Node;

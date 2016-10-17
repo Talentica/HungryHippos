@@ -2,7 +2,9 @@ package com.talentica.hungryHippos.common.job;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,6 +35,17 @@ public class PrimaryDimensionwiseJobsCollectionTest {
     jobs.add(new JobEntity(new TestJob(new int[] {0, 1, 6, 9, 10}))); // 6
     jobs.add(new JobEntity(new TestJob(new int[] {1, 2, 3, 10, 5, 9}))); // 1
     jobs.add(new JobEntity(new TestJob(new int[] {1, 8, 9}))); // 1
+    
+    Map<JobEntity,String> jobsMap = new HashMap<>();
+    JobEntity je = new JobEntity(new TestJob(new int[] {3, 10, 0}));
+      jobsMap.put(je,"0");
+      je = new JobEntity(new TestJob(new int[] {4, 7, 2}));
+      jobsMap.put(je , "4");
+      
+      String value = jobsMap.get(je);
+    System.out.println(value);
+    
+    
     List<PrimaryDimensionwiseJobsCollection> dimensionwiseJobsCollection =
         PrimaryDimensionwiseJobsCollection.from(jobs, context);
     Assert.assertNotNull(dimensionwiseJobsCollection);
@@ -84,15 +97,16 @@ public class PrimaryDimensionwiseJobsCollectionTest {
   public void testFrom2() {
     Mockito.when(context.getShardingIndexes()).thenReturn(new int[] {0, 1, 2});
     List<JobEntity> jobs = new ArrayList<>();
+    int jobId = 0;
     for (int i = 0; i < 1; i++) {
-      jobs.add(new JobEntity(new TestJob(new int[] {i}, 6)));
-      jobs.add(new JobEntity(new TestJob(new int[] {i}, 7)));
+      jobs.add(new JobEntity(new TestJob(new int[] {i}, 6,jobId++)));
+      jobs.add(new JobEntity(new TestJob(new int[] {i}, 7,jobId++)));
       for (int j = i + 1; j < 4; j++) {
-        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 6)));
-        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 7)));
+        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 6,jobId++)));
+        jobs.add(new JobEntity(new TestJob(new int[] {i, j}, 7,jobId++)));
         for (int k = j + 1; k < 4; k++) {
-          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 6)));
-          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 7)));
+          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 6,jobId++)));
+          jobs.add(new JobEntity(new TestJob(new int[] {i, j, k}, 7,jobId++)));
         }
       }
     }
@@ -111,16 +125,17 @@ public class PrimaryDimensionwiseJobsCollectionTest {
   public static class TestJob implements Job {
 
     private int[] dimensions;
-
+    private int jobId;
     private int valueIndex;
 
     public TestJob(int[] dimensions) {
       this.dimensions = dimensions;
     }
 
-    public TestJob(int[] dimensions, int valueIndex) {
+    public TestJob(int[] dimensions, int valueIndex,int jobId) {
       this(dimensions);
       this.valueIndex = valueIndex;
+      this.jobId = jobId;
     }
 
     @Override
@@ -137,6 +152,11 @@ public class PrimaryDimensionwiseJobsCollectionTest {
     public String toString() {
       return "TestJob{Dimensions:" + Arrays.toString(dimensions) + ",valueIndex:" + valueIndex
           + "}";
+    }
+
+    @Override
+    public int getJobId() {
+      return jobId;
     }
 
   }

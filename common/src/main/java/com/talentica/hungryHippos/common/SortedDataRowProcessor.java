@@ -126,18 +126,9 @@ public class SortedDataRowProcessor implements RowProcessor {
       lastValueSetPointerJobMap.put(jobEntity, lastValueSet);
     } else {
       ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
-      if (lastValueSet.compareTo(currentValueSetPointer) < 0) { // if last valueSet is smaller than
-                                                                // the current value set then set
-                                                                // last valueset to current valueset
+      if(lastValueSet.compareTo(currentValueSetPointer) != 0){
         jobFlushEligible = true;
         updateLastValueSet(row, jobEntity);
-      } else if (lastValueSet.compareTo(currentValueSetPointer) > 0) { // ideally this case should
-                                                                       // not be executed as working
-                                                                       // data set is sorted in
-                                                                       // ascending order.
-        LOGGER.info(
-            "last valueset is larger than current valueset :: last valueset {} and current valueset {} for job id {}",
-            lastValueSet.toString(), currentValueSetPointer.toString(), jobEntity.getJobId());
       }
     }
     return jobFlushEligible;
@@ -147,7 +138,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void updateLastValueSet(ByteBuffer row, JobEntity jobEntity) {
     ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
     ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
-    lastValueSet.setValues(currentValueSet.getValues());
+    copyValueSet(currentValueSet,lastValueSet);
   }
 
 
@@ -209,9 +200,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     Work work = valuesetToWorkTreeMap.get(valueSet);
     if (work == null) {
       work = jobEntity.getJob().createNewWork();
-      valuesetToWorkTreeMap = new TreeMap<ValueSet, Work>();
       valuesetToWorkTreeMap.put(valueSet, work); // put new value set
-      jobToValuesetWorkMap.put(jobEntity, valuesetToWorkTreeMap);
     }
     return work;
   }
@@ -297,6 +286,8 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
   public void copyValueSet(ValueSet vsFrom, ValueSet vsTo) {
-    vsTo.setValues(vsFrom.getValues());
+    for (int i = 0; i < vsFrom.getKeyIndexes().length; i++) {
+      vsTo.setValue(vsFrom.getValues()[i], i);
+    }
   }
 }

@@ -52,7 +52,7 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
     return Arrays.equals(values, valueSet.values) & Arrays.equals(keyIndexes, valueSet.keyIndexes);
   }
 
-  public Comparable[] getValues() {
+  public Object[] getValues() {
     return values;
   }
 

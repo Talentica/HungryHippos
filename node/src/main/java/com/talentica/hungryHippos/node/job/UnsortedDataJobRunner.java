@@ -1,7 +1,10 @@
 package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.common.DataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
@@ -48,8 +52,6 @@ public class UnsortedDataJobRunner implements JobRunner {
       RowProcessor rowProcessor =
           new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
       rowProcessor.process();
-      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
-          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -58,19 +60,26 @@ public class UnsortedDataJobRunner implements JobRunner {
 
   @Override
   public void run(String jobUuid, List<PrimaryDimensionwiseJobsCollection> jobsCollectionList) {
-    for (PrimaryDimensionwiseJobsCollection dimensionWiseJob : jobsCollectionList) {
-      int primaryDimensionIndex = dimensionWiseJob.getPrimaryDimensionIndex();
-      LOGGER.info("Executing {} jobs for primary dimension: {}",
-          new Object[] {dimensionWiseJob.getNumberOfJobs(), primaryDimensionIndex});
-      for (int i = 0; i < dimensionWiseJob.getNumberOfJobs(); i++) {
-        JobEntity jobEntity = dimensionWiseJob.jobAt(i);
-        int jobEntityId = jobEntity.getJobId();
-        JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
-        LOGGER.info("Execution of job: {} started", new Object[] {jobEntity});
-        run(primaryDimensionIndex, jobEntity);
-        JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
-        LOGGER.info("Execution of job: {} finished", new Object[] {jobEntity});
+    try {
+      for (PrimaryDimensionwiseJobsCollection dimensionWiseJob : jobsCollectionList) {
+        int primaryDimensionIndex = dimensionWiseJob.getPrimaryDimensionIndex();
+        LOGGER.info("Executing {} jobs for primary dimension: {}",
+            new Object[] {dimensionWiseJob.getNumberOfJobs(), primaryDimensionIndex});
+        for (int i = 0; i < dimensionWiseJob.getNumberOfJobs(); i++) {
+          JobEntity jobEntity = dimensionWiseJob.jobAt(i);
+          int jobEntityId = jobEntity.getJobId();
+          JobStatusNodeCoordinator.updateStartedJobEntity(jobUuid, jobEntityId, nodeId);
+          LOGGER.info("Execution of job: {} started", new Object[] {jobEntity});
+          run(primaryDimensionIndex, jobEntity);
+          JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
+          LOGGER.info("Execution of job: {} finished", new Object[] {jobEntity});
+        }
       }
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
+          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
+    } catch (FileNotFoundException | HungryHippoException | JAXBException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 

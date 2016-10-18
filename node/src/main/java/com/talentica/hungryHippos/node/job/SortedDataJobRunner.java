@@ -15,6 +15,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.common.DataRowProcessor;
 import com.talentica.hungryHippos.common.SortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
@@ -63,8 +64,6 @@ public class SortedDataJobRunner implements JobRunner {
       RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
           outputHHPath, storeAccess, primaryDimensionIndex, dataDescription, context);
       rowProcessor.process();
-      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
-          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
     } catch (Exception e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -86,7 +85,7 @@ public class SortedDataJobRunner implements JobRunner {
     try {
       for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
         int primaryDimensionIndex = jobSCollection.getPrimaryDimensionIndex();
-        LOGGER.info("Sorting started for primary dimension {}",primaryDimensionIndex);
+        LOGGER.info("Sorting started for primary dimension {}", primaryDimensionIndex);
         dataFileSorter.doSortingPrimaryDimensionWise(primaryDimensionIndex);
         for (int i = 0; i < jobSCollection.getNumberOfJobs(); i++) {
           JobEntity jobEntity = jobSCollection.jobAt(i);
@@ -102,8 +101,11 @@ public class SortedDataJobRunner implements JobRunner {
           JobStatusNodeCoordinator.updateCompletedJobEntity(jobUuid, jobEntityId, nodeId);
         }
       }
+      HungryHipposFileSystem.getInstance().updateFSBlockMetaData(outputHHPath, nodeId,
+          (new File(FileSystemContext.getRootDirectory() + outputHHPath)).length());
+
     } catch (IOException | ClassNotFoundException | KeeperException | InterruptedException
-        | JAXBException e) {
+        | JAXBException | HungryHippoException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
     }

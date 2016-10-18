@@ -7,11 +7,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,51 +60,6 @@ public class DataFileSorter {
     this.numFiles = 1 << shardDims.length;
   }
 
-  /**
-   * To sort the data based on job's primary dimensions.
-   * 
-   * @param job
-   * @throws FileNotFoundException
-   * @throws ClassNotFoundException
-   * @throws IOException
-   * @throws InsufficientMemoryException
-   * @throws KeeperException
-   * @throws InterruptedException
-   * @throws JAXBException
-   */
-  public void doSortingPrimaryDimensionWise(int primaryDimensionIndex) throws FileNotFoundException,
-      ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
-    int keyIdBit = 1 << primaryDimensionIndex;
-    File inputDir;
-    dataDir = validateDirectory(dataDir);
-    for (int fileId = 0; fileId < numFiles; fileId++) {
-      if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
-        String absoluteDataFilePath = dataDir+ INPUT_DATAFILE_PRIFIX + fileId;
-        inputDir = new File(absoluteDataFilePath);
-        File sortedFileFlag =
-            new File(absoluteDataFilePath + File.separatorChar + DATA_FILE_SORTED);
-        boolean isDataFileSorted = isFileSortedOnPrimDim(sortedFileFlag, primaryDimensionIndex);
-        if (isDataFileSorted) { // if data file already sorted it should skip.
-          LOGGER.info("Data file {} is already sorted on primary dimension {}",
-              absoluteDataFilePath, primaryDimensionIndex);
-          continue;
-        }
-        if (inputDir.isDirectory()) {
-          for (File inputFile : inputDir.listFiles(DataFileAccess.fileNameFilter)) {
-            long dataSize = inputFile.length();
-            if (dataSize <= 0) {
-              continue;
-            }
-            doSorting(inputFile, primaryDimensionIndex);
-          }
-        } else {
-          continue;
-        }
-        setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
-      }
-    }
-  }
-
 
   /**
    * To do the sorting once the data is ready.
@@ -122,22 +76,66 @@ public class DataFileSorter {
     File lockFile = new File(dataDir + LOCK_FILE);
     createLockFile(lockFile);
     for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
-      String childDirectory = dataDir + INPUT_DATAFILE_PRIFIX + (1 << fileId);
+      String childDirectory = dataDir + (INPUT_DATAFILE_PRIFIX + (1 << fileId));
       File inputDir = new File(childDirectory);
       if (!inputDir.exists()) {
         break;
       }
       if (inputDir.isDirectory()) {
-        for (File inputFile : inputDir.listFiles()) {
-          long dataSize = inputFile.length();
-          if (dataSize <= 0) {
-            continue;
-          }
-          doSorting(inputFile, fileId);
-        }
+        sortAllFilesInDirectory(fileId, inputDir, null);
       }
     }
     unlockFile(lockFile);
+  }
+
+
+  /**
+   * To sort the data based on job's primary dimensions.
+   * 
+   * @param job
+   * @throws FileNotFoundException
+   * @throws ClassNotFoundException
+   * @throws IOException
+   * @throws InsufficientMemoryException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
+  public void doSortingPrimaryDimensionWise(int primaryDimensionIndex) throws FileNotFoundException,
+      ClassNotFoundException, IOException, KeeperException, InterruptedException, JAXBException {
+    int keyIdBit = 1 << primaryDimensionIndex;
+    dataDir = validateDirectory(dataDir);
+    for (int fileId = 0; fileId < numFiles; fileId++) {
+      if ((keyIdBit & fileId) > 0 && (fileId != (keyIdBit))) {
+        String absoluteDataFilePath = dataDir + (INPUT_DATAFILE_PRIFIX + fileId);
+        File inputDir = new File(absoluteDataFilePath);
+        File sortedFileFlag =
+            new File(absoluteDataFilePath + File.separatorChar + DATA_FILE_SORTED);
+        if (isFileSortedOnPrimDim(sortedFileFlag, primaryDimensionIndex)) {
+          LOGGER.info("Data file {} is already sorted on primary dimension {}",
+              absoluteDataFilePath, primaryDimensionIndex);
+          continue;
+        }
+        if (inputDir.isDirectory()) {
+          sortAllFilesInDirectory(primaryDimensionIndex, inputDir, DataFileAccess.fileNameFilter);
+        } else {
+          continue;
+        }
+        setPrimDimForSorting(sortedFileFlag, primaryDimensionIndex);
+      }
+    }
+  }
+
+  private void sortAllFilesInDirectory(int primaryDimensionIndex, File inputDir,
+      FilenameFilter filter) throws IOException {
+    File[] files = (filter == null) ? inputDir.listFiles() : inputDir.listFiles(filter);
+    for (File inputFile : files) {
+      long dataSize = inputFile.length();
+      if (dataSize <= 0) {
+        continue;
+      }
+      doSorting(inputFile, primaryDimensionIndex);
+    }
   }
 
   private synchronized void createLockFile(File lockFile) throws IOException {
@@ -157,7 +155,7 @@ public class DataFileSorter {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
     File outputDir = new File(dataDir);
-    sortDims = orderDimensions(key);
+    orderDimensions(key);
     LOGGER.info(
         "Sorting started for data directory {} on primary dimension {} and sorted by dimensions {}",
         inputFile.getAbsoluteFile(), key, Arrays.toString(sortDims));
@@ -429,12 +427,10 @@ public class DataFileSorter {
     }
   }
 
-  private int[] orderDimensions(int primaryDimension) {
-    int[] sortDim = new int[shardDims.length];
+  private void orderDimensions(int primaryDimension) {
     for (int i = 0; i < shardDims.length; i++) {
-      sortDim[i] = shardDims[(i + primaryDimension) % shardDims.length];
+      sortDims[i] = shardDims[(i + primaryDimension) % shardDims.length];
     }
-    return sortDim;
   }
 
 
@@ -453,8 +449,9 @@ public class DataFileSorter {
     }
     FileInputStream fis = new FileInputStream(primDimFile);
     if (primDimFile.exists()) {
-      int primDimFlag = fis.read(); 
-      LOGGER.info("File is already sorted on {} and currently checking to sort on {}",primDimFlag,primDim);
+      int primDimFlag = fis.read();
+      LOGGER.info("File is already sorted on {} and currently checking to sort on {}", primDimFlag,
+          primDim);
       if (primDimFlag == primDim) {
         return true;
       }

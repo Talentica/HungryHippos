@@ -72,19 +72,20 @@ public class SortedDataRowProcessor implements RowProcessor {
     this.buildDataFileAccess();
     this.currentValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
     this.lastValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
-    this.setJobsConditionalFlush();
+    this.setJobFlushPointer();
   }
 
 
   @Override
   public void process() {
     LOGGER.info("Sorted dimensions {}", Arrays.toString(sortedDimensions));
-    LOGGER.info("Size of the priority queue {}", pq.size());
+    LOGGER.info("Number of files opened {}", pq.size());
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
         ByteBuffer row = bfb.pop();
         processRow(row);
+        totalNoOfRowsProcessed++;
         if (bfb.empty()) {
           bfb.getReader().close();
         } else {
@@ -118,15 +119,15 @@ public class SortedDataRowProcessor implements RowProcessor {
       valueSet.setValue(value, i);
     }
     if (lastValueSetPointerJobMap.get(jobEntity) == null) {
-      ValueSet lastValueSet = new ValueSet(jobEntity.getDimensionsPointer());
-      for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
-        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
+      ValueSet lastValueSet = new ValueSet(jobEntity.getFlushPointer());
+      for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getFlushPointer()[i], row);
         lastValueSet.setValue(value, i);
       }
       lastValueSetPointerJobMap.put(jobEntity, lastValueSet);
     } else {
       ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
-      if(lastValueSet.compareTo(currentValueSetPointer) != 0){
+      if (lastValueSet.compareTo(currentValueSetPointer) != 0) {
         jobFlushEligible = true;
         updateLastValueSet(row, jobEntity);
       }
@@ -138,23 +139,23 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void updateLastValueSet(ByteBuffer row, JobEntity jobEntity) {
     ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
     ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
-    copyValueSet(currentValueSet,lastValueSet);
+    copyValueSet(currentValueSet, lastValueSet);
   }
 
 
   private void updateCurrentValueSetPointer(ByteBuffer row, JobEntity jobEntity) {
     ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
     if (currentValueSet == null) {
-      currentValueSet = new ValueSet(jobEntity.getDimensionsPointer());
-      for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
-        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
+      currentValueSet = new ValueSet(jobEntity.getFlushPointer());
+      for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getFlushPointer()[i], row);
         currentValueSet.setValue(value, i);
       }
       currentValueSetPointerJobMap.put(jobEntity, currentValueSet);
     } else {
       ValueSet newValueSet = currentValueSetPointerJobMap.get(jobEntity);
-      for (int i = 0; i < jobEntity.getDimensionsPointer().length; i++) {
-        Object value = dynamicMarshal.readValue(jobEntity.getDimensionsPointer()[i], row);
+      for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
+        Object value = dynamicMarshal.readValue(jobEntity.getFlushPointer()[i], row);
         newValueSet.setValue(value, i);
       }
     }
@@ -169,7 +170,6 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
   private void logProgress() {
-    totalNoOfRowsProcessed++;
     if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
       LOGGER.info(
           "Memory status (in MBs): Max free memory available-{}, Used memory-{} ,Total Memory-{}, Free memory {},Max memory-{}.",
@@ -225,7 +225,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
-  private void setJobsConditionalFlush() {
+  private void setJobFlushPointer() {
     List<Integer> dimns = new ArrayList<>();
     for (JobEntity jobEntity : jobEntities) {
       for (int sortDim = 0; sortDim < sortedDimensions.length; sortDim++) {
@@ -235,7 +235,7 @@ public class SortedDataRowProcessor implements RowProcessor {
           }
         }
       }
-      jobEntity.setDimensionsPointer(dimns.stream().mapToInt(i -> i).toArray());
+      jobEntity.setFlushPointer(dimns.stream().mapToInt(i -> i).toArray());
       dimns.clear();
     }
     LOGGER.info("All recent jobs {}", Arrays.toString(jobEntities.toArray()));
@@ -277,7 +277,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void flushRemaining() {
     for (JobEntity jobEntity : jobEntities) {
       TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
-      if (!valuesetToWorkTreeMap.isEmpty()) {
+      if ((valuesetToWorkTreeMap != null) && !valuesetToWorkTreeMap.isEmpty()) {
         LOGGER.info("Flusing for job id {}", jobEntity.getJobId());
         finishUp(valuesetToWorkTreeMap);
         valuesetToWorkTreeMap.clear();

@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.KeeperException;
@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
-
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -134,9 +132,12 @@ public class FileDataStore implements DataStore {
       }
     }
     if (context.getShardingClientConfig().isDataFileSorting()) {
+      long startTime = System.currentTimeMillis();
       try {
         new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context)
             .doSortingDefault();
+        logger.info("Total time taken (ms) to sort the default files {}",
+            System.currentTimeMillis() - startTime);
       } catch (IOException e) {
         e.printStackTrace();
         logger.error(e.toString());

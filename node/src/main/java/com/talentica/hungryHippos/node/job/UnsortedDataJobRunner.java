@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.common.DataRowProcessor;
+import com.talentica.hungryHippos.common.UnsortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
@@ -47,10 +47,10 @@ public class UnsortedDataJobRunner implements JobRunner {
   public void run(int primaryDimensionIndex, JobEntity jobEntity) {
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
-          DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
+          UnsortedDataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor =
-          new DataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
+          new UnsortedDataRowProcessor(dynamicMarshal, jobEntity, outputHHPath, storeAccess);
       rowProcessor.process();
     } catch (Exception e) {
       LOGGER.error(e.toString());

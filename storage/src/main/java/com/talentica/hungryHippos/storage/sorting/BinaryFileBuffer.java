@@ -47,6 +47,7 @@ public final class BinaryFileBuffer {
   }
 
   public ByteBuffer pop() throws IOException {
+    lastRowByteBuffer.clear();
     System.arraycopy(peek().array(), 0, lastByteRead, 0, peek().capacity());
     reload();
     return lastRowByteBuffer;

@@ -22,7 +22,7 @@ import com.talentica.hungryHippos.utility.MemoryStatus;
 /**
  * Created by debasishc on 9/9/15.
  */
-public class DataRowProcessor implements RowProcessor {
+public class UnsortedDataRowProcessor implements RowProcessor {
 
   private static final String AFTER_GARBAGE_COLLECTION_FREE_MEMORY_AVAILABLE_IS =
       "After garbage collection free memory available is: ";
@@ -66,7 +66,7 @@ public class DataRowProcessor implements RowProcessor {
 
   private boolean additionalValueSetsPresentForProcessing = false;
 
-  private Logger LOGGER = LoggerFactory.getLogger(DataRowProcessor.class);
+  private Logger LOGGER = LoggerFactory.getLogger(UnsortedDataRowProcessor.class);
 
   private static int batchId = 0;
 
@@ -83,7 +83,7 @@ public class DataRowProcessor implements RowProcessor {
 
   long startTime = System.currentTimeMillis();
 
-  public DataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath,
+  public UnsortedDataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath,
       StoreAccess storeAccess) {
     this.jobEntity = jobEntity;
     this.dynamicMarshal = dynamicMarshal;

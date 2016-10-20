@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -12,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.common.DataRowProcessor;
 import com.talentica.hungryHippos.common.SortedDataRowProcessor;
+import com.talentica.hungryHippos.common.UnsortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
@@ -55,11 +54,9 @@ public class SortedDataJobRunner implements JobRunner {
   }
 
   public void run(int primaryDimensionIndex, List<JobEntity> jobEntities) {
-    LOGGER.info("Start running the jobs {} having primary dimension {}",
-        Arrays.toString(jobEntities.toArray()), primaryDimensionIndex);
     try {
       MemoryStatus.verifyMinimumMemoryRequirementIsFulfiled(
-          DataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
+          UnsortedDataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
           outputHHPath, storeAccess, primaryDimensionIndex, dataDescription, context);

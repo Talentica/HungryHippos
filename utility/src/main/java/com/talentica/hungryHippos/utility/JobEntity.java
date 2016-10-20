@@ -18,7 +18,7 @@ public class JobEntity implements Serializable, Comparable<JobEntity> {
   private Job job;
   private String status;
 
-  private int[] dimensionsPointer;
+  private int[] flushPointer;
 
   public JobEntity() {}
 
@@ -71,12 +71,12 @@ public class JobEntity implements Serializable, Comparable<JobEntity> {
     return ToStringBuilder.reflectionToString(this);
   }
 
-  public int[] getDimensionsPointer() {
-    return dimensionsPointer;
+  public int[] getFlushPointer() {
+    return flushPointer;
   }
 
-  public void setDimensionsPointer(int[] dimensionsPointer) {
-    this.dimensionsPointer = dimensionsPointer;
+  public void setFlushPointer(int[] dimensionsPointer) {
+    this.flushPointer = dimensionsPointer;
   }
 
   @Override

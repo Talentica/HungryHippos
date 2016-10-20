@@ -166,8 +166,8 @@ public class DataFileSorter {
     if (files.size() > 1) { // merge should happen for at least two files
       mergeSortedFiles(files, inputFile, true);
     }
-    LOGGER.info("Completed file sorting and total time taken in sec {} ",
-        ((System.currentTimeMillis() - startTIme) / 1000));
+    LOGGER.info("Completed file sorting and total time taken in ms {} ",
+        ((System.currentTimeMillis() - startTIme)));
   }
 
   private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
@@ -227,8 +227,7 @@ public class DataFileSorter {
     } finally {
       dataInputStream.close();
     }
-    LOGGER.info("Total sorting time taken in sec {} ",
-        ((System.currentTimeMillis() - startTime) / 1000));
+    LOGGER.info("Total sorting time taken in ms {} ", ((System.currentTimeMillis() - startTime)));
     return files;
   }
 
@@ -254,7 +253,7 @@ public class DataFileSorter {
         bout.write(chunk);
         bout.flush();
         LOGGER.info(
-            "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
+            "Total time taken (ms) to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
       } catch (IOException e) {
         LOGGER.info("Unable to write into file {}", e.getMessage());
@@ -305,8 +304,7 @@ public class DataFileSorter {
       f.delete();
     }
     LOGGER.info("Sorted files are merged successfully.");
-    LOGGER.info("Total merging time taken in sec {} ",
-        ((System.currentTimeMillis() - startTIme) / 1000));
+    LOGGER.info("Total merging time taken (ms) {} ", ((System.currentTimeMillis() - startTIme)));
     return rowcounter;
   }
 
@@ -341,7 +339,7 @@ public class DataFileSorter {
           pq.add(bfb);
         }
       }
-      LOGGER.info("Total time taken in ms to write data during merging {}", totalTime);
+      LOGGER.info("Total time taken (ms) to write data during merging {}", totalTime);
     } finally {
       if (bout != null) {
         bout.flush();
@@ -447,16 +445,17 @@ public class DataFileSorter {
     if (!primDimFile.exists()) {
       primDimFile.createNewFile();
     }
+    int primDimFlag = -1;
     FileInputStream fis = new FileInputStream(primDimFile);
     if (primDimFile.exists()) {
-      int primDimFlag = fis.read();
-      LOGGER.info("File is already sorted on {} and currently checking to sort on {}", primDimFlag,
-          primDim);
+      primDimFlag = fis.read();
       if (primDimFlag == primDim) {
+        LOGGER.info("File is already sorted on primary dimension {}", primDimFlag);
         return true;
       }
     }
     fis.close();
+    LOGGER.info("File is being sorted on primary dimension {}", primDim);
     return false;
   }
 }

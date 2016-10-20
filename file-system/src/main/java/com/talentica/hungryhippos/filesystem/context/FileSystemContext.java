@@ -39,7 +39,7 @@ public class FileSystemContext {
     LOGGER.info("Updating filesystem configuration on zookeeper");
     String fileSystemConfigurationFile =
         CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
-            + HungryHippoCurator.ZK_PATH_SEPERATOR + CoordinationConfigUtil.FILE_SYSTEM;
+            + HungryHippoCurator.ZK_PATH_SEPERATOR + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION;
     curator.createPersistentNode(fileSystemConfigurationFile,
         JaxbUtil.unmarshalFromFile(fileSystemConfigFile, FileSystemConfig.class));
 
@@ -62,7 +62,7 @@ public class FileSystemContext {
 
         String fileSystemConfigurationFile =
             CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
-                + CoordinationConfigUtil.FILE_SYSTEM;
+                + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION;
         fileSystemConfig = (FileSystemConfig) curator.readObject(fileSystemConfigurationFile);
       }
     } catch (Exception e) {

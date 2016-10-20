@@ -152,7 +152,7 @@ public class CoordinationStarter {
         JaxbUtil.unmarshalFromFile(datapublisherConfigFilePath, DatapublisherConfig.class));
 
     CoordinationConfigUtil.uploadConfigurationOnZk(
-        rootPath + File.separatorChar + CoordinationConfigUtil.FILE_SYSTEM,
+        rootPath + File.separatorChar + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION,
         JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class));
 
     CoordinationConfigUtil.uploadConfigurationOnZk(

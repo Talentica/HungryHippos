@@ -20,14 +20,15 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.utility.FileSystemConstants;
-
 public class NodeFileSystem {
 
   private static final Logger logger = LoggerFactory.getLogger(NodeFileSystem.class);
-  private static final String HHDIR = "HungryHipposFs";
-  private static final String USER_DIR = System.getProperty("user.home");
-  private static final String HungryHipposRootDir = USER_DIR + File.separatorChar + HHDIR;
+  private final String HungryHipposRootDir;
+
+  public NodeFileSystem(String rootDir) {
+    this.HungryHipposRootDir = rootDir;
+    logger.info("File System Root Dir is set to {},rootDir");
+  }
 
   /**
    * helper method to append the rootdirectory
@@ -35,7 +36,7 @@ public class NodeFileSystem {
    * @param loc
    * @return
    */
-  private static String checkNameContainsFileSystemRoot(String loc) {
+  private String checkNameContainsFileSystemRoot(String loc) {
     if (null == loc) {
       return HungryHipposRootDir;
     } else if (!(loc.contains(HungryHipposRootDir))) {
@@ -54,7 +55,7 @@ public class NodeFileSystem {
    * @param loc
    * @return
    */
-  public static boolean checkFileExistsInNode(String loc) {
+  public boolean checkFileExistsInNode(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     return Files.exists(Paths.get(loc));
   }
@@ -70,7 +71,7 @@ public class NodeFileSystem {
    * @param loc
    * @return
    */
-  public static List<String> getAllRgularFilesPath(String loc) {
+  public List<String> getAllRgularFilesPath(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     List<String> filesPresentInRootFolder = new ArrayList<>();
     try {
@@ -96,7 +97,7 @@ public class NodeFileSystem {
    * @return
    */
 
-  public static List<String> getAllDirectoryPath(String loc) {
+  public List<String> getAllDirectoryPath(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     List<String> filesPresentInRootFolder = new ArrayList<>();
     try {
@@ -118,7 +119,7 @@ public class NodeFileSystem {
    * @param loc
    */
 
-  public static void deleteFile(String loc) {
+  public void deleteFile(String loc) {
 
     loc = checkNameContainsFileSystemRoot(loc);
 
@@ -127,9 +128,9 @@ public class NodeFileSystem {
     }
     try {
       Files.delete(Paths.get(loc));
+      logger.info("deleted file : {} ", loc);
     } catch (IOException e) {
-      logger.error(e.getMessage());
-      throw new RuntimeException(e.getMessage());
+      logger.error(e.getMessage() + "is not present");     
     }
   }
 
@@ -139,43 +140,46 @@ public class NodeFileSystem {
    * @param loc
    */
 
-  public static void deleteAllFilesInsideAFolder(String loc) {
+  public void deleteAllFilesInsideAFolder(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     List<String> regularFilesInFolder = getAllRgularFilesPath(loc);
     List<String> directoryInsideFolder = getAllDirectoryPath(loc);
 
-    regularFilesInFolder.stream().forEach(NodeFileSystem::deleteFile);
+    regularFilesInFolder.stream().forEach(this::deleteFile);
     // reversing the list so first subfolders of a folder is deleted first.
     directoryInsideFolder.stream().sorted().collect(Collectors.toCollection(ArrayDeque::new))
-        .descendingIterator().forEachRemaining(NodeFileSystem::deleteFile);
+        .descendingIterator().forEachRemaining(this::deleteFile);
+    logger.info("deleted all the files including : {} ", loc);
 
   }
 
-  public static String createDir(String loc) {
+  public String createDir(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     Path path = null;
 
     try {
       path = Files.createDirectories(Paths.get(loc));
+      logger.info("created dir : {}", loc);
     } catch (IOException e) {
 
-      e.printStackTrace();
+      logger.error(e.getMessage());     
     }
     return path.toString();
   }
 
-  public static String createFile(String loc) {
+  public String createFile(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     Path path = null;
     try {
       path = Files.createFile(Paths.get(loc));
+      logger.info("created dir : {}", loc);
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error(e.getMessage() + "is not present");     
     }
     return path.toString();
   }
 
-  public static List<String> findFilesWithPattern(String... args) {
+  public List<String> findFilesWithPattern(String... args) {
     String loc = null;
     String pattern = null;
     if (args.length == 3) {
@@ -195,16 +199,19 @@ public class NodeFileSystem {
     return finder.done();
   }
 
-  public static void createDirAndFile(String loc) {
+  public void createDirAndFile(String loc) {
     String fileName = getFileNameFromPath(loc);
     if (null == fileName) {
       createDir(loc);
+      logger.info("created dir : {}", loc);
     } else {
       String parentFolder = loc.substring(0, (loc.length() - fileName.length()));
       if (!checkFileExistsInNode(parentFolder)) {
         createDir(parentFolder);
+        logger.info("created parent dir : {}", parentFolder);
       }
       createFile(loc);
+      logger.info("created file : {}", loc);
     }
 
   }

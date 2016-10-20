@@ -33,7 +33,7 @@ public class LSCommandTest {
       String connectString = clientConfig.getCoordinationServers().getServers();
       HungryHippoCurator.getInstance(connectString, sessionTimeOut);
 
-      HungryHipposFileSystemMain.getHHFSInstance();
+    //  HungryHipposFileSystemMain.getHHFSInstance();
     } catch (FileNotFoundException | JAXBException e) {
       throw new HungryHipposFileSystemException(e.getMessage());
     }

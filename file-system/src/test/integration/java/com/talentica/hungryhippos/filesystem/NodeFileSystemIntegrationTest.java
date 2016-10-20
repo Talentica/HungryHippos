@@ -3,13 +3,12 @@ package com.talentica.hungryhippos.filesystem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 
@@ -17,13 +16,19 @@ public class NodeFileSystemIntegrationTest {
 
 
   String path = System.getProperty("user.home") + File.separatorChar + "hungryhippos";
+  private NodeFileSystem nodeFileSystem = null;
+
+  @Before
+  public void setUp() {
+    nodeFileSystem = new NodeFileSystem(path);
+  }
 
   /**
    * Create a directory
    */
   @Test
   public void testCreateDir() {
-    String loc = NodeFileSystem.createDir(path);
+    String loc = nodeFileSystem.createDir(path);
     assertEquals(loc, path);
   }
 
@@ -33,7 +38,7 @@ public class NodeFileSystemIntegrationTest {
   @Test
   public void testCreateFile() {
     String fileName = "a.txt";
-    String loc = NodeFileSystem.createFile(path + File.separatorChar + "a.txt");
+    String loc = nodeFileSystem.createFile(path + File.separatorChar + "a.txt");
     assertEquals(loc, path + File.separatorChar + fileName);
   }
 
@@ -42,7 +47,7 @@ public class NodeFileSystemIntegrationTest {
    */
   @Test
   public void testCheckFileExistsInNode() {
-    boolean exists = NodeFileSystem.checkFileExistsInNode(path);
+    boolean exists = nodeFileSystem.checkFileExistsInNode(path);
     assertTrue(exists);
   }
 
@@ -51,7 +56,7 @@ public class NodeFileSystemIntegrationTest {
    */
   @Test
   public void testCheckFileExistsInNodeNegative() {
-    boolean exists = NodeFileSystem.checkFileExistsInNode(path + "th");
+    boolean exists = nodeFileSystem.checkFileExistsInNode(path + "th");
     assertFalse(exists);
   }
 
@@ -62,7 +67,7 @@ public class NodeFileSystemIntegrationTest {
   public void testGetAllFilesPath() {
 
     List<String> regularFiles =
-        NodeFileSystem.getAllRgularFilesPath("/home/sudarshans/hungryhippos");
+        nodeFileSystem.getAllRgularFilesPath("/home/sudarshans/hungryhippos");
     assertNotEquals(regularFiles.size(), -1);
   }
 
@@ -72,7 +77,7 @@ public class NodeFileSystemIntegrationTest {
   @Test
   public void testGetAllDirectoryPath() {
 
-    List<String> regularFiles = NodeFileSystem.getAllDirectoryPath("/home/sudarshans/hungryhippos");
+    List<String> regularFiles = nodeFileSystem.getAllDirectoryPath("/home/sudarshans/hungryhippos");
     assertNotEquals(regularFiles.size(), -1);
   }
 
@@ -83,7 +88,7 @@ public class NodeFileSystemIntegrationTest {
   public void testDeleteFile() {
 
     try {
-      NodeFileSystem.deleteFile("/home/sudarshans/hungryhippos");
+      nodeFileSystem.deleteFile("/home/sudarshans/hungryhippos");
       assertFalse(true);
     } catch (RuntimeException e) {
       assertTrue(true);
@@ -98,7 +103,7 @@ public class NodeFileSystemIntegrationTest {
   public void testDeleteAllFile() {
 
     try {
-      NodeFileSystem.deleteAllFilesInsideAFolder("/home/sudarshans/hungryhippos");
+      nodeFileSystem.deleteAllFilesInsideAFolder("/home/sudarshans/hungryhippos");
       assertTrue(true);
     } catch (RuntimeException e) {
       assertTrue(false);

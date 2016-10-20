@@ -29,12 +29,7 @@ public class GetCommandTest {
 
   @Before
   public void setUp() throws HungryHipposFileSystemException {
-    try {
-   //   NodesManagerContext.getNodesManagerInstance(clientConfig);
-      HungryHipposFileSystemMain.getHHFSInstance();
-    } catch (FileNotFoundException | JAXBException e) {
-      throw new HungryHipposFileSystemException(e.getMessage());
-    }
+ 
 
   }
 

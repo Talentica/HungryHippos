@@ -67,7 +67,7 @@ public class HungryHipposCommandLauncher implements Observer {
     hhcl.setClientConfig(args[0]);
     HungryHippoCurator.getInstance(hhcl.connectString, hhcl.sessionTimeOut);
     hhcl.setNodesInCluster();
-    hhfs = HungryHipposFileSystemMain.getHHFSInstance();
+   // hhfs = HungryHipposFileSystemMain.getHHFSInstance();
 
     try {
       hhcl.consoleReader();

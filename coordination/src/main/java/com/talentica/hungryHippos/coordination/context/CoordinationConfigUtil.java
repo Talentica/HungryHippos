@@ -37,7 +37,7 @@ public class CoordinationConfigUtil {
   public static final String SHARDING_SERVER_CONFIGURATION = "sharding-server-configuration";
   public static final String JOB_RUNNER_CONFIGURATION = "job-runner-configuration";
   public static final String DATA_PUBLISHER_CONFIGURATION = "datapublisher-configuration";
-  public static final String FILE_SYSTEM = "file-system";
+  public static final String FILE_SYSTEM_CONFIGURATION = "file-system";
   public static final String TOOLS_CONFIGURATION = "tools-configuration";
   private static final String ZK_PATH_SEPERATOR = "/";
   private static HungryHippoCurator curator;

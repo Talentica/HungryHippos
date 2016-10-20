@@ -1,24 +1,42 @@
 package com.talentica.hungryhippos.filesystem.main;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.zookeeper.data.Stat;
 
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.utility.ExecuteShellCommand;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
+import com.talentica.hungryhippos.config.cluster.ClusterConfig;
+import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 
 public class HungryHipposFileSystemMain {
 
+  private static String userName = null;
+
+
+  private static final String SCRIPT_LOC =
+      new File(".").getAbsolutePath() + File.separatorChar + "src" + File.separatorChar + "main"
+          + File.separatorChar + "resources" + File.separatorChar + "file-system-commands.sh";
+
+
   enum Operations {
-    LS(0), TOUCH(1), MKDIR(2), FIND(3), DELETE(4), DELETEALL(5), EXIT(6), SHOW(7);
+    LS(0), TOUCH(1), MKDIR(2), FIND(3), DELETE(4), DELETEALL(5), EXIT(6), SHOW(7), DU(8), DOWNLOAD(
+        9);
 
     private int option = 0;
 
@@ -51,69 +69,47 @@ public class HungryHipposFileSystemMain {
   }
 
   private static String[] commands =
-      {"ls", "touch", "mkdir", "find", "delete", "deleteall", "exit", "show"};
+      {"ls", "touch", "mkdir", "find", "delete", "deleteall", "exit", "show", "du", "download"};
   private static HungryHipposFileSystem hhfs = null;
 
-  public static HungryHipposFileSystem getHHFSInstance()
-      throws FileNotFoundException, JAXBException {
+  public static void main(String[] args) throws FileNotFoundException, JAXBException {
+    String clientXmlFile = args[0];
+    ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientXmlFile, ClientConfig.class);
+    userName = clientConfig.getOutput().getNodeSshUsername();
+    String connectString = clientConfig.getCoordinationServers().getServers();
+    int sessionTimeOut = Integer.parseInt(clientConfig.getSessionTimout());
+    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     hhfs = HungryHipposFileSystem.getInstance();
-    return hhfs;
+
+    getCommandDetails(args);
+
   }
 
-  public static void main(String[] args) {
-
-    if (args == null || args.length == 0) {
-      usage();
-      Scanner sc = new Scanner(System.in);
-      if (sc.hasNext()) {
-        String s = sc.nextLine();
-        if (s != null) {
-          String[] operationFileName = s.split(" ");
-          getCommandDetails(operationFileName[0], operationFileName[1]);
-        }
-      }
-      sc.close();
-    } else {
-      if (args.length == 2) {
-        getCommandDetails(args[0], args[1]);
-      } else {
-        getCommandDetails(args[0], null);
-      }
+  public static void getCommandDetails(String... args) {
+    String operation = args[1];
+    String[] fromSecondArg = new String[args.length - 2];
+    for (int i = 0; i < fromSecondArg.length; i++) {
+      fromSecondArg[i] = args[i + 2];
     }
-
-  }
-
-  public static void getCommandDetails(String operation, String name) {
 
     if (hhfs == null) {
       throw new RuntimeException(
           "HungryHipposFileSystem is not created, please create it calling getHHFSInstance() method");
     }
 
-    if (name == null) {
-      name = "HungryHipposFs";
+    if (fromSecondArg[0] == null) {
+      fromSecondArg[0] = "HungryHipposFs";
     }
     for (int i = 0; i < commands.length; i++) {
       if (operation.equalsIgnoreCase(commands[i])) {
         Operations op = Operations.getOpertionsFromOption(i);
-        runOperation(op, name);
+        runOperation(op, fromSecondArg);
         break;
       }
     }
 
   }
 
-  private static void usage() {
-    System.out.println("Please choose what operation you want to do");
-    System.out.println("ls \"fileName\"");
-    System.out.println("touch \"fileName\"");
-    System.out.println("mkdir \"dirName\"");
-    System.out.println("find \"fileName\" ");
-    System.out.println("delete \"fileName\"");
-    System.out.println("deleteall \"fileName\"");
-    System.out.println("show \"fileName\"");
-    System.out.println("exit");
-  }
 
   private static void printOnScreen(List<String> list) {
 
@@ -183,10 +179,10 @@ public class HungryHipposFileSystemMain {
 
             for (String leaf : childsChild) {
 
-              long length = Long.valueOf(hhfs.getNodeData(name1 + FileSystemConstants.ZK_PATH_SEPARATOR
+              long length = (long) hhfs.getObjectData(name1 + FileSystemConstants.ZK_PATH_SEPARATOR
                   + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node
                   + FileSystemConstants.ZK_PATH_SEPARATOR + child
-                  + FileSystemConstants.ZK_PATH_SEPARATOR + leaf));
+                  + FileSystemConstants.ZK_PATH_SEPARATOR + leaf);
               size += length;
             }
 
@@ -206,6 +202,21 @@ public class HungryHipposFileSystemMain {
     }
   }
 
+  public static long size(String path) {
+
+    return hhfs.size(path);
+  }
+
+  public static void download(String path, String outputDirName) {
+    try {
+      DataRetrieverClient.getHungryHippoData(path, outputDirName);
+      System.out.println("download:success");
+    } catch (Exception e) {
+      System.out.println("download:failed");
+
+    }
+  }
+
   private static String getDateString(long value) {
     Date date = new Date(value);
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -217,8 +228,33 @@ public class HungryHipposFileSystemMain {
     return dir[dir.length - 1];
   }
 
+  private static int runOnAllNodes(String...args )  {
+    String fileSystemRoot = args[0];
+    String operation = args[1];
+    String fname = args[2];
+    ArrayList<String> argumentsTobePassed = new ArrayList<>();
+    argumentsTobePassed.add("/bin/sh");
+    argumentsTobePassed.add(SCRIPT_LOC);
+    argumentsTobePassed.add(userName);
+    String[] scriptArgs = null;
+    argumentsTobePassed.add(fileSystemRoot);
+    argumentsTobePassed.add(operation);
+    argumentsTobePassed.add(fname);
+    int errorCount = 0;
+    ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
+    List<Node> nodesInCluster = clusterConfig.getNode();
+    for (Node node : nodesInCluster) { // don't execute ls on node
+      argumentsTobePassed.add(node.getIp());
+      scriptArgs = argumentsTobePassed.stream().toArray(String[]::new);
+      errorCount = ExecuteShellCommand.executeScript(false, scriptArgs);
+      argumentsTobePassed.remove(node.getIp());
+    }
 
-  private static void runOperation(Operations op, String name) {
+    return errorCount;
+  }
+
+  private static void runOperation(Operations op, String... args) {
+    String name = args[0];
     switch (op) {
       case LS:
         String data = hhfs.getNodeData(name);
@@ -228,17 +264,17 @@ public class HungryHipposFileSystemMain {
           printOnScreen(hhfs.getChildZnodes(name));
         }
         break;
-      case TOUCH:
-        hhfs.createZnode(name);
-        break;
+
       case MKDIR:
         hhfs.createZnode(name);
         break;
       case DELETE:
         hhfs.deleteNode(name);
+        runOnAllNodes(op.name().toLowerCase(), name);
         break;
       case DELETEALL:
         hhfs.deleteNodeRecursive(name);
+        runOnAllNodes(hhfs.getHHFSNodeRoot(), op.name().toLowerCase(), name);
         break;
       case SHOW:
         List<String> childNodes = hhfs.getChildZnodes(name);
@@ -247,6 +283,17 @@ public class HungryHipposFileSystemMain {
           return;
         }
         showMetaData(childNodes, name);
+        break;
+      case DU:
+        long size = size(name);
+        System.out.println("fileSize is :" + size);
+        break;
+      case DOWNLOAD:
+        if (args.length < 2) {
+          throw new IllegalArgumentException("Output folder path is mandatory");
+        }
+        download(name, args[1]);
+        break;
 
       default:
     }

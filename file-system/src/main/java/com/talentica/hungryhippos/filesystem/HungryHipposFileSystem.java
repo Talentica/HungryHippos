@@ -2,6 +2,7 @@ package com.talentica.hungryhippos.filesystem;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -202,7 +203,7 @@ public class HungryHipposFileSystem {
     Object nodeData = null;
 
     try {
-      nodeData = curator.getZnodeData(name);
+      nodeData = curator.readObject(name);
     } catch (HungryHippoException e) {
       logger.error(e.getMessage());
 
@@ -258,18 +259,16 @@ public class HungryHipposFileSystem {
    * @return
    */
   public List<String> getChildZnodes(String name) {
-    List<String> childZnodes = null;
+    List<String> childZnodes = new ArrayList<>();
     name = checkNameContainsFileSystemRoot(name);
     try {
-      childZnodes = curator.getChildren(name);
-      if (childZnodes == null) {
-        childZnodes = new ArrayList<>();
-      }
+      childZnodes.addAll(curator.getChildren(name));
+
     } catch (HungryHippoException e) {
       logger.error(e.getMessage());
 
     }
-    return childZnodes;
+    return Collections.unmodifiableList(childZnodes);
   }
 
   /**
@@ -345,6 +344,58 @@ public class HungryHipposFileSystem {
     if (!isDataReady) {
       throw new RuntimeException(hungryHippoFilePath + " file is not ready");
     }
+  }
+
+  public long size(String path) {
+
+    long size = 0;
+    boolean flag = false;
+    List<String> childNodes = hhfs.getChildZnodes(path);
+    if (childNodes.contains(FileSystemConstants.SHARDED)) {
+      flag = childNodes.contains(FileSystemConstants.DFS_NODE);
+
+      if (!flag) {
+        return 0;
+      }
+
+      List<String> nodeDetails = hhfs.getChildZnodes(
+          path + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE);
+      for (String node : nodeDetails) {
+        List<String> dataFolders = hhfs.getChildZnodes(path + FileSystemConstants.ZK_PATH_SEPARATOR
+            + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node);
+        for (String dataFolder : dataFolders) {
+          List<String> nodeIds = hhfs.getChildZnodes(path + FileSystemConstants.ZK_PATH_SEPARATOR
+              + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node
+              + FileSystemConstants.ZK_PATH_SEPARATOR + dataFolder);
+          for (String nodeId : nodeIds) {
+            long length = (long) hhfs.getObjectData(path + FileSystemConstants.ZK_PATH_SEPARATOR
+                + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node
+                + FileSystemConstants.ZK_PATH_SEPARATOR + dataFolder
+                + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId);
+            size += length;
+          }
+
+        }
+
+      }
+    } else {
+
+      flag = childNodes.contains(FileSystemConstants.DFS_NODE);
+
+      if (!flag) {
+        return 0;
+      }
+
+      List<String> nodeDetails = hhfs.getChildZnodes(
+          path + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE);
+      for (String node : nodeDetails) {
+        long length = (long) hhfs.getObjectData(path + FileSystemConstants.ZK_PATH_SEPARATOR
+            + FileSystemConstants.DFS_NODE + FileSystemConstants.ZK_PATH_SEPARATOR + node);
+        size += length;
+      }
+
+    }
+    return size;
   }
 
 }

@@ -51,15 +51,15 @@ public class DataProvider {
   private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
 
 
-  private static Map<Integer,String> loadServers() throws Exception {
+  private static Map<Integer, String> loadServers() throws Exception {
 
     LOGGER.info("Load the server form the configuration file");
-    Map<Integer,String> servers = new HashMap<Integer,String>();
+    Map<Integer, String> servers = new HashMap<Integer, String>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       String server = node.getIp() + ServerUtils.COLON + node.getPort();
-      servers.put(node.getIdentifier(),server);
+      servers.put(node.getIdentifier(), server);
     }
     LOGGER.info("There are {} servers", servers.size());
     return servers;
@@ -70,9 +70,9 @@ public class DataProvider {
     init();
     long start = System.currentTimeMillis();
 
-    String fileIdToHHpath = CoordinationConfigUtil.getZkCoordinationConfigCache().
-        getZookeeperDefaultConfig().getFileidHhfsMapPath() + HungryHippoCurator.ZK_PATH_SEPERATOR;
-    Map<Integer,String> servers = loadServers();
+    String fileIdToHHpath = CoordinationConfigUtil.getZkCoordinationConfigCache()
+        .getZookeeperDefaultConfig().getFileidHhfsMapPath() + HungryHippoCurator.ZK_PATH_SEPERATOR;
+    Map<Integer, String> servers = loadServers();
 
     FieldTypeArrayDataDescription dataDescription =
         DataPublisherStarter.getContext().getConfiguredDataDescription();
@@ -88,29 +88,32 @@ public class DataProvider {
         ShardingFileUtil.getDataTypeMap(DataPublisherStarter.getContext());
 
     String[] keyOrder = DataPublisherStarter.getContext().getShardingDimensions();
-    boolean keyOrderOne = keyOrder.length==1;
+    boolean keyOrderOne = keyOrder.length == 1;
     bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
 
-    keyToValueToBucketMap = ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath,dataTypeMap);
-    bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap,DataPublisherStarter.getContext());
-    Map<Integer,OutputStream> targets = new HashMap<>();
-    int fileId = fileIdToHHPathMap(fileIdToHHpath,destinationPath);
+    keyToValueToBucketMap =
+        ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath, dataTypeMap);
+    bucketsCalculator =
+        new BucketsCalculator(keyToValueToBucketMap, DataPublisherStarter.getContext());
+    Map<Integer, OutputStream> targets = new HashMap<>();
+    int fileId = fileIdToHHPathMap(fileIdToHHpath, destinationPath);
     byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
     LOGGER.info("***CREATE SOCKET CONNECTIONS***");
 
-    Map<Integer,Socket> sockets = new HashMap<>();
-    for(Integer nodeId : servers.keySet()){
+    Map<Integer, Socket> sockets = new HashMap<>();
+    for (Integer nodeId : servers.keySet()) {
       String server = servers.get(nodeId);
       Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
       sockets.put(nodeId, socket);
-      BufferedOutputStream bos = new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
+      BufferedOutputStream bos =
+          new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
       targets.put(nodeId, bos);
-      if(keyOrderOne){
+      if (keyOrderOne) {
         bos.write(fileIdInBytes);
         bos.flush();
-      }else{
-        createNodeLink(fileIdToHHpath+fileId,nodeId);
+      } else {
+        createNodeLink(fileIdToHHpath + fileId, nodeId);
       }
     }
 
@@ -156,9 +159,9 @@ public class DataProvider {
       BucketCombination BucketCombination = new BucketCombination(keyToBucketMap);
       Set<Node> nodes = bucketCombinationNodeMap.get(BucketCombination);
 
-      Iterator<Node> nodeIterator= nodes.iterator();
+      Iterator<Node> nodeIterator = nodes.iterator();
       Node receivingNode = nodeIterator.next();
-      if(!keyOrderOne){
+      if (!keyOrderOne) {
         targets.get(receivingNode.getNodeId()).write(fileIdInBytes);
         for (int i = 1; i < keyOrder.length; i++) {
           byte nodeId = (byte) nodeIterator.next().getNodeId();
@@ -171,8 +174,8 @@ public class DataProvider {
 
       flushTriggerCount++;
 
-      if(flushTriggerCount>100000){
-        for(Integer nodeId : targets.keySet()){
+      if (flushTriggerCount > 100000) {
+        for (Integer nodeId : targets.keySet()) {
           targets.get(nodeId).flush();
 
         }
@@ -181,15 +184,15 @@ public class DataProvider {
     }
     fileWriter.close();
 
-    for(Integer nodeId : targets.keySet()){
-      if(!keyOrderOne){
+    for (Integer nodeId : targets.keySet()) {
+      if (!keyOrderOne) {
         sendEndOfFileSignal(fileIdInBytes, buf, keyOrder, targets, nodeId);
       }
       targets.get(nodeId).flush();
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
     }
-    if(keyOrderOne){  
+    if (keyOrderOne) {
       curator.gurantedDelete(fileIdToHHpath + fileId);
       updateFilePublishSuccessful(destinationPath);
     }
@@ -207,20 +210,23 @@ public class DataProvider {
    */
   public static void updateFilePublishSuccessful(String destinationPath) {
     String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-            .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
-    String pathForSuccessNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.DATA_READY;
-    String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.PUBLISH_FAILED;
+        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    String pathForSuccessNode =
+        destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.DATA_READY;
+    String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+        + FileSystemConstants.PUBLISH_FAILED;
     try {
-      curator.gurantedDelete(pathForFailureNode);
+      curator.deletePersistentNodeIfExits(pathForFailureNode);
       curator.createPersistentNodeIfNotPresent(pathForSuccessNode, "");
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error(e.getMessage());
+      throw new RuntimeException(e.getMessage());
     }
-    
+
   }
 
-  private static void sendEndOfFileSignal(byte[] fileIdInBytes, byte[] buf, String[] keyOrder, Map<Integer, OutputStream> targets, Integer nodeId) throws IOException {
+  private static void sendEndOfFileSignal(byte[] fileIdInBytes, byte[] buf, String[] keyOrder,
+      Map<Integer, OutputStream> targets, Integer nodeId) throws IOException {
     targets.get(nodeId).write(fileIdInBytes);
     byte nodeIdByte = (byte) nodeId.intValue();
     for (int i = 1; i < keyOrder.length; i++) {
@@ -229,12 +235,13 @@ public class DataProvider {
     targets.get(nodeId).write(buf);
   }
 
-  public static void createNodeLink(String fileIdToHHpath,int nodeId){
+  public static void createNodeLink(String fileIdToHHpath, int nodeId) {
     try {
-      curator.createPersistentNodeIfNotPresent(fileIdToHHpath + HungryHippoCurator.ZK_PATH_SEPERATOR + nodeId,"");
+      curator.createPersistentNodeIfNotPresent(
+          fileIdToHHpath + HungryHippoCurator.ZK_PATH_SEPERATOR + nodeId, "");
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error(e.getMessage());
+      throw new RuntimeException(e.getMessage());
     }
   }
 
@@ -242,22 +249,23 @@ public class DataProvider {
     NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
         DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     BAD_RECORDS_FILE =
-        DataPublisherStarter.getContext().getShardingClientConfig().getBadRecordsFileOut() + "_publisher.err";
+        DataPublisherStarter.getContext().getShardingClientConfig().getBadRecordsFileOut()
+            + "_publisher.err";
   }
-  
-  private static int fileIdToHHPathMap(String path,String inputHHPath){
+
+  private static int fileIdToHHPathMap(String path, String inputHHPath) {
     int i = 0;
-    while(true){
+    while (true) {
       try {
-          curator.createPersistentNode(path + i, inputHHPath);
-          return i;
+        curator.createPersistentNode(path + i, inputHHPath);
+        return i;
       } catch (HungryHippoException e) {
-          if(e instanceof HungryHippoException){
-            i++;
-          }else{
-            throw new RuntimeException(e);
-          }
+        if (e instanceof HungryHippoException) {
+          i++;
+        } else {
+          throw new RuntimeException(e);
         }
       }
+    }
   }
 }

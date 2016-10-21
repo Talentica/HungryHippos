@@ -83,7 +83,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     this.context = context;
     this.sortedDimensionsOrder = new int[context.getShardingIndexes().length];
     this.orderDimensions(primaryDimension);
-    this.buildDataFileAccess();
+    this.addDataFileAccessInPriorityQueue();
     this.currentValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
     this.lastValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
     this.setJobFlushPointer();
@@ -124,8 +124,8 @@ public class SortedDataRowProcessor implements RowProcessor {
       ValueSet valueSet = new ValueSet(jobEntity.getJob().getDimensions());
       updateCurrentValueSetPointer(row, jobEntity);
       ValueSet currentValueSetPointer = currentValueSetPointerJobMap.get(jobEntity);
-      boolean jobFlushEligible = prepareValueSet(row, jobEntity, valueSet, currentValueSetPointer);
-      Work reducer = prepareReducersBatch(valueSet, jobFlushEligible, jobEntity);
+      boolean isJobReadyToFlush = prepareValueSet(row, jobEntity, valueSet, currentValueSetPointer);
+      Work reducer = prepareReducersBatch(valueSet, isJobReadyToFlush, jobEntity);
       processReducers(reducer, row);
     }
   }
@@ -142,7 +142,7 @@ public class SortedDataRowProcessor implements RowProcessor {
    */
   private boolean prepareValueSet(ByteBuffer row, JobEntity jobEntity, ValueSet valueSet,
       ValueSet currentValueSetPointer) {
-    boolean jobFlushEligible = false;
+    boolean isJobReadyToFlush = false;
     for (int i = 0; i < jobEntity.getJob().getDimensions().length; i++) {
       Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
       valueSet.setValue(value, i);
@@ -157,11 +157,11 @@ public class SortedDataRowProcessor implements RowProcessor {
     } else {
       ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
       if (lastValueSet.compareTo(currentValueSetPointer) != 0) {
-        jobFlushEligible = true;
+        isJobReadyToFlush = true;
         updateLastValueSet(row, jobEntity);
       }
     }
-    return jobFlushEligible;
+    return isJobReadyToFlush;
   }
 
 
@@ -206,14 +206,14 @@ public class SortedDataRowProcessor implements RowProcessor {
    * To get the reduce for ValueSet
    * 
    * @param valueSet
-   * @param isJobFlushable
+   * @param isJobReadyToFlush
    * @param jobEntity
    * @return
    */
-  private Work prepareReducersBatch(ValueSet valueSet, boolean isJobFlushable,
+  private Work prepareReducersBatch(ValueSet valueSet, boolean isJobReadyToFlush,
       JobEntity jobEntity) {
     Work reducer = null;
-    reducer = addReducer(valueSet, isJobFlushable, jobEntity);
+    reducer = addReducer(valueSet, isJobReadyToFlush, jobEntity);
     return reducer;
   }
 
@@ -248,17 +248,17 @@ public class SortedDataRowProcessor implements RowProcessor {
    * Add the new reduce if not present for particular job otherwise return the existing one.
    * 
    * @param valueSet
-   * @param jobFlushEligible
+   * @param isJobReadyToFlush
    * @param jobEntity
    * @return reducer
    */
-  private Work addReducer(ValueSet valueSet, boolean jobFlushEligible, JobEntity jobEntity) {
+  private Work addReducer(ValueSet valueSet, boolean isJobReadyToFlush, JobEntity jobEntity) {
     TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
     if (valuesetToWorkTreeMap == null) {
       valuesetToWorkTreeMap = new TreeMap<ValueSet, Work>();
       jobToValuesetWorkMap.put(jobEntity, valuesetToWorkTreeMap);
     }
-    if (jobFlushEligible && !valuesetToWorkTreeMap.isEmpty()) {
+    if (isJobReadyToFlush && !valuesetToWorkTreeMap.isEmpty()) {
       finishUp(valuesetToWorkTreeMap);
       valuesetToWorkTreeMap.clear();
     }
@@ -288,7 +288,7 @@ public class SortedDataRowProcessor implements RowProcessor {
    * 
    * @throws IOException
    */
-  private void buildDataFileAccess() throws IOException {
+  private void addDataFileAccessInPriorityQueue() throws IOException {
     for (DataFileAccess dataFolder : storeAccess) {
       for (DataFileAccess dataFile : dataFolder) {
         BinaryFileBuffer bfb =

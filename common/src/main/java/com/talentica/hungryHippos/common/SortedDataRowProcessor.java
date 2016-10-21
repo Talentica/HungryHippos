@@ -33,6 +33,8 @@ import com.talentica.hungryHippos.utility.MemoryStatus;
 
 
 /**
+ * To perform the data row processing on sorted input data.
+ * 
  * @author pooshans
  *
  */
@@ -58,6 +60,18 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   long startTime = System.currentTimeMillis();
 
+  /**
+   * Parameterized constructor
+   * 
+   * @param dynamicMarshal
+   * @param jobEntities
+   * @param outputHHPath
+   * @param storeAccess
+   * @param primaryDimension
+   * @param dataDescription
+   * @param context
+   * @throws IOException
+   */
   public SortedDataRowProcessor(DynamicMarshal dynamicMarshal, List<JobEntity> jobEntities,
       String outputHHPath, StoreAccess storeAccess, int primaryDimension,
       DataDescription dataDescription, ShardingApplicationContext context) throws IOException {
@@ -100,6 +114,11 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To perform the jobs execution for particular row.
+   * 
+   * @param row
+   */
   private void processRow(ByteBuffer row) {
     for (JobEntity jobEntity : jobEntities) {
       ValueSet valueSet = new ValueSet(jobEntity.getJob().getDimensions());
@@ -112,6 +131,15 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
 
+  /**
+   * To prepare the new ValueSet and also determine whether the job is ready to be flushed
+   * 
+   * @param row
+   * @param jobEntity
+   * @param valueSet
+   * @param currentValueSetPointer
+   * @return true if the job is ready to be flushed in output result otherwise false.
+   */
   private boolean prepareValueSet(ByteBuffer row, JobEntity jobEntity, ValueSet valueSet,
       ValueSet currentValueSetPointer) {
     boolean jobFlushEligible = false;
@@ -137,6 +165,12 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
 
+  /**
+   * To update the last ValueSet pointer with current ValueSet pointer
+   * 
+   * @param row
+   * @param jobEntity
+   */
   private void updateLastValueSet(ByteBuffer row, JobEntity jobEntity) {
     ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
     ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
@@ -144,6 +178,12 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
 
+  /**
+   * To update the current ValueSet pointer.
+   * 
+   * @param row
+   * @param jobEntity
+   */
   private void updateCurrentValueSetPointer(ByteBuffer row, JobEntity jobEntity) {
     ValueSet currentValueSet = currentValueSetPointerJobMap.get(jobEntity);
     if (currentValueSet == null) {
@@ -162,6 +202,14 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To get the reduce for ValueSet
+   * 
+   * @param valueSet
+   * @param isJobFlushable
+   * @param jobEntity
+   * @return
+   */
   private Work prepareReducersBatch(ValueSet valueSet, boolean isJobFlushable,
       JobEntity jobEntity) {
     Work reducer = null;
@@ -169,6 +217,9 @@ public class SortedDataRowProcessor implements RowProcessor {
     return reducer;
   }
 
+  /**
+   * To log the progress after particular number of row read.
+   */
   private void logProgress() {
     if (totalNoOfRowsProcessed % MAXIMUM_NO_OF_ROWS_TO_LOG_PROGRESS_AFTER == 0) {
       LOGGER.info(
@@ -180,6 +231,12 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To process the reducer
+   * 
+   * @param work
+   * @param row
+   */
   private void processReducers(Work work, ByteBuffer row) {
     if (work != null) {
       executionContext.setData(row);
@@ -187,6 +244,14 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * Add the new reduce if not present for particular job otherwise return the existing one.
+   * 
+   * @param valueSet
+   * @param jobFlushEligible
+   * @param jobEntity
+   * @return reducer
+   */
   private Work addReducer(ValueSet valueSet, boolean jobFlushEligible, JobEntity jobEntity) {
     TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
     if (valuesetToWorkTreeMap == null) {
@@ -205,6 +270,11 @@ public class SortedDataRowProcessor implements RowProcessor {
     return work;
   }
 
+  /**
+   * To finish up the reducers.
+   * 
+   * @param valuesetToWorkTreeMap
+   */
   private void finishUp(TreeMap<ValueSet, Work> valuesetToWorkTreeMap) {
     for (Entry<ValueSet, Work> e : valuesetToWorkTreeMap.entrySet()) {
       executionContext.setKeys(e.getKey());
@@ -213,6 +283,11 @@ public class SortedDataRowProcessor implements RowProcessor {
     executionContext.flush();
   }
 
+  /**
+   * Build the data file and add to the priority queue according to the sorted(ascending) order.
+   * 
+   * @throws IOException
+   */
   private void buildDataFileAccess() throws IOException {
     for (DataFileAccess dataFolder : storeAccess) {
       for (DataFileAccess dataFile : dataFolder) {
@@ -225,6 +300,9 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To set the each job's flush pointer.
+   */
   private void setJobFlushPointer() {
     List<Integer> dimns = new ArrayList<>();
     for (JobEntity jobEntity : jobEntities) {
@@ -244,6 +322,12 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   private int columnPos = 0;
 
+  /**
+   * @param row1
+   * @param row2
+   * @return return negative inetger value if row1 < row2, zero if row1 = row2, and positive integer
+   *         value if row1 > row2
+   */
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
     for (int dim = 0; dim < sortedDimensionsOrder.length; dim++) {
@@ -259,6 +343,9 @@ public class SortedDataRowProcessor implements RowProcessor {
     return res;
   }
 
+  /**
+   * Instantiate the priority queue for data input stream of files.
+   */
   private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
         @Override
@@ -267,6 +354,11 @@ public class SortedDataRowProcessor implements RowProcessor {
         }
       });
 
+  /**
+   * To arrange the dimensions in sorted order
+   * 
+   * @param primaryDimension
+   */
   private void orderDimensions(int primaryDimension) {
     for (int i = 0; i < context.getShardingIndexes().length; i++) {
       sortedDimensionsOrder[i] = context.getShardingIndexes()[(i + primaryDimension)
@@ -274,6 +366,9 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To flush the jobs for their remaining reduces.
+   */
   private void flushRemaining() {
     for (JobEntity jobEntity : jobEntities) {
       TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
@@ -285,6 +380,12 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+  /**
+   * To copy the value set from one ValueSet to other ValueSet.
+   * 
+   * @param vsFrom
+   * @param vsTo
+   */
   public void copyValueSet(ValueSet vsFrom, ValueSet vsTo) {
     for (int i = 0; i < vsFrom.getKeyIndexes().length; i++) {
       vsTo.setValue(vsFrom.getValues()[i], i);

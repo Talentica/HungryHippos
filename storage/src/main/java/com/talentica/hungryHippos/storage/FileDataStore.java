@@ -14,8 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -136,9 +138,13 @@ public class FileDataStore implements DataStore {
       try {
         new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context)
             .doSortingDefault();
-        logger.info("Total time taken (ms) to sort the default files {}",
-            System.currentTimeMillis() - startTime);
-      } catch (IOException e) {
+        long endTime = System.currentTimeMillis();
+        logger.info("Total time taken (ms) to sort the default files {}", endTime - startTime);
+        String SORTING_TIME_NODE = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
+            + FileSystemConstants.DEFAULT_SORTING_TIME;
+        HungryHipposFileSystem.getInstance().updateSortingTime(SORTING_TIME_NODE, nodeId,
+            (endTime - startTime));
+      } catch (IOException | HungryHippoException | JAXBException e) {
         e.printStackTrace();
         logger.error(e.toString());
       }

@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * To read the binary file row by row.
+ * 
  * @author pooshans
  *
  */
@@ -24,6 +26,13 @@ public final class BinaryFileBuffer {
   byte[] lastByteRead;
   boolean isRemaining = false;
 
+  /**
+   * Parameterized constructor
+   * 
+   * @param dis
+   * @param bufferSize
+   * @throws IOException
+   */
   public BinaryFileBuffer(DataInputStream dis, int bufferSize) throws IOException {
     this.dis = dis;
     readBytes = new byte[bufferSize];
@@ -34,18 +43,37 @@ public final class BinaryFileBuffer {
     reload();
   }
 
+  /**
+   * To close the datainputstream
+   * 
+   * @throws IOException
+   */
   public void close() throws IOException {
     this.dis.close();
   }
 
+  /**
+   * @return true if read is available otherwise false.
+   */
   public boolean empty() {
     return !isRemaining;
   }
 
+  /**
+   * To get the peek of the row. It does not remove the data from ByteBuffer.
+   * 
+   * @return row in ByteBuffer
+   */
   public ByteBuffer peek() {
     return this.readByteBuffer;
   }
 
+  /**
+   * To get the peek row and reload the next row in the ByteBuffer.
+   * 
+   * @return row in ByteBuffer
+   * @throws IOException
+   */
   public ByteBuffer pop() throws IOException {
     lastRowByteBuffer.clear();
     System.arraycopy(peek().array(), 0, lastByteRead, 0, peek().capacity());
@@ -53,11 +81,21 @@ public final class BinaryFileBuffer {
     return lastRowByteBuffer;
   }
 
+  /**
+   * To reload the next row in ByteBuffer.
+   * 
+   * @throws IOException
+   */
   private void reload() throws IOException {
     readByteBuffer.clear();
     read();
   }
 
+  /**
+   * To read the next available row from input stream to ByteBuffer.
+   * 
+   * @throws IOException
+   */
   private void read() throws IOException {
     if (dis.available() > 0) {
       this.dis.readFully(readBytes);
@@ -66,6 +104,11 @@ public final class BinaryFileBuffer {
     }
   }
 
+  /**
+   * Get the datainputstream
+   * 
+   * @return
+   */
   public DataInputStream getReader() {
     return dis;
   }

@@ -50,7 +50,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   private StoreAccess storeAccess;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
-  private int[] sortedDimensions;
+  private int[] sortedDimensionsOrder;
   private Map<JobEntity, ValueSet> currentValueSetPointerJobMap;
   private Map<JobEntity, ValueSet> lastValueSetPointerJobMap;
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
@@ -67,7 +67,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     this.executionContext = new ExecutionContextImpl(dynamicMarshal, outputHHPath);
     this.dataDescription = dataDescription;
     this.context = context;
-    this.sortedDimensions = new int[context.getShardingIndexes().length];
+    this.sortedDimensionsOrder = new int[context.getShardingIndexes().length];
     this.orderDimensions(primaryDimension);
     this.buildDataFileAccess();
     this.currentValueSetPointerJobMap = new TreeMap<JobEntity, ValueSet>();
@@ -78,14 +78,15 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   @Override
   public void process() {
-    LOGGER.info("Sorted dimensions {}", Arrays.toString(sortedDimensions));
-    LOGGER.info("Number of files opened {}", pq.size());
+    LOGGER.info("Sorted dimensions order{}", Arrays.toString(sortedDimensionsOrder));
+    LOGGER.info("Number of files opened for job execution{}", pq.size());
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
         ByteBuffer row = bfb.pop();
         processRow(row);
         totalNoOfRowsProcessed++;
+        logProgress();
         if (bfb.empty()) {
           bfb.getReader().close();
         } else {
@@ -165,7 +166,6 @@ public class SortedDataRowProcessor implements RowProcessor {
       JobEntity jobEntity) {
     Work reducer = null;
     reducer = addReducer(valueSet, isJobFlushable, jobEntity);
-    logProgress();
     return reducer;
   }
 
@@ -228,10 +228,10 @@ public class SortedDataRowProcessor implements RowProcessor {
   private void setJobFlushPointer() {
     List<Integer> dimns = new ArrayList<>();
     for (JobEntity jobEntity : jobEntities) {
-      for (int sortDim = 0; sortDim < sortedDimensions.length; sortDim++) {
+      for (int sortDim = 0; sortDim < sortedDimensionsOrder.length; sortDim++) {
         for (int index = 0; index < jobEntity.getJob().getDimensions().length; index++) {
-          if (jobEntity.getJob().getDimensions()[index] == sortedDimensions[sortDim]) {
-            dimns.add(sortedDimensions[sortDim]);
+          if (jobEntity.getJob().getDimensions()[index] == sortedDimensionsOrder[sortDim]) {
+            dimns.add(sortedDimensionsOrder[sortDim]);
           }
         }
       }
@@ -246,8 +246,8 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
-    for (int dim = 0; dim < sortedDimensions.length; dim++) {
-      DataLocator locator = dataDescription.locateField(sortedDimensions[dim]);
+    for (int dim = 0; dim < sortedDimensionsOrder.length; dim++) {
+      DataLocator locator = dataDescription.locateField(sortedDimensionsOrder[dim]);
       columnPos = locator.getOffset();
       for (int pointer = 0; pointer < locator.getSize(); pointer++) {
         if (row1[columnPos] != row2[columnPos]) {
@@ -269,7 +269,7 @@ public class SortedDataRowProcessor implements RowProcessor {
 
   private void orderDimensions(int primaryDimension) {
     for (int i = 0; i < context.getShardingIndexes().length; i++) {
-      sortedDimensions[i] = context.getShardingIndexes()[(i + primaryDimension)
+      sortedDimensionsOrder[i] = context.getShardingIndexes()[(i + primaryDimension)
           % context.getShardingIndexes().length];
     }
   }

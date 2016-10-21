@@ -30,6 +30,8 @@ import com.talentica.hungryHippos.storage.DataFileAccess;
 
 
 /**
+ * To perform the sorting on file.
+ * 
  * @author pooshans
  *
  */
@@ -48,6 +50,12 @@ public class DataFileSorter {
   private int numFiles;
   private DataFileComparator comparator;
 
+  /**
+   * instantiate the DataFileSorter class.
+   * 
+   * @param dataDir
+   * @param context
+   */
   public DataFileSorter(String dataDir, ShardingApplicationContext context) {
     this.dataDescription = context.getConfiguredDataDescription();
     this.dataDescription.setKeyOrder(context.getShardingDimensions());
@@ -126,6 +134,14 @@ public class DataFileSorter {
     }
   }
 
+  /**
+   * To sort the all files in inputDir on particular primary dimension.
+   * 
+   * @param primaryDimensionIndex
+   * @param inputDir
+   * @param filter
+   * @throws IOException
+   */
   private void sortAllFilesInDirectory(int primaryDimensionIndex, File inputDir,
       FilenameFilter filter) throws IOException {
     File[] files = (filter == null) ? inputDir.listFiles() : inputDir.listFiles(filter);
@@ -138,6 +154,11 @@ public class DataFileSorter {
     }
   }
 
+  /**
+   * To create the lock file
+   * @param lockFile
+   * @throws IOException
+   */
   private synchronized void createLockFile(File lockFile) throws IOException {
     if (lockFile.exists()) {
       lockFile.delete();
@@ -145,12 +166,23 @@ public class DataFileSorter {
     lockFile.createNewFile();
   }
 
+  /**
+   * To unlock the file
+   * @param lockFile
+   */
   private void unlockFile(File lockFile) {
     if (lockFile.exists()) {
       lockFile.delete();
     }
   }
 
+  /**
+   * Start sorting on file for particular key 
+   * 
+   * @param inputFile
+   * @param key
+   * @throws IOException
+   */
   private void doSorting(File inputFile, int key) throws IOException {
     long startTIme = System.currentTimeMillis();
     DataInputStream in = null;
@@ -170,11 +202,32 @@ public class DataFileSorter {
         ((System.currentTimeMillis() - startTIme)));
   }
 
+  /**
+   * To sort the file in batch
+   * 
+   * @param file
+   * @param datalength
+   * @param outputDirectory
+   * @param outputFile
+   * @return list of sorted temporary files
+   * @throws IOException
+   */
   private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
       final File outputFile) throws IOException {
     return sortInBatch(file, datalength, availableMemory(), outputDirectory, outputFile);
   }
 
+  /**
+   * To sort the file in batch
+   * 
+   * @param dataInputStream
+   * @param datalength
+   * @param maxFreeMemory
+   * @param outputdirectory
+   * @param outputFile
+   * @return list of sorted temporary files
+   * @throws IOException
+   */
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       long maxFreeMemory, final File outputdirectory, final File outputFile) throws IOException {
     long startTime = System.currentTimeMillis();
@@ -231,6 +284,17 @@ public class DataFileSorter {
     return files;
   }
 
+  /**
+   * To sort the file and save it.
+   * 
+   * @param chunk
+   * @param output
+   * @param batchId
+   * @param isSingalBatch
+   * @param lenght
+   * @return file sorted and saved
+   * @throws IOException
+   */
   private File sortAndSave(byte[] chunk, File output, int batchId, boolean isSingalBatch,
       int lenght) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
@@ -288,6 +352,15 @@ public class DataFileSorter {
   }
 
 
+  /**
+   * To merge all the temporary files into singal sorted file.
+   * 
+   * @param files
+   * @param outputfile
+   * @param append
+   * @return number of lines in sorted file
+   * @throws IOException
+   */
   private int mergeSortedFiles(List<File> files, File outputfile, boolean append)
       throws IOException {
     long startTIme = System.currentTimeMillis();
@@ -308,6 +381,15 @@ public class DataFileSorter {
     return rowcounter;
   }
 
+  /**
+   * To merge all the temporary files into singal sorted file.
+   * 
+   * @param outputfile
+   * @param buffers
+   * @param append
+   * @return
+   * @throws IOException
+   */
   private int mergeSortedFiles(File outputfile, List<BinaryFileBuffer> buffers, boolean append)
       throws IOException {
     int rowcounter = 0;
@@ -352,6 +434,11 @@ public class DataFileSorter {
     return rowcounter;
   }
 
+  /**
+   * To validate the directory and append file separator if not present. 
+   * @param dataDir
+   * @return
+   */
   private static String validateDirectory(String dataDir) {
     if (dataDir.charAt(dataDir.length() - 1) != File.separatorChar) {
       dataDir = dataDir.concat("" + File.separatorChar);
@@ -359,6 +446,9 @@ public class DataFileSorter {
     return dataDir;
   }
 
+  /**
+   *  Instance of the priority queue to merge the temporary file.
+   */
   private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
         @Override
@@ -369,6 +459,13 @@ public class DataFileSorter {
 
   private int columnPos = 0;
 
+  /**
+   * Compare two row byte to byte.
+   * 
+   * @param row1
+   * @param row2
+   * @return
+   */
   private int compareRow(byte[] row1, byte[] row2) {
     int res = 0;
     for (int dim = 0; dim < shardDims.length; dim++) {
@@ -384,6 +481,12 @@ public class DataFileSorter {
     return res;
   }
 
+  /**
+   * To estimate the size of the block for sorting in chunck.
+   * @param fileSize
+   * @param maxFreeMemory
+   * @return size of the block
+   */
   private int getSizeOfBlocks(final long fileSize, final long maxFreeMemory) {
     LOGGER.info("Input file size {} and maximum memory available {}", fileSize, maxFreeMemory);
     long blocksize = fileSize / DEFAULTMAXTEMPFILES + (fileSize % DEFAULTMAXTEMPFILES == 0 ? 0 : 1);
@@ -400,6 +503,11 @@ public class DataFileSorter {
     }
   }
 
+  /**
+   * To get currently available memory
+   * 
+   * @return total available memory
+   */
   public long availableMemory() {
     Runtime runtime = Runtime.getRuntime();
     long allocatedMemoryBefore = runtime.totalMemory() - runtime.freeMemory();
@@ -413,6 +521,11 @@ public class DataFileSorter {
     return currentFreeMemoryAfter;
   }
 
+  /**
+   * Sort the dimension in ascending order
+   * 
+   * @param dimes
+   */
   private void sortDimensions(int[] dimes) {
     for (int i = 0; i < dimes.length - 1; i++) {
       for (int j = 1; j < dimes.length - i; j++) {
@@ -425,6 +538,10 @@ public class DataFileSorter {
     }
   }
 
+  /**
+   * To determine the order of the dimensions for sorting by primary dimension
+   * @param primaryDimension
+   */
   private void orderDimensions(int primaryDimension) {
     for (int i = 0; i < shardDims.length; i++) {
       sortDims[i] = shardDims[(i + primaryDimension) % shardDims.length];
@@ -432,6 +549,13 @@ public class DataFileSorter {
   }
 
 
+  /**
+   * To set the flag of the primary dimension in file.
+   * 
+   * @param primDimFile
+   * @param primDim
+   * @throws IOException
+   */
   private synchronized void setPrimDimForSorting(File primDimFile, int primDim) throws IOException {
     FileOutputStream fos = new FileOutputStream(primDimFile, false);
     fos.write(primDim);
@@ -439,6 +563,14 @@ public class DataFileSorter {
     fos.close();
   }
 
+  /**
+   * To check whether file is sorted on primDim.
+   * 
+   * @param primDimFile
+   * @param primDim
+   * @return boolean
+   * @throws IOException
+   */
   @SuppressWarnings("resource")
   private synchronized boolean isFileSortedOnPrimDim(File primDimFile, int primDim)
       throws IOException {

@@ -16,4 +16,5 @@ public interface FileSystemConstants {
 	String IS_A_FILE = "IS_A_FILE";
 	String DATA_READY = "DATA_READY";
 	String PUBLISH_FAILED = "PUBLISH_FAILED";
+	String DEFAULT_SORTING_TIME = "DEFAULT-SORTING-TIME(ms)";
 }

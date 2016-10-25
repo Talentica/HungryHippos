@@ -29,7 +29,7 @@ public class SumJob implements Job, Serializable {
 
   @Override
   public Work createNewWork() {
-    return new SumWork(dimensions, valueIndex,jobId);
+    return new SumWork(dimensions, valueIndex, jobId);
   }
 
   @Override

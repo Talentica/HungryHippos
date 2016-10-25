@@ -36,10 +36,6 @@ public class MedianJob implements Job, Serializable {
     return dimensions;
   }
 
-  public long getMemoryFootprint(long rowCount) {
-    return 58 * rowCount;
-  }
-
   @Override
   public String toString() {
     if (dimensions != null) {

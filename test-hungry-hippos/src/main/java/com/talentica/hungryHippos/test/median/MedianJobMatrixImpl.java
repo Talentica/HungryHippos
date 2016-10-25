@@ -12,25 +12,55 @@ public class MedianJobMatrixImpl implements JobMatrix {
   public List<Job> getListOfJobsToExecute() {
     List<Job> jobList = new ArrayList<>();
     int jobId = 0;
-    for (int i = 0; i < 3; i++) {
-      jobList.add(new MedianJob(new int[] {i}, 6,jobId++));
-      jobList.add(new MedianJob(new int[] {i}, 7,jobId++));
-      for (int j = i + 1; j < 4; j++) {
-        jobList.add(new MedianJob(new int[] {i, j}, 6,jobId++));
-        jobList.add(new MedianJob(new int[] {i, j}, 7,jobId++));
-        for (int k = j + 1; k < 4; k++) {
-          jobList.add(new MedianJob(new int[] {i, j, k}, 6,jobId++));
-          jobList.add(new MedianJob(new int[] {i, j, k}, 7,jobId++));
-        }
-      }
-    }
+
+    jobList.add(new MedianJob(new int[] {0}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {1}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {1}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {2}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {2}, 4, jobId++));
+
+
+    jobList.add(new MedianJob(new int[] {0, 1}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 1}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 2}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 2}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {1, 2}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {1, 2}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 1, 2}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 1, 2}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 5}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 5}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 1, 5}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 1, 5}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 1, 2, 5}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 1, 2, 5}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {1, 2, 6}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {1, 2, 6}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {0, 6}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {0, 6}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {2, 6}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {2, 6}, 4, jobId++));
+
+    jobList.add(new MedianJob(new int[] {1, 6}, 3, jobId++));
+    jobList.add(new MedianJob(new int[] {1, 6}, 4, jobId++));
+
     return jobList;
-  }
+    }
 
   public static void main(String[] args) {
-    List<Job> listOfJobsToExecute = new MedianJobMatrixImpl().getListOfJobsToExecute();
-    System.out.println(listOfJobsToExecute);
-    System.out.println(listOfJobsToExecute.size());
+    System.out.println(new MedianJobMatrixImpl().getListOfJobsToExecute());
+    System.out.println(new MedianJobMatrixImpl().getListOfJobsToExecute().size());
   }
-
 }

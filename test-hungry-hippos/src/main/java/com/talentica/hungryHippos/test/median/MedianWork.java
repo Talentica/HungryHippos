@@ -26,7 +26,7 @@ public class MedianWork implements Work, Serializable {
 
   @Override
   public void processRow(ExecutionContext executionContext) {
-    medianCalculator.addValue((Double) executionContext.getValue(valueIndex));
+    medianCalculator.addValue(Double.valueOf(executionContext.getValue(valueIndex).toString()));
   }
 
   @Override

@@ -75,7 +75,7 @@ public class DataReceiver {
       ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
       String connectString = clientConfig.getCoordinationServers().getServers();
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
-      HungryHippoCurator curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+      HungryHippoCurator.getInstance(connectString, sessionTimeOut);
 
 
       LOGGER.info("Start Node initialize");

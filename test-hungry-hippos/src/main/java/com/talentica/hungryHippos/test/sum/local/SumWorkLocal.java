@@ -29,7 +29,7 @@ public class SumWorkLocal implements Work, Serializable {
 
   @Override
   public void processRow(ExecutionContext executionContext) {
-    sum = sum + ((Double) executionContext.getValue(valueIndex));
+    sum = sum + (Double.valueOf(executionContext.getValue(valueIndex).toString()));
   }
 
   @Override

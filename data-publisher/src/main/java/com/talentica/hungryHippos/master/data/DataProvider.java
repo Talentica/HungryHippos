@@ -1,17 +1,19 @@
 package com.talentica.hungryHippos.master.data;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.utility.FileSystemConstants;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
@@ -54,7 +57,7 @@ public class DataProvider {
   private static Map<Integer, String> loadServers() throws Exception {
 
     LOGGER.info("Load the server form the configuration file");
-    Map<Integer, String> servers = new HashMap<Integer, String>();
+    Map<Integer, String> servers = new HashMap<>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
@@ -112,9 +115,8 @@ public class DataProvider {
       if (keyOrderOne) {
         bos.write(fileIdInBytes);
         bos.flush();
-      } else {
-        createNodeLink(fileIdToHHpath + fileId, nodeId);
       }
+      createNodeLink(fileIdToHHpath + fileId, nodeId);
     }
 
     LOGGER.info("\n\tPUBLISH DATA ACROSS THE NODES STARTED...");
@@ -191,10 +193,6 @@ public class DataProvider {
       targets.get(nodeId).flush();
       targets.get(nodeId).close();
       sockets.get(nodeId).close();
-    }
-    if (keyOrderOne) {
-      curator.gurantedDelete(fileIdToHHpath + fileId);
-      updateFilePublishSuccessful(destinationPath);
     }
     long end = System.currentTimeMillis();
     LOGGER.info("Time taken in ms: " + (end - start));

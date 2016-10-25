@@ -2,9 +2,7 @@ package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -18,13 +16,11 @@ import com.talentica.hungryHippos.common.UnsortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
-import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
@@ -35,6 +31,7 @@ public class SortedDataJobRunner implements JobRunner {
   private static final long serialVersionUID = -4997999584207490930L;
   private Logger LOGGER = LoggerFactory.getLogger(SortedDataJobRunner.class);
   private static final String LOCK_FILE = "lock";
+  private static final String SORTED_FILE = "sorted";
   private DataStore dataStore;
   private int nodeId;
   private DynamicMarshal dynamicMarshal;
@@ -43,7 +40,6 @@ public class SortedDataJobRunner implements JobRunner {
   private DataFileSorter dataFileSorter;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
-  private static Map<String, Boolean> isDefaultFilesSortedMap = new HashMap<String, Boolean>();
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, String outputHHPath, ShardingApplicationContext context)
@@ -126,13 +122,29 @@ public class SortedDataJobRunner implements JobRunner {
     }
   }
 
-  private void validateAndStartDefaultSorting(String inputHHPath,
-      ShardingApplicationContext context) {
-    Boolean isDefaultFilesSorted = isDefaultFilesSortedMap.get(inputHHPath);
-    if (isDefaultFilesSorted == null || !isDefaultFilesSorted) {
+  private synchronized void validateAndStartDefaultSorting(String inputHHPath,
+      ShardingApplicationContext context) throws IOException {
+    File sortedFile = new File(inputHHPath + File.separatorChar + SORTED_FILE);
+    if (!checkSortedFileExists(sortedFile)) {
       this.startSorting(inputHHPath, context);
-      isDefaultFilesSorted = new Boolean(true);
-      isDefaultFilesSortedMap.put(inputHHPath, isDefaultFilesSorted);
+      createSortedFile(sortedFile);
+    } else {
+      LOGGER.info("Default files are already sorted");
     }
   }
+
+  private synchronized boolean checkSortedFileExists(File sortedFile) throws IOException {
+    LOGGER.info("Sorted file path {}", sortedFile.getAbsolutePath());
+    if (sortedFile.exists()) {
+      return true;
+    }
+    return false;
+  }
+
+  private synchronized void createSortedFile(File sortedFile) throws IOException {
+    if (!sortedFile.exists()) {
+      sortedFile.createNewFile();
+    }
+  }
+
 }

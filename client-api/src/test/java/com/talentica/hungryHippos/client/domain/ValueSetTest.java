@@ -13,7 +13,7 @@ public class ValueSetTest {
 	public void testToString() {
 		ValueSet valueSet = new ValueSet(new int[] { 0, 1 }, new String[] { "India", "Sony" });
 		String actual = valueSet.toString();
-		Assert.assertEquals("ValueSet{0=India,1=Sony}", actual);
+		Assert.assertEquals("India-Sony", actual);
 	}
 	
 	@Test

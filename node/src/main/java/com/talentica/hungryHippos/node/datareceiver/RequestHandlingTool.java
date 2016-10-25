@@ -37,6 +37,7 @@ public class RequestHandlingTool {
     private int nodeIdClient;
     private String hhFilePath;
     private int fileId;
+    private ShardingApplicationContext context;
 
     public RequestHandlingTool(int fileId,String hhFilePath, int nodeIdClient) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
         this.fileId = fileId;
@@ -44,7 +45,7 @@ public class RequestHandlingTool {
         this.hhFilePath = hhFilePath;
         RequestHandlingShardingInfo requestHandlingShardingInfo = RequestHandlingShardingInfoCache.INSTANCE.get(nodeIdClient,fileId,hhFilePath);
         fileIdInBytes = requestHandlingShardingInfo.getFileIdInBytes();;
-        ShardingApplicationContext context = requestHandlingShardingInfo.getContext();
+        context = requestHandlingShardingInfo.getContext();
         FieldTypeArrayDataDescription dataDescription = requestHandlingShardingInfo.getDataDescription();
         NodeUtil nodeUtil = requestHandlingShardingInfo.getNodeUtil();
         replicaNodesInfoDataSize = requestHandlingShardingInfo.getReplicaNodesInfoDataSize();
@@ -97,5 +98,9 @@ public class RequestHandlingTool {
 
     public String getHhFilePath() {
         return hhFilePath;
+    }
+    
+    public ShardingApplicationContext getContext(){
+      return context;
     }
 }

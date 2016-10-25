@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import io.netty.buffer.ByteBuf;
@@ -136,12 +137,13 @@ public class DataHandler extends ChannelHandlerAdapter {
                         LOGGER.info("NodeIdClient {} Current count for FileId {} for dimension Index {} is :{}", nodeIdClient, fileId, i, signalCountDown);
                         if (signalCountDown == 0) {
                             if (i == replicaNodesInfoDataSize - 1) {
-                                EndOfDataTracker.INSTANCE.updateFilePublishSuccessful(requestHandlingTool.getHhFilePath());
+                              String destinationPath = requestHandlingTool.getHhFilePath();
+                              ShardingApplicationContext context = requestHandlingTool.getContext();
                                 for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
                                     RequestHandlingTool requestHandlingTool = RequestHandlersCache.INSTANCE.get(nodeId, fileId);
                                     requestHandlingTool.close();
                                 }
-                                EndOfDataTracker.INSTANCE.remove(fileId);
+                                EndOfDataTracker.INSTANCE.remove(fileId,destinationPath,context);
                             } else {
                                 for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
                                     this.receiverNodeId = nodeId;
@@ -159,7 +161,6 @@ public class DataHandler extends ChannelHandlerAdapter {
         if(writeDataFile){
             requestHandlingTool.storeData();
         }
-
     }
 
     private void writeEndOfDataSignal(byte[] nextNodesInfo, byte[] dataForFileWrite, int replicaNodesInfoDataSize, int dataSize) {
@@ -324,6 +325,7 @@ public class DataHandler extends ChannelHandlerAdapter {
         } else {
             requestHandlingTool.close();
         }
+      
         LOGGER.info("Disconnected from {}", senderIp);
 
     }

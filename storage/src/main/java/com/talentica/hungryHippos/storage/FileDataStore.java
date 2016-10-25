@@ -113,7 +113,6 @@ public class FileDataStore implements DataStore {
 
   @Override
   public void sync() {
-
     for (int i = 0; i < numFiles; i++) {
       try {
         os[i].flush();
@@ -131,22 +130,6 @@ public class FileDataStore implements DataStore {
         } catch (Exception e) {
           logger.error(e.toString());
         }
-      }
-    }
-    if (context.getShardingClientConfig().isDataFileSorting()) {
-      long startTime = System.currentTimeMillis();
-      try {
-        new DataFileSorter(FileSystemContext.getRootDirectory() + hungryHippoFilePath, context)
-            .doSortingDefault();
-        long endTime = System.currentTimeMillis();
-        logger.info("Total time taken (ms) to sort the default files {}", endTime - startTime);
-        String SORTING_TIME_NODE = hungryHippoFilePath + FileSystemConstants.ZK_PATH_SEPARATOR
-            + FileSystemConstants.DEFAULT_SORTING_TIME;
-        HungryHipposFileSystem.getInstance().updateSortingTime(SORTING_TIME_NODE, nodeId,
-            (endTime - startTime));
-      } catch (IOException | HungryHippoException | JAXBException e) {
-        e.printStackTrace();
-        logger.error(e.toString());
       }
     }
   }

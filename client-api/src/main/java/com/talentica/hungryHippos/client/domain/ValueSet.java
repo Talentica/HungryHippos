@@ -103,16 +103,14 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();
-    result.append("ValueSet{");
     if (keyIndexes != null && values != null && keyIndexes.length == values.length) {
       for (int count = 0; count < keyIndexes.length; count++) {
         if (count != 0) {
-          result.append(",");
+          result.append("-");
         }
-        result.append(keyIndexes[count] + "=" + values[count]);
+        result.append(values[count]);
       }
     }
-    result.append("}");
     return result.toString();
   }
 

@@ -69,12 +69,11 @@ public class ExecutionContextImpl implements ExecutionContext {
 
   @Override
   public void saveValue(int calculationIndex, Object value, String metric) {
-    out.println(metric + " metric calculation result for column index " + calculationIndex + " and "
-        + keys.toString() + " is ====>" + value);
+    out.println("Index :: " + calculationIndex + " and " + keys.toString() + " :: " + value);
   }
-  
+
   @Override
-  public void saveValue(Object value){
+  public void saveValue(Object value) {
     out.println(value);
   }
 
@@ -95,7 +94,6 @@ public class ExecutionContextImpl implements ExecutionContext {
 
   @Override
   public void saveValue(int jobId, int calculationIndex, Object value, String metric) {
-    out.println(metric + " metric calculation resultfor job id :: "+ jobId+ " calculationIdex "+ calculationIndex + " and "
-        + keys.toString() + " is ====> " + value);
+    out.println(calculationIndex + "|" + jobId + "|" + keys.toString() + "  " + value);
   }
 }

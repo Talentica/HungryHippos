@@ -79,7 +79,7 @@ public class DataFileSorter {
    * @throws InterruptedException
    * @throws JAXBException
    */
-  public void doSortingDefault() throws IOException {
+  public synchronized void doSortingDefault() throws IOException {
     dataDir = validateDirectory(dataDir);
     File lockFile = new File(dataDir + LOCK_FILE);
     createLockFile(lockFile);
@@ -156,10 +156,12 @@ public class DataFileSorter {
 
   /**
    * To create the lock file
+   * 
    * @param lockFile
    * @throws IOException
    */
   private synchronized void createLockFile(File lockFile) throws IOException {
+    LOGGER.info("Lock file path {}", lockFile.getAbsolutePath());
     if (lockFile.exists()) {
       lockFile.delete();
     }
@@ -168,16 +170,17 @@ public class DataFileSorter {
 
   /**
    * To unlock the file
+   * 
    * @param lockFile
    */
-  private void unlockFile(File lockFile) {
+  private synchronized  void unlockFile(File lockFile) {
     if (lockFile.exists()) {
       lockFile.delete();
     }
   }
 
   /**
-   * Start sorting on file for particular key 
+   * Start sorting on file for particular key
    * 
    * @param inputFile
    * @param key
@@ -205,21 +208,6 @@ public class DataFileSorter {
   /**
    * To sort the file in batch
    * 
-   * @param file
-   * @param datalength
-   * @param outputDirectory
-   * @param outputFile
-   * @return list of sorted temporary files
-   * @throws IOException
-   */
-  private List<File> sortInBatch(DataInputStream file, final long datalength, File outputDirectory,
-      final File outputFile) throws IOException {
-    return sortInBatch(file, datalength, availableMemory(), outputDirectory, outputFile);
-  }
-
-  /**
-   * To sort the file in batch
-   * 
    * @param dataInputStream
    * @param datalength
    * @param maxFreeMemory
@@ -229,13 +217,14 @@ public class DataFileSorter {
    * @throws IOException
    */
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
-      long maxFreeMemory, final File outputdirectory, final File outputFile) throws IOException {
+      final File outputdirectory, final File outputFile) throws IOException {
     long startTime = System.currentTimeMillis();
+    byte[] chunk = null;
     int noOfBytesInOneDataSet = dataDescription.getSize();
+    long maxFreeMemory = availableMemory();
     List<File> files = new ArrayList<>();
     int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     int effectiveBlockSizeBytes = ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
-    byte[] chunk;
     if (blocksize > datalength) {
       chunk = new byte[(int) datalength];
     } else {
@@ -248,8 +237,7 @@ public class DataFileSorter {
     long startTimeChunkRead;
     try {
       while (dataFileSize > 0) {
-        availableMemory();
-        if (dataFileSize > effectiveBlockSizeBytes) {
+        if (dataFileSize >= effectiveBlockSizeBytes) {
           startTimeChunkRead = System.currentTimeMillis();
           dataInputStream.readFully(chunk);
           LOGGER.info("Time taken to read the chunk in ms {}",
@@ -263,7 +251,7 @@ public class DataFileSorter {
           readBytesLength = (int) dataFileSize;
         }
         dataFileSize = dataFileSize - chunk.length;
-        if (dataFileSize == 0 && batchId == 0) {
+        if (dataFileSize <= 0 && batchId == 0) {
           files.add(sortAndSave(chunk, outputFile, batchId, true, readBytesLength));
         } else {
           files.add(sortAndSave(chunk, outputdirectory, batchId, false, readBytesLength));
@@ -272,7 +260,7 @@ public class DataFileSorter {
       }
     } catch (EOFException eof) {
       dataFileSize = dataFileSize - chunk.length;
-      files.add(sortAndSave(chunk, outputdirectory, batchId, (dataFileSize == 0 && batchId == 0),
+      files.add(sortAndSave(chunk, outputdirectory, batchId, (dataFileSize <= 0 && batchId == 0),
           readBytesLength));
     } catch (Exception e) {
       LOGGER.error("Unable to process due to {}", e.getMessage());
@@ -435,7 +423,8 @@ public class DataFileSorter {
   }
 
   /**
-   * To validate the directory and append file separator if not present. 
+   * To validate the directory and append file separator if not present.
+   * 
    * @param dataDir
    * @return
    */
@@ -447,7 +436,7 @@ public class DataFileSorter {
   }
 
   /**
-   *  Instance of the priority queue to merge the temporary file.
+   * Instance of the priority queue to merge the temporary file.
    */
   private PriorityQueue<BinaryFileBuffer> pq =
       new PriorityQueue<>(11, new Comparator<BinaryFileBuffer>() {
@@ -483,6 +472,7 @@ public class DataFileSorter {
 
   /**
    * To estimate the size of the block for sorting in chunck.
+   * 
    * @param fileSize
    * @param maxFreeMemory
    * @return size of the block
@@ -492,9 +482,7 @@ public class DataFileSorter {
     long blocksize = fileSize / DEFAULTMAXTEMPFILES + (fileSize % DEFAULTMAXTEMPFILES == 0 ? 0 : 1);
     blocksize = blocksize - DataSizeCalculator.getObjectOverhead();
     if (blocksize < maxFreeMemory) {
-      blocksize = (2 * maxFreeMemory) / 3; // java retain
-                                           // 1/3 of the
-                                           // heap size.
+      blocksize = (2 * maxFreeMemory) / 3;
     }
     if (blocksize > Integer.MAX_VALUE) {
       return Integer.MAX_VALUE;
@@ -540,6 +528,7 @@ public class DataFileSorter {
 
   /**
    * To determine the order of the dimensions for sorting by primary dimension
+   * 
    * @param primaryDimension
    */
   private void orderDimensions(int primaryDimension) {

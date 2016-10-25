@@ -2,7 +2,9 @@ package com.talentica.hungryHippos.node.job;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -16,11 +18,13 @@ import com.talentica.hungryHippos.common.UnsortedDataRowProcessor;
 import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.RowProcessor;
 import com.talentica.hungryHippos.storage.StoreAccess;
 import com.talentica.hungryHippos.storage.sorting.DataFileSorter;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
@@ -39,6 +43,7 @@ public class SortedDataJobRunner implements JobRunner {
   private DataFileSorter dataFileSorter;
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
+  private static Map<String, Boolean> isDefaultFilesSortedMap = new HashMap<String, Boolean>();
 
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, String outputHHPath, ShardingApplicationContext context)
@@ -51,6 +56,7 @@ public class SortedDataJobRunner implements JobRunner {
     this.dataDescription = dataDescription;
     this.context = context;
     this.dataFileSorter = new DataFileSorter(this.inputHHPath, context);
+    this.validateAndStartDefaultSorting(inputHHPath, context);
   }
 
   public void run(int primaryDimensionIndex, List<JobEntity> jobEntities) {
@@ -105,6 +111,28 @@ public class SortedDataJobRunner implements JobRunner {
         | JAXBException | HungryHippoException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    }
+  }
+
+  public void startSorting(String destinationPath, ShardingApplicationContext context) {
+    long startTime = System.currentTimeMillis();
+    try {
+      dataFileSorter.doSortingDefault();
+      long endTime = System.currentTimeMillis();
+      LOGGER.info("Default sorting time in ms {}", (endTime - startTime));
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void validateAndStartDefaultSorting(String inputHHPath,
+      ShardingApplicationContext context) {
+    Boolean isDefaultFilesSorted = isDefaultFilesSortedMap.get(inputHHPath);
+    if (isDefaultFilesSorted == null || !isDefaultFilesSorted) {
+      this.startSorting(inputHHPath, context);
+      isDefaultFilesSorted = new Boolean(true);
+      isDefaultFilesSortedMap.put(inputHHPath, isDefaultFilesSorted);
     }
   }
 }

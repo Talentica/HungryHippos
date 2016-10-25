@@ -93,7 +93,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   @Override
   public void process() {
     LOGGER.info("Sorted dimensions order{}", Arrays.toString(sortedDimensionsOrder));
-    LOGGER.info("Number of files opened for job execution{}", pq.size());
+    LOGGER.info("Number of files opened for job execution {}", pq.size());
     try {
       while (pq.size() > 0) {
         BinaryFileBuffer bfb = pq.poll();
@@ -280,7 +280,6 @@ public class SortedDataRowProcessor implements RowProcessor {
       executionContext.setKeys(e.getKey());
       e.getValue().calculate(executionContext);
     }
-    executionContext.flush();
   }
 
   /**
@@ -378,6 +377,7 @@ public class SortedDataRowProcessor implements RowProcessor {
         valuesetToWorkTreeMap.clear();
       }
     }
+    executionContext.flush();
   }
 
   /**

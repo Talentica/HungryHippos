@@ -1,15 +1,19 @@
 package com.talentica.hungryHippos.node.datareceiver;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 /**
  * Created by rajkishoreh on 30/9/16.
@@ -44,7 +48,7 @@ public enum EndOfDataTracker {
     return count;
   }
 
-  public synchronized void remove(int fileId) {
+  public synchronized void remove(int fileId, String destinationPath,ShardingApplicationContext context) {
     fileToDimensionIdxToSignalCount.remove(fileId);
     String hhFileIdNodePath = getHHFileIdNodePath(fileId);
     try {
@@ -54,12 +58,12 @@ public enum EndOfDataTracker {
         List<String> children = curator.getChildren(hhFileIdPath);
         if (children == null || children.isEmpty()) {
           curator.deletePersistentNodeIfExits(hhFileIdPath);
+          updateFilePublishSuccessful(destinationPath);
         }
       }
     } catch (HungryHippoException e) {
       throw new RuntimeException(e.getMessage());
     }
-
   }
 
   /**

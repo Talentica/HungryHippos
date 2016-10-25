@@ -397,13 +397,4 @@ public class HungryHipposFileSystem {
     }
     return size;
   }
-
-  public void updateSortingTime(String node, int nodeId, Object data) throws HungryHippoException {
-    String hungryHippoFileZKPath = HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER + node;
-    curator.createPersistentNodeIfNotPresent(hungryHippoFileZKPath);
-    String sortingTimeNode = hungryHippoFileZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
-    curator.createPersistentNodeIfNotPresent(sortingTimeNode);
-    curator.createPersistentNode(sortingTimeNode, data);
-  }
-
 }

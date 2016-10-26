@@ -62,6 +62,8 @@ public class JobOrchestrator {
       validateOutputHHPath(outputHHPath);
       HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
       hhfs.validateFileDataReady(inputHHPath);
+      logger.info("Data synchronized time in ms {}",(startTime - System.currentTimeMillis()));
+      startTime = System.currentTimeMillis();
       String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath();
       boolean isSharded = curator.checkExists(fsRootNode + inputHHPath
@@ -95,7 +97,7 @@ public class JobOrchestrator {
         curator.createPersistentNode(dataReadyNode);
         logger.info("Job {} Completed Successfully", jobUUID);
         long endTime = System.currentTimeMillis();
-        logger.info("It took {} seconds of time to for running all jobs",
+        logger.info("It took {} seconds of time to for running all jobs (excluding data sync) ",
             ((endTime - startTime) / 1000));
       }
     } catch (Exception e) {

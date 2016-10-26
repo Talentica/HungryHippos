@@ -341,6 +341,9 @@ public class HungryHipposFileSystem {
     String dataReadyNode = hungryHippoFilePathNode + FileSystemConstants.ZK_PATH_SEPARATOR
         + FileSystemConstants.DATA_READY;
     boolean isDataReady = curator.checkExists(dataReadyNode);
+    while(!isDataReady){
+      isDataReady = curator.checkExists(dataReadyNode);
+    }
     if (!isDataReady) {
       throw new RuntimeException(hungryHippoFilePath + " file is not ready");
     }

@@ -62,7 +62,7 @@ public class JobOrchestrator {
       validateOutputHHPath(outputHHPath);
       HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
       hhfs.validateFileDataReady(inputHHPath);
-      logger.info("Data synchronized time in ms {}",(startTime - System.currentTimeMillis()));
+      logger.info("Data synchronized time in ms {}",(System.currentTimeMillis() - startTime));
       startTime = System.currentTimeMillis();
       String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
           .getZookeeperDefaultConfig().getFilesystemPath();

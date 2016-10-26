@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.Work;

@@ -1,20 +1,22 @@
 package com.talentica.hungryHippos.test.sum;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.Work;
 
+/**
+ * Created by debasishc on 9/9/15.
+ */
 public class SumWork implements Work, Serializable {
-
+  /**
+   * 
+   */
   private static final long serialVersionUID = -5931349264723731947L;
   protected int[] dimensions;
   protected int valueIndex;
-  private BigDecimal sum;
+  private long sum;
   private int jobId;
-  private MathContext mc = new MathContext(64);
 
   public SumWork(int[] dimensions, int valueIndex, int jobId) {
     this.dimensions = dimensions;
@@ -25,27 +27,10 @@ public class SumWork implements Work, Serializable {
   @Override
   public void processRow(ExecutionContext executionContext) {
     Object obj = executionContext.getValue(valueIndex);
-    if (sum == null) {
-      if (obj instanceof Integer) {
-        sum = BigDecimal.valueOf((Integer) obj);
-      } else if (obj instanceof Long) {
-        sum = BigDecimal.valueOf((Long) obj);
-      } else if (obj instanceof Double) {
-        sum = BigDecimal.valueOf((Double) obj);
-      } else if (obj instanceof Float) {
-        sum = BigDecimal.valueOf((Float) obj);
-      }
-    } else {
-      if (obj instanceof Integer) {
-        sum = sum.add(BigDecimal.valueOf((Integer) obj), mc);
-      } else if (obj instanceof Long) {
-        sum = sum.add(BigDecimal.valueOf((Long) obj), mc);
-      } else if (obj instanceof Double) {
-        sum = sum.add(BigDecimal.valueOf((Double) obj), mc);
-      } else if (obj instanceof Float) {
-        sum = sum.add(BigDecimal.valueOf((Float) obj), mc);
-      }
-    }
+    if (obj instanceof Long) {
+      sum = sum + (Long) obj;
+    } else if (obj instanceof Integer)
+      sum = sum + (Integer) obj;
   }
 
   @Override
@@ -55,7 +40,7 @@ public class SumWork implements Work, Serializable {
 
   @Override
   public void reset() {
-    sum = null;
+    sum = 0;
   }
 
   @Override

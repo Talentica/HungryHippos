@@ -17,6 +17,10 @@ public final class MedianCalculator implements Serializable {
 	public void addValue(Long value) {
 		descriptiveStatistics.addValue(value);
 	}
+	
+	public void addValue(Integer value) {
+      descriptiveStatistics.addValue(value);
+  }
 
 	public Double calculate() {
 		return descriptiveStatistics.getPercentile(50);

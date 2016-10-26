@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.test.median;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import com.talentica.hungryHippos.client.domain.ExecutionContext;
 import com.talentica.hungryHippos.client.domain.Work;
@@ -26,7 +27,14 @@ public class MedianWork implements Work, Serializable {
 
   @Override
   public void processRow(ExecutionContext executionContext) {
-    medianCalculator.addValue(Double.valueOf(executionContext.getValue(valueIndex).toString()));
+    Object obj = executionContext.getValue(valueIndex);
+    if (obj instanceof Integer) {
+      medianCalculator.addValue((Integer)obj);
+    } else if (obj instanceof Long) {
+      medianCalculator.addValue((Long)obj);
+    } else if (obj instanceof Double) {
+      medianCalculator.addValue((Double)obj);
+    }
   }
 
   @Override

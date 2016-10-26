@@ -173,7 +173,7 @@ public class DataFileSorter {
    * 
    * @param lockFile
    */
-  private synchronized  void unlockFile(File lockFile) {
+  private synchronized void unlockFile(File lockFile) {
     if (lockFile.exists()) {
       lockFile.delete();
     }
@@ -303,11 +303,11 @@ public class DataFileSorter {
       try {
         long startTime = System.currentTimeMillis();
         bout.write(chunk);
-        bout.flush();
         LOGGER.info(
             "Total time taken (ms) to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
       } catch (IOException e) {
+        bout.flush();
         LOGGER.info("Unable to write into file {}", e.getMessage());
         throw e;
       } finally {
@@ -325,7 +325,6 @@ public class DataFileSorter {
       try {
         long startTime = System.currentTimeMillis();
         out.write(chunk, 0, lenght);
-        out.flush();
         LOGGER.info(
             "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
@@ -400,7 +399,6 @@ public class DataFileSorter {
         ByteBuffer row = bfb.pop();
         startTime = System.currentTimeMillis();
         bout.write(row.array());
-        bout.flush();
         totalTime = totalTime + (System.currentTimeMillis() - startTime);
         ++rowcounter;
         if (bfb.empty()) {

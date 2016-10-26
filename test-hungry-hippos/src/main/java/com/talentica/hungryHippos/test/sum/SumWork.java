@@ -24,11 +24,27 @@ public class SumWork implements Work, Serializable {
 
   @Override
   public void processRow(ExecutionContext executionContext) {
+    Object obj = executionContext.getValue(valueIndex);
     if (sum == null) {
-      sum = BigDecimal.valueOf(Double.valueOf(executionContext.getValue(valueIndex).toString()));
+      if (obj instanceof Integer) {
+        sum = BigDecimal.valueOf((Integer) obj);
+      } else if (obj instanceof Long) {
+        sum = BigDecimal.valueOf((Long) obj);
+      } else if (obj instanceof Double) {
+        sum = BigDecimal.valueOf((Double) obj);
+      } else if (obj instanceof Float) {
+        sum = BigDecimal.valueOf((Float) obj);
+      }
     } else {
-      sum = sum.add(
-          BigDecimal.valueOf(Double.valueOf(executionContext.getValue(valueIndex).toString())), mc);
+      if (obj instanceof Integer) {
+        sum = sum.add(BigDecimal.valueOf((Integer) obj), mc);
+      } else if (obj instanceof Long) {
+        sum = sum.add(BigDecimal.valueOf((Long) obj), mc);
+      } else if (obj instanceof Double) {
+        sum = sum.add(BigDecimal.valueOf((Double) obj), mc);
+      } else if (obj instanceof Float) {
+        sum = sum.add(BigDecimal.valueOf((Float) obj), mc);
+      }
     }
   }
 

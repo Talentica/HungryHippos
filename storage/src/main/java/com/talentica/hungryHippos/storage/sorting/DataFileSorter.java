@@ -205,6 +205,8 @@ public class DataFileSorter {
         ((System.currentTimeMillis() - startTIme)));
   }
 
+  byte[] chunk = null;
+
   /**
    * To sort the file in batch
    * 
@@ -219,17 +221,12 @@ public class DataFileSorter {
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       final File outputdirectory, final File outputFile) throws IOException {
     long startTime = System.currentTimeMillis();
-    byte[] chunk = null;
     int noOfBytesInOneDataSet = dataDescription.getSize();
     long maxFreeMemory = availableMemory();
     List<File> files = new ArrayList<>();
     int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
     int effectiveBlockSizeBytes = ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
-    if (blocksize > datalength) {
-      chunk = new byte[(int) datalength];
-    } else {
-      chunk = new byte[effectiveBlockSizeBytes];
-    }
+    allocateChunkSize(datalength, blocksize, effectiveBlockSizeBytes);
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
     long dataFileSize = datalength;
@@ -270,6 +267,20 @@ public class DataFileSorter {
     }
     LOGGER.info("Total sorting time taken in ms {} ", ((System.currentTimeMillis() - startTime)));
     return files;
+  }
+
+
+  private void allocateChunkSize(final long datalength, int blocksize,
+      int effectiveBlockSizeBytes) {
+    if (chunk == null) {
+      if (blocksize > datalength) {
+        chunk = new byte[(int) datalength];
+      } else {
+        chunk = new byte[effectiveBlockSizeBytes];
+      }
+    } else {
+      Arrays.fill(chunk, (byte) 0);
+    }
   }
 
   /**

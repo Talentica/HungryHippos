@@ -242,7 +242,7 @@ public class DataFileSorter {
           readBytesLength = effectiveBlockSizeBytes;
         } else { // remaining chunk or for singal block which totally fit in memory.
           startTimeChunkRead = System.currentTimeMillis();
-          dataInputStream.readFully(chunk, 0, (int) dataFileSize);
+          dataInputStream.readFully(chunk);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
           readBytesLength = (int) dataFileSize;

@@ -24,7 +24,7 @@
 			"joborchestrator_class": "com.talentica.hungryHippos.job.main.JobOrchestrator",
 			"job_filepath": "/root/hungryhippos_chefsolo_vagrant_modularise/test-jobs.jar",
 			"job_class": "com.talentica.hungryHippos.test.sum.SumJobMatrixImpl",
-			"distributed_output_filepath": "/rajk/output",
+			"distributed_output_filepath": "/rajk/output22",
 			"filepath_orchestrator_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.out",
 			"filepath_orchestrator_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.err"
 			

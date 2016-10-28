@@ -728,7 +728,7 @@ get_hhfs_file_size_output(){
         NUM=$file_size_output
         file_size_output=$(echo "scale=2;$NUM/1024" | bc)
 	
-	rm filesize.txt
+	#rm filesize.txt
 
 }
 
@@ -740,7 +740,7 @@ hh_job_input_dbwrite(){
 
 hh_job_output_dbwrite(){
 
-        mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2',0);"
+        mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
 }
 
 get_sharding_dimension(){

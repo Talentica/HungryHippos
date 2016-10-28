@@ -17,11 +17,16 @@ create_zookeeperip_string zookeeper_ips[@]
 tmp=0
 
 
+#kill HH related process on all nodes
+for ip in "${ips[@]}"
+do
+ssh hhuser@$ip pkill -f "talentica"
+done
+
+
 for ip in "${ips[@]}"
 do
         scp -r distr hhuser@$ip:/home/hhuser/
-#       ssh hhuser@$ip "kill -9 $(ps aux | grep 'talentica' | awk '{print $2}')"
-        ssh hhuser@$ip pkill -f "talentica"
         #Run coordination and torrent tracker shell scripts on random node (here its first node)
         if [ $tmp -eq 0 ]
         then

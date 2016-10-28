@@ -63,6 +63,14 @@ echo "${zookeeper_ips[@]}"
 
 echo "${ips[@]}"
 
+
+#kill HH related process on all nodes
+for ip in "${ips[@]}"
+do
+ssh hhuser@$ip pkill -f "talentica"
+done
+
+
 zookeeper_flag=1
 for ip in "${ips[@]}"
 do
@@ -70,8 +78,6 @@ do
 	ssh root@$ip 'chown hhuser:hungryhippos -R /home/hhuser/distr'
         ssh root@$ip 'echo CLASSPATH=/home/hhuser/distr/lib >> /home/hhuser/.bashrc '
 		
-	#kill all hungryhippos processess in any before starting them
-	ssh hhuser@$ip pkill -f "talentica"
 
 	if [ $zookeeper_flag -le $total_zookeepers ] 
 	then
@@ -102,6 +108,7 @@ do
 	tmp=`expr $tmp + 1`
 
 done
+
 
 rm append_to_zoo_cfg
 

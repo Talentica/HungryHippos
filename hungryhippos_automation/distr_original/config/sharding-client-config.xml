@@ -4,8 +4,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-client-config.xsd ">
 	<tns:input>
-		<tns:sample-file-path>/home/sohanc/D_drive/HungryHippos_project/HungryHippos/sampledata.csv</tns:sample-file-path>
-		<tns:distributed-file-path>/dir/input1</tns:distributed-file-path>
+		<tns:sample-file-path>/root/application/lib/sampledata.txt</tns:sample-file-path>
+		<tns:distributed-file-path>/rajk/1gb</tns:distributed-file-path>
 		<tns:data-description>
 			<tns:column>
 				<tns:name>key1</tns:name>
@@ -55,7 +55,7 @@
 		</tns:data-description>
 		<tns:data-parser-config>
 			<tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
-			<tns:jar-file-path>/home/sohanc/D_drive/HungryHippos_project/HungryHippos/test-hungry-hippos/build/libs/test-jobs.jar</tns:jar-file-path>
+			<tns:jar-file-path>/root/application/lib/test-jobs.jar</tns:jar-file-path>
 		</tns:data-parser-config>
 	</tns:input>
 	<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>

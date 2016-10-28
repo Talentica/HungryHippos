@@ -1,0 +1,36 @@
+{
+
+	"number_of_jobs": "1",
+
+	"jobs":
+	[	
+        	{
+			"lib_client": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client",
+ 			"filepath_sharding_jar": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client/sharding.jar",
+                        "sharding_class": "com.talentica.hungryHippos.sharding.main.ShardingStarter", 
+                        "filepath_client_config": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/config/client-config.xml", 
+                        "folderpath_config": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/config/",
+                        "filepath_sharding_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/sharding.out", 
+                        "filepath_sharding_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/sharding.err",
+
+			"filepath_datapublisher_jar": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client/data-publisher.jar",
+			"datapublisher_class": "com.talentica.hungryHippos.master.DataPublisherStarter",
+			"input_filepath": "/root/application/lib/1gb.txt",
+			"sampling_filepath": "/root/application/lib/1gb_sample.txt",  
+			"distributed_input_filepath": "/rajk/1gb",
+			"filepath_datapublisher_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.out", 
+			"filepath_datapublisher_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.err",
+
+			"joborchestrator_class": "com.talentica.hungryHippos.job.main.JobOrchestrator",
+			"job_filepath": "/root/hungryhippos_chefsolo_vagrant_modularise/test-jobs.jar",
+			"job_class": "com.talentica.hungryHippos.test.sum.SumJobMatrixImpl",
+			"distributed_output_filepath": "/rajk/output",
+			"filepath_orchestrator_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.out",
+			"filepath_orchestrator_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.err"
+			
+		}
+
+
+	]
+
+}

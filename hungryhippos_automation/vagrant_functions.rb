@@ -3,8 +3,8 @@ class Vagrant_functions
  def  self.configuration(config,no_of_nodes,no_of_zookeeper,ip_file)
                 (1..no_of_nodes).each do |i|
 
-                        config.vm.define "hungryhippos-test-module-#{i}" do |node|
-                                node_name="hungryhippos-test-module-#{i}"
+                        config.vm.define "hh-#{i}" do |node|
+                                node_name="hh-#{i}"
                                 node.vm.box = "digital_ocean"
                                 curr_dir=File.dirname(__FILE__)
                                 #puts curr_dir

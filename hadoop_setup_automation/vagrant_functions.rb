@@ -51,7 +51,7 @@ class Vagrant_functions
         	        provider.token = "639d421b041fed3566bc3da896d31347befdad49f8c9add911eee5a554865294"
                 	provider.image = "ubuntu-14-04-x64"
 	                provider.region = "nyc2"
-	                provider.size = "2GB"
+	                provider.size = "4GB"
         	end
 	end
 

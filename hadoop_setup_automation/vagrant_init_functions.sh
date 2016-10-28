@@ -340,10 +340,16 @@ master_setup_for_job_execution(){
         ssh root@$MASTER_IP "chown hduser:hadoop $desired_output_file_location_master"
 
         #copy jar file to master machine
-        scp $jar_file_path root@$MASTER_IP:$desired_job_file_location_master/$jar_name
+        scp $jar_file_path hduser@$MASTER_IP:$desired_job_file_location_master/$jar_name
 
         #copy test file to master machine
-        scp $input_file_path root@$MASTER_IP:$desired_input_file_location_master/$file_name
+     #Commented for uploading data from another machine to hadoop
+	 scp $input_file_path hduser@$MASTER_IP:$desired_input_file_location_master/$file_name
+    
+#	 for ip in "${ips[@]}"
+#        do
+
+#	done
 
 }
 

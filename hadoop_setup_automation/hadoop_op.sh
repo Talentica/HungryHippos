@@ -33,14 +33,14 @@ export delete_hdfs_file_name
 get_master_ip
 
 
-for (( i=0; i <$no_of_jobs; ++i ))
+for (( i=0; $i <$no_of_jobs; ++i ))
 do
 	
 	#get start time for job submit
 	time_submit=$(date +'%Y:%m:%d %H:%M:%S')
 
 	#insertion of time submit in job table.
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job (status,date_time_submitted,user_id) VALUES ('submitted', '$time_submit','1');"
+	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job (status,date_time_submitted,user_id,file_system) VALUES ('submitted', '$time_submit','1','Hadoop');"
 
 	#get job id of current job
 	job_id=$(mysql hungryhippos_tester -uroot -proot -se "select job_id from job where date_time_submitted='$time_submit';")

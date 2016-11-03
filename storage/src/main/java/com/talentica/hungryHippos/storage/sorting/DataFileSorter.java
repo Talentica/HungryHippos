@@ -221,12 +221,8 @@ public class DataFileSorter {
   private List<File> sortInBatch(final DataInputStream dataInputStream, final long datalength,
       final File outputdirectory, final File outputFile) throws IOException {
     long startTime = System.currentTimeMillis();
-    int noOfBytesInOneDataSet = dataDescription.getSize();
-    long maxFreeMemory = availableMemory();
     List<File> files = new ArrayList<>();
-    int blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
-    int effectiveBlockSizeBytes = ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
-    allocateChunkSize(datalength, blocksize, effectiveBlockSizeBytes);
+    allocateChunkSizeIfNot(datalength);
     LOGGER.info("Sorting in batch started...");
     int batchId = 0;
     long dataFileSize = datalength;
@@ -234,31 +230,27 @@ public class DataFileSorter {
     long startTimeChunkRead;
     try {
       while (dataFileSize > 0) {
-        if (dataFileSize >= effectiveBlockSizeBytes) {
+        if (dataFileSize >= chunk.length) {
           startTimeChunkRead = System.currentTimeMillis();
           dataInputStream.readFully(chunk);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
-          readBytesLength = effectiveBlockSizeBytes;
+          readBytesLength = chunk.length;
         } else { // remaining chunk or for singal block which totally fit in memory.
           startTimeChunkRead = System.currentTimeMillis();
-          dataInputStream.readFully(chunk);
+          dataInputStream.readFully(chunk, 0, (int) dataFileSize);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
           readBytesLength = (int) dataFileSize;
         }
-        dataFileSize = dataFileSize - chunk.length;
-        if (dataFileSize <= 0 && batchId == 0) {
+        dataFileSize = dataFileSize - readBytesLength;
+        if (dataFileSize == 0 && batchId == 0) {
           files.add(sortAndSave(chunk, outputFile, batchId, true, readBytesLength));
         } else {
           files.add(sortAndSave(chunk, outputdirectory, batchId, false, readBytesLength));
         }
         batchId++;
       }
-    } catch (EOFException eof) {
-      dataFileSize = dataFileSize - chunk.length;
-      files.add(sortAndSave(chunk, outputdirectory, batchId, (dataFileSize <= 0 && batchId == 0),
-          readBytesLength));
     } catch (Exception e) {
       LOGGER.error("Unable to process due to {}", e.getMessage());
       throw e;
@@ -270,9 +262,15 @@ public class DataFileSorter {
   }
 
 
-  private void allocateChunkSize(final long datalength, int blocksize,
-      int effectiveBlockSizeBytes) {
+  private void allocateChunkSizeIfNot(final long datalength) {
+    int blocksize;
+    int effectiveBlockSizeBytes;
+    int noOfBytesInOneDataSet;
+    long maxFreeMemory = availableMemory();
     if (chunk == null) {
+      noOfBytesInOneDataSet = dataDescription.getSize();
+      blocksize = getSizeOfBlocks(datalength, maxFreeMemory);
+      effectiveBlockSizeBytes = ((blocksize) / (noOfBytesInOneDataSet)) * noOfBytesInOneDataSet;
       if (blocksize > datalength) {
         chunk = new byte[(int) datalength];
       } else {
@@ -290,12 +288,12 @@ public class DataFileSorter {
    * @param output
    * @param batchId
    * @param isSingalBatch
-   * @param lenght
+   * @param readBytesLength
    * @return file sorted and saved
    * @throws IOException
    */
   private File sortAndSave(byte[] chunk, File output, int batchId, boolean isSingalBatch,
-      int lenght) throws IOException {
+      int readBytesLength) throws IOException {
     LOGGER.info("Batch id {} is getting sorted and saved", (batchId));
     LOGGER.info("Sorting started for chunk size {}...", chunk.length);
     long sortStartTime = System.currentTimeMillis();
@@ -313,7 +311,7 @@ public class DataFileSorter {
       BufferedOutputStream bout = new BufferedOutputStream(fos);
       try {
         long startTime = System.currentTimeMillis();
-        bout.write(chunk);
+        bout.write(chunk, 0, readBytesLength);
         LOGGER.info(
             "Total time taken (ms) to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));
@@ -335,7 +333,7 @@ public class DataFileSorter {
       OutputStream out = new FileOutputStream(file);
       try {
         long startTime = System.currentTimeMillis();
-        out.write(chunk, 0, lenght);
+        out.write(chunk, 0, readBytesLength);
         LOGGER.info(
             "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));

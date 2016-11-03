@@ -5,96 +5,148 @@ import java.util.Collection;
 
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 
-public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
+/**
+ * {@code Bucket} used for storing Object count of particular T type.
+ *
+ * @param <T>
+ */
+public class Bucket<T> implements Comparable<Bucket<T>>, Serializable {
 
-   @ZkTransient
-	private static final long serialVersionUID = 4664630705942019835L;
+  @ZkTransient
+  private static final long serialVersionUID = 4664630705942019835L;
 
-	private Integer id;
+  private Integer id;
 
-	private long size = 0;
+  private long size = 0;
 
-	@ZkTransient
-	private long numberOfObjects = 0;
+  @ZkTransient
+  private long numberOfObjects = 0;
 
-	public Integer getId() {
-		return id;
-	}
-	
-	public Bucket(){}
+  public Integer getId() {
+    return id;
+  }
 
-	public Bucket(int id, long size) {
-		this.id = id;
-		this.size = size;
-	}
+  /**
+   * create an empty instance of Bucket.
+   */
+  public Bucket() {}
 
-	public Bucket(int id) {
-		this.id = id;
-	}
+  /**
+   * create an instance of Bucket with following id and size.
+   * 
+   * @param id
+   * @param size
+   */
+  public Bucket(int id, long size) {
+    this.id = id;
+    this.size = size;
+  }
 
-	public void add(T t) {
-		numberOfObjects++;
-	}
+  /**
+   * create an instance of Bucket with Id.
+   * 
+   * @param id
+   */
+  public Bucket(int id) {
+    this.id = id;
+  }
 
-	public void addAll(Collection<T> t) {
-		numberOfObjects = numberOfObjects + t.size();
-	}
+  /**
+   * Add object of T type.
+   * 
+   * @param t
+   */
+  public void add(T t) {
+    numberOfObjects++;
+  }
 
-	public void remove(T t) {
-		numberOfObjects--;
-	}
+  /**
+   * add all the objects in the collection of T type.
+   * 
+   * @param t
+   */
+  public void addAll(Collection<T> t) {
+    numberOfObjects = numberOfObjects + t.size();
+  }
 
-	public void removeAll(Collection<T> t) {
-		numberOfObjects = numberOfObjects - t.size();
-	}
+  /**
+   * remove the T type.
+   * 
+   * @param t
+   */
+  public void remove(T t) {
+    numberOfObjects--;
+  }
 
-	public void clear() {
-		numberOfObjects = 0;
-	}
+  /**
+   * remove all the Objects of T type belonging to the collection.
+   * 
+   * @param t
+   */
+  public void removeAll(Collection<T> t) {
+    numberOfObjects = numberOfObjects - t.size();
+  }
 
-	public long getSize() {
-		return size;
-	}
+  /**
+   * clear the number of objects to 0.
+   */
+  public void clear() {
+    numberOfObjects = 0;
+  }
 
-	public Long getFilledSize() {
-		return numberOfObjects;
-	}
+  /**
+   * retrieve the size of this instance.
+   * 
+   * @return
+   */
+  public long getSize() {
+    return size;
+  }
 
-	@Override
-	public int hashCode() {
-		if (id != null) {
-			return id.hashCode();
-		}
-		return super.hashCode();
-	}
+  /**
+   * retrieve the number of Objects.
+   * 
+   * @return
+   */
+  public Long getFilledSize() {
+    return numberOfObjects;
+  }
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj != null && obj instanceof Bucket) {
-			return ((Bucket) obj).getId().equals(getId());
-		}
-		return false;
-	}
+  @Override
+  public int hashCode() {
+    if (id != null) {
+      return id.hashCode();
+    }
+    return super.hashCode();
+  }
 
-	@Override
-	public int compareTo(Bucket<T> otherBucket) {
-		if (otherBucket != null) {
-			return getFilledSize().compareTo(otherBucket.getFilledSize());
-		}
-		return 0;
-	}
+  @SuppressWarnings("rawtypes")
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj != null && obj instanceof Bucket) {
+      return ((Bucket) obj).getId().equals(getId());
+    }
+    return false;
+  }
 
-	@Override
-	public String toString() {
-		if (id != null) {
-			return "Bucket{" + id + "}";
-		}
-		return super.toString();
-	}
+  @Override
+  public int compareTo(Bucket<T> otherBucket) {
+    if (otherBucket != null) {
+      return getFilledSize().compareTo(otherBucket.getFilledSize());
+    }
+    return 0;
+  }
+
+  @Override
+  public String toString() {
+    if (id != null) {
+      return "Bucket{" + id + "}";
+    }
+    return super.toString();
+  }
 
   public long getNumberOfObjects() {
     return numberOfObjects;
@@ -111,7 +163,7 @@ public class Bucket<T> implements Comparable<Bucket<T>>,Serializable{
   public void setSize(long size) {
     this.size = size;
   }
-	
-	
+
+
 
 }

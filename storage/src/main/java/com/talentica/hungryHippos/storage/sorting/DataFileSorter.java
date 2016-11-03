@@ -238,19 +238,23 @@ public class DataFileSorter {
           readBytesLength = chunk.length;
         } else { // remaining chunk or for singal block which totally fit in memory.
           startTimeChunkRead = System.currentTimeMillis();
-          dataInputStream.readFully(chunk, 0, (int) dataFileSize);
+          dataInputStream.readFully(chunk);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
           readBytesLength = (int) dataFileSize;
         }
         dataFileSize = dataFileSize - readBytesLength;
+
         if (dataFileSize == 0 && batchId == 0) {
+
+     
           files.add(sortAndSave(chunk, outputFile, batchId, true, readBytesLength));
         } else {
           files.add(sortAndSave(chunk, outputdirectory, batchId, false, readBytesLength));
         }
         batchId++;
       }
+
     } catch (Exception e) {
       LOGGER.error("Unable to process due to {}", e.getMessage());
       throw e;
@@ -333,7 +337,9 @@ public class DataFileSorter {
       OutputStream out = new FileOutputStream(file);
       try {
         long startTime = System.currentTimeMillis();
+
         out.write(chunk, 0, readBytesLength);
+
         LOGGER.info(
             "Total time taken in ms to write data after sorting and saving batch id {} ,  {}",
             batchId, (System.currentTimeMillis() - startTime));

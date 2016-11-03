@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
+ * {@code MutableInteger} is used for memory optimization. Because of this class system will be
+ * making less objects for Integer.
  * 
  * @author sudarshans
  *
@@ -14,6 +16,12 @@ public class MutableInteger implements DataTypes {
   private byte[] array;
   private int stringLength;
 
+  /**
+   * creates a new MutableInteger with specified length. The length specified is the limit of the
+   * underlying array.
+   * 
+   * @param length
+   */
   public MutableInteger(int length) {
     array = new byte[length];
     stringLength = 0;
@@ -29,6 +37,7 @@ public class MutableInteger implements DataTypes {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -45,12 +54,14 @@ public class MutableInteger implements DataTypes {
     return new String(Arrays.copyOf(array, stringLength));
   }
 
+  @Override
   public MutableInteger addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
   }
 
+  @Override
   public void reset() {
     stringLength = 0;
   }
@@ -94,20 +105,27 @@ public class MutableInteger implements DataTypes {
     return h;
   }
 
+  /**
+   * create a new MutableDouble from the value provided.
+   * 
+   * @param value
+   * @return
+   * @throws InvalidRowException
+   */
   public static MutableInteger from(String value) throws InvalidRowException {
-    MutableInteger mutableLongByteArray = new MutableInteger(value.length());
+    MutableInteger mutableInteger = new MutableInteger(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableLongByteArray.addByte(character);
+      mutableInteger.addByte(character);
     }
-    return mutableLongByteArray;
+    return mutableInteger;
   }
 
   @Override
   public int compareTo(DataTypes dataType) {
     MutableInteger otherMutableIntegerByteArray = null;
-    if(dataType instanceof MutableInteger){
-      otherMutableIntegerByteArray = (MutableInteger)dataType;
-    }else {
+    if (dataType instanceof MutableInteger) {
+      otherMutableIntegerByteArray = (MutableInteger) dataType;
+    } else {
       return -1;
     }
     if (equals(otherMutableIntegerByteArray)) {

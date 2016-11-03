@@ -28,6 +28,11 @@ public class ExecutionContextImpl implements ExecutionContext {
 
   private static PrintStream out;
 
+  /**
+   * creates a new ExecutionContextImpl.
+   * @param dynamicMarshal
+   * @param outputHHPath
+   */
   public ExecutionContextImpl(DynamicMarshal dynamicMarshal, String outputHHPath) {
     this.dynamicMarshal = dynamicMarshal;
     try {

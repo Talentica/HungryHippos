@@ -14,6 +14,10 @@ import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
+/**
+ * 
+ *{@code BucketsCalculator} used for calculating the size of Buckets.
+ */
 public final class BucketsCalculator {
 
   private static final int NO_OF_BYTES_PER_KEY = 4;
@@ -26,10 +30,19 @@ public final class BucketsCalculator {
       new HashMap<String, List<Bucket<KeyValueFrequency>>>();
  private ShardingApplicationContext context;
  
+ /**
+  * creates an instance.
+  * @param context
+  */
   public BucketsCalculator(ShardingApplicationContext context) {
  this.context = context;
   }
 
+  /**
+   * create an instance of BucketsCalculator.
+   * @param keyToValueToBucketMap
+   * @param context
+   */
   public BucketsCalculator(
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,ShardingApplicationContext context) {
     this(context);
@@ -46,6 +59,16 @@ public final class BucketsCalculator {
     }
   }
 
+  /**
+   * calculates number of buckets needed.
+   * @return
+   * @throws ClassNotFoundException
+   * @throws FileNotFoundException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws IOException
+   * @throws JAXBException
+   */
   public  int calculateNumberOfBucketsNeeded() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     double MAX_NO_OF_FILE_SIZE = Double.valueOf(
@@ -67,6 +90,12 @@ public final class BucketsCalculator {
     return numberOfBucketsNeeded;
   }
 
+  /**
+   * Retrieves the Bucket which KeyValueFrequency.
+   * @param key
+   * @param value
+   * @return
+   */
   public Bucket<KeyValueFrequency> getBucketNumberForValue(String key, Object value) {
     Bucket<KeyValueFrequency> bucket = null;
     if (keyToValueToBucketMap != null) {

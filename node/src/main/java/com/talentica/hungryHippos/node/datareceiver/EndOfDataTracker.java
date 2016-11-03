@@ -16,7 +16,10 @@ import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 
 /**
- * Created by rajkishoreh on 30/9/16.
+ * {@code EndOfDataTracker} used for finding whether Tracker has sent all the data to all the nodes.
+ * 
+ * @author rajkishoreh
+ * @since 30/9/16.
  */
 public enum EndOfDataTracker {
   INSTANCE;
@@ -26,10 +29,13 @@ public enum EndOfDataTracker {
   private Map<Integer, Map<Integer, Integer>> fileToDimensionIdxToSignalCount;
   private HungryHippoCurator curator;
 
+  /**
+   * create an instance of EndOfDataTracker.
+   */
   EndOfDataTracker() {
     fileToDimensionIdxToSignalCount = new HashMap<>();
     nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-    curator = HungryHippoCurator.getAlreadyInstantiated();
+    curator = HungryHippoCurator.getInstance();
 
   }
 

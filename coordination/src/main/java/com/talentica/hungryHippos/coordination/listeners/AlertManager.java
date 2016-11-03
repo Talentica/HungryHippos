@@ -16,14 +16,17 @@ import com.talentica.hungryHippos.coordination.domain.Server;
 import com.talentica.hungryHippos.coordination.domain.Status;
 
 /**
+ * {@code AlertManager} implements both {@link EvictionListener } and {@link RegistrationListener}.
+ * And is used for register and deregister {@link Server} details.
+ * 
  * @author PooshanS
  *
  */
 public class AlertManager implements EvictionListener, RegistrationListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AlertManager.class.getName());
-  Map<Server, Boolean> concurrentMap = new ConcurrentHashMap<Server, Boolean>(
-      new TreeMap<Server, Boolean>());
+  Map<Server, Boolean> concurrentMap =
+      new ConcurrentHashMap<Server, Boolean>(new TreeMap<Server, Boolean>());
   Set<Server> registeredServers = Collections.newSetFromMap(concurrentMap);
 
   @Override
@@ -33,8 +36,8 @@ public class AlertManager implements EvictionListener, RegistrationListener {
     } else {
       LOGGER.info(String.format("Attempt to remove non-monitored server: %s [%s] :: %s",
           server.getName(), server.getServerAddress().getIp(), server.getDescription()));
-      return Status.createErrorStatus(String.format("Server %s was not a registered " + "server",
-          server.getName()));
+      return Status.createErrorStatus(
+          String.format("Server %s was not a registered " + "server", server.getName()));
     }
   }
 
@@ -43,8 +46,8 @@ public class AlertManager implements EvictionListener, RegistrationListener {
     if (registeredServers.add(server)) {
       return Status.createStatus(String.format("Server %s added", server.getName()));
     } else {
-      return Status.createErrorStatus(String.format("Server %s was already registered",
-          server.getName()));
+      return Status
+          .createErrorStatus(String.format("Server %s was already registered", server.getName()));
     }
   }
 

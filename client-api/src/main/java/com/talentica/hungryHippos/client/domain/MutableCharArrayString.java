@@ -5,7 +5,12 @@ import java.util.Arrays;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 
 /**
- * Created by debasishc on 29/9/15. updated by Sudarshan
+ * 
+ * {@code MutableCharArrayString} is used for memory optimization. Because of this class system will
+ * be making less objects.
+ * 
+ * @author debasishc
+ * @since 29/9/15.
  */
 public class MutableCharArrayString implements CharSequence, DataTypes {
 
@@ -18,9 +23,19 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
   private char[] array;
   private int stringLength;
 
-  public MutableCharArrayString(){
-    
+  /**
+   * creates a new MutableCharArrayString.
+   */
+  public MutableCharArrayString() {
+
   }
+
+  /**
+   * creates a new MutableCharArrayString with specified length. The length specified is the limit
+   * of the underlying array.
+   * 
+   * @param length is the size of underlying array that will be created.
+   */
   public MutableCharArrayString(int length) {
     array = new char[length];
     stringLength = 0;
@@ -41,6 +56,9 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return (char) array[index];
   }
 
+  /**
+   * return a byte[]
+   */
   public byte[] getUnderlyingArray() {
     byte[] byteArray = new byte[stringLength];
     for (int i = 0; i < stringLength; i++) {
@@ -49,6 +67,10 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return byteArray;
   }
 
+  /**
+   * 
+   * @return a char[].
+   */
   public char[] getUnderlyingCharArray() {
     return array;
   }
@@ -70,20 +92,27 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
 
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
+    return String.copyValueOf(Arrays.copyOf(array, stringLength));
   }
 
-
-
+  @Override
   public void reset() {
     stringLength = 0;
   }
 
   @Override
   public MutableCharArrayString clone() {
-    MutableCharArrayString newArray = new MutableCharArrayString(stringLength);
+    String stringValue = this.toString();
+    MutableCharArrayString newArray =
+        MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(stringValue);
+    if (newArray != null) {
+      return newArray;
+    }
+
+    newArray = new MutableCharArrayString(stringLength);
     copyCharacters(0, stringLength, newArray);
     newArray.stringLength = stringLength;
+    MUTABLE_CHAR_ARRAY_STRING_CACHE.add(stringValue, newArray);
     return newArray;
   }
 

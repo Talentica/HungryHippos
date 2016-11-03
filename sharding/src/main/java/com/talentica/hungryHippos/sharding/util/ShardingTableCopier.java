@@ -77,7 +77,7 @@ public class ShardingTableCopier {
     String shardingTableCopiedOnPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath() + distributedFilePath
         + SHARDING_TABLE_AVAILABLE_WITH_NODE_PATH + nodeIdShardingTableCopiedTo;
-    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    HungryHippoCurator curator = HungryHippoCurator.getInstance();
     curator.createPersistentNode(
         shardingTableCopiedOnPath + nodeIdShardingTableCopiedTo, new CountDownLatch(1));
     String shardingTableToBeCopiedOnNodePath =

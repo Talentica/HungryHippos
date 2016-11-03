@@ -1,10 +1,13 @@
 package com.talentica.hungryHippos.storage;
 
 /**
- * Created by debasishc on 31/8/15.
+ * {@code RowProcessor} can be used by client to provide their own algorithm to process a row.
  */
 public interface RowProcessor {
 
+  /**
+   * the method where the algorithm has to be written.
+   */
   void process();
-
+  
 }

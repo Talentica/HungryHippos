@@ -26,6 +26,10 @@ import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
+/**
+ * {@code SortedDataJobRunner} used for running jobs on sorted data.
+ *
+ */
 public class SortedDataJobRunner implements JobRunner {
 
   private static final long serialVersionUID = -4997999584207490930L;
@@ -41,6 +45,17 @@ public class SortedDataJobRunner implements JobRunner {
   private DataDescription dataDescription;
   private ShardingApplicationContext context;
 
+  /**
+   * creates an instance of SortedDataJobRunner.
+   * 
+   * @param dataDescription
+   * @param dataStore
+   * @param nodeId
+   * @param inputHHPath
+   * @param outputHHPath
+   * @param context
+   * @throws IOException
+   */
   public SortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String inputHHPath, String outputHHPath, ShardingApplicationContext context)
       throws IOException {
@@ -61,7 +76,7 @@ public class SortedDataJobRunner implements JobRunner {
           UnsortedDataRowProcessor.MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS);
       StoreAccess storeAccess = dataStore.getStoreAccess(primaryDimensionIndex);
       RowProcessor rowProcessor = new SortedDataRowProcessor(dynamicMarshal, jobEntities,
-          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription, context);
+          outputHHPath, storeAccess, primaryDimensionIndex, dataDescription, context);     
       rowProcessor.process();
     } catch (Exception e) {
       LOGGER.error(e.toString());

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
@@ -21,8 +20,7 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * 
- * HungryHipposFileSystem FileSystem. This class has methods for creating files as znodes in the
- * Zookeeper.
+ * {@code HungryHipposFileSystem} creating files as znodes in the Zookeeper.
  * 
  * 
  * @author sudarshans
@@ -33,7 +31,6 @@ public class HungryHipposFileSystem {
   private static Logger logger = LoggerFactory.getLogger("HungryHipposFileSystem");
   private static HungryHippoCurator curator = null;
   private final String HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
-  private ZookeeperConfiguration zkConfiguration;
   private static volatile HungryHipposFileSystem hhfs = null;
   private static String HUNGRYHIPPOS_FS_NODE = null;
 
@@ -45,7 +42,7 @@ public class HungryHipposFileSystem {
     if (hhfs != null) {
       throw new IllegalStateException("Instance Already created");
     }
-    curator = HungryHippoCurator.getAlreadyInstantiated();
+    curator = HungryHippoCurator.getInstance();
     CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER =
         coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
@@ -53,14 +50,23 @@ public class HungryHipposFileSystem {
 
   }
 
+  /**
+   * retrieves HungryHipposFileSystem node that was set.
+   * 
+   * @return String representing the HungryHippoFileSystem location.
+   */
   public String getHHFSNodeRoot() {
     return HUNGRYHIPPOS_FS_NODE;
   }
 
-  public String getHHFSZROOT() {
-    return this.HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER;
-  }
-
+  /**
+   * used for create HungryHipposFileSystem instance if it was not created previously. Else
+   * retrieves the one which was created previously.
+   * 
+   * @return
+   * @throws FileNotFoundException
+   * @throws JAXBException
+   */
   public static HungryHipposFileSystem getInstance() throws FileNotFoundException, JAXBException {
     if (hhfs == null) {
       synchronized (HungryHipposFileSystem.class) {
@@ -72,6 +78,13 @@ public class HungryHipposFileSystem {
     return hhfs;
   }
 
+  /**
+   * checks whether the {@value name } provided contains the FileSystem root in it. if not it
+   * appends it.
+   * 
+   * @param name
+   * @return String representing the path that HungryHippoFileSystem will use.
+   */
   public String checkNameContainsFileSystemRoot(String name) {
     if (!(name.contains(HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER))) {
       if (name.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)) {
@@ -111,7 +124,6 @@ public class HungryHipposFileSystem {
    */
   public String createZnode(String name, Object data) {
     name = checkNameContainsFileSystemRoot(name);
-    createZnode(name, data);
     try {
       name = curator.createPersistentNodeIfNotPresent(name, data);
     } catch (HungryHippoException e) {

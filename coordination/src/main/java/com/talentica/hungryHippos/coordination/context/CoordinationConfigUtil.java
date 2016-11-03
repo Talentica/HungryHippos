@@ -20,6 +20,8 @@ import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
+ * {@code CoordinationConfigUtil} is used for uploading and downloading configuration file.
+ * 
  * @author pooshans
  *
  */
@@ -42,6 +44,11 @@ public class CoordinationConfigUtil {
   private static final String ZK_PATH_SEPERATOR = "/";
   private static HungryHippoCurator curator;
 
+  /**
+   * Used for reading the location where configuration file has to be saved.
+   * 
+   * @return an instance of Property<CoordinationProperty>.
+   */
   public static Property<CoordinationProperty> getProperty() {
     if (property == null) {
       property = new CoordinationProperty("config-path.properties");
@@ -49,16 +56,31 @@ public class CoordinationConfigUtil {
     return property;
   }
 
+  /**
+   * Used for uploading configuration details on zookeeper.
+   * 
+   * @param nodeName
+   * @param configurationFile
+   * @throws IOException
+   * @throws JAXBException
+   * @throws InterruptedException
+   * @throws HungryHippoException
+   */
   public static void uploadConfigurationOnZk(String nodeName, Object configurationFile)
       throws IOException, JAXBException, InterruptedException, HungryHippoException {
     LOGGER.info("uploading  {}  on zookeeper", nodeName);
     if (curator == null) {
-      curator = HungryHippoCurator.getAlreadyInstantiated();
+      curator = HungryHippoCurator.getInstance();
     }
     curator.createPersistentNode(nodeName, configurationFile);
     LOGGER.info("uploaded  {}  on zookeeper succesfully", nodeName);
   }
 
+  /**
+   * used for retrieving the Coorination Configuration.
+   * 
+   * @return an instance of CoordinationConfig.
+   */
   public static CoordinationConfig getZkCoordinationConfigCache() {
     if (config != null) {
       return config;
@@ -68,21 +90,30 @@ public class CoordinationConfigUtil {
             + CoordinationConfigUtil.COORDINATION_CONFIGURATION;
     try {
       if (curator == null) {
-        curator = HungryHippoCurator.getAlreadyInstantiated();
+        curator = HungryHippoCurator.getInstance();
       }
       config = (CoordinationConfig) curator.readObject(configurationFile);
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error(e.getMessage());
     }
 
     return config;
   }
 
+  /**
+   * sets the {@value localClusterConfigFilePath}.
+   * 
+   * @param localClusterConfigFilePath
+   */
   public static void setLocalClusterConfigPath(String localClusterConfigFilePath) {
     CoordinationConfigUtil.localClusterConfigFilePath = localClusterConfigFilePath;
   }
 
+  /**
+   * Used for parsing cluster-config.xml.
+   * 
+   * @return an instance of {@link ClusterConfig}
+   */
   public static ClusterConfig getLocalClusterConfig() {
     ClusterConfig clusterConfig = null;
     try {
@@ -94,6 +125,11 @@ public class CoordinationConfigUtil {
     return clusterConfig;
   }
 
+  /**
+   * Retrieves cluster configuration from zookeeper.
+   * 
+   * @return an instance of {@link ClusterConfig}
+   */
   public static ClusterConfig getZkClusterConfigCache() {
     if (clusterConfig != null) {
       return clusterConfig;
@@ -104,12 +140,11 @@ public class CoordinationConfigUtil {
             + ZK_PATH_SEPERATOR + CoordinationConfigUtil.CLUSTER_CONFIGURATION;
     try {
       if (curator == null) {
-        curator = HungryHippoCurator.getAlreadyInstantiated();
+        curator = HungryHippoCurator.getInstance();
       }
       clusterConfig = (ClusterConfig) curator.readObject(configurationFile);
     } catch (HungryHippoException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error(e.getMessage());
     }
 
     return clusterConfig;

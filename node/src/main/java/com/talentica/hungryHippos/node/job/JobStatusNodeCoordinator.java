@@ -1,20 +1,25 @@
 package com.talentica.hungryHippos.node.job;
 
 
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getHHNode;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getJobEntityHHNode;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getJobEntityNode;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getJobIdNode;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingHHNode;
+import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.getPendingJobIdNode;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.PathEnum;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
-import static com.talentica.hungryHippos.common.job.JobStatusCommonOperations.*;
-
 /**
- * This class is for Nodes to interact with Job Status Node Created by rajkishoreh on 4/8/16.
+ * {@code JobStatusNodeCoordinator} is for Nodes to interact with Job Status Node.
+ * 
+ * @author rajkishoreh
+ * @since 4/8/16.
  */
 public class JobStatusNodeCoordinator {
 
@@ -22,7 +27,7 @@ public class JobStatusNodeCoordinator {
 
   static {
 
-    curator = HungryHippoCurator.getAlreadyInstantiated();
+    curator = HungryHippoCurator.getInstance();
 
   }
 

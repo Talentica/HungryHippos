@@ -44,7 +44,7 @@ public interface DataDescription {
 	 * Returns maximum size of data in number of bytes which can be present in
 	 * single processing block e.g. single line in csv file.
 	 * 
-	 * @return
+	 * @return returns an int value representing the single block size.
 	 */
 	public int getMaximumSizeOfSingleBlockOfData();
 

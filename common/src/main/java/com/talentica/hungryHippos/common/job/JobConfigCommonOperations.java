@@ -1,22 +1,16 @@
 package com.talentica.hungryHippos.common.job;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
-import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
- * This class is for having common methods related to Job Configurations Created by rajkishoreh on
- * 3/8/16.
+ * This class is for having common methods related to Job Configurations
+ * @author rajkishoreh 
+ * @since 3/8/16.
  */
 public class JobConfigCommonOperations {
 
@@ -26,21 +20,22 @@ public class JobConfigCommonOperations {
   private static final String OUTPUT_HH_PATH = "OUTPUT_HH_PATH";
   private static final String CLASS_NAME = "CLASS_NAME";
   private static final String JOB_ENITY_LIST = "JOB_ENITY_LIST";
+  private static final String ZK_PATH = "/";
 
   public static String getJobClassNode(String jobNode) {
-    return jobNode + "/" + CLASS_NAME;
+    return jobNode + ZK_PATH + CLASS_NAME;
   }
 
   public static String getJobInputNode(String jobNode) {
-    return jobNode + "/" + INPUT_HH_PATH;
+    return jobNode + ZK_PATH + INPUT_HH_PATH;
   }
 
   public static String getJobOutputNode(String jobNode) {
-    return jobNode + "/" + OUTPUT_HH_PATH;
+    return jobNode + ZK_PATH + OUTPUT_HH_PATH;
   }
 
   public static String getJobEntityListNode(String jobNode) {
-    return jobNode + "/" + JOB_ENITY_LIST;
+    return jobNode + ZK_PATH + JOB_ENITY_LIST;
   }
 
   /**
@@ -52,7 +47,7 @@ public class JobConfigCommonOperations {
    */
   public static String getJobEntityIdNode(String jobNode, String jobEntityId) {
     String jobEntityListNode = getJobEntityListNode(jobNode);
-    return jobEntityListNode + "/" + jobEntityId;
+    return jobEntityListNode + ZK_PATH + jobEntityId;
   }
 
   /**
@@ -64,7 +59,7 @@ public class JobConfigCommonOperations {
   public static String getJobNode(String jobUUID) {
     String jobConfigsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getJobConfigPath();
-    return jobConfigsRootNode + "/" + jobUUID;
+    return jobConfigsRootNode + ZK_PATH + jobUUID;
   }
 
   /**
@@ -76,7 +71,7 @@ public class JobConfigCommonOperations {
   public static String getConfigNodeData(String node) {
     String configValue = "";
     try {
-      HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+      HungryHippoCurator curator = HungryHippoCurator.getInstance();
       configValue = (String) curator.getZnodeData(node);
     } catch (HungryHippoException e) {
       LOGGER.error(e.toString());

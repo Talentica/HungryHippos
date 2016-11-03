@@ -3,7 +3,6 @@ package com.talentica.hungryhippos.filesystem.helper;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -18,8 +17,21 @@ import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.sharding.Column;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 
+/**
+ * {@code ShardedFile} method used for eading sharded file.
+ * @author sudarshans
+ *
+ */
 public class ShardedFile {
 
+  /**
+   * reads the sharded file.
+   * @param filePath
+   * @param shardingClientConfigLoc
+   * @param numberOfLines
+   * @throws IOException
+   * @throws JAXBException
+   */
   public static void read(String filePath, String shardingClientConfigLoc, int numberOfLines)
       throws IOException, JAXBException {
     File file = new File(filePath);

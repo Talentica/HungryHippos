@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by rajkishoreh on 22/9/16.
+ * {@code RequestHandlingTool}  used for handling client request.
+ * @author rajkishoreh 
+ * @since 22/9/16.
  */
 public class RequestHandlingTool {
 
@@ -39,6 +41,17 @@ public class RequestHandlingTool {
     private int fileId;
     private ShardingApplicationContext context;
 
+    /**
+     * creates an instance of RequestHandlingTool.
+     * @param fileId
+     * @param hhFilePath
+     * @param nodeIdClient
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ClassNotFoundException
+     * @throws KeeperException
+     * @throws JAXBException
+     */
     public RequestHandlingTool(int fileId,String hhFilePath, int nodeIdClient) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
         this.fileId = fileId;
         this.nodeIdClient = nodeIdClient;
@@ -61,19 +74,34 @@ public class RequestHandlingTool {
         byteBuffer = ByteBuffer.wrap(this.dataForFileWrite);
     }
 
+    /**
+     * Stores the data row.
+     */
     public void storeData(){
         int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
         dataStore.storeRow(storeId, dataForFileWrite);
     }
 
+    /**
+     * retrieves the record size.
+     * @return
+     */
     public int getRecordSize() {
         return recordSize;
     }
 
+    /**
+     * retrieves replica nodes information.
+     * @return
+     */
     public int getReplicaNodesInfoDataSize() {
         return replicaNodesInfoDataSize;
     }
 
+    /**
+     * retrieves next nodes information.
+     * @return
+     */
     public byte[] getNextNodesInfo() {
         return nextNodesInfo;
     }
@@ -82,6 +110,9 @@ public class RequestHandlingTool {
         return dataForFileWrite;
     }
 
+    /**
+     * closes all the resource.
+     */
     public void close(){
         LOGGER.info("Closing datastore for Node {}: File {}", nodeIdClient, hhFilePath);
         byteBuffer = null;
@@ -92,10 +123,18 @@ public class RequestHandlingTool {
         RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient, fileId);
     }
 
+    /**
+     * retrieves the fileId.
+     * @return
+     */
     public byte[] getFileIdInBytes() {
         return fileIdInBytes;
     }
 
+    /**
+     * retrieves file path.
+     * @return
+     */
     public String getHhFilePath() {
         return hhFilePath;
     }

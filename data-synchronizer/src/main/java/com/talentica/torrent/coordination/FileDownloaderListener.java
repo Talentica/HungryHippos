@@ -24,6 +24,11 @@ import com.talentica.torrent.util.Environment;
 import com.turn.ttorrent.client.Client;
 import com.turn.ttorrent.client.SharedTorrent;
 
+/**
+ * {@code FileDownloaderListener} used to listen to files which has to be downloaded by the system.
+ * 
+ *
+ */
 public class FileDownloaderListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloaderListener.class);

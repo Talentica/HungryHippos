@@ -12,11 +12,19 @@ import com.talentica.hungryHippos.client.job.Job;
 import com.talentica.hungryHippos.coordination.utility.ZkSignalListener;
 import com.talentica.hungryHippos.utility.JobEntity;
 
+/**
+ * {@code JobManager} Manages the Job.
+ */
 public class JobManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobManager.class);
   private List<JobEntity> jobEntities = new ArrayList<JobEntity>();
 
+  /**
+   * adds a list of job.
+   * 
+   * @param jobList
+   */
   public void addJobList(List<Job> jobList) {
     JobEntity jobEntity;
     for (Job job : jobList) {

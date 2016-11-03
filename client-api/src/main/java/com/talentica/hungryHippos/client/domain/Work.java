@@ -32,5 +32,9 @@ public interface Work {
 	 */
 	void reset();
 	
+	/**
+	 * 
+	 * @return an int value representing job id.
+	 */
 	int getJobId();
 }

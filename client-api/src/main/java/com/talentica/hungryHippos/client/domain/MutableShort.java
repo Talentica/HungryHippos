@@ -4,29 +4,40 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
+ * {@code MutableShort} is used for memory optimization. Because of this class system will be making
+ * less objects for Short.
  * 
  * @author sudarshans
  *
  */
-public class MutableShort implements  DataTypes {
+public class MutableShort implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
 
+  /**
+   * creates a new MutableShort with specified length. The length specified is the limit of the
+   * underlying array.
+   * 
+   * @param length
+   */
   public MutableShort(int length) {
     array = new byte[length];
     stringLength = 0;
   }
 
+  @Override
   public int getLength() {
     return stringLength;
   }
 
+  @Override
   public byte byteAt(int index) {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -43,12 +54,14 @@ public class MutableShort implements  DataTypes {
     return new String(Arrays.copyOf(array, stringLength));
   }
 
+  @Override
   public MutableShort addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
   }
 
+  @Override
   public void reset() {
     stringLength = 0;
   }
@@ -92,19 +105,26 @@ public class MutableShort implements  DataTypes {
     return h;
   }
 
-  public static MutableLong from(String value) throws InvalidRowException {
-    MutableLong mutableLongByteArray = new MutableLong(value.length());
+  /**
+   * create a new MutableDouble from the value provided.
+   * 
+   * @param value
+   * @return
+   * @throws InvalidRowException
+   */
+  public static MutableShort from(String value) throws InvalidRowException {
+    MutableShort mutableShort = new MutableShort(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableLongByteArray.addByte(character);
+      mutableShort.addByte(character);
     }
-    return mutableLongByteArray;
+    return mutableShort;
   }
 
   @Override
   public int compareTo(DataTypes dataType) {
     MutableShort otherMutableShortByteArray = null;
-    if(dataType instanceof MutableShort){
-       otherMutableShortByteArray = (MutableShort) dataType;
+    if (dataType instanceof MutableShort) {
+      otherMutableShortByteArray = (MutableShort) dataType;
     }
     if (equals(otherMutableShortByteArray)) {
       return 0;

@@ -20,7 +20,10 @@ import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 
 /**
- * Created by debasishc on 9/9/15.
+ * {@code DataRowProcessor} used for processing each row of the file.
+ * 
+ * @author debasishc
+ * @since 9/9/15.
  */
 public class UnsortedDataRowProcessor implements RowProcessor {
 
@@ -83,8 +86,17 @@ public class UnsortedDataRowProcessor implements RowProcessor {
 
   long startTime = System.currentTimeMillis();
 
-  public UnsortedDataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity, String outputHHPath,
-      StoreAccess storeAccess) {
+
+  /**
+   * creates a new DataRowProcessor.
+   * 
+   * @param dynamicMarshal
+   * @param jobEntity
+   * @param outputHHPath
+   * @param storeAccess
+   */
+  public UnsortedDataRowProcessor(DynamicMarshal dynamicMarshal, JobEntity jobEntity,
+      String outputHHPath, StoreAccess storeAccess) {
     this.jobEntity = jobEntity;
     this.dynamicMarshal = dynamicMarshal;
     this.storeAccess = storeAccess;

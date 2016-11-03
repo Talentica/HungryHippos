@@ -22,6 +22,10 @@ import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
+/**
+ * 
+ * {@code UnsortedDataJobRunner} used for running jobs on unsorted data.
+ */
 public class UnsortedDataJobRunner implements JobRunner {
 
   private static final long serialVersionUID = -4793614653018059851L;
@@ -36,6 +40,14 @@ public class UnsortedDataJobRunner implements JobRunner {
 
   private Logger LOGGER = LoggerFactory.getLogger(UnsortedDataJobRunner.class);
 
+  /**
+   * creates an instance of UnsortedDataJobRunner.
+   * 
+   * @param dataDescription
+   * @param dataStore
+   * @param nodeId
+   * @param outputHHPath
+   */
   public UnsortedDataJobRunner(DataDescription dataDescription, DataStore dataStore, String nodeId,
       String outputHHPath) {
     this.dataStore = dataStore;

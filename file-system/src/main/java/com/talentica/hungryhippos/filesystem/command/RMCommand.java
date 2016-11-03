@@ -16,6 +16,15 @@ import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposCommandLauncher;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
+/**
+ * {@code RMCommand} used for removing files associated with the system from Zookeeper as well as
+ * node.
+ * options allowed are
+ * "-r" => delete all the subfolders and files of a dir. including the dir.
+ * 
+ * @author sudarshans
+ *
+ */
 public class RMCommand {
 
   private static Options options = new Options();
@@ -28,6 +37,11 @@ public class RMCommand {
     options.addOption("h", "help", false, "");
   }
 
+  /**
+   * 
+   * @param parser
+   * @param args
+   */
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);

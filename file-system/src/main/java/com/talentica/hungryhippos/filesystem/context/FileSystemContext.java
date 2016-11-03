@@ -21,7 +21,7 @@ import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 public class FileSystemContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemContext.class);
-  private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+  private static HungryHippoCurator curator = HungryHippoCurator.getInstance();
 
   private static FileSystemConfig fileSystemConfig;
 

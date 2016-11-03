@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@code Property<T>} is a generic class used for reading property files.
+ * 
  * @author pooshans
  *
  */
@@ -22,17 +24,39 @@ public class Property<T> {
   private static ClassLoader loader = null;
   private static InputStream CONFIG_FILE_INPUT_STREAM;
 
+  /**
+   * create a new empty instance of Property.
+   */
   public Property() {}
 
+  /**
+   * create a new instance of property with {@value propFileName}.
+   * 
+   * @param propFileName
+   */
   public Property(String propFileName) {
     load(propFileName);
   }
 
+  /**
+   * create a Property<T> from the {@value propFileName}.
+   * 
+   * @param propFileName
+   * @return Property<T>
+   */
   public Property<T> setPropertyFile(String propFileName) {
     load(propFileName);
     return this;
   }
 
+  /**
+   * Ovverides existing Property<T> after changing the same instance on the basis of
+   * {@value propFileNameWithPath}.
+   * 
+   * @param propFileNameWithPath
+   * @return
+   * @throws IOException Property<T>
+   */
   public Property<T> overrideProperty(String propFileNameWithPath) throws IOException {
     CONFIG_FILE_INPUT_STREAM = new FileInputStream(propFileNameWithPath);
     if (properties == null) {
@@ -47,7 +71,6 @@ public class Property<T> {
   }
 
 
-
   private void loadProperties(String propFileName) throws IOException {
     if (properties == null) {
       properties = new Properties();
@@ -59,10 +82,21 @@ public class Property<T> {
     LOGGER.info(" {} property file is loaded.", propFileName);
   }
 
+  /**
+   * retrieves {@link Properties}.
+   * 
+   * @return {@link Properties}
+   */
   public Properties getProperties() {
     return properties;
   }
 
+  /**
+   * retrieves the value of particular key in the {@link Properties}.
+   * 
+   * @param key
+   * @return String, value associated with it.
+   */
   public String getValueByKey(String key) {
     return properties.getProperty(key);
   }

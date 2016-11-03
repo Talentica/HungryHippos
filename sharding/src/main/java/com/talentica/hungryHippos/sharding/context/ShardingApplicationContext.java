@@ -17,6 +17,7 @@ import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.config.sharding.ShardingServerConfig;
 
 /**
+ * {@code ShardingApplicationContext} used for reading sharding related configuration file.
  * 
  * @author sohanc
  *
@@ -38,7 +39,11 @@ public class ShardingApplicationContext {
       "bucketCombinationToNodeNumbersMap";
   public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
 
-
+  /**
+   * creates an instance of ShardinApplicationContext.
+   * 
+   * @param shardingFolderPath
+   */
   public ShardingApplicationContext(String shardingFolderPath) {
     LOGGER.info("shardingFolderPath : " + shardingFolderPath);
     this.shardingFolderPath = shardingFolderPath;
@@ -54,7 +59,11 @@ public class ShardingApplicationContext {
     }
   }
 
-
+  /**
+   * retrieves teh sharding folder path.
+   * 
+   * @return
+   */
   public String getShardingFolderPath() {
     checkShardingFolderNull();
     return shardingFolderPath;
@@ -68,26 +77,49 @@ public class ShardingApplicationContext {
     }
   }
 
+  /**
+   * retrieves the path of the sharding-client.xml file.
+   * 
+   * @return
+   */
   public String getShardingClientConfigFilePath() {
     return getShardingFolderPath() + File.separatorChar + shardingClientConfigFileName;
   }
 
-
+  /**
+   * retrieves the path of the sharding-server.xml file.
+   * 
+   * @return
+   */
   public String getShardingServerConfigFilePath() {
     return getShardingFolderPath() + File.separatorChar + shardingServerConfigFileName;
   }
 
-
+  /**
+   * retrieves the path of BucketToNodeNumberMap file.
+   * 
+   * @return
+   */
   public String getBuckettoNodeNumberMapFilePath() {
     return getShardingFolderPath() + File.separatorChar + bucketToNodeNumberMapFile;
   }
 
 
+  /**
+   * retrieves the path to bucketCombinationToNodeNumbersMap.
+   * 
+   * @return
+   */
   public String getBucketCombinationtoNodeNumbersMapFilePath() {
     return getShardingFolderPath() + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
   }
 
 
+  /**
+   * retrieves the path for keyToValueBucket Map file.
+   * 
+   * @return
+   */
   public String getKeytovaluetobucketMapFilePath() {
     return getShardingFolderPath() + File.separatorChar + keyToValueToBucketMapFile;
   }
@@ -100,6 +132,12 @@ public class ShardingApplicationContext {
     return shardingClientConfig;
   }
 
+  /**
+   * retrieves previously created instance of ShardingServerConfig. if not created one it throws
+   * RuntimeException.
+   * 
+   * @return
+   */
   public ShardingServerConfig getShardingServerConfig() {
     if (shardingServerConfig == null) {
       throw new RuntimeException("ShardingApplicationContext not initialized.");
@@ -107,6 +145,11 @@ public class ShardingApplicationContext {
     return shardingServerConfig;
   }
 
+  /**
+   * retrieve the field details or data description of the file.
+   * 
+   * @return
+   */
   public final FieldTypeArrayDataDescription getConfiguredDataDescription() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     FieldTypeArrayDataDescription dataDescription = null;
@@ -123,18 +166,33 @@ public class ShardingApplicationContext {
 
   }
 
+  /**
+   * retrieve maximum file size in bytes.
+   * 
+   * @return
+   */
   public String getMaximumShardFileSizeInBytes() {
     ShardingServerConfig shardingServerConfig = getShardingServerConfig();
     return shardingServerConfig.getMaximumShardFileSizeInBytes();
 
   }
 
+  /**
+   * retrieves sharding dimension.
+   * 
+   * @return
+   */
   public String[] getShardingDimensions() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     String keyOrderString = shardingClientConfig.getShardingDimensions();
     return keyOrderString.split(",");
   }
 
+  /**
+   * retrieves column/field names.
+   * 
+   * @return
+   */
   public String[] getColumnsConfiguration() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
@@ -145,11 +203,21 @@ public class ShardingApplicationContext {
     return keyColumnNames;
   }
 
+  /**
+   * retrieves key prefixes.
+   * 
+   * @return
+   */
   public String getKeysPrefix() {
     ShardingServerConfig shardingServerConfig = getShardingServerConfig();
     return shardingServerConfig.getKeyPrefix();
   }
 
+  /**
+   * retrieves an array of sharding indexes.
+   * 
+   * @return
+   */
   public int[] getShardingIndexes() {
     String[] shardingKeys = getShardingDimensions();
     int[] shardingKeyIndexes = new int[shardingKeys.length];
@@ -162,6 +230,12 @@ public class ShardingApplicationContext {
     return shardingKeyIndexes;
   }
 
+  /**
+   * retrieves the index.
+   * 
+   * @param keyId
+   * @return
+   */
   public int getShardingIndexSequence(int keyId) {
     int[] shardingIndexes = getShardingIndexes();
     int index = -1;
@@ -174,6 +248,13 @@ public class ShardingApplicationContext {
     return index;
   }
 
+  /**
+   * retrieves a string, that appends fileSystem Base Path file which found from the zookeeper to
+   * the distributedFilePath provided.
+   * 
+   * @param distributedFilePath
+   * @return
+   */
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {
     String fileSystemBasePath = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();

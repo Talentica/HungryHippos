@@ -10,9 +10,11 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-
-import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
-
+/**
+ * {@code CatCommand} 
+ * @author sudarshans
+ * @deprecated
+ */
 public class CatCommand {
 
 

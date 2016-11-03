@@ -3,23 +3,21 @@
  */
 package com.talentica.hungryHippos.coordination.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
+ * {@code ZkProperty} used for loading zookeeper related properties from a file.
+ * 
  * @author pooshans
  *
  */
 public class ZkProperty extends Property<ZkProperty> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ZkProperty.class.getName());
-
+  /**
+   * creates a new instance of ZkProperty.
+   * 
+   * @param propFileName
+   */
   public ZkProperty(String propFileName) {
     super(propFileName);
   }
 
-  public ZkProperty() {
-
-  }
 
 }

@@ -24,6 +24,12 @@ import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 
+/**
+ * {@code HungryHipposFileSystemMain} used for file related operations.
+ * 
+ * @author sudarshans
+ *
+ */
 public class HungryHipposFileSystemMain {
 
   private static String userName = null;
@@ -137,7 +143,7 @@ public class HungryHipposFileSystemMain {
     name = name.endsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
         ? name.substring(0, name.length() - 1) : name;
     if (list == null) {
-
+      return;
     } else if (list.contains(FileSystemConstants.SHARDED)) {
       System.out.println("File Name:- " + fileName(name));
       System.out.println("sharded:- true");
@@ -228,7 +234,7 @@ public class HungryHipposFileSystemMain {
     return dir[dir.length - 1];
   }
 
-  private static int runOnAllNodes(String...args )  {
+  private static int runOnAllNodes(String... args) {
     String fileSystemRoot = args[0];
     String operation = args[1];
     String fname = args[2];

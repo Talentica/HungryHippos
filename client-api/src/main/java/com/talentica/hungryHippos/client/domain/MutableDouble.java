@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
+ * {@code MutableDouble} is used for memory optimization. Because of this class system will be
+ * making less objects for Double.
  * 
  * @author sudarshans
  *
@@ -14,19 +16,28 @@ public class MutableDouble implements DataTypes {
   private byte[] array;
   private int stringLength;
 
+  /**
+   * creates a new MutableDouble with specified length. The length specified is the limit of the
+   * underlying array.
+   * 
+   * @param length is the size of backing array.
+   */
   public MutableDouble(int length) {
     array = new byte[length];
     stringLength = 0;
   }
 
+  @Override
   public int getLength() {
     return stringLength;
   }
 
+  @Override
   public byte byteAt(int index) {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -43,12 +54,14 @@ public class MutableDouble implements DataTypes {
     return new String(Arrays.copyOf(array, stringLength));
   }
 
+  @Override
   public MutableDouble addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
   }
 
+  @Override
   public void reset() {
     stringLength = 0;
   }
@@ -92,6 +105,13 @@ public class MutableDouble implements DataTypes {
     return h;
   }
 
+  /**
+   * create a new MutableDouble from the value provided.
+   * 
+   * @param value from which you want to create a MutableDouble.R
+   * @return a new MutableDouble created using the value provided.
+   * @throws InvalidRowException if the value can't be converted to MutableDouble.
+   */
   public static MutableDouble from(String value) throws InvalidRowException {
     MutableDouble mutableDoubleByteArray = new MutableDouble(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
@@ -103,8 +123,8 @@ public class MutableDouble implements DataTypes {
   @Override
   public int compareTo(DataTypes dataType) {
     MutableDouble otherMutableDoubleByteArray = null;
-    if(dataType instanceof MutableDouble ){
-     otherMutableDoubleByteArray =  (MutableDouble) dataType;
+    if (dataType instanceof MutableDouble) {
+      otherMutableDoubleByteArray = (MutableDouble) dataType;
     } else {
       return -1;
     }

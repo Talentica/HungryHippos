@@ -5,7 +5,6 @@ package com.talentica.hungryHippos.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
-import com.talentica.hungryHippos.coordination.utility.CommonUtil;
 import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
 import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
@@ -31,6 +29,12 @@ import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
+/**
+ * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
+ * the node.
+ * 
+ *
+ */
 public class DataPublisherStarter {
 
   private static HungryHippoCurator curator;
@@ -39,6 +43,11 @@ public class DataPublisherStarter {
   private static ShardingApplicationContext context;
   private static String userName = null;
 
+  /**
+   * Entry point of execution.
+   * 
+   * @param args.
+   */
   public static void main(String[] args) {
 
     validateArguments(args);
@@ -90,37 +99,8 @@ public class DataPublisherStarter {
     }
   }
 
-  /**
-   * 
-   */
-  private static void dataPublishingFailed() {
-    CountDownLatch signal = new CountDownLatch(1);
-    String alertPathForDataPublisherFailure = curator
-        .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.DATA_PUBLISHING_FAILED.getZKJobNode());
-
-    try {
-      DataPublisherStarter.curator.createPersistentNode(alertPathForDataPublisherFailure);
-
-    } catch (HungryHippoException e) {
-      LOGGER.info("Unable to create the sharding failure path");
-    }
-    createErrorEncounterSignal();
-  }
-
-  private static void createErrorEncounterSignal() {
-    LOGGER.info("ERROR_ENCOUNTERED signal is sent");
-    String alertErrorEncounterDataPublisher = DataPublisherStarter.curator
-        .buildAlertPathByName(CommonUtil.ZKJobNodeEnum.ERROR_ENCOUNTERED.getZKJobNode());
-    try {
-      DataPublisherStarter.curator.createPersistentNode(alertErrorEncounterDataPublisher);
-
-    } catch (HungryHippoException e) {
-      LOGGER.info("Unable to create the sharding failure path");
-    }
-  }
 
 
-  
   /**
    * Updates file pubising failed
    * 

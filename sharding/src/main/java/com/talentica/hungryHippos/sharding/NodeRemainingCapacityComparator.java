@@ -3,7 +3,9 @@ package com.talentica.hungryHippos.sharding;
 import java.util.Comparator;
 
 /**
- * Created by debasishc on 14/8/15.
+ *{@code NodeRemainingCapacityComparator}  used for compairing remaining capacity of nodes.
+ * @author debasishc 
+ * @since 14/8/15.
  */
 public class NodeRemainingCapacityComparator implements Comparator<Node> {
     @Override

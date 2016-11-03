@@ -15,6 +15,10 @@ import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
 import com.talentica.torrent.util.Environment;
 
+/**
+ * 
+ * {@code NewTorrentAvailableListener} updates whenever a new torrent file is available to the system.
+ */
 public class NewTorrentAvailableListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NewTorrentAvailableListener.class);

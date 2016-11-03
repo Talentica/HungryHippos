@@ -2,15 +2,36 @@ package com.talentica.hungryHippos.coordination.utility.marshaling;
 
 import java.io.IOException;
 
+import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataTypes;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
+/**
+ * 
+ * {@code Reader} must be implemented by client so that they can read a file and using a {@link DataParser}
+ *
+ */
 public interface Reader {
 
-	DataTypes[] read() throws RuntimeException;
+  /**
+   * used for reading.
+   * 
+   * @return
+   * @throws RuntimeException
+   */
+  DataTypes[] read() throws RuntimeException;
 
-	void close() throws IOException;
+  /**
+   * to close the stream.
+   * 
+   * @throws IOException
+   */
+  void close() throws IOException;
 
-	void reset() throws IOException;
-	
+  /**
+   * to reset the stream.
+   * 
+   * @throws IOException
+   */
+  void reset() throws IOException;
+
 }

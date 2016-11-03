@@ -39,15 +39,20 @@ public class CoordinationStarter {
   private static ClusterConfig clusterConfig;
   private static CoordinationConfig coordinationConfig;
 
+  /**
+   * Execution entry point.
+   * 
+   * @param args
+   */
   public static void main(String[] args) {
-    
+
     try {
       LOGGER.info("Starting coordination server..");
 
       validateArguments(args);
-      
+
       setArguments(args);
-      
+
       validateFileSystem(fileSystemConfigFilePath);
 
       String rootPath = getAndValidateRoot();
@@ -127,7 +132,9 @@ public class CoordinationStarter {
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator curator = HungryHippoCurator.getInstance(servers, sessionTimeOut);
     curator.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());
-    curator.startup();
+    if (coordinationConfig.getZookeeperDefaultConfig().getCleanup().equals("Y")) {
+      curator.startup();
+    }
   }
 
 

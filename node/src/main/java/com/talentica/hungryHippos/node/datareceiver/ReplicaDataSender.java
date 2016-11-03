@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by rajkishoreh on 22/9/16.
+ * {@code ReplicaDataSender} used for sending replicated data.
+ * @author rajkishoreh 
+ * @since 22/9/16.
  */
 public enum ReplicaDataSender {
     INSTANCE;
@@ -32,6 +34,9 @@ public enum ReplicaDataSender {
         TRANSFER_IN_PROGRESS, ENABLE_BLOCK_WRITE, ENABLE_BLOCK_READ, WRITE_IN_PROGRESS
     }
 
+    /**
+     * creates an instance of ReplicaDataSender.
+     */
     ReplicaDataSender() {
         nodeIdToMemoryArraysMap = new HashMap<>();
         List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
@@ -131,7 +136,7 @@ public enum ReplicaDataSender {
         }
 
 
-        public void kill() {
+    public void kill() {
             keepAlive = false;
         }
 

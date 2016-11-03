@@ -6,12 +6,15 @@ package com.talentica.hungryhippos.filesystem.helper;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.BindException;
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@code BinaryFileBuffer} reads binary data line by line from a file.
+ * 
  * @author pooshans
  *
  */
@@ -25,6 +28,13 @@ public final class BinaryFileBuffer {
   byte[] lastByteRead;
   boolean isRemaining = false;
 
+  /**
+   * creates an instance of BinaryFileBuffer.
+   * 
+   * @param dis
+   * @param bufferSize
+   * @throws IOException
+   */
   public BinaryFileBuffer(DataInputStream dis, int bufferSize) throws IOException {
     this.dis = dis;
     readBytes = new byte[bufferSize];
@@ -34,18 +44,39 @@ public final class BinaryFileBuffer {
     reload();
   }
 
+  /**
+   * close the stream.
+   * 
+   * @throws IOException
+   */
   public void close() throws IOException {
     this.dis.close();
   }
 
+  /**
+   * check the buffer is empty.
+   * 
+   * @return
+   */
   public boolean empty() {
     return !isRemaining;
   }
 
+  /**
+   * show the first line.
+   * 
+   * @return
+   */
   public ByteBuffer peek() {
     return this.readByteBuffer;
   }
 
+  /**
+   * remove the line from the buffer.
+   * 
+   * @return
+   * @throws IOException
+   */
   public ByteBuffer pop() throws IOException {
     ByteBuffer answer = copyRow(peek());
     reload();
@@ -53,12 +84,12 @@ public final class BinaryFileBuffer {
   }
 
   private ByteBuffer copyRow(ByteBuffer answer) {
-    for(int i  =0; i < answer.array().length ; i++){
+    for (int i = 0; i < answer.array().length; i++) {
       lastByteRead[i] = answer.get(i);
     }
     return lastRowByteBuffer;
   }
-  
+
   private void reload() throws IOException {
     readByteBuffer.clear();
     read();
@@ -73,6 +104,11 @@ public final class BinaryFileBuffer {
     }
   }
 
+  /**
+   * retrieve the DataInputStream used.
+   * 
+   * @return
+   */
   public DataInputStream getReader() {
     return dis;
   }

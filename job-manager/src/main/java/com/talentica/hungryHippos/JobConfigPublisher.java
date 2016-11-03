@@ -7,12 +7,8 @@ import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.ge
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobNode;
 import static com.talentica.hungryHippos.common.job.JobConfigCommonOperations.getJobOutputNode;
 
-import java.io.IOException;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +17,10 @@ import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.JobEntity;
 
 /**
- * This class is for Client to publish Job Configurations Created by rajkishoreh on 2/8/16.
+ * {@code JobConfigPublisher } Client to publish Job Configurations.
+ * 
+ * @author rajkishoreh
+ * @since 2/8/16.
  */
 public class JobConfigPublisher {
 
@@ -42,7 +41,7 @@ public class JobConfigPublisher {
     try {
       String jobNode = getJobNode(jobUUID);
       if (curator == null) {
-        curator = HungryHippoCurator.getAlreadyInstantiated();
+        curator = HungryHippoCurator.getInstance();
       }
 
       curator.createPersistentNode(jobNode);
@@ -72,7 +71,7 @@ public class JobConfigPublisher {
       String outputHHPath) {
     try {
       if (curator == null) {
-        curator = HungryHippoCurator.getAlreadyInstantiated();
+        curator = HungryHippoCurator.getInstance();
       }
 
       String jobNode = getJobNode(jobUUID);
@@ -128,7 +127,7 @@ public class JobConfigPublisher {
       String jobNode = getJobNode(jobUUID);
       String jobEntityIdNode = getJobEntityIdNode(jobNode, jobEntity.getJobId() + "");
       if (curator == null) {
-        curator = HungryHippoCurator.getAlreadyInstantiated();
+        curator = HungryHippoCurator.getInstance();
       }
 
       curator.createPersistentNodeIfNotPresent(jobEntityIdNode);

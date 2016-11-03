@@ -22,8 +22,11 @@ import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
- * This class is for creating threads for handling each client request for Data Retrieval Created by
- * rajkishoreh on 30/6/16.
+ * {@code DataRetrievalThread} for creating threads for handling each client request for Data
+ * Retrieval.
+ * 
+ * @author rajkishoreh
+ * @since 30/6/16.
  */
 public class DataRetrievalThread extends Thread {
 
@@ -35,6 +38,13 @@ public class DataRetrievalThread extends Thread {
   private String rootDirectory;
   private int fileStreamBufferSize;
 
+  /**
+   * creates a new instance of DataRetrievalThread.
+   * 
+   * @param clientSocket
+   * @param rootDirectory
+   * @param fileStreamBufferSize
+   */
   public DataRetrievalThread(Socket clientSocket, String rootDirectory, int fileStreamBufferSize) {
     this.clientSocket = clientSocket;
     this.rootDirectory = rootDirectory;
@@ -111,7 +121,7 @@ public class DataRetrievalThread extends Thread {
         .getZookeeperDefaultConfig().getFilesystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
-    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    HungryHippoCurator curator = HungryHippoCurator.getInstance();
     List<String> nodeIds;
     try {
       nodeIds = curator.getChildren(fileNodeZKDFSPath);

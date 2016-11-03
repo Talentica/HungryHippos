@@ -5,20 +5,19 @@ package com.talentica.hungryHippos.coordination.domain;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
+ * {@code ZookeeperConfiguration} holds all the details of the System related path.
+ * 
  * @author PooshanS
  *
  */
 public class ZookeeperConfiguration {
 
   Map<String, String> pathMap;
-  private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperConfiguration.class);
-
 
   /**
+   * creates a new instance of ZookeeperConfiguration from ({@value pathMap}.
+   * 
    * @param pathMap
    * @param sessionTimeout
    */
@@ -26,10 +25,20 @@ public class ZookeeperConfiguration {
     this.pathMap = pathMap;
   }
 
+  /**
+   * Retrieves the Map associated with this instance.
+   * 
+   * @return a Map.
+   */
   public Map<String, String> getPathMap() {
     return pathMap;
   }
 
+  /**
+   * Sets a Map instance to this instance.
+   * 
+   * @param pathMap.
+   */
   public void setPathMap(Map<String, String> pathMap) {
     this.pathMap = pathMap;
   }

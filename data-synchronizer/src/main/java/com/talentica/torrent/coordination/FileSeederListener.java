@@ -20,6 +20,11 @@ import com.talentica.torrent.peer.TorrentPeerService;
 import com.talentica.torrent.peer.TorrentPeerServiceImpl;
 import com.talentica.torrent.util.Environment;
 
+/**
+ * {@code FileSeederListener} listens to files which has to be seeded.
+ * 
+ *
+ */
 public class FileSeederListener extends ChildrenUpdatedListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileSeederListener.class);

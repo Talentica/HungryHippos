@@ -7,7 +7,9 @@ import java.util.Map;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 
 /**
- * Created by debasishc on 14/8/15.
+ * {@code BucketCombination } used for creating combination of buckets that will be sent to a particylar node.
+ * @author debasishc 
+ * @since 14/8/15.
  */
 public class BucketCombination implements Serializable {
 	/**
@@ -54,6 +56,11 @@ public class BucketCombination implements Serializable {
 		return true;
 	}
 
+	/**
+	 * checks whether BucketCombination is same.
+	 * @param rhs
+	 * @return
+	 */
 	public boolean checkMatchOr(BucketCombination rhs) {
 		for (String k : rhs.bucketsCombination.keySet()) {
 			Object thatValue = rhs.bucketsCombination.get(k);
@@ -75,6 +82,11 @@ public class BucketCombination implements Serializable {
 		return false;
 	}
 
+	/**
+	 * checks whether BucjetCombination is same.
+	 * @param rhs
+	 * @return
+	 */
 	public boolean checkMatchOr(List<BucketCombination> rhs) {
 		for (BucketCombination k : rhs) {
 			if (this.checkMatchOr(k)) {

@@ -8,11 +8,22 @@ import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryhippos.config.jobrunner.JobRunnerConfig;
 
+/**
+ * {@code JobRunnerApplicationContext} used for retrieving Job related Configuration file from
+ * Zookeeper.
+ * 
+ * @author
+ *
+ */
 public class JobRunnerApplicationContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobRunnerApplicationContext.class);
   private static JobRunnerConfig jobRunnerConfig;
 
+  /**
+   * 
+   * @return a new JobRunnerConfig Object, Object is created from the Zookeeper nodes.
+   */
   public static JobRunnerConfig getZkJobRunnerConfig() {
     if (jobRunnerConfig == null) {
 
@@ -20,11 +31,10 @@ public class JobRunnerApplicationContext {
           CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
               + CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION;
       try {
-        jobRunnerConfig = (JobRunnerConfig) HungryHippoCurator.getAlreadyInstantiated()
-            .readObject(configFile);
+        jobRunnerConfig =
+            (JobRunnerConfig) HungryHippoCurator.getInstance().readObject(configFile);
       } catch (HungryHippoException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOGGER.error(e.getMessage());
       }
 
     }

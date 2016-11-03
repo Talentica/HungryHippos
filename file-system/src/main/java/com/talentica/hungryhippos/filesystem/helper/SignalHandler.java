@@ -4,6 +4,12 @@ import java.util.Observable;
 
 import sun.misc.Signal;
 
+/**
+ * {@code SignalHandler} used for handling the signal sent to hhfs console.
+ * 
+ * @author sudarshans
+ *
+ */
 public class SignalHandler extends Observable implements sun.misc.SignalHandler {
 
   private Thread hhclThread = null;

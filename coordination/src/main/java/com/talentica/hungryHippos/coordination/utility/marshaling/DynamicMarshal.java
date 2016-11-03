@@ -9,21 +9,36 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
 
 /**
- * Created by debasishc on 1/9/15.
+ * {@code DynamicMarshal} is used by the system to decode the encrypted file.
+ * 
+ * @author debasishc
+ * @since 1/9/15.
  */
-public class DynamicMarshal implements Serializable{
+public class DynamicMarshal implements Serializable {
 
   private static final long serialVersionUID = -5800537222182360030L;
 
-  private final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
+  private transient final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
-  
+
+  /**
+   * creates a new instance of DynamicMarshal using the {@value dataDescription}
+   * 
+   * @param dataDescription
+   */
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
-  
+
+  /**
+   * used to read a value from the provided {@value index} and {@value source}.
+   * 
+   * @param index
+   * @param source
+   * @return Object.
+   */
   public Object readValue(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -47,6 +62,14 @@ public class DynamicMarshal implements Serializable{
     return null;
   }
 
+  /**
+   * reads MutableCharArrayString value from the given {@value index} from ByteBuffer
+   * {@value source}
+   * 
+   * @param index
+   * @param source
+   * @return {@link MutableCharArrayString}
+   */
   public MutableCharArrayString readValueString(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
@@ -63,6 +86,13 @@ public class DynamicMarshal implements Serializable{
     return charArrayString;
   }
 
+  /**
+   * writes the {@value Object} to an {@value index} location in the {@value dest} Buffer.
+   * 
+   * @param index
+   * @param object
+   * @param dest
+   */
   public void writeValue(int index, Object object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -99,6 +129,14 @@ public class DynamicMarshal implements Serializable{
     }
   }
 
+  /**
+   * writes the {@link MutableCharArrayString} {@value input} to an {@value index} location in the
+   * {@value dest} Buffer.
+   * 
+   * @param index
+   * @param input
+   * @param dest
+   */
   public void writeValueString(int index, MutableCharArrayString input, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -116,6 +154,13 @@ public class DynamicMarshal implements Serializable{
     }
   }
 
+  /**
+   * writes the double {@value input} to an {@value index} location in the {@value dest} Buffer.
+   * 
+   * @param index
+   * @param object
+   * @param dest
+   */
   public void writeValueDouble(int index, double object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {

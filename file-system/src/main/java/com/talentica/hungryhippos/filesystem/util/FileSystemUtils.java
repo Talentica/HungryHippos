@@ -15,7 +15,10 @@ import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 
 /**
- * Created by rajkishoreh on 8/7/16.
+ * {@code FileSystemUtils} has utility methods for handling fileSystem related operations.
+ * 
+ * @author rajkishoreh
+ * @since 8/7/16.
  */
 public class FileSystemUtils {
 
@@ -137,7 +140,7 @@ public class FileSystemUtils {
     String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
         .getZookeeperDefaultConfig().getFilesystemPath();
     String relativeNodePath = "";
-    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    HungryHippoCurator curator = HungryHippoCurator.getInstance();
     for (int i = 1; i < strings.length - 1; i++) {
       relativeNodePath = relativeNodePath + FileSystemConstants.ZK_PATH_SEPARATOR + strings[i];
       String absoluteNodePath = fileSystemRootNode + relativeNodePath;
@@ -166,8 +169,10 @@ public class FileSystemUtils {
   public static void deleteFilesRecursively(File file) {
     if (file.isDirectory()) {
       String[] fileList = file.list();
-      for (int i = 0; i < fileList.length; i++) {
-        deleteFilesRecursively(new File(fileList[i]));
+      if (fileList != null) {
+        for (int i = 0; i < fileList.length; i++) {
+          deleteFilesRecursively(new File(fileList[i]));
+        }
       }
     }
     file.delete();

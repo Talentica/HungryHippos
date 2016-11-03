@@ -11,6 +11,11 @@ import com.talentica.torrent.coordination.NewTorrentAvailableListener;
 import com.talentica.torrent.tracker.TorrentTrackerServiceImpl;
 import com.talentica.torrent.util.Environment;
 
+/**
+ * {@code TorrentTrackerStarter} starts the torrent tracker. It keeps track of new file that came to
+ * the system. {@code DataSynchronizer} uses this to synchronize the data across the system.
+ * 
+ */
 public class TorrentTrackerStarter {
 
   private static Logger LOGGER = LoggerFactory.getLogger(TorrentTrackerStarter.class);

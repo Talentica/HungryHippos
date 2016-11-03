@@ -13,9 +13,10 @@ import javax.xml.bind.JAXBException;
 import org.apache.zookeeper.KeeperException;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 
 /**
+ * {@code MemoryCalculator} implements {@code Memory}.
+ *
  * @author PooshanS
  *
  */
@@ -29,16 +30,18 @@ public class MemoryCalculator implements Memory {
   }
 
   @Override
-  public Map<Integer, Long> getJobMemoryAlloc(DataDescription dataDescription) throws ClassNotFoundException,
-      FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
+  public Map<Integer, Long> getJobMemoryAlloc(DataDescription dataDescription)
+      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
+      IOException, JAXBException {
     for (Map.Entry<Integer, Long> e : jobIdRowCountMap.entrySet()) {
-      jobIdMemoMap.put(e.getKey(), getObjectSize(e.getValue(),dataDescription));
+      jobIdMemoMap.put(e.getKey(), getObjectSize(e.getValue(), dataDescription));
     }
     return jobIdMemoMap;
   }
 
-  private long getObjectSize(Long rowCount,DataDescription dataDescription) throws ClassNotFoundException, FileNotFoundException,
-      KeeperException, InterruptedException, IOException, JAXBException {
+  private long getObjectSize(Long rowCount, DataDescription dataDescription)
+      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
+      IOException, JAXBException {
     return (rowCount * dataDescription.getSize());
   }
 

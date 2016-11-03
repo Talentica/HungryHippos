@@ -13,8 +13,17 @@ import com.talentica.hungryhippos.filesystem.main.HungryHipposCommandLauncher;
 
 import jline.Completor;
 
+/**
+ * {@code TabCompletor} used for showing tab key recommendations.
+ * 
+ * @author sudarshans
+ *
+ */
 public class TabCompletor implements Completor {
 
+  /**
+   * method used for completing the options when client presses tab key.
+   */
   @SuppressWarnings("unchecked")
   public int complete(String buffer, int cursor, List candidates) {
 
@@ -94,17 +103,7 @@ public class TabCompletor implements Completor {
                 }
 
               }
-
-              /*
-               * if (isFileConstant) { //This block of code will let you go inside each node and
-               * show individual files present in the node. List<String> children1 = null;; if
-               * (child.equals(FileSystemConstants.DFS_NODE)) { children1 =
-               * HungryHipposFileSystem.getInstance() .getChildZnodes(dir +
-               * FileSystemConstants.DFS_NODE); }
-               * 
-               * if (children1 != null) { for (String child1 : children1) { candidates.add(child1);
-               * } } }
-               */
+          
               if (!isFileConstant) {
                 candidates.add(child);
               }
@@ -121,22 +120,6 @@ public class TabCompletor implements Completor {
 
 
 
-  }
-
-
-
-  private static String showDFS(String token) {
-    List<Node> nodes = new HungryHipposCommandLauncher().getNodesInCluster();
-    for (Node node : nodes) {
-      String rgex = "/" + node.getIdentifier() + "/";
-      if (token.contains(rgex)) {
-        token = token.replaceFirst(rgex,
-            "/" + FileSystemConstants.DFS_NODE + "/" + node.getIdentifier());
-        break;
-      }
-    }
-
-    return token;
   }
 
 

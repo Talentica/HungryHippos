@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.Process;
 
+/**
+ * {@code JavaProcessBuilder} used for build unix related commands.
+ *
+ */
 public class JavaProcessBuilder {
-
-
 
   public static ProcessBuilder constructProcessBuilder(boolean isLocal, String userName,
       String host, String command) {
@@ -44,7 +46,7 @@ public class JavaProcessBuilder {
         sb.append(line).append("\n");
       }
       System.out.println(sb.toString());
-    
+
     } catch (IOException | InterruptedException e1) {
       e1.printStackTrace();
       throw new RuntimeException(e1);

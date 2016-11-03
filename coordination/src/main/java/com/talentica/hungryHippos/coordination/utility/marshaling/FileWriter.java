@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 
 /**
+ * {@code FileWriter} used for writing to a file.
+ * 
  * @author pooshans
  *
  */
@@ -26,11 +28,22 @@ public class FileWriter {
   private OutputStreamWriter fileOutputWriter;
   private boolean isFileCreated = false;
   private String fileName;
-  
-  public FileWriter(String fileName){
+
+  /**
+   * create a new FileWriter instance with {@value fileName}.
+   * 
+   * @param fileName
+   */
+  public FileWriter(String fileName) {
     this.fileName = fileName;
   }
 
+  /**
+   * open the {@value fileName} file. if it finds an existing file with same {@value fileName}.
+   * System will delete the old file and will create a new File.
+   * 
+   * @return
+   */
   public boolean openFile() {
     fileOut = new File(fileName);
     if (fileOut.exists())
@@ -49,6 +62,11 @@ public class FileWriter {
     return isFileCreated;
   }
 
+  /**
+   * used for writing data to {@value fileName}.
+   * 
+   * @param data
+   */
   public void write(String data) {
     if (isFileCreated) {
       if (fileOutputWriter == null) {
@@ -64,6 +82,9 @@ public class FileWriter {
     }
   }
 
+  /**
+   * closes the streams that are opened.
+   */
   public void close() {
     if (fileOutputWriter != null)
       try {
@@ -73,6 +94,12 @@ public class FileWriter {
       }
   }
 
+  /**
+   * flushes the data.
+   * 
+   * @param lineNo
+   * @param e
+   */
   public void flushData(int lineNo, InvalidRowException e) {
     write("Error in line :: [" + (lineNo) + "]  and columns(true are bad values) :: "
         + Arrays.toString(e.getColumns()) + " and row :: [" + e.getBadRow().toString() + "]");

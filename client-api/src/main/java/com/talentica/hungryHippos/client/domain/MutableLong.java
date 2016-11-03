@@ -4,7 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * 
+ * {@code MutableLong} is used for memory optimization. Because of this class system will 
+ * be making less objects for Long.
  * @author sudarshans
  *
  */
@@ -14,19 +15,28 @@ public class MutableLong implements DataTypes {
   private byte[] array;
   private int stringLength;
 
+  /**
+   * creates a new MutableLong with specified length. The length specified is the limit
+   * of the underlying array.
+   * 
+   * @param length
+   */
   public MutableLong(int length) {
     array = new byte[length];
     stringLength = 0;
   }
-
+  
+  @Override
   public int getLength() {
     return stringLength;
   }
 
+  @Override
   public byte byteAt(int index) {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -43,12 +53,14 @@ public class MutableLong implements DataTypes {
     return new String(Arrays.copyOf(array, stringLength));
   }
 
+  @Override
   public MutableLong addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
   }
 
+  @Override
   public void reset() {
     stringLength = 0;
   }
@@ -92,8 +104,15 @@ public class MutableLong implements DataTypes {
     return h;
   }
 
-  public static MutableInteger from(String value) throws InvalidRowException {
-    MutableInteger mutableLongByteArray = new MutableInteger(value.length());
+  /**
+   * create a new MutableLong from the value provided.
+   * 
+   * @param value
+   * @return
+   * @throws InvalidRowException
+   */
+  public static MutableLong from(String value) throws InvalidRowException {
+    MutableLong mutableLongByteArray = new MutableLong(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
       mutableLongByteArray.addByte(character);
     }
@@ -103,7 +122,7 @@ public class MutableLong implements DataTypes {
   @Override
   public int compareTo(DataTypes dataType) {
     MutableLong otherMutableLongByteArray = null;
-    if(dataType instanceof MutableLong ){
+    if (dataType instanceof MutableLong) {
       otherMutableLongByteArray = (MutableLong) dataType;
     } else {
       return -1;

@@ -18,7 +18,10 @@ import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
- * Created by rajkishoreh on 22/9/16.
+ * {@code DataHandler} used for Handling data coming from the client side.
+ * 
+ * @author rajkishoreh
+ * @since 22/9/16.
  */
 public class DataHandler extends ChannelHandlerAdapter {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataHandler.class);
@@ -114,6 +117,10 @@ public class DataHandler extends ChannelHandlerAdapter {
   }
 
 
+  /**
+   * used for processing the data.
+   */
+
   public void processData() {
     byte[] nextNodesInfo = requestHandlingTool.getNextNodesInfo();
     byte[] dataForFileWrite = requestHandlingTool.getDataForFileWrite();
@@ -126,7 +133,9 @@ public class DataHandler extends ChannelHandlerAdapter {
     for (int i = 0; i < replicaNodesInfoDataSize; i++) {
       if (nextNodesInfo[i] != (byte) -1) {
         if (nextNodesInfo[i] != NodeInfo.INSTANCE.getIdentifier()) {
+
           receiverNodeId = nextNodesInfo[i];
+
           writeDataForNextNode(nextNodesInfo, dataForFileWrite, replicaNodesInfoDataSize, dataSize,
               i);
         } else {
@@ -143,14 +152,21 @@ public class DataHandler extends ChannelHandlerAdapter {
                 nodeIdClient, fileId, i, signalCountDown);
             if (signalCountDown == 0) {
               if (i == replicaNodesInfoDataSize - 1) {
+
                 String destinationPath = requestHandlingTool.getHhFilePath();
                 ShardingApplicationContext context = requestHandlingTool.getContext();
+
+                EndOfDataTracker.INSTANCE
+                    .updateFilePublishSuccessful(requestHandlingTool.getHhFilePath());
+
                 for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
                   RequestHandlingTool requestHandlingTool =
                       RequestHandlersCache.INSTANCE.get(nodeId, fileId);
                   requestHandlingTool.close();
                 }
+
                 EndOfDataTracker.INSTANCE.remove(fileId, destinationPath, context);
+
               } else {
                 for (Integer nodeId : nodeIdToMemoryArraysMap.keySet()) {
                   this.receiverNodeId = nodeId;
@@ -164,12 +180,16 @@ public class DataHandler extends ChannelHandlerAdapter {
 
         break;
       }
+    }
 
+    if (writeDataFile) {
     }
     if (writeDataFile) {
       requestHandlingTool.storeData();
     }
   }
+
+
 
   private void writeEndOfDataSignal(byte[] nextNodesInfo, byte[] dataForFileWrite,
       int replicaNodesInfoDataSize, int dataSize) {
@@ -352,16 +372,14 @@ public class DataHandler extends ChannelHandlerAdapter {
 
   @Override
   public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+
     if (requestHandlingTool.getReplicaNodesInfoDataSize() == 0) {
       EndOfDataTracker.INSTANCE.remove(fileId, requestHandlingTool.getHhFilePath(),
           requestHandlingTool.getContext());
-    }
-    if (nodeIdClient != NodeInfo.INSTANCE.getIdentifier()) {
-      RequestHandlersCache.INSTANCE.removeAllRequestHandlingTool(nodeIdClient);
-      RequestHandlingShardingInfoCache.INSTANCE.handleRemoveAll(nodeIdClient);
     } else {
       requestHandlingTool.close();
     }
+
 
     LOGGER.info("Disconnected from {}", senderIp);
 

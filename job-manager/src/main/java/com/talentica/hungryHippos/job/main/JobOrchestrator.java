@@ -22,7 +22,10 @@ import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 /**
- * This method is for client to instantiate Jobs Created by rajkishoreh on 2/8/16.
+ * {@code JobOrchestrator} is used by client to instantiate Jobs.
+ * 
+ * @author rajkishoreh
+ * @since 2/8/16.
  */
 public class JobOrchestrator {
 

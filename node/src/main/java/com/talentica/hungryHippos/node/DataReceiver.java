@@ -20,6 +20,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+/**
+ * 
+ * {@code DataReceiver } used for receiving data from client side.
+ */
 public class DataReceiver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
@@ -40,7 +44,8 @@ public class DataReceiver {
     LOGGER.info("Start the node");
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
 
-    int maxNoOfRequestThreads = noOfNodes+DataPublisherApplicationContext.getNoOfDataReceiverThreads();
+    int maxNoOfRequestThreads =
+        noOfNodes + DataPublisherApplicationContext.getNoOfDataReceiverThreads();
 
     EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {

@@ -12,6 +12,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * {@code ChildrenUpdatedListener} used for adding and removing
+ *
+ */
 public abstract class ChildrenUpdatedListener implements PathChildrenCacheListener {
 
   protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -19,6 +24,13 @@ public abstract class ChildrenUpdatedListener implements PathChildrenCacheListen
   private static final Logger LOGGER = LoggerFactory.getLogger(ChildrenUpdatedListener.class);
 
 
+  /**
+   * registers a listener.
+   * 
+   * @param client
+   * @param nodePathToListenTo
+   * @param listener
+   */
   @SuppressWarnings("resource")
   protected static void register(CuratorFramework client, String nodePathToListenTo,
       PathChildrenCacheListener listener) {
@@ -35,6 +47,7 @@ public abstract class ChildrenUpdatedListener implements PathChildrenCacheListen
       throw new RuntimeException(exception);
     }
   }
+
 
   private static void closeChildrenCache(PathChildrenCache childrenCache) {
     try {
@@ -63,6 +76,12 @@ public abstract class ChildrenUpdatedListener implements PathChildrenCacheListen
     return event.getType() == Type.CHILD_ADDED || event.getType() == Type.CHILD_UPDATED;
   }
 
+  /**
+   * cleans up the system.
+   * 
+   * @param client
+   * @param path
+   */
   protected void cleanup(CuratorFramework client, String path) {
     try {
       if (path != null && client.checkExists().forPath(path) != null) {
@@ -73,6 +92,14 @@ public abstract class ChildrenUpdatedListener implements PathChildrenCacheListen
     }
   }
 
+  /**
+   * used by the system to handle the error.
+   * 
+   * @param client
+   * @param path
+   * @param error
+   * @param errorNodeBasePath
+   */
   protected void handleError(CuratorFramework client, String path, Exception error,
       String errorNodeBasePath) {
     try {

@@ -21,6 +21,16 @@ import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemExc
 import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposCommandLauncher;
 
+/**
+ * {@code GetCommand} used for downloading variety of files from the system. different files are
+ * downloaded is controlled by the options you set. the set of options that are available are "-d"
+ * -> gives the dimension applies to sharded files. "-s" -> downloads the sharding table. "-n" ->
+ * represents a node in a cluster. "-h" -> for printing help. "-o" -> otuput folder where you want
+ * to download the file.
+ * 
+ * @author sudarshans
+ *
+ */
 public class GetCommand {
 
 
@@ -39,6 +49,12 @@ public class GetCommand {
     options.addOption("o", "output folder", true, "The folder where output file has to be stored");
   }
 
+  /**
+   * used for parsing the arguments and executing a particular scenario based on the arguments.
+   * 
+   * @param parser
+   * @param args
+   */
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);
@@ -130,6 +146,9 @@ public class GetCommand {
         ? path.substring(0, path.length() - 1) : path;
   }
 
+  /**
+   * prints the usage.
+   */
   public static void usage() {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("get", options);

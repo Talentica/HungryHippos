@@ -33,6 +33,13 @@ import com.talentica.hungryhippos.filesystem.command.LSCommand;
 import com.talentica.hungryhippos.filesystem.command.RMCommand;
 import com.talentica.hungryhippos.filesystem.helper.SignalHandler;
 
+/**
+ * {@code HungryHipposCommandLauncher } creates the hhfs console and also calls other classes to
+ * provide funcitonality.
+ * 
+ * @author sudarshans
+ *
+ */
 public class HungryHipposCommandLauncher implements Observer {
 
   private Map<Integer, String> history = new HashMap<>();
@@ -67,7 +74,7 @@ public class HungryHipposCommandLauncher implements Observer {
     hhcl.setClientConfig(args[0]);
     HungryHippoCurator.getInstance(hhcl.connectString, hhcl.sessionTimeOut);
     hhcl.setNodesInCluster();
-   // hhfs = HungryHipposFileSystemMain.getHHFSInstance();
+    // hhfs = HungryHipposFileSystemMain.getHHFSInstance();
 
     try {
       hhcl.consoleReader();

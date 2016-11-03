@@ -10,6 +10,13 @@ import org.apache.commons.cli.ParseException;
 
 import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
+/**
+ * {@code LSCommand} used for listing the files and its metadata. options allowed are "-l" => shows
+ * entire detail of a file. "-h" => prints the help message.
+ * 
+ * @author sudarshans
+ *
+ */
 public class LSCommand {
 
   private static Options options = new Options();
@@ -19,6 +26,12 @@ public class LSCommand {
     options.addOption("h", "help", false, "");
   }
 
+  /**
+   * executes the command.
+   * 
+   * @param parser
+   * @param args
+   */
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);

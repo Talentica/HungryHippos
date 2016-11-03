@@ -22,6 +22,8 @@ import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
+ * {@code ShardingTableZkService } used for storing sharding table details on zookeeper.
+ * 
  * @author pooshans
  * @author sohanc
  *
@@ -35,7 +37,7 @@ public class ShardingTableZkService {
   private HungryHippoCurator curator = null;
 
   public ShardingTableZkService() {
-    curator = HungryHippoCurator.getAlreadyInstantiated();
+    curator = HungryHippoCurator.getInstance();
   }
 
   /**
@@ -48,9 +50,8 @@ public class ShardingTableZkService {
    */
   public void zkUploadBucketCombinationToNodeNumbersMap(String path) throws IOException,
       InterruptedException, IllegalArgumentException, IllegalAccessException, HungryHippoException {
-    curator.createPersistentNode(
-        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
-            + ZkNodeName.BUCKET_COMBINATION.getName(),
+    curator.createPersistentNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
+        + File.separatorChar + ZkNodeName.BUCKET_COMBINATION.getName(),
         getBucketCombinationToNodeNumbersMap());
   }
 
@@ -64,9 +65,8 @@ public class ShardingTableZkService {
    */
   public void zkUploadBucketToNodeNumberMap(String path) throws IOException, InterruptedException,
       IllegalArgumentException, IllegalAccessException, HungryHippoException {
-    curator.createPersistentNode(
-        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
-            + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName(),
+    curator.createPersistentNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
+        + File.separatorChar + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName(),
         getBucketToNodeNumberMap());
   }
 
@@ -80,9 +80,8 @@ public class ShardingTableZkService {
    */
   public void zkUploadKeyToValueToBucketMap(String path) throws IllegalArgumentException,
       IllegalAccessException, IOException, InterruptedException, HungryHippoException {
-    curator.createPersistentNode(
-        path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
-            + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName(),
+    curator.createPersistentNode(path + File.separatorChar + ZkNodeName.SHARDING_TABLE.getName()
+        + File.separatorChar + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName(),
         getKeyToValueToBucketMap());
   }
 

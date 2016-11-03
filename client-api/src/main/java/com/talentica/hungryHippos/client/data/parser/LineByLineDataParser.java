@@ -22,6 +22,10 @@ public abstract class LineByLineDataParser extends DataParser {
   private int readCount = -1;
   private MutableCharArrayString buffer;
 
+  /**
+   * creates a new LineByLineDataParser which is used for parsing each line in the file proviuded.
+   * @param dataDescription
+   */
   public LineByLineDataParser(DataDescription dataDescription) {
     super(dataDescription);
     buf.clear();
@@ -113,6 +117,11 @@ public abstract class LineByLineDataParser extends DataParser {
     };
   }
 
+  /**
+   * client can implement their own parsing algorithm.
+   * @param line
+   * @return
+   */
   protected abstract DataTypes[] processLine(MutableCharArrayString line);
 
 }

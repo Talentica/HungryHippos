@@ -12,49 +12,69 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 
 /**
- * Created by debasishc on 22/6/15.
+ * {@code FileReader} used for reading file with specified {@link DataParser}.
+ * 
+ * @author debasishc
+ * @since 22/6/15.
  */
 public class FileReader implements Reader {
 
-	private InputStream dataInputStream;
-	private DataParser dataParser = null;
-	private Iterator<DataTypes[]> iterator = null;
-	private String filepath = null;
+  private InputStream dataInputStream;
+  private DataParser dataParser = null;
+  private Iterator<DataTypes[]> iterator = null;
+  private String filepath = null;
 
-	public FileReader(String filepath, DataParser parser) throws RuntimeException, FileNotFoundException {
-		this.dataParser = parser;
-		this.filepath = filepath;
-		dataInputStream = new FileInputStream(filepath);
-		iterator = dataParser.iterator(dataInputStream);
-	}
+  /**
+   * create a new instance of FileReader using the {@value filPath} and {@value parser}.
+   * 
+   * @param filePath
+   * @param parser
+   * @throws RuntimeException
+   * @throws FileNotFoundException
+   */
+  public FileReader(String filePath, DataParser parser)
+      throws RuntimeException, FileNotFoundException {
+    this.dataParser = parser;
+    this.filepath = filePath;
+    dataInputStream = new FileInputStream(filePath);
+    iterator = dataParser.iterator(dataInputStream);
+  }
 
-	public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {
-		this(file.getAbsolutePath(), preProcessor);
-	}
+  /**
+   * create a new instance of FileReader using the {@value file} and {@value preProcessor}.
+   * 
+   * @param file
+   * @param preProcessor
+   * @throws IOException
+   * @throws InvalidRowException
+   */
+  public FileReader(File file, DataParser preProcessor) throws IOException, InvalidRowException {
+    this(file.getAbsolutePath(), preProcessor);
+  }
 
-	@Override
-	public DataTypes[] read() throws RuntimeException {
-		if (iterator.hasNext()) {
-			return iterator.next();
-		}
-		return null;
-	}
+  @Override
+  public DataTypes[] read() throws RuntimeException {
+    if (iterator.hasNext()) {
+      return iterator.next();
+    }
+    return null;
+  }
 
-	@Override
-	public void close() throws IOException {
-		if (dataInputStream != null) {
-			dataInputStream.close();
-		}
-	}
+  @Override
+  public void close() throws IOException {
+    if (dataInputStream != null) {
+      dataInputStream.close();
+    }
+  }
 
-	@Override
-	public void reset() throws IOException {
-		if (dataInputStream != null) {
-			dataInputStream.close();
-			
-		}
-		dataInputStream = new FileInputStream(this.filepath);
-		iterator = dataParser.iterator(dataInputStream);
-	}
+  @Override
+  public void reset() throws IOException {
+    if (dataInputStream != null) {
+      dataInputStream.close();
+
+    }
+    dataInputStream = new FileInputStream(this.filepath);
+    iterator = dataParser.iterator(dataInputStream);
+  }
 
 }

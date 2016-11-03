@@ -46,6 +46,9 @@ public class HhClassTest {
 
   @Override
   public boolean equals(Object o) {
+    if(null == o){
+      return false;
+    }
     HhClassTest that = (HhClassTest) o;
     if (Arrays.equals(chars, that.getChars())) {
       if (list.containsAll(that.getList())) {

@@ -1,5 +1,24 @@
 package com.talentica.hungryhippos.filesystem.client;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
@@ -15,25 +34,19 @@ import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
-import org.apache.commons.io.Charsets;
-import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-import java.io.*;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 
 /**
- * This class is for retrieving the sharded files from the HungryHippos Distributed File System
- * Created by rajkishoreh on 29/6/16.
+ * {@code DataRetrieverClient } is for retrieving the sharded files from the HungryHippos
+ * Distributed File System
+ * 
+ * @author rajkishoreh
+ * @since 29/6/16.
+ * @author sudarshans (updated).
+ * 
  */
 public class DataRetrieverClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataRetrieverClient.class);
-  private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+  private static HungryHippoCurator curator = HungryHippoCurator.getInstance();
 
   /**
    * This method is for reading the metadata from the zookeeper node and retrieving the data on a
@@ -64,7 +77,7 @@ public class DataRetrieverClient {
         .getZookeeperDefaultConfig().getFilesystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
-    HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+    HungryHippoCurator curator = HungryHippoCurator.getInstance();
     List<String> nodeIds = curator.getChildren(fileNodeZKDFSPath);
     boolean isSharded = curator.checkExists(fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.SHARDED);

@@ -10,11 +10,22 @@ public class HungryHipposFileSystemException extends Exception {
 
   private String msg = null;
 
+  /**
+   * creates instance of HungryHipposFileSystem with given message.
+   * 
+   * @param msg
+   */
   public HungryHipposFileSystemException(String msg) {
     super(msg);
     this.msg = msg;
   }
 
+  /**
+   * creates instance of HungryHipposFileSystem with given message and cause.
+   * 
+   * @param msg
+   * @param cause
+   */
   public HungryHipposFileSystemException(String msg, Throwable cause) {
     super(msg, cause);
     this.msg = msg;

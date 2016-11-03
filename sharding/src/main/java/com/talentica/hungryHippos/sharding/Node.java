@@ -5,82 +5,125 @@ import java.io.Serializable;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 
 /**
- * Created by debasishc on 14/8/15.
+ * {@code Node} used for keeping track of each Node related details.
+ * 
+ * @author debasishc
+ * @since 14/8/15.
  */
-public class Node implements Comparable<Node>,Serializable{
-    /**
-	 * 
-	 */
-    @ZkTransient
-	private static final long serialVersionUID = -6827244296973600470L;
-	private int nodeId;
-    private long nodeCapacity;
-    private long remainingCapacity;
-    public Node(){}
-    public Node(long nodeCapacity, int nodeId) {
-        this.nodeCapacity = nodeCapacity;
-        this.nodeId = nodeId;
-        this.remainingCapacity = nodeCapacity;
-    }
+public class Node implements Comparable<Node>, Serializable {
+  /**
+   * 
+   */
+  @ZkTransient
+  private static final long serialVersionUID = -6827244296973600470L;
+  private int nodeId;
+  private long nodeCapacity;
+  private long remainingCapacity;
 
-    public long getNodeCapacity() {
-        return nodeCapacity;
-    }
+  /**
+   * creates an empty instance of Node.
+   */
+  public Node() {}
 
-    public void setNodeCapacity(long nodeCapacity) {
-        this.nodeCapacity = nodeCapacity;
-    }
+  /**
+   * creates a new instance of Node with specified capacity.
+   * 
+   * @param nodeCapacity
+   * @param nodeId
+   */
+  public Node(long nodeCapacity, int nodeId) {
+    this.nodeCapacity = nodeCapacity;
+    this.nodeId = nodeId;
+    this.remainingCapacity = nodeCapacity;
+  }
 
-    public int getNodeId() {
-        return nodeId;
-    }
+  /**
+   * retrieves the node capacity.
+   * @return
+   */
+  public long getNodeCapacity() {
+    return nodeCapacity;
+  }
 
-    public void setNodeId(int nodeId) {
-        this.nodeId = nodeId;
-    }
+  /**
+   * sets the nodeCapacity.
+   * @param nodeCapacity
+   */
+  public void setNodeCapacity(long nodeCapacity) {
+    this.nodeCapacity = nodeCapacity;
+  }
 
-    public long getRemainingCapacity() {
-        return remainingCapacity;
-    }
+  /**
+   * retrieves the Node Id.
+   * @return
+   */
+  public int getNodeId() {
+    return nodeId;
+  }
 
-    public void setRemainingCapacity(long remainingCapacity) {
-        this.remainingCapacity = remainingCapacity;
-    }
+  /**
+   * sets the nodeId.
+   * @param nodeId
+   */
+  public void setNodeId(int nodeId) {
+    this.nodeId = nodeId;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  /**
+   * retrieves the remaining capacity of this node.
+   * @return
+   */
+  public long getRemainingCapacity() {
+    return remainingCapacity;
+  }
 
-        Node node = (Node) o;
+  /**
+   * sets the remaining capacity of this node.
+   * @param remainingCapacity
+   */
+  public void setRemainingCapacity(long remainingCapacity) {
+    this.remainingCapacity = remainingCapacity;
+  }
 
-        return (nodeId == node.nodeId);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
 
-    }
+    Node node = (Node) o;
 
-    @Override
-    public int hashCode() {
-        int result = nodeId;
-        return result;
-    }
+    return (nodeId == node.nodeId);
 
-    public void fillUpBy(long value) throws NodeOverflowException{
-            remainingCapacity-=value;
-    }
+  }
 
-    @Override
-    public String toString() {
-		return "Node{" + nodeId + "}";
-    }
+  @Override
+  public int hashCode() {
+    int result = nodeId;
+    return result;
+  }
 
-	@Override
-	public int compareTo(Node o) {
-		int ret = 0;
-		if(this.nodeId < o.nodeId) ret = -1;
-		else if(this.nodeId > o.nodeId) ret = 1;
-		else if(this.nodeId == o.nodeId) ret = 0;
-		return ret;
-	}
-	
-	
+  public void fillUpBy(long value) throws NodeOverflowException {
+    remainingCapacity -= value;
+  }
+
+  @Override
+  public String toString() {
+    return "Node{" + nodeId + "}";
+  }
+
+  @Override
+  public int compareTo(Node o) {
+    int ret = 0;
+    if (this.nodeId < o.nodeId)
+      ret = -1;
+    else if (this.nodeId > o.nodeId)
+      ret = 1;
+    else if (this.nodeId == o.nodeId)
+      ret = 0;
+    return ret;
+  }
+
+
 }

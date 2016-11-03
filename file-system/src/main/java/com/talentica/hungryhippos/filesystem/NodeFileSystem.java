@@ -20,11 +20,23 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * {@code NodeFileSystem} used for doing Node related fileSystem operations.
+ * 
+ * @author sudarshans
+ *
+ */
 public class NodeFileSystem {
 
   private static final Logger logger = LoggerFactory.getLogger(NodeFileSystem.class);
   private final String HungryHipposRootDir;
 
+  /**
+   * creates an instance of the NodeFileSystem.
+   * 
+   * @param rootDir
+   */
   public NodeFileSystem(String rootDir) {
     this.HungryHipposRootDir = rootDir;
     logger.info("File System Root Dir is set to {},rootDir");
@@ -130,7 +142,7 @@ public class NodeFileSystem {
       Files.delete(Paths.get(loc));
       logger.info("deleted file : {} ", loc);
     } catch (IOException e) {
-      logger.error(e.getMessage() + "is not present");     
+      logger.error(e.getMessage() + "is not present");
     }
   }
 
@@ -153,6 +165,12 @@ public class NodeFileSystem {
 
   }
 
+  /**
+   * creates directory.
+   * 
+   * @param loc
+   * @return
+   */
   public String createDir(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     Path path = null;
@@ -162,11 +180,20 @@ public class NodeFileSystem {
       logger.info("created dir : {}", loc);
     } catch (IOException e) {
 
-      logger.error(e.getMessage());     
+      logger.error(e.getMessage());
     }
-    return path.toString();
+    if (path != null) {
+      return path.toString();
+    }
+    return null;
   }
 
+  /**
+   * creates file.
+   * 
+   * @param loc
+   * @return String, representing the path.
+   */
   public String createFile(String loc) {
     loc = checkNameContainsFileSystemRoot(loc);
     Path path = null;
@@ -174,11 +201,20 @@ public class NodeFileSystem {
       path = Files.createFile(Paths.get(loc));
       logger.info("created dir : {}", loc);
     } catch (IOException e) {
-      logger.error(e.getMessage() + "is not present");     
+      logger.error(e.getMessage() + "is not present");
     }
-    return path.toString();
+    if (path != null) {
+      return path.toString();
+    }
+    return null;
   }
 
+  /**
+   * retrieves file with similar pattern.
+   * 
+   * @param args
+   * @return a List containing all the files with similar pattern else a null value is provided.
+   */
   public List<String> findFilesWithPattern(String... args) {
     String loc = null;
     String pattern = null;
@@ -199,6 +235,11 @@ public class NodeFileSystem {
     return finder.done();
   }
 
+  /**
+   * used for creating directory and file.
+   * 
+   * @param loc
+   */
   public void createDirAndFile(String loc) {
     String fileName = getFileNameFromPath(loc);
     if (null == fileName) {
@@ -226,6 +267,12 @@ public class NodeFileSystem {
     return fileName;
   }
 
+  /**
+   * {@code Finder} used for searching file in a system.
+   * 
+   * @author sudarshans
+   *
+   */
   public static class Finder extends SimpleFileVisitor<Path> {
 
     private final PathMatcher matcher;

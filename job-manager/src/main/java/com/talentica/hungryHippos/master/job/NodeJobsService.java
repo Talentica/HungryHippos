@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.JobConfigPublisher;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
@@ -24,7 +22,7 @@ import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryHippos.utility.PathUtil;
 
 /**
- * Scheduling and Managing the Jobs across the nodes on ZK.
+ * {@code NodeJobsService } used for Scheduling and Managing the Jobs across the nodes on ZK.
  * 
  * @author PooshanS
  *
@@ -35,8 +33,13 @@ public class NodeJobsService implements NodesJobsRunnable {
   private Node node;
   private TaskManager taskManager;
   private HungryHippoCurator curator;
-  private static final Logger LOGGER = LoggerFactory.getLogger(NodeJobsService.class.getName());
 
+  /**
+   * creates an instance of NodeJobsService.
+   * 
+   * @param node
+   * @param curator
+   */
   public NodeJobsService(Node node, HungryHippoCurator curator) {
     this.node = node;
     this.curator = curator;
@@ -99,18 +102,18 @@ public class NodeJobsService implements NodesJobsRunnable {
     Set<LeafBean> jobLeafs = new HashSet<>();
     String buildpath = curator.buildNodePath(node.getNodeId()) + PathUtil.SEPARATOR_CHAR
         + CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name();
-    try{
-    Set<LeafBean> leafs = curator.searchLeafNode(buildpath, null);
-    for (LeafBean leaf : leafs) {
-      if (leaf.getPath().contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {
-        LeafBean jobBean = curator.getNodeValue(leaf.getPath(),
-            leaf.getPath() + PathUtil.SEPARATOR_CHAR + leaf.getName(), leaf.getName(), null);
-        jobLeafs.add(jobBean);
+    try {
+      Set<LeafBean> leafs = curator.searchLeafNode(buildpath, null);
+      for (LeafBean leaf : leafs) {
+        if (leaf.getPath().contains(CommonUtil.ZKJobNodeEnum.PULL_JOB_NOTIFICATION.name())) {
+          LeafBean jobBean = curator.getNodeValue(leaf.getPath(),
+              leaf.getPath() + PathUtil.SEPARATOR_CHAR + leaf.getName(), leaf.getName(), null);
+          jobLeafs.add(jobBean);
 
+        }
       }
-    }
-    } catch(HungryHippoException e){
-      //TODO
+    } catch (HungryHippoException e) {
+      // TODO
     }
     return jobLeafs;
   }

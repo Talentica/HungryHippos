@@ -17,6 +17,8 @@ import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
+ * {@code JobManagerStarter} class which starts JobManager.
+ * 
  * @author PooshanS
  *
  */
@@ -26,7 +28,7 @@ public class JobManagerStarter {
    * @param args
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(JobManagerStarter.class);
-  private static HungryHippoCurator curator;
+
 
   public static void main(String[] args) {
     System.out.println("In Job Manager Main.");
@@ -41,7 +43,7 @@ public class JobManagerStarter {
       ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
       String connectString = clientConfig.getCoordinationServers().getServers();
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
-      curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+      HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       Object jobMatrix = getJobMatrix(localJarPath, jobMatrixClass);
       validateJobMatrixClass(jobMatrix);
       initialize(jobUUId);

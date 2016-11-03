@@ -4,11 +4,13 @@
 package com.talentica.hungryHippos.coordination.utility;
 
 /**
+ * {@code ZkNodeName}
+ * 
  * @author pooshans
  *
  */
 public enum ZkNodeName {
-  
+
   SHARDING_TABLE("sharding-table"),
 
   BUCKET_COMBINATION("bucket_combination"),
@@ -37,6 +39,11 @@ public enum ZkNodeName {
     this.name = name;
   }
 
+  /**
+   * retreives the name.
+   * 
+   * @return String
+   */
   public String getName() {
     return name;
   }

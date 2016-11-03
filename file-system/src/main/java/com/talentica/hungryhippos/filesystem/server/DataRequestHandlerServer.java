@@ -16,10 +16,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * This class is for creating a Server which listens at a particular port and creates Threads for
- * handling client requests
+ * {@code DataRequestHandlerServer} is for creating a Server which listens at a particular port and
+ * creates Threads for handling client requests
  * <p>
- * Created by rajkishoreh on 30/6/16.
+ * 
+ * @author rajkishoreh
+ * @since 30/6/16.
  */
 public class DataRequestHandlerServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataRequestHandlerServer.class);

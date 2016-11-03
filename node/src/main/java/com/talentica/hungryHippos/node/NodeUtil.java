@@ -20,6 +20,10 @@ import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
+/**
+ * {@code NodeUtil} contains the utility methods for creating Tries on the basis of the map.
+ * 
+ */
 public class NodeUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(NodeUtil.class);
@@ -28,6 +32,11 @@ public class NodeUtil {
 
   private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
+  /**
+   * creates an instance of NodeUtil.
+   * 
+   * @param filePath
+   */
   public NodeUtil(String filePath) {
     String shardingTempFolder = FileSystemContext.getRootDirectory() + filePath + File.separatorChar
         + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
@@ -45,15 +54,33 @@ public class NodeUtil {
         ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFile);
   }
 
+  /**
+   * retrieves the key to value map associated with this object.
+   * 
+   * @return
+   */
   public final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     return keyToValueToBucketMap;
   }
 
+  /**
+   * retrieves the bucket to node map associated with this object.
+   * 
+   * @return
+   */
   public final Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     return bucketToNodeNumberMap;
   }
 
 
+  /**
+   * creates Trie based on the map provided.
+   * 
+   * @param bucketToNodeNumberMap
+   * @param curator
+   * @throws IOException
+   * @throws HungryHippoException
+   */
   public void createTrieBucketToNodeNumberMap(
       Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       HungryHippoCurator curator) throws IOException, HungryHippoException {
@@ -73,12 +100,20 @@ public class NodeUtil {
         String buildNodePath = buildBucketKeyPath + PathUtil.SEPARATOR_CHAR
             + bucketToNodeMap.get(bucketKey).toString();
         curator.createPersistentNodeIfNotPresent(buildNodePath);
-        // nodesManager.createPersistentNode(buildBucketNodePath, null);
+
         logger.info("Path {} is created", buildBucketNodePath);
       }
     }
   }
 
+  /**
+   * creates a Trie.
+   * 
+   * @param keyToValueToBucketMap
+   * @param curator
+   * @throws IOException
+   * @throws HungryHippoException
+   */
   public void createTrieKeyToValueToBucketMap(
       Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
       HungryHippoCurator curator) throws IOException, HungryHippoException {
@@ -96,14 +131,20 @@ public class NodeUtil {
         String buildBucketPath =
             buildValueKeyPath + PathUtil.SEPARATOR_CHAR + valueBucketMap.get(valueKey).toString();
         curator.createPersistentNodeIfNotPresent(buildBucketPath);
-        // nodesManager.createPersistentNode(buildValueBucketPath,
-        // null);
 
         logger.info("Path {} is created", buildValueBucketPath);
       }
     }
   }
 
+  /**
+   * creates Trie.
+   * 
+   * @param bucketCombinationToNodeNumbersMap
+   * @param curator
+   * @throws IOException
+   * @throws HungryHippoException
+   */
   public void createTrieBucketCombinationToNodeNumbersMap(
       Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap,
       HungryHippoCurator curator) throws IOException, HungryHippoException {

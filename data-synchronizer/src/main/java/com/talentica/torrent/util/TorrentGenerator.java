@@ -17,10 +17,22 @@ import org.slf4j.LoggerFactory;
 import com.talentica.torrent.TorrentTrackerStarter;
 import com.turn.ttorrent.common.Torrent;
 
+/**
+ *{@code TorrentGenerator}  Used for generating torrent file.
+ *
+ */
 public class TorrentGenerator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TorrentGenerator.class);
 
+  /**
+   * creates a list of path and announce it.
+   * @param client
+   * @param seedFile
+   * @return
+   * @throws Exception
+   * @throws IOException
+   */
   public static File generateTorrentFile(CuratorFramework client, File seedFile)
       throws Exception, IOException {
     List<URI> announceList = new ArrayList<>(1);

@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,7 +34,7 @@ import com.talentica.hungryHippos.utility.MemoryStatus;
 
 
 /**
- * To perform the data row processing on sorted input data.
+ * {@code SortedDataRowProcessor}To perform the data row processing on sorted input data. changes
  * 
  * @author pooshans
  *
@@ -58,10 +59,12 @@ public class SortedDataRowProcessor implements RowProcessor {
   public static final long MINIMUM_FREE_MEMORY_REQUIRED_TO_BE_AVAILABLE_IN_MBS =
       JobRunnerApplicationContext.getZkJobRunnerConfig().getMinFreeMemoryInMbs();
 
+  private Map<JobEntity, ValueSet> tempValueSetMap = new HashMap<>();
+
   long startTime = System.currentTimeMillis();
 
   /**
-   * Parameterized constructor
+   * creates a new SortedDataRowProcessor.
    * 
    * @param dynamicMarshal
    * @param jobEntities
@@ -114,6 +117,8 @@ public class SortedDataRowProcessor implements RowProcessor {
     }
   }
 
+
+
   /**
    * To perform the jobs execution for particular row.
    * 
@@ -121,10 +126,25 @@ public class SortedDataRowProcessor implements RowProcessor {
    */
   private void processRow(ByteBuffer row) {
     for (JobEntity jobEntity : jobEntities) {
-      ValueSet valueSet = new ValueSet(jobEntity.getJob().getDimensions());
+      ValueSet tmpValueSet = tempValueSetMap.get(jobEntity);
+      if (tmpValueSet == null) {
+        tmpValueSet = new ValueSet(jobEntity.getJob().getDimensions());
+        tempValueSetMap.put(jobEntity, tmpValueSet);
+      }
+      populateValueSet(row, jobEntity, tmpValueSet);
+
+      ValueSet valueSet = null;
+      TreeMap<ValueSet, Work> valuesetToWorkTreeMap = jobToValuesetWorkMap.get(jobEntity);
+      if (valuesetToWorkTreeMap != null && !valuesetToWorkTreeMap.keySet().contains(tmpValueSet)) {
+        valueSet = new ValueSet(jobEntity.getJob().getDimensions());
+        populateValueSet(row, jobEntity, valueSet);
+      } else {
+        valueSet = tmpValueSet;
+      }
+
       updateCurrentValueSetPointer(row, jobEntity);
       ValueSet currentValueSetPointer = currentValueSetPointerJobMap.get(jobEntity);
-      boolean isJobReadyToFlush = prepareValueSet(row, jobEntity, valueSet, currentValueSetPointer);
+      boolean isJobReadyToFlush = prepareValueSet(row, jobEntity, currentValueSetPointer);
       Work reducer = prepareReducersBatch(valueSet, isJobReadyToFlush, jobEntity);
       processReducers(reducer, row);
     }
@@ -140,13 +160,9 @@ public class SortedDataRowProcessor implements RowProcessor {
    * @param currentValueSetPointer
    * @return true if the job is ready to be flushed in output result otherwise false.
    */
-  private boolean prepareValueSet(ByteBuffer row, JobEntity jobEntity, ValueSet valueSet,
+  private boolean prepareValueSet(ByteBuffer row, JobEntity jobEntity,
       ValueSet currentValueSetPointer) {
     boolean isJobReadyToFlush = false;
-    for (int i = 0; i < jobEntity.getJob().getDimensions().length; i++) {
-      Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
-      valueSet.setValue(value, i);
-    }
     if (lastValueSetPointerJobMap.get(jobEntity) == null) {
       ValueSet lastValueSet = new ValueSet(jobEntity.getFlushPointer());
       for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
@@ -157,11 +173,21 @@ public class SortedDataRowProcessor implements RowProcessor {
     } else {
       ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
       if (lastValueSet.compareTo(currentValueSetPointer) != 0) {
+
         isJobReadyToFlush = true;
+
         updateLastValueSet(row, jobEntity);
       }
     }
     return isJobReadyToFlush;
+  }
+
+
+  private void populateValueSet(ByteBuffer row, JobEntity jobEntity, ValueSet valueSet) {
+    for (int i = 0; i < jobEntity.getJob().getDimensions().length; i++) {
+      Object value = dynamicMarshal.readValue(jobEntity.getJob().getDimensions()[i], row);
+      valueSet.setValue(value, i);
+    }
   }
 
 
@@ -194,10 +220,10 @@ public class SortedDataRowProcessor implements RowProcessor {
       }
       currentValueSetPointerJobMap.put(jobEntity, currentValueSet);
     } else {
-      ValueSet newValueSet = currentValueSetPointerJobMap.get(jobEntity);
+      // ValueSet newValueSet = currentValueSetPointerJobMap.get(jobEntity);
       for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
         Object value = dynamicMarshal.readValue(jobEntity.getFlushPointer()[i], row);
-        newValueSet.setValue(value, i);
+        currentValueSet.setValue(value, i);
       }
     }
   }
@@ -271,7 +297,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
   /**
-   * To finish up the reducers.
+   * To finish up the reducers.storeAccess
    * 
    * @param valuesetToWorkTreeMap
    */
@@ -287,7 +313,7 @@ public class SortedDataRowProcessor implements RowProcessor {
    * 
    * @throws IOException
    */
-  private void addDataFileAccessInPriorityQueue() throws IOException {
+  public void addDataFileAccessInPriorityQueue() throws IOException {
     for (DataFileAccess dataFolder : storeAccess) {
       for (DataFileAccess dataFile : dataFolder) {
         BinaryFileBuffer bfb =
@@ -300,7 +326,7 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
   /**
-   * To set the each job's flush pointer.
+   * SortedDataRowProcessor.java To set the each job's flush pointer.
    */
   private void setJobFlushPointer() {
     List<Integer> dimns = new ArrayList<>();

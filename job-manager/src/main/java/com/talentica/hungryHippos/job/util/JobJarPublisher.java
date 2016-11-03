@@ -11,7 +11,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * Created by rajkishoreh on 2/8/16.
+ * {@code JobJarPublisher} used for publishing the Job related jar to other nodes.
+ * 
+ * @author rajkishoreh
+ * @since JobJarPublisher
  */
 public class JobJarPublisher {
 

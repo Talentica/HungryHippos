@@ -4,29 +4,41 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
+ * {@code MutableFloat} is used for memory optimization. Because of this class system will be making
+ * less objects for Float.
  * 
  * @author sudarshans
  *
  */
-public class MutableFloat implements  DataTypes {
+public class MutableFloat implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
 
+
+  /**
+   * creates a new MutableFloat with specified length. The length specified is the limit of the
+   * underlying array.
+   * 
+   * @param length
+   */
   public MutableFloat(int length) {
     array = new byte[length];
     stringLength = 0;
   }
 
+  @Override
   public int getLength() {
     return stringLength;
   }
 
+  @Override
   public byte byteAt(int index) {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -43,12 +55,14 @@ public class MutableFloat implements  DataTypes {
     return new String(Arrays.copyOf(array, stringLength));
   }
 
+  @Override
   public MutableFloat addByte(byte ch) {
     array[stringLength] = ch;
     stringLength++;
     return this;
   }
 
+  @Override
   public void reset() {
     stringLength = 0;
   }
@@ -92,6 +106,13 @@ public class MutableFloat implements  DataTypes {
     return h;
   }
 
+  /**
+   * create a new MutableFloat from the value provided.
+   * 
+   * @param value from which you want to create a MutableDouble.
+   * @return
+   * @throws InvalidRowException
+   */
   public static MutableFloat from(String value) throws InvalidRowException {
     MutableFloat mutableFloatByteArray = new MutableFloat(value.length());
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
@@ -103,7 +124,7 @@ public class MutableFloat implements  DataTypes {
   @Override
   public int compareTo(DataTypes dataType) {
     MutableFloat otherMutableShortByteArray = null;
-    if(dataType instanceof MutableFloat){
+    if (dataType instanceof MutableFloat) {
       otherMutableShortByteArray = (MutableFloat) dataType;
     } else {
       return -1;

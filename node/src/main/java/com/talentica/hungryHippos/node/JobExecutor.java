@@ -39,10 +39,11 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
- * NodeStarter will accept the sharded data and do various operations i.e row count per job and also
- * execution of the aggregation of the data.
+ * {@code JobExecutor} will accept the sharded data and do various operations i.e row count per job
+ * and also execution of the aggregation of the data.
  * 
- * Created by debasishc on 1/9/15.
+ * @author debasishc
+ * @since 1/9/15.
  */
 public class JobExecutor {
 
@@ -125,7 +126,7 @@ public class JobExecutor {
     boolean isSorting = context.getShardingClientConfig().isDataFileSorting();
     if (isSorting) {
       return new SortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
-          inputFilePath,outputHHPath, context);
+          inputFilePath, outputHHPath, context);
     } else {
       return new UnsortedDataJobRunner(dataDescription, dataStore, NodeInfo.INSTANCE.getId(),
           outputHHPath);

@@ -24,8 +24,17 @@ import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.helper.ShardedFile;
 
+/**
+ * {@code HeadCommand} used for printing input or output file of the system to hhfs console. options
+ * possible are "-n" => number of lines to read. "-s" => the sharded file that is associated with
+ * it. "-r" => node ip from where the client want to read data from. "-o" => location of the sharded
+ * file. "-h" => help.
+ * 
+ * @author sudarshans
+ *
+ */
 public class HeadCommand {
-  
+
   private static Options options = new Options();
   static {
     options.addOption("n", "number", true, "number of lines to be read");
@@ -35,6 +44,12 @@ public class HeadCommand {
     options.addOption("h", "help", false, "");
   }
 
+  /**
+   * used for executing head command on the basis of arguments passed.
+   * 
+   * @param parser
+   * @param args
+   */
   public static void execute(CommandLineParser parser, String... args) {
     try {
       CommandLine line = parser.parse(options, args);

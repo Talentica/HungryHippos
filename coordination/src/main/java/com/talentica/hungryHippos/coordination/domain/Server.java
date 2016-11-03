@@ -4,167 +4,276 @@
 package com.talentica.hungryHippos.coordination.domain;
 
 /**
+ * {@code Server} used for tracking Server associated with system.
+ * 
  * @author PooshanS
  *
  */
-public class Server{
+public class Server {
 
-	public enum ServerStatus{
-		ACTIVE,INACTIVE;
-	};
+  public enum ServerStatus {
+    ACTIVE, INACTIVE;
+  };
 
-    ServerAddress serverAddress;
+  ServerAddress serverAddress;
 
-    int port;
+  int port;
 
-    int ttlSeconds;
+  int ttlSeconds;
 
-    int maxMissed;
+  int maxMissed;
 
-    String serverType;
+  String serverType;
 
-    String description;
+  String description;
 
-    Object data;
-    
-    ServerStatus serverStatus;
-    
-    String currentDateTime;
-    
-    int id;
+  Object data;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  ServerStatus serverStatus;
 
-        Server server = (Server) o;
+  String currentDateTime;
 
-        if (port != server.port) return false;
-        if (!serverAddress.equals(server.serverAddress)) return false;
+  int id;
 
-        return true;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
 
-    @Override
-    public int hashCode() {
-        int result = serverAddress.hashCode();
-        result = 31 * result + port;
-        return result;
-    }
+    Server server = (Server) o;
 
-    @Override
-    public String toString() {
-        return getName() + " :: " + getDescription();
-    }
+    if (port != server.port)
+      return false;
+    if (!serverAddress.equals(server.serverAddress))
+      return false;
 
-    public String getName() {
-        return serverAddress.getHostname();
-    }
+    return true;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  @Override
+  public int hashCode() {
+    int result = serverAddress.hashCode();
+    result = 31 * result + port;
+    return result;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  @Override
+  public String toString() {
+    return getName() + " :: " + getDescription();
+  }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+  /**
+   * retrieves the host name of the node/machine associated.
+   * 
+   * @return a String.
+   */
+  public String getName() {
+    return serverAddress.getHostname();
+  }
 
-    public ServerAddress getServerAddress() {
-        return serverAddress;
-    }
+  /**
+   * retrieves the description of the server if any. else null.
+   * 
+   * @return a String.
+   */
+  public String getDescription() {
+    return description;
+  }
 
-    public void setServerAddress(ServerAddress serverAddress) {
-        this.serverAddress = serverAddress;
-    }
+  /**
+   * sets the description.
+   * 
+   * @param description
+   */
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public String getServerType() {
-        return serverType;
-    }
+  /**
+   * sets the port.
+   * 
+   * @param port
+   */
+  public void setPort(int port) {
+    this.port = port;
+  }
 
-    public void setServerType(String serverType) {
-        this.serverType = serverType;
-    }
+  /**
+   * retrieves a {@link ServerAddress}.
+   * 
+   * @return a instance of ServerAddress.
+   */
+  public ServerAddress getServerAddress() {
+    return serverAddress;
+  }
 
-    public int getPort() {
-        return port;
-    }
+  /**
+   * sets a serverAddress.
+   * 
+   * @param serverAddress
+   */
+  public void setServerAddress(ServerAddress serverAddress) {
+    this.serverAddress = serverAddress;
+  }
+
+  /**
+   * retrieves the server type.
+   * 
+   * @return
+   */
+  public String getServerType() {
+    return serverType;
+  }
+
+  /**
+   * sets the server type.
+   * 
+   * @param serverType
+   */
+  public void setServerType(String serverType) {
+    this.serverType = serverType;
+  }
+
+  /**
+   * retrieves the port.
+   * 
+   * @return an int.
+   */
+  public int getPort() {
+    return port;
+  }
+
+  /**
+   * retrieves the maximum missed value.
+   * 
+   * @return an int.
+   */
+  public int getMaxMissed() {
+
+    return maxMissed;
+  }
+
+  /**
+   * sets the maximum missed value.
+   * 
+   * @param maxMissed
+   */
+  public void setMaxMissed(int maxMissed) {
+    this.maxMissed = maxMissed;
+  }
+
+  /**
+   * retrieves the time to live in seconds.
+   * 
+   * @return int.
+   */
+  public int getTtlSeconds() {
+    return ttlSeconds;
+  }
+
+  /**
+   * sets time to live in seconds.
+   * 
+   * @param ttlSeconds
+   */
+  public void setTtlSeconds(int ttlSeconds) {
+    this.ttlSeconds = ttlSeconds;
+  }
+
+  /**
+   * retrieves the object data.
+   * 
+   * @return Object.
+   */
+  public Object getData() {
+    return data;
+  }
+
+  /**
+   * sets the data.
+   * 
+   * @param data
+   */
+  public void setData(Object data) {
+    this.data = data;
+  }
+
+  /**
+   * retrieves the {@link ServerStatus}.
+   * 
+   * @return a ServerStatus.
+   */
+  public ServerStatus getServerStatus() {
+    return serverStatus;
+  }
+
+  /**
+   * sets the {@link ServerStatus}.
+   * 
+   * @param serverStatus
+   */
+  public void setServerStatus(ServerStatus serverStatus) {
+    this.serverStatus = serverStatus;
+  }
+
+  /**
+   * retrieves the current Date time.
+   * 
+   * @return a String.
+   */
+  public String getCurrentDateTime() {
+    return currentDateTime;
+  }
+
+  /**
+   * sets the Current Date time.
+   * 
+   * @param currentDateTime
+   */
+  public void setCurrentDateTime(String currentDateTime) {
+    this.currentDateTime = currentDateTime;
+  }
+
+  /**
+   * Default constructor, only useful for the JSON deserializer. Should not be used, but may be
+   * useful for serializers, injections, etc.
+   */
+  public Server() {
+    this(new ServerAddress(), 0, 0);
+  }
+
+  /**
+   * Constructs a server, listening on a given port, requiring a ping every @code{ttlSeconds}
+   *
+   * @param serverAddress server's hostname and address
+   * @param port where the server is operating
+   * @param ttlSeconds interval between pings
+   */
+  public Server(ServerAddress serverAddress, int port, int ttlSeconds) {
+    this.port = port;
+    this.serverAddress = serverAddress;
+    this.ttlSeconds = ttlSeconds;
+  }
+
+  /**
+   * retrieves the id.
+   * 
+   * @return int.
+   */
+  public int getId() {
+    return id;
+  }
+
+  /**
+   * sets the Id.
+   * 
+   * @param id
+   */
+  public void setId(int id) {
+    this.id = id;
+  }
 
 
-    public int getMaxMissed() {
-
-        return maxMissed;
-    }
-
-    public void setMaxMissed(int maxMissed) {
-        this.maxMissed = maxMissed;
-    }
-
-    public int getTtlSeconds() {
-        return ttlSeconds;
-    }
-
-    public void setTtlSeconds(int ttlSeconds) {
-        this.ttlSeconds = ttlSeconds;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
-
-    public ServerStatus getServerStatus() {
-		return serverStatus;
-	}
-
-	public void setServerStatus(ServerStatus serverStatus) {
-		this.serverStatus = serverStatus;
-	}
-	
-	
-	public String getCurrentDateTime() {
-		return currentDateTime;
-	}
-
-	public void setCurrentDateTime(String currentDateTime) {
-		this.currentDateTime = currentDateTime;
-	}
-
-	/**
-     * Default constructor, only useful for the JSON deserializer.
-     * Should not be used, but may be useful for serializers, injections, etc.
-     */
-   public Server() {
-        this(new ServerAddress(), 0, 0);
-    }
-
-    /**
-     * Constructs a server, listening on a given port, requiring a ping every @code{ttlSeconds}
-     *
-     * @param serverAddress server's hostname and address
-     * @param port where the server is operating
-     * @param ttlSeconds interval between pings
-     */
-    public Server(ServerAddress serverAddress, int port, int ttlSeconds) {
-        this.port = port;
-        this.serverAddress = serverAddress;
-        this.ttlSeconds = ttlSeconds;
-    }
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	
 }

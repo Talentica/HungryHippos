@@ -15,17 +15,30 @@ import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 
 /**
- * Created by rajkishoreh on 22/9/16.
+ * {@code RequestHandlersCache} used for storing RequestHandlingTool associated with each file id.
+ * 
+ * @author rajkishoreh
+ * @since 22/9/16.
  */
 public enum RequestHandlersCache {
   INSTANCE;
   private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlersCache.class);
   Map<Integer, Map<Integer, RequestHandlingTool>> nodeIdToFileIdToRequestHandlersMap;
 
+  /**
+   * creates an instance of RequestHandlersCache.
+   */
   RequestHandlersCache() {
     nodeIdToFileIdToRequestHandlersMap = new HashMap<>();
   }
 
+  /**
+   * retrieves the RequestHandlingTool associated with the Node Id and File id.
+   * 
+   * @param nodeIdClient
+   * @param fileId
+   * @return
+   */
   public RequestHandlingTool get(int nodeIdClient, int fileId) {
     Map<Integer, RequestHandlingTool> fileIdToRequestHandlerMap =
         nodeIdToFileIdToRequestHandlersMap.get(nodeIdClient);
@@ -37,7 +50,7 @@ public enum RequestHandlersCache {
       try {
         String path = CoordinationConfigUtil.getZkCoordinationConfigCache()
             .getZookeeperDefaultConfig().getFileidHhfsMapPath();
-        String hhFilePath = HungryHippoCurator.getAlreadyInstantiated()
+        String hhFilePath = HungryHippoCurator.getInstance()
             .getZnodeData(path + HungryHippoCurator.ZK_PATH_SEPERATOR + fileId + "");
         LOGGER.info("NodeIdClient :{} FileId :{} FilePath :{}", nodeIdClient, fileId, hhFilePath);
         RequestHandlingTool requestHandlingTool =
@@ -53,6 +66,12 @@ public enum RequestHandlersCache {
     return fileIdToRequestHandlerMap.get(fileId);
   }
 
+  /**
+   * removes the request handling.
+   * 
+   * @param nodeId
+   * @param fileId
+   */
   public void removeRequestHandlingTool(int nodeId, int fileId) {
     if (nodeIdToFileIdToRequestHandlersMap.get(nodeId) != null) {
       nodeIdToFileIdToRequestHandlersMap.get(nodeId).remove(fileId);
@@ -60,6 +79,11 @@ public enum RequestHandlersCache {
     LOGGER.info("Removed link of NodeId :{} from FileId :{}", nodeId, fileId);
   }
 
+  /**
+   * removes all the request handling associated with all the nodes.
+   * 
+   * @param nodeId
+   */
   public void removeAllRequestHandlingTool(int nodeId) {
     if (nodeIdToFileIdToRequestHandlersMap.get(nodeId) != null) {
       for (Map.Entry<Integer, RequestHandlingTool> toolEntry : nodeIdToFileIdToRequestHandlersMap

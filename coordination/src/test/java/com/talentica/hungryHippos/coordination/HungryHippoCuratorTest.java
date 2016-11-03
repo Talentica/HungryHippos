@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 public class HungryHippoCuratorTest {
 
 
-  private String zookeeperConnectionString = "localhost:2181";
+  private String zookeeperConnectionString = "162.243.209.160:2181";
   private int baseSleepTime = 1000;
   private int maxRetry = 3;
 
@@ -40,11 +40,11 @@ public class HungryHippoCuratorTest {
     String path = "/test";
     String data = "hi";
     String loc = null;
-    try {
-      loc = hhc.createPersistentNode(path, data);
+   /* try {
+      //loc = hhc.createPersistentNode(path, data);
     } catch (HungryHippoException e) {
       assertTrue(false);// exception should not occur;
-    }
+    }*/
     assertEquals(path, loc);
   }
 

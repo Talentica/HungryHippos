@@ -48,10 +48,10 @@ public class HungryHipposFileSystemIntegrationTest {
      * nodesManager = Mockito.mock(NodesManager.class); zkProperty = Mockito.mock(Property.class);
      */
 
- //   curator = HungryHippoCurator.getInstance("");
+    // curator = HungryHippoCurator.getInstance("");
 
-//
- //   hhfs = HungryHipposFileSystem.getInstance();
+    //
+    hhfs = HungryHipposFileSystem.getInstance();
   }
 
   @After
@@ -126,9 +126,9 @@ public class HungryHipposFileSystemIntegrationTest {
       assertTrue(false);
     }
   }
-  
+
   @Test
-  public void downloadOutput() throws Exception{
+  public void downloadOutput() throws Exception {
     String clientConfigFilePath = "/home/sudarshans/config/client-config.xml";
     ClientConfig clientConfig =
         JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);

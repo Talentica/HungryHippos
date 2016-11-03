@@ -11,6 +11,10 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 import com.talentica.torrent.coordination.FileDownloaderListener;
 
+/**
+ * {@code FileDownloadUtil} used for downloading a file.
+ *
+ */
 public class FileDownloadUtil {
 
   public static void main(String[] args)

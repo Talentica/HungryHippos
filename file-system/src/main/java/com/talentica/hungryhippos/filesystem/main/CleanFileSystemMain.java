@@ -15,6 +15,7 @@ import com.talentica.hungryhippos.filesystem.CleanFileSystem;
 import com.talentica.hungryhippos.filesystem.NodeFileSystem;
 
 /**
+ * Class used for cleaning File System.
  * 
  * @author sudarshans
  *
@@ -58,7 +59,7 @@ public class CleanFileSystemMain {
 
   private static void validateArgs(String[] args) {
 
-    if (args.length < 0) {
+    if (args.length < 2) {
       throw new IllegalArgumentException("Need client-config.xml location details.");
     }
   }

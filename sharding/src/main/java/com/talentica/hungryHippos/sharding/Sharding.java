@@ -22,7 +22,10 @@ import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
- * Created by debasishc on 14/8/15.
+ * {@code Sharding} , used for doing sharding of an input file.
+ * 
+ * @author debasishc
+ * @since 14/8/15.
  */
 public class Sharding {
 
@@ -44,22 +47,37 @@ public class Sharding {
   private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
   private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
-private ShardingApplicationContext context;
-private BucketsCalculator bucketsCalculator;
+  private ShardingApplicationContext context;
+  private BucketsCalculator bucketsCalculator;
   private String[] keys;
 
-  public Sharding(ClusterConfig clusterConfig,ShardingApplicationContext context) {
+  /**
+   * creates a new instance of Sharding.
+   * 
+   * @param clusterConfig
+   * @param context
+   */
+  public Sharding(ClusterConfig clusterConfig, ShardingApplicationContext context) {
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
     keys = context.getShardingDimensions();
     List<com.talentica.hungryhippos.config.cluster.Node> clusterNodes = clusterConfig.getNode();
-    for(com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes){
+    for (com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes) {
       Node node = new Node(300000, clusterNode.getIdentifier());
       fillupQueue.offer(node);
       nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
     }
   }
 
+  /**
+   * does sharding on specified Reader.
+   * 
+   * @param input
+   * @throws ClassNotFoundException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
   public void doSharding(Reader input)
       throws ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
     logger.info("SHARDING STARTED");
@@ -79,15 +97,22 @@ private BucketsCalculator bucketsCalculator;
     }
   }
 
+  /**
+   * dump the sharding table files that are created.
+   * @param directoryPath
+   * @param shardingClientConfigFilePath
+   * @param shardingServerConfigFilePath
+   * @throws IOException
+   */
   public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
       String shardingServerConfigFilePath) throws IOException {
     ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(
-        ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile, bucketCombinationToNodeNumbersMap,
-        directoryPath);
-    ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(ShardingApplicationContext.bucketToNodeNumberMapFile,
-        bucketToNodeNumberMap, directoryPath);
-    ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(ShardingApplicationContext.keyToValueToBucketMapFile,
-        keyToValueToBucketMap, directoryPath);
+        ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile,
+        bucketCombinationToNodeNumbersMap, directoryPath);
+    ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(
+        ShardingApplicationContext.bucketToNodeNumberMapFile, bucketToNodeNumberMap, directoryPath);
+    ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(
+        ShardingApplicationContext.keyToValueToBucketMapFile, keyToValueToBucketMap, directoryPath);
     FileUtils.writeStringToFile(
         new File(directoryPath + File.separator + "sharding-client-config.xml"),
         FileUtils.readFileToString(new File(shardingClientConfigFilePath), "UTF-8"), "UTF-8");
@@ -119,7 +144,7 @@ private BucketsCalculator bucketsCalculator;
       for (int i = 0; i < keys.length; i++) {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
-        values[i] =  parts[keyIndex].clone();
+        values[i] = parts[keyIndex].clone();
         Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
         bucketCombinationMap.put(key, bucket);
       }
@@ -144,17 +169,26 @@ private BucketsCalculator bucketsCalculator;
     }
   }
 
+  /**
+   * populate map with frequency of data occured in the reader.
+   * @param data
+   * @return
+   * @throws IOException
+   * @throws ClassNotFoundException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws JAXBException
+   */
   // TODO: This method needs to be generalized
-  Map<String, Map<DataTypes, Long>> populateFrequencyFromData(Reader data)
-      throws IOException, ClassNotFoundException, KeeperException, InterruptedException,
-      JAXBException {
+  Map<String, Map<DataTypes, Long>> populateFrequencyFromData(Reader data) throws IOException,
+      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
 
     logger.info("Populating frequency map from data started");
     setKeysToIndexes();
     String[] keys = context.getShardingDimensions();
     int lineNo = 0;
-    FileWriter fileWriter = new FileWriter(context.getShardingClientConfig().getBadRecordsFileOut()
-        + "_sharding.err");
+    FileWriter fileWriter =
+        new FileWriter(context.getShardingClientConfig().getBadRecordsFileOut() + "_sharding.err");
     fileWriter.openFile();
     while (true) {
       DataTypes[] parts = null;
@@ -244,6 +278,16 @@ private BucketsCalculator bucketsCalculator;
     return this.keysToListOfBucketsMap;
   }
 
+  /**
+   * retrieves the sorted key list of frequency value map.
+   * @return
+   * @throws ClassNotFoundException
+   * @throws FileNotFoundException
+   * @throws KeeperException
+   * @throws InterruptedException
+   * @throws IOException
+   * @throws JAXBException
+   */
   public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap()
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
@@ -261,8 +305,7 @@ private BucketsCalculator bucketsCalculator;
     return keyToListOfKeyValueFrequency;
   }
 
-  private long getSizeOfOneBucket(Map<DataTypes, Long> frequencyPerValue,
-      int noOfBuckets) {
+  private long getSizeOfOneBucket(Map<DataTypes, Long> frequencyPerValue, int noOfBuckets) {
     long sizeOfOneBucket = 0;
     long totalofAllKeyValueFrequencies = 0;
     for (DataTypes mutableCharArrayString : frequencyPerValue.keySet()) {
@@ -341,8 +384,9 @@ private BucketsCalculator bucketsCalculator;
       // exit case
       // lets check which nodes it goes.
       Set<Node> nodesForBucketCombination = new LinkedHashSet<>();
-      for (int i = keys.length -1; i >= 0; i--) {
-        Node n = bucketToNodeNumberMap.get(keys[i]).get(source.getBucketsCombination().get(keys[i]));
+      for (int i = keys.length - 1; i >= 0; i--) {
+        Node n =
+            bucketToNodeNumberMap.get(keys[i]).get(source.getBucketsCombination().get(keys[i]));
         if (n != null) {
           nodesForBucketCombination.add(n);
         }

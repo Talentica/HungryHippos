@@ -15,7 +15,11 @@ import com.talentica.torrent.DataSynchronizerStarter;
 import com.talentica.torrent.FileMetadata;
 import com.talentica.torrent.TorrentTrackerStarter;
 import com.talentica.torrent.coordination.FileSeederListener;
-
+/**
+ * {@code SeedFileUtil} seeds the file that comes in torrent.
+ *
+ *
+ */
 public class SeedFileUtil {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

@@ -1,11 +1,15 @@
 package com.talentica.hungryHippos.sharding;
 
 /**
- * Created by debasishc on 14/8/15.
+ * {@code NodeOverflowException } , thrown when ever the Node capacity was reaches more than specified limit.
+ *  @author debasishc 
+ *  @since 14/8/15.
  */
 public class NodeOverflowException extends Exception {
 
-    public NodeOverflowException(String message) {
-        super(message);
-    }
+  private static final long serialVersionUID = 408695684941253328L;
+
+  public NodeOverflowException(String message) {
+    super(message);
+  }
 }

@@ -30,6 +30,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * {@code ShardingStarter} used for creating the sharding table.
+ * 
+ * @author sudarshans
+ *
+ */
 public class ShardingStarter {
 
   private static ClientConfig clientConfig;
@@ -52,8 +58,7 @@ public class ShardingStarter {
       String clientConfigFilePath = args[0];
       String shardingFolderPath = args[1];
 
-      clientConfig =
-          JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
+      clientConfig = JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
       String connectString = clientConfig.getCoordinationServers().getServers();
       curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);

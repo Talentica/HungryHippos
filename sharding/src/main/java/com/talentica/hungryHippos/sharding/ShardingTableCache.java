@@ -3,6 +3,11 @@ package com.talentica.hungryHippos.sharding;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 
+ * {@code ShardingTableCache} used for storing sharding table details in cache.
+ *
+ */
 public class ShardingTableCache {
 
   private static ShardingTableCache shardingTableCache = null;
@@ -12,6 +17,11 @@ public class ShardingTableCache {
 
   private ShardingTableCache() {}
 
+  /**
+   * create new instance of ShardingTableCache.
+   * 
+   * @return
+   */
   public static ShardingTableCache newInstance() {
     if (shardingTableCache == null) {
       shardingTableCache = new ShardingTableCache();
@@ -19,7 +29,15 @@ public class ShardingTableCache {
     return shardingTableCache;
   }
 
-  public Object getShardingTableFromCache(String key,String path) throws IllegalArgumentException {
+  /**
+   * retrieves the value of a key from the sharding table cache.
+   * 
+   * @param key
+   * @param path
+   * @return
+   * @throws IllegalArgumentException
+   */
+  public Object getShardingTableFromCache(String key, String path) throws IllegalArgumentException {
     Object value = shardingTableMap.get(key);
     if (value == null) {
       if (key.equalsIgnoreCase(

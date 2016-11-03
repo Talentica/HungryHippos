@@ -11,7 +11,10 @@ import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 
 /**
- * Created by rajkishoreh on 22/7/16.
+ * {@code NodeInfo}
+ * 
+ * @author rajkishoreh
+ * @since 22/7/16.
  */
 public enum NodeInfo {
   INSTANCE;

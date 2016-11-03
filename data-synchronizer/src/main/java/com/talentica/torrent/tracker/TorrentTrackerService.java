@@ -25,9 +25,18 @@ public interface TorrentTrackerService {
    * @param port
    */
   public void stopTracker();
-
+  
+ /**
+  * checks whether a torrent is available for a particular file in the system.
+  * @param filename
+  * @return boolean true if available otherwise false.
+  */
   public boolean isTorrentAvailableForFileName(String filename);
 
+  /**
+   * checks whether tracker is started or not.
+   * @return boolean true if started otherwise false.
+   */
   boolean isTrackerStarted();
 
 }

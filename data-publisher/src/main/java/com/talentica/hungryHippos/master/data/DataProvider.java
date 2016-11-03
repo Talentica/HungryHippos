@@ -40,7 +40,10 @@ import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
- * Created by debasishc on 24/9/15.
+ * {@code DataProvider} responsible for sending data across all the nodes.
+ * 
+ * @author debasishc
+ * @since 24/9/15.
  */
 public class DataProvider {
   private static int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE;
@@ -51,7 +54,7 @@ public class DataProvider {
 
   private static BucketsCalculator bucketsCalculator;
   private static String BAD_RECORDS_FILE;
-  private static HungryHippoCurator curator = HungryHippoCurator.getAlreadyInstantiated();
+  private static HungryHippoCurator curator = HungryHippoCurator.getInstance();
 
 
   private static Map<Integer, String> loadServers() throws Exception {
@@ -68,6 +71,15 @@ public class DataProvider {
     return servers;
   }
 
+  /**
+   * publishes data to all nodes on the cluster from the {@value sourcePath} to
+   * {@value destinationPath}.
+   * 
+   * @param dataParser
+   * @param sourcePath
+   * @param destinationPath
+   * @throws Exception
+   */
   public static void publishDataToNodes(DataParser dataParser, String sourcePath,
       String destinationPath) throws Exception {
     init();
@@ -233,6 +245,12 @@ public class DataProvider {
     targets.get(nodeId).write(buf);
   }
 
+  /**
+   * creates a node in zookeeper if file transfer started on a particular node.
+   * 
+   * @param fileIdToHHpath
+   * @param nodeId
+   */
   public static void createNodeLink(String fileIdToHHpath, int nodeId) {
     try {
       curator.createPersistentNodeIfNotPresent(

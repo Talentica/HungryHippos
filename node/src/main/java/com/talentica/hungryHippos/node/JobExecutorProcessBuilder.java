@@ -20,8 +20,10 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 
 /**
- * This class is for Node to start instantiate JobExecutor processes Created by rajkishoreh on
- * 1/8/16.
+ * {@code JobExecutorProcessBuilder } used by Node to start instantiate JobExecutor processes.
+ * 
+ * @author rajkishoreh
+ * @since 1/8/16.
  */
 public class JobExecutorProcessBuilder {
   public static final Logger logger = LoggerFactory.getLogger(JobExecutorProcessBuilder.class);

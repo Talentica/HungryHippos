@@ -9,16 +9,34 @@ import java.util.stream.IntStream;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.utility.JobEntity;
 
+/**
+ * {@code PrimaryDimensionwiseJobsCollection } is used for collecting Jobs submitted by the client
+ * on the basis of primaryDimension associated with it.
+ * 
+ * @author
+ *
+ */
 public class PrimaryDimensionwiseJobsCollection {
 
   private int primaryDimensionIndex;
 
   private List<JobEntity> jobs = new ArrayList<>();
 
+  /**
+   * creates a new PrimaryDimensionwiseJobsCollection from the {@value primaryDimensionIndex}
+   * provided.
+   * 
+   * @param primaryDimensionIndex
+   */
   public PrimaryDimensionwiseJobsCollection(int primaryDimensionIndex) {
     this.primaryDimensionIndex = primaryDimensionIndex;
   }
 
+  /**
+   * used for adding JobEntity.
+   * 
+   * @param job
+   */
   public void addJob(JobEntity job) {
     if (IntStream.of(job.getJob().getDimensions())
         .anyMatch(dimension -> dimension == primaryDimensionIndex)) {
@@ -26,18 +44,37 @@ public class PrimaryDimensionwiseJobsCollection {
     }
   }
 
+  /** 
+   * @param index
+   * @return a JobEntity from the specified index.
+   */
   public JobEntity jobAt(int index) {
     return jobs.get(index);
   }
 
+  /**
+   * 
+   * @return a int value representing numbers of jobs associated with this.
+   */
   public int getNumberOfJobs() {
     return jobs.size();
   }
+
   
-  public List<JobEntity> getJobs(){
+  /**
+   * 
+   * @return an List<JobEntity> .
+   */
+  public List<JobEntity> getJobs() {
     return jobs;
   }
 
+  /**
+   * 
+   * @param jobs
+   * @param context
+   * @return List<PrimaryDimensionwiseJobsCollection>.
+   */
   public static List<PrimaryDimensionwiseJobsCollection> from(List<JobEntity> jobs,
       ShardingApplicationContext context) {
     List<PrimaryDimensionwiseJobsCollection> jobsCollection = new ArrayList<>();
@@ -115,6 +152,10 @@ public class PrimaryDimensionwiseJobsCollection {
     return start;
   }
 
+  /**
+   * 
+   * @return an int value representing the primary dimension.
+   */
   public int getPrimaryDimensionIndex() {
     return primaryDimensionIndex;
   }

@@ -39,7 +39,8 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
   public ValueSet(int[] keyIndexes) {
     this.keyIndexes = keyIndexes;
     this.values = new Comparable[keyIndexes.length];
-  }
+  }  
+ 
 
   @Override
   public boolean equals(Object o) {
@@ -49,7 +50,8 @@ public class ValueSet implements Comparable<ValueSet>, Serializable {
       return false;
     ValueSet valueSet = (ValueSet) o;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
-    return Arrays.equals(values, valueSet.values) & Arrays.equals(keyIndexes, valueSet.keyIndexes);
+    //added shortCircuit logic
+    return Arrays.equals(values, valueSet.values) && Arrays.equals(keyIndexes, valueSet.keyIndexes);
   }
 
   public Object[] getValues() {

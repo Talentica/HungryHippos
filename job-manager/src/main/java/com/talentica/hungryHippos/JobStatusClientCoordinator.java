@@ -14,7 +14,10 @@ import com.talentica.hungryHippos.utility.PathEnum;
 import com.talentica.hungryhippos.config.cluster.Node;
 
 /**
- * This class is for client to interact with job status Created by rajkishoreh on 4/8/16.
+ * {@code JobStatusClientCoordinator} is for client to interact with job status.
+ * 
+ * @author rajkishoreh
+ * @since 4/8/16.
  */
 public class JobStatusClientCoordinator {
 
@@ -31,7 +34,7 @@ public class JobStatusClientCoordinator {
     for (Node node : nodeList) {
       int nodeId = node.getIdentifier();
       String hhNode = getPendingHHNode(nodeId);
-      curator = HungryHippoCurator.getAlreadyInstantiated();
+      curator = HungryHippoCurator.getInstance();
       try {
         curator.createPersistentNodeIfNotPresent(hhNode);
         String pendingJobIdNode = getPendingJobIdNode(nodeId, jobUUID);
@@ -56,7 +59,7 @@ public class JobStatusClientCoordinator {
       throw new RuntimeException("Number of nodes in Configuration is zero");
     }
     try {
-      curator = HungryHippoCurator.getAlreadyInstantiated();
+      curator = HungryHippoCurator.getInstance();
       for (Node node : nodeList) {
         int nodeId = node.getIdentifier();
         String hhNode = getHHNode(completedGroup, jobUUID, nodeId);
@@ -83,7 +86,7 @@ public class JobStatusClientCoordinator {
       throw new RuntimeException("Number of nodes in Configuration is zero");
     }
     try {
-      curator = HungryHippoCurator.getAlreadyInstantiated();
+      curator = HungryHippoCurator.getInstance();
       for (Node node : nodeList) {
         int nodeId = node.getIdentifier();
         String hhNode = getHHNode(failedGroup, jobUUID, nodeId);
@@ -91,7 +94,7 @@ public class JobStatusClientCoordinator {
           return true;
         }
       }
-    } catch ( HungryHippoException e) {
+    } catch (HungryHippoException e) {
       throw new RuntimeException(e);
     }
     return false;

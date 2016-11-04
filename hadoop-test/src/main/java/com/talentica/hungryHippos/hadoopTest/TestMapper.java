@@ -12,8 +12,8 @@ public class TestMapper extends Mapper<Object, Text, Text, Text>{
 
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         String [] parts = value.toString().split(",");
-        double value1 = Double.parseDouble(parts[6]);
-        double value2 = Double.parseDouble(parts[7]);
+        String value1 = parts[6];
+        String value2 = parts[7];
         int keyID=0;
         for(int i=0;i<3;i++){
             Text keyText = new Text((keyID++)+"|"+parts[i]);

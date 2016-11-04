@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.storage.sorting;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -208,7 +207,7 @@ public class DataFileSorter {
         ((System.currentTimeMillis() - startTIme)));
   }
 
-  byte[] chunk = null;
+  private byte[] chunk = null;
 
   /**
    * To sort the file in batch
@@ -265,7 +264,6 @@ public class DataFileSorter {
     return files;
   }
 
-
   private void allocateChunkSizeIfNot(final long datalength) {
     int blocksize;
     int effectiveBlockSizeBytes;
@@ -281,7 +279,16 @@ public class DataFileSorter {
         chunk = new byte[effectiveBlockSizeBytes];
       }
     } else {
-      Arrays.fill(chunk, (byte) 0);
+      resetBuffer();
+    }
+  }
+
+  private void resetBuffer() {
+    int len = chunk.length;
+    if (len > 0)
+      chunk[0] = 0;
+    for (int i = 1; i < len; i += i) {
+      System.arraycopy(chunk, 0, chunk, i, ((len - i) < i) ? (len - i) : i);
     }
   }
 

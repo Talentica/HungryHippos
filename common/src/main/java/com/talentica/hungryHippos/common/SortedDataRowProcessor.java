@@ -118,7 +118,6 @@ public class SortedDataRowProcessor implements RowProcessor {
   }
 
 
-
   /**
    * To perform the jobs execution for particular row.
    * 
@@ -173,9 +172,7 @@ public class SortedDataRowProcessor implements RowProcessor {
     } else {
       ValueSet lastValueSet = lastValueSetPointerJobMap.get(jobEntity);
       if (lastValueSet.compareTo(currentValueSetPointer) != 0) {
-
         isJobReadyToFlush = true;
-
         updateLastValueSet(row, jobEntity);
       }
     }
@@ -220,7 +217,6 @@ public class SortedDataRowProcessor implements RowProcessor {
       }
       currentValueSetPointerJobMap.put(jobEntity, currentValueSet);
     } else {
-      // ValueSet newValueSet = currentValueSetPointerJobMap.get(jobEntity);
       for (int i = 0; i < jobEntity.getFlushPointer().length; i++) {
         Object value = dynamicMarshal.readValue(jobEntity.getFlushPointer()[i], row);
         currentValueSet.setValue(value, i);

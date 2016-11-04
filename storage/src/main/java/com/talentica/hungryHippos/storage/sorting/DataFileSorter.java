@@ -82,18 +82,21 @@ public class DataFileSorter {
   public synchronized void doSortingDefault() throws IOException {
     dataDir = validateDirectory(dataDir);
     File lockFile = new File(dataDir + LOCK_FILE);
-    createLockFile(lockFile);
-    for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
-      String childDirectory = dataDir + (INPUT_DATAFILE_PRIFIX + (1 << fileId));
-      File inputDir = new File(childDirectory);
-      if (!inputDir.exists()) {
-        break;
+    try {
+      createLockFile(lockFile);
+      for (int fileId = 0; fileId < this.shardDims.length; fileId++) {
+        String childDirectory = dataDir + (INPUT_DATAFILE_PRIFIX + (1 << fileId));
+        File inputDir = new File(childDirectory);
+        if (!inputDir.exists()) {
+          break;
+        }
+        if (inputDir.isDirectory()) {
+          sortAllFilesInDirectory(fileId, inputDir, null);
+        }
       }
-      if (inputDir.isDirectory()) {
-        sortAllFilesInDirectory(fileId, inputDir, null);
-      }
+    } finally {
+      unlockFile(lockFile);
     }
-    unlockFile(lockFile);
   }
 
 
@@ -232,22 +235,19 @@ public class DataFileSorter {
       while (dataFileSize > 0) {
         if (dataFileSize >= chunk.length) {
           startTimeChunkRead = System.currentTimeMillis();
+          readBytesLength = chunk.length;
           dataInputStream.readFully(chunk);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
-          readBytesLength = chunk.length;
         } else { // remaining chunk or for singal block which totally fit in memory.
           startTimeChunkRead = System.currentTimeMillis();
-          dataInputStream.readFully(chunk);
+          readBytesLength = (int) dataFileSize;
+          dataInputStream.readFully(chunk, 0, readBytesLength);
           LOGGER.info("Time taken to read the chunk in ms {}",
               (System.currentTimeMillis() - startTimeChunkRead));
-          readBytesLength = (int) dataFileSize;
         }
         dataFileSize = dataFileSize - readBytesLength;
-
         if (dataFileSize == 0 && batchId == 0) {
-
-     
           files.add(sortAndSave(chunk, outputFile, batchId, true, readBytesLength));
         } else {
           files.add(sortAndSave(chunk, outputdirectory, batchId, false, readBytesLength));

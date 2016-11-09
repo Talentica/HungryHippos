@@ -21,7 +21,7 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class JobDelegatorMain {
+public class JobRunText {
 
   private static final String MASTER_IP = "spark://pooshans:7077";
 

@@ -48,8 +48,8 @@ public class CustomRDDMain {
 
     @Override
     public Partition[] getPartitions() {
-      return new Partition[] {new AlphabetRangePartition(0, 'A', 'M'),
-          new AlphabetRangePartition(1, 'P', 'Z')};
+      return new Partition[] {new AlphabetRangePartition(0, 'A', 'K'),
+          new AlphabetRangePartition(1, 'T', 'Z')};
     }
 
   }

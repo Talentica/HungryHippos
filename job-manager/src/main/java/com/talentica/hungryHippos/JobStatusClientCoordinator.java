@@ -124,11 +124,8 @@ public class JobStatusClientCoordinator {
   public static void updateJobFailed(String jobUUID) {
     String failedJobsGroup = PathEnum.FAILED_JOBS.getPathName();
     String failedJobIdNode = getJobIdNode(failedJobsGroup, jobUUID);
-    try {
-      curator.createPersistentNodeIfNotPresent(failedJobIdNode, "");
-    } catch (HungryHippoException e) {
-      throw new RuntimeException(e.getMessage());
-    }
+    curator.createPersistentNodeIfNotPresent(failedJobIdNode, "");
+
   }
 
 }

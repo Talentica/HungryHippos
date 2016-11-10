@@ -124,11 +124,8 @@ public class HungryHipposFileSystem {
    */
   public String createZnode(String name, Object data) {
     name = checkNameContainsFileSystemRoot(name);
-    try {
-      name = curator.createPersistentNodeIfNotPresent(name, data);
-    } catch (HungryHippoException e) {
-      logger.error(e.toString());
-    }
+    name = curator.createPersistentNodeIfNotPresent(name, data);
+
     return name;
   }
 
@@ -325,8 +322,10 @@ public class HungryHipposFileSystem {
     String fileNodeZKDFSPath =
         fileNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
-    curator.createPersistentNodeIfNotPresent(fileNodeZKDFSPath);
-    curator.createPersistentNodeIfNotPresent(nodeIdZKPath, datafileSize);
+    synchronized (this) {
+      curator.createPersistentNodeIfNotPresent(fileNodeZKDFSPath);
+      curator.createPersistentNodeIfNotPresent(nodeIdZKPath, datafileSize);
+    }
   }
 
   /**
@@ -353,7 +352,7 @@ public class HungryHipposFileSystem {
     String dataReadyNode = hungryHippoFilePathNode + FileSystemConstants.ZK_PATH_SEPARATOR
         + FileSystemConstants.DATA_READY;
     boolean isDataReady = curator.checkExists(dataReadyNode);
-    while(!isDataReady){
+    while (!isDataReady) {
       isDataReady = curator.checkExists(dataReadyNode);
     }
     if (!isDataReady) {

@@ -252,13 +252,10 @@ public class DataProvider {
    * @param nodeId
    */
   public static void createNodeLink(String fileIdToHHpath, int nodeId) {
-    try {
-      curator.createPersistentNodeIfNotPresent(
-          fileIdToHHpath + HungryHippoCurator.ZK_PATH_SEPERATOR + nodeId, "");
-    } catch (HungryHippoException e) {
-      LOGGER.error(e.getMessage());
-      throw new RuntimeException(e.getMessage());
-    }
+
+    curator.createPersistentNodeIfNotPresent(
+        fileIdToHHpath + HungryHippoCurator.ZK_PATH_SEPERATOR + nodeId, "");
+
   }
 
   private static void init() throws FileNotFoundException, JAXBException {

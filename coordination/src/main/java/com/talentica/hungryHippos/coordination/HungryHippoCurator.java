@@ -44,7 +44,6 @@ import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathEnum;
-import com.talentica.hungryHippos.utility.PathUtil;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 
@@ -138,25 +137,7 @@ public class HungryHippoCurator {
 
   }
 
-  /**
-   * used for getting curatorFramework. This method also starts the curator framework.
-   * 
-   * @param connectString
-   * @param retryPolicy
-   * @return
-   */
-  private void connectToZookeeper(String connectString, int sessionTimeOut) {
-    if (curatorFramework == null) {
-      int connectionTimeOut = 15 * 10000;
-      int baseSleepTime = 1000;
-      int maxRetry = 3;
-      ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(baseSleepTime, maxRetry);
 
-      curatorFramework = CuratorFrameworkFactory.newClient(connectString, sessionTimeOut,
-          connectionTimeOut, retryPolicy);
-      start();
-    }
-  }
 
   private void start() {
     curatorFramework.start();
@@ -1349,35 +1330,34 @@ public class HungryHippoCurator {
     return buildPath;
   }
 
-  /**
-   * checks whether {@value path} exits in zookeeper before creating.
-   * 
-   * @param path
-   * @return
-   * @throws HungryHippoException
-   */
   public String createPersistentNodeIfNotPresent(String path) throws HungryHippoException {
-    if (!checkExists(path)) {
-      path = createPersistentNode(path);
-    }
-    return path;
+    return createPersistentNodeIfNotPresent(path, null);
   }
 
   /**
    * checks whether {@value path} exits in zookeeper before creating.
    * 
    * @param path
-   * @param data
    * @return
    * @throws HungryHippoException
    */
-  public String createPersistentNodeIfNotPresent(String path, Object data)
-      throws HungryHippoException {
-    if (!checkExists(path)) {
-      path = createPersistentNode(path, data);
+  public String createPersistentNodeIfNotPresent(String path, Object data) {
+    String location = null;
+    try {
+      location = createPersistentNode(path, data);
+    } catch (HungryHippoException e) {
+      logger.warn(e.getMessage());
     }
-    return path;
+    return location;
   }
+
+  public void updatePersistentNode(String path, Object data) throws HungryHippoException {
+    deletePersistentNodeRecursiveIfExits(path);
+    createPersistentNodeIfNotPresent(path, data);
+
+  }
+
+
 
   /**
    * checks whether {@value path} exits in zookeeper before deletion.
@@ -1388,6 +1368,18 @@ public class HungryHippoCurator {
   public void deletePersistentNodeIfExits(String path) throws HungryHippoException {
     if (checkExists(path)) {
       delete(path);
+    }
+  }
+
+  /**
+   * checks whether {@value path} exits in zookeeper before deletion.
+   * 
+   * @param path
+   * @throws HungryHippoException
+   */
+  public void deletePersistentNodeRecursiveIfExits(String path) throws HungryHippoException {
+    if (checkExists(path)) {
+      deleteRecursive(path);
     }
   }
 }

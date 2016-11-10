@@ -16,7 +16,7 @@ import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 public class HungryHippoCuratorTest {
 
 
-  private String zookeeperConnectionString = "162.243.209.160:2181";
+  private String zookeeperConnectionString = "localhost:2181";
   private int baseSleepTime = 1000;
   private int maxRetry = 3;
 
@@ -25,7 +25,7 @@ public class HungryHippoCuratorTest {
   @Before
   public void setUp() throws Exception {
     hhc = HungryHippoCurator.getInstance(zookeeperConnectionString);
-   
+
   }
 
   @After
@@ -33,18 +33,17 @@ public class HungryHippoCuratorTest {
     hhc = null;
   }
 
- 
+
 
   @Test
   public void testCreateZnode_2Arg() {
     String path = "/test";
     String data = "hi";
     String loc = null;
-   /* try {
-      //loc = hhc.createPersistentNode(path, data);
-    } catch (HungryHippoException e) {
-      assertTrue(false);// exception should not occur;
-    }*/
+    /*
+     * try { //loc = hhc.createPersistentNode(path, data); } catch (HungryHippoException e) {
+     * assertTrue(false);// exception should not occur; }
+     */
     assertEquals(path, loc);
   }
 
@@ -174,5 +173,19 @@ public class HungryHippoCuratorTest {
     }
     assertNotNull(stat);
 
+  }
+
+  @Test
+  public void testCreateZnodeIfNotPresent() throws HungryHippoException {
+    String path = "/test1/hi";
+    long l = 55;
+    hhc.createPersistentNodeIfNotPresent(path, l);
+  }
+
+  @Test
+  public void testupdatePersistentNode() throws HungryHippoException {
+    String path = "/test1/hello";
+    long l = 95;
+    hhc.updatePersistentNode(path, l);
   }
 }

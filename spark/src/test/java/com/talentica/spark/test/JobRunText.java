@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.spark.job;
+package com.talentica.spark.test;
 
 import java.util.ArrayList;
 import java.util.List;

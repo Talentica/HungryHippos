@@ -26,6 +26,6 @@ public class HungryHipposRDDTest {
   
   @Test
   public void test(){
-    HungryHipposRDD hipposRDD = new HungryHipposRDD(sc, new HungryHipposRDDConf(50, 33, new int[] {0,1,2}));
+    HungryHipposRDD hipposRDD = new HungryHipposRDD(sc, new HungryHipposRDDConf(50, 33, new int[] {0,1,2},"/test"));
     }
 }

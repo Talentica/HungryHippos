@@ -6,7 +6,6 @@ package com.talentica.hungryHippos.rdd;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,38 +55,27 @@ public class HungryHipposRDD extends RDD<ByteBuffer> {
     List<DataInputStream> files;
     Partition[] partitions = null;
     try {
-      files = getFiles();
+      files = getFiles(hipposRDDConf.getDirectoryLocation());
       partitions = new Partition[files.size()];
       for (int index = 0; index < partitions.length; index++) {
         partitions[index] =
             new HungryHipposRDDPartition(index, files.get(index), hipposRDDConf.getRowSize());
       }
-    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
     return partitions;
   }
 
-  private List<DataInputStream> getFiles() throws FileNotFoundException {
+  private List<DataInputStream> getFiles(String dataDirectory) throws IOException {
     List<DataInputStream> filesInputStream = new ArrayList<DataInputStream>();
-    List<String> totalCombinations = new ArrayList<String>();
-    for (int index = 0; index < hipposRDDConf.getShardingIndexes().length; index++) {
-      for (int bucket = 0; bucket < hipposRDDConf.getBuckets(); bucket++) {
-        String name = totalCombinations.get(index);
-        if (name == null || "".equals(name)) {
-          name = "" + bucket;
-        } else if (index != hipposRDDConf.getShardingIndexes().length - 1) {
-          name = name + "_" + bucket;
-        } else {
-          name = name + bucket;
-        }
-        totalCombinations.add(index, name);
+    File[] files = new File(dataDirectory).listFiles();
+    for (File file : files) {
+      DataInputStream dataInputStream = new DataInputStream(new FileInputStream(file));
+      if(dataInputStream.available() > 0 ){
+        filesInputStream.add(dataInputStream);
       }
     }
-    for (String fileName : totalCombinations) {
-      filesInputStream.add(new DataInputStream(new FileInputStream(new File(fileName))));
-    }
-    totalCombinations.clear();
     return filesInputStream;
   }
 

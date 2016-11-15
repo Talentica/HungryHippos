@@ -15,12 +15,14 @@ public class HungryHipposRDDConf implements Serializable{
   private int buckets;
   private int rowSize;
   private int[] shardingIndexes;
+  private String directoryLocation;
   
   
-  public HungryHipposRDDConf(int buckets, int rowSize, int[] shardingIndexes) {
+  public HungryHipposRDDConf(int buckets, int rowSize, int[] shardingIndexes,String directoryLocation) {
     this.buckets = buckets;
     this.rowSize = rowSize;
     this.shardingIndexes = shardingIndexes;
+    this.directoryLocation = directoryLocation;
   }
   
   public int getBuckets() {
@@ -40,6 +42,14 @@ public class HungryHipposRDDConf implements Serializable{
   }
   public void setShardingIndexes(int[] shardingIndexes) {
     this.shardingIndexes = shardingIndexes;
+  }
+
+  public String getDirectoryLocation() {
+    return directoryLocation;
+  }
+
+  public void setDirectoryLocation(String directoryLocation) {
+    this.directoryLocation = directoryLocation;
   }
   
 }

@@ -4,13 +4,14 @@ source vagrant_init_functions.sh
 
 no_of_nodes=$1
 no_of_zookeeper=$2
+provider=$3
 zookeeperip_string=""
 
 #add ssh key to local machine to access nodes
 eval `ssh-agent -s`
 ssh-add hhuser_id_rsa
 
-start_vagrantfile $no_of_nodes $no_of_zookeeper
+start_vagrantfile $no_of_nodes $no_of_zookeeper $provider
 
 #get all IP
 file_processing_to_getIP
@@ -74,9 +75,9 @@ done
 zookeeper_flag=1
 for ip in "${ips[@]}"
 do
-	scp -r distr root@$ip:/home/hhuser/
-	ssh root@$ip 'chown hhuser:hungryhippos -R /home/hhuser/distr'
-        ssh root@$ip 'echo CLASSPATH=/home/hhuser/distr/lib >> /home/hhuser/.bashrc '
+	scp -r distr hhuser@$ip:/home/hhuser/
+	ssh hhuser@$ip 'chown hhuser:hungryhippos -R /home/hhuser/distr'
+        ssh hhuser@$ip 'echo CLASSPATH=/home/hhuser/distr/lib >> /home/hhuser/.bashrc '
 		
 
 	if [ $zookeeper_flag -le $total_zookeepers ] 

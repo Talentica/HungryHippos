@@ -7,6 +7,6 @@
 	<tns:session-timout>86400000</tns:session-timout>
   <tns:output>
     <tns:node-ssh-username>hhuser</tns:node-ssh-username>
-    <tns:node-ssh-private-key-file-path>/root/.ssh/hhuser_id_rsa</tns:node-ssh-private-key-file-path>
+    <tns:node-ssh-private-key-file-path>/home/chintamanim/test_vagrant_virtualbox/hhuser_id_rsa</tns:node-ssh-private-key-file-path>
   </tns:output>
 </tns:client-config>

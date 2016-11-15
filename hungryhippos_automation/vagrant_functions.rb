@@ -1,13 +1,19 @@
 class Vagrant_functions 
 
- def  self.configuration(config,no_of_nodes,no_of_zookeeper,ip_file)
+ def  self.configuration(config,no_of_nodes,no_of_zookeeper,ip_file,provider)
                 (1..no_of_nodes).each do |i|
 
                         config.vm.define "hh-#{i}" do |node|
                                 node_name="hh-#{i}"
-                                node.vm.box = "digital_ocean"
-                                curr_dir=File.dirname(__FILE__)
-                                #puts curr_dir
+				
+			       if provider == "digital_ocean"
+                                node.vm.box = "digital_ocean"                               
+                               elsif provider == "virtual_box"
+				node.vm.box = "ubuntu/trusty64"
+			       end
+				
+				curr_dir=File.dirname(__FILE__)
+                                
 
                                 node.vm.provision :chef_solo do |chef|
                                 # Paths to your cookbooks (on the host)
@@ -19,6 +25,8 @@ class Vagrant_functions
                                         chef.add_recipe 'hadoop_ssh_keycopy_slave'
 
                                          if i <=no_of_zookeeper
+
+
                                                 chef.add_recipe 'download_zookeeper'
                                                 chef.add_recipe 'cluster_mode_zookeeper'
                                         end
@@ -32,9 +40,9 @@ class Vagrant_functions
                                 sleep 5
                                 ipAddr=ipAddr.strip
                                 if i <=no_of_zookeeper
-                                        ip_file.puts "#{ipAddr}\thungryhippos-#{i} (Zookeeper)"
+                                        ip_file.puts "#{ipAddr}\thh-#{i} (Zookeeper)"
                                 else
-                                         ip_file.puts "#{ipAddr}\thungryhippos-#{i}"
+                                         ip_file.puts "#{ipAddr}\thh-#{i}"
                                 end
                                 end
 

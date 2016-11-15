@@ -5,9 +5,20 @@ start_vagrantfile()
 
 	no_of_nodes=$1
 	no_of_zookeeper=$2
+	provider=$3
 
 	#Start vagrant file
-	NODENUM=$no_of_nodes ZOOKEEPERNUM=$no_of_zookeeper  vagrant up --provider=digital_ocean
+
+	if [ "$provider" == "digital_ocean"  ]
+        then	
+		NODENUM=$no_of_nodes ZOOKEEPERNUM=$no_of_zookeeper PROVIDER=$provider  vagrant up --provider=digital_ocean
+	elif [ "$provider" == "virtual_box"  ]
+	then
+		NODENUM=$no_of_nodes ZOOKEEPERNUM=$no_of_zookeeper PROVIDER=$provider  vagrant up
+	fi
+
+	#NODENUM=$no_of_nodes ZOOKEEPERNUM=$no_of_zookeeper  vagrant up
+
 	sleep 10
 }
 

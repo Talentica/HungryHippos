@@ -58,6 +58,6 @@
 			<tns:jar-file-path>/root/application/lib/test-jobs.jar</tns:jar-file-path>
 		</tns:data-parser-config>
 	</tns:input>
-	<tns:sharding-dimensions>key1,key2,key3</tns:sharding-dimensions>
+	<tns:sharding-dimensions>key1</tns:sharding-dimensions>
 	<tns:maximum-size-of-single-block-data>80</tns:maximum-size-of-single-block-data>
 </tns:sharding-client-config>

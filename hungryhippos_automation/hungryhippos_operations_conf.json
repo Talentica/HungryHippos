@@ -8,32 +8,32 @@
 	"jobs":
 	[	
         	{
-			"lib_client": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client",
- 			"filepath_sharding_jar": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client/sharding.jar",
+			"lib_client": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client",
+ 			"filepath_sharding_jar": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client/sharding.jar",
                         "sharding_class": "com.talentica.hungryHippos.sharding.main.ShardingStarter", 
-                        "filepath_client_config": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/config/client-config.xml", 
-                        "folderpath_config": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/config/",
-                        "filepath_sharding_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/sharding.out", 
-                        "filepath_sharding_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/sharding.err",
+                        "filepath_client_config": "/home/chintamanim/test_vagrant_virtualbox/distr/config/client-config.xml", 
+                        "folderpath_config": "/home/chintamanim/test_vagrant_virtualbox/distr/config/",
+                        "filepath_sharding_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/sharding.out", 
+                        "filepath_sharding_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/sharding.err",
 
-			"filepath_datapublisher_jar": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/lib_client/data-publisher.jar",
+			"filepath_datapublisher_jar": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client/data-publisher.jar",
 			"datapublisher_class": "com.talentica.hungryHippos.master.DataPublisherStarter",
-			"input_filepath": "/root/application/lib/1gb.txt",
-			"sampling_filepath": "/root/application/lib/1gb_sample.txt",  
-			"distributed_input_filepath": "/rajk/1gb3",
-			"filepath_datapublisher_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.out", 
-			"filepath_datapublisher_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.err",
+			"input_filepath": "/home/chintamanim/test_vagrant_virtualbox/1gb.txt",
+			"sampling_filepath": "/home/chintamanim/test_vagrant_virtualbox/1gb_sample.txt",  
+			"distributed_input_filepath": "/rajk/1gb5",
+			"filepath_datapublisher_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/datapub_6.out", 
+			"filepath_datapublisher_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/datapub_6.err",
 
 			"joborchestrator_class": "com.talentica.hungryHippos.job.main.JobOrchestrator",
-			"job_filepath": "/root/hungryhippos_chefsolo_vagrant_modularise/test-jobs.jar",
+			"job_filepath": "/home/chintamanim/test_vagrant_virtualbox/test-jobs.1.jar",
 			"job_class": "com.talentica.hungryHippos.test.sum.SumJobMatrixImpl",
-			"distributed_output_filepath": "/rajk/output26",
-			"filepath_orchestrator_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.out",
-			"filepath_orchestrator_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.err",
+			"distributed_output_filepath": "/rajk/output5",
+			"filepath_orchestrator_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/job-man_2.out",
+			"filepath_orchestrator_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/job-man_2.err",
 			"_comments": "BELOW PROPERTIES ARE OPTIONAL, KEEP BLANK IF DON'T REQUIRED",
-			"file_to_copy_to_local": "/rajk/output26",
-			"local_path_to_copy_file_from_hhfs": "/root/hungryhippos_chefsolo_vagrant_modularise",
-			"delete_file": "/rajk/output26"
+			"file_to_copy_to_local": "/rajk/output5",
+			"local_path_to_copy_file_from_hhfs": "/home/chintamanim/",
+			"delete_file": "/rajk/output5"
 			
 		}
 

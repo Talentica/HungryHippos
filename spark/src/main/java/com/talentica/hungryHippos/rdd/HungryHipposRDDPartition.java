@@ -13,6 +13,7 @@ import org.apache.spark.Partition;
  */
 public class HungryHipposRDDPartition implements Partition {
 
+  private static final long serialVersionUID = -8600257810541979113L;
   private int partitionId;
   private DataInputStream dataInputStream;
   private int rowSize;

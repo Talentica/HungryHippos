@@ -3,58 +3,92 @@
  */
 package com.talentica.hungryHippos.rdd;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.spark.Dependency;
+import org.apache.spark.Partition;
 import org.apache.spark.SparkContext;
+import org.apache.spark.TaskContext;
+import org.apache.spark.rdd.RDD;
 
-import com.talentica.hungryHippos.common.job.PrimaryDimensionwiseJobsCollection;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.utility.JobEntity;
+import scala.collection.Iterator;
+import scala.collection.mutable.ArrayBuffer;
+import scala.reflect.ClassManifestFactory$;
+import scala.reflect.ClassTag;
 
 /**
  * @author pooshans
  *
  */
-public class HungryHipposRDD extends HungryHipposRDDBuilder {
+public class HungryHipposRDD extends RDD<ByteBuffer> {
 
-  private List<JobEntity> jobEntities;
-  private HungryHipposRDDBuilder hungryHipposRDD;
+  private static final long serialVersionUID = -1546634848854956364L;
+  private static final ClassTag<ByteBuffer> BYTE_BUFFER_TAG =
+      ClassManifestFactory$.MODULE$.fromClass(ByteBuffer.class);
+  private HungryHipposRDDConf hipposRDDConf;
 
-  public HungryHipposRDD(SparkContext sc, List<JobEntity> jobEntities) {
-    super(sc);
-    this.jobEntities = jobEntities;
-    this.hungryHipposRDD = buildRDD(jobEntities, null);
+  public HungryHipposRDD(SparkContext sc, HungryHipposRDDConf hipposRDDConf) {
+    super(sc, new ArrayBuffer<Dependency<?>>(), BYTE_BUFFER_TAG);
+    this.hipposRDDConf = hipposRDDConf;
   }
 
-  public HungryHipposRDDBuilder getHungryHipposRDD() {
-    return hungryHipposRDD;
-  }
-
-  private HungryHipposRDDBuilder buildRDDbyJobsPrimaryDimension(
-      PrimaryDimensionwiseJobsCollection jobSCollection) {
-    for (JobEntity jobEntity : jobSCollection.getJobs()) {
-
+  @Override
+  public Iterator<ByteBuffer> compute(Partition partition, TaskContext taskContext) {
+    HungryHipposRDDPartition hhRDDPartion = (HungryHipposRDDPartition) partition;
+    HungryHipposRDDIterator iterator = null;
+    try {
+      iterator = new HungryHipposRDDIterator(hhRDDPartion);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    return null;
+    return iterator;
   }
 
-  private HungryHipposRDDBuilder buildRDD(List<JobEntity> jobEntities,
-      ShardingApplicationContext context) {
-    List<PrimaryDimensionwiseJobsCollection> jobsCollectionList =
-        PrimaryDimensionwiseJobsCollection.from(jobEntities, context);
-    HungryHipposRDDBuilder finalHHRDDBuilder;
-    List<HungryHipposRDDBuilder> rddBuilder = new ArrayList<HungryHipposRDDBuilder>();
-    for (PrimaryDimensionwiseJobsCollection jobSCollection : jobsCollectionList) {
-      rddBuilder.add(buildRDDbyJobsPrimaryDimension(jobSCollection));
+  @Override
+  public Partition[] getPartitions() {
+    List<DataInputStream> files;
+    Partition[] partitions = null;
+    try {
+      files = getFiles();
+      partitions = new Partition[files.size()];
+      for (int index = 0; index < partitions.length; index++) {
+        partitions[index] =
+            new HungryHipposRDDPartition(index, files.get(index), hipposRDDConf.getRowSize());
+      }
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
     }
-    finalHHRDDBuilder = rddBuilder.get(0);
-    if (rddBuilder.size() > 1) {
-      for (int index = 1; index < rddBuilder.size(); index++) {
-        finalHHRDDBuilder.union(rddBuilder.get(index));
+    return partitions;
+  }
+
+  private List<DataInputStream> getFiles() throws FileNotFoundException {
+    List<DataInputStream> filesInputStream = new ArrayList<DataInputStream>();
+    List<String> totalCombinations = new ArrayList<String>();
+    for (int index = 0; index < hipposRDDConf.getShardingIndexes().length; index++) {
+      for (int bucket = 0; bucket < hipposRDDConf.getBuckets(); bucket++) {
+        String name = totalCombinations.get(index);
+        if (name == null || "".equals(name)) {
+          name = "" + bucket;
+        } else if (index != hipposRDDConf.getShardingIndexes().length - 1) {
+          name = name + "_" + bucket;
+        } else {
+          name = name + bucket;
+        }
+        totalCombinations.add(index, name);
       }
     }
-    return finalHHRDDBuilder;
+    for (String fileName : totalCombinations) {
+      filesInputStream.add(new DataInputStream(new FileInputStream(new File(fileName))));
+    }
+    totalCombinations.clear();
+    return filesInputStream;
   }
 
 }

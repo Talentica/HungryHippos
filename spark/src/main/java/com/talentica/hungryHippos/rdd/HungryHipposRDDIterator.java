@@ -4,8 +4,11 @@
 package com.talentica.hungryHippos.rdd;
 
 import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.collection.AbstractIterator;
 
@@ -13,17 +16,21 @@ import scala.collection.AbstractIterator;
  * @author pooshans
  *
  */
-public class HungryHipposRDDIterator extends AbstractIterator<ByteBuffer> {
+public class HungryHipposRDDIterator extends AbstractIterator<HHRDDRowReader> {
 
   private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
   private long currentDataFileSize;
   private DataInputStream dataInputStream;
+  private HHRDDRowReader hhRDDRowReader;
 
   public HungryHipposRDDIterator(HungryHipposRDDPartition hhRDDPartion) throws IOException {
-    this.dataInputStream = hhRDDPartion.getDataInputStream();
+
+    this.dataInputStream = new DataInputStream(new FileInputStream(hhRDDPartion.getFilePath()));
     this.currentDataFileSize = dataInputStream.available();
-    this.byteBuffer = ByteBuffer.allocate(hhRDDPartion.getRowSize());
+    this.hhRDDRowReader = new HHRDDRowReader(hhRDDPartion.getDataDescription());
+    this.byteBufferBytes = new byte[hhRDDPartion.getRowSize()];
+    this.byteBuffer = ByteBuffer.wrap(byteBufferBytes);
   }
 
   @Override
@@ -40,15 +47,16 @@ public class HungryHipposRDDIterator extends AbstractIterator<ByteBuffer> {
   }
 
   @Override
-  public ByteBuffer next() {
+  public HHRDDRowReader next() {
     byteBuffer.clear();
     try {
       dataInputStream.readFully(byteBufferBytes);
       currentDataFileSize = currentDataFileSize - byteBufferBytes.length;
+      hhRDDRowReader.setByteBuffer(byteBuffer);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return byteBuffer;
+    return hhRDDRowReader;
   }
 
   private void closeDatsInputStream(DataInputStream in) throws IOException {

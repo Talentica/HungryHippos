@@ -3,25 +3,11 @@
  */
 package com.talentica.spark.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.sql.SparkSession;
-
-import com.talentica.hungryHippos.test.sum.SumJob;
-
-import scala.Tuple2;
-
-
 /**
  * @author pooshans
  *
  */
-public class JobRunText {
+public class JobRunText {/*
 
   private static final String MASTER_IP = "spark://pooshans:7077";
 
@@ -95,4 +81,4 @@ public class JobRunText {
     return jobList;
   }
 
-}
+*/}

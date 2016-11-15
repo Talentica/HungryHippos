@@ -7,6 +7,8 @@ import java.io.DataInputStream;
 
 import org.apache.spark.Partition;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+
 /**
  * @author pooshans
  *
@@ -15,13 +17,14 @@ public class HungryHipposRDDPartition implements Partition {
 
   private static final long serialVersionUID = -8600257810541979113L;
   private int partitionId;
-  private DataInputStream dataInputStream;
-  private int rowSize;
+  private String filePath;
+  private DataDescription dataDescription;
 
-  public HungryHipposRDDPartition(int partitionId, DataInputStream dataInputStream, int rowSize) {
+  public HungryHipposRDDPartition(int partitionId, String filePath,
+      DataDescription dataDescription) {
     this.partitionId = partitionId;
-    this.dataInputStream = dataInputStream;
-    this.rowSize = rowSize;
+    this.filePath = filePath;
+    this.dataDescription = dataDescription;
   }
 
   @Override
@@ -37,12 +40,16 @@ public class HungryHipposRDDPartition implements Partition {
     return ((HungryHipposRDDPartition) obj).partitionId != partitionId;
   }
 
-  public DataInputStream getDataInputStream() {
-    return dataInputStream;
+  public String getFilePath() {
+    return filePath;
   }
 
   public int getRowSize() {
-    return rowSize;
+    return dataDescription.getSize();
+  }
+
+  public DataDescription getDataDescription() {
+    return this.dataDescription;
   }
 
 }

@@ -243,27 +243,27 @@ job_output_dbwrite(){
 
 get_process_id(){
 
-	process_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_id from process where name='$1';")
+	process_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_id from process where name='$1';")
 	process_id=$(echo $process_id | cut -d' ' -f2)
 	#echo $process_id
 }
 
 process_instance_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO process_instance (process_id,job_id) VALUES ('$1', '$2');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO process_instance (process_id,job_id) VALUES ('$1', '$2');"
 
 	#get process instance id
-	process_instance_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_instance_id from process_instance where process_id='$process_id' AND job_id='$job_id';")
+	process_instance_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_instance_id from process_instance where process_id='$process_id' AND job_id='$job_id';")
 	process_instance_id=$(echo $process_instance_id | cut -d' ' -f2)
 
 }
 
 process_instance_detail_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO process_instance_detail (process_instance_id) VALUES ('$1');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO process_instance_detail (process_instance_id) VALUES ('$1');"
 
 	#get process instance detail id
-	process_instance_detail_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_instance_detail_id from process_instance_detail where process_instance_id='$process_instance_id';")
+	process_instance_detail_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_instance_detail_id from process_instance_detail where process_instance_id='$process_instance_id';")
 	process_instance_detail_id=$(echo $process_instance_detail_id | cut -d' ' -f2)
 
 }
@@ -581,8 +581,15 @@ read_json_hungryhippos(){
          distributed_output_filepath=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].distributed_output_filepath')
          filepath_orchestrator_output_log=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].filepath_orchestrator_output_log')
          filepath_orchestrator_error_log=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].filepath_orchestrator_error_log')
-         
+        local_path_to_copy_file_from_hhfs=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].local_path_to_copy_file_from_hhfs') 
+	delete_file=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].delete_file')
+	file_to_copy_to_local=$(cat hungryhippos_operations_conf.json  |jq --arg job_no "$i"  '.jobs['$i'].file_to_copy_to_local')
+	mysql_server=$(cat hungryhippos_operations_conf.json  |jq '.mysql_server')
+	mysql_username=$(cat hungryhippos_operations_conf.json  |jq '.mysql_username')
+	mysql_password=$(cat hungryhippos_operations_conf.json  |jq '.mysql_password')
+
 	
+
         #remove " from variable
 	 lib_client=$(echo "$lib_client" | tr -d '"')
 	 filepath_sharding_jar=$(echo "$filepath_sharding_jar" | tr -d '"')
@@ -604,7 +611,12 @@ read_json_hungryhippos(){
 	 distributed_output_filepath=$(echo "$distributed_output_filepath" | tr -d '"')
 	 filepath_orchestrator_output_log=$(echo "$filepath_orchestrator_output_log" | tr -d '"')
 	 filepath_orchestrator_error_log=$(echo "$filepath_orchestrator_error_log" | tr -d '"')
-        
+        local_path_to_copy_file_from_hhfs=$(echo "$local_path_to_copy_file_from_hhfs" | tr -d '"')
+	delete_file=$(echo "$delete_file" | tr -d '"')
+	file_to_copy_to_local=$(echo "$file_to_copy_to_local" | tr -d '"')
+	mysql_server=$(echo "$mysql_server" | tr -d '"')
+	mysql_username=$(echo "$mysql_username" | tr -d '"')
+	mysql_password=$(echo "$mysql_password" | tr -d '"')
 
 
 }
@@ -619,7 +631,7 @@ start_sharding(){
 	#get  time for data_publishing
         time_sharding=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_sharding' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_sharding' where process_instance_detail_id='$process_instance_detail_id';"
 	
 
 	#start_sharding
@@ -630,7 +642,7 @@ start_sharding(){
 	#get  time for data_publishing finished
         time_sharding_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_sharding_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_sharding_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
 }
@@ -644,7 +656,7 @@ start_publishing(){
         #get  time for data_publishing
         time_publishing=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_publishing' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_publishing' where process_instance_detail_id='$process_instance_detail_id';"
 
 
 
@@ -653,7 +665,7 @@ start_publishing(){
 	#get  time for data_publishing finished
         time_publishing_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_publishing_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_publishing_finished' where process_instance_detail_id='$process_instance_detail_id';"
 	
 
 	echo "Data publishing completed"
@@ -668,7 +680,7 @@ start_execution(){
         #get  time for data_publishing
         time_execution=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_execution' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_execution' where process_instance_detail_id='$process_instance_detail_id';"
 	
 
 	export CLASSPATH="$lib_client/*"
@@ -677,7 +689,7 @@ start_execution(){
 	 #get  time for data_execution finished
         time_execution_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_execution_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_execution_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 	
 	echo "job execution completed"
@@ -692,14 +704,14 @@ start_sampling(){
         #get  time for data_sampling
         time_sampling=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_sampling' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_sampling' where process_instance_detail_id='$process_instance_detail_id';"
 
 	python $lib_client/sampling.py $input_filepath  $sampling_filepath
 
          #get  time for data_sampling finished
         time_sampling_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_sampling_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_sampling_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
         echo "job sampling completed"
@@ -720,7 +732,7 @@ get_hhfs_file_size_input(){
 
 get_hhfs_file_size_output(){
 
-	java  -cp $lib_client/file-system.jar com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain $filepath_client_config du $distributed_output_filepath > filesize.txt
+	java  -cp $lib_client/file-system.jar com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain $lib_client/file-system-commands.sh $filepath_client_config du $distributed_output_filepath > filesize.txt
 	
 	file_size_output=$(awk -F ':'  '/fileSize is /{ print $2 }' filesize.txt)
 
@@ -735,12 +747,12 @@ get_hhfs_file_size_output(){
 
 hh_job_input_dbwrite(){
 
-        mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_input (job_id,data_location,data_size_in_kbs,job_matrix_class,sharding_dimensions,data_type_configuration) VALUES ('$1', '$2','$3','$4','$5','$6');"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO job_input (job_id,data_location,data_size_in_kbs,job_matrix_class,sharding_dimensions,data_type_configuration) VALUES ('$1', '$2','$3','$4','$5','$6');"
 }
 
 hh_job_output_dbwrite(){
 
-        mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
 }
 
 get_sharding_dimension(){
@@ -804,6 +816,59 @@ update_sharding-client-config(){
 
         #add new distributed_file_path string
         sed -i "${line_no}i $jar_filepath_string_config" $folderpath_config/sharding-client-config.xml
+
+}
+
+delete_hhfs_file(){
+
+	echo "Deleting file $delete_file"
+
+	get_process_id FILE_DELETE
+        process_instance_dbwrite $process_id $job_id
+        process_instance_detail_dbwrite $process_instance_id
+
+	#get  time for deleting hhfs file
+        time_deleting=$(date +'%Y:%m:%d %H:%M:%S')
+
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_deleting' where process_instance_detail_id='$process_instance_detail_id';"
+
+
+	java  -cp $lib_client/file-system.jar com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain $lib_client/file-system-commands.sh  $filepath_client_config deleteall $delete_file	
+
+	  #get end time for deleting hhfs file
+        time_deleting_finished=$(date +'%Y:%m:%d %H:%M:%S')
+
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_deleting_finished' where process_instance_detail_id='$process_instance_detail_id';"
+
+
+        echo "File deleting completed"
+
+
+}
+
+copy_to_local_from_hhfs(){
+
+	echo "Copying file $file_to_copy_to_local to $local_path_to_copy_file_from_hhfs"
+
+	get_process_id OUTPUT_TRANSFER
+        process_instance_dbwrite $process_id $job_id
+        process_instance_detail_dbwrite $process_instance_id
+
+        #get  time for copying hhfs file
+        time_copying=$(date +'%Y:%m:%d %H:%M:%S')
+
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_copying' where process_instance_detail_id='$process_instance_detail_id';"
+
+	java  -cp $lib_client/file-system.jar com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain $lib_client/file-system-commands.sh $filepath_client_config download $file_to_copy_to_local $local_path_to_copy_file_from_hhfs
+
+	#get end time for deleting hhfs file
+        time_copying_finished=$(date +'%Y:%m:%d %H:%M:%S')
+
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_copying_finished' where process_instance_detail_id='$process_instance_detail_id';"
+
+
+        echo "File copy completed"
+	
 
 }
 

@@ -1,6 +1,9 @@
 {
 
 	"number_of_jobs": "1",
+	"mysql_server": "192.241.137.249",
+	"mysql_username": "root",
+	"mysql_password": "root",
 
 	"jobs":
 	[	
@@ -17,16 +20,20 @@
 			"datapublisher_class": "com.talentica.hungryHippos.master.DataPublisherStarter",
 			"input_filepath": "/root/application/lib/1gb.txt",
 			"sampling_filepath": "/root/application/lib/1gb_sample.txt",  
-			"distributed_input_filepath": "/rajk/1gb",
+			"distributed_input_filepath": "/rajk/1gb3",
 			"filepath_datapublisher_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.out", 
 			"filepath_datapublisher_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/datapub_6.err",
 
 			"joborchestrator_class": "com.talentica.hungryHippos.job.main.JobOrchestrator",
 			"job_filepath": "/root/hungryhippos_chefsolo_vagrant_modularise/test-jobs.jar",
 			"job_class": "com.talentica.hungryHippos.test.sum.SumJobMatrixImpl",
-			"distributed_output_filepath": "/rajk/output22",
+			"distributed_output_filepath": "/rajk/output26",
 			"filepath_orchestrator_output_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.out",
-			"filepath_orchestrator_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.err"
+			"filepath_orchestrator_error_log": "/root/hungryhippos_chefsolo_vagrant_modularise/distr/logs/job-man_2.err",
+			"_comments": "BELOW PROPERTIES ARE OPTIONAL, KEEP BLANK IF DON'T REQUIRED",
+			"file_to_copy_to_local": "/rajk/output26",
+			"local_path_to_copy_file_from_hhfs": "/root/hungryhippos_chefsolo_vagrant_modularise",
+			"delete_file": "/rajk/output26"
 			
 		}
 

@@ -16,26 +16,15 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
 
-	#puts "#{config}"
 
- #	no_of_nodes=3
+
+
 	no_of_nodes=ENV['NODENUM'].to_i
 	no_of_zookeeper=ENV['ZOOKEEPERNUM'].to_i
         config.vm.box = "digital_ocean"
 	ip_file = File.open("ip_file.txt", 'w')
 
-      # require 'vagrant_node_spawner'
 
-#	require_relative 'modularise.rb'
-#	Temp.temp1(config)
-
-#	def spawner
-#	yield
-#	end
-	
-#	def configuration
- #       yield
-#        end
 
 	 Vagrant_functions.spawner(config)
 	 Vagrant_functions.configuration(config,no_of_nodes,no_of_zookeeper,ip_file)

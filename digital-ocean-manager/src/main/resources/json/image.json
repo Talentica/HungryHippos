@@ -1,8 +1,0 @@
-{
-    "authToken": "02eba1965ba9ba368f57b79f454e05244a7fc7e2b2f7d60d9c235f6009fe5ad9",
-    "droplet": {
-        "image": {
-            "slug": "test-node-1-snapshot"
-        }
-    }
-}

@@ -56,20 +56,19 @@ public class NodeDataStoreIdCalculator implements Serializable {
     logger.info("keyWiseAcceptingBuckets:{}", MapUtils.getFormattedString(keyWiseAcceptingBuckets));
   }
 
-  public int storeId(ByteBuffer row) {
-    int fileId = 0;
-    for (int i = keys.length - 1; i >= 0; i--) {
-      fileId <<= 1;
+  public String storeId(ByteBuffer row) {
+    StringBuilder fileName = new StringBuilder();
+    for (int i = 0; i < keys.length; i++) {
       String key = keys[i];
       int keyIndex = Integer.parseInt(key.substring(3)) - 1;
       Object value = dynamicMarshal.readValue(keyIndex, row);
       Bucket<KeyValueFrequency> valueBucket = bucketsCalculator.getBucketNumberForValue(key, value);
-      if (valueBucket != null && keyWiseAcceptingBuckets.get(keys[i]) != null
-          && keyWiseAcceptingBuckets.get(keys[i]).contains(valueBucket)) {
-        fileId |= 1;
+      if(i!=0){
+        fileName.append("_");
       }
+      fileName.append(valueBucket.getId());
     }
-    return fileId;
+    return fileName.toString();
   }
 
 }

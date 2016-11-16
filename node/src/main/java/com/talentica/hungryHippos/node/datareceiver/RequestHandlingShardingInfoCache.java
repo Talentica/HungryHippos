@@ -7,8 +7,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
 
 /**
  * {@code RequestHandlingShardingInfoCache} used for storing information regarding sharding.
@@ -42,7 +45,7 @@ public enum RequestHandlingShardingInfoCache {
    * @throws IOException
    */
   public RequestHandlingShardingInfo get(int nodeIdClient, int fileId, String hhFilePath)
-      throws IOException {
+          throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
     if (nodeIdToFileIdSet.get(nodeIdClient) == null) {
       nodeIdToFileIdSet.put(nodeIdClient, new HashSet<>());
     }
@@ -100,6 +103,7 @@ public enum RequestHandlingShardingInfoCache {
         }
       }
       if (deleteSignal) {
+        requestHandlingShardingInfoMap.get(fileId).getDataStore().sync();
         requestHandlingShardingInfoMap.remove(fileId);
         LOGGER.info("Removed Cache of FileId :{}", fileId);
       }

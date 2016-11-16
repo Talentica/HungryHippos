@@ -3,26 +3,26 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.NodeUtil;
+import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
-import com.talentica.hungryHippos.utility.scp.TarAndGzip;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@code RequestHandlingTool}  used for handling client request.
- * @author rajkishoreh 
+ * @author rajkishoreh
  * @since 22/9/16.
  */
 public class RequestHandlingTool {
@@ -63,8 +63,7 @@ public class RequestHandlingTool {
         NodeUtil nodeUtil = requestHandlingShardingInfo.getNodeUtil();
         replicaNodesInfoDataSize = requestHandlingShardingInfo.getReplicaNodesInfoDataSize();
         recordSize = requestHandlingShardingInfo.getRecordSize();
-        dataStore = new FileDataStore(nodeUtil.getKeyToValueToBucketMap().size(),
-                dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, nodeIdClient+"");
+         dataStore = requestHandlingShardingInfo.getDataStore();
         nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
                 nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
         if(replicaNodesInfoDataSize>0){
@@ -78,8 +77,8 @@ public class RequestHandlingTool {
      * Stores the data row.
      */
     public void storeData(){
-        int storeId = nodeDataStoreIdCalculator.storeId(byteBuffer);
-        dataStore.storeRow(storeId, dataForFileWrite);
+        String fileName = nodeDataStoreIdCalculator.storeId(byteBuffer);
+        dataStore.storeRow(fileName, dataForFileWrite);
     }
 
     /**
@@ -118,7 +117,6 @@ public class RequestHandlingTool {
         byteBuffer = null;
         nextNodesInfo = null;
         dataForFileWrite =null;
-        dataStore.sync();
         RequestHandlingShardingInfoCache.INSTANCE.handleRemove(nodeIdClient,fileId);
         RequestHandlersCache.INSTANCE.removeRequestHandlingTool(nodeIdClient, fileId);
     }
@@ -138,7 +136,7 @@ public class RequestHandlingTool {
     public String getHhFilePath() {
         return hhFilePath;
     }
-    
+
     public ShardingApplicationContext getContext(){
       return context;
     }

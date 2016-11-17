@@ -1,14 +1,7 @@
-/**
- * 
- */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
@@ -53,27 +46,12 @@ public class HungryHipposRDD extends RDD<HHRDDRowReader> {
 
   @Override
   public Partition[] getPartitions() {
-    File[] files;
-    List<DataInputStream> filesInputStream = new ArrayList<DataInputStream>();
-    Partition[] partitions = null;
-    try {
-      files = getFiles(hipposRDDConf.getDirectoryLocation());
-
-      partitions = new Partition[files.length];
-      for (int index = 0; index < partitions.length; index++) {
-        partitions[index] = new HungryHipposRDDPartition(index, files[index].getPath(),
-            hipposRDDConf.getDataDescription());
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+    File[] files = new File(hipposRDDConf.getDirectoryLocation()).listFiles();
+    Partition[] partitions = new Partition[files.length];
+    for (int index = 0; index < partitions.length; index++) {
+      partitions[index] = new HungryHipposRDDPartition(index, files[index].getPath(),
+          hipposRDDConf.getDataDescription());
     }
     return partitions;
   }
-
-
-  private File[] getFiles(String dataDirectory) throws IOException {
-    File[] files = new File(dataDirectory).listFiles();
-    return files;
-  }
-
 }

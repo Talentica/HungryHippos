@@ -1,16 +1,26 @@
 package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.NodeUtil;
+import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.storage.DataStore;
+import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.apache.zookeeper.KeeperException;
 
+import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@code RequestHandlingShardingInfo} is used to keep track of changes in the sharding table. if
@@ -26,6 +36,9 @@ public class RequestHandlingShardingInfo {
   private int replicaNodesInfoDataSize;
   private int recordSize;
   private byte[] fileIdInBytes;
+  private DataStore dataStore;
+  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
+  private String[] shardingDimensions;
 
   /**
    * creates an instance of RequestHandlingShardingInfo.
@@ -34,7 +47,7 @@ public class RequestHandlingShardingInfo {
    * @param hhFilePath
    * @throws IOException
    */
-  public RequestHandlingShardingInfo(int fileId, String hhFilePath) throws IOException {
+  public RequestHandlingShardingInfo(int fileId, String hhFilePath) throws IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
     fileIdInBytes = ByteBuffer.allocate(DataHandler.FILE_ID_BYTE_SIZE).putInt(fileId).array();
     String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
     String shardingTableFolderPath =
@@ -44,9 +57,14 @@ public class RequestHandlingShardingInfo {
     dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());
     nodeUtil = new NodeUtil(hhFilePath);
-    int shardingDimensions = context.getShardingDimensions().length;
-    replicaNodesInfoDataSize = shardingDimensions - 1;
+    replicaNodesInfoDataSize = context.getShardingDimensions().length - 1;
     recordSize = replicaNodesInfoDataSize + dataDescription.getSize();
+    keyToValueToBucketMap=nodeUtil.getKeyToValueToBucketMap();
+    shardingDimensions = context.getShardingDimensions();
+    List<String> fileNames = new ArrayList<>();
+    addFileNameToList(fileNames,"", 0);
+    dataStore = new FileDataStore(fileNames,nodeUtil.getKeyToValueToBucketMap().size(),
+            dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, "");
   }
 
 
@@ -112,5 +130,25 @@ public class RequestHandlingShardingInfo {
    */
   public byte[] getFileIdInBytes() {
     return fileIdInBytes;
+  }
+
+
+
+  private void addFileNameToList(List<String> fileNames, String fileName, int dimension) {
+    if (dimension == shardingDimensions.length) {
+      fileNames.add(fileName);
+      return;
+    }
+    if(dimension!=0){
+      fileName = new String(fileName + "_");
+    }
+    Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(shardingDimensions[dimension]);
+    for (Map.Entry<Object, Bucket<KeyValueFrequency>> valueToBucketEntry : valueToBucketMap.entrySet()) {
+      addFileNameToList(fileNames, new String(fileName + valueToBucketEntry.getValue().getId()), dimension + 1);
+    }
+  }
+
+  public DataStore getDataStore() {
+    return dataStore;
   }
 }

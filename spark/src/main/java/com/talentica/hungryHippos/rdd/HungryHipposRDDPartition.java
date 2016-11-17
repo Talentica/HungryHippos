@@ -3,8 +3,6 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.DataInputStream;
-
 import org.apache.spark.Partition;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
@@ -37,7 +35,7 @@ public class HungryHipposRDDPartition implements Partition {
     if (!(obj instanceof HungryHipposRDDPartition)) {
       return false;
     }
-    return ((HungryHipposRDDPartition) obj).partitionId != partitionId;
+    return ((HungryHipposRDDPartition) obj).partitionId == partitionId;
   }
 
   public String getFilePath() {

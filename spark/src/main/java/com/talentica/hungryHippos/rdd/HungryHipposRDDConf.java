@@ -16,27 +16,17 @@ import com.talentica.hungryHippos.rdd.utility.ShardingApplicationContext;
 public class HungryHipposRDDConf implements Serializable {
 
   private static final long serialVersionUID = -9079703351777187673L;
-  private int buckets;
   private int rowSize;
   private int[] shardingIndexes;
   private String directoryLocation;
   private DataDescription dataDescription;
 
-  public HungryHipposRDDConf(int buckets, String shardingFolderPath, String directoryLocation) {
-    this.buckets = buckets;
+  public HungryHipposRDDConf(String shardingFolderPath, String directoryLocation) {
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
     this.shardingIndexes = context.getShardingIndexes();
     this.directoryLocation = directoryLocation;
-  }
-
-  public int getBuckets() {
-    return buckets;
-  }
-
-  public void setBuckets(int buckets) {
-    this.buckets = buckets;
   }
 
   public int getRowSize() {

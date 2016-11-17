@@ -119,7 +119,7 @@ public class HungryHipposFileSystemIntegrationTest {
           fileSystemRootNodeZKPath + FileSystemConstants.ZK_PATH_SEPARATOR + fileZKNode;
       hhfs.createZnode(fileNodeZKPath, FileSystemConstants.IS_A_FILE);
 
-      hhfs.updateFSBlockMetaData(fileZKNode, nodeId, dataFolderZKNode, fileName, datafileSize);
+      hhfs.updateFSBlockMetaData(fileZKNode, nodeId, fileName, datafileSize);
       assertTrue(true);
     } catch (Exception e) {
       e.printStackTrace();

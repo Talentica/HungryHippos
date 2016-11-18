@@ -16,7 +16,7 @@ import scala.collection.AbstractIterator;
  * @author pooshans
  *
  */
-public class HungryHipposRDDIterator extends AbstractIterator<HHRDDRowReader> {
+public class HHRDDIterator extends AbstractIterator<HHRDDRowReader> {
 
   private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
@@ -24,7 +24,7 @@ public class HungryHipposRDDIterator extends AbstractIterator<HHRDDRowReader> {
   private DataInputStream dataInputStream;
   private HHRDDRowReader hhRDDRowReader;
 
-  public HungryHipposRDDIterator(HungryHipposRDDPartition hhRDDPartion) throws IOException {
+  public HHRDDIterator(HHRDDPartition hhRDDPartion) throws IOException {
 
     this.dataInputStream = new DataInputStream(new FileInputStream(hhRDDPartion.getFilePath()));
     this.currentDataFileSize = dataInputStream.available();

@@ -20,24 +20,24 @@ import scala.reflect.ClassTag;
  * @author pooshans
  *
  */
-public class HungryHipposRDD extends RDD<HHRDDRowReader> {
+public class HHRDD extends RDD<HHRDDRowReader> {
 
   private static final long serialVersionUID = -1546634848854956364L;
   private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
-  private HungryHipposRDDConf hipposRDDConf;
+  private HHRDDConf hipposRDDConf;
 
-  public HungryHipposRDD(SparkContext sc, HungryHipposRDDConf hipposRDDConf) {
+  public HHRDD(SparkContext sc, HHRDDConf hipposRDDConf) {
     super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
   }
 
   @Override
   public Iterator<HHRDDRowReader> compute(Partition partition, TaskContext taskContext) {
-    HungryHipposRDDPartition hhRDDPartion = (HungryHipposRDDPartition) partition;
-    HungryHipposRDDIterator iterator = null;
+    HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
+    HHRDDIterator iterator = null;
     try {
-      iterator = new HungryHipposRDDIterator(hhRDDPartion);
+      iterator = new HHRDDIterator(hhRDDPartion);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -49,7 +49,7 @@ public class HungryHipposRDD extends RDD<HHRDDRowReader> {
     File[] files = new File(hipposRDDConf.getDirectoryLocation()).listFiles();
     Partition[] partitions = new Partition[files.length];
     for (int index = 0; index < partitions.length; index++) {
-      partitions[index] = new HungryHipposRDDPartition(index, files[index].getPath(),
+      partitions[index] = new HHRDDPartition(index, files[index].getPath(),
           hipposRDDConf.getDataDescription());
     }
     return partitions;

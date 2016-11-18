@@ -35,4 +35,12 @@ public class JobConf implements Serializable{
     return jobs;
   }
 
+  @Override
+  public String toString() {
+    return "JobConf [jobs=" + jobs + ", getJobs()=" + getJobs() + ", getClass()=" + getClass()
+        + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+  }
+  
+  
+
 }

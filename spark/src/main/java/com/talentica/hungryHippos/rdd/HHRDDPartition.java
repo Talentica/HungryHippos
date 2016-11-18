@@ -11,14 +11,14 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
  * @author pooshans
  *
  */
-public class HungryHipposRDDPartition implements Partition {
+public class HHRDDPartition implements Partition {
 
   private static final long serialVersionUID = -8600257810541979113L;
   private int partitionId;
   private String filePath;
   private DataDescription dataDescription;
 
-  public HungryHipposRDDPartition(int partitionId, String filePath,
+  public HHRDDPartition(int partitionId, String filePath,
       DataDescription dataDescription) {
     this.partitionId = partitionId;
     this.filePath = filePath;
@@ -32,10 +32,10 @@ public class HungryHipposRDDPartition implements Partition {
 
   @Override
   public boolean org$apache$spark$Partition$$super$equals(Object obj) {
-    if (!(obj instanceof HungryHipposRDDPartition)) {
+    if (!(obj instanceof HHRDDPartition)) {
       return false;
     }
-    return ((HungryHipposRDDPartition) obj).partitionId == partitionId;
+    return ((HHRDDPartition) obj).partitionId == partitionId;
   }
 
   public String getFilePath() {

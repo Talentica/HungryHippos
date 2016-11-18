@@ -2,7 +2,6 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.spark.Dependency;
@@ -36,6 +35,7 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   public HHRDD(SparkContext sc, HHRDDConf hipposRDDConf) {
     super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
+    HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
   }
 
   @Override
@@ -52,15 +52,15 @@ public class HHRDD extends RDD<HHRDDRowReader> {
 
   @Override
   public Partition[] getPartitions() {
-    List<File> files;
+    String[] files;
 
     Partition[] partitions = null;
     try {
       files = HHRDDHelper.getFiles(hipposRDDConf.getDirectoryLocation());
-
-      partitions = new Partition[files.size()];
+      partitions = new Partition[files.length];
       for (int index = 0; index < partitions.length; index++) {
-        partitions[index] = new HHRDDPartition(index, files.get(index).getPath(),
+        String filePathAndName = hipposRDDConf.getDirectoryLocation() + File.separatorChar + files[index];
+        partitions[index] = new HHRDDPartition(index, new File(filePathAndName).getPath(),
             hipposRDDConf.getDataDescription());
       }
     } catch (IOException e) {

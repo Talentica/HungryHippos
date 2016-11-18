@@ -45,26 +45,25 @@ public class HHRDDTest implements Serializable {
   public static void test() throws FileNotFoundException, JAXBException {
     JobConf jobConf = new JobConf();
     int count = 0;
-    for(int i = 0 ; i < 2 ; i++){
-      jobConf.addJob(new Job(new Integer[] {i}, 6,count++));
-      jobConf.addJob(new Job(new Integer[] {i}, 7,count++));
-      for(int j = 0 ; j < 2 ; j++){
-        jobConf.addJob(new Job(new Integer[] {i,j}, 6,count++));
-        jobConf.addJob(new Job(new Integer[] {i,j}, 7,count++));
-        for(int k = 0 ; k < 3 ; k++){
-          jobConf.addJob(new Job(new Integer[] {i,j,k}, 6,count++));
-          jobConf.addJob(new Job(new Integer[] {i,j,k}, 7,count++));
-        } 
-      } 
+    for (int i = 0; i < 2; i++) {
+      jobConf.addJob(new Job(new Integer[] {i}, 6, count++));
+      jobConf.addJob(new Job(new Integer[] {i}, 7, count++));
+      for (int j = 0; j < 2; j++) {
+        jobConf.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        jobConf.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        for (int k = 0; k < 3; k++) {
+          jobConf.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+          jobConf.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+        }
+      }
     }
     System.out.println(count);
-   System.out.println(jobConf.toString());
+    System.out.println(jobConf.toString());
     JavaPairRDD<String, Double> allRDD = null;
 
-    HHRDD hipposRDD = new HHRDD(sc,
-        new HHRDDConf(
-            "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution",
-            "/home/pooshans/hhuser/hh/filesystem/distr/data/data_","clientConfigPath"));
+    HHRDD hipposRDD = new HHRDD(sc, new HHRDDConf("distr/data",
+        "/home/pooshans/hhuser/hh/filesystem/distr/data/data_",
+        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml"));
     for (Job job : jobConf.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
@@ -77,7 +76,7 @@ public class HHRDDTest implements Serializable {
                     key + ((MutableCharArrayString) reader.readAtColumn(job.getDimensions()[index]))
                         .toString();
               }
-              key = key+"|id="+job.getJobId();
+              key = key + "|id=" + job.getJobId();
               Double value = (Double) reader.readAtColumn(job.getCalculationIndex());
               return new Tuple2<String, Double>(key, value);
             }
@@ -92,7 +91,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/data/output6");
+    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/data/output24");
     sc.stop();
   }
 

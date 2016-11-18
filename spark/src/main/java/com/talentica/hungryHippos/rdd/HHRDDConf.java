@@ -16,9 +16,11 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.rdd.utility.JaxbUtil;
 import com.talentica.hungryHippos.rdd.utility.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 
 /**
@@ -37,24 +39,31 @@ public class HHRDDConf implements Serializable {
   private String shardingFolderPath;
   private Map<Integer, String> nodeLookUp = new HashMap<>();
 
-  public HHRDDConf(String shardingFolderPath, String directoryLocation, String clientConfigPath)
+  public HHRDDConf(String distributedPath, String directoryLocation, String clientConfigPath)
       throws FileNotFoundException, JAXBException {
-    this.shardingFolderPath = shardingFolderPath;
+    initialize(clientConfigPath);
+    this.shardingFolderPath = FileSystemContext.getRootDirectory()
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + distributedPath
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
     this.directoryLocation = directoryLocation;
 
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
     this.shardingIndexes = context.getShardingIndexes();
-    this.clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
-    String servers = clientConfig.getCoordinationServers().getServers();
-    HungryHippoCurator.getInstance(servers);
     this.clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
 
     List<Node> nodes = this.clusterConfig.getNode();
     for (Node node : nodes) {
       nodeLookUp.put(node.getIdentifier(), node.getIp());
     }
+  }
+
+
+  private void initialize(String clientConfigPath) throws JAXBException, FileNotFoundException {
+    this.clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
+    String servers = clientConfig.getCoordinationServers().getServers();
+    HungryHippoCurator.getInstance(servers);
   }
 
 

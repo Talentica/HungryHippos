@@ -3,6 +3,8 @@
  */
 package com.talentica.hungryHippos.rdd;
 
+import java.io.File;
+
 import org.apache.spark.Partition;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
@@ -17,12 +19,13 @@ public class HHRDDPartition implements Partition {
   private int partitionId;
   private String filePath;
   private DataDescription dataDescription;
+  private String fileName;
 
-  public HHRDDPartition(int partitionId, String filePath,
-      DataDescription dataDescription) {
+  public HHRDDPartition(int partitionId, String filePath, DataDescription dataDescription) {
     this.partitionId = partitionId;
     this.filePath = filePath;
     this.dataDescription = dataDescription;
+    this.fileName = new File(filePath).getName();
   }
 
   @Override
@@ -31,15 +34,27 @@ public class HHRDDPartition implements Partition {
   }
 
   @Override
+  public int hashCode() {
+    return fileName.toString().hashCode();
+  }
+
+
+  @Override
   public boolean org$apache$spark$Partition$$super$equals(Object obj) {
     if (!(obj instanceof HHRDDPartition)) {
       return false;
     }
-    return ((HHRDDPartition) obj).partitionId == partitionId;
+
+    return ((HHRDDPartition) obj).fileName.equals(fileName);
+
   }
 
   public String getFilePath() {
     return filePath;
+  }
+
+  public String getFileName() {
+    return fileName;
   }
 
   public int getRowSize() {

@@ -3,7 +3,10 @@
  */
 package com.talentica.spark.test;
 
+import java.io.FileNotFoundException;
 import java.io.Serializable;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
@@ -39,7 +42,7 @@ public class HHRDDTest implements Serializable {
     }
   }
 
-  public static void test() {
+  public static void test() throws FileNotFoundException, JAXBException {
     JobConf jobConf = new JobConf();
     int count = 0;
     for(int i = 0 ; i < 2 ; i++){
@@ -61,7 +64,7 @@ public class HHRDDTest implements Serializable {
     HHRDD hipposRDD = new HHRDD(sc,
         new HHRDDConf(
             "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution",
-            "/home/pooshans/hhuser/hh/filesystem/distr/data/data_"));
+            "/home/pooshans/hhuser/hh/filesystem/distr/data/data_","clientConfigPath"));
     for (Job job : jobConf.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {

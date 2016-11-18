@@ -1,0 +1,99 @@
+package com.talentica.hungryHippos.rdd.utility;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.spark.Partition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.rdd.HHRDDConf;
+import com.talentica.hungryHippos.rdd.HHRDDPartition;
+import com.talentica.hungryHippos.sharding.BucketCombination;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
+
+public class HHRDDHelper {
+  private static Logger logger = LoggerFactory.getLogger(HHRDDHelper.class);
+  public final static String bucketCombinationToNodeNumbersMapFile =
+      "bucketCombinationToNodeNumbersMap";
+  public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
+
+  public static int getFirstIpFromSetOfNode(Partition partition) {
+    String fileName = ((HHRDDPartition) partition).getFileName();
+    // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
+    String key = "BucketCombination{";
+    String[] bucketIds = fileName.split("_");
+    for (int i = 0; i < bucketIds.length; i++) {
+      if (i < (bucketIds.length - 1)) {
+        key = key + "key" + i + "=Bucket{" + bucketIds[i] + "},";
+      } else {
+        key = key + "key" + i + "=Bucket{" + bucketIds[i] + "}}";
+      }
+    }
+
+    Set<Node> nodes = null;
+
+    for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
+      if (entry.getKey().hashCode() == key.hashCode()) {
+        nodes = entry.getValue();
+        break;
+      }
+    }
+    if (nodes == null) {
+      logger.error("nodes are null");
+    }
+    List<Node> listNode = new ArrayList<>(nodes);
+
+    int nodeId = listNode.get(0).getNodeId();
+
+    logger.info(" prefered location for partition index {} whose file name is {}  is {}",
+        partition.index(), fileName, nodeId);
+    return nodeId;
+  }
+
+
+  public static void populateBucketCombinationToNodeNumber(HHRDDConf hipposRDDConf) {
+    String bucketCombinationToNodeNumbersMapFilePath =
+        hipposRDDConf.getShardingFolderPath() + bucketCombinationToNodeNumbersMapFile;
+
+    if (bucketCombinationToNodeNumberMap == null) {
+      bucketCombinationToNodeNumberMap = ShardingFileUtil
+          .readFromFileBucketCombinationToNodeNumber(bucketCombinationToNodeNumbersMapFilePath);
+    }
+  }
+
+
+  public static List<File> getFiles(String dataDirectory) throws IOException {
+    String[] files = new File(dataDirectory).list(new FilenameFilter() {
+
+      @Override
+      public boolean accept(File dir, String name) {
+        try {
+          if (Files.size(Paths.get(name)) == 0) {
+            return true;
+          }
+        } catch (IOException e) {
+          logger.error(e.getMessage());
+        }
+        return false;
+      }
+    });
+
+    List<File> fileList = new ArrayList<>();
+    Arrays.asList(files).stream().forEach(file -> fileList.add(new File(file)));
+
+    return fileList;
+
+  }
+
+}

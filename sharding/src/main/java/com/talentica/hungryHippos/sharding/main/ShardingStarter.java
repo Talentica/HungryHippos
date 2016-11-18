@@ -33,7 +33,6 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * {@code ShardingStarter} used for creating the sharding table.
  * 
- * @author sudarshans
  *
  */
 public class ShardingStarter {

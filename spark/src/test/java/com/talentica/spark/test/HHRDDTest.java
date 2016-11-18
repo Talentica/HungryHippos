@@ -17,7 +17,8 @@ import org.apache.spark.api.java.function.PairFunction;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConf;
+import com.talentica.hungryHippos.rdd.HHRDDConfig;
+import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobConf;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
@@ -34,6 +35,7 @@ public class HHRDDTest implements Serializable {
 
   public static void main(String[] args) {
     SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("CustomRDDApp");
+
     try {
       sc = new JavaSparkContext(conf).sc();
       test();
@@ -60,10 +62,16 @@ public class HHRDDTest implements Serializable {
     System.out.println(count);
     System.out.println(jobConf.toString());
     JavaPairRDD<String, Double> allRDD = null;
+    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(
+        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution",
+        "/home/pooshans/hhuser/hh/filesystem/distr/data/data_", "clientConfigPath");
 
-    HHRDD hipposRDD = new HHRDD(sc, new HHRDDConf("distr/data",
-        "/home/pooshans/hhuser/hh/filesystem/distr/data/data_",
-        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml"));
+    HHRDDConfig hhrdConfig =
+        new HHRDDConfig(hhrdConfiguration.getRowSize(), hhrdConfiguration.getShardingIndexes(),
+            hhrdConfiguration.getDirectoryLocation(), hhrdConfiguration.getShardingFolderPath(),
+            hhrdConfiguration.getNodes(), hhrdConfiguration.getDataDescription());
+
+    HHRDD hipposRDD = new HHRDD(sc, hhrdConfig);
     for (Job job : jobConf.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
@@ -91,7 +99,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/data/output24");
+    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/data/output6");
     sc.stop();
   }
 

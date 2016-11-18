@@ -7,7 +7,7 @@ import java.io.File;
 
 import org.apache.spark.Partition;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 
 /**
  * @author pooshans
@@ -18,10 +18,11 @@ public class HHRDDPartition implements Partition {
   private static final long serialVersionUID = -8600257810541979113L;
   private int partitionId;
   private String filePath;
-  private DataDescription dataDescription;
+  private FieldTypeArrayDataDescription dataDescription;
   private String fileName;
 
-  public HHRDDPartition(int partitionId, String filePath, DataDescription dataDescription) {
+  public HHRDDPartition(int partitionId, String filePath,
+      FieldTypeArrayDataDescription dataDescription) {
     this.partitionId = partitionId;
     this.filePath = filePath;
     this.dataDescription = dataDescription;
@@ -44,9 +45,7 @@ public class HHRDDPartition implements Partition {
     if (!(obj instanceof HHRDDPartition)) {
       return false;
     }
-
     return ((HHRDDPartition) obj).fileName.equals(fileName);
-
   }
 
   public String getFilePath() {
@@ -61,7 +60,7 @@ public class HHRDDPartition implements Partition {
     return dataDescription.getSize();
   }
 
-  public DataDescription getDataDescription() {
+  public FieldTypeArrayDataDescription getFieldTypeArrayDataDescription() {
     return this.dataDescription;
   }
 

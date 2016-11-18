@@ -28,7 +28,7 @@ public class HHRDDIterator extends AbstractIterator<HHRDDRowReader> {
 
     this.dataInputStream = new DataInputStream(new FileInputStream(hhRDDPartion.getFilePath()));
     this.currentDataFileSize = dataInputStream.available();
-    this.hhRDDRowReader = new HHRDDRowReader(hhRDDPartion.getDataDescription());
+    this.hhRDDRowReader = new HHRDDRowReader(hhRDDPartion.getFieldTypeArrayDataDescription());
     this.byteBufferBytes = new byte[hhRDDPartion.getRowSize()];
     this.byteBuffer = ByteBuffer.wrap(byteBufferBytes);
   }

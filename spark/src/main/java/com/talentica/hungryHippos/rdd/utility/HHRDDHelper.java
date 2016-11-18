@@ -7,23 +7,22 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.apache.spark.Partition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.rdd.HHRDDConf;
+import com.talentica.hungryHippos.rdd.HHRDDConfig;
+import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.HHRDDPartition;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 
-public class HHRDDHelper implements Serializable{
+public class HHRDDHelper implements Serializable {
   /**
    * 
    */
@@ -40,16 +39,18 @@ public class HHRDDHelper implements Serializable{
     String[] bucketIds = fileName.split("_");
     for (int i = 0; i < bucketIds.length; i++) {
       if (i < (bucketIds.length - 1)) {
-        key = key + "key" + (i+1) + "=Bucket{" + bucketIds[i] + "},";
+        key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "},";
       } else {
-        key = key + "key" + (i+1) + "=Bucket{" + bucketIds[i] + "}}}";
+        key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "}}}";
       }
     }
 
     Set<Node> nodes = null;
 
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
-      logger.info("Tabel bucket combination {} hashcode {} and generated bucket combination {} hashcode{}",entry.getKey(),entry.getKey().toString().hashCode(),key,key.hashCode());
+      logger.info(
+          "Tabel bucket combination {} hashcode {} and generated bucket combination {} hashcode{}",
+          entry.getKey(), entry.getKey().toString().hashCode(), key, key.hashCode());
       if (entry.getKey().toString().hashCode() == key.hashCode()) {
         nodes = entry.getValue();
         break;
@@ -68,9 +69,9 @@ public class HHRDDHelper implements Serializable{
   }
 
 
-  public static void populateBucketCombinationToNodeNumber(HHRDDConf hipposRDDConf) {
-    String bucketCombinationToNodeNumbersMapFilePath =
-        hipposRDDConf.getShardingFolderPath() + File.separatorChar +  bucketCombinationToNodeNumbersMapFile;
+  public static void populateBucketCombinationToNodeNumber(HHRDDConfig hipposRDDConf) {
+    String bucketCombinationToNodeNumbersMapFilePath = hipposRDDConf.getShardingFolderPath()
+        + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
 
     if (bucketCombinationToNodeNumberMap == null) {
       bucketCombinationToNodeNumberMap = ShardingFileUtil
@@ -85,7 +86,7 @@ public class HHRDDHelper implements Serializable{
       @Override
       public boolean accept(File dir, String name) {
         try {
-          if (Files.size(Paths.get(dir + ""+File.separatorChar + name)) == 0) {
+          if (Files.size(Paths.get(dir + "" + File.separatorChar + name)) == 0) {
             return false;
           }
         } catch (IOException e) {

@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.spark.Dependency;
@@ -12,6 +13,7 @@ import org.apache.spark.rdd.RDD;
 
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import com.talentica.hungryhippos.config.cluster.Node;
 
 import scala.Some;
 import scala.collection.Iterator;
@@ -29,13 +31,14 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   private static final long serialVersionUID = -1546634848854956364L;
   private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
-  private HHRDDConf hipposRDDConf;
-  private Map<Integer, String> lookup = null;
+  private HHRDDConfig hipposRDDConf;
+  private List<Node> nodes;
 
-  public HHRDD(SparkContext sc, HHRDDConf hipposRDDConf) {
+  public HHRDD(SparkContext sc, HHRDDConfig hipposRDDConf) {
     super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
+    nodes = hipposRDDConf.getNodes();
   }
 
   @Override
@@ -59,12 +62,12 @@ public class HHRDD extends RDD<HHRDDRowReader> {
       files = HHRDDHelper.getFiles(hipposRDDConf.getDirectoryLocation());
       partitions = new Partition[files.length];
       for (int index = 0; index < partitions.length; index++) {
-        String filePathAndName = hipposRDDConf.getDirectoryLocation() + File.separatorChar + files[index];
+        String filePathAndName =
+            hipposRDDConf.getDirectoryLocation() + File.separatorChar + files[index];
         partitions[index] = new HHRDDPartition(index, new File(filePathAndName).getPath(),
-            hipposRDDConf.getDataDescription());
+            hipposRDDConf.getFieldTypeArrayDataDescription());
       }
     } catch (IOException e) {
-      e.printStackTrace();
     }
     return partitions;
   }
@@ -72,12 +75,13 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
-
-    if (this.lookup == null) {
-      this.lookup = this.hipposRDDConf.getNodeLookUp();
-    }
     int nodeId = HHRDDHelper.getFirstIpFromSetOfNode(partition);
-    String nodeIp = this.lookup.get(nodeId);
+    String nodeIp = null;
+    for (Node node : nodes) {
+      if (node.getIdentifier() == nodeId) {
+        nodeIp = nodes.get(nodeId).getIp();
+      }
+    }
     return new Some(nodeIp).toList();
 
   }

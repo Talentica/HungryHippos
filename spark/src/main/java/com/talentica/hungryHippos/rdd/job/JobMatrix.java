@@ -11,16 +11,16 @@ import java.util.List;
  * @author pooshans
  *
  */
-public class JobConf implements Serializable{
+public class JobMatrix implements Serializable{
   
   private static final long serialVersionUID = 1L;
   private List<Job> jobs;
 
-  public JobConf() {
+  public JobMatrix() {
 
   }
 
-  public JobConf(List<Job> jobs) {
+  public JobMatrix(List<Job> jobs) {
     this.jobs = jobs;
   }
 

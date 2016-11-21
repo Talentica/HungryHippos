@@ -20,7 +20,7 @@ import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfig;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobConf;
+import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.Tuple2;
@@ -45,7 +45,7 @@ public class HHRDDTest implements Serializable {
   }
 
   public static void test() throws FileNotFoundException, JAXBException {
-    JobConf jobConf = new JobConf();
+    JobMatrix jobConf = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 1; i++) {
       jobConf.addJob(new Job(new Integer[] {i}, 1, count++));
@@ -71,7 +71,7 @@ public class HHRDDTest implements Serializable {
             @Override
             public Tuple2<String, Long> call(HHRDDRowReader reader) throws Exception {
               String key = "";
-              for (int index = 0; index < 1; index++) {
+              for (int index = 0; index < job.getDimensions().length; index++) {
                 key =
                     key + ((MutableCharArrayString) reader.readAtColumn(job.getDimensions()[index]))
                         .toString();
@@ -91,7 +91,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/sudarshans/hh/filesystem/output12");
+    allRDD.saveAsTextFile("/home/sudarshans/hh/filesystem/output15");
     sc.stop();
   }
 

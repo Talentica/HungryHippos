@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -36,6 +37,7 @@ public class HHRDDConfiguration implements Serializable {
   private ClusterConfig clusterConfig;
   private String shardingFolderPath;
   private List<Node> nodes;
+  private List<SerializedNode> serializedNodes = new ArrayList<>();
 
   public HHRDDConfiguration(String distributedPath, String directoryLocation,
       String clientConfigPath) throws FileNotFoundException, JAXBException {
@@ -58,8 +60,11 @@ public class HHRDDConfiguration implements Serializable {
     HungryHippoCurator.getInstance(servers);
   }
 
-  public List<Node> getNodes() {
-    return nodes;
+  public List<SerializedNode> getNodes() {
+    for (Node node : nodes) {
+      serializedNodes.add(new SerializedNode(node.getIdentifier(), node.getIp()));
+    }
+    return serializedNodes;
   }
 
   public String getShardingFolderPath() {

@@ -85,6 +85,7 @@ public class HHRDDHelper implements Serializable {
 
       @Override
       public boolean accept(File dir, String name) {
+        logger.info("Directory is {} , name is {} ", dir, name);
         try {
           if (Files.size(Paths.get(dir + "" + File.separatorChar + name)) == 0) {
             return false;

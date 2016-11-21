@@ -32,7 +32,7 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
   private HHRDDConfig hipposRDDConf;
-  private List<Node> nodes;
+  private List<SerializedNode> nodes;
 
   public HHRDD(SparkContext sc, HHRDDConfig hipposRDDConf) {
     super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
@@ -77,9 +77,9 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   public Seq<String> getPreferredLocations(Partition partition) {
     int nodeId = HHRDDHelper.getFirstIpFromSetOfNode(partition);
     String nodeIp = null;
-    for (Node node : nodes) {
-      if (node.getIdentifier() == nodeId) {
-        nodeIp = nodes.get(nodeId).getIp();
+    for (SerializedNode node : nodes) {
+      if (node.getId() == nodeId) {
+        nodeIp = node.getIp();
       }
     }
     return new Some(nodeIp).toList();

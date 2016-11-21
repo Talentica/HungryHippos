@@ -47,24 +47,16 @@ public class HHRDDTest implements Serializable {
   public static void test() throws FileNotFoundException, JAXBException {
     JobConf jobConf = new JobConf();
     int count = 0;
-    for (int i = 0; i < 2; i++) {
-      jobConf.addJob(new Job(new Integer[] {i}, 6, count++));
-      jobConf.addJob(new Job(new Integer[] {i}, 7, count++));
-      for (int j = 0; j < 2; j++) {
-        jobConf.addJob(new Job(new Integer[] {i, j}, 6, count++));
-        jobConf.addJob(new Job(new Integer[] {i, j}, 7, count++));
-        for (int k = 0; k < 3; k++) {
-          jobConf.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
-          jobConf.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
-        }
-      }
+    for (int i = 0; i < 1; i++) {
+      jobConf.addJob(new Job(new Integer[] {i}, 1, count++));
+
     }
     System.out.println(count);
     System.out.println(jobConf.toString());
-    JavaPairRDD<String, Double> allRDD = null;
-    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(
-        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution",
-        "/home/pooshans/hhuser/hh/filesystem/distr/data/data_", "clientConfigPath");
+    JavaPairRDD<String, Long> allRDD = null;
+    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration("sudarshans/100lines",
+        "/home/sudarshans/hh/filesystem/sudarshans/100lines/data_",
+        "/home/sudarshans/config/client-config.xml");
 
     HHRDDConfig hhrdConfig =
         new HHRDDConfig(hhrdConfiguration.getRowSize(), hhrdConfiguration.getShardingIndexes(),
@@ -73,23 +65,23 @@ public class HHRDDTest implements Serializable {
 
     HHRDD hipposRDD = new HHRDD(sc, hhrdConfig);
     for (Job job : jobConf.getJobs()) {
-      JavaPairRDD<String, Double> jvd =
-          hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
+      JavaPairRDD<String, Long> jvd =
+          hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Long>() {
 
             @Override
-            public Tuple2<String, Double> call(HHRDDRowReader reader) throws Exception {
+            public Tuple2<String, Long> call(HHRDDRowReader reader) throws Exception {
               String key = "";
-              for (int index = 0; index < job.getDimensions().length; index++) {
+              for (int index = 0; index < 1; index++) {
                 key =
                     key + ((MutableCharArrayString) reader.readAtColumn(job.getDimensions()[index]))
                         .toString();
               }
               key = key + "|id=" + job.getJobId();
-              Double value = (Double) reader.readAtColumn(job.getCalculationIndex());
-              return new Tuple2<String, Double>(key, value);
+              Long value = (Long) reader.readAtColumn(job.getCalculationIndex());
+              return new Tuple2<String, Long>(key, value);
             }
-          }).reduceByKey(new Function2<Double, Double, Double>() {
-            public Double call(Double x, Double y) {
+          }).reduceByKey(new Function2<Long, Long, Long>() {
+            public Long call(Long x, Long y) {
               return x + y;
             }
           });
@@ -99,7 +91,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/data/output6");
+    allRDD.saveAsTextFile("/home/sudarshans/hh/filesystem/output12");
     sc.stop();
   }
 

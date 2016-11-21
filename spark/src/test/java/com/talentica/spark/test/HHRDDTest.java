@@ -20,7 +20,7 @@ import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfig;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobConf;
+import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.Tuple2;
@@ -34,7 +34,7 @@ public class HHRDDTest implements Serializable {
   private static SparkContext sc;
 
   public static void main(String[] args) {
-    SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("CustomRDDApp");
+    SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("HungryHipposRDDApplication");
 
     try {
       sc = new JavaSparkContext(conf).sc();
@@ -45,22 +45,22 @@ public class HHRDDTest implements Serializable {
   }
 
   public static void test() throws FileNotFoundException, JAXBException {
-    JobConf jobConf = new JobConf();
+    JobMatrix jobMatrix = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 2; i++) {
-      jobConf.addJob(new Job(new Integer[] {i}, 6, count++));
-      jobConf.addJob(new Job(new Integer[] {i}, 7, count++));
+      jobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
+      jobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
       for (int j = 0; j < 2; j++) {
-        jobConf.addJob(new Job(new Integer[] {i, j}, 6, count++));
-        jobConf.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        jobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        jobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
         for (int k = 0; k < 3; k++) {
-          jobConf.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
-          jobConf.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+          jobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+          jobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
         }
       }
     }
     System.out.println(count);
-    System.out.println(jobConf.toString());
+    System.out.println(jobMatrix.toString());
     JavaPairRDD<String, Double> allRDD = null;
     HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(
         "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution",
@@ -72,7 +72,7 @@ public class HHRDDTest implements Serializable {
             hhrdConfiguration.getNodes(), hhrdConfiguration.getDataDescription());
 
     HHRDD hipposRDD = new HHRDD(sc, hhrdConfig);
-    for (Job job : jobConf.getJobs()) {
+    for (Job job : jobMatrix.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
 

@@ -46,7 +46,6 @@ public class HHRDDHelper implements Serializable {
     }
 
     Set<Node> nodes = null;
-
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
       logger.info(
           "Tabel bucket combination {} hashcode {} and generated bucket combination {} hashcode{}",
@@ -58,6 +57,7 @@ public class HHRDDHelper implements Serializable {
     }
     if (nodes == null) {
       logger.error("nodes are null");
+      return -1;
     }
     List<Node> listNode = new ArrayList<>(nodes);
 

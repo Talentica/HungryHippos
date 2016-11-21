@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.rdd;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
@@ -13,7 +12,6 @@ import org.apache.spark.rdd.RDD;
 
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.hungryhippos.config.cluster.Node;
 
 import scala.Some;
 import scala.collection.Iterator;
@@ -72,17 +70,18 @@ public class HHRDD extends RDD<HHRDDRowReader> {
     return partitions;
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
     int nodeId = HHRDDHelper.getFirstIpFromSetOfNode(partition);
+    if(nodeId == -1) return null;
     String nodeIp = null;
     for (SerializedNode node : nodes) {
       if (node.getId() == nodeId) {
         nodeIp = node.getIp();
+        break;
       }
     }
-    return new Some(nodeIp).toList();
+    return new Some<String>(nodeIp).toList();
 
   }
 }

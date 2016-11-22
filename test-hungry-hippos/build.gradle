@@ -24,7 +24,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
   
 jar {
-	archiveName='test-jobs.jar'
+	archiveName='test-jobs.jar-'+version
 	version=null
     from {
         (configurations.runtime).collect {

@@ -12,7 +12,7 @@ sourceSets {
   }
 
 jar{
-	version=null
+	archiveName='common.jar-'+version
 }
 
 dependencies {	

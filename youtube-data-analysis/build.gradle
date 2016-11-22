@@ -21,7 +21,7 @@ dependencies {
 
   
 jar {
-	archiveName='youtube-analytics.jar'
+	archiveName='youtube-analytics.jar-'+version
 	version=null
     from {
         (configurations.runtime).collect {

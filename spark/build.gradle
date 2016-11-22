@@ -24,10 +24,8 @@ dependencies {
      compile group: 'org.apache.spark', name: 'spark-sql_2.10', version: '2.0.1'
 }
 
-  
 jar {
-	archiveName='spark.jar'
-	version=null
+	archiveName='spark.jar-'+version
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

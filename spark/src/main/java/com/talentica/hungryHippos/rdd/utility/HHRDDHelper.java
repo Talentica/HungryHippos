@@ -32,7 +32,7 @@ public class HHRDDHelper implements Serializable {
       "bucketCombinationToNodeNumbersMap";
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
 
-  public static int getFirstIpFromSetOfNode(Partition partition) {
+  public static Set<Node>  getPreferedIpsFromSetOfNode(Partition partition) {
     String fileName = ((HHRDDPartition) partition).getFileName();
     // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
     String key = "BucketCombination{{";
@@ -55,17 +55,17 @@ public class HHRDDHelper implements Serializable {
         break;
       }
     }
-    if (nodes == null) {
+    /*if (nodes == null) {
       logger.error("nodes are null");
       return -1;
-    }
-    List<Node> listNode = new ArrayList<>(nodes);
+    }*/
+    /*List<Node> listNode = new ArrayList<>(nodes);
 
-    int nodeId = listNode.get(0).getNodeId();
+    int nodeId = listNode.get(0).getNodeId();*/
 
-    logger.info(" prefered location for partition index {} whose file name is {}  is {}",
-        partition.index(), fileName, nodeId);
-    return nodeId;
+    logger.info(" prefered locations for partition index {} whose file name is {}  is {}",
+        partition.index(), fileName, nodes.toString());
+    return nodes;
   }
 
 

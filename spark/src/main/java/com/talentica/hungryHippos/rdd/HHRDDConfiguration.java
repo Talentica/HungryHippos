@@ -54,12 +54,10 @@ public class HHRDDConfiguration implements Serializable {
     this.clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
     String servers = clientConfig.getCoordinationServers().getServers();
     HungryHippoCurator.getInstance(servers);
-    this.shardingFolderPath = FileSystemContext.getRootDirectory()
-        + HungryHippoCurator.ZK_PATH_SEPERATOR + distributedPath
+    this.shardingFolderPath = FileSystemContext.getRootDirectory()+ distributedPath
         + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
     this.directoryLocation =
-        FileSystemContext.getRootDirectory() + HungryHippoCurator.ZK_PATH_SEPERATOR
-            + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
+        FileSystemContext.getRootDirectory() + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
   }
 
   public List<SerializedNode> getNodes() {

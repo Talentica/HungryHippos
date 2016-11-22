@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
@@ -39,13 +38,15 @@ public class HHRDDConfiguration implements Serializable {
   private List<Node> nodes;
   private List<SerializedNode> serializedNodes = new ArrayList<>();
 
-  public HHRDDConfiguration(String distributedPath, String directoryLocation,
-      String clientConfigPath) throws FileNotFoundException, JAXBException {
+  public HHRDDConfiguration(String distributedPath, String clientConfigPath)
+      throws FileNotFoundException, JAXBException {
     initialize(clientConfigPath);
     this.shardingFolderPath = FileSystemContext.getRootDirectory()
         + HungryHippoCurator.ZK_PATH_SEPERATOR + distributedPath
         + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    this.directoryLocation = directoryLocation;
+    this.directoryLocation =
+        FileSystemContext.getRootDirectory() + HungryHippoCurator.ZK_PATH_SEPERATOR
+            + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();

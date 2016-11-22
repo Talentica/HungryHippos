@@ -40,13 +40,7 @@ public class HHRDDConfiguration implements Serializable {
 
   public HHRDDConfiguration(String distributedPath, String clientConfigPath)
       throws FileNotFoundException, JAXBException {
-    initialize(clientConfigPath);
-    this.shardingFolderPath = FileSystemContext.getRootDirectory()
-        + HungryHippoCurator.ZK_PATH_SEPERATOR + distributedPath
-        + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    this.directoryLocation =
-        FileSystemContext.getRootDirectory() + HungryHippoCurator.ZK_PATH_SEPERATOR
-            + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
+    initialize(distributedPath, clientConfigPath);
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
@@ -55,10 +49,17 @@ public class HHRDDConfiguration implements Serializable {
     nodes = this.clusterConfig.getNode();
   }
 
-  private void initialize(String clientConfigPath) throws JAXBException, FileNotFoundException {
+  private void initialize(String distributedPath, String clientConfigPath)
+      throws JAXBException, FileNotFoundException {
     this.clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
     String servers = clientConfig.getCoordinationServers().getServers();
     HungryHippoCurator.getInstance(servers);
+    this.shardingFolderPath = FileSystemContext.getRootDirectory()
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + distributedPath
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+    this.directoryLocation =
+        FileSystemContext.getRootDirectory() + HungryHippoCurator.ZK_PATH_SEPERATOR
+            + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
   }
 
   public List<SerializedNode> getNodes() {

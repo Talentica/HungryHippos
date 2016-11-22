@@ -86,7 +86,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/output10");
+    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/output11");
     sc.stop();
   }
 

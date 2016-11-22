@@ -19,11 +19,41 @@ Vagrant.configure("2") do |config|
 
  #	no_of_nodes=3
 	no_of_nodes=ENV['NODENUM'].to_i
-        config.vm.box = "digital_ocean"
+       	provider=ENV['PROVIDER'].to_s
 	ip_file = File.open("ip_file.txt", 'w')
+
 	
-	Vagrant_functions.spawner(config)
-	Vagrant_functions.configuration(config,no_of_nodes,ip_file)
+if provider == "digital_ocean"
+  	
+	 config.vm.box = "digital_ocean"
+	 Vagrant_functions.spawner(config)
+
+	 
+
+  elsif provider == "virtual_box"
+	
+	config.vm.box= "ubuntu/trusty64"
+
+	config.vm.provision "fix-no-tty", type: "shell" do |s|
+	        s.privileged = false
+	        s.inline = "sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
+	 end
+
+
+   	config.vm.provider "virtualbox" do |v|
+  		v.memory = 4096 
+  		v.cpus = 2
+   	end
+
+	# Create a public network, which generally matched to bridged network.
+	# Bridged networks make the machine appear as another physical device on
+	# your network.
+	config.vm.network "public_network"
+
+  end
+
+	
+	Vagrant_functions.configuration(config,no_of_nodes,ip_file,provider)
 
 
   # Disable automatic box update checking. If you disable this, then

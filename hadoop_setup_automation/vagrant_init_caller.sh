@@ -3,6 +3,7 @@
 source vagrant_init_functions.sh
 
 no_of_nodes=$1
+provider=$2
 
 #flag
 j=0
@@ -22,7 +23,7 @@ fi
 done
 
 
-start_vagrantfile $no_of_nodes
+start_vagrantfile $no_of_nodes $provider
 
 file_processing_to_getIP
 

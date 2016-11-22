@@ -1,11 +1,19 @@
 class Vagrant_functions
 
-	def self.configuration(config,no_of_nodes,ip_file)
+	def self.configuration(config,no_of_nodes,ip_file,provider)
 		 (1..no_of_nodes).each do |i|
 		
                		 config.vm.define "hadoop-#{i}" do |node|
                         	node_name="hadoop-#{i}"
-	                        node.vm.box = "digital_ocean"
+
+				 if provider == "digital_ocean"
+                                  node.vm.box = "digital_ocean"                               
+                                 elsif provider == "virtual_box"
+				  node.vm.box = "ubuntu/trusty64"
+			         end
+
+
+	                        
         	                curr_dir=File.dirname(__FILE__)
                 	        #puts curr_dir
 

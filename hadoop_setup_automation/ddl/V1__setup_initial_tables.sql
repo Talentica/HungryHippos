@@ -16,7 +16,8 @@ CREATE TABLE `hungryhippos_tester`.`job` (
   `date_time_started` DATETIME NULL,
   `date_time_finished` DATETIME NULL,
   `user_id` INT NOT NULL,
-  PRIMARY KEY (`job_id`),
+  `file_system` VARCHAR(45) NULL,	
+   PRIMARY KEY (`job_id`),
   INDEX `user_id_idx` (`user_id` ASC),
   CONSTRAINT `user_id`
     FOREIGN KEY (`user_id`)

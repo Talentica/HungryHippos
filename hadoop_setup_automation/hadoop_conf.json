@@ -1,6 +1,9 @@
 {
 
 	"number_of_jobs": "2",
+	"mysql_server": "192.241.137.249",
+	"mysql_username": "root",
+        "mysql_password": "root",
 
 	"jobs":
 	[	

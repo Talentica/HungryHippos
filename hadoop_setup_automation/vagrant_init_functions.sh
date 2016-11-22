@@ -4,9 +4,20 @@ start_vagrantfile()
 {
 
 	no_of_nodes=$1
+	provider=$2
 
 	#Start vagrant file
-	NODENUM=$no_of_nodes vagrant up --provider=digital_ocean
+
+	if [ "$provider" == "digital_ocean"  ]
+        then	
+		NODENUM=$no_of_nodes PROVIDER=$provider  vagrant up --provider=digital_ocean
+	elif [ "$provider" == "virtual_box"  ]
+	then
+		NODENUM=$no_of_nodes  PROVIDER=$provider  vagrant up
+	fi
+
+	#Start vagrant file
+	#NODENUM=$no_of_nodes vagrant up --provider=digital_ocean
 	sleep 10
 }
 
@@ -232,37 +243,37 @@ get_hdfs_file_size_output(){
 
 job_input_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_input (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO job_input (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
 }
 
 job_output_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO job_output (job_id,data_location,data_size_in_kbs) VALUES ('$1', '$2','$3');"
 }
 
 get_process_id(){
 
-	process_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_id from process where name='$1';")
+	process_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_id from process where name='$1';")
 	process_id=$(echo $process_id | cut -d' ' -f2)
 	#echo $process_id
 }
 
 process_instance_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO process_instance (process_id,job_id) VALUES ('$1', '$2');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO process_instance (process_id,job_id) VALUES ('$1', '$2');"
 
 	#get process instance id
-	process_instance_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_instance_id from process_instance where process_id='$process_id' AND job_id='$job_id';")
+	process_instance_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_instance_id from process_instance where process_id='$process_id' AND job_id='$job_id';")
 	process_instance_id=$(echo $process_instance_id | cut -d' ' -f2)
 
 }
 
 process_instance_detail_dbwrite(){
 
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO process_instance_detail (process_instance_id) VALUES ('$1');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO process_instance_detail (process_instance_id) VALUES ('$1');"
 
 	#get process instance detail id
-	process_instance_detail_id=$(mysql -D hungryhippos_tester -uroot -proot -e "select process_instance_detail_id from process_instance_detail where process_instance_id='$process_instance_id';")
+	process_instance_detail_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "select process_instance_detail_id from process_instance_detail where process_instance_id='$process_instance_id';")
 	process_instance_detail_id=$(echo $process_instance_detail_id | cut -d' ' -f2)
 
 }
@@ -285,6 +296,9 @@ read_json(){
         desired_expected_result_location_master=$(cat hadoop_conf.json  |jq --arg job_no "$i" '.jobs['$i'].desired_expected_result_location_master')
 	delete_hdfs_file_name=$(cat hadoop_conf.json  |jq --arg job_no "$i" '.jobs['$i'].delete_hdfs_file')
 
+	mysql_server=$(cat hadoop_conf.json  |jq '.mysql_server')
+	mysql_username=$(cat hadoop_conf.json  |jq '.mysql_username')
+	mysql_password=$(cat hadoop_conf.json  |jq '.mysql_password')
 
         #remove " from variable
         jar_file_path=$(echo "$jar_file_path" | tr -d '"')
@@ -300,6 +314,9 @@ read_json(){
         desired_expected_result_location_master=$(echo "$desired_expected_result_location_master" | tr -d '"')
 	delete_hdfs_file_name=$(echo "$delete_hdfs_file_name" | tr -d '"')
 
+	mysql_server=$(echo "$mysql_server" | tr -d '"')
+	mysql_username=$(echo "$mysql_username" | tr -d '"')
+	mysql_password=$(echo "$mysql_password" | tr -d '"')
 
 }
 
@@ -362,7 +379,7 @@ data_publishing(){
         #get  time for data_publishing
         time_publishing=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_publishing' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_publishing' where process_instance_detail_id='$process_instance_detail_id';"
 
 
         #start_upload=$(date +%s.%N)     
@@ -371,7 +388,7 @@ data_publishing(){
          #get  time for data_publishing finished
         time_publishing_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_publishing_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_publishing_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
 
@@ -396,7 +413,7 @@ job_execution(){
         #get  time for data_publishing
         time_execution=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_execution' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_execution' where process_instance_detail_id='$process_instance_detail_id';"
 
 
         run_job $desired_job_file_location_master/$jar_name $class_name $desired_input_file_location_hdfs/${file_name} $desired_output_file_location_hdfs/$output_file_name
@@ -405,7 +422,7 @@ job_execution(){
         #get  time for data_execution finished
         time_execution_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_execution_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_execution_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
 }
@@ -452,7 +469,7 @@ delete_hdfs_file(){
         #get  time for data_delete
         time_delete=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='started', execution_start_time='$time_delete' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='started', execution_start_time='$time_delete' where process_instance_detail_id='$process_instance_detail_id';"
 
 	delete_hdfs $delete_hdfs_file_name
 
@@ -460,7 +477,7 @@ delete_hdfs_file(){
         #get  time for data_execution finished
         time_delete_finished=$(date +'%Y:%m:%d %H:%M:%S')
 
-        mysql -D hungryhippos_tester -uroot -proot -e "update process_instance_detail set  status='finished', execution_end_time='$time_delete_finished' where process_instance_detail_id='$process_instance_detail_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_delete_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
 

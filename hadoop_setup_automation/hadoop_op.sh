@@ -28,6 +28,9 @@ export desired_expected_result_location_master
 export jar_name
 export file_name
 export delete_hdfs_file_name
+export mysql_server
+export mysql_username
+export mysql_password
 
 
 get_master_ip
@@ -35,22 +38,24 @@ get_master_ip
 
 for (( i=0; $i <$no_of_jobs; ++i ))
 do
+
+	#Read all values in of jason file
+        read_json $i
+
 	
 	#get start time for job submit
 	time_submit=$(date +'%Y:%m:%d %H:%M:%S')
 
 	#insertion of time submit in job table.
-	mysql -D hungryhippos_tester -uroot -proot -e "INSERT INTO job (status,date_time_submitted,user_id,file_system) VALUES ('submitted', '$time_submit','1','Hadoop');"
+	mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "INSERT INTO job (status,date_time_submitted,user_id,file_system) VALUES ('submitted', '$time_submit','1','Hadoop');"
 
 	#get job id of current job
-	job_id=$(mysql hungryhippos_tester -uroot -proot -se "select job_id from job where date_time_submitted='$time_submit';")
+	job_id=$(mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -se "select job_id from job where date_time_submitted='$time_submit';")
 	
 
 	#start timer for whole script
 	start=$(date +%s.%N)
 
-	#Read all values in of jason file
-	read_json $i
 
 	#perform below block if expected result in available with user
 	if [ "$expected_result_file_path" != "" ]
@@ -65,7 +70,7 @@ do
 
 	#get start time for job 
         time_started=$(date +'%Y:%m:%d %H:%M:%S')
-        mysql -D hungryhippos_tester -uroot -proot -e "update job set  status='started', date_time_started='$time_started' where job_id='$job_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update job set  status='started', date_time_started='$time_started' where job_id='$job_id';"
 
 
 	
@@ -118,7 +123,7 @@ do
 
 	#get end time for job 
         time_finished=$(date +'%Y:%m:%d %H:%M:%S')
-        mysql -D hungryhippos_tester -uroot -proot -e "update job set status='finished', date_time_finished='$time_finished' where job_id='$job_id';"
+        mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update job set status='finished', date_time_finished='$time_finished' where job_id='$job_id';"
 
 	echo -e "\n-------------------Job `expr $i + 1` completed-------------------------"
 

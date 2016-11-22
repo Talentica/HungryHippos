@@ -5,19 +5,17 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
-task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': 1.0,
-                'Main-Class': 'com.talentica.hungryHippos.utility.DataGenerator'
-    }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
 
 jar{
 	version=null
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    manifest {
+        attributes("Main-Class": "com.talentica.hungryHippos.utility.DataGenerator" )
+    }
 }
 
 dependencies {

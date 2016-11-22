@@ -12,7 +12,7 @@ sourceSets {
   }
 
 jar{
-	archiveName='client-api.jar-'+version
+	archiveName='client-api-'+version+'.jar'
 }
 
 dependencies {	

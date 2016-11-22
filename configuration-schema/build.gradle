@@ -44,7 +44,7 @@ jaxb {
 
 
 jar {
-	archiveName='configuration-schema.jar-'+version
+	archiveName='configuration-schema-'+version+'.jar'
 }
 
 

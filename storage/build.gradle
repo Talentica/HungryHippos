@@ -5,7 +5,7 @@ apply plugin: 'java'
 sourceCompatibility = 1.8
 
 jar{
-	archiveName='storage.jar-'+version
+	archiveName='storage-'+version+'.jar'
 }
 
 repositories {

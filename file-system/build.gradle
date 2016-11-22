@@ -19,7 +19,7 @@ ext {
 }
 
 jar {
-	archiveName='file-system.jar-'+version
+	archiveName='file-system-'+version+'.jar'
 	
     from {
         (configurations.runtime).collect {

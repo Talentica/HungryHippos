@@ -9,7 +9,7 @@ repositories {
 }
 
 jar {
-	archiveName='node.jar-'+version
+	archiveName='node-'+version+'.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

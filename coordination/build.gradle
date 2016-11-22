@@ -16,7 +16,7 @@ ext {
 }
 
 jar {
-	archiveName='coordination.jar-'+version
+	archiveName='coordination-'+version+'.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

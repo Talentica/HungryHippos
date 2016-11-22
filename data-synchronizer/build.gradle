@@ -29,7 +29,7 @@ compileJava{
 }
 
 jar {
-  archiveName='data-synchronizer.jar-'+version
+  archiveName='data-synchronizer-'+version+'.jar'
   from {
     (configurations.runtime).collect {
       it.isDirectory() ? it : zipTree(it)

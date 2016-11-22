@@ -12,7 +12,7 @@ sourceSets {
   }
 
 jar{
-	archiveName='hungryhippos-tester-services-client.jar-'+version
+	archiveName='hungryhippos-tester-services-client-'+version+'.jar'
 }
 
 dependencies {	

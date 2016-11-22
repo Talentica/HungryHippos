@@ -74,10 +74,15 @@ public class HHRDD extends RDD<HHRDDRowReader> {
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
     Set<Node> nodes = HHRDDHelper.getPreferedIpsFromSetOfNode(partition);
-    List<String> preferedNodesIp = new ArrayList<String>();
     if (nodes == null) {
       return null;
     }
+    List<String> preferedNodesIp = selectPreferedNodesIp(nodes);
+    return scala.collection.JavaConversions.asScalaBuffer(preferedNodesIp).seq();
+  }
+
+  private List<String> selectPreferedNodesIp(Set<Node> nodes) {
+    List<String> preferedNodesIp = new ArrayList<String>();
     for (SerializedNode nodeSer : nodesSer) {
       for (Node node : nodes) {
         if (nodeSer.getId() == node.getNodeId()) {
@@ -86,6 +91,6 @@ public class HHRDD extends RDD<HHRDDRowReader> {
         }
       }
     }
-    return scala.collection.JavaConversions.asScalaBuffer(preferedNodesIp).seq();
+    return preferedNodesIp;
   }
 }

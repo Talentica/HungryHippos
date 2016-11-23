@@ -883,3 +883,17 @@ copy_to_local_from_hhfs(){
 
 }
 
+download_zookeeper()
+{
+	
+	#create dir if not exist
+	mkdir -p chef/src/cookbooks/download_zookeeper/files/default/
+
+	#Download zookeeper	
+	wget  "http://www-us.apache.org/dist/zookeeper/zookeeper-3.5.1-alpha/zookeeper-3.5.1-alpha.tar.gz"
+
+	#move zookeeper to required position
+	mv zookeeper-3.5.1-alpha.tar.gz chef/src/cookbooks/download_zookeeper/files/default/ 
+
+}
+

@@ -11,6 +11,9 @@ zookeeperip_string=""
 eval `ssh-agent -s`
 ssh-add hhuser_id_rsa
 
+#download zookeeper to chef cookbook download_zookeeper
+download_zookeeper
+
 start_vagrantfile $no_of_nodes $no_of_zookeeper $provider
 
 #get all IP

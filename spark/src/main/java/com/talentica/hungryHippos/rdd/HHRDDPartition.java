@@ -41,7 +41,7 @@ public class HHRDDPartition implements Partition {
 
 
   @Override
-  public boolean org$apache$spark$Partition$$super$equals(Object obj) {
+  public boolean equals(Object obj) {
     if (!(obj instanceof HHRDDPartition)) {
       return false;
     }

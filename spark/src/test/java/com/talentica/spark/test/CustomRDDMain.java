@@ -82,7 +82,7 @@ public class CustomRDDMain {
     }
 
     @Override
-    public boolean org$apache$spark$Partition$$super$equals(Object obj) {
+    public boolean equals(Object obj) {
       if (!(obj instanceof AlphabetRangePartition)) {
         return false;
       }

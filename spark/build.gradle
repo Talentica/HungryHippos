@@ -20,8 +20,9 @@ dependencies {
      compile project (':sharding')
 	 compile 'org.apache.commons:commons-math3:3.5'
 	 testCompile 'junit:junit:4.12'
-	 compile group: 'org.apache.spark', name: 'spark-core_2.10', version: '2.0.1'
-     compile group: 'org.apache.spark', name: 'spark-sql_2.10', version: '2.0.1'
+	 compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.2'
+     compile group: 'org.apache.spark', name: 'spark-sql_2.10', version: '2.0.2'
+     compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.7'
 }
 
 jar {

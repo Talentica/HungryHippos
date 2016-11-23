@@ -53,14 +53,6 @@ public class HHRDDHelper implements Serializable {
         break;
       }
     }
-    /*if (nodes == null) {
-      logger.error("nodes are null");
-      return -1;
-    }*/
-    /*List<Node> listNode = new ArrayList<>(nodes);
-
-    int nodeId = listNode.get(0).getNodeId();*/
-
     logger.info(" prefered locations for partition index {} whose file name is {}  is {}",
         partition.index(), fileName, nodes.toString());
     return nodes;

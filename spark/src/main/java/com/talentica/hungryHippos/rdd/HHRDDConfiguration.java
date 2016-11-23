@@ -14,7 +14,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.rdd.utility.JaxbUtil;
-import com.talentica.hungryHippos.rdd.utility.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;

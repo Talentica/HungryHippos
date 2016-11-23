@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.spark.test;
+package com.talentica.hungryHippos.rdd.client;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
@@ -25,23 +25,36 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.Tuple2;
 
-public class HHRDDTest implements Serializable {
+public class HHRDDMain implements Serializable {
 
-  private static final Long serialVersionUID = 1L;
-  private static SparkContext sc;
+  private static final long serialVersionUID = 1L;
+  private SparkContext sc;
+  private String outputFile;
+  private String distrDir;
+  private String clientConf;
 
   public static void main(String[] args) {
-    SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("CustomRDDApp");
+    if (args.length < 5) {
+      System.err.println(
+          "Improper arduments. <spark master ip> <app name> <distributed directory> <client configuration> <ouput file name>");
+    }
+    HHRDDMain hhrddTest = new HHRDDMain();
+    String masterIp = args[0];
+    String appName = args[1];
+    hhrddTest.distrDir = args[2];
+    hhrddTest.clientConf = args[3];
+    hhrddTest.outputFile = args[4];
 
+    SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
     try {
-      sc = new JavaSparkContext(conf).sc();
-      test();
+      hhrddTest.sc = new JavaSparkContext(conf).sc();
+      hhrddTest.test();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  public static void test() throws FileNotFoundException, JAXBException {
+  public void test() throws FileNotFoundException, JAXBException {
     JobMatrix jobConf = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 3; i++) {
@@ -50,15 +63,14 @@ public class HHRDDTest implements Serializable {
     System.out.println(count);
     System.out.println(jobConf.toString());
     JavaPairRDD<String, Double> allRDD = null;
-    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration("/distr/data",
-        "/home/pooshans/HungryHippos/HungryHippos/configuration-schema/src/main/resources/distribution/client-config.xml");
+    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(this.distrDir, this.clientConf);
 
     HHRDDConfig hhrdConfig =
         new HHRDDConfig(hhrdConfiguration.getRowSize(), hhrdConfiguration.getShardingIndexes(),
             hhrdConfiguration.getDirectoryLocation(), hhrdConfiguration.getShardingFolderPath(),
             hhrdConfiguration.getNodes(), hhrdConfiguration.getDataDescription());
 
-    HHRDD hipposRDD = new HHRDD(sc, hhrdConfig);
+    HHRDD hipposRDD = new HHRDD(this.sc, hhrdConfig);
     for (Job job : jobConf.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
@@ -86,7 +98,7 @@ public class HHRDDTest implements Serializable {
         allRDD = allRDD.union(jvd);
       }
     }
-    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/output11");
+    allRDD.saveAsTextFile("/home/pooshans/hhuser/hh/filesystem/distr/" + outputFile);
     sc.stop();
   }
 

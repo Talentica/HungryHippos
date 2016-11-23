@@ -23,6 +23,9 @@ fi
 done
 
 
+#download hadoop-2.7.2
+download_hadoop
+
 start_vagrantfile $no_of_nodes $provider
 
 file_processing_to_getIP

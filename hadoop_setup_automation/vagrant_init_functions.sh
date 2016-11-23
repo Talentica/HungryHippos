@@ -295,10 +295,11 @@ read_json(){
         expected_result_file_path=$(cat hadoop_conf.json  |jq --arg job_no "$i" '.jobs['$i'].expected_result_file_path')
         desired_expected_result_location_master=$(cat hadoop_conf.json  |jq --arg job_no "$i" '.jobs['$i'].desired_expected_result_location_master')
 	delete_hdfs_file_name=$(cat hadoop_conf.json  |jq --arg job_no "$i" '.jobs['$i'].delete_hdfs_file')
+	mysql_server=$(cat hungryhippos_operations_conf.json  |jq '.mysql_server')
+	mysql_username=$(cat hungryhippos_operations_conf.json  |jq '.mysql_username')
+	mysql_password=$(cat hungryhippos_operations_conf.json  |jq '.mysql_password')
 
-	mysql_server=$(cat hadoop_conf.json  |jq '.mysql_server')
-	mysql_username=$(cat hadoop_conf.json  |jq '.mysql_username')
-	mysql_password=$(cat hadoop_conf.json  |jq '.mysql_password')
+
 
         #remove " from variable
         jar_file_path=$(echo "$jar_file_path" | tr -d '"')
@@ -313,10 +314,10 @@ read_json(){
         expected_result_file_path=$(echo "$expected_result_file_path" | tr -d '"')
         desired_expected_result_location_master=$(echo "$desired_expected_result_location_master" | tr -d '"')
 	delete_hdfs_file_name=$(echo "$delete_hdfs_file_name" | tr -d '"')
-
 	mysql_server=$(echo "$mysql_server" | tr -d '"')
 	mysql_username=$(echo "$mysql_username" | tr -d '"')
 	mysql_password=$(echo "$mysql_password" | tr -d '"')
+
 
 }
 
@@ -480,5 +481,18 @@ delete_hdfs_file(){
         mysql -h $mysql_server -D hungryhippos_tester -u$mysql_username -p$mysql_password -e "update process_instance_detail set  status='finished', execution_end_time='$time_delete_finished' where process_instance_detail_id='$process_instance_detail_id';"
 
 
+
+}
+
+download_hadoop(){
+	
+	#create dir if not exist
+	mkdir -p chef/src/cookbooks/download_hadoop/files/default
+
+	#Download hadoop	
+	wget  "http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.2/hadoop-2.7.2.tar.gz"
+
+	#move zookeeper to required position
+	mv hadoop-2.7.2.tar.gz chef/src/cookbooks/download_hadoop/files/default
 
 }

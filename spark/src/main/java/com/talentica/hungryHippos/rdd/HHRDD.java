@@ -31,10 +31,10 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
   private static final long serialVersionUID = 4074885953480955556L;
   private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
-  private HHRDDConfig hipposRDDConf;
+  private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
 
-  public HHRDD(SparkContext sc, HHRDDConfig hipposRDDConf) {
+  public HHRDD(SparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
     super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);

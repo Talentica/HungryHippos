@@ -14,7 +14,7 @@ import org.apache.spark.Partition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.rdd.HHRDDConfig;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDPartition;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.Node;
@@ -57,7 +57,7 @@ public class HHRDDHelper implements Serializable {
   }
 
 
-  public static void populateBucketCombinationToNodeNumber(HHRDDConfig hipposRDDConf) {
+  public static void populateBucketCombinationToNodeNumber(HHRDDConfigSerialized hipposRDDConf) {
     String bucketCombinationToNodeNumbersMapFilePath = hipposRDDConf.getShardingFolderPath()
         + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
 

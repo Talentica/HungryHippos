@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.rdd;
 
 import java.io.FileNotFoundException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +24,8 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 /**
  * @author pooshans
  */
-public class HHRDDConfiguration implements Serializable {
+public class HHRDDConfiguration {
 
-  private static final long serialVersionUID = -9079703351777187673L;
   private int rowSize;
   private int[] shardingIndexes;
   private String directoryLocation;
@@ -36,11 +34,12 @@ public class HHRDDConfiguration implements Serializable {
   private ClusterConfig clusterConfig;
   private String shardingFolderPath;
   private List<Node> nodes;
+  private String outputFile;
   private List<SerializedNode> serializedNodes = new ArrayList<>();
 
-  public HHRDDConfiguration(String distributedPath, String clientConfigPath)
+  public HHRDDConfiguration(String distributedPath, String clientConfigPath, String outputFileName)
       throws FileNotFoundException, JAXBException {
-    initialize(distributedPath, clientConfigPath);
+    initialize(distributedPath, clientConfigPath, outputFileName);
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
@@ -49,15 +48,17 @@ public class HHRDDConfiguration implements Serializable {
     nodes = this.clusterConfig.getNode();
   }
 
-  private void initialize(String distributedPath, String clientConfigPath)
+  private void initialize(String distributedPath, String clientConfigPath, String outputFileName)
       throws JAXBException, FileNotFoundException {
     this.clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
     String servers = clientConfig.getCoordinationServers().getServers();
     HungryHippoCurator.getInstance(servers);
-    this.shardingFolderPath = FileSystemContext.getRootDirectory()+ distributedPath
+    this.shardingFolderPath = FileSystemContext.getRootDirectory() + distributedPath
         + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    this.directoryLocation =
-        FileSystemContext.getRootDirectory() + distributedPath + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
+    this.directoryLocation = FileSystemContext.getRootDirectory() + distributedPath
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + "data_";
+    this.outputFile = FileSystemContext.getRootDirectory() + distributedPath
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + outputFileName;
   }
 
   public List<SerializedNode> getNodes() {
@@ -99,4 +100,7 @@ public class HHRDDConfiguration implements Serializable {
     return this.dataDescription;
   }
 
+  public String getOutputFile() {
+    return this.outputFile;
+  }
 }

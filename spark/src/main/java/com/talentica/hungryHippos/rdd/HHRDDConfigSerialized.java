@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 
-public class HHRDDConfig implements Serializable {
+public class HHRDDConfigSerialized implements Serializable {
 
   
   private static final long serialVersionUID = -1970173579825061525L;
@@ -16,7 +16,7 @@ public class HHRDDConfig implements Serializable {
   private List<SerializedNode> nodes;
   private FieldTypeArrayDataDescription fieldDataDesc;
 
-  public HHRDDConfig(int rowSize, int[] shardingIndexes, String directoryLocation,
+  public HHRDDConfigSerialized(int rowSize, int[] shardingIndexes, String directoryLocation,
       String shardingFolderPath, List<SerializedNode> nodes,
       FieldTypeArrayDataDescription fieldDataDesc) {
     super();

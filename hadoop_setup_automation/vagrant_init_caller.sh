@@ -5,6 +5,10 @@ source vagrant_init_functions.sh
 no_of_nodes=$1
 provider=$2
 
+#add ssh key to local machine to access nodes
+eval `ssh-agent -s`
+ssh-add hduser_id_rsa
+
 #flag
 j=0
 export MASTER_IP

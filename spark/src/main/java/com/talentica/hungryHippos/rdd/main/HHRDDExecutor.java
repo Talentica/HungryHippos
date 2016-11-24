@@ -92,6 +92,10 @@ public class HHRDDExecutor implements Serializable {
     LOGGER.info("Output files are in directory {}", hhrddConfiguration.getOutputFile());
     allRDD.saveAsTextFile(hhrddConfiguration.getOutputFile());
   }
+  
+  public void stop(SparkContext context){
+    context.stop();
+  }
 
 
   public String getOutputFile() {

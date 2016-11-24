@@ -25,7 +25,7 @@ public class HHRDDMain implements Serializable {
     executor = new HHRDDExecutor(args);
     initializeSparkContext();
     executor.startSumJob(context, getSumJobMatrix());
-    context.stop();
+    executor.stop(context);
   }
 
   private static JobMatrix getSumJobMatrix() {

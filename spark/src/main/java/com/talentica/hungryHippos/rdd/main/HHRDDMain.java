@@ -12,6 +12,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 
@@ -23,8 +24,10 @@ public class HHRDDMain implements Serializable {
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException {
     executor = new HHRDDExecutor(args);
+    HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
+        executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
-    executor.startSumJob(context, getSumJobMatrix());
+    executor.startSumJob(context, hhrddConfiguration, getSumJobMatrix());
     executor.stop(context);
   }
 

@@ -52,11 +52,9 @@ public class HHRDDExecutor implements Serializable {
   }
 
 
-  public void startSumJob(SparkContext context,JobMatrix jobMatrix) throws FileNotFoundException, JAXBException {
+  public void startSumJob(SparkContext context,HHRDDConfiguration hhrddConfiguration,JobMatrix jobMatrix) throws FileNotFoundException, JAXBException {
     LOGGER.info(jobMatrix.toString());
     JavaPairRDD<String, Double> allRDD = null;
-    HHRDDConfiguration hhrddConfiguration =
-        new HHRDDConfiguration(distrDir, clientConf, outputFile);
     HHRDDConfigSerialized hhrddConfigSerialized = new HHRDDConfigSerialized(
         hhrddConfiguration.getRowSize(), hhrddConfiguration.getShardingIndexes(),
         hhrddConfiguration.getDirectoryLocation(), hhrddConfiguration.getShardingFolderPath(),

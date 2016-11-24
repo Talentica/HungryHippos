@@ -1,5 +1,6 @@
 #!/lib/bash
 echo "####		Creation installation directory		####"
+rm -r ../../installation
 mkdir -p ../../installation ../../installation/conf ../../installation/lib
 echo '####   Copying jars to installation directory   ####'
 cp ../../client-api/build/libs/*.jar ../../installation/lib/

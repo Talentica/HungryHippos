@@ -3,7 +3,6 @@ package com.talentica.hungryHippos.rdd.reader;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;

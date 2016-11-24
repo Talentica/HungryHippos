@@ -7,7 +7,7 @@ public class SerializedNode implements Serializable {
   /**
    * 
    */
-  private static final long serialVersionUID = 178593850L;
+  private static final long serialVersionUID = 7595006167742376795L;
   private int id;
   private String ip;
 

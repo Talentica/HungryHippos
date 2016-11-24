@@ -21,10 +21,11 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 
 public class HHRDDHelper implements Serializable {
+ 
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = -3090261268542999403L;
   private static Logger logger = LoggerFactory.getLogger(HHRDDHelper.class);
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
@@ -45,9 +46,6 @@ public class HHRDDHelper implements Serializable {
 
     Set<Node> nodes = null;
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
-      logger.info(
-          "Tabel bucket combination {} hashcode {} and generated bucket combination {} hashcode{}",
-          entry.getKey(), entry.getKey().toString().hashCode(), key, key.hashCode());
       if (entry.getKey().toString().hashCode() == key.hashCode()) {
         nodes = entry.getValue();
         break;

@@ -11,7 +11,10 @@ import java.util.Arrays;
  *
  */
 public class Job implements Serializable {
-  private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -6241147664348013284L;
   private Integer[] dimensions;
   private int calculationIndex;
   private int jobId;

@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.rdd;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
@@ -16,8 +17,9 @@ import scala.collection.AbstractIterator;
  * @author pooshans
  *
  */
-public class HHRDDIterator extends AbstractIterator<HHRDDRowReader> {
+public class HHRDDIterator extends AbstractIterator<HHRDDRowReader> implements Serializable {
 
+  private static final long serialVersionUID = 6639856882717975103L;
   private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
   private long currentDataFileSize;

@@ -27,34 +27,35 @@ import scala.Tuple2;
 
 public class HHRDDMain implements Serializable {
 
-  private static final long serialVersionUID = 1L;
-  private SparkContext sc;
-  private String outputFile;
-  private String distrDir;
-  private String clientConf;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5992804040373017761L;
+  private static String outputFile;
+  private static String distrDir;
+  private static String clientConf;
 
   public static void main(String[] args) {
     if (args.length < 5) {
       System.err.println(
           "Improper arduments. <spark master ip> <app name> <distributed directory> <client configuration> <ouput file name>");
     }
-    HHRDDMain hhrddTest = new HHRDDMain();
     String masterIp = args[0];
     String appName = args[1];
-    hhrddTest.distrDir = args[2];
-    hhrddTest.clientConf = args[3];
-    hhrddTest.outputFile = args[4];
+    distrDir = args[2];
+    clientConf = args[3];
+    outputFile = args[4];
 
     SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
     try {
-      hhrddTest.sc = new JavaSparkContext(conf).sc();
-      hhrddTest.test();
+      SparkContext sc = new JavaSparkContext(conf).sc();
+      test(sc);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  public void test() throws FileNotFoundException, JAXBException {
+  public static void test( SparkContext sc) throws FileNotFoundException, JAXBException {
     JobMatrix jobConf = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 3; i++) {
@@ -63,14 +64,14 @@ public class HHRDDMain implements Serializable {
     System.out.println(count);
     System.out.println(jobConf.toString());
     JavaPairRDD<String, Double> allRDD = null;
-    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(this.distrDir, this.clientConf);
+    HHRDDConfiguration hhrdConfiguration = new HHRDDConfiguration(distrDir, clientConf);
 
     HHRDDConfig hhrdConfig =
         new HHRDDConfig(hhrdConfiguration.getRowSize(), hhrdConfiguration.getShardingIndexes(),
             hhrdConfiguration.getDirectoryLocation(), hhrdConfiguration.getShardingFolderPath(),
             hhrdConfiguration.getNodes(), hhrdConfiguration.getDataDescription());
 
-    HHRDD hipposRDD = new HHRDD(this.sc, hhrdConfig);
+    HHRDD hipposRDD = new HHRDD(sc, hhrdConfig);
     for (Job job : jobConf.getJobs()) {
       JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {

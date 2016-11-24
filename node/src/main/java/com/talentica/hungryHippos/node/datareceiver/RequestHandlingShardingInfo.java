@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class RequestHandlingShardingInfo {
   private int recordSize;
   private byte[] fileIdInBytes;
   private DataStore dataStore;
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
+  private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap;
   private String[] shardingDimensions;
 
   /**

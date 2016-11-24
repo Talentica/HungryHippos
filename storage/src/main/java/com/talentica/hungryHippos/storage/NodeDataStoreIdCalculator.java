@@ -32,8 +32,8 @@ public class NodeDataStoreIdCalculator implements Serializable {
   private BucketsCalculator bucketsCalculator;
 
   public NodeDataStoreIdCalculator(
-      Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
-      Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode,
+      HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,
+      HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode,
       DataDescription dataDescription, ShardingApplicationContext context) {
     bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap, context);
     keys = dataDescription.keyOrder();
@@ -42,10 +42,10 @@ public class NodeDataStoreIdCalculator implements Serializable {
   }
 
   private void setKeyWiseAcceptingBuckets(
-      Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode) {
+      HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int thisNode) {
     for (String key : bucketToNodeNumberMap.keySet()) {
       Set<Bucket<KeyValueFrequency>> keyWiseBuckets = new HashSet<>();
-      Map<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(key);
+      HashMap<Bucket<KeyValueFrequency>, Node> bucketToNodeMap = bucketToNodeNumberMap.get(key);
       for (Bucket<KeyValueFrequency> bucket : bucketToNodeMap.keySet()) {
         if (bucketToNodeMap.get(bucket).getNodeId() == thisNode) {
           keyWiseBuckets.add(bucket);

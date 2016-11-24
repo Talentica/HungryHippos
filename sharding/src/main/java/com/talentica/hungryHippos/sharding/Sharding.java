@@ -32,20 +32,20 @@ public class Sharding {
   private static final Logger logger = LoggerFactory.getLogger(Sharding.class);
 
   // Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
-  private Map<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
-  private Map<String, Map<DataTypes, Long>> keyValueFrequencyMap = new HashMap<>();
+  private HashMap<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
+  private HashMap<String, HashMap<DataTypes, Long>> keyValueFrequencyMap = new HashMap<>();
 
-  private Map<String, Integer> keyToIndexMap = new HashMap<>();
+  private HashMap<String, Integer> keyToIndexMap = new HashMap<>();
 
   // Map<Key1,Map<value1,Node(1)>
-  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
+  private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
   PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
 
   // e.g. Map<KeyCombination({key1,value1},{key2,value2},{key3,value3}),count>
-  private Map<BucketCombination, Long> bucketCombinationFrequencyMap = new HashMap<>();
-  private Map<Node, List<BucketCombination>> nodeToKeyMap = new HashMap<>();
-  private Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
+  private HashMap<BucketCombination, Long> bucketCombinationFrequencyMap = new HashMap<>();
+  private HashMap<Node, List<BucketCombination>> nodeToKeyMap = new HashMap<>();
+  private HashMap<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
+  private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
   private ShardingApplicationContext context;
   private BucketsCalculator bucketsCalculator;
@@ -140,7 +140,7 @@ public class Sharding {
         break;
       }
       DataTypes[] values = new DataTypes[keys.length];
-      Map<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
+      HashMap<String, Bucket<KeyValueFrequency>> bucketCombinationMap = new HashMap<>();
       for (int i = 0; i < keys.length; i++) {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
@@ -180,7 +180,7 @@ public class Sharding {
    * @throws JAXBException
    */
   // TODO: This method needs to be generalized
-  Map<String, Map<DataTypes, Long>> populateFrequencyFromData(Reader data) throws IOException,
+  HashMap<String, HashMap<DataTypes, Long>> populateFrequencyFromData(Reader data) throws IOException,
       ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
 
     logger.info("Populating frequency map from data started");
@@ -207,7 +207,7 @@ public class Sharding {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
         values[i] = parts[keyIndex].clone();
-        Map<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
+        HashMap<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
         if (frequencyPerValue == null) {
           frequencyPerValue = new HashMap<>();
           keyValueFrequencyMap.put(key, frequencyPerValue);
@@ -227,21 +227,21 @@ public class Sharding {
     return keyValueFrequencyMap;
   }
 
-  private Map<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap()
+  private HashMap<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap()
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
     logger.info("Calculating keys to list of buckets map started");
     String[] keys = context.getShardingDimensions();
     int totalNoOfBuckets = bucketsCalculator.calculateNumberOfBucketsNeeded();
     logger.info("Total no. of buckets: {}", totalNoOfBuckets);
-    Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
+    HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
         getSortedKeyToListOfKeyValueFrequenciesMap();
     for (int i = 0; i < keys.length; i++) {
-      Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
+      HashMap<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
       keyToValueToBucketMap.put(keys[i], valueToBucketMap);
       long frequencyOfAlreadyAddedValues = 0;
       int bucketCount = 0;
-      Map<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+      HashMap<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
       long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
       logger.info("Ideal size of bucket for {}:{}",
           new Object[] {keys[i], idealAverageSizeOfOneBucket});
@@ -288,14 +288,14 @@ public class Sharding {
    * @throws IOException
    * @throws JAXBException
    */
-  public Map<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap()
+  public HashMap<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap()
       throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
       IOException, JAXBException {
-    Map<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
+    HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
     String[] keys = context.getShardingDimensions();
     for (String key : keys) {
       List<KeyValueFrequency> frequencies = new ArrayList<>();
-      Map<DataTypes, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
+      HashMap<DataTypes, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
       for (DataTypes keyValue : keyValueToFrequencyMap.keySet()) {
         frequencies.add(new KeyValueFrequency(keyValue, keyValueToFrequencyMap.get(keyValue)));
       }
@@ -305,7 +305,7 @@ public class Sharding {
     return keyToListOfKeyValueFrequency;
   }
 
-  private long getSizeOfOneBucket(Map<DataTypes, Long> frequencyPerValue, int noOfBuckets) {
+  private long getSizeOfOneBucket(HashMap<DataTypes, Long> frequencyPerValue, int noOfBuckets) {
     long sizeOfOneBucket = 0;
     long totalofAllKeyValueFrequencies = 0;
     for (DataTypes mutableCharArrayString : frequencyPerValue.keySet()) {
@@ -318,7 +318,7 @@ public class Sharding {
 
   private void shardSingleKey(String keyName) throws NodeOverflowException {
     List<Bucket<KeyValueFrequency>> buckets = keysToListOfBucketsMap.get(keyName);
-    Map<Bucket<KeyValueFrequency>, Node> bucketToNodeNumber = new HashMap<>();
+    HashMap<Bucket<KeyValueFrequency>, Node> bucketToNodeNumber = new HashMap<>();
     bucketToNodeNumberMap.put(keyName, bucketToNodeNumber);
     Collections.sort(buckets);
     int counter = 0;
@@ -334,7 +334,7 @@ public class Sharding {
         nodeToKeyMap.put(mostEmptyNode, currentKeys);
       }
       long currentSize = sumForKeyCombinationUnion(currentKeys);
-      Map<String, Bucket<KeyValueFrequency>> wouldBeMap = new HashMap<>();
+      HashMap<String, Bucket<KeyValueFrequency>> wouldBeMap = new HashMap<>();
       wouldBeMap.put(keyName, bucket);
       currentKeys.add(new BucketCombination(wouldBeMap));
       long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
@@ -346,7 +346,7 @@ public class Sharding {
 
   private long sumForKeyCombinationUnion(List<BucketCombination> keyCombination) {
     long sum = 0;
-    for (Map.Entry<BucketCombination, Long> entry : bucketCombinationFrequencyMap.entrySet()) {
+    for (HashMap.Entry<BucketCombination, Long> entry : bucketCombinationFrequencyMap.entrySet()) {
       BucketCombination keyCombination1 = entry.getKey();
       if (keyCombination1.checkMatchOr(keyCombination)) {
         sum += entry.getValue();
@@ -415,7 +415,7 @@ public class Sharding {
       restOfKeyNames.remove(keyName);
       List<Bucket<KeyValueFrequency>> buckets = keysToListOfBucketsMap.get(keyName);
       for (Bucket<KeyValueFrequency> bucket : buckets) {
-        Map<String, Bucket<KeyValueFrequency>> nextSourceMap = new HashMap<>();
+        HashMap<String, Bucket<KeyValueFrequency>> nextSourceMap = new HashMap<>();
         nextSourceMap.putAll(source.getBucketsCombination());
         BucketCombination nextSource = new BucketCombination(nextSourceMap);
         nextSource.getBucketsCombination().put(keyName, bucket);

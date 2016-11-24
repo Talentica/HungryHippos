@@ -48,8 +48,8 @@ import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 public class DataProvider {
   private static int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE;
   private static final Logger LOGGER = LoggerFactory.getLogger(DataProvider.class.getName());
-  private static Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
-  private static Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
+  private static HashMap<BucketCombination, Set<Node>> bucketCombinationNodeMap;
+  private static HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
 
   private static BucketsCalculator bucketsCalculator;

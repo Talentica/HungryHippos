@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,9 +27,8 @@ import scala.reflect.ClassTag;
  * @author pooshans
  *
  */
-public class HHRDD extends RDD<HHRDDRowReader> {
-
-  private static final long serialVersionUID = -1546634848854956364L;
+public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
+  private static final long serialVersionUID = 4074885953480955556L;
   private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
   private HHRDDConfig hipposRDDConf;

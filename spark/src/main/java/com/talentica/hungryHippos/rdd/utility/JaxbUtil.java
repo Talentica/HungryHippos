@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.rdd.utility;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -17,8 +18,12 @@ import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class JaxbUtil {
+public final class JaxbUtil implements Serializable{
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2226830666821516872L;
   private static Logger LOGGER = LoggerFactory.getLogger(JaxbUtil.class);
 
   /**

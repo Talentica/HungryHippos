@@ -24,9 +24,9 @@ public final class BucketsCalculator {
 
   private static final int NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES = 4;
 
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
+  private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
-  private Map<String, List<Bucket<KeyValueFrequency>>> keyToBucketNumbersCollectionMap =
+  private HashMap<String, List<Bucket<KeyValueFrequency>>> keyToBucketNumbersCollectionMap =
       new HashMap<String, List<Bucket<KeyValueFrequency>>>();
  private ShardingApplicationContext context;
  
@@ -44,7 +44,7 @@ public final class BucketsCalculator {
    * @param context
    */
   public BucketsCalculator(
-      Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,ShardingApplicationContext context) {
+      HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,ShardingApplicationContext context) {
     this(context);
     this.keyToValueToBucketMap = keyToValueToBucketMap;
     if (keyToValueToBucketMap != null) {

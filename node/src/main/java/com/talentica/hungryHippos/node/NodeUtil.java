@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,9 +29,9 @@ public class NodeUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(NodeUtil.class);
 
-  private Map<String, Map<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
+  private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
 
-  private Map<String, Map<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
+  private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = null;
 
   /**
    * creates an instance of NodeUtil.
@@ -59,7 +60,7 @@ public class NodeUtil {
    * 
    * @return
    */
-  public final Map<String, Map<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
+  public final HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> getKeyToValueToBucketMap() {
     return keyToValueToBucketMap;
   }
 
@@ -68,7 +69,7 @@ public class NodeUtil {
    * 
    * @return
    */
-  public final Map<String, Map<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
+  public final HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
     return bucketToNodeNumberMap;
   }
 

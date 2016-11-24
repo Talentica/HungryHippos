@@ -13,7 +13,10 @@ import java.util.List;
  */
 public class JobMatrix implements Serializable{
   
-  private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2526185065466488913L;
   private List<Job> jobs;
 
   public JobMatrix() {

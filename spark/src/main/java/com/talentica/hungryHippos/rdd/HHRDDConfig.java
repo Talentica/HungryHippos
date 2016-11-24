@@ -7,10 +7,8 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 
 public class HHRDDConfig implements Serializable {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 23456789L;
+  
+  private static final long serialVersionUID = -1970173579825061525L;
   private int rowSize;
   private int[] shardingIndexes;
   private String directoryLocation;

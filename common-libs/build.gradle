@@ -13,16 +13,15 @@ sourceSets {
     }
 }
 
-dependencies {
-     compile project (':client-api')
-     compile project (':configuration-schema')
-     compile project (':sharding')
-     compile project (':common-libs')
+dependencies {    
+	 testCompile 'junit:junit:4.12'
+	 compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.2'
+     compile group: 'org.apache.spark', name: 'spark-sql_2.10', version: '2.0.2'
+     compile group: 'org.scala-lang', name: 'scala-library', version: '2.11'
 }
 
 jar {
-	archiveName='spark-'+version+'.jar'
-	//include 'org.scala-lang', name: 'scala-library', version: '2.11'
+	archiveName='common-libs-'+version+'.jar'
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -21,7 +22,7 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 
 public class HHRDDHelper implements Serializable {
- 
+
   /**
    * 
    */
@@ -30,9 +31,16 @@ public class HHRDDHelper implements Serializable {
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
+  private static HashMap<Integer, Set<Node>> cachePreferedLocation =
+      new HashMap<Integer, Set<Node>>();
 
-  public static Set<Node>  getPreferedIpsFromSetOfNode(Partition partition) {
+  public static Set<Node> getPreferedIpsFromSetOfNode(Partition partition) {
     String fileName = ((HHRDDPartition) partition).getFileName();
+    Integer partitionId = ((HHRDDPartition) partition).index();
+    Set<Node> nodes = cachePreferedLocation.get(partitionId);
+    if (nodes != null && !nodes.isEmpty()) {
+      return nodes;
+    }
     // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
     String key = "BucketCombination{{";
     String[] bucketIds = fileName.split("_");
@@ -44,7 +52,6 @@ public class HHRDDHelper implements Serializable {
       }
     }
 
-    Set<Node> nodes = null;
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
       if (entry.getKey().toString().hashCode() == key.hashCode()) {
         nodes = entry.getValue();
@@ -53,6 +60,7 @@ public class HHRDDHelper implements Serializable {
     }
     logger.info(" prefered locations for partition index {} whose file name is {}  is {}",
         partition.index(), fileName, nodes.toString());
+    cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }
 

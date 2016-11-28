@@ -64,5 +64,9 @@ public class HHRDDPartition implements Partition {
     return this.dataDescription;
   }
 
+  public int getPartitionId() {
+    return partitionId;
+  }
+
 
 }

@@ -59,7 +59,7 @@ public class HHRDDHelper implements Serializable {
       }
     }
     if(nodes == null) return null;
-    logger.info(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
+    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }
@@ -81,7 +81,7 @@ public class HHRDDHelper implements Serializable {
 
       @Override
       public boolean accept(File dir, String name) {
-        logger.info("Directory is {} , name is {} ", dir, name);
+        logger.debug("Directory is {} , name is {} ", dir, name);
         try {
           if (Files.size(Paths.get(dir + "" + File.separatorChar + name)) == 0) {
             return false;

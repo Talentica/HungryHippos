@@ -55,6 +55,7 @@ public class HHRDDExecutor implements Serializable {
   public void startSumJob(SparkContext context, HHRDDConfiguration hhrddConfiguration,
       JobMatrix jobMatrix) throws FileNotFoundException, JAXBException {
     LOGGER.info(jobMatrix.toString());
+    JavaPairRDD<String, Double> allRDD = null;
     HHRDDConfigSerialized hhrddConfigSerialized = new HHRDDConfigSerialized(
         hhrddConfiguration.getRowSize(), hhrddConfiguration.getShardingIndexes(),
         hhrddConfiguration.getDirectoryLocation(), hhrddConfiguration.getShardingFolderPath(),
@@ -62,7 +63,7 @@ public class HHRDDExecutor implements Serializable {
 
     HHRDD hipposRDD = new HHRDD(context, hhrddConfigSerialized);
     for (Job job : jobMatrix.getJobs()) {
-      JavaPairRDD<String, Double> javaRDD =
+      JavaPairRDD<String, Double> jvd =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
             @Override
             public Tuple2<String, Double> call(HHRDDRowReader reader) throws Exception {
@@ -81,9 +82,14 @@ public class HHRDDExecutor implements Serializable {
               return x + y;
             }
           });
-      javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + job.getJobId());
+      if (allRDD == null) {
+        allRDD = jvd;
+      } else {
+        allRDD = allRDD.union(jvd);
+      }
     }
     LOGGER.info("Output files are in directory {}", hhrddConfiguration.getOutputFile());
+    allRDD.saveAsTextFile(hhrddConfiguration.getOutputFile());
   }
 
   public void stop(SparkContext context) {

@@ -46,7 +46,7 @@ public class HHRDDHelper implements Serializable {
     String[] bucketIds = fileName.split("_");
     for (int i = 0; i < bucketIds.length; i++) {
       if (i < (bucketIds.length - 1)) {
-        key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "},";
+        key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "}, ";
       } else {
         key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "}}}";
       }
@@ -58,8 +58,8 @@ public class HHRDDHelper implements Serializable {
         break;
       }
     }
-    logger.info(" prefered locations for partition index {} whose file name is {}  is {}",
-        partition.index(), fileName, nodes.toString());
+    if(nodes == null) return null;
+    logger.info(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }

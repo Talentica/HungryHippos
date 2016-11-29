@@ -16,19 +16,25 @@ sourceSets {
 dependencies {    
 	 testCompile 'junit:junit:4.12'
 	 compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.2'
-     compile group: 'org.apache.spark', name: 'spark-sql_2.10', version: '2.0.2'
+     compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.0.2'
      compile group: 'org.scala-lang', name: 'scala-library', version: '2.11'
+}
+configurations {
+    provided
+    compile.extendsFrom provided
 }
 
 jar {
 	archiveName='common-libs-'+version+'.jar'
-    from {
+   dependsOn configurations.runtime
+	
+	from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
     manifest {
-        attributes 'Main-Class': 'com.talentica.spark.test.HHRDDTest'
+        attributes 'Main-Class': 'com.talentica.hungryHippos.rdd.main.HHRDDMain'
     }
     zip64 true
 }

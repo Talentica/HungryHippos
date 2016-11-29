@@ -63,7 +63,7 @@ public class HHRDDExecutor implements Serializable {
 
     HHRDD hipposRDD = new HHRDD(context, hhrddConfigSerialized);
     for (Job job : jobMatrix.getJobs()) {
-      JavaPairRDD<String, Double> jvd =
+      JavaPairRDD<String, Double> javaRDD =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
             @Override
             public Tuple2<String, Double> call(HHRDDRowReader reader) throws Exception {
@@ -82,14 +82,9 @@ public class HHRDDExecutor implements Serializable {
               return x + y;
             }
           });
-      if (allRDD == null) {
-        allRDD = jvd;
-      } else {
-        allRDD = allRDD.union(jvd);
-      }
+      javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + job.getJobId());
+      LOGGER.info("Output files are in directory {}", hhrddConfiguration.getOutputFile() + job.getJobId());
     }
-    LOGGER.info("Output files are in directory {}", hhrddConfiguration.getOutputFile());
-    allRDD.saveAsTextFile(hhrddConfiguration.getOutputFile());
   }
 
   public void stop(SparkContext context) {

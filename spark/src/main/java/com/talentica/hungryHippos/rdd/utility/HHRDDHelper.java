@@ -42,6 +42,22 @@ public class HHRDDHelper implements Serializable {
       return nodes;
     }
     // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
+    int  hashCode = getHashCode(fileName);
+
+    for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
+      if (entry.getKey().toString().hashCode() == hashCode) {
+        nodes = entry.getValue();
+        break;
+      }
+    }
+    if(nodes == null) return null;
+    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
+    cachePreferedLocation.put(partitionId, nodes);
+    return nodes;
+  }
+
+
+  private static int getHashCode(String fileName) {
     String key = "BucketCombination{{";
     String[] bucketIds = fileName.split("_");
     for (int i = 0; i < bucketIds.length; i++) {
@@ -51,17 +67,7 @@ public class HHRDDHelper implements Serializable {
         key = key + "key" + (i + 1) + "=Bucket{" + bucketIds[i] + "}}}";
       }
     }
-
-    for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
-      if (entry.getKey().toString().hashCode() == key.hashCode()) {
-        nodes = entry.getValue();
-        break;
-      }
-    }
-    if(nodes == null) return null;
-    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
-    cachePreferedLocation.put(partitionId, nodes);
-    return nodes;
+    return key.hashCode();
   }
 
 

@@ -322,7 +322,7 @@ public class HungryHipposFileSystem {
     String nodeIdZKPath = fileNodeZKDFSPath + FileSystemConstants.ZK_PATH_SEPARATOR + nodeId;
     synchronized (this) {
       curator.createPersistentNodeIfNotPresent(fileNodeZKDFSPath);
-      curator.createPersistentNodeIfNotPresent(nodeIdZKPath, datafileSize);
+      curator.updatePersistentNode(nodeIdZKPath, datafileSize);
     }
   }
 

@@ -3,21 +3,12 @@
  */
 package com.talentica.hungryHippos.master;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.client.data.parser.DataParser;
-import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.RandomNodePicker;
-import com.talentica.hungryHippos.master.data.DataProvider;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
@@ -28,6 +19,15 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
@@ -40,8 +40,8 @@ public class DataPublisherStarter {
   private static HungryHippoCurator curator;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataPublisherStarter.class);
-  private static ShardingApplicationContext context;
   private static String userName = null;
+  private static String SCRIPT_FOR_FILE_SPLIT = "hh-split-file.sh";
 
   /**
    * Entry point of execution.
@@ -63,27 +63,75 @@ public class DataPublisherStarter {
       userName = clientConfig.getOutput().getNodeSshUsername();
       curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       FileSystemUtils.validatePath(destinationPath, true);
-
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       checkFilesInSync(shardingZipRemotePath);
-      String localShardingPath = FileUtils.getUserDirectoryPath() + File.separator + "temp"
-          + File.separator + "hungryhippos" + File.separator + System.currentTimeMillis();
-      new File(localShardingPath).mkdirs();
-      localShardingPath = downloadAndUnzipShardingTable(shardingZipRemotePath, localShardingPath);
-      LOGGER.info("Sharding local path {}", localShardingPath);
-      context = new ShardingApplicationContext(localShardingPath);
-      String dataParserClassName =
-          context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
-      DataParser dataParser =
-          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-              .newInstance(context.getConfiguredDataDescription());
-      LOGGER.info("Initializing nodes manager.");
+      List<Node>  nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+      int noOfChunks = nodes.size();
+      File srcFile = new File(sourcePath);
+      String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+              .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+      String pathForSuccessNode =
+              destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.DATA_READY;
+      String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+              + FileSystemConstants.PUBLISH_FAILED;
+      curator.deletePersistentNodeIfExits(pathForSuccessNode);
+      curator.deletePersistentNodeIfExits(pathForFailureNode);
+      String remotePath = FileSystemContext.getRootDirectory()+destinationPath+File.separator+ UUID.randomUUID().toString();
       long startTime = System.currentTimeMillis();
+      String chunkFilePathPrefix = sourcePath+"_"+startTime+"_";
+      String chunkFileNamePrefix = srcFile.getName()+"_"+startTime+"_";
+      Map<Integer, DataInputStream> dataInputStreamMap = new HashMap<>();
+      Map<Integer, Socket> socketMap = new HashMap<>();
+      String hungryHippoBinDir = System.getProperty("hh.bin.dir");
+      if(hungryHippoBinDir==null){
+        throw new RuntimeException("System property hh.bin.dir is not set. Set the property value to HungryHippo bin Directory");
+      }
+      String commonCommandArgs = hungryHippoBinDir+SCRIPT_FOR_FILE_SPLIT+" "+sourcePath
+              +" "+noOfChunks;
+      String line = "";
+      int currentChunk = 0;
+      for (int i = 0; i < noOfChunks; i++) {
+        currentChunk = i+1;
+        String chunkFilePath = chunkFilePathPrefix+i;
+        Process process = Runtime.getRuntime().exec(commonCommandArgs+" "+currentChunk+" "+chunkFilePath);
+        int processStatus = process.waitFor();
+          if (processStatus != 0) {
+            BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            while ((line = errReader.readLine()) != null) {
+              LOGGER.error(line);
+            }
+            errReader.close();
+            LOGGER.error("File publish failed for {}", destinationPath);
+            throw new RuntimeException("File Publish failed");
+          }
+        File file = new File(chunkFilePath);
+        file.deleteOnExit();
+        ScpCommandExecutor.upload(userName,nodes.get(i).getIp(),remotePath,chunkFilePath);
+        file.delete();
+        Node node = nodes.get(i);
+        Socket socket = ServerUtils.connectToServer(node.getIp()+":"+8789, 10);
+        dataInputStreamMap.put(i, new DataInputStream(socket.getInputStream()));
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        dos.writeUTF(destinationPath);
+        dos.writeUTF(remotePath+File.separator+chunkFileNamePrefix+i);
+        dos.flush();
+        socketMap.put(i,socket);
+      }
 
-      DataProvider.publishDataToNodes(dataParser, sourcePath, destinationPath);
+      for (int i = 0; i < noOfChunks; i++) {
+        LOGGER.info("Waiting for status of chunk : {}",i+1);
+        String status = dataInputStreamMap.get(i).readUTF();
+        LOGGER.info("status of chunk {} is {} ",i+1,status);
+        if("FAILED".equals(status)){
+          throw new RuntimeException("File Publish Failed for "+destinationPath);
+        }
+        socketMap.get(i).close();
+      }
 
+      updateSuccessFul(destinationPath);
 
       long endTime = System.currentTimeMillis();
+      LOGGER.info("Data Publish Successful");
       LOGGER.info("It took {} seconds of time to for publishing.", ((endTime - startTime) / 1000));
     } catch (Exception exception) {
       exception.printStackTrace();
@@ -120,30 +168,22 @@ public class DataPublisherStarter {
     }
   }
 
-  public static ShardingApplicationContext getContext() {
-    return context;
+  public static void updateSuccessFul(String hhFilePath) throws HungryHippoException {
+    if(!checkIfFailed(hhFilePath)){
+      String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+              .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
+      String pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
+      curator.createPersistentNodeIfNotPresent(pathForSuccessNode);
+    }
   }
 
-  /**
-   * Downloads sharding zip from remote and unzips it in local local and returns the path of the
-   * local directory
-   * 
-   * @param shardingZipRemotePath
-   * @param localDir
-   * @return
-   */
-  public static String downloadAndUnzipShardingTable(String shardingZipRemotePath,
-      String localDir) {
-    Node node = RandomNodePicker.getRandomNode();
-    String filePath = localDir + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-    ScpCommandExecutor.download(userName, node.getIp(), shardingZipRemotePath, localDir);
-    try {
-      TarAndGzip.untarTGzFile(filePath + ".tar.gz");
-    } catch (IOException e) {
-      LOGGER.error("Downloading The sharding file from node : " + node.getIp() + " failed.");
-      throw new RuntimeException(e);
-    }
-    return filePath;
+  public static boolean checkIfFailed(String hhFilePath) throws HungryHippoException {
+    HungryHippoCurator curator = HungryHippoCurator.getInstance();
+    String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+            .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
+    String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+            + FileSystemConstants.PUBLISH_FAILED;
+    return  curator.checkExists(pathForFailureNode);
   }
 
   /**

@@ -78,7 +78,7 @@ public enum RequestHandlingShardingInfoCache {
   }
 
   /**
-   * remove all the handles for a particular nodeId.
+   * clearNode all the handles for a particular nodeId.
    * 
    * @param nodeIdClient
    */

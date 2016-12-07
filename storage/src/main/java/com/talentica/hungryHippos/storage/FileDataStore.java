@@ -58,7 +58,7 @@ public class FileDataStore implements DataStore {
         this.nodeId = Integer.parseInt(nodeId);
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
-                + File.separator + DATA_FILE_BASE_NAME;
+                + File.separator + fileName;
         this.uniqueFileName = fileName;
         if (!readOnly) {
 
@@ -89,8 +89,10 @@ public class FileDataStore implements DataStore {
     public void storeRow(String name, byte[] raw) {
         try {
             fileNameToOutputStreamMap.get(name).write(raw);
-        } catch (IOException e) {
-            logger.error("Error occurred while writing data received to datastore.", e);
+        } catch (NullPointerException e){
+            logger.error(name+" not present");
+        } catch(IOException e) {
+            logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
         }
     }
 

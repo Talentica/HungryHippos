@@ -10,7 +10,10 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
+import org.apache.spark.SparkExecutorInfo;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -21,6 +24,7 @@ public class HHRDDMain implements Serializable {
   private static final long serialVersionUID = 8326979063332184463L;
   private static SparkContext context;
   private static HHRDDExecutor executor;
+  private static Logger LOGGER = LoggerFactory.getLogger(HHRDDMain.class);
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException {
     executor = new HHRDDExecutor(args);
@@ -28,6 +32,23 @@ public class HHRDDMain implements Serializable {
         executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
     executor.startSumJob(context, hhrddConfiguration, getSumJobMatrix());
+    gracefullyStop(context);
+  }
+
+  private static void gracefullyStop(SparkContext context) {
+    SparkExecutorInfo[] allExecutorInfo = context.statusTracker().getExecutorInfos();
+    LOGGER.info("Total executors {}", allExecutorInfo.length);
+    int index = 0;
+    while (true) {
+      if (index == allExecutorInfo.length) {
+        break;
+      }
+      LOGGER.info("Executor {} and running task {}.", allExecutorInfo[index].host(),
+          allExecutorInfo[index].numRunningTasks());
+      if (allExecutorInfo[index].numRunningTasks() == 0) {
+        index++;
+      }
+    }
     executor.stop(context);
   }
 

@@ -3,7 +3,9 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.io.Serializable;
 
 import javax.xml.bind.JAXBException;
@@ -55,7 +57,6 @@ public class HHRDDExecutor implements Serializable {
   public void startSumJob(SparkContext context, HHRDDConfiguration hhrddConfiguration,
       JobMatrix jobMatrix) throws FileNotFoundException, JAXBException {
     LOGGER.info(jobMatrix.toString());
-    JavaPairRDD<String, Double> allRDD = null;
     HHRDDConfigSerialized hhrddConfigSerialized = new HHRDDConfigSerialized(
         hhrddConfiguration.getRowSize(), hhrddConfiguration.getShardingIndexes(),
         hhrddConfiguration.getDirectoryLocation(), hhrddConfiguration.getShardingFolderPath(),
@@ -83,7 +84,8 @@ public class HHRDDExecutor implements Serializable {
             }
           });
       javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + job.getJobId());
-      LOGGER.info("Output files are in directory {}", hhrddConfiguration.getOutputFile() + job.getJobId());
+      LOGGER.info("Output files are in directory {}",
+          hhrddConfiguration.getOutputFile() + job.getJobId());
     }
   }
 

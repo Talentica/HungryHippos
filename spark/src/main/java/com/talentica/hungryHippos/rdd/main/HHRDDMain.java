@@ -9,9 +9,8 @@ import java.io.Serializable;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
-import org.apache.spark.SparkExecutorInfo;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +21,7 @@ import com.talentica.hungryHippos.rdd.job.JobMatrix;
 public class HHRDDMain implements Serializable {
 
   private static final long serialVersionUID = 8326979063332184463L;
-  private static SparkContext context;
+  private static JavaSparkContext context;
   private static HHRDDExecutor executor;
   private static Logger LOGGER = LoggerFactory.getLogger(HHRDDMain.class);
 
@@ -31,32 +30,28 @@ public class HHRDDMain implements Serializable {
     HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
         executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
-    executor.startSumJob(context, hhrddConfiguration, getSumJobMatrix());
-    gracefullyStop(context);
-  }
-
-  private static void gracefullyStop(SparkContext context) {
-    SparkExecutorInfo[] allExecutorInfo = context.statusTracker().getExecutorInfos();
-    LOGGER.info("Total executors {}", allExecutorInfo.length);
-    int index = 0;
-    while (true) {
-      if (index == allExecutorInfo.length) {
-        break;
-      }
-      LOGGER.info("Executor {} and running task {}.", allExecutorInfo[index].host(),
-          allExecutorInfo[index].numRunningTasks());
-      if (allExecutorInfo[index].numRunningTasks() == 0) {
-        index++;
-      }
+    for(Job job : getSumJobMatrix().getJobs()){
+    Broadcast<Job> broadcastJob = context.broadcast(job);
+    executor.startSumJob(context, hhrddConfiguration,broadcastJob );
     }
     executor.stop(context);
   }
+
 
   private static JobMatrix getSumJobMatrix() {
     int count = 0;
     JobMatrix sumJobMatrix = new JobMatrix();
     for (int i = 0; i < 3; i++) {
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
+      for (int j = i + 1; j < 4; j++) {
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        for (int k = j + 1; k < 4; k++) {
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+        }
+      }
     }
     return sumJobMatrix;
   }
@@ -67,7 +62,7 @@ public class HHRDDMain implements Serializable {
       SparkConf conf =
           new SparkConf().setMaster(executor.getMasterIp()).setAppName(executor.getAppName());
       try {
-        HHRDDMain.context = new JavaSparkContext(conf).sc();
+        HHRDDMain.context = new JavaSparkContext(conf);
       } catch (Exception e) {
         e.printStackTrace();
       }

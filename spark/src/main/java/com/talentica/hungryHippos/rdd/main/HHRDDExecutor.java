@@ -3,17 +3,16 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.io.Serializable;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +21,6 @@ import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.Tuple2;
@@ -54,28 +52,27 @@ public class HHRDDExecutor implements Serializable {
   }
 
 
-  public void startSumJob(SparkContext context, HHRDDConfiguration hhrddConfiguration,
-      JobMatrix jobMatrix) throws FileNotFoundException, JAXBException {
-    LOGGER.info(jobMatrix.toString());
+  @SuppressWarnings("serial")
+  public void startSumJob(JavaSparkContext context, HHRDDConfiguration hhrddConfiguration,
+      Broadcast<Job> broadcastJob) throws FileNotFoundException, JAXBException {
     HHRDDConfigSerialized hhrddConfigSerialized = new HHRDDConfigSerialized(
         hhrddConfiguration.getRowSize(), hhrddConfiguration.getShardingIndexes(),
         hhrddConfiguration.getDirectoryLocation(), hhrddConfiguration.getShardingFolderPath(),
         hhrddConfiguration.getNodes(), hhrddConfiguration.getDataDescription());
-
+    
     HHRDD hipposRDD = new HHRDD(context, hhrddConfigSerialized);
-    for (Job job : jobMatrix.getJobs()) {
       JavaPairRDD<String, Double> javaRDD =
           hipposRDD.toJavaRDD().mapToPair(new PairFunction<HHRDDRowReader, String, Double>() {
             @Override
             public Tuple2<String, Double> call(HHRDDRowReader reader) throws Exception {
               String key = "";
-              for (int index = 0; index < job.getDimensions().length; index++) {
+              for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
                 key =
-                    key + ((MutableCharArrayString) reader.readAtColumn(job.getDimensions()[index]))
+                    key + ((MutableCharArrayString) reader.readAtColumn( broadcastJob.value().getDimensions()[index]))
                         .toString();
               }
-              key = key + "|id=" + job.getJobId();
-              Double value = (Double) reader.readAtColumn(job.getCalculationIndex());
+              key = key + "|id=" +  broadcastJob.value().getJobId();
+              Double value = (Double) reader.readAtColumn( broadcastJob.value().getCalculationIndex());
               return new Tuple2<String, Double>(key, value);
             }
           }).reduceByKey(new Function2<Double, Double, Double>() {
@@ -83,13 +80,12 @@ public class HHRDDExecutor implements Serializable {
               return x + y;
             }
           });
-      javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + job.getJobId());
+      javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() +  broadcastJob.value().getJobId());
       LOGGER.info("Output files are in directory {}",
-          hhrddConfiguration.getOutputFile() + job.getJobId());
-    }
+          hhrddConfiguration.getOutputFile() +  broadcastJob.value().getJobId());
   }
 
-  public void stop(SparkContext context) {
+  public void stop(JavaSparkContext context) {
     context.stop();
   }
 

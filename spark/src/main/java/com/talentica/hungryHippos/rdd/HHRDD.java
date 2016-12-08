@@ -9,8 +9,8 @@ import java.util.Set;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
-import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
@@ -34,8 +34,8 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
   private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
 
-  public HHRDD(SparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
-    super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
+  public HHRDD(JavaSparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
+    super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
     nodesSer = hipposRDDConf.getNodes();

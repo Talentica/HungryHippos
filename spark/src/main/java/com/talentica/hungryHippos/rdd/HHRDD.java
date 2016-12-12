@@ -33,7 +33,6 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
   private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
-  private List<String> reorderPreferedNodesIp = new ArrayList<>();
 
   public HHRDD(JavaSparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
@@ -97,7 +96,7 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
   }
 
   private List<String> reorderPreferredIpsByJobPrimaryDimension(List<String> preferedNodesIp) {
-    reorderPreferedNodesIp.clear();
+    List<String> reorderPreferedNodesIp = new ArrayList<>();
     int jobPrimDim = hipposRDDConf.getBroadcastVariable().getJobPrimaryDimension().value();
     for (int i = 0; i < preferedNodesIp.size(); i++) {
       reorderPreferedNodesIp.add(i, preferedNodesIp.get((i + jobPrimDim) % preferedNodesIp.size()));

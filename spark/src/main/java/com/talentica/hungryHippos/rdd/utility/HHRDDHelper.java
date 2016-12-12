@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -17,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDPartition;
+import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
@@ -101,6 +105,57 @@ public class HHRDDHelper implements Serializable {
 
     return files;
 
+  }
+  
+  public static int getPrimaryDimensionIndexToRunJobWith(Job job,
+      int[] sortedShardingIndexes) {
+    Integer[] jobDimensions = job.getDimensions();
+    List<Integer> dimensionsList = new ArrayList<>();
+    Arrays.stream(jobDimensions).forEach(value -> dimensionsList.add(value));
+    int[] filteredPrimaryOnlyJobDimensions = Arrays.stream(sortedShardingIndexes)
+        .filter(shardIndex -> dimensionsList.contains(shardIndex)).toArray();
+    return getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
+        filteredPrimaryOnlyJobDimensions);
+  }
+
+  private static int getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
+      int[] primaryOnlyJobDimensions) {
+    Arrays.sort(primaryOnlyJobDimensions);
+    int maxPrimaryJobDimension = primaryOnlyJobDimensions[primaryOnlyJobDimensions.length - 1];
+    int[] dimensions = new int[maxPrimaryJobDimension + 1];
+    Arrays.stream(primaryOnlyJobDimensions)
+        .forEach(currentDimension -> dimensions[currentDimension] = 1);
+    int start = -1;
+    int lastSum = 0;
+    int currentSum = 0;
+    int tempStart = -1;
+    int initialSum = 0;
+
+    for (int j = 0; j < dimensions.length; j++) {
+      if (dimensions[j] == 1) {
+        if (tempStart == -1) {
+          tempStart = j;
+        }
+        currentSum++;
+      } else {
+        if (dimensions[0] == 1 && initialSum == 0) {
+          initialSum = currentSum;
+        }
+        currentSum = 0;
+        tempStart = -1;
+      }
+
+      if (currentSum >= lastSum) {
+        start = tempStart;
+        lastSum = currentSum;
+      }
+
+    }
+    if (dimensions[0] == 1 && dimensions[dimensions.length - 1] == 1
+        && (currentSum + initialSum) >= lastSum) {
+      start = tempStart;
+    }
+    return start;
   }
 
 }

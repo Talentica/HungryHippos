@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.rdd.utility.BroadcastVariable;
 
 public class HHRDDConfigSerialized implements Serializable {
 
@@ -15,10 +16,11 @@ public class HHRDDConfigSerialized implements Serializable {
   private String shardingFolderPath;
   private List<SerializedNode> nodes;
   private FieldTypeArrayDataDescription fieldDataDesc;
+  private BroadcastVariable broadcastVariable;
 
   public HHRDDConfigSerialized(int rowSize, int[] shardingIndexes, String directoryLocation,
       String shardingFolderPath, List<SerializedNode> nodes,
-      FieldTypeArrayDataDescription fieldDataDesc) {
+      FieldTypeArrayDataDescription fieldDataDesc,BroadcastVariable broadcastVariable) {
     super();
     this.rowSize = rowSize;
     this.shardingIndexes = shardingIndexes;
@@ -26,6 +28,7 @@ public class HHRDDConfigSerialized implements Serializable {
     this.shardingFolderPath = shardingFolderPath;
     this.nodes = nodes;
     this.fieldDataDesc = fieldDataDesc;
+    this.broadcastVariable = broadcastVariable;
   }
 
   public int[] getShardingIndexes() {
@@ -52,5 +55,8 @@ public class HHRDDConfigSerialized implements Serializable {
     return this.fieldDataDesc;
   }
 
+  public BroadcastVariable getBroadcastVariable() {
+    return broadcastVariable;
+  }
 
 }

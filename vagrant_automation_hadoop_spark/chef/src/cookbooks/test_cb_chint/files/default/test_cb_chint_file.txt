@@ -1,0 +1,2 @@
+This is test file for testing cookbook. It is created at Chef-wk under cookbook/files/default directory. 
+It should be present at nodes.

@@ -1,12 +1,12 @@
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryHippos.node.datareceiver.FileIdHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationContext;
-import com.talentica.hungryHippos.node.datareceiver.DataHandler;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 
@@ -27,12 +27,18 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class DataReceiver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataReceiver.class.getName());
+  public static final String FILE_ID_HANDLER = "FILE_ID_HANDLER";
   public static final String DATA_HANDLER = "DATA_HANDLER";
+  private static String userName;
 
   private int port;
 
   public DataReceiver(int port) {
     this.port = port;
+  }
+
+  public static String getUserName() {
+    return userName;
   }
 
   /**
@@ -57,7 +63,7 @@ public class DataReceiver {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
           ChannelPipeline pipeline = ch.pipeline();
-          pipeline.addLast(DATA_HANDLER, new DataHandler());
+          pipeline.addLast(FILE_ID_HANDLER, new FileIdHandler());
         }
       });
       LOGGER.info("binding to port " + port);
@@ -75,14 +81,16 @@ public class DataReceiver {
 
   public static void main(String[] args) {
     try {
+      String hungryHippoBinDir = System.getProperty("hh.bin.dir");
+      if(hungryHippoBinDir==null){
+        throw new RuntimeException("System property hh.bin.dir is not set. Set the property value to HungryHippo bin Directory");
+      }
       validateArguments(args);
-
       ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
       String connectString = clientConfig.getCoordinationServers().getServers();
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+      userName = clientConfig.getOutput().getNodeSshUsername();
       HungryHippoCurator.getInstance(connectString, sessionTimeOut);
-
-
       LOGGER.info("Start Node initialize");
       int nodePort = NodeInfo.INSTANCE.getPort();
       DataReceiver dataReceiver = new DataReceiver(nodePort);

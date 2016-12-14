@@ -46,7 +46,7 @@ public class HHRDDHelper implements Serializable {
       return nodes;
     }
     // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
-    int  hashCode = getHashCode(fileName);
+    int hashCode = getHashCode(fileName);
 
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
       if (entry.getKey().toString().hashCode() == hashCode) {
@@ -54,8 +54,10 @@ public class HHRDDHelper implements Serializable {
         break;
       }
     }
-    if(nodes == null) return null;
-    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",partitionId, fileName, nodes.toString());
+    if (nodes == null)
+      return null;
+    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",
+        partitionId, fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }
@@ -102,13 +104,10 @@ public class HHRDDHelper implements Serializable {
         return true;
       }
     });
-
     return files;
-
   }
-  
-  public static int getPrimaryDimensionIndexToRunJobWith(Job job,
-      int[] sortedShardingIndexes) {
+
+  public static int getPrimaryDimensionIndexToRunJobWith(Job job, int[] sortedShardingIndexes) {
     Integer[] jobDimensions = job.getDimensions();
     List<Integer> dimensionsList = new ArrayList<>();
     Arrays.stream(jobDimensions).forEach(value -> dimensionsList.add(value));

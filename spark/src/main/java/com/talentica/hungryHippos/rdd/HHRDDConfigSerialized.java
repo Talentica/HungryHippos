@@ -4,11 +4,10 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.utility.BroadcastVariable;
 
 public class HHRDDConfigSerialized implements Serializable {
 
-  
+
   private static final long serialVersionUID = -1970173579825061525L;
   private int rowSize;
   private int[] shardingIndexes;
@@ -16,11 +15,12 @@ public class HHRDDConfigSerialized implements Serializable {
   private String shardingFolderPath;
   private List<SerializedNode> nodes;
   private FieldTypeArrayDataDescription fieldDataDesc;
-  private BroadcastVariable broadcastVariable;
+  private int jobPrimDim;
+  private int maxBuckets;
 
   public HHRDDConfigSerialized(int rowSize, int[] shardingIndexes, String directoryLocation,
       String shardingFolderPath, List<SerializedNode> nodes,
-      FieldTypeArrayDataDescription fieldDataDesc,BroadcastVariable broadcastVariable) {
+      FieldTypeArrayDataDescription fieldDataDesc, int jobPrimDim, int maxBuckets) {
     super();
     this.rowSize = rowSize;
     this.shardingIndexes = shardingIndexes;
@@ -28,7 +28,7 @@ public class HHRDDConfigSerialized implements Serializable {
     this.shardingFolderPath = shardingFolderPath;
     this.nodes = nodes;
     this.fieldDataDesc = fieldDataDesc;
-    this.broadcastVariable = broadcastVariable;
+    this.maxBuckets = maxBuckets;
   }
 
   public int[] getShardingIndexes() {
@@ -55,8 +55,13 @@ public class HHRDDConfigSerialized implements Serializable {
     return this.fieldDataDesc;
   }
 
-  public BroadcastVariable getBroadcastVariable() {
-    return broadcastVariable;
+  public int getJobPrimDim() {
+    return jobPrimDim;
   }
+
+  public int getMaxBuckets() {
+    return maxBuckets;
+  }
+
 
 }

@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.utility.BroadcastVariable;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
 public class HHRDDMain implements Serializable {
@@ -32,13 +31,12 @@ public class HHRDDMain implements Serializable {
     HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
         executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
-    BroadcastVariable broadcastVariable = new BroadcastVariable(context); 
     for (Job job : getSumJobMatrix().getJobs()) {
-      broadcastVariable.setJob(job);
-      broadcastVariable.setJobPrimaryDimension(HHRDDHelper
-          .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes()));
+      Broadcast<Job> jobBroadcast = context.broadcast(job);
+      int jobPrimDim = HHRDDHelper
+          .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
       Broadcast<Job> broadcastJob = context.broadcast(job);
-      executor.startSumJob(context, hhrddConfiguration, broadcastVariable);
+      executor.startSumJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
     }
     executor.stop(context);
   }

@@ -16,27 +16,29 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 public class HHRDDPartition implements Partition {
 
   private static final long serialVersionUID = -8600257810541979113L;
-  private int partitionId;
+  private int index;
   private String filePath;
   private FieldTypeArrayDataDescription dataDescription;
   private String fileName;
-
-  public HHRDDPartition(int partitionId, String filePath,
+  private int rddId;
+  
+  public HHRDDPartition(int rddId , int index, String filePath,
       FieldTypeArrayDataDescription dataDescription) {
-    this.partitionId = partitionId;
+    this.index = index;
     this.filePath = filePath;
     this.dataDescription = dataDescription;
     this.fileName = new File(filePath).getName();
+    this.rddId = rddId;
   }
 
   @Override
   public int index() {
-    return this.partitionId;
+    return this.index;
   }
 
   @Override
   public int hashCode() {
-    return fileName.toString().hashCode();
+    return 31 * (31 + rddId) + index;
   }
 
 
@@ -45,7 +47,7 @@ public class HHRDDPartition implements Partition {
     if (!(obj instanceof HHRDDPartition)) {
       return false;
     }
-    return ((HHRDDPartition) obj).fileName.equals(fileName);
+    return ((HHRDDPartition) obj).index == index;
   }
 
   public String getFilePath() {
@@ -62,10 +64,6 @@ public class HHRDDPartition implements Partition {
 
   public FieldTypeArrayDataDescription getFieldTypeArrayDataDescription() {
     return this.dataDescription;
-  }
-
-  public int getPartitionId() {
-    return partitionId;
   }
 
 

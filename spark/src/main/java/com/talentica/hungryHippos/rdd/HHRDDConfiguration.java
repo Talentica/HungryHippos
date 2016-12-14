@@ -35,6 +35,7 @@ public class HHRDDConfiguration {
   private String shardingFolderPath;
   private List<Node> nodes;
   private String outputFile;
+  private int maxBucket;
   private List<SerializedNode> serializedNodes = new ArrayList<>();
 
   public HHRDDConfiguration(String distributedPath, String clientConfigPath, String outputFileName)
@@ -44,6 +45,7 @@ public class HHRDDConfiguration {
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
     this.shardingIndexes = context.getShardingIndexes();
+    this.maxBucket = Integer.valueOf(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
     this.clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     nodes = this.clusterConfig.getNode();
   }
@@ -103,4 +105,13 @@ public class HHRDDConfiguration {
   public String getOutputFile() {
     return this.outputFile;
   }
+
+  public int getMaxBucket() {
+    return maxBucket;
+  }
+
+  public void setMaxBucket(int maxBucket) {
+    this.maxBucket = maxBucket;
+  }
+  
 }

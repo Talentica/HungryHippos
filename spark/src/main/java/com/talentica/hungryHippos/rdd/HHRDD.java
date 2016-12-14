@@ -33,12 +33,14 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
       ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
   private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
+  private int id;
 
   public HHRDD(JavaSparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
     nodesSer = hipposRDDConf.getNodes();
+    this.id = sc.sc().newRddId();
   }
 
   @Override
@@ -55,18 +57,16 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
 
   @Override
   public Partition[] getPartitions() {
-    String[] files;
     Partition[] partitions = null;
-    try {
-      files = HHRDDHelper.getFiles(hipposRDDConf.getDirectoryLocation());
-      partitions = new Partition[files.length];
-      for (int index = 0; index < partitions.length; index++) {
-        String filePathAndName =
-            hipposRDDConf.getDirectoryLocation() + File.separatorChar + files[index];
-        partitions[index] = new HHRDDPartition(index, new File(filePathAndName).getPath(),
-            hipposRDDConf.getFieldTypeArrayDataDescription());
-      }
-    } catch (IOException e) {
+    List<String> fileNames = new ArrayList<>();
+    listFile(fileNames, "", 0, hipposRDDConf.getMaxBuckets(),
+        hipposRDDConf.getShardingIndexes().length);
+    partitions = new HHRDDPartition[fileNames.size()];
+    for (int index = 0; index < fileNames.size(); index++) {
+      String filePathAndName =
+          hipposRDDConf.getDirectoryLocation() + File.separatorChar + fileNames.get(index);
+      partitions[index] = new HHRDDPartition(id, index, new File(filePathAndName).getPath(),
+          hipposRDDConf.getFieldTypeArrayDataDescription());
     }
     return partitions;
   }
@@ -97,10 +97,27 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
 
   private List<String> reorderPreferredIpsByJobPrimaryDimension(List<String> preferedNodesIp) {
     List<String> reorderPreferedNodesIp = new ArrayList<>();
-    int jobPrimDim = hipposRDDConf.getBroadcastVariable().getJobPrimaryDimension().value();
+    int jobPrimDim = hipposRDDConf.getJobPrimDim();
     for (int i = 0; i < preferedNodesIp.size(); i++) {
       reorderPreferedNodesIp.add(i, preferedNodesIp.get((i + jobPrimDim) % preferedNodesIp.size()));
     }
     return reorderPreferedNodesIp;
+  }
+
+  private void listFile(List<String> fileNames, String fileName, int dim, int maxBucketSize,
+      int shardDim) {
+    if (dim == shardDim) {
+      fileNames.add(fileName);
+      return;
+    }
+
+    for (int i = 1; i <= maxBucketSize; i++) {
+      if (dim == 0) {
+        listFile(fileNames, i + fileName, dim + 1, maxBucketSize, shardDim);
+      } else {
+        listFile(fileNames, fileName + "_" + i, dim + 1, maxBucketSize, shardDim);
+      }
+    }
+
   }
 }

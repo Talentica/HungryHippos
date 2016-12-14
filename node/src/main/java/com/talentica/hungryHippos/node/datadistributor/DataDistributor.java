@@ -72,19 +72,19 @@ public class DataDistributor {
         byte[] buf = new byte[dataDescription.getSize()];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
-        String bucketCombinationPath =
-                context.getBucketCombinationtoNodeNumbersMapFilePath();
         String keyToValueToBucketPath =
                 context.getKeytovaluetobucketMapFilePath();
+        String keyToBucketToNodePath =
+                context.getBuckettoNodeNumberMapFilePath();
         Map<String, String> dataTypeMap =
                 ShardingFileUtil.getDataTypeMap(context);
 
         String[] keyOrder = context.getShardingDimensions();
-        Map<BucketCombination, Set<Node>> bucketCombinationNodeMap =
-                ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
 
         HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
                 ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath, dataTypeMap);
+        HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> keyToBucketToNodetMap =
+                ShardingFileUtil.readFromFileBucketToNodeNumber(keyToBucketToNodePath);
         BucketsCalculator bucketsCalculator =
                 new BucketsCalculator(keyToValueToBucketMap, context);
         Map<Integer, OutputStream> targets = new HashMap<>();
@@ -117,56 +117,54 @@ public class DataDistributor {
                         .newInstance(context.getConfiguredDataDescription());
 
         LOGGER.info("\n\tDISTRIBUTION OF DATA ACROSS THE NODES STARTED... for {}", hhFilePath);
-        Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
-                srcDataPath, dataParser);
-        int lineNo = 0;
-        FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
-        fileWriter.openFile();
 
-        int flushTriggerCount = 0;
+        if(srcFile.exists()) {
 
-        while (true) {
-            DataTypes[] parts = null;
-            try {
-                parts = input.read();
-            } catch (InvalidRowException e) {
-                fileWriter.flushData(lineNo++, e);
-                continue;
-            }
-            if (parts == null) {
-                input.close();
-                break;
-            }
-            Map<String, Bucket<KeyValueFrequency>> keyToBucketMap = new HashMap<>();
+            Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
+                    srcDataPath, dataParser);
+            int lineNo = 0;
+            FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
+            fileWriter.openFile();
 
-            for (int i = 0; i < keyOrder.length; i++) {
-                String key = keyOrder[i];
-                int keyIndex = Integer.parseInt(key.substring(3)) - 1;
-                Object value = parts[keyIndex].clone();
-                Bucket<KeyValueFrequency> bucket = bucketsCalculator.getBucketNumberForValue(key, value);
-                keyToBucketMap.put(keyOrder[i], bucket);
-            }
+            int flushTriggerCount = 0;
 
-            for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
-                Object value = parts[i].clone();
-                dynamicMarshal.writeValue(i, value, byteBuffer);
-            }
-            BucketCombination bucketCombination = new BucketCombination(keyToBucketMap);
-            Set<Node> nodes = bucketCombinationNodeMap.get(bucketCombination);
-            Iterator<Node> nodeIterator = nodes.iterator();
-            Node receivingNode = nodeIterator.next();
-            targets.get(receivingNode.getNodeId()).write(buf);
+            String key = keyOrder[0];
+            int keyIndex = Integer.parseInt(key.substring(3)) - 1;
 
-            flushTriggerCount++;
-
-            if (flushTriggerCount > 100000) {
-                for (Integer nodeId : targets.keySet()) {
-                    targets.get(nodeId).flush();
+            while (true) {
+                DataTypes[] parts = null;
+                try {
+                    parts = input.read();
+                } catch (InvalidRowException e) {
+                    fileWriter.flushData(lineNo++, e);
+                    continue;
                 }
-                flushTriggerCount = 0;
+                if (parts == null) {
+                    input.close();
+                    break;
+                }
+
+                for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
+                    Object value = parts[i].clone();
+                    dynamicMarshal.writeValue(i, value, byteBuffer);
+                }
+
+                Object keyValue = parts[keyIndex].clone();
+                Bucket<KeyValueFrequency> bucket = bucketsCalculator.getBucketNumberForValue(key, keyValue);
+                Node receivingNode = keyToBucketToNodetMap.get(key).get(bucket);
+                targets.get(receivingNode.getNodeId()).write(buf);
+
+                flushTriggerCount++;
+
+                if (flushTriggerCount > 100000) {
+                    for (Integer nodeId : targets.keySet()) {
+                        targets.get(nodeId).flush();
+                    }
+                    flushTriggerCount = 0;
+                }
             }
+            fileWriter.close();
         }
-        fileWriter.close();
         for (Integer nodeId : targets.keySet()) {
             targets.get(nodeId).flush();
             targets.get(nodeId).close();

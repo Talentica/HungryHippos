@@ -1,8 +1,11 @@
 package com.talentica.hungryHippos.node.datareceiver;
 
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.node.DataReceiver;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,7 +43,18 @@ public class HHFileUploader {
             synchronized (classLock) {
                 countDownLatch = countDownMap.get(hhFilePath);
                 if (countDownLatch == null) {
-                    countDownLatch = new CountDownLatch(nodes.size());
+                    HungryHippoCurator curator = HungryHippoCurator.getInstance();
+                    String hhFilePathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+                            .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
+                    String pathForNoOfChunks = hhFilePathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+                            + FileSystemConstants.NO_OF_CHUNKS;
+                    int noOfChunks = 0;
+                    try {
+                        noOfChunks = Integer.parseInt(curator.getZnodeData(pathForNoOfChunks));
+                    } catch (HungryHippoException e) {
+                        throw new RuntimeException("Could not get no of Chunks for "+hhFilePath);
+                    }
+                    countDownLatch = new CountDownLatch(noOfChunks);
                     countDownMap.put(hhFilePath, countDownLatch);
                 }
             }
@@ -68,6 +82,7 @@ public class HHFileUploader {
                                 LOGGER.error(line);
                             }
                             br.close();
+                            LOGGER.error("Files failed for upload : "+fileNamesArg);
                             throw new RuntimeException("File transfer failed");
                         }
                     }

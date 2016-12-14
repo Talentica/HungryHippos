@@ -54,6 +54,10 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
+    int noOfChunks = 0;
+    if(args.length>3){
+      noOfChunks = Integer.parseInt(args[3]);
+    }
 
     try {
       ClientConfig clientConfig =
@@ -66,7 +70,9 @@ public class DataPublisherStarter {
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       checkFilesInSync(shardingZipRemotePath);
       List<Node>  nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-      int noOfChunks = nodes.size();
+      if(noOfChunks==0){
+        noOfChunks = nodes.size();
+      }
       File srcFile = new File(sourcePath);
       String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
               .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
@@ -74,8 +80,11 @@ public class DataPublisherStarter {
               destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.DATA_READY;
       String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
               + FileSystemConstants.PUBLISH_FAILED;
+      String pathForNoOfChunks = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+              + FileSystemConstants.NO_OF_CHUNKS;
       curator.deletePersistentNodeIfExits(pathForSuccessNode);
       curator.deletePersistentNodeIfExits(pathForFailureNode);
+      curator.updatePersistentNode(pathForNoOfChunks,noOfChunks+"");
       String remotePath = FileSystemContext.getRootDirectory()+destinationPath+File.separator+ UUID.randomUUID().toString();
       long startTime = System.currentTimeMillis();
       String chunkFilePathPrefix = sourcePath+"_"+startTime+"_";
@@ -106,9 +115,10 @@ public class DataPublisherStarter {
           }
         File file = new File(chunkFilePath);
         file.deleteOnExit();
-        ScpCommandExecutor.upload(userName,nodes.get(i).getIp(),remotePath,chunkFilePath);
+        int nodeId = i%nodes.size();
+        ScpCommandExecutor.upload(userName,nodes.get(nodeId).getIp(),remotePath,chunkFilePath);
         file.delete();
-        Node node = nodes.get(i);
+        Node node = nodes.get(nodeId);
         Socket socket = ServerUtils.connectToServer(node.getIp()+":"+8789, 10);
         dataInputStreamMap.put(i, new DataInputStream(socket.getInputStream()));
         DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
@@ -121,7 +131,7 @@ public class DataPublisherStarter {
       for (int i = 0; i < noOfChunks; i++) {
         LOGGER.info("Waiting for status of chunk : {}",i+1);
         String status = dataInputStreamMap.get(i).readUTF();
-        LOGGER.info("status of chunk {} is {} ",i+1,status);
+        LOGGER.info("status of chunk {}/{} is {} ",i+1,noOfChunks,status);
         if("FAILED".equals(status)){
           throw new RuntimeException("File Publish Failed for "+destinationPath);
         }

@@ -59,6 +59,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
     private int fileId;
     private boolean noError;
     private String uniqueFolderName;
+    private String senderIp;
 
 
     public NewDataHandler(int fileId, byte[] remainingBufferData) throws HungryHippoException, IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
@@ -138,8 +139,8 @@ public class NewDataHandler extends ChannelHandlerAdapter {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         LOGGER.info("Inside handlerAdded");
-        String senderIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
-        LOGGER.info("Connected to {}", senderIp);
+        senderIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+        LOGGER.info("Connected to {} FileId : {}", senderIp,fileId);
         this.byteBuf = ctx.alloc().buffer(recordSize * 20);
         this.byteBuf.writeBytes(previousUnprocessedData);
         processData();
@@ -201,6 +202,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
             LOGGER.error(e.toString());
             updateFailure(hhFilePath,NodeInfo.INSTANCE.getIp()+" : "+e.toString());
         }
+        LOGGER.info("Closed connection from {} FileId : {}",senderIp,fileId);
         ctx.channel().close();
         LOGGER.info("Exiting handlerRemoved");
     }

@@ -1,0 +1,3 @@
+162.243.87.126	HadoopMaster
+162.243.95.202	HadoopSlave1
+162.243.97.39	HadoopSlave2

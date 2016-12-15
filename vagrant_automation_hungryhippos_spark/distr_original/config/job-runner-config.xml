@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:job-runner-config
+        xmlns:tns="http://www.talentica.com/hungryhippos/config/jobrunner"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/jobrunner job-runner-config.xsd ">
+        <tns:no-of-rows-to-check-available-memory>2000</tns:no-of-rows-to-check-available-memory>
+        <tns:min-free-memory-in-mbs>100</tns:min-free-memory-in-mbs>
+        <tns:no-of-rows-to-check-memory-consumption-after>1000</tns:no-of-rows-to-check-memory-consumption-after>
+        <tns:no-of-rows-to-log-progress-after>3000000</tns:no-of-rows-to-log-progress-after>
+        <tns:max-no-of-gc-retries-when-single-valueset-is-in-process>5</tns:max-no-of-gc-retries-when-single-valueset-is-in-process>
+        <tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
+                5000</tns:wait-time-in-ms-after-gc-is-requested-for-single-valueset-is-in-process>
+        <tns:jobs-root-directory>/home/hhuser/hh/JobJars</tns:jobs-root-directory>
+</tns:job-runner-config>
+

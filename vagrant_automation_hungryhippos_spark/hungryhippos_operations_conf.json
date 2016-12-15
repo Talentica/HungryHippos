@@ -1,0 +1,43 @@
+{
+
+	"number_of_jobs": "1",
+	"mysql_server": "192.241.137.249",
+	"mysql_username": "root",
+	"mysql_password": "root",
+
+	"jobs":
+	[	
+        	{
+			"lib_client": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client",
+ 			"filepath_sharding_jar": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client/sharding-0.7.0.jar",
+                        "sharding_class": "com.talentica.hungryHippos.sharding.main.ShardingStarter", 
+                        "filepath_client_config": "/home/chintamanim/test_vagrant_virtualbox/distr/config/client-config.xml", 
+                        "folderpath_config": "/home/chintamanim/test_vagrant_virtualbox/distr/config/",
+                        "filepath_sharding_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/sharding.out", 
+                        "filepath_sharding_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/sharding.err",
+
+			"filepath_datapublisher_jar": "/home/chintamanim/test_vagrant_virtualbox/distr/lib_client/data-publisher-0.7.0.jar",
+			"datapublisher_class": "com.talentica.hungryHippos.master.DataPublisherStarter",
+			"input_filepath": "/home/chintamanim/test_vagrant_virtualbox/1gb.txt",
+			"sampling_filepath": "/home/chintamanim/test_vagrant_virtualbox/1gb_sample.txt",  
+			"distributed_input_filepath": "/rajk/1gb5",
+			"filepath_datapublisher_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/datapub_6.out", 
+			"filepath_datapublisher_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/datapub_6.err",
+
+			"joborchestrator_class": "com.talentica.hungryHippos.job.main.JobOrchestrator",
+			"job_filepath": "/home/chintamanim/test_vagrant_virtualbox/test-jobs.1.jar",
+			"job_class": "com.talentica.hungryHippos.test.sum.SumJobMatrixImpl",
+			"distributed_output_filepath": "/rajk/output5",
+			"filepath_orchestrator_output_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/job-man_2.out",
+			"filepath_orchestrator_error_log": "/home/chintamanim/test_vagrant_virtualbox/distr/logs/job-man_2.err",
+			"_comments": "BELOW PROPERTIES ARE OPTIONAL, KEEP BLANK IF DON'T REQUIRED",
+			"file_to_copy_to_local": "/rajk/output5",
+			"local_path_to_copy_file_from_hhfs": "/home/chintamanim/",
+			"delete_file": "/rajk/output5"
+			
+		}
+
+
+	]
+
+}

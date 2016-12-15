@@ -384,7 +384,7 @@ public class Sharding {
       // exit case
       // lets check which nodes it goes.
       Set<Node> nodesForBucketCombination = new LinkedHashSet<>();
-      for (int i = keys.length - 1; i >= 0; i--) {
+      for (int i = 0; i < keys.length; i++) {
         Node n =
             bucketToNodeNumberMap.get(keys[i]).get(source.getBucketsCombination().get(keys[i]));
         if (n != null) {

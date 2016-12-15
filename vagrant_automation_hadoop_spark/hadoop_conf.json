@@ -1,0 +1,45 @@
+{
+
+	"number_of_jobs": "2",
+	"mysql_server": "192.241.137.249",
+	"mysql_username": "root",
+        "mysql_password": "root",
+
+	"jobs":
+	[	
+        	{
+			"jar_file_path": "/root/hadoop_benchmarking/hadoop-test-20.jar",
+			"input_file_path": "/root/hadoop_benchmarking/data_1gb.csv",
+			"class_name": "com.talentica.hungryHippos.hadoopTest.benchmark.SumJobRunner",
+			"output_file_name": "output_sum_1gb_20",
+			"desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+			"desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+			"desired_job_file_location_master": "/usr/local/hadoop/jobs/jar",
+			"desired_input_file_location_hdfs": "/input_sum_1gb_20",
+			"desired_output_file_location_hdfs": "/output_sum_1gb_20",
+			"_comment": "Below values are optional, keep value null if not intended to use",
+			"expected_result_file_path": "",
+			"desired_expected_result_location_master": "",
+			"delete_hdfs_file":""
+		},
+
+		 {
+                        "jar_file_path": "/root/hadoop_benchmarking/hadoop-test-200.jar",
+                        "input_file_path": "/root/hadoop_benchmarking/data_1gb.csv",
+                        "class_name": "com.talentica.hungryHippos.hadoopTest.benchmark.SumJobRunner",
+                        "output_file_name": "output_sum_1gb_200",
+                        "desired_input_file_location_master": "/usr/local/hadoop/jobs/input_file",
+                        "desired_output_file_location_master": "/usr/local/hadoop/jobs/output_file",
+                        "desired_job_file_location_master": "/usr/local/hadoop/jobs/jar",
+                        "desired_input_file_location_hdfs": "/input_sum_1gb_200",
+                        "desired_output_file_location_hdfs": "/output_sum_1gb_200",
+                        "_comment": "Below values are optional, keep value null if not intended to use",
+                        "expected_result_file_path": "",
+                        "desired_expected_result_location_master": "",
+                        "delete_hdfs_file":""
+
+		}
+
+	]
+
+}

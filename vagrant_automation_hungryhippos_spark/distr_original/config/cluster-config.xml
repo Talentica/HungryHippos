@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:cluster-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/cluster"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/cluster cluster-config.xsd ">
+</tns:cluster-config>

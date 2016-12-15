@@ -48,7 +48,8 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHRDDIterator iterator = null;
     try {
-      iterator = new HHRDDIterator(hhRDDPartion);
+      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
+          hhRDDPartion.getFieldTypeArrayDataDescription());
     } catch (IOException e) {
       e.printStackTrace();
     }

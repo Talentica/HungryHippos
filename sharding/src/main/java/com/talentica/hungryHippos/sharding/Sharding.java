@@ -38,7 +38,8 @@ public class Sharding {
   private HashMap<String, Integer> keyToIndexMap = new HashMap<>();
 
   // Map<Key1,Map<value1,Node(1)>
-  private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap = new HashMap<>();
+  private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap =
+      new HashMap<>();
   PriorityQueue<Node> fillupQueue = new PriorityQueue<>(new NodeRemainingCapacityComparator());
 
   // e.g. Map<KeyCombination({key1,value1},{key2,value2},{key3,value3}),count>
@@ -99,6 +100,7 @@ public class Sharding {
 
   /**
    * dump the sharding table files that are created.
+   * 
    * @param directoryPath
    * @param shardingClientConfigFilePath
    * @param shardingServerConfigFilePath
@@ -171,6 +173,7 @@ public class Sharding {
 
   /**
    * populate map with frequency of data occured in the reader.
+   * 
    * @param data
    * @return
    * @throws IOException
@@ -180,8 +183,9 @@ public class Sharding {
    * @throws JAXBException
    */
   // TODO: This method needs to be generalized
-  HashMap<String, HashMap<DataTypes, Long>> populateFrequencyFromData(Reader data) throws IOException,
-      ClassNotFoundException, KeeperException, InterruptedException, JAXBException {
+  HashMap<String, HashMap<DataTypes, Long>> populateFrequencyFromData(Reader data)
+      throws IOException, ClassNotFoundException, KeeperException, InterruptedException,
+      JAXBException {
 
     logger.info("Populating frequency map from data started");
     setKeysToIndexes();
@@ -240,14 +244,15 @@ public class Sharding {
       HashMap<Object, Bucket<KeyValueFrequency>> valueToBucketMap = new HashMap<>();
       keyToValueToBucketMap.put(keys[i], valueToBucketMap);
       long frequencyOfAlreadyAddedValues = 0;
-      int bucketCount = 0;
+      int bucketCount = -1;
       HashMap<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
       long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
       logger.info("Ideal size of bucket for {}:{}",
           new Object[] {keys[i], idealAverageSizeOfOneBucket});
-      Bucket<KeyValueFrequency> bucket = new Bucket<>(bucketCount, idealAverageSizeOfOneBucket);
+      Bucket<KeyValueFrequency> bucket = null;
       List<Bucket<KeyValueFrequency>> buckets = new ArrayList<>();
-      buckets.add(bucket);
+      long[] remainingCapacity = new long[totalNoOfBuckets];
+      // buckets.add(bucket);
       List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
       if (!sortedKeyValueFrequencies.isEmpty()) {
         for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
@@ -259,16 +264,30 @@ public class Sharding {
                 "Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
                 new Object[] {keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket});
           }
-          if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket) {
-            bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
-            buckets.add(bucket);
-            frequencyOfAlreadyAddedValues = 0;
+          if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket
+              || bucket == null) {
+            boolean flag = false;
+            for (int k = 0; k < totalNoOfBuckets; k++) {
+              if (remainingCapacity[k] > frequency) {
+                bucket = buckets.get(k);
+                flag = true;
+              }
+            }
+
+            if (!flag) {
+              bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
+              buckets.add(bucket);
+              remainingCapacity[bucket.getId()] = sizeOfCurrentBucket;
+              frequencyOfAlreadyAddedValues = 0;
+            }
           }
           frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
+          remainingCapacity[bucket.getId()] = remainingCapacity[bucket.getId()] - frequency;
           bucket.add(keyValueFrequency);
           valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
         }
         this.keysToListOfBucketsMap.put(keys[i], buckets);
+        logger.info("BucketCount is {} ", bucketCount);
       }
     }
     if (logger.isDebugEnabled()) {
@@ -280,6 +299,7 @@ public class Sharding {
 
   /**
    * retrieves the sorted key list of frequency value map.
+   * 
    * @return
    * @throws ClassNotFoundException
    * @throws FileNotFoundException

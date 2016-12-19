@@ -75,7 +75,7 @@ public class MedianJobExecutor implements Serializable{
 
         JavaPairRDD<String, Iterable<Double>> pairRDDGroupedByKey = pairRDD.groupByKey();
 
-       /* JavaPairRDD<String, Double> result = pairRDDGroupedByKey.mapToPair(new PairFunction<Tuple2<String,Iterable<Double>>, String, Double>() {
+        JavaPairRDD<String, Double> result = pairRDDGroupedByKey.mapToPair(new PairFunction<Tuple2<String,Iterable<Double>>, String, Double>() {
 
             @Override
             public Tuple2<String, Double> call(Tuple2<String, Iterable<Double>> t) throws Exception {
@@ -86,19 +86,8 @@ public class MedianJobExecutor implements Serializable{
                 }
                 Double median = descriptiveStatistics.getPercentile(50);
                 return new Tuple2<String, Double>(t._1, median);
-            }});*/
-       JavaPairRDD<String,Double > out = pairRDDGroupedByKey.mapValues(new Function<Iterable<Double>, Double>() {
-           @Override
-           public Double call(Iterable<Double> v1) throws Exception {
-               DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
-               Iterator<Double> itr = v1.iterator();
-               while(itr.hasNext()){
-                   descriptiveStatistics.addValue(itr.next());
-               }
-               return descriptiveStatistics.getPercentile(50);
-           }
-       });
-        out.saveAsTextFile(
+            }});
+        result.saveAsTextFile(
                 hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
         LOGGER.info("Output files are in directory {}",
                 hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());

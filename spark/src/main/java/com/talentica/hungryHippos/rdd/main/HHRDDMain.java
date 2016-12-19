@@ -35,7 +35,6 @@ public class HHRDDMain implements Serializable {
       Broadcast<Job> jobBroadcast = context.broadcast(job);
       int jobPrimDim = HHRDDHelper
           .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
-      Broadcast<Job> broadcastJob = context.broadcast(job);
       executor.startSumJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
     }
     executor.stop(context);

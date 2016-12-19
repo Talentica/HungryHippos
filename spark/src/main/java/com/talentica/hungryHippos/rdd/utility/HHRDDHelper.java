@@ -37,6 +37,7 @@ public class HHRDDHelper implements Serializable {
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
   private static HashMap<Integer, Set<Node>> cachePreferedLocation =
       new HashMap<Integer, Set<Node>>();
+  private static Partition[] partitions = null;
 
   public static Set<Node> getPreferedIpsFromSetOfNode(Partition partition) {
     String fileName = ((HHRDDPartition) partition).getFileName();
@@ -115,6 +116,40 @@ public class HHRDDHelper implements Serializable {
         .filter(shardIndex -> dimensionsList.contains(shardIndex)).toArray();
     return getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
         filteredPrimaryOnlyJobDimensions);
+  }
+
+  public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id) {
+    if (partitions == null) {
+      List<String> fileNames = new ArrayList<>();
+      listFile(fileNames, "", 0, hipposRDDConf.getMaxBuckets(),
+          hipposRDDConf.getShardingIndexes().length);
+      partitions = new HHRDDPartition[fileNames.size()];
+      for (int index = 0; index < fileNames.size(); index++) {
+        String filePathAndName =
+            hipposRDDConf.getDirectoryLocation() + File.separatorChar + fileNames.get(index);
+        partitions[index] = new HHRDDPartition(id, index, new File(filePathAndName).getPath(),
+            hipposRDDConf.getFieldTypeArrayDataDescription());
+      }
+    }
+    return partitions;
+
+  }
+
+  private static void listFile(List<String> fileNames, String fileName, int dim, int maxBucketSize,
+      int shardDim) {
+    if (dim == shardDim) {
+      fileNames.add(fileName);
+      return;
+    }
+
+    for (int i = 1; i <= maxBucketSize; i++) {
+      if (dim == 0) {
+        listFile(fileNames, i + fileName, dim + 1, maxBucketSize, shardDim);
+      } else {
+        listFile(fileNames, fileName + "_" + i, dim + 1, maxBucketSize, shardDim);
+      }
+    }
+
   }
 
   private static int getShardingIndexForJobExecutionToMaximizeUseOfSortedData(

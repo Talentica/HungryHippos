@@ -58,18 +58,7 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
 
   @Override
   public Partition[] getPartitions() {
-    Partition[] partitions = null;
-    List<String> fileNames = new ArrayList<>();
-    listFile(fileNames, "", 0, hipposRDDConf.getMaxBuckets(),
-        hipposRDDConf.getShardingIndexes().length);
-    partitions = new HHRDDPartition[fileNames.size()];
-    for (int index = 0; index < fileNames.size(); index++) {
-      String filePathAndName =
-          hipposRDDConf.getDirectoryLocation() + File.separatorChar + fileNames.get(index);
-      partitions[index] = new HHRDDPartition(id, index, new File(filePathAndName).getPath(),
-          hipposRDDConf.getFieldTypeArrayDataDescription());
-    }
-    return partitions;
+    return HHRDDHelper.getPartition(hipposRDDConf, id);
   }
 
   @Override
@@ -105,20 +94,4 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
     return reorderPreferedNodesIp;
   }
 
-  private void listFile(List<String> fileNames, String fileName, int dim, int maxBucketSize,
-      int shardDim) {
-    if (dim == shardDim) {
-      fileNames.add(fileName);
-      return;
-    }
-
-    for (int i = 1; i <= maxBucketSize; i++) {
-      if (dim == 0) {
-        listFile(fileNames, i + fileName, dim + 1, maxBucketSize, shardDim);
-      } else {
-        listFile(fileNames, fileName + "_" + i, dim + 1, maxBucketSize, shardDim);
-      }
-    }
-
-  }
 }

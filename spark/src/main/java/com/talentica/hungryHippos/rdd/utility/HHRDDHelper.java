@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDPartition;
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 
@@ -38,6 +40,8 @@ public class HHRDDHelper implements Serializable {
   private static HashMap<Integer, Set<Node>> cachePreferedLocation =
       new HashMap<Integer, Set<Node>>();
   private static Partition[] partitions = null;
+  private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
+  public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 
   public static Set<Node> getPreferedIpsFromSetOfNode(Partition partition) {
     String fileName = ((HHRDDPartition) partition).getFileName();
@@ -55,8 +59,11 @@ public class HHRDDHelper implements Serializable {
         break;
       }
     }
-    if (nodes == null)
+
+    if (nodes == null) {
+      logger.warn("Partition  {} does not exists", fileName);
       return null;
+    }
     logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",
         partitionId, fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
@@ -86,6 +93,27 @@ public class HHRDDHelper implements Serializable {
       bucketCombinationToNodeNumberMap = ShardingFileUtil
           .readFromFileBucketCombinationToNodeNumber(bucketCombinationToNodeNumbersMapFilePath);
     }
+  }
+
+  public static void populateBucketToNodeNumber(HHRDDConfigSerialized hipposRDDConf) {
+    String bucketToNodeNumberMapFilePath =
+        hipposRDDConf.getShardingFolderPath() + File.separatorChar + bucketToNodeNumberMapFile;
+    if (bucketToNodeNumberMap == null) {
+      bucketToNodeNumberMap =
+          ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFilePath);
+    }
+  }
+
+  public static int getMaxBucket() {
+    int maxBucket = 0;
+    for (Entry<String, HashMap<Bucket<KeyValueFrequency>, Node>> entry : bucketToNodeNumberMap
+        .entrySet()) {
+      int bucketNumber = bucketToNodeNumberMap.get(entry.getKey()).keySet().size();
+      if (bucketNumber > maxBucket) {
+        maxBucket = bucketNumber;
+      }
+    }
+    return maxBucket;
   }
 
 
@@ -121,8 +149,7 @@ public class HHRDDHelper implements Serializable {
   public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id) {
     if (partitions == null) {
       List<String> fileNames = new ArrayList<>();
-      listFile(fileNames, "", 0, hipposRDDConf.getMaxBuckets(),
-          hipposRDDConf.getShardingIndexes().length);
+      listFile(fileNames, "", 0, getMaxBucket(), hipposRDDConf.getShardingIndexes().length);
       partitions = new HHRDDPartition[fileNames.size()];
       for (int index = 0; index < fileNames.size(); index++) {
         String filePathAndName =
@@ -142,7 +169,7 @@ public class HHRDDHelper implements Serializable {
       return;
     }
 
-    for (int i = 1; i <= maxBucketSize; i++) {
+    for (int i = 0; i < maxBucketSize; i++) {
       if (dim == 0) {
         listFile(fileNames, i + fileName, dim + 1, maxBucketSize, shardDim);
       } else {

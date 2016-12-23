@@ -40,10 +40,10 @@ public class HHRDDHelper implements Serializable {
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
   private static HashMap<Integer, List<String>> cachePreferedLocation =
       new HashMap<Integer, List<String>>();
-  // private static Map<Integer, List<String>> cacheIpsByNode = new HashMap<>();
   private static Partition[] partitions = null;
   private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
+  private static String[]  keyOrder;
 
   public static List<String> getPreferedIpsFromSetOfNode(Partition partition,
       List<SerializedNode> nodesSer, int primDim) {
@@ -71,19 +71,10 @@ public class HHRDDHelper implements Serializable {
 
     List<String> ips = selectPreferedNodesIp(nodeSet, nodesSer);
     hhrddPartition.setHosts(ips);
-    logger.info("Partition id {} and hosts {}", hhrddPartition.index(), ips);
-    // cacheIpsByNode.put(partitionId, ips);
     nodes = getPreferredIp(ips, primDim);
-    logger.info(" prefered locations for partition id {} whose file name is {}  is {}", partitionId,
-        fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }
-
-  /*
-   * public static List<String> getNodesByPartitionId(int partitionId) { return
-   * cacheIpsByNode.get(partitionId); }
-   */
 
   private static int getHashCode(String fileName) {
     String key = "BucketCombination{{";
@@ -118,18 +109,6 @@ public class HHRDDHelper implements Serializable {
     }
   }
 
-  public static int getMaxBucket() {
-    int maxBucket = 0;
-    for (Entry<String, HashMap<Bucket<KeyValueFrequency>, Node>> entry : bucketToNodeNumberMap
-        .entrySet()) {
-      int bucketNumber = bucketToNodeNumberMap.get(entry.getKey()).keySet().size();
-      if (bucketNumber > maxBucket) {
-        maxBucket = bucketNumber;
-      }
-    }
-    return maxBucket;
-  }
-
   public static String[] getFiles(String dataDirectory) throws IOException {
     String[] files = new File(dataDirectory).list(new FilenameFilter() {
 
@@ -162,7 +141,8 @@ public class HHRDDHelper implements Serializable {
   public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id) {
     if (partitions == null) {
       List<String> fileNames = new ArrayList<>();
-      listFile(fileNames, "", 0, getMaxBucket(), hipposRDDConf.getShardingIndexes().length);
+      keyOrder= hipposRDDConf.getShardingKeyOrder();
+      listFile(fileNames, "", 0, keyOrder.length);
       partitions = new HHRDDPartition[fileNames.size()];
       for (int index = 0; index < fileNames.size(); index++) {
         String filePathAndName =
@@ -175,22 +155,31 @@ public class HHRDDHelper implements Serializable {
 
   }
 
-  private static void listFile(List<String> fileNames, String fileName, int dim, int maxBucketSize,
-      int shardDim) {
+  private static void listFile(List<String> fileNames, String fileName, int dim,   int shardDim) {
     if (dim == shardDim) {
       fileNames.add(fileName);
       return;
     }
-
-    for (int i = 0; i < maxBucketSize; i++) {
+    for (int i = 0; i < bucketToNodeNumberMap.get(keyOrder[dim]).size(); i++) {
       if (dim == 0) {
-        listFile(fileNames, i + fileName, dim + 1, maxBucketSize, shardDim);
+        listFile(fileNames, i + fileName, dim + 1,shardDim);
       } else {
-        listFile(fileNames, fileName + "_" + i, dim + 1, maxBucketSize, shardDim);
+        listFile(fileNames, fileName + "_" + i, dim + 1, shardDim);
       }
     }
 
   }
+  
+/* public static void main(String[] args) {
+   String shardingTablePath = "/home/pooshans/HungryHippos/HungryHippos/sharding-table";
+   ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
+   bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(
+       shardingTablePath + File.separatorChar + "bucketToNodeNumberMap");
+   System.out.println(bucketToNodeNumberMap);
+   List<String> fileNames = new ArrayList<>();
+   listFile(fileNames, "", 0, keyOrder.length);
+   System.out.println(fileNames);
+}*/
 
   private static int getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
       int[] primaryOnlyJobDimensions) {

@@ -27,6 +27,7 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 public class HHRDDConfiguration {
 
   private int rowSize;
+  private String[] shardingKeyOrder;
   private int[] shardingIndexes;
   private String directoryLocation;
   private FieldTypeArrayDataDescription dataDescription;
@@ -44,8 +45,10 @@ public class HHRDDConfiguration {
     ShardingApplicationContext context = new ShardingApplicationContext(shardingFolderPath);
     this.dataDescription = context.getConfiguredDataDescription();
     this.rowSize = dataDescription.getSize();
+    this.shardingKeyOrder = context.getShardingDimensions();
     this.shardingIndexes = context.getShardingIndexes();
-    this.maxBucket = Integer.valueOf(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
+    this.maxBucket =
+        Integer.valueOf(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
     this.clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     nodes = this.clusterConfig.getNode();
   }
@@ -70,6 +73,14 @@ public class HHRDDConfiguration {
     return serializedNodes;
   }
 
+  public int[] getShardingIndexes() {
+    return shardingIndexes;
+  }
+
+  public void setShardingIndexes(int[] shardingIndexes) {
+    this.shardingIndexes = shardingIndexes;
+  }
+
   public String getShardingFolderPath() {
     return this.shardingFolderPath;
   }
@@ -82,12 +93,12 @@ public class HHRDDConfiguration {
     this.rowSize = rowSize;
   }
 
-  public int[] getShardingIndexes() {
-    return shardingIndexes;
+  public String[] getShardingKeyOrder() {
+    return shardingKeyOrder;
   }
 
-  public void setShardingIndexes(int[] shardingIndexes) {
-    this.shardingIndexes = shardingIndexes;
+  public void setShardingKeyOrder(String[] shardingKeyOrder) {
+    this.shardingKeyOrder = shardingKeyOrder;
   }
 
   public String getDirectoryLocation() {
@@ -113,5 +124,5 @@ public class HHRDDConfiguration {
   public void setMaxBucket(int maxBucket) {
     this.maxBucket = maxBucket;
   }
-  
+
 }

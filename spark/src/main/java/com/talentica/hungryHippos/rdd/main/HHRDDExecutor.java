@@ -63,9 +63,9 @@ public class HHRDDExecutor implements Serializable {
       Broadcast<Job> jobBroadcast, int jobPrimDim) throws FileNotFoundException, JAXBException {
     HHRDDConfigSerialized hhrddConfigSerialized =
         new HHRDDConfigSerialized(hhrddConfiguration.getRowSize(),
-            hhrddConfiguration.getShardingIndexes(), hhrddConfiguration.getDirectoryLocation(),
+            hhrddConfiguration.getShardingKeyOrder(), hhrddConfiguration.getDirectoryLocation(),
             hhrddConfiguration.getShardingFolderPath(), hhrddConfiguration.getNodes(),
-            hhrddConfiguration.getDataDescription(), jobPrimDim, hhrddConfiguration.getMaxBucket());
+            hhrddConfiguration.getDataDescription(), jobPrimDim);
     
     Broadcast<FieldTypeArrayDataDescription> dataDes =
         context.broadcast(hhrddConfiguration.getDataDescription());

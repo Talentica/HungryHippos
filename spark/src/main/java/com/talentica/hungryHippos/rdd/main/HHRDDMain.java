@@ -11,8 +11,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -24,7 +22,6 @@ public class HHRDDMain implements Serializable {
   private static final long serialVersionUID = 8326979063332184463L;
   private static JavaSparkContext context;
   private static HHRDDExecutor executor;
-  private static Logger LOGGER = LoggerFactory.getLogger(HHRDDMain.class);
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException {
     executor = new HHRDDExecutor(args);
@@ -44,7 +41,9 @@ public class HHRDDMain implements Serializable {
   private static JobMatrix getSumJobMatrix() {
     int count = 0;
     JobMatrix sumJobMatrix = new JobMatrix();
-    for (int i = 0; i < 3; i++) {
+    sumJobMatrix.addJob(new Job(new Integer[] {0}, 6, count++));
+    sumJobMatrix.addJob(new Job(new Integer[] {0}, 7, count++));
+    /*for (int i = 0; i < 3; i++) {
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
       for (int j = i + 1; j < 4; j++) {
@@ -55,11 +54,10 @@ public class HHRDDMain implements Serializable {
           sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
         }
       }
-    }
+    }*/
     return sumJobMatrix;
   }
 
-  @SuppressWarnings("resource")
   private static void initializeSparkContext() {
     if (HHRDDMain.context == null) {
       SparkConf conf =

@@ -36,7 +36,7 @@ public class MedianJob {
 
     private static JobMatrix getSumJobMatrix() {
         JobMatrix medianJobMatrix = new JobMatrix();
-        medianJobMatrix.addJob(new Job(new Integer[] {0},6,0));
+        medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
         return medianJobMatrix;
     }
 

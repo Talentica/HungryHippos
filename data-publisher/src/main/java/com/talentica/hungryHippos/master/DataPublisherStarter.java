@@ -122,6 +122,7 @@ public class DataPublisherStarter {
         Socket socket = ServerUtils.connectToServer(node.getIp()+":"+8789, 10);
         dataInputStreamMap.put(i, new DataInputStream(socket.getInputStream()));
         DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+       dos.writeInt(1);
         dos.writeUTF(destinationPath);
         dos.writeUTF(remotePath+File.separator+chunkFileNamePrefix+i);
         dos.flush();

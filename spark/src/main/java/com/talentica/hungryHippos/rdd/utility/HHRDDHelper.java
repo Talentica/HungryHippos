@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDPartition;
+import com.talentica.hungryHippos.rdd.SerializedNode;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
@@ -37,39 +38,52 @@ public class HHRDDHelper implements Serializable {
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
-  private static HashMap<Integer, Set<Node>> cachePreferedLocation =
-      new HashMap<Integer, Set<Node>>();
+  private static HashMap<Integer, List<String>> cachePreferedLocation =
+      new HashMap<Integer, List<String>>();
+  // private static Map<Integer, List<String>> cacheIpsByNode = new HashMap<>();
   private static Partition[] partitions = null;
   private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 
-  public static Set<Node> getPreferedIpsFromSetOfNode(Partition partition) {
-    String fileName = ((HHRDDPartition) partition).getFileName();
-    Integer partitionId = ((HHRDDPartition) partition).index();
-    Set<Node> nodes = cachePreferedLocation.get(partitionId);
+  public static List<String> getPreferedIpsFromSetOfNode(Partition partition,
+      List<SerializedNode> nodesSer, int primDim) {
+    HHRDDPartition hhrddPartition = ((HHRDDPartition) partition);
+    String fileName = hhrddPartition.getFileName();
+    Integer partitionId = hhrddPartition.index();
+    List<String> nodes = cachePreferedLocation.get(partitionId);
     if (nodes != null && !nodes.isEmpty()) {
       return nodes;
     }
     // BucketCombination{{key1=Bucket{4}, key2=Bucket{0}, key3=Bucket{8}}
     int hashCode = getHashCode(fileName);
-
+    Set<Node> nodeSet = null;
     for (Entry<BucketCombination, Set<Node>> entry : bucketCombinationToNodeNumberMap.entrySet()) {
       if (entry.getKey().toString().hashCode() == hashCode) {
-        nodes = entry.getValue();
+        nodeSet = entry.getValue();
         break;
       }
     }
 
-    if (nodes == null) {
+    if (nodeSet == null) {
       logger.warn("Partition  {} does not exists", fileName);
       return null;
     }
-    logger.debug(" prefered locations for partition id {} whose file name is {}  is {}",
-        partitionId, fileName, nodes.toString());
+
+    List<String> ips = selectPreferedNodesIp(nodeSet, nodesSer);
+    hhrddPartition.setHosts(ips);
+    logger.info("Partition id {} and hosts {}", hhrddPartition.index(), ips);
+    // cacheIpsByNode.put(partitionId, ips);
+    nodes = getPreferredIp(ips, primDim);
+    logger.info(" prefered locations for partition id {} whose file name is {}  is {}", partitionId,
+        fileName, nodes.toString());
     cachePreferedLocation.put(partitionId, nodes);
     return nodes;
   }
 
+  /*
+   * public static List<String> getNodesByPartitionId(int partitionId) { return
+   * cacheIpsByNode.get(partitionId); }
+   */
 
   private static int getHashCode(String fileName) {
     String key = "BucketCombination{{";
@@ -115,7 +129,6 @@ public class HHRDDHelper implements Serializable {
     }
     return maxBucket;
   }
-
 
   public static String[] getFiles(String dataDirectory) throws IOException {
     String[] files = new File(dataDirectory).list(new FilenameFilter() {
@@ -217,6 +230,26 @@ public class HHRDDHelper implements Serializable {
       start = tempStart;
     }
     return start;
+  }
+
+  private static List<String> selectPreferedNodesIp(Set<Node> nodes,
+      List<SerializedNode> nodesSer) {
+    List<String> preferedNodesIp = new ArrayList<String>();
+    for (SerializedNode nodeSer : nodesSer) {
+      for (Node node : nodes) {
+        if (nodeSer.getId() == node.getNodeId()) {
+          preferedNodesIp.add(nodeSer.getIp());
+          break;
+        }
+      }
+    }
+    return preferedNodesIp;
+  }
+
+  private static List<String> getPreferredIp(List<String> preferedNodesIp, int jobPrimDim) {
+    List<String> preferredIp = new ArrayList<>();
+    preferredIp.add(preferedNodesIp.get(jobPrimDim));
+    return preferredIp;
   }
 
 }

@@ -1,11 +1,8 @@
 package com.talentica.hungryHippos.rdd;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
@@ -13,9 +10,7 @@ import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.hungryHippos.sharding.Node;
 
 import scala.collection.Iterator;
 import scala.collection.Seq;
@@ -27,10 +22,10 @@ import scala.reflect.ClassTag;
  * @author pooshans
  *
  */
-public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
+public class HHRDD extends RDD<byte[]> implements Serializable {
   private static final long serialVersionUID = 4074885953480955556L;
-  private static final ClassTag<HHRDDRowReader> HHRD_READER__TAG =
-      ClassManifestFactory$.MODULE$.fromClass(HHRDDRowReader.class);
+  private static final ClassTag<byte[]> HHRD_READER__TAG =
+      ClassManifestFactory$.MODULE$.fromClass(byte[].class);
   private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
   private int id;
@@ -39,23 +34,23 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
+    HHRDDHelper.populateBucketToNodeNumber(hipposRDDConf);
     nodesSer = hipposRDDConf.getNodes();
     this.id = sc.sc().newRddId();
   }
 
   @Override
-  public Iterator<HHRDDRowReader> compute(Partition partition, TaskContext taskContext) {
+  public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHRDDIterator iterator = null;
     try {
-      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFieldTypeArrayDataDescription());
+      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),hhRDDPartion.getHosts());
     } catch (IOException e) {
       e.printStackTrace();
     }
     return iterator;
   }
-
+  
   @Override
   public Partition[] getPartitions() {
     return HHRDDHelper.getPartition(hipposRDDConf, id);
@@ -63,35 +58,13 @@ public class HHRDD extends RDD<HHRDDRowReader> implements Serializable {
 
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
-    Set<Node> nodes = HHRDDHelper.getPreferedIpsFromSetOfNode(partition);
+    List<String> nodes =
+        HHRDDHelper.getPreferedIpsFromSetOfNode(partition, nodesSer, hipposRDDConf.getJobPrimDim());
     if (nodes == null) {
       return null;
     }
-    List<String> preferedNodesIp =
-        reorderPreferredIpsByJobPrimaryDimension(selectPreferedNodesIp(nodes));
-    return scala.collection.JavaConversions.asScalaBuffer(preferedNodesIp).seq();
+    return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
 
-  private List<String> selectPreferedNodesIp(Set<Node> nodes) {
-    List<String> preferedNodesIp = new ArrayList<String>();
-    for (SerializedNode nodeSer : nodesSer) {
-      for (Node node : nodes) {
-        if (nodeSer.getId() == node.getNodeId()) {
-          preferedNodesIp.add(nodeSer.getIp());
-          break;
-        }
-      }
-    }
-    return preferedNodesIp;
-  }
-
-  private List<String> reorderPreferredIpsByJobPrimaryDimension(List<String> preferedNodesIp) {
-    List<String> reorderPreferedNodesIp = new ArrayList<>();
-    int jobPrimDim = hipposRDDConf.getJobPrimDim();
-    for (int i = 0; i < preferedNodesIp.size(); i++) {
-      reorderPreferedNodesIp.add(i, preferedNodesIp.get((i + jobPrimDim) % preferedNodesIp.size()));
-    }
-    return reorderPreferedNodesIp;
-  }
 
 }

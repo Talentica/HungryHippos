@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
+import java.util.List;
 
 import org.apache.spark.Partition;
 
@@ -21,7 +22,16 @@ public class HHRDDPartition implements Partition {
   private FieldTypeArrayDataDescription dataDescription;
   private String fileName;
   private int rddId;
+  private List<String> hosts;
   
+  public List<String> getHosts() {
+    return hosts;
+  }
+
+  public void setHosts(List<String> hosts) {
+    this.hosts = hosts;
+  }
+
   public HHRDDPartition(int rddId , int index, String filePath,
       FieldTypeArrayDataDescription dataDescription) {
     this.index = index;

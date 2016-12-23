@@ -15,6 +15,9 @@ import java.util.concurrent.Executors;
  */
 public class DataDistributorStarter {
 
+  public static ExecutorService dataDistributorService;
+  public static ExecutorService fileProviderService;
+  
     public static void main(String[] args) throws Exception {
         validateArguments(args);
         ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
@@ -22,10 +25,12 @@ public class DataDistributorStarter {
         int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
         HungryHippoCurator.getInstance(connectString, sessionTimeOut);
         ServerSocket serverSocket = new ServerSocket(8789);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService serviceDeligator = Executors.newFixedThreadPool(10);
+        dataDistributorService = Executors.newFixedThreadPool(10);
+        fileProviderService = Executors.newFixedThreadPool(10);
         while (true) {
             Socket socket = serverSocket.accept();
-            executorService.execute(new DataDistributorService(socket));
+            serviceDeligator.execute(new ServiceDeligator(socket));
         }
     }
 

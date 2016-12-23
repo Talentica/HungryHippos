@@ -74,16 +74,26 @@ public class HHFileUploader {
                     Set<String> fileNames = nodeToFileMap.get(node.getIdentifier());
                     if (fileNames != null && !fileNames.isEmpty()) {
                         String fileNamesArg = StringUtils.join(fileNames, " ");
+                        int processStatus  = -1;
+                        int count=0;
+                        while(processStatus!=0){
+                        
                         Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + fileNamesArg);
-                        int processStatus = process.waitFor();
+                        processStatus = process.waitFor();
                         if (processStatus != 0) {
                             BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                             while ((line = br.readLine()) != null) {
                                 LOGGER.error(line);
                             }
                             br.close();
-                            LOGGER.error("Files failed for upload : "+fileNamesArg);
-                            throw new RuntimeException("File transfer failed");
+                            LOGGER.error("Files failed for upload : {} Retrying in 5000ms",fileNamesArg);
+                            Thread.sleep(5000);                            
+                        }
+                        count++;
+                        if(count>=20){
+                        throw new RuntimeException("File transfer failed");
+                        }
+                            
                         }
                     }
                 }

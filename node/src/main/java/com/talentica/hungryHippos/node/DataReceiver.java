@@ -51,7 +51,7 @@ public class DataReceiver {
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
 
     int maxNoOfRequestThreads =
-        noOfNodes + DataPublisherApplicationContext.getNoOfDataReceiverThreads();
+        noOfNodes * DataPublisherApplicationContext.getNoOfDataReceiverThreads();
 
     EventLoopGroup workerGroup = new NioEventLoopGroup(maxNoOfRequestThreads);
     try {

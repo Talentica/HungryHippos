@@ -93,7 +93,7 @@ public class DynamicMarshal implements Serializable {
    * @param object
    * @param dest
    */
-  public void writeValue(int index, Object object, ByteBuffer dest) {
+  public void writeValue(int index, final Object object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
       case BYTE:

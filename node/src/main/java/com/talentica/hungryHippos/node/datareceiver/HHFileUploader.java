@@ -3,105 +3,89 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
+import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.node.DataReceiver;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
+import java.io.*;
+import java.net.Socket;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Created by rajkishoreh on 25/11/16.
  */
-public class HHFileUploader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileJoiner.class);
-
-    private static Map<String, CountDownLatch> countDownMap = new ConcurrentHashMap<>();
-
+public enum HHFileUploader {
+    INSTANCE;
+    private static final Logger LOGGER = LoggerFactory.getLogger(HHFileUploader.class);
 
     public static final String SCRIPT_FOR_FILE_TRANSFER = "transfer-files.sh";
 
-    private static Object classLock = new Object();
+    private String tarFileName;
 
+    private String hungryHippoBinDir;
 
-    public static void uploadFile(String srcFolderPath, String hhFilePath, Map<Integer, Set<String>> nodeToFileMap) throws IOException, InterruptedException {
-        LOGGER.info("Inside uploadFile for {}", hhFilePath);
+    private String sshUserName;
 
-        List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        CountDownLatch countDownLatch = countDownMap.get(hhFilePath);
-        if (countDownLatch == null) {
-            synchronized (classLock) {
-                countDownLatch = countDownMap.get(hhFilePath);
-                if (countDownLatch == null) {
-                    HungryHippoCurator curator = HungryHippoCurator.getInstance();
-                    String hhFilePathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                            .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
-                    String pathForNoOfChunks = hhFilePathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
-                            + FileSystemConstants.NO_OF_CHUNKS;
-                    int noOfChunks = 0;
-                    try {
-                        noOfChunks = Integer.parseInt(curator.getZnodeData(pathForNoOfChunks));
-                    } catch (HungryHippoException e) {
-                        throw new RuntimeException("Could not get no of Chunks for "+hhFilePath);
-                    }
-                    countDownLatch = new CountDownLatch(noOfChunks);
-                    countDownMap.put(hhFilePath, countDownLatch);
-                }
-            }
-        }
+    private List<Node> nodes;
 
-        String tarFileName = NodeInfo.INSTANCE.getId();
-        String remoteTargetFolder = srcFolderPath;
-        String sshUserName = DataReceiver.getUserName();
-        String hungryHippoBinDir = System.getProperty("hh.bin.dir");
-        synchronized (countDownLatch) {
-            countDownLatch.countDown();
-            if (countDownLatch.getCount() == 0) {
-                LOGGER.info("Sending Replica Data To Nodes for {}", hhFilePath);
-                String commonCommandArg = hungryHippoBinDir + SCRIPT_FOR_FILE_TRANSFER + " " + srcFolderPath + " " + tarFileName + " " + remoteTargetFolder + " " + sshUserName;
-                String line = "";
-                for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
-                    Set<String> fileNames = nodeToFileMap.get(node.getIdentifier());
-                    if (fileNames != null && !fileNames.isEmpty()) {
-                        String fileNamesArg = StringUtils.join(fileNames, " ");
-                        int processStatus  = -1;
-                        int count=0;
-                        while(processStatus!=0){
-                        
-                        Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + fileNamesArg);
-                        processStatus = process.waitFor();
-                        if (processStatus != 0) {
-                            BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                            while ((line = br.readLine()) != null) {
-                                LOGGER.error(line);
-                            }
-                            br.close();
-                            LOGGER.error("Files failed for upload : {} Retrying in 5000ms",fileNamesArg);
-                            Thread.sleep(5000);                            
-                        }
-                        count++;
-                        if(count>=20){
-                        throw new RuntimeException("File transfer failed");
-                        }
-                            
-                        }
-                    }
-                }
-                countDownMap.remove(hhFilePath);
-                LOGGER.info("Completed Sending Replica Data To Nodes for {}", hhFilePath);
-            }else{
-                LOGGER.info("Upload will be done after receiving remaining {} chunks for {}",countDownLatch.getCount(), hhFilePath);
-            }
-        }
+    HHFileUploader() {
+        this.tarFileName = NodeInfo.INSTANCE.getId();
+        this.hungryHippoBinDir = System.getProperty("hh.bin.dir");
+        this.sshUserName = DataReceiver.getUserName();
+        this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
     }
+
+    public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap) throws IOException, InterruptedException {
+        LOGGER.info("Inside uploadFile for {} from {}", destinationPath, srcFolderPath);
+        String remoteTargetFolder = srcFolderPath;
+        LOGGER.info("Sending Replica Data To Nodes for {}", destinationPath);
+        String commonCommandArg = this.hungryHippoBinDir + SCRIPT_FOR_FILE_TRANSFER + " " + srcFolderPath + " " + this.tarFileName + " " + remoteTargetFolder + " " + this.sshUserName;
+        int idx = 0;
+        Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
+        Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
+
+        List<FileUploader> fileUploaders = new ArrayList<>();
+        ExecutorService fileUploadService = Executors.newFixedThreadPool(nodes.size());
+        for (com.talentica.hungryhippos.config.cluster.Node node : this.nodes) {
+            int nodeId = node.getIdentifier();
+            Set<String> fileNames = nodeToFileMap.get(nodeId);
+            if (fileNames != null && !fileNames.isEmpty()) {
+                FileUploader fileUploader  = new FileUploader(srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg, idx, dataInputStreamMap, socketMap, node, fileNames);
+                fileUploaders.add(fileUploader);
+                fileUploadService.execute(fileUploader);
+                idx++;
+            }
+        }
+        fileUploadService.shutdown();
+        boolean success = true;
+        for(FileUploader fileUploader:fileUploaders){
+            success = success&&fileUploader.isSuccess();
+        }
+        if (!success) {
+            throw new RuntimeException("File Upload Failed for " + srcFolderPath);
+        }
+
+        for (Map.Entry<Integer, Socket> entry : socketMap.entrySet()) {
+            LOGGER.info("Waiting for status from {} for {}", entry.getValue().getInetAddress(), srcFolderPath);
+            String status = dataInputStreamMap.get(entry.getKey()).readUTF();
+            entry.getValue().close();
+            if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
+                success = false;
+            }
+
+        }
+        if (!success) {
+            throw new RuntimeException("File Upload Failed for " + srcFolderPath);
+        }
+
+        LOGGER.info("Completed Sending Replica Data To Nodes for {} from ", destinationPath, srcFolderPath);
+    }
+
 }

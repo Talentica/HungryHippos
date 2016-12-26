@@ -12,6 +12,8 @@ import org.apache.zookeeper.KeeperException;
 public interface DataStore {
   void storeRow(String storeId, byte[] raw);
 
+  void storeRow(int index, byte[] raw);
+
   /**
    * A moving stream.
    *

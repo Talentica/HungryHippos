@@ -38,7 +38,7 @@ public class FileDataStoreIntegrationTest {
   public void setUp() throws Exception {
     context = new ShardingApplicationContext("<sharding file path>");
     fileDataStore =
-        new FileDataStore(null,numDimensions, dataDescription, "hungryHippoFilePath", "0", context,"0");
+        new FileDataStore(null,0,numDimensions, dataDescription, "hungryHippoFilePath", "0", context,"0");
   }
 
   /**

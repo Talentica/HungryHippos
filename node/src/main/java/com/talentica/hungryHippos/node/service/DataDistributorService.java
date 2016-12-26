@@ -1,7 +1,8 @@
-package com.talentica.hungryHippos.node.datadistributor;
+package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.apache.commons.io.FileUtils;
 
 import java.io.DataInputStream;
@@ -36,14 +37,14 @@ public class DataDistributorService implements Runnable {
             if(!NewDataHandler.checkIfFailed(hhFilePath)){
                 DataDistributor.distribute(hhFilePath,srcDataPath);
             }
-            dataOutputStream.writeUTF("SUCCESS");
+            dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             dataOutputStream.flush();
         } catch (Exception e) {
             if(hhFilePath!=null){
                 NewDataHandler.updateFailure(hhFilePath, NodeInfo.INSTANCE.getIp()+" : "+e.toString());
             }
             try {
-                dataOutputStream.writeUTF("FAILED");
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
             } catch (IOException e1) {
                 e1.printStackTrace();

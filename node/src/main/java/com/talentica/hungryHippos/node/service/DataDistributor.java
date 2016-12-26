@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.node.datadistributor;
+package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataDescription;
@@ -21,7 +21,6 @@ import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,11 +127,17 @@ public class DataDistributor {
 
             int flushTriggerCount = 0;
 
-            String key = keyOrder[0];
-            int keyIndex = Integer.parseInt(key.substring(3)) - 1;
-
+            String keyZero = keyOrder[0];
+            int[] buckets = new int[keyOrder.length];
+            int maxBucketSize =Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
+            int index;
+            int receivingNodeId;
+            ByteBuffer indexBuffer = ByteBuffer.allocate(4);
+            Bucket<KeyValueFrequency> bucket;
+            String key;
+            int keyIndex;
+            DataTypes[] parts;
             while (true) {
-                DataTypes[] parts = null;
                 try {
                     parts = input.read();
                 } catch (InvalidRowException e) {
@@ -144,16 +149,26 @@ public class DataDistributor {
                     break;
                 }
 
-                for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
-                    Object value = parts[i].clone();
-                    dynamicMarshal.writeValue(i, value, byteBuffer);
+                keyIndex = Integer.parseInt(keyZero.substring(3)) - 1;
+                bucket = bucketsCalculator.getBucketNumberForValue(keyZero, parts[keyIndex]);
+                buckets[0] = bucket.getId();
+                receivingNodeId = keyToBucketToNodetMap.get(keyZero).get(bucket).getNodeId();
+
+                for (int i = 1; i < keyOrder.length; i++) {
+                    key = keyOrder[i];
+                    keyIndex = Integer.parseInt(key.substring(3)) - 1;
+                    bucket = bucketsCalculator.getBucketNumberForValue(key, parts[keyIndex]);
+                    buckets[i] = bucket.getId();
                 }
 
-                Object keyValue = parts[keyIndex].clone();
-                Bucket<KeyValueFrequency> bucket = bucketsCalculator.getBucketNumberForValue(key, keyValue);
-                Node receivingNode = keyToBucketToNodetMap.get(key).get(bucket);
-                targets.get(receivingNode.getNodeId()).write(buf);
+                index = indexCalculator(buckets,maxBucketSize);
 
+                for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
+                    dynamicMarshal.writeValue(i, parts[i], byteBuffer);
+                }
+                indexBuffer.clear();
+                targets.get(receivingNodeId).write(indexBuffer.putInt(index).array());
+                targets.get(receivingNodeId).write(buf);
                 flushTriggerCount++;
 
                 if (flushTriggerCount > 100000) {
@@ -211,6 +226,22 @@ public class DataDistributor {
                 }
             }
         }
+    }
+
+    private static int indexCalculator(int[] values, int base){
+        int index = 0;
+        for (int i = 0; i < values.length; i++) {
+            index =index+ values[i]*power(base,i);
+        }
+        return index;
+    }
+
+    private static int power(int x,int pow ){
+        int value = 1;
+        for(int i=0;i<pow;i++){
+            value= value*x;
+        }
+        return value;
     }
 
     /**

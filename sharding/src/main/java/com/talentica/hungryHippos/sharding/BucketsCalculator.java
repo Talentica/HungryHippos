@@ -96,7 +96,7 @@ public final class BucketsCalculator {
    * @param value
    * @return
    */
-  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key, Object value) {
+  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key,final Object value) {
     Bucket<KeyValueFrequency> bucket = null;
     if (keyToValueToBucketMap != null) {
       Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(key);

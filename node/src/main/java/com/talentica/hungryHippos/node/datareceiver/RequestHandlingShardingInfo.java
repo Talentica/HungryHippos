@@ -64,8 +64,8 @@ public class RequestHandlingShardingInfo {
     shardingDimensions = context.getShardingDimensions();
     List<String> fileNames = new ArrayList<>();
     addFileNameToList(fileNames,"", 0);
-    dataStore = new FileDataStore(fileNames,nodeUtil.getKeyToValueToBucketMap().size(),
-            dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, "");
+    /*dataStore = new FileDataStore(fileNames,nodeUtil.getKeyToValueToBucketMap().size(),
+            dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, "");*/
   }
 
 

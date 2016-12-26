@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +24,7 @@ public class FileDataStore implements DataStore {
     private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
     private final int numFiles;
     private Map<String, OutputStream> fileNameToOutputStreamMap;
+    private OutputStream[] outputStreams;
     private DataDescription dataDescription;
     private String hungryHippoFilePath;
     private int nodeId;
@@ -40,15 +38,15 @@ public class FileDataStore implements DataStore {
 
     public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
-    public FileDataStore(List<String> fileNames, int numDimensions, DataDescription dataDescription,
+    public FileDataStore(Map<Integer,String> fileNames,int maxBucketSize, int numDimensions, DataDescription dataDescription,
 
                          String hungryHippoFilePath, String nodeId, ShardingApplicationContext context,
                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
-        this(fileNames, numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context, fileName);
+        this(fileNames,maxBucketSize, numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context, fileName);
     }
 
-    public FileDataStore(List<String> fileNames, int numDimensions, DataDescription dataDescription,
+    public FileDataStore(Map<Integer,String> fileNames,int maxBucketSize, int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,
                          ShardingApplicationContext context, String fileName) throws IOException {
         this.context = context;
@@ -60,20 +58,22 @@ public class FileDataStore implements DataStore {
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
         this.uniqueFileName = fileName;
+        int maxFiles = (int)Math.pow(maxBucketSize,numDimensions);
+        this.outputStreams = new OutputStream[maxFiles];
         if (!readOnly) {
-
-            for (String name : fileNames) {
-                String filePath = dataFilePrefix + "/" + name;
-                File file = new File(filePath);
-                if (!file.getParentFile().exists()) {
-                    boolean flag = file.getParentFile().mkdirs();
-                    if (flag) {
-                        logger.info("created data folder");
-                    } else {
-                        logger.info("Not able to create dataFolder");
-                    }
+            File file = new File(dataFilePrefix);
+            if (!file.exists()) {
+                boolean flag = file.mkdirs();
+                if (flag) {
+                    logger.info("created data folder");
+                } else {
+                    logger.info("Not able to create dataFolder");
                 }
-                fileNameToOutputStreamMap.put(name, new FileOutputStream(filePath, APPEND_TO_DATA_FILES));
+            }
+            dataFilePrefix=dataFilePrefix+"/";
+            for (Map.Entry<Integer,String> entry : fileNames.entrySet()) {
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES),1024);
+                fileNameToOutputStreamMap.put( entry.getValue(), outputStreams[entry.getKey()]);
             }
         }
     }
@@ -81,7 +81,7 @@ public class FileDataStore implements DataStore {
     public FileDataStore(int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,
                          ShardingApplicationContext context) throws IOException {
-        this(null, numDimensions, dataDescription, hungryHippoFilePath, nodeId, readOnly, context,
+        this(null,0, numDimensions, dataDescription, hungryHippoFilePath, nodeId, readOnly, context,
                 "<fileName>");
     }
 
@@ -95,6 +95,16 @@ public class FileDataStore implements DataStore {
             logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
         }
     }
+
+    @Override
+    public void storeRow(int index, byte[] raw) {
+        try {
+            outputStreams[index].write(raw);
+        } catch(IOException e) {
+            logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
+        }
+    }
+
 
     @Override
     public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, KeeperException,
@@ -118,7 +128,7 @@ public class FileDataStore implements DataStore {
             for (String name : fileNameToOutputStreamMap.keySet()) {
                 try {
                     fileNameToOutputStreamMap.get(name).flush();
-                    String filePath = new String(dataFilePrefix + "/" + name);
+                    String filePath = new String(dataFilePrefix + name);
                     File file = new File(filePath);
                     totalSizeOnNode += file.length();
                 } catch (IOException e) {

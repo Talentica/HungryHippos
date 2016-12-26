@@ -5,7 +5,6 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.NodeUtil;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -15,7 +14,6 @@ import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.storage.NodeDataStoreIdCalculator;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -23,6 +21,7 @@ import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,6 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -40,18 +38,16 @@ import java.util.*;
 public class NewDataHandler extends ChannelHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NewDataHandler.class);
-    private final NodeDataStoreIdCalculator nodeDataStoreIdCalculator;
 
     private ByteBuf byteBuf;
     private byte[] previousUnprocessedData;
     private byte[] record;
+    private byte[] bufferForReInit;
     private String[] shardingDimensions;
-    private ByteBuffer recordBuffer;
     private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
     private FieldTypeArrayDataDescription dataDescription;
     private DataStore dataStore;
     private int recordSize;
-    private String storeId;
     private Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
     private Map<Integer, Set<String>> nodeToFileMap;
     public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
@@ -60,6 +56,10 @@ public class NewDataHandler extends ChannelHandlerAdapter {
     private boolean noError;
     private String uniqueFolderName;
     private String senderIp;
+    private int maxBucketSize;
+    private static int SIZE_OF_INT = 4;
+    private int dataFileIndex;
+    private int blockSize;
 
 
     public NewDataHandler(int fileId, byte[] remainingBufferData) throws HungryHippoException, IOException, InterruptedException, ClassNotFoundException, KeeperException, JAXBException {
@@ -79,46 +79,52 @@ public class NewDataHandler extends ChannelHandlerAdapter {
                 context.getBucketCombinationtoNodeNumbersMapFilePath();
         bucketCombinationNodeMap =
                 ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
-        dataDescription = context.getConfiguredDataDescription();
-        dataDescription.setKeyOrder(context.getShardingDimensions());
-        NodeUtil nodeUtil = new NodeUtil(hhFilePath);
-        List<String> fileNames = new ArrayList<>();
-        bucketToNodeNumberMap = nodeUtil.getBucketToNodeNumberMap();
+        String keyToBucketToNodePath =
+                context.getBuckettoNodeNumberMapFilePath();
         shardingDimensions = context.getShardingDimensions();
+        dataDescription = context.getConfiguredDataDescription();
+        dataDescription.setKeyOrder(shardingDimensions);
+        Map<Integer,String> fileNames = new HashMap<>();
+        bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(keyToBucketToNodePath);
+
         nodeToFileMap = new HashMap<>();
-        addFileNameToList(fileNames, "", 0,null);
+        maxBucketSize = Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
+        addFileNameToList(fileNames,0, "", 0,null);
         recordSize = dataDescription.getSize();
         record = new byte[recordSize];
-        recordBuffer = ByteBuffer.wrap(record);
+        blockSize = recordSize+SIZE_OF_INT;
+        bufferForReInit = new byte[blockSize];
         uniqueFolderName = UUID.randomUUID().toString();
-        dataStore = new FileDataStore(fileNames, nodeUtil.getKeyToValueToBucketMap().size(),
+        dataStore = new FileDataStore(fileNames, maxBucketSize,shardingDimensions.length,
                 dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, uniqueFolderName);
-
-        nodeDataStoreIdCalculator = new NodeDataStoreIdCalculator(nodeUtil.getKeyToValueToBucketMap(),
-                nodeUtil.getBucketToNodeNumberMap(), NodeInfo.INSTANCE.getIdentifier(), dataDescription, context);
     }
 
-    private void addFileNameToList(List<String> fileNames, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
+    private void addFileNameToList(Map<Integer,String> fileNames,int index,String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         if (dimension == shardingDimensions.length) {
-            addFileName(fileNames, fileName, keyBucket);
+            addFileName(fileNames,index, fileName, keyBucket);
             return;
         }
         String key = shardingDimensions[dimension];
         Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
         for (Map.Entry<Bucket<KeyValueFrequency>, Node> bucketNodeEntry : bucketNodeMap.entrySet()) {
+
             if (dimension != 0) {
                 keyBucket.put(key, bucketNodeEntry.getKey());
-                addFileNameToList(fileNames, new String(fileName + "_" +bucketNodeEntry.getKey().getId()), dimension + 1, keyBucket);
+                int bucketId = bucketNodeEntry.getKey().getId();
+                int newIndex = index + bucketId*(int)Math.pow(maxBucketSize,dimension);
+                addFileNameToList(fileNames,newIndex, new String(fileName + "_" +bucketId), dimension + 1, keyBucket);
             } else if (bucketNodeEntry.getValue().getNodeId() == NodeInfo.INSTANCE.getIdentifier()) {
                 keyBucket = new HashMap<>();
                 keyBucket.put(key, bucketNodeEntry.getKey());
-                addFileNameToList(fileNames, new String(bucketNodeEntry.getKey().getId()+fileName), dimension + 1, keyBucket);
+                int bucketId = bucketNodeEntry.getKey().getId();
+                int newIndex = index + bucketId*(int)Math.pow(maxBucketSize,dimension);
+                addFileNameToList(fileNames,newIndex, new String(bucketId+fileName), dimension + 1, keyBucket);
             }
 
         }
     }
 
-    private void addFileName(List<String> fileNames, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
+    private void addFileName(Map<Integer,String> fileNames,int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
         Set<Node> nodes = bucketCombinationNodeMap.get(bucketCombination);
         Iterator<Node> nodeIterator = nodes.iterator();
@@ -133,7 +139,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
             }
             fileNameSet.add(fileName);
         }
-        fileNames.add(fileName);
+        fileNames.put(index,fileName);
     }
 
     @Override
@@ -141,7 +147,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         LOGGER.info("Inside handlerAdded");
         senderIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
         LOGGER.info("Connected to {} FileId : {}", senderIp,fileId);
-        this.byteBuf = ctx.alloc().buffer(recordSize * 20);
+        this.byteBuf = ctx.alloc().buffer(blockSize * 200);
         this.byteBuf.writeBytes(previousUnprocessedData);
         processData();
         LOGGER.info("Exiting handlerAdded");
@@ -162,19 +168,19 @@ public class NewDataHandler extends ChannelHandlerAdapter {
     }
 
     private void writeDataInStore() {
-        while (byteBuf.readableBytes() >= recordSize) {
+        while (byteBuf.readableBytes() >= blockSize) {
+            dataFileIndex = byteBuf.readInt();
             byteBuf.readBytes(record);
-            storeId = nodeDataStoreIdCalculator.storeId(recordBuffer);
-            dataStore.storeRow(storeId, record);
+            dataStore.storeRow(dataFileIndex, record);
         }
     }
 
     private void reInitializeByteBuf() {
         int remainingBytes = byteBuf.readableBytes();
         if (remainingBytes > 0) {
-            byteBuf.readBytes(record, 0, remainingBytes);
+            byteBuf.readBytes(bufferForReInit, 0, remainingBytes);
             byteBuf.clear();
-            byteBuf.writeBytes(record, 0, remainingBytes);
+            byteBuf.writeBytes(bufferForReInit, 0, remainingBytes);
         } else {
             byteBuf.clear();
         }
@@ -189,12 +195,12 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         String baseFolderPath =  FileSystemContext.getRootDirectory() + hhFilePath;
         String srcFolderPath = baseFolderPath + File.separator + uniqueFolderName;
         String destFolderPath = baseFolderPath + File.separator + DATA_FILE_BASE_NAME;
-
-        FileJoiner.join(srcFolderPath,destFolderPath);
         byteBuf = null;
         try {
+            FileJoiner.join(srcFolderPath,destFolderPath,destFolderPath);
+            HHFileUploader.INSTANCE.uploadFile(srcFolderPath,destFolderPath,nodeToFileMap);
+            FileUtils.deleteDirectory(new File(srcFolderPath));
             if (!checkIfFailed(hhFilePath)&&noError) {
-                HHFileUploader.uploadFile(destFolderPath,hhFilePath,nodeToFileMap);
                 clearNode();
             }
         } catch (Exception e) {
@@ -206,7 +212,6 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         ctx.channel().close();
         LOGGER.info("Exiting handlerRemoved");
     }
-
 
     /**
      * Updates the sharding files if required

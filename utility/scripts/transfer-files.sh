@@ -12,6 +12,7 @@ unset ARGS[3]
 unset ARGS[4]
 cd $src_folder
 tar -cf $tar_file_name.tar "${ARGS[@]}";
+ssh -o StrictHostKeyChecking=no $ssh_user@$ssh_host "mkdir -p $remote_target_folder";
 scp -o StrictHostKeyChecking=no $tar_file_name.tar $ssh_user@$ssh_host:$remote_target_folder"/";
 rm $tar_file_name.tar;
 ssh -o StrictHostKeyChecking=no $ssh_user@$ssh_host "tar -xf $remote_target_folder/$tar_file_name.tar --directory $remote_target_folder";

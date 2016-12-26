@@ -1,10 +1,6 @@
 package com.talentica.hungryHippos.coordination.utility.marshaling;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Iterator;
 
 import com.talentica.hungryHippos.client.data.parser.DataParser;
@@ -36,7 +32,7 @@ public class FileReader implements Reader {
       throws RuntimeException, FileNotFoundException {
     this.dataParser = parser;
     this.filepath = filePath;
-    dataInputStream = new FileInputStream(filePath);
+    dataInputStream = new BufferedInputStream(new FileInputStream(filePath),10485760);
     iterator = dataParser.iterator(dataInputStream);
   }
 
@@ -73,7 +69,7 @@ public class FileReader implements Reader {
       dataInputStream.close();
 
     }
-    dataInputStream = new FileInputStream(this.filepath);
+    dataInputStream = new BufferedInputStream(new FileInputStream(this.filepath),10485760);
     iterator = dataParser.iterator(dataInputStream);
   }
 

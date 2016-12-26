@@ -20,15 +20,15 @@ public class FileJoiner {
 
     private static Object classLock = new Object();
 
-    public static void join(String srcFolderPath, String destFolderPath) throws IOException, InterruptedException {
+    public static void join(String srcFolderPath, String destFolderPath, String lockString) throws IOException, InterruptedException {
         LOGGER.info("Moving data from {} to {}", srcFolderPath, destFolderPath);
-        Object lock = lockMap.get(destFolderPath);
+        Object lock = lockMap.get(lockString);
         if (lock == null) {
             synchronized (classLock) {
-                lock = lockMap.get(destFolderPath);
+                lock = lockMap.get(lockString);
                 if (lock == null) {
                     lock = new Object();
-                    lockMap.put(destFolderPath, lock);
+                    lockMap.put(lockString, lock);
                 }
             }
         }
@@ -39,20 +39,15 @@ public class FileJoiner {
                 destFolder.mkdir();
             }
             if (srcFolder.exists()) {
-
                 String[] srcFilePaths = srcFolder.list();
                 for (int i = 0; i < srcFilePaths.length; i++) {
                     File srcFile = new File(srcFolderPath + File.separator + srcFilePaths[i]);
                     File destFile = new File(destFolderPath + File.separator + srcFile.getName());
-                    if(destFile.exists()){
-                        appendData(srcFile, destFile);
-                        srcFile.delete();
-                    }else{
-                        srcFile.renameTo(destFile);
+                    if(!destFile.exists()){
+                        destFile.createNewFile();
                     }
+                    appendData(srcFile, destFile);
                 }
-                LOGGER.info("Deleting data from {}", srcFolderPath);
-                FileUtils.forceDelete(new File(srcFolderPath));
             }
         }
         lockMap.remove(destFolderPath);

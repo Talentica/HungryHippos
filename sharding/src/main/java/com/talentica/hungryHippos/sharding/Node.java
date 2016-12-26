@@ -19,6 +19,8 @@ public class Node implements Comparable<Node>, Serializable {
   private int nodeId;
   private long nodeCapacity;
   private long remainingCapacity;
+  private float bucketCountWeight;
+  private int bucketCount;
 
   /**
    * creates an empty instance of Node.
@@ -31,10 +33,12 @@ public class Node implements Comparable<Node>, Serializable {
    * @param nodeCapacity
    * @param nodeId
    */
-  public Node(long nodeCapacity, int nodeId) {
+  public Node(long nodeCapacity, int nodeId, float bucketCountWeight) {
     this.nodeCapacity = nodeCapacity;
     this.nodeId = nodeId;
     this.remainingCapacity = nodeCapacity;
+    this.bucketCount = 0;
+    this.bucketCountWeight = bucketCountWeight;
   }
 
   /**
@@ -74,7 +78,7 @@ public class Node implements Comparable<Node>, Serializable {
    * @return
    */
   public long getRemainingCapacity() {
-    return remainingCapacity;
+    return (long)((1-bucketCountWeight)*remainingCapacity-bucketCountWeight*nodeCapacity*bucketCount);
   }
 
   /**
@@ -106,6 +110,7 @@ public class Node implements Comparable<Node>, Serializable {
 
   public void fillUpBy(long value) throws NodeOverflowException {
     remainingCapacity -= value;
+    bucketCount++;
   }
 
   @Override
@@ -125,5 +130,7 @@ public class Node implements Comparable<Node>, Serializable {
     return ret;
   }
 
-
+  public int getBucketCount() {
+    return bucketCount;
+  }
 }

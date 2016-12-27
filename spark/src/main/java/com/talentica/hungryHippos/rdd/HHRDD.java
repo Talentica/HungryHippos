@@ -6,12 +6,14 @@ import java.util.List;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
+import org.apache.spark.Partitioner;
 import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
+import scala.Option;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.collection.mutable.ArrayBuffer;
@@ -29,14 +31,17 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
   private HHRDDConfigSerialized hipposRDDConf;
   private List<SerializedNode> nodesSer;
   private int id;
+  private Partition[] partitions;
+  private Option<Partitioner> partitioner;
 
   public HHRDD(JavaSparkContext sc, HHRDDConfigSerialized hipposRDDConf) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.hipposRDDConf = hipposRDDConf;
     HHRDDHelper.populateBucketCombinationToNodeNumber(hipposRDDConf);
     HHRDDHelper.populateBucketToNodeNumber(hipposRDDConf);
-    nodesSer = hipposRDDConf.getNodes();
+    this.nodesSer = hipposRDDConf.getNodes();
     this.id = sc.sc().newRddId();
+    this.partitions = HHRDDHelper.getPartition(hipposRDDConf, id);
   }
 
   @Override
@@ -53,7 +58,7 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
   
   @Override
   public Partition[] getPartitions() {
-    return HHRDDHelper.getPartition(hipposRDDConf, id);
+    return this.partitions;
   }
 
   @Override
@@ -65,6 +70,4 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     }
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
-
-
 }

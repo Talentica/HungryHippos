@@ -3,15 +3,19 @@ package com.talentica.hungryHippos.rdd.main;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
@@ -69,6 +73,9 @@ public class MedianJobExecutor implements Serializable {
       hipposRDD = new HHRDD(context, hhrddConfigSerialized);
       cahceRDD.put(jobPrimDim, hipposRDD);
     }
+    
+    
+    
     JavaPairRDD<String, Double> pairRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
           @Override
@@ -86,24 +93,32 @@ public class MedianJobExecutor implements Serializable {
             return new Tuple2<String, Double>(key, value);
           }
         });
+    
+   pairRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Double>>, Tuple2<String, Double>>() {
 
-    JavaPairRDD<String, Iterable<Double>> pairRDDGroupedByKey = pairRDD.groupByKey();
-
-    JavaPairRDD<String, Double> result = pairRDDGroupedByKey
-        .mapToPair(new PairFunction<Tuple2<String, Iterable<Double>>, String, Double>() {
-
-          @Override
-          public Tuple2<String, Double> call(Tuple2<String, Iterable<Double>> t) throws Exception {
-            DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
-            Iterator<Double> itr = t._2.iterator();
-            while (itr.hasNext()) {
-              descriptiveStatistics.addValue(itr.next());
-            }
-            Double median = descriptiveStatistics.getPercentile(50);
-            return new Tuple2<String, Double>(t._1, median);
+      @Override
+      public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
+        
+        List<Tuple2<String, Double>> medianList = new ArrayList<>();
+        Map<String, DescriptiveStatistics> map = new HashMap<>();
+        while(t.hasNext()){
+          Tuple2<String, Double> tuple2 = t.next();
+          DescriptiveStatistics descriptiveStatistics = map.get(tuple2._1);
+          if(descriptiveStatistics==null){
+            descriptiveStatistics = new DescriptiveStatistics();
+            map.put(tuple2._1, descriptiveStatistics);
           }
-        });
-    result.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+          descriptiveStatistics.addValue(tuple2._2);
+        }
+        
+        for(Entry<String, DescriptiveStatistics> entry : map.entrySet()){
+          Double median = entry.getValue().getPercentile(50);
+          medianList.add(new Tuple2<String, Double>(entry.getKey(), median));
+        }        
+        return medianList.iterator();        
+      }
+    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+    
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
   }

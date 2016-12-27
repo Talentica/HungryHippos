@@ -1,15 +1,17 @@
 package com.talentica.hungryHippos.rdd.main;
 
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import javax.xml.bind.JAXBException;
-import java.io.FileNotFoundException;
+import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
+import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrix;
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
 /**
  * Created by rajkishoreh on 16/12/16.
@@ -40,7 +42,6 @@ public class MedianJob {
         return medianJobMatrix;
     }
 
-    @SuppressWarnings("resource")
     private static void initializeSparkContext() {
         if (MedianJob.context == null) {
             SparkConf conf =

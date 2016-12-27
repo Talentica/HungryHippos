@@ -37,15 +37,8 @@ public class FileProviderService implements Runnable {
       }
       bis.close();
       dos.flush();
-      dos.writeUTF("SUCCESS");
-      dos.flush();
-    } catch (Exception e) {
-      try {
-        if(dos!=null)
-        dos.writeUTF("FAILURE");
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
+    } catch (Exception e) {     
+        e.printStackTrace();      
     }
     finally {
       try {

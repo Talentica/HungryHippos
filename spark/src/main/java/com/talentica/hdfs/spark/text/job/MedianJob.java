@@ -1,6 +1,7 @@
 package com.talentica.hdfs.spark.text.job;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -11,8 +12,8 @@ import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
 
 import scala.Tuple2;
 
@@ -20,11 +21,11 @@ public class MedianJob {
   
   private static Logger LOGGER = LoggerFactory.getLogger(MedianJob.class);
   
-  public static void main(String[] args){
+  public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
     SparkContext sc = new SparkContext(args);
     JavaSparkContext jsc = sc.initContext();
     JavaRDD<String> rdd = jsc.textFile(sc.getDistrFile());
-    for(Job job : getMedianJobMatrix().getJobs()){
+    for(Job job : getSumJobMatrix()){
       Broadcast<Job> broadcastJob = jsc.broadcast(job);
       runJob(sc,rdd,broadcastJob);
     }
@@ -63,12 +64,13 @@ public class MedianJob {
         sc.getOutputDir() +  broadcastJob.value().getJobId());
   }
   
-  private static JobMatrix getMedianJobMatrix() {
-    int count = 0;
-    JobMatrix medianJobMatrix = new JobMatrix();
-    for (int i = 0; i < 1; i++) {
-      medianJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
-    }
-    return medianJobMatrix;
+  private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    /*JobMatrix medianJobMatrix = new JobMatrix();
+    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
+    return medianJobMatrix;*/
+    Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
+    JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
+    obj.printMatrix();
+    return obj.getJobs();
   }
 }

@@ -34,12 +34,14 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
   private BufferedInputStream dataInputStream;
   // private HHRDDRowReader hhRDDRowReader;
   private int recordLength;
-
+  private  boolean fileDownloaded = false;
+  private String filePath;
   public HHRDDIterator(String filePath, int rowSize,List<String> ipList) throws IOException {
+    this.filePath = filePath;
     File file = new File(filePath);
     if (!file.exists()) {
       logger.info("Downloading file {} from hosts {} ",filePath,ipList);
-      boolean fileDownloaded = false;
+     
       while (!fileDownloaded) {
         for (String ip : ipList) {
           fileDownloaded = downloadFile(filePath, ip);
@@ -84,10 +86,6 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
       }
       bos.flush();
       bos.close();
-      String status = dis.readUTF();
-      if (!"SUCCESS".equals(status)) {
-        return false;
-      }
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -131,6 +129,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
   private void closeDatsInputStream() throws IOException {
     if (dataInputStream != null) {
       dataInputStream.close();
+      if(fileDownloaded){
+        new File(filePath).delete();
+      }
     }
   }
 

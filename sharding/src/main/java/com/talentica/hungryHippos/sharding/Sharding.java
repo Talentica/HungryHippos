@@ -58,13 +58,13 @@ public class Sharding {
    * @param clusterConfig
    * @param context
    */
-  public Sharding(ClusterConfig clusterConfig, ShardingApplicationContext context) {
+  public Sharding(ClusterConfig clusterConfig, ShardingApplicationContext context, float bucketCountWeight) {
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
     keys = context.getShardingDimensions();
     List<com.talentica.hungryhippos.config.cluster.Node> clusterNodes = clusterConfig.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes) {
-      Node node = new Node(300000, clusterNode.getIdentifier());
+      Node node = new Node(300000, clusterNode.getIdentifier(), bucketCountWeight);
       fillupQueue.offer(node);
       nodeToKeyMap.put(node, new ArrayList<BucketCombination>());
     }

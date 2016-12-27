@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.rdd.main;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -12,9 +13,9 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
+import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
 public class HHRDDMain implements Serializable {
@@ -23,12 +24,12 @@ public class HHRDDMain implements Serializable {
   private static JavaSparkContext context;
   private static HHRDDExecutor executor;
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException {
+  public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
     executor = new HHRDDExecutor(args);
     HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
         executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
-    for (Job job : getSumJobMatrix().getJobs()) {
+    for (Job job : getSumJobMatrix()) {
       Broadcast<Job> jobBroadcast = context.broadcast(job);
       int jobPrimDim = HHRDDHelper
           .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
@@ -38,11 +39,11 @@ public class HHRDDMain implements Serializable {
   }
 
 
-  private static JobMatrix getSumJobMatrix() {
-    int count = 0;
+  private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    /*int count = 0;
     JobMatrix sumJobMatrix = new JobMatrix();
     sumJobMatrix.addJob(new Job(new Integer[] {0}, 6, count++));
-    sumJobMatrix.addJob(new Job(new Integer[] {0}, 7, count++));
+    sumJobMatrix.addJob(new Job(new Integer[] {0}, 7, count++));*/
     /*for (int i = 0; i < 3; i++) {
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
@@ -55,7 +56,10 @@ public class HHRDDMain implements Serializable {
         }
       }
     }*/
-    return sumJobMatrix;
+    Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
+    JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
+    obj.printMatrix();
+    return obj.getJobs();
   }
 
   private static void initializeSparkContext() {

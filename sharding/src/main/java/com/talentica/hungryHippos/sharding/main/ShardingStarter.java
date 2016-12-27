@@ -56,6 +56,10 @@ public class ShardingStarter {
 
       String clientConfigFilePath = args[0];
       String shardingFolderPath = args[1];
+      float bucketCountWeight = 0.5f;
+      if(args.length>2){
+        bucketCountWeight = Float.parseFloat(args[2]);
+      }
 
       clientConfig = JaxbUtil.unmarshalFromFile(clientConfigFilePath, ClientConfig.class);
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
@@ -85,7 +89,7 @@ public class ShardingStarter {
           + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
-          context.getShardingServerConfigFilePath(), tempDir);
+          context.getShardingServerConfigFilePath(), tempDir, bucketCountWeight);
       Node randomNode = RandomNodePicker.getRandomNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
       uploadShardingData(randomNode, shardingClientConfig, tempDir);
@@ -128,7 +132,7 @@ public class ShardingStarter {
    * @throws KeeperException
    */
   private static void doSharding(ShardingClientConfig shardingClientConfig,
-      String shardingClientConfigFilePath, String shardingServerConfigFilePath, String tempDir)
+      String shardingClientConfigFilePath, String shardingServerConfigFilePath, String tempDir, float bucketCountWeight)
       throws ClassNotFoundException, IOException, NoSuchMethodException, IllegalAccessException,
       InvocationTargetException, InstantiationException, InterruptedException, JAXBException,
       KeeperException {
@@ -143,7 +147,7 @@ public class ShardingStarter {
     ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);
 
-    Sharding sharding = new Sharding(clusterConfig, context);
+    Sharding sharding = new Sharding(clusterConfig, context, bucketCountWeight);
     sharding.doSharding(inputReaderForSharding);
     sharding.dumpShardingTableFiles(tempDir, shardingClientConfigFilePath,
         shardingServerConfigFilePath);

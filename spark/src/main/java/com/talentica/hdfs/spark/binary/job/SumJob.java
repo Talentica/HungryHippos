@@ -1,28 +1,27 @@
 package com.talentica.hdfs.spark.binary.job;
 
+import java.util.List;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 public class SumJob {
 
   private static JavaSparkContext context;
   private static JobExecutor executor;
   
-  public static void main(String[] args){
-    executor = new JobExecutor(args);
+  public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+    executor = new SumJobExecutor(args);
     DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(executor.getShardingFolderPath());
     initSparkContext();
     JavaRDD<byte[]> rdd = context.binaryRecords(executor.getDistrFile(), dataDescriptionConfig.getRowSize());
-    HHRDDRowReader reader = new HHRDDRowReader(dataDescriptionConfig.getDataDescription());
-    for(Job job : getSumJobMatrix().getJobs()){
+    for(Job job : getSumJobMatrix()){
       Broadcast<Job> broadcastJob = context.broadcast(job);
-      executor.startJob(context,rdd,reader,dataDescriptionConfig,broadcastJob);
+      executor.startJob(context,rdd,dataDescriptionConfig,broadcastJob);
     }
     executor.stop(context);
   }
@@ -34,21 +33,13 @@ public class SumJob {
     }
   }
   
-  private static JobMatrix getSumJobMatrix() {
-    int count = 0;
-    JobMatrix sumJobMatrix = new JobMatrix();
-    for (int i = 0; i < 3; i++) {
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
-      for (int j = i + 1; j < 4; j++) {
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
-        for (int k = j + 1; k < 4; k++) {
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
-        }
-      }
-    }
-    return sumJobMatrix;
+  private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    /*JobMatrix medianJobMatrix = new JobMatrix();
+    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
+    return medianJobMatrix;*/
+    Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
+    JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
+    obj.printMatrix();
+    return obj.getJobs();
   }
 }

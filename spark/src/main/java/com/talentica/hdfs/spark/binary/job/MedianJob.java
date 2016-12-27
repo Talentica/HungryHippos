@@ -1,26 +1,27 @@
-package com.talentica.hadoop.spark.job;
+package com.talentica.hdfs.spark.binary.job;
 
 import java.util.List;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.job.Job;
 
-public class SumJob {
+public class MedianJob {
 
   private static JavaSparkContext context;
   private static JobExecutor executor;
   
   public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
-    executor = new JobExecutor(args);
+    executor = new MedianJobExecutor(args);
     DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(executor.getShardingFolderPath());
     initSparkContext();
+    JavaRDD<byte[]> rdd = context.binaryRecords(executor.getDistrFile(), dataDescriptionConfig.getRowSize());
     for(Job job : getSumJobMatrix()){
       Broadcast<Job> broadcastJob = context.broadcast(job);
-      executor.startJob(context,dataDescriptionConfig,broadcastJob);
+      executor.startJob(context,rdd,dataDescriptionConfig,broadcastJob);
     }
     executor.stop(context);
   }

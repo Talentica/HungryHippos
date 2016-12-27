@@ -1,10 +1,10 @@
 #!/bin/bash
 ARGS=("$@")
 src_folder=$1
-tar_file_name=$2
-remote_target_folder=$3
-ssh_user=$4
-ssh_host=$5
+remote_target_folder=$2
+ssh_user=$3
+ssh_host=$4
+tar_file_name=$5
 unset ARGS[0]
 unset ARGS[1]
 unset ARGS[2]

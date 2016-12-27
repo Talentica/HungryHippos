@@ -27,43 +27,45 @@ public enum HHFileUploader {
 
     public static final String SCRIPT_FOR_FILE_TRANSFER = "transfer-files.sh";
 
-    private String tarFileName;
-
     private String hungryHippoBinDir;
 
     private String sshUserName;
 
     private List<Node> nodes;
 
+    private ExecutorService fileUploadService;
+
     HHFileUploader() {
-        this.tarFileName = NodeInfo.INSTANCE.getId();
         this.hungryHippoBinDir = System.getProperty("hh.bin.dir");
         this.sshUserName = DataReceiver.getUserName();
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+        this.fileUploadService = Executors.newFixedThreadPool(nodes.size());
     }
 
     public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap) throws IOException, InterruptedException {
         LOGGER.info("Inside uploadFile for {} from {}", destinationPath, srcFolderPath);
         String remoteTargetFolder = srcFolderPath;
         LOGGER.info("Sending Replica Data To Nodes for {}", destinationPath);
-        String commonCommandArg = this.hungryHippoBinDir + SCRIPT_FOR_FILE_TRANSFER + " " + srcFolderPath + " " + this.tarFileName + " " + remoteTargetFolder + " " + this.sshUserName;
+        String commonCommandArg = this.hungryHippoBinDir + SCRIPT_FOR_FILE_TRANSFER + " " + srcFolderPath + " " + remoteTargetFolder + " " + this.sshUserName;
         int idx = 0;
         Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
         Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
-
         List<FileUploader> fileUploaders = new ArrayList<>();
-        ExecutorService fileUploadService = Executors.newFixedThreadPool(nodes.size());
+
+        CountDownLatch countDownLatch = new CountDownLatch(this.nodes.size());
         for (com.talentica.hungryhippos.config.cluster.Node node : this.nodes) {
             int nodeId = node.getIdentifier();
             Set<String> fileNames = nodeToFileMap.get(nodeId);
             if (fileNames != null && !fileNames.isEmpty()) {
-                FileUploader fileUploader  = new FileUploader(srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg, idx, dataInputStreamMap, socketMap, node, fileNames);
+                FileUploader fileUploader  = new FileUploader(countDownLatch,srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg, idx, dataInputStreamMap, socketMap, node, fileNames);
                 fileUploaders.add(fileUploader);
                 fileUploadService.execute(fileUploader);
                 idx++;
+            }else{
+                countDownLatch.countDown();
             }
         }
-        fileUploadService.shutdown();
+        countDownLatch.await();
         boolean success = true;
         for(FileUploader fileUploader:fileUploaders){
             success = success&&fileUploader.isSuccess();

@@ -11,13 +11,15 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by rajkishoreh on 26/12/16.
  */
-public class FileUploader implements Runnable{
+public class FileUploader implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(HHFileUploader.class);
+    private CountDownLatch countDownLatch;
     private String srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg;
     private int idx;
     private Map<Integer, DataInputStream> dataInputStreamMap;
@@ -27,7 +29,8 @@ public class FileUploader implements Runnable{
     private boolean success;
 
 
-    public FileUploader(String srcFolderPath, String destinationPath, String remoteTargetFolder, String commonCommandArg, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node, Set<String> fileNames) {
+    public FileUploader(CountDownLatch countDownLatch, String srcFolderPath, String destinationPath, String remoteTargetFolder, String commonCommandArg, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node, Set<String> fileNames) {
+        this.countDownLatch = countDownLatch;
         this.srcFolderPath = srcFolderPath;
         this.destinationPath = destinationPath;
         this.remoteTargetFolder = remoteTargetFolder;
@@ -52,12 +55,12 @@ public class FileUploader implements Runnable{
             dos.flush();
             String status = dis.readUTF();
             if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
-                throw new RuntimeException("File Scp not possible for "+srcFolderPath);
+                throw new RuntimeException("File Scp not possible for " + srcFolderPath);
             }
 
-            logger.info("[{}] Lock acquired for {}",Thread.currentThread().getName(),srcFolderPath);
+            logger.info("[{}] Lock acquired for {}", Thread.currentThread().getName(), srcFolderPath);
 
-            Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + fileNamesArg);
+            Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + Thread.currentThread().getId() + " " + fileNamesArg);
             int processStatus = process.waitFor();
 
             if (processStatus != 0) {
@@ -66,13 +69,13 @@ public class FileUploader implements Runnable{
                     logger.error(line);
                 }
                 br.close();
-                logger.error("[{}] Files failed for upload : {}",Thread.currentThread().getName(),fileNamesArg);
+                logger.error("[{}] Files failed for upload : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
-                throw new RuntimeException("File transfer failed for "+srcFolderPath);
+                throw new RuntimeException("File transfer failed for " + srcFolderPath);
             }
             dos.writeBoolean(true);
             socket.close();
-            logger.info("[{}] Lock released for {}",Thread.currentThread().getName(), srcFolderPath);
+            logger.info("[{}] Lock released for {}", Thread.currentThread().getName(), srcFolderPath);
             socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
             dataInputStreamMap.put(idx, new DataInputStream(socket.getInputStream()));
             dos = new DataOutputStream(socket.getOutputStream());
@@ -82,10 +85,12 @@ public class FileUploader implements Runnable{
             dos.flush();
             socketMap.put(idx, socket);
             success = true;
-        }catch (IOException | InterruptedException e){
+            this.countDownLatch.countDown();
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             success = false;
-            throw new RuntimeException("File transfer failed for "+srcFolderPath);
+            this.countDownLatch.countDown();
+            throw new RuntimeException("File transfer failed for " + srcFolderPath);
         }
     }
 

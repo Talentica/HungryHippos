@@ -7,11 +7,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
+
 /**
  * @author pooshans
  *
  */
-public class JobMatrix implements Serializable{
+public class JobMatrix implements JobMatrixInterface,Serializable{
   
   /**
    * 
@@ -20,7 +22,8 @@ public class JobMatrix implements Serializable{
   private List<Job> jobs;
 
   public JobMatrix() {
-
+    Job job = new Job(new Integer[] {0,1,2},7,2);
+    addJob(job);
   }
 
   public JobMatrix(List<Job> jobs) {
@@ -43,7 +46,10 @@ public class JobMatrix implements Serializable{
     return "JobConf [jobs=" + jobs + ", getJobs()=" + getJobs() + ", getClass()=" + getClass()
         + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
   }
-  
-  
+
+  @Override
+  public void printMatrix() {
+    System.out.println(this.toString());
+  }
 
 }

@@ -13,6 +13,7 @@ import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import com.talentica.spark.job.executor.MedianJobExecutor;
 
 /**
  * Created by rajkishoreh on 16/12/16.
@@ -23,7 +24,9 @@ public class MedianJob {
     private static MedianJobExecutor executor;
 
     public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+      getSumJobMatrix();
         executor = new MedianJobExecutor(args);
+        
         HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
                 executor.getClientConf(), executor.getOutputFile());
         initializeSparkContext();
@@ -31,16 +34,13 @@ public class MedianJob {
             Broadcast<Job> jobBroadcast = context.broadcast(job);
             int jobPrimDim = HHRDDHelper
                     .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
-            executor.startJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
+            executor.startMedianJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
         }
         executor.stop(context);
     }
 
 
     private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-      /*JobMatrix medianJobMatrix = new JobMatrix();
-      medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
-      return medianJobMatrix;*/
       Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
       JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
       obj.printMatrix();

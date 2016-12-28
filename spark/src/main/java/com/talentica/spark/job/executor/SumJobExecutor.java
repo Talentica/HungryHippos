@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.rdd.main;
+package com.talentica.spark.job.executor;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
@@ -33,10 +33,10 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class HHRDDExecutor implements Serializable {
+public class SumJobExecutor implements Serializable {
 
   private static final long serialVersionUID = 4405057963355945497L;
-  private static Logger LOGGER = LoggerFactory.getLogger(HHRDDExecutor.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(SumJobExecutor.class);
   private String outputFile;
   private String distrDir;
   private String clientConf;
@@ -47,7 +47,7 @@ public class HHRDDExecutor implements Serializable {
   /**
    * @param args
    */
-  public HHRDDExecutor(String args[]) {
+  public SumJobExecutor(String args[]) {
     validateProgramArgument(args);
     this.masterIp = args[0];
     this.appName = args[1];

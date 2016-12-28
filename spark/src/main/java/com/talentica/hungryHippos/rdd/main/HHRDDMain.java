@@ -16,16 +16,15 @@ import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.spark.job.executor.SumJobExecutor;
 
-public class SumJob implements Serializable {
+public class HHRDDMain implements Serializable {
 
   private static final long serialVersionUID = 8326979063332184463L;
   private static JavaSparkContext context;
-  private static SumJobExecutor executor;
+  private static HHRDDExecutor executor;
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-    executor = new SumJobExecutor(args);
+    executor = new HHRDDExecutor(args);
     HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
         executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
@@ -40,17 +39,31 @@ public class SumJob implements Serializable {
 
 
   private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JobMatrix medianJobMatrix = new JobMatrix();
-    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
-    return medianJobMatrix;
+    int count = 0;
+    JobMatrix sumJobMatrix = new JobMatrix();
+    sumJobMatrix.addJob(new Job(new Integer[] {0}, 6, count++));
+    sumJobMatrix.addJob(new Job(new Integer[] {0}, 7, count++));
+    for (int i = 0; i < 3; i++) {
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
+      for (int j = i + 1; j < 4; j++) {
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        for (int k = j + 1; k < 4; k++) {
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+        }
+      }
+    }
+    return sumJobMatrix;
   }
 
   private static void initializeSparkContext() {
-    if (SumJob.context == null) {
+    if (HHRDDMain.context == null) {
       SparkConf conf =
           new SparkConf().setMaster(executor.getMasterIp()).setAppName(executor.getAppName());
       try {
-        SumJob.context = new JavaSparkContext(conf);
+        HHRDDMain.context = new JavaSparkContext(conf);
       } catch (Exception e) {
         e.printStackTrace();
       }

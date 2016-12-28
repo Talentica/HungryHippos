@@ -18,6 +18,7 @@ dependencies {
      compile project (':configuration-schema')
      compile project (':sharding')
      compile project (':common-libs')
+     compile project (':job-util')
 }
 configurations {
     provided

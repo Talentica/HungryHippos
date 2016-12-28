@@ -12,8 +12,8 @@ import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
 
 import scala.Tuple2;
 

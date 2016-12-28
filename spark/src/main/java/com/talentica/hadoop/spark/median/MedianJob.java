@@ -7,8 +7,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hadoop.spark.job.DataDescriptionConfig;
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
 
 public class MedianJob {
 

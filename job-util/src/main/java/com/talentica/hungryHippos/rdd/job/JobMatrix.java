@@ -6,9 +6,6 @@ package com.talentica.hungryHippos.rdd.job;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
-
 /**
  * @author pooshans
  *
@@ -22,7 +19,7 @@ public class JobMatrix implements JobMatrixInterface,Serializable{
   private List<Job> jobs;
 
   public JobMatrix() {
-    Job job = new Job(new Integer[] {0,1,2},7,2);
+    Job job = new Job(new Integer[] {0,1},6,0);
     addJob(job);
   }
 

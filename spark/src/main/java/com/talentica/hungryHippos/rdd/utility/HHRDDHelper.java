@@ -40,10 +40,10 @@ public class HHRDDHelper implements Serializable {
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
   private static HashMap<Integer, List<String>> cachePreferedLocation =
       new HashMap<Integer, List<String>>();
-  private static Partition[] partitions = null;
   private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
   private static String[]  keyOrder;
+  private static List<String> fileNames = new ArrayList<>();
 
   public static List<String> getPreferedIpsFromSetOfNode(Partition partition,
       List<SerializedNode> nodesSer, int primDim) {
@@ -138,21 +138,34 @@ public class HHRDDHelper implements Serializable {
         filteredPrimaryOnlyJobDimensions);
   }
 
-  public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id) {
-    if (partitions == null) {
-      List<String> fileNames = new ArrayList<>();
+  public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id,int primDim) {
       keyOrder= hipposRDDConf.getShardingKeyOrder();
+      if(fileNames.isEmpty()){
       listFile(fileNames, "", 0, keyOrder.length);
-      partitions = new HHRDDPartition[fileNames.size()];
-      for (int index = 0; index < fileNames.size(); index++) {
+      }
+      List<String> filesByPrimDim = getFilesByPrimaryDimension(0,fileNames);
+      Partition[] partitions = new HHRDDPartition[filesByPrimDim.size()];
+      for (int index = 0; index < filesByPrimDim.size(); index++) {
         String filePathAndName =
-            hipposRDDConf.getDirectoryLocation() + File.separatorChar + fileNames.get(index);
+            hipposRDDConf.getDirectoryLocation() + File.separatorChar + filesByPrimDim.get(index);
         partitions[index] = new HHRDDPartition(id, index, new File(filePathAndName).getPath(),
             hipposRDDConf.getFieldTypeArrayDataDescription());
       }
-    }
     return partitions;
 
+  }
+  
+  private static  List<String> getFilesByPrimaryDimension(int primaryDimension,List<String> totalFiles){
+    List<String> fileNames = new ArrayList<>();
+    for(String file : totalFiles){
+      String[] token = file.split("_");
+      int bucketId = Integer.valueOf(token[primaryDimension]);
+      if(bucketId == primaryDimension){
+        fileNames.add(file);
+      }
+    }
+    return fileNames;
+    
   }
 
   private static void listFile(List<String> fileNames, String fileName, int dim,   int shardDim) {

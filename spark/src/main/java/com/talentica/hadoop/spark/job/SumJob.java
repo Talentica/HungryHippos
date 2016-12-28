@@ -6,8 +6,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
 
 public class SumJob {
 
@@ -33,9 +33,6 @@ public class SumJob {
   }
   
   private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    /*JobMatrix medianJobMatrix = new JobMatrix();
-    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
-    return medianJobMatrix;*/
     Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
     JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
     obj.printMatrix();

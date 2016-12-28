@@ -8,6 +8,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
 
 public class SumJob {
 

@@ -13,9 +13,9 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.spark.job.executor.SumJobExecutor;
 

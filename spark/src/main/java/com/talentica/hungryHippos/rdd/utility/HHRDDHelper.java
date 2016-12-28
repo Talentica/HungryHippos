@@ -43,8 +43,7 @@ public class HHRDDHelper implements Serializable {
   private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
   private static String[]  keyOrder;
-  private static List<String> fileNames = new ArrayList<>();
-
+ private static Partition[] partitions;
   public static List<String> getPreferedIpsFromSetOfNode(Partition partition,
       List<SerializedNode> nodesSer, int primDim) {
     HHRDDPartition hhrddPartition = ((HHRDDPartition) partition);
@@ -138,36 +137,22 @@ public class HHRDDHelper implements Serializable {
         filteredPrimaryOnlyJobDimensions);
   }
 
-  public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id,int primDim) {
+  public static Partition[] getPartition(HHRDDConfigSerialized hipposRDDConf, int id) {
+    if (partitions == null) {
+      List<String> fileNames = new ArrayList<>();
       keyOrder= hipposRDDConf.getShardingKeyOrder();
-      if(fileNames.isEmpty()){
       listFile(fileNames, "", 0, keyOrder.length);
-      }
-      List<String> filesByPrimDim = getFilesByPrimaryDimension(0,fileNames);
-      Partition[] partitions = new HHRDDPartition[filesByPrimDim.size()];
-      for (int index = 0; index < filesByPrimDim.size(); index++) {
+      partitions = new HHRDDPartition[fileNames.size()];
+      for (int index = 0; index < fileNames.size(); index++) {
         String filePathAndName =
-            hipposRDDConf.getDirectoryLocation() + File.separatorChar + filesByPrimDim.get(index);
+            hipposRDDConf.getDirectoryLocation() + File.separatorChar + fileNames.get(index);
         partitions[index] = new HHRDDPartition(id, index, new File(filePathAndName).getPath(),
             hipposRDDConf.getFieldTypeArrayDataDescription());
       }
+    }
     return partitions;
-
   }
   
-  private static  List<String> getFilesByPrimaryDimension(int primaryDimension,List<String> totalFiles){
-    List<String> fileNames = new ArrayList<>();
-    for(String file : totalFiles){
-      String[] token = file.split("_");
-      int bucketId = Integer.valueOf(token[primaryDimension]);
-      if(bucketId == primaryDimension){
-        fileNames.add(file);
-      }
-    }
-    return fileNames;
-    
-  }
-
   private static void listFile(List<String> fileNames, String fileName, int dim,   int shardDim) {
     if (dim == shardDim) {
       fileNames.add(fileName);
@@ -183,17 +168,6 @@ public class HHRDDHelper implements Serializable {
 
   }
   
-/* public static void main(String[] args) {
-   String shardingTablePath = "/home/pooshans/HungryHippos/HungryHippos/sharding-table";
-   ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
-   bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(
-       shardingTablePath + File.separatorChar + "bucketToNodeNumberMap");
-   System.out.println(bucketToNodeNumberMap);
-   List<String> fileNames = new ArrayList<>();
-   listFile(fileNames, "", 0, keyOrder.length);
-   System.out.println(fileNames);
-}*/
-
   private static int getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
       int[] primaryOnlyJobDimensions) {
     Arrays.sort(primaryOnlyJobDimensions);

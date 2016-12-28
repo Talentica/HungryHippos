@@ -38,7 +38,7 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     HHRDDHelper.populateBucketToNodeNumber(hipposRDDConf);
     this.nodesSer = hipposRDDConf.getNodes();
     this.id = sc.sc().newRddId();
-    this.partitions = HHRDDHelper.getPartition(hipposRDDConf, id,hipposRDDConf.getJobPrimDim());
+    this.partitions = HHRDDHelper.getPartition(hipposRDDConf, id);
   }
 
   @Override

@@ -77,11 +77,12 @@ public enum HHFileUploader {
         for (Map.Entry<Integer, Socket> entry : socketMap.entrySet()) {
             LOGGER.info("Waiting for status from {} for {}", entry.getValue().getInetAddress(), srcFolderPath);
             String status = dataInputStreamMap.get(entry.getKey()).readUTF();
+            LOGGER.info("Success Status from {} for {} is {}", entry.getValue().getInetAddress(), srcFolderPath, status);
             entry.getValue().close();
             if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
                 success = false;
             }
-
+            
         }
         if (!success) {
             throw new RuntimeException("File Upload Failed for " + srcFolderPath);

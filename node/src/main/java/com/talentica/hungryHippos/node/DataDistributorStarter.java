@@ -32,7 +32,7 @@ public class DataDistributorStarter {
         dataDistributorService = Executors.newFixedThreadPool(10);
         fileProviderService = Executors.newFixedThreadPool(10);
         dataAppenderServices = Executors.newFixedThreadPool(10);
-        scpAccessServices = Executors.newFixedThreadPool(7);
+        scpAccessServices = Executors.newFixedThreadPool(10);
         while (true) {
             Socket socket = serverSocket.accept();
             serviceDeligator.execute(new ServiceDeligator(socket));

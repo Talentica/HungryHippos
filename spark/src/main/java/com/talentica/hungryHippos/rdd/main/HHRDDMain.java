@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.rdd.main;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -13,7 +14,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hdfs.spark.binary.job.JobMatrixInterface;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -40,6 +40,11 @@ public class HHRDDMain implements Serializable {
 
 
   private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(new Job(new Integer[]{0,1}, 6, 1));
+    return jobs;
+    
     /*int count = 0;
     JobMatrix sumJobMatrix = new JobMatrix();
     sumJobMatrix.addJob(new Job(new Integer[] {0}, 6, count++));
@@ -56,10 +61,10 @@ public class HHRDDMain implements Serializable {
         }
       }
     }*/
-    Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
+    /*Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
     JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
     obj.printMatrix();
-    return obj.getJobs();
+    return obj.getJobs();*/
   }
 
   private static void initializeSparkContext() {

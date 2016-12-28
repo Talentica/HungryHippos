@@ -61,8 +61,11 @@ public class FileUploader implements Runnable {
 
             logger.info("[{}] Lock acquired for {}", Thread.currentThread().getName(), srcFolderPath);
 
+            int processStatus = -1;
+            int noOfRemainingAttempts =25;
+            while(noOfRemainingAttempts>0&&processStatus<0){
             Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + Thread.currentThread().getId() + " " + fileNamesArg);
-            int processStatus = process.waitFor();
+            processStatus = process.waitFor();
 
             if (processStatus != 0) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -70,6 +73,12 @@ public class FileUploader implements Runnable {
                     logger.error(line);
                 }
                 br.close();
+            }
+            logger.error("[{}] Retrying File upload to {} for {} after 5 seconds", Thread.currentThread().getName(), node.getIp(),srcFolderPath);
+            noOfRemainingAttempts--;
+            Thread.sleep(5000);            
+            }
+            if(processStatus<0){
                 logger.error("[{}] Files failed for upload : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
                 this.countDownLatch.countDown();

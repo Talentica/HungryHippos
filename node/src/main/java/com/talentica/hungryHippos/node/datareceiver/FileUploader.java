@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class FileUploader implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(HHFileUploader.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileUploader.class);
     private CountDownLatch countDownLatch;
     private String srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg;
     private int idx;
@@ -55,6 +55,7 @@ public class FileUploader implements Runnable {
             dos.flush();
             String status = dis.readUTF();
             if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
+                this.countDownLatch.countDown();
                 throw new RuntimeException("File Scp not possible for " + srcFolderPath);
             }
 
@@ -71,6 +72,8 @@ public class FileUploader implements Runnable {
                 br.close();
                 logger.error("[{}] Files failed for upload : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
+                this.countDownLatch.countDown();
+                socket.close();
                 throw new RuntimeException("File transfer failed for " + srcFolderPath);
             }
             dos.writeBoolean(true);

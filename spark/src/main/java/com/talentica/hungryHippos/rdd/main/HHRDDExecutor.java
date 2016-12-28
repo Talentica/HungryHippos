@@ -3,22 +3,6 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.FileNotFoundException;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.broadcast.Broadcast;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
@@ -26,8 +10,20 @@ import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
-
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.broadcast.Broadcast;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
+
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * @author pooshans
@@ -92,12 +88,31 @@ public class HHRDDExecutor implements Serializable {
             Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
             return new Tuple2<String, Double>(key, value);
           }
-        }).reduceByKey(new Function2<Double, Double, Double>() {
-          public Double call(Double x, Double y) {
-            return x + y;
-          }
         });
-    javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+
+    javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Double>>, Tuple2<String, Double>>() {
+
+      @Override
+      public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
+
+        List<Tuple2<String, Double>> sumList = new ArrayList<>();
+        Map<String, Double> map = new HashMap<>();
+        while(t.hasNext()){
+          Tuple2<String, Double> tuple2 = t.next();
+          Double storedValue = map.get(tuple2._1);
+          if(storedValue==null){
+            map.put(tuple2._1, tuple2._2);
+          }else{
+            map.put(tuple2._1, tuple2._2+storedValue);
+          }
+        }
+
+        for(Map.Entry<String, Double> entry : map.entrySet()){
+          sumList.add(new Tuple2<String, Double>(entry.getKey(), entry.getValue()));
+        }
+        return sumList.iterator();
+      }
+    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
   }

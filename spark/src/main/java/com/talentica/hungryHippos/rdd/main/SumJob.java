@@ -40,9 +40,9 @@ public class SumJob implements Serializable {
 
 
   private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JobMatrix medianJobMatrix = new JobMatrix();
-    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
-    return medianJobMatrix;
+    JobMatrix sumJobMatrix = new JobMatrix();
+    sumJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
+    return sumJobMatrix;
   }
 
   private static void initializeSparkContext() {

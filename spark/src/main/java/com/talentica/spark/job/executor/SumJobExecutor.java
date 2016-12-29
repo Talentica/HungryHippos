@@ -6,14 +6,17 @@ package com.talentica.spark.job.executor;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
@@ -76,10 +79,10 @@ public class SumJobExecutor implements Serializable {
       hipposRDD = new HHRDD(context, hhrddConfigSerialized);
       cahceRDD.put(jobPrimDim, hipposRDD);
     }
-    JavaPairRDD<String, Double> javaRDD =
-        hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
+    JavaPairRDD<String, Integer> javaRDD =
+        hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
           @Override
-          public Tuple2<String, Double> call(byte[] bytes) throws Exception {
+          public Tuple2<String, Integer> call(byte[] bytes) throws Exception {
             HHRDDRowReader reader = new HHRDDRowReader(dataDes.getValue());
             ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
             reader.setByteBuffer(byteBuffer);
@@ -89,17 +92,36 @@ public class SumJobExecutor implements Serializable {
                   .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
             }
             key = key + "|id=" + jobBroadcast.value().getJobId();
-            Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-            return new Tuple2<String, Double>(key, value);
-          }
-        }).reduceByKey(new Function2<Double, Double, Double>() {
-          public Double call(Double x, Double y) {
-            return x + y;
+            Integer value = (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
+            return new Tuple2<String, Integer>(key, value);
           }
         });
-    javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+    javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Integer>>, Tuple2<String, Long>>() {
+
+      @Override
+      public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Integer>> t) throws Exception {
+
+        List<Tuple2<String, Long>> sumList = new ArrayList<>();
+        Map<String, Long> map = new HashMap<>();
+        while(t.hasNext()){
+          Tuple2<String, Integer> tuple2 = t.next();
+          Long storedValue = map.get(tuple2._1);
+          if(storedValue==null){
+            map.put(tuple2._1, Long.valueOf(tuple2._2.intValue()));
+          }else{
+            map.put(tuple2._1, tuple2._2+storedValue);
+          }
+        }
+
+        for(Map.Entry<String, Long> entry : map.entrySet()){
+          sumList.add(new Tuple2<String, Long>(entry.getKey(), entry.getValue()));
+        }
+        return sumList.iterator();
+      }
+    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+
   }
 
   public void stop(JavaSparkContext context) {

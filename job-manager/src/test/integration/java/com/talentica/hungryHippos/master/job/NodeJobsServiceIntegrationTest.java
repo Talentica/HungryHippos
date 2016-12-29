@@ -15,7 +15,6 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.utility.JobEntity;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
@@ -32,7 +31,7 @@ public class NodeJobsServiceIntegrationTest {
 
   @Before
   public void setUp() throws Exception {
-    node = new Node(nodeCapacity, nodeId);
+    node = new Node(nodeCapacity, nodeId,0);
     curator = HungryHippoCurator.getInstance("localhost:2181");
     CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     curator.initializeZookeeperDefaultConfig(coordinationConfig.getZookeeperDefaultConfig());

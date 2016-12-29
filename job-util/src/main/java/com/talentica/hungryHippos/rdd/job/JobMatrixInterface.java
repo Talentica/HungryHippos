@@ -1,8 +1,6 @@
-package com.talentica.hdfs.spark.binary.job;
+package com.talentica.hungryHippos.rdd.job;
 
 import java.util.List;
-
-import com.talentica.hungryHippos.rdd.job.Job;
 
 public interface JobMatrixInterface {
 

@@ -14,27 +14,6 @@ sourceSets {
 }
 
 dependencies {
-     compile project (':client-api')
-     compile project (':configuration-schema')
      compile project (':sharding')
      compile project (':common-libs')
-}
-configurations {
-    provided
-    compile.extendsFrom provided
-}
-jar {
-	archiveName='spark-'+version+'.jar'
-	dependsOn configurations.runtime
-	
-	from {
-        (configurations.runtime).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-	
-    manifest {
-        attributes 'Main-Class': 'com.talentica.hungryHippos.rdd.main.HHRDDMain'
-    }
-    zip64 true
 }

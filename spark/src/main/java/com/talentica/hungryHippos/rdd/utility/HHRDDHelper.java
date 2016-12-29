@@ -40,11 +40,10 @@ public class HHRDDHelper implements Serializable {
   public static Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
   private static HashMap<Integer, List<String>> cachePreferedLocation =
       new HashMap<Integer, List<String>>();
-  private static Partition[] partitions = null;
   private static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
   public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
   private static String[]  keyOrder;
-
+ private static Partition[] partitions;
   public static List<String> getPreferedIpsFromSetOfNode(Partition partition,
       List<SerializedNode> nodesSer, int primDim) {
     HHRDDPartition hhrddPartition = ((HHRDDPartition) partition);
@@ -152,9 +151,8 @@ public class HHRDDHelper implements Serializable {
       }
     }
     return partitions;
-
   }
-
+  
   private static void listFile(List<String> fileNames, String fileName, int dim,   int shardDim) {
     if (dim == shardDim) {
       fileNames.add(fileName);
@@ -170,17 +168,6 @@ public class HHRDDHelper implements Serializable {
 
   }
   
-/* public static void main(String[] args) {
-   String shardingTablePath = "/home/pooshans/HungryHippos/HungryHippos/sharding-table";
-   ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
-   bucketToNodeNumberMap = ShardingFileUtil.readFromFileBucketToNodeNumber(
-       shardingTablePath + File.separatorChar + "bucketToNodeNumberMap");
-   System.out.println(bucketToNodeNumberMap);
-   List<String> fileNames = new ArrayList<>();
-   listFile(fileNames, "", 0, keyOrder.length);
-   System.out.println(fileNames);
-}*/
-
   private static int getShardingIndexForJobExecutionToMaximizeUseOfSortedData(
       int[] primaryOnlyJobDimensions) {
     Arrays.sort(primaryOnlyJobDimensions);

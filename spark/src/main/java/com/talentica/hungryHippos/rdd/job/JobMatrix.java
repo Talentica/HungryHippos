@@ -6,11 +6,12 @@ package com.talentica.hungryHippos.rdd.job;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * @author pooshans
  *
  */
-public class JobMatrix implements JobMatrixInterface,Serializable{
+public class JobMatrix implements Serializable{
   
   /**
    * 
@@ -19,8 +20,7 @@ public class JobMatrix implements JobMatrixInterface,Serializable{
   private List<Job> jobs;
 
   public JobMatrix() {
-    Job job = new Job(new Integer[] {0,1},6,0);
-    addJob(job);
+    
   }
 
   public JobMatrix(List<Job> jobs) {
@@ -42,11 +42,6 @@ public class JobMatrix implements JobMatrixInterface,Serializable{
   public String toString() {
     return "JobConf [jobs=" + jobs + ", getJobs()=" + getJobs() + ", getClass()=" + getClass()
         + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
-  }
-
-  @Override
-  public void printMatrix() {
-    System.out.println(this.toString());
   }
 
 }

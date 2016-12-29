@@ -1,21 +1,19 @@
-package com.talentica.hungryHippos.rdd.main;
+/**
+ * 
+ */
+package com.talentica.spark.job.executor;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
@@ -32,11 +30,13 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import scala.Tuple2;
 
 /**
- * Created by rajkishoreh on 16/12/16.
+ * @author pooshans
+ *
  */
-public class MedianJobExecutor implements Serializable {
-  private static final long serialVersionUID = -8292896082222169848L;
-  private static Logger LOGGER = LoggerFactory.getLogger(HHRDDExecutor.class);
+public class SumJobExecutor implements Serializable {
+
+  private static final long serialVersionUID = 4405057963355945497L;
+  private static Logger LOGGER = LoggerFactory.getLogger(SumJobExecutor.class);
   private String outputFile;
   private String distrDir;
   private String clientConf;
@@ -47,7 +47,7 @@ public class MedianJobExecutor implements Serializable {
   /**
    * @param args
    */
-  public MedianJobExecutor(String args[]) {
+  public SumJobExecutor(String args[]) {
     validateProgramArgument(args);
     this.masterIp = args[0];
     this.appName = args[1];
@@ -58,25 +58,25 @@ public class MedianJobExecutor implements Serializable {
   }
 
 
-  public void startJob(JavaSparkContext context, HHRDDConfiguration hhrddConfiguration,
+  @SuppressWarnings("serial")
+  public void startSumJob(JavaSparkContext context, HHRDDConfiguration hhrddConfiguration,
       Broadcast<Job> jobBroadcast, int jobPrimDim) throws FileNotFoundException, JAXBException {
     HHRDDConfigSerialized hhrddConfigSerialized =
         new HHRDDConfigSerialized(hhrddConfiguration.getRowSize(),
             hhrddConfiguration.getShardingKeyOrder(), hhrddConfiguration.getDirectoryLocation(),
             hhrddConfiguration.getShardingFolderPath(), hhrddConfiguration.getNodes(),
             hhrddConfiguration.getDataDescription(), jobPrimDim);
+    
     Broadcast<FieldTypeArrayDataDescription> dataDes =
         context.broadcast(hhrddConfiguration.getDataDescription());
+    
     HHRDD hipposRDD = cahceRDD.get(jobPrimDim);
-
+    
     if (hipposRDD == null) {
       hipposRDD = new HHRDD(context, hhrddConfigSerialized);
       cahceRDD.put(jobPrimDim, hipposRDD);
     }
-    
-    
-    
-    JavaPairRDD<String, Double> pairRDD =
+    JavaPairRDD<String, Double> javaRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
           @Override
           public Tuple2<String, Double> call(byte[] bytes) throws Exception {
@@ -92,33 +92,12 @@ public class MedianJobExecutor implements Serializable {
             Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
             return new Tuple2<String, Double>(key, value);
           }
-        });
-    
-   pairRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Double>>, Tuple2<String, Double>>() {
-
-      @Override
-      public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
-        
-        List<Tuple2<String, Double>> medianList = new ArrayList<>();
-        Map<String, DescriptiveStatistics> map = new HashMap<>();
-        while(t.hasNext()){
-          Tuple2<String, Double> tuple2 = t.next();
-          DescriptiveStatistics descriptiveStatistics = map.get(tuple2._1);
-          if(descriptiveStatistics==null){
-            descriptiveStatistics = new DescriptiveStatistics();
-            map.put(tuple2._1, descriptiveStatistics);
+        }).reduceByKey(new Function2<Double, Double, Double>() {
+          public Double call(Double x, Double y) {
+            return x + y;
           }
-          descriptiveStatistics.addValue(tuple2._2);
-        }
-        
-        for(Entry<String, DescriptiveStatistics> entry : map.entrySet()){
-          Double median = entry.getValue().getPercentile(50);
-          medianList.add(new Tuple2<String, Double>(entry.getKey(), median));
-        }        
-        return medianList.iterator();        
-      }
-    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
-    
+        });
+    javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
   }
@@ -187,4 +166,7 @@ public class MedianJobExecutor implements Serializable {
       System.exit(1);
     }
   }
+
+
+
 }

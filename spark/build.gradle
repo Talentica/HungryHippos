@@ -16,4 +16,5 @@ sourceSets {
 dependencies {
      compile project (':sharding')
      compile project (':common-libs')
+     compile('com.clearspring.analytics:stream:2.7.0')
 }

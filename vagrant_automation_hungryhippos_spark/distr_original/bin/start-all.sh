@@ -18,6 +18,5 @@ ownIP=$2
 
 ./data-receiver.sh $pathof_client_config $HUNGRYHIPPOS_LOG_DIR $HUNGRYHIPPOS_HOME
 ./data-synchronization.sh $zookeeper_string $ownIP $HUNGRYHIPPOS_LOG_DIR
-#./job-executor.sh $pathof_client_config $HUNGRYHIPPOS_LOG_DIR
 ./data-request-handler.sh $pathof_client_config $HUNGRYHIPPOS_LOG_DIR
-./data-distributor.sh $pathof_client_config $HUNGRYHIPPOS_LOG_DIR
+./data-distributor.sh $pathof_client_config $HUNGRYHIPPOS_LOG_DIR $HUNGRYHIPPOS_HOME

@@ -1,7 +1,6 @@
 package com.talentica.hdfs.spark.text.job;
 
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -13,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrixInterface;
+import com.talentica.hungryHippos.rdd.job.JobMatrix;
 
 import scala.Tuple2;
 
@@ -25,7 +24,7 @@ public class MedianJob {
     SparkContext sc = new SparkContext(args);
     JavaSparkContext jsc = sc.initContext();
     JavaRDD<String> rdd = jsc.textFile(sc.getDistrFile());
-    for(Job job : getSumJobMatrix()){
+    for(Job job : getSumJobMatrix().getJobs()){
       Broadcast<Job> broadcastJob = jsc.broadcast(job);
       runJob(sc,rdd,broadcastJob);
     }
@@ -64,13 +63,9 @@ public class MedianJob {
         sc.getOutputDir() +  broadcastJob.value().getJobId());
   }
   
-  private static List<Job> getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    /*JobMatrix medianJobMatrix = new JobMatrix();
+  private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    JobMatrix medianJobMatrix = new JobMatrix();
     medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
-    return medianJobMatrix;*/
-    Class jobMatrix = Class.forName("com.talentica.hungryHippos.rdd.job.JobMatrix");
-    JobMatrixInterface obj =  (JobMatrixInterface) jobMatrix.newInstance();
-    obj.printMatrix();
-    return obj.getJobs();
+    return medianJobMatrix;
   }
 }

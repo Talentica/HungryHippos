@@ -29,11 +29,11 @@ public class MedianJobExecutor extends JobExecutor{
       DataDescriptionConfig dataDescriptionConfig, Broadcast<Job> broadcastJob) {
     Broadcast<FieldTypeArrayDataDescription> dataDes =
         context.broadcast(dataDescriptionConfig.getDataDescription());
-    JavaPairRDD<String, Double> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Double>() {
+    JavaPairRDD<String, Integer> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Integer>() {
       private static final long serialVersionUID = -4057434571069903937L;
 
       @Override
-      public Tuple2<String, Double> call(byte[] buf) throws Exception {
+      public Tuple2<String, Integer> call(byte[] buf) throws Exception {
         HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         readerVar.setByteBuffer(byteBuffer);
@@ -43,17 +43,17 @@ public class MedianJobExecutor extends JobExecutor{
               .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
         }
         key = key + "|id=" + broadcastJob.value().getJobId();
-        Double value = (Double) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-        return new Tuple2<String, Double>(key, value);
+        Integer value = (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
+        return new Tuple2<String, Integer>(key, value);
       }
     });
-    JavaPairRDD<String, Iterable<Double>> pairRDDGroupedByKey = pairRDD.groupByKey();
-    JavaPairRDD<String, Double> result = pairRDDGroupedByKey.mapToPair(new PairFunction<Tuple2<String,Iterable<Double>>, String, Double>() {
+    JavaPairRDD<String, Iterable<Integer>> pairRDDGroupedByKey = pairRDD.groupByKey();
+    JavaPairRDD<String, Double> result = pairRDDGroupedByKey.mapToPair(new PairFunction<Tuple2<String,Iterable<Integer>>, String, Double>() {
       private static final long serialVersionUID = 484111559311975643L;
       @Override
-      public Tuple2<String, Double> call(Tuple2<String, Iterable<Double>> t) throws Exception {
+      public Tuple2<String, Double> call(Tuple2<String, Iterable<Integer>> t) throws Exception {
         DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
-        Iterator<Double> itr = t._2.iterator();
+        Iterator<Integer> itr = t._2.iterator();
         while(itr.hasNext()){
           descriptiveStatistics.addValue(itr.next());
         }

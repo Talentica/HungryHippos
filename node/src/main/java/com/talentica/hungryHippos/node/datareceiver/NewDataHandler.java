@@ -66,10 +66,18 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         this.noError = true;
         this.fileId = fileId;
         this.previousUnprocessedData = remainingBufferData;
-        String path = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                .getZookeeperDefaultConfig().getFileidHhfsMapPath();
-        hhFilePath = HungryHippoCurator.getInstance()
-                .getZnodeData(path + HungryHippoCurator.ZK_PATH_SEPERATOR + fileId + "");
+        HungryHippoCurator curator = HungryHippoCurator.getInstance();
+        String fileIdNodePath = getHHFileIdPath(fileId);
+        int noOfAttemptsLeft= 25;
+        while(noOfAttemptsLeft>0&&!curator.checkExists(fileIdNodePath)){
+            LOGGER.info("{} does not exists. Retrying after 2 seconds",fileIdNodePath);
+            Thread.sleep(2000);
+            noOfAttemptsLeft--;
+        }
+        if(!curator.checkExists(fileIdNodePath)){
+            throw new RuntimeException(fileIdNodePath +" in zookeper not found");
+        }
+        hhFilePath = curator.getZnodeData(fileIdNodePath);
         String dataAbsolutePath = FileSystemContext.getRootDirectory() + hhFilePath;
         String shardingTableFolderPath =
                 dataAbsolutePath + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
@@ -201,7 +209,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
             HHFileUploader.INSTANCE.uploadFile(srcFolderPath,destFolderPath,nodeToFileMap);
             FileUtils.deleteDirectory(new File(srcFolderPath));
             if (!checkIfFailed(hhFilePath)&&noError) {
-                clearNode();
+                clearNode(fileId);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -251,7 +259,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         return  curator.checkExists(pathForFailureNode);
     }
 
-    public void clearNode() {
+    public static void clearNode(int fileId) {
         String hhFileIdNodePath = getHHFileIdNodePath(fileId);
         HungryHippoCurator curator = HungryHippoCurator.getInstance();
         try {

@@ -16,12 +16,14 @@ public class FileIdHandler extends ChannelHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NewDataHandler.class);
     private ByteBuf byteBuf;
+    private int fileId;
     public static final int FILE_ID_BYTE_SIZE = 4;
 
 
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         String senderIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
         LOGGER.info("Connected to {}", senderIp);
+        fileId = -1;
         byteBuf = ctx.alloc().buffer(FILE_ID_BYTE_SIZE);
     }
 
@@ -31,7 +33,7 @@ public class FileIdHandler extends ChannelHandlerAdapter {
         byteBuf.writeBytes(msgB);
         msgB.release();
         if (byteBuf.readableBytes() >= FILE_ID_BYTE_SIZE) {
-            int fileId = byteBuf.readInt();
+            fileId = byteBuf.readInt();
             byte[] remainingBufferData = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(remainingBufferData);
             ctx.pipeline().remove(DataReceiver.FILE_ID_HANDLER);
@@ -45,6 +47,10 @@ public class FileIdHandler extends ChannelHandlerAdapter {
         ctx.fireExceptionCaught(cause);
         cause.printStackTrace();
         LOGGER.error(cause.toString());
+        if(fileId!=-1){
+            NewDataHandler.clearNode(fileId);
+        }
+        ctx.channel().close();
     }
 
 }

@@ -48,52 +48,50 @@ public class FileUploader implements Runnable {
         try {
             String line;
             String fileNamesArg = StringUtils.join(fileNames, " ");
-            Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            DataInputStream dis = new DataInputStream(socket.getInputStream());
-            dos.writeInt(HungryHippoServicesConstants.SCP_ACCESS);
-            dos.flush();
-            String status = dis.readUTF();
-            if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
-                this.countDownLatch.countDown();
-                throw new RuntimeException("File Scp not possible for " + srcFolderPath);
-            }
-
-            logger.info("[{}] Lock acquired for {}", Thread.currentThread().getName(), srcFolderPath);
+            logger.info("[{}] File Upload started for {} to {}", Thread.currentThread().getName(), srcFolderPath,node.getIp());
 
             int processStatus = -1;
             int noOfRemainingAttempts =25;
+            String tarFileName = Thread.currentThread().getId()+".tar";
             while(noOfRemainingAttempts>0&&processStatus<0){
-            Process process = Runtime.getRuntime().exec(commonCommandArg + " " + node.getIp() + " " + Thread.currentThread().getId() + " " + fileNamesArg);
-            processStatus = process.waitFor();
+            Process tarProcess = Runtime.getRuntime().exec(commonCommandArg + " " + tarFileName + " " + fileNamesArg);
+            processStatus = tarProcess.waitFor();
 
             if (processStatus != 0) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(tarProcess.getErrorStream()));
                 while ((line = br.readLine()) != null) {
                     logger.error(line);
                 }
                 br.close();
             }
-            logger.error("[{}] Retrying File upload to {} for {} after 5 seconds", Thread.currentThread().getName(), node.getIp(),srcFolderPath);
+            logger.error("[{}] Retrying File tar for {} after 5 seconds", Thread.currentThread().getName(), srcFolderPath);
             noOfRemainingAttempts--;
             Thread.sleep(5000);            
             }
             if(processStatus<0){
-                logger.error("[{}] Files failed for upload : {}", Thread.currentThread().getName(), fileNamesArg);
+                logger.error("[{}] Files failed for tar : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
                 this.countDownLatch.countDown();
-                socket.close();
                 throw new RuntimeException("File transfer failed for " + srcFolderPath);
             }
-            dos.writeBoolean(true);
-            socket.close();
             logger.info("[{}] Lock released for {}", Thread.currentThread().getName(), srcFolderPath);
-            socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+            Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
             dataInputStreamMap.put(idx, new DataInputStream(socket.getInputStream()));
-            dos = new DataOutputStream(socket.getOutputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             dos.writeInt(HungryHippoServicesConstants.DATA_APPENDER);
             dos.writeUTF(remoteTargetFolder);
+            dos.writeUTF(tarFileName);
             dos.writeUTF(destinationPath);
+            dos.flush();
+            File srcFile = new File(srcFolderPath+File.separator+tarFileName);
+            dos.writeLong(srcFile.length());
+            int bufferSize = 2048;
+            byte[] buffer = new byte[bufferSize];
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(srcFile),10*bufferSize);
+            int len;
+            while((len=bis.read(buffer))>-1) {
+                dos.write(buffer, 0, len);
+            }
             dos.flush();
             socketMap.put(idx, socket);
             success = true;

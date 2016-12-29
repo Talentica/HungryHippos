@@ -87,7 +87,7 @@ public class DataPublisherStarter {
                 String chunkFilePathPrefix = sourcePath + "_" + startTime + "_";
                 String chunkFileNamePrefix = srcFile.getName() + "_" + startTime + "_";
                 String hungryHippoBinDir = System.getProperty("hh.bin.dir");
-                if (hungryHippoBinDir == null) {
+                if (hungryHippoBinDir == null || "".equals(hungryHippoBinDir)) {
                     throw new RuntimeException("System property hh.bin.dir is not set. Set the property value to HungryHippo bin Directory");
                 }
                 String commonCommandArgs = hungryHippoBinDir + SCRIPT_FOR_FILE_SPLIT + " " + sourcePath

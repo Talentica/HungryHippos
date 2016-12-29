@@ -1,15 +1,9 @@
 package com.talentica.hungryHippos.node.datareceiver;
 
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
-import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.node.DataReceiver;
-import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +19,9 @@ public enum HHFileUploader {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(HHFileUploader.class);
 
-    public static final String SCRIPT_FOR_FILE_TRANSFER = "transfer-files.sh";
+    public static final String SCRIPT_FOR_TAR_FILE_LIST = "tar-file-list.sh";
 
     private String hungryHippoBinDir;
-
-    private String sshUserName;
 
     private List<Node> nodes;
 
@@ -37,7 +29,6 @@ public enum HHFileUploader {
 
     HHFileUploader() {
         this.hungryHippoBinDir = System.getProperty("hh.bin.dir");
-        this.sshUserName = DataReceiver.getUserName();
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         this.fileUploadService = Executors.newFixedThreadPool(nodes.size());
     }
@@ -46,7 +37,7 @@ public enum HHFileUploader {
         LOGGER.info("Inside uploadFile for {} from {}", destinationPath, srcFolderPath);
         String remoteTargetFolder = srcFolderPath;
         LOGGER.info("Sending Replica Data To Nodes for {}", destinationPath);
-        String commonCommandArg = this.hungryHippoBinDir + SCRIPT_FOR_FILE_TRANSFER + " " + srcFolderPath + " " + remoteTargetFolder + " " + this.sshUserName;
+        String commonCommandArg = this.hungryHippoBinDir + SCRIPT_FOR_TAR_FILE_LIST + " " + srcFolderPath ;
         int idx = 0;
         Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
         Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();

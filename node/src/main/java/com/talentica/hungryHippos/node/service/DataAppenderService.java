@@ -1,15 +1,13 @@
 package com.talentica.hungryHippos.node.service;
 
+import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -21,6 +19,7 @@ public class DataAppenderService implements Runnable {
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private Socket socket;
+    private static final String SCRIPT_FOR_UNTAR_AND_REMOVE_SRC="untar-file-and-remove-src.sh";
 
     public DataAppenderService(Socket socket) throws IOException {
         this.socket = socket;
@@ -35,17 +34,40 @@ public class DataAppenderService implements Runnable {
         try {
             srcFolderPath = dataInputStream.readUTF();
             srcFolder = new File(srcFolderPath);
+            srcFolder.mkdirs();
+            String srcTarFileName = dataInputStream.readUTF();
+            String srcTarFilePath = srcFolderPath+File.separator+srcTarFileName;
+            File srcTarFile = new File(srcTarFilePath);
             String destFolderPath = dataInputStream.readUTF();
-            logger.info("[{}] joining {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
-            String lockString = destFolderPath+socket.getInetAddress();
-            if (srcFolder.exists()) {
+            long fileSize = dataInputStream.readLong();
+            int bufferSize = 2048;
+            byte[] buffer = new byte[bufferSize];
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcTarFile),10*bufferSize);
+            int len;
+            while(fileSize>0){
+                len=dataInputStream.read(buffer);
+                bos.write(buffer,0,len);
+                fileSize = fileSize-len;
+            }
+            bos.flush();
+            bos.close();
+            Process untarProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir")+SCRIPT_FOR_UNTAR_AND_REMOVE_SRC+" "+srcFolderPath+" "+srcTarFileName);
+            int untarProcessStatus = untarProcess.waitFor();
+            String line;
+            if(untarProcessStatus!=0){
+                BufferedReader br = new BufferedReader(new InputStreamReader(untarProcess.getErrorStream()));
+                while ((line = br.readLine()) != null) {
+                    logger.error(line);
+                }
+                br.close();
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
+                logger.info("[{}] unable to untar {} , File exists status {}",Thread.currentThread().getName(),srcTarFilePath);
+            }else{
+                logger.info("[{}] joining {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
+                String lockString = destFolderPath+socket.getInetAddress();
                 FileJoiner.join(srcFolderPath, destFolderPath, lockString);
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
                 logger.info("[{}] Successfully joined {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
-
-            }else{
-                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
-                logger.info("[{}] sourcefolder  {} not found",Thread.currentThread().getName(),srcFolderPath);
             }
             dataOutputStream.flush();
 

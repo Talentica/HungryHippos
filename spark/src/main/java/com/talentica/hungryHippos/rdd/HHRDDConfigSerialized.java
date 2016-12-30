@@ -11,18 +11,19 @@ public class HHRDDConfigSerialized implements Serializable {
   private static final long serialVersionUID = -1970173579825061525L;
   private int rowSize;
   private String[] shardingKeyOrder;
+  private int[] shardingIndexes;
   private String directoryLocation;
   private String shardingFolderPath;
   private List<SerializedNode> nodes;
   private FieldTypeArrayDataDescription fieldDataDesc;
-  private int jobPrimDim;
 
-  public HHRDDConfigSerialized(int rowSize, String[] shardingKeyOrder, String directoryLocation,
+  public HHRDDConfigSerialized(int rowSize, String[] shardingKeyOrder, int[] shardingIndexes,String directoryLocation,
       String shardingFolderPath, List<SerializedNode> nodes,
-      FieldTypeArrayDataDescription fieldDataDesc, int jobPrimDim) {
+      FieldTypeArrayDataDescription fieldDataDesc) {
     super();
     this.rowSize = rowSize;
     this.shardingKeyOrder = shardingKeyOrder;
+    this.shardingIndexes = shardingIndexes;
     this.directoryLocation = directoryLocation;
     this.shardingFolderPath = shardingFolderPath;
     this.nodes = nodes;
@@ -31,6 +32,10 @@ public class HHRDDConfigSerialized implements Serializable {
 
   public String[] getShardingKeyOrder() {
     return shardingKeyOrder;
+  }
+
+  public int[] getShardingIndexes() {
+    return shardingIndexes;
   }
 
   public String getDirectoryLocation() {
@@ -51,10 +56,6 @@ public class HHRDDConfigSerialized implements Serializable {
 
   public FieldTypeArrayDataDescription getFieldTypeArrayDataDescription() {
     return this.fieldDataDesc;
-  }
-
-  public int getJobPrimDim() {
-    return jobPrimDim;
   }
 
 

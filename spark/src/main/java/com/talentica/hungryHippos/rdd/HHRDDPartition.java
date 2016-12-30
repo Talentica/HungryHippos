@@ -5,10 +5,13 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.spark.Partition;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import scala.Tuple2;
 
 /**
  * @author pooshans
@@ -20,25 +23,18 @@ public class HHRDDPartition implements Partition {
   private int index;
   private String filePath;
   private FieldTypeArrayDataDescription dataDescription;
-  private String fileName;
   private int rddId;
-  private List<String> hosts;
-  
-  public List<String> getHosts() {
-    return hosts;
-  }
-
-  public void setHosts(List<String> hosts) {
-    this.hosts = hosts;
-  }
+  private List<Tuple2<String,Set<String>>> files;
+  private String preferredHost;
 
   public HHRDDPartition(int rddId , int index, String filePath,
-      FieldTypeArrayDataDescription dataDescription) {
+                        FieldTypeArrayDataDescription dataDescription, String preferredHost , List<Tuple2<String,Set<String>>> files) {
     this.index = index;
     this.filePath = filePath;
     this.dataDescription = dataDescription;
-    this.fileName = new File(filePath).getName();
     this.rddId = rddId;
+    this.preferredHost = preferredHost;
+    this.files = files;
   }
 
   @Override
@@ -64,10 +60,6 @@ public class HHRDDPartition implements Partition {
     return filePath;
   }
 
-  public String getFileName() {
-    return fileName;
-  }
-
   public int getRowSize() {
     return dataDescription.getSize();
   }
@@ -76,5 +68,11 @@ public class HHRDDPartition implements Partition {
     return this.dataDescription;
   }
 
+  public String getPreferredHost() {
+    return preferredHost;
+  }
 
+  public List<Tuple2<String,Set<String>>> getFiles() {
+    return files;
+  }
 }

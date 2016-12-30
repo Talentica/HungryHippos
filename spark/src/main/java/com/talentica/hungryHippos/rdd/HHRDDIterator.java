@@ -3,22 +3,18 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.Socket;
-import java.util.List;
-
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import scala.Tuple2;
 import scala.collection.AbstractIterator;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author pooshans
@@ -31,35 +27,54 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
   // private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
   private long currentDataFileSize;
+  private String currentFile;
+  private String currentFilePath;
   private BufferedInputStream dataInputStream;
   // private HHRDDRowReader hhRDDRowReader;
   private int recordLength;
-  private  boolean fileDownloaded = false;
+  private Set<String> remoteFiles;
   private String filePath;
-  public HHRDDIterator(String filePath, int rowSize,List<String> ipList) throws IOException {
-    this.filePath = filePath;
-    File file = new File(filePath);
-    if (!file.exists()) {
-      logger.info("Downloading file {} from hosts {} ",filePath,ipList);
-     
-      while (!fileDownloaded) {
-        for (String ip : ipList) {
-          fileDownloaded = downloadFile(filePath, ip);
-          logger.info("File downloaded success status {} from ip {}",fileDownloaded,ip);
-          if (fileDownloaded) {
-            break;
+  private Iterator<Tuple2<String,Set<String>>> fileIterator;
+  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,Set<String>>> files) throws IOException {
+    this.filePath = filePath+File.separator;
+    remoteFiles = new HashSet<>();
+    for(Tuple2<String,Set<String>> tuple2: files){
+      File file = new File(filePath+File.separator+tuple2._1);
+      if (!file.exists()) {
+        logger.info("Downloading file {} from nodes {} ",filePath,tuple2._2);
+        boolean isFileDownloaded = false;
+        while (!isFileDownloaded) {
+          for (String ip : tuple2._2) {
+            isFileDownloaded = downloadFile(this.filePath+tuple2._1, ip);
+            logger.info("File downloaded success status {} from ip {}",isFileDownloaded,ip);
+            if (isFileDownloaded) {
+              break;
+            }
           }
         }
-      }
+        remoteFiles.add(tuple2._1);
+    }
 
     }
-    this.dataInputStream = new BufferedInputStream(new FileInputStream(filePath), 2097152);
-    this.currentDataFileSize = dataInputStream.available();
+    fileIterator = files.iterator();
+    iterateOnFiles();
+
+
     // this.hhRDDRowReader = new HHRDDRowReader(dataDescription);
     this.byteBufferBytes = new byte[rowSize];
     // this.byteBuffer = ByteBuffer.wrap(byteBufferBytes);
     this.recordLength = rowSize;
     // this.hhRDDRowReader.setByteBuffer(byteBuffer);
+  }
+
+  private void iterateOnFiles() throws IOException {
+    if(fileIterator.hasNext()){
+      Tuple2<String,Set<String>> tuple2 = fileIterator.next();
+      currentFile = tuple2._1;
+      currentFilePath = this.filePath+currentFile;
+      this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
+      this.currentDataFileSize = dataInputStream.available();
+    }
   }
 
   private boolean downloadFile(String filePath, String ip) {
@@ -71,7 +86,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
       socket = new Socket(ip, port);
       DataInputStream dis = new DataInputStream(socket.getInputStream());
       DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-      dos.writeInt(2);
+      dos.writeInt(HungryHippoServicesConstants.FILE_PROVIDER);
       dos.writeUTF(filePath);
       dos.flush();
       long fileSize = dis.readLong();
@@ -107,6 +122,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
     try {
       if (currentDataFileSize <= 0) {
         closeDatsInputStream();
+        iterateOnFiles();
       }
     } catch (IOException exception) {
       throw new RuntimeException(exception);
@@ -129,8 +145,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
   private void closeDatsInputStream() throws IOException {
     if (dataInputStream != null) {
       dataInputStream.close();
-      if(fileDownloaded){
-        new File(filePath).delete();
+      if(remoteFiles.contains(currentFile)){
+        new File(currentFilePath).delete();
       }
     }
   }

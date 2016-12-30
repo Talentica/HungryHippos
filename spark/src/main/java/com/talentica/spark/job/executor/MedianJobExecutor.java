@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -26,7 +27,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
+import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
@@ -43,7 +44,7 @@ public class MedianJobExecutor implements Serializable {
   private String clientConf;
   private String masterIp;
   private String appName;
-  private Map<Integer, HHRDD> cahceRDD;
+  private Map<String, HHRDD> cahceRDD;
 
   /**
    * @param args
@@ -55,27 +56,26 @@ public class MedianJobExecutor implements Serializable {
     this.distrDir = args[2];
     this.clientConf = args[3];
     this.outputFile = args[4];
-    this.cahceRDD = new HashMap<Integer, HHRDD>();
+    this.cahceRDD = new HashMap<String, HHRDD>();
   }
 
 
-  public void startMedianJob(JavaSparkContext context, HHRDDConfiguration hhrddConfiguration,
-      Broadcast<Job> jobBroadcast, int jobPrimDim) throws FileNotFoundException, JAXBException {
+  public void startMedianJob(JavaSparkContext context, CustomHHJobConfiguration customHHJobConfiguration,
+                             Job job) throws FileNotFoundException, JAXBException {
     HHRDDConfigSerialized hhrddConfigSerialized =
-        new HHRDDConfigSerialized(hhrddConfiguration.getRowSize(),
-            hhrddConfiguration.getShardingKeyOrder(), hhrddConfiguration.getDirectoryLocation(),
-            hhrddConfiguration.getShardingFolderPath(), hhrddConfiguration.getNodes(),
-            hhrddConfiguration.getDataDescription(), jobPrimDim);
+            HHRDDHelper.getHhrddConfigSerialized(customHHJobConfiguration.getDistributedPath(),
+                    customHHJobConfiguration.getClientConfigPat());
     Broadcast<FieldTypeArrayDataDescription> dataDes =
-        context.broadcast(hhrddConfiguration.getDataDescription());
-    HHRDD hipposRDD = cahceRDD.get(jobPrimDim);
+            context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
+    Broadcast<Job> jobBroadcast = context.broadcast(job);
+    String keyOfHHRDD = HHRDDHelper
+            .generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
+    HHRDD hipposRDD = cahceRDD.get(keyOfHHRDD);
 
     if (hipposRDD == null) {
-      hipposRDD = new HHRDD(context, hhrddConfigSerialized);
-      cahceRDD.put(jobPrimDim, hipposRDD);
+      hipposRDD = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
+      cahceRDD.put(keyOfHHRDD, hipposRDD);
     }
-    
-    
     
     JavaPairRDD<String, Double> pairRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
@@ -119,9 +119,9 @@ public class MedianJobExecutor implements Serializable {
       }
     }, true);
     
-   javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+   javaRDD.saveAsTextFile(customHHJobConfiguration.getOutputFileName() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
-        hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+        customHHJobConfiguration.getOutputFileName() + jobBroadcast.value().getJobId());
   }
 
   public void stop(JavaSparkContext context) {

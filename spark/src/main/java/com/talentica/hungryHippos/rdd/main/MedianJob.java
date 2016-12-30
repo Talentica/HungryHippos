@@ -8,7 +8,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
+import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -25,14 +25,11 @@ public class MedianJob {
     public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         executor = new MedianJobExecutor(args);
         
-        HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
+        CustomHHJobConfiguration customHHJobConfiguration = new CustomHHJobConfiguration(executor.getDistrDir(),
                 executor.getClientConf(), executor.getOutputFile());
         initializeSparkContext();
         for (Job job : getSumJobMatrix().getJobs()) {
-            Broadcast<Job> jobBroadcast = context.broadcast(job);
-            int jobPrimDim = HHRDDHelper
-                    .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
-            executor.startMedianJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
+            executor.startMedianJob(context, customHHJobConfiguration, job);
         }
         executor.stop(context);
     }

@@ -11,7 +11,7 @@ import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
+import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -26,21 +26,17 @@ public class UniqueCounterJob {
     String inputDataFilePath = args[2];
     String clientConfigFilePath = args[3];
     String outputFilePath = args[4];
-    HHRDDConfiguration hhrddConfiguration =
-        new HHRDDConfiguration(inputDataFilePath, clientConfigFilePath, outputFilePath);
+    CustomHHJobConfiguration customHHJobConfiguration =
+        new CustomHHJobConfiguration(inputDataFilePath, clientConfigFilePath, outputFilePath);
     Job job = new Job(new Integer[] {0}, 8, 0);
-    int jobPrimDim = HHRDDHelper.getPrimaryDimensionIndexToRunJobWith(job,
-        hhrddConfiguration.getShardingIndexes());
-    HHRDDConfigSerialized hhrddConfigSerialized = new HHRDDConfigSerialized(
-        hhrddConfiguration.getRowSize(), hhrddConfiguration.getShardingKeyOrder(),
-        hhrddConfiguration.getDirectoryLocation(), hhrddConfiguration.getShardingFolderPath(),
-        hhrddConfiguration.getNodes(), hhrddConfiguration.getDataDescription(), jobPrimDim);
-    HHRDD hhrdd = new HHRDD(context, hhrddConfigSerialized);
+
+    HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(inputDataFilePath,clientConfigFilePath);
+    HHRDD hhrdd = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
     Broadcast<Job> broadcastJob = context.broadcast(job);
     DataDescriptionConfig dataDescriptionConfig =
         new DataDescriptionConfig(FileSystemContext.getRootDirectory() + inputDataFilePath
             + File.separatorChar + "sharding-table" + File.separatorChar);
-    new UniqueCounterJobExecutor(hhrddConfiguration.getOutputFile() + File.separator)
+    new UniqueCounterJobExecutor(customHHJobConfiguration.getOutputFileName() + File.separator)
         .startJob(context, hhrdd.toJavaRDD(), dataDescriptionConfig, broadcastJob);
     context.stop();
   }

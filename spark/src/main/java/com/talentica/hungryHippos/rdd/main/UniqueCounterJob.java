@@ -1,4 +1,4 @@
-package com.talentica.hdfs.spark.binary.job;
+package com.talentica.hungryHippos.rdd.main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,6 +9,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
+import com.talentica.hdfs.spark.binary.job.DataDescriptionConfig;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;

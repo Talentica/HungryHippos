@@ -1,4 +1,4 @@
-package com.talentica.hdfs.spark.binary.job;
+package com.talentica.hungryHippos.rdd.main;
 
 import java.io.File;
 import java.io.Serializable;
@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
+import com.talentica.hdfs.spark.binary.job.DataDescriptionConfig;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.job.Job;

@@ -3,20 +3,16 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.FileNotFoundException;
-import java.io.Serializable;
-
-import javax.xml.bind.JAXBException;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
-
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
+import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.spark.job.executor.UniqueCountJobExecutor;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.io.Serializable;
 
 /**
  * @author sudarshans
@@ -30,14 +26,11 @@ public class UniqueCountJob implements Serializable{
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
     executor = new UniqueCountJobExecutor(args);
-    HHRDDConfiguration hhrddConfiguration = new HHRDDConfiguration(executor.getDistrDir(),
-        executor.getClientConf(), executor.getOutputFile());
+    CustomHHJobConfiguration customHHJobConfiguration = new CustomHHJobConfiguration(executor.getDistrDir(),
+            executor.getClientConf(), executor.getOutputFile());
     initializeSparkContext();
     for (Job job : getUniqueCountJobMatrix().getJobs()) {
-      Broadcast<Job> jobBroadcast = context.broadcast(job);
-      int jobPrimDim = HHRDDHelper
-          .getPrimaryDimensionIndexToRunJobWith(job, hhrddConfiguration.getShardingIndexes());
-      executor.startUniqueCountJob(context, hhrddConfiguration, jobBroadcast,jobPrimDim);
+      executor.startUniqueCountJob(context, customHHJobConfiguration, job);
     }
     executor.stop(context);
   }

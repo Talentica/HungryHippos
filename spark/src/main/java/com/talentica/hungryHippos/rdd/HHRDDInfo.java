@@ -45,21 +45,30 @@ public class HHRDDInfo implements Serializable {
         int noOfShardingDimensions = hipposRDDConf.getShardingKeyOrder().length;
         int noOfPartitions = 1;
         String primaryDimensionKey = null;
+        int jobPrimaryDimensionIdx = 0;
         int maxBucketSize = 0;
+        int[] jobShardingDimensionsArray = new int[jobShardingDimensions.size()];
+        int i = 0;
         for(String shardingDimensionKey:jobShardingDimensionsKey){
             int bucketSize = bucketToNodeNumberMap.get(shardingDimensionKey).size();
             noOfPartitions = noOfPartitions * bucketSize;
             if(bucketSize>maxBucketSize){
                 primaryDimensionKey = shardingDimensionKey;
                 maxBucketSize = bucketSize;
+                jobPrimaryDimensionIdx = i;
             }
-
+            jobShardingDimensionsArray[i] = jobShardingDimensions.get(i);
+            i++;
         }
+
+        int[][] combinationArray = new int[noOfPartitions][];
+        populateCombination(combinationArray,null,0,jobShardingDimensionsArray,0);
+
         Partition[] partitions = new HHRDDPartition[noOfPartitions];
         for (int index = 0; index < noOfPartitions; index++) {
             List<Tuple2<String,Set<String>>> files = new ArrayList<>();
-            listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensions, index);
-            int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey).get(new Bucket<>(index)).getNodeId();
+            listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray, combinationArray[index]);
+            int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey).get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
             String preferredHost = nodIdToIp.get(preferredNodeId);
             partitions[index] = new HHRDDPartition(id, index, new File(hipposRDDConf.getDirectoryLocation()).getPath(),
                     hipposRDDConf.getFieldTypeArrayDataDescription(),preferredHost,files);
@@ -67,24 +76,60 @@ public class HHRDDInfo implements Serializable {
         return partitions;
     }
 
-    private void listFile(List<Tuple2<String,Set<String>>> files, String fileName, int dim, int noOfShardingDimensions, List<Integer> jobShardingDimensions, int primDimValue) {
+    private int populateCombination(int[][] combinationArray,String combination,int index,int[] jobShardingDimensions, int i ){
+        if(i==jobShardingDimensions.length){
+            String[] strings = combination.split("-");
+            int[] intCombination = new int[strings.length];
+            for (int j = 0; j <strings.length ; j++) {
+                intCombination[j] = Integer.parseInt(strings[j]);
+            }
+            combinationArray[index]= intCombination;
+            index++;
+            return index;
+        }
+
+        for (int j = 0; j < bucketToNodeNumberMap.get(keyOrder[jobShardingDimensions[i]]).size(); j++) {
+            String newCombination;
+            if(i!=0){
+                newCombination = combination+"-"+j;
+            }else {
+                newCombination = j+"";
+            }
+            index = populateCombination(combinationArray, newCombination,index, jobShardingDimensions, i+1);
+        }
+
+        return index;
+    }
+
+
+
+    private void listFile(List<Tuple2<String,Set<String>>> files, String fileName, int dim, int noOfShardingDimensions, int[] jobShardingDimensionsArray, int[] jobDimensionValues) {
         if (dim == noOfShardingDimensions) {
             Tuple2<String,Set<String>>  tuple2 = new Tuple2<>(fileName, getFileLocationNodeIds(fileName));
             files.add(tuple2);
             return;
         }
-        if (jobShardingDimensions.contains(dim)) {
+        boolean isJobShardingDimension =  false;
+        int jobDimIdx = 0;
+        for (int i = 0; i < jobShardingDimensionsArray.length; i++) {
+            if(dim==jobShardingDimensionsArray[i]){
+                isJobShardingDimension = true;
+                break;
+            }
+            jobDimIdx++;
+        }
+        if (isJobShardingDimension) {
             if (dim == 0) {
-                listFile(files, primDimValue + fileName, dim + 1, noOfShardingDimensions, jobShardingDimensions, primDimValue);
+                listFile(files, jobDimensionValues[jobDimIdx] + fileName, dim + 1, noOfShardingDimensions, jobShardingDimensionsArray, jobDimensionValues);
             } else {
-                listFile(files, fileName + "_" + primDimValue, dim + 1, noOfShardingDimensions, jobShardingDimensions, primDimValue);
+                listFile(files, fileName + "_" + jobDimensionValues[jobDimIdx], dim + 1, noOfShardingDimensions, jobShardingDimensionsArray, jobDimensionValues);
             }
         } else {
             for (int i = 0; i < bucketToNodeNumberMap.get(keyOrder[dim]).size(); i++) {
                 if (dim == 0) {
-                    listFile(files, i + fileName, dim + 1, noOfShardingDimensions, jobShardingDimensions, primDimValue);
+                    listFile(files, i + fileName, dim + 1, noOfShardingDimensions, jobShardingDimensionsArray, jobDimensionValues);
                 } else {
-                    listFile(files, fileName + "_" + i, dim + 1, noOfShardingDimensions, jobShardingDimensions, primDimValue);
+                    listFile(files, fileName + "_" + i, dim + 1, noOfShardingDimensions, jobShardingDimensionsArray, jobDimensionValues);
                 }
             }
         }

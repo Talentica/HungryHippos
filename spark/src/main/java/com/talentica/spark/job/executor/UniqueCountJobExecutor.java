@@ -3,17 +3,15 @@
  */
 package com.talentica.spark.job.executor;
 
-import java.io.FileNotFoundException;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
+import com.clearspring.analytics.stream.cardinality.HyperLogLog;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
+import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -21,17 +19,13 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.clearspring.analytics.stream.cardinality.HyperLogLog;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
-
 import scala.Tuple2;
+
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * @author sudarshans
@@ -46,7 +40,7 @@ public class UniqueCountJobExecutor implements Serializable{
   private String clientConf;
   private String masterIp;
   private String appName;
-  private Map<Integer, HHRDD> cahceRDD;
+  private Map<String, HHRDD> cahceRDD;
 
   /**
    * @param args
@@ -58,27 +52,26 @@ public class UniqueCountJobExecutor implements Serializable{
     this.distrDir = args[2];
     this.clientConf = args[3];
     this.outputFile = args[4];
-    this.cahceRDD = new HashMap<Integer, HHRDD>();
+    this.cahceRDD = new HashMap<String, HHRDD>();
   }
 
 
   @SuppressWarnings("serial")
-  public void startUniqueCountJob(JavaSparkContext context, HHRDDConfiguration hhrddConfiguration,
-      Broadcast<Job> jobBroadcast, int jobPrimDim) throws FileNotFoundException, JAXBException {
+  public void startUniqueCountJob(JavaSparkContext context, CustomHHJobConfiguration customHHJobConfiguration,
+                                  Job job) throws FileNotFoundException, JAXBException {
     HHRDDConfigSerialized hhrddConfigSerialized =
-        new HHRDDConfigSerialized(hhrddConfiguration.getRowSize(),
-            hhrddConfiguration.getShardingKeyOrder(), hhrddConfiguration.getDirectoryLocation(),
-            hhrddConfiguration.getShardingFolderPath(), hhrddConfiguration.getNodes(),
-            hhrddConfiguration.getDataDescription(), jobPrimDim);
-    
+            HHRDDHelper.getHhrddConfigSerialized(customHHJobConfiguration.getDistributedPath(),
+                    customHHJobConfiguration.getClientConfigPat());
     Broadcast<FieldTypeArrayDataDescription> dataDes =
-        context.broadcast(hhrddConfiguration.getDataDescription());
-    
-    HHRDD hipposRDD = cahceRDD.get(jobPrimDim);
-    
+            context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
+    Broadcast<Job> jobBroadcast = context.broadcast(job);
+    String keyOfHHRDD = HHRDDHelper
+            .generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
+    HHRDD hipposRDD = cahceRDD.get(keyOfHHRDD);
+
     if (hipposRDD == null) {
-      hipposRDD = new HHRDD(context, hhrddConfigSerialized);
-      cahceRDD.put(jobPrimDim, hipposRDD);
+      hipposRDD = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
+      cahceRDD.put(keyOfHHRDD, hipposRDD);
     }
     JavaPairRDD<String, Integer> javaRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
@@ -132,9 +125,9 @@ public class UniqueCountJobExecutor implements Serializable{
         }
         return uniqueValues.iterator();
       }
-    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+    }, true).saveAsTextFile(customHHJobConfiguration.getOutputFileName() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
-        hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+            customHHJobConfiguration.getOutputFileName() + jobBroadcast.value().getJobId());
 
   }
 

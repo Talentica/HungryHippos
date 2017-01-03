@@ -26,7 +26,7 @@ public class HHJavaRDD<T> extends JavaRDD<T>{
 	
 	@Override
 	  public void saveAsTextFile(String path){
-		new File(path).mkdirs();
+		
 			HHRDDFileUtils.saveAsText(this, path);
 	  }
 

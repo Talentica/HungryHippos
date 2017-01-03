@@ -79,53 +79,54 @@ public class SumJobExecutor implements Serializable {
 			hipposRDD = new HHRDD(context, hhrddConfigSerialized);
 			cahceRDD.put(jobPrimDim, hipposRDD);
 		}
-		JavaPairRDD<String, Integer> javaPairRDD = hipposRDD.toJavaRDD()
-				.mapToPair(new PairFunction<byte[], String, Integer>() {
+		JavaPairRDD<String, Double> javaPairRDD = hipposRDD.toJavaRDD()
+				.mapToPair(new PairFunction<byte[], String, Double>() {
 					@Override
-					public Tuple2<String, Integer> call(byte[] bytes) throws Exception {
+					public Tuple2<String, Double> call(byte[] bytes) throws Exception {
 						HHRDDRowReader reader = new HHRDDRowReader(dataDes.getValue());
 						ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 						reader.setByteBuffer(byteBuffer);
 						String key = "";
 						for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
 							key = key + ((MutableCharArrayString) reader
-									.readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
+									.readAtColumn(jobBroadcast.value().getDimensions()[index])).toString() + ",";
+							
 						}
-						key = key + "|id=" + jobBroadcast.value().getJobId();
-						Integer value = (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-						return new Tuple2<String, Integer>(key, value);
+						key = key.substring(0,key.lastIndexOf(","));
+						Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
+						return new Tuple2<String, Double>(key, value);
 					}
 				});
-		JavaRDD<Tuple2<String, Long>> JavaRDD =  javaPairRDD
-				.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Long>>() {
+		JavaRDD<Tuple2<String, Double>> JavaRDD = javaPairRDD
+				.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Double>>, Tuple2<String, Double>>() {
 
 					@Override
-					public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Integer>> t) throws Exception {
+					public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
 
-						List<Tuple2<String, Long>> sumList = new ArrayList<>();
-						Map<String, Long> map = new HashMap<>();
+						List<Tuple2<String, Double>> sumList = new ArrayList<>();
+						Map<String, Double> map = new HashMap<>();
 						while (t.hasNext()) {
-							Tuple2<String, Integer> tuple2 = t.next();
-							Long storedValue = map.get(tuple2._1);
+							Tuple2<String, Double> tuple2 = t.next();
+							Double storedValue = map.get(tuple2._1);
 							if (storedValue == null) {
-								map.put(tuple2._1, Long.valueOf(tuple2._2.intValue()));
+								map.put(tuple2._1, tuple2._2);
 							} else {
 								map.put(tuple2._1, tuple2._2 + storedValue);
 							}
 						}
 
-						for (Map.Entry<String, Long> entry : map.entrySet()) {
-							sumList.add(new Tuple2<String, Long>(entry.getKey(), entry.getValue()));
+						for (Map.Entry<String, Double> entry : map.entrySet()) {
+							sumList.add(new Tuple2<String, Double>(entry.getKey(), entry.getValue()));
 						}
 						return sumList.iterator();
 					}
 				}, true);
-		
-		HHJavaRDD<Tuple2<String, Long>> hhJavaRDD = new HHJavaRDD<Tuple2<String, Long>>(JavaRDD.rdd(), JavaRDD.classTag());
-		
-		hhJavaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() +File.separatorChar + jobBroadcast.value().getJobId());
-		LOGGER.info("Output files are in directory {}",
-				hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+
+		HHJavaRDD<Tuple2<String, Double>> hhJavaRDD = new HHJavaRDD<Tuple2<String, Double>>(JavaRDD.rdd(),
+				JavaRDD.classTag());
+		String fileDir = hhrddConfiguration.getOutputFile() + File.separatorChar + jobBroadcast.value().getJobId();
+		hhJavaRDD.saveAsTextFile(fileDir);
+		LOGGER.info("Output files are in directory {}", fileDir);
 
 	}
 

@@ -3,7 +3,7 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
@@ -26,11 +26,8 @@ public class HHJavaRDD<T> extends JavaRDD<T>{
 	
 	@Override
 	  public void saveAsTextFile(String path){
-		  try {
+		new File(path).mkdirs();
 			HHRDDFileUtils.saveAsText(this, path);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
 	  }
 
 }

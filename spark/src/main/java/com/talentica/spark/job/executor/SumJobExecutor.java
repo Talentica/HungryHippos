@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.rdd.HHJavaRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
@@ -79,7 +80,7 @@ public class SumJobExecutor implements Serializable {
       hipposRDD = new HHRDD(context, hhrddConfigSerialized);
       cahceRDD.put(jobPrimDim, hipposRDD);
     }
-    JavaPairRDD<String, Integer> javaRDD =
+    JavaPairRDD<String, Integer> javaPairRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
           @Override
           public Tuple2<String, Integer> call(byte[] bytes) throws Exception {
@@ -96,7 +97,7 @@ public class SumJobExecutor implements Serializable {
             return new Tuple2<String, Integer>(key, value);
           }
         });
-    javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Integer>>, Tuple2<String, Long>>() {
+    HHJavaRDD<Tuple2<String, Long>> hhJavaRDD = (HHJavaRDD<Tuple2<String, Long>>)javaPairRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Integer>>, Tuple2<String, Long>>() {
 
       @Override
       public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Integer>> t) throws Exception {
@@ -118,7 +119,8 @@ public class SumJobExecutor implements Serializable {
         }
         return sumList.iterator();
       }
-    }, true).saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+    }, true);
+    hhJavaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
 

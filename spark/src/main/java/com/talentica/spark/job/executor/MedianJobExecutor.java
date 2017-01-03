@@ -14,7 +14,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.rdd.HHJavaRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDConfiguration;
@@ -95,7 +95,7 @@ public class MedianJobExecutor implements Serializable {
           }
         });
     
-   JavaRDD<Tuple2<String, Double>> javaRDD = pairRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Double>>, Tuple2<String, Double>>() {
+    HHJavaRDD<Tuple2<String, Double>> hhJavaRDD = (HHJavaRDD<Tuple2<String, Double>>) pairRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String,Double>>, Tuple2<String, Double>>() {
       @Override
       public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
         
@@ -119,7 +119,7 @@ public class MedianJobExecutor implements Serializable {
       }
     }, true);
     
-   javaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
+   hhJavaRDD.saveAsTextFile(hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
     LOGGER.info("Output files are in directory {}",
         hhrddConfiguration.getOutputFile() + jobBroadcast.value().getJobId());
   }

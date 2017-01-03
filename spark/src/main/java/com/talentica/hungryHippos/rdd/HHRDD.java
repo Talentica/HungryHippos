@@ -67,7 +67,7 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHRDDIterator iterator = null;
     try {
-      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),hhRDDPartion.getFiles());
+      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
     } catch (IOException e) {
       e.printStackTrace();
     }

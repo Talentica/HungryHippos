@@ -18,7 +18,7 @@ public class HHRDDInfo implements Serializable {
     public Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap;
     private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
     private String[]  keyOrder;
-    private Map<String,Set<String>> fileNameToNodeIdsCache;
+    private Map<String,int[]> fileNameToNodeIdsCache;
     private Map<Integer,String> nodIdToIp;
 
     public HHRDDInfo(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder,Map<Integer,String> nodIdToIp) {
@@ -66,12 +66,12 @@ public class HHRDDInfo implements Serializable {
 
         Partition[] partitions = new HHRDDPartition[noOfPartitions];
         for (int index = 0; index < noOfPartitions; index++) {
-            List<Tuple2<String,Set<String>>> files = new ArrayList<>();
+            List<Tuple2<String,int[]>> files = new ArrayList<>();
             listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray, combinationArray[index]);
             int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey).get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
             String preferredHost = nodIdToIp.get(preferredNodeId);
             partitions[index] = new HHRDDPartition(id, index, new File(hipposRDDConf.getDirectoryLocation()).getPath(),
-                    hipposRDDConf.getFieldTypeArrayDataDescription(),preferredHost,files);
+                    hipposRDDConf.getFieldTypeArrayDataDescription(),preferredHost,files,nodIdToIp);
         }
         return partitions;
     }
@@ -103,9 +103,9 @@ public class HHRDDInfo implements Serializable {
 
 
 
-    private void listFile(List<Tuple2<String,Set<String>>> files, String fileName, int dim, int noOfShardingDimensions, int[] jobShardingDimensionsArray, int[] jobDimensionValues) {
+    private void listFile(List<Tuple2<String,int[]>> files, String fileName, int dim, int noOfShardingDimensions, int[] jobShardingDimensionsArray, int[] jobDimensionValues) {
         if (dim == noOfShardingDimensions) {
-            Tuple2<String,Set<String>>  tuple2 = new Tuple2<>(fileName, getFileLocationNodeIds(fileName));
+            Tuple2<String,int[]>  tuple2 = new Tuple2<>(fileName, getFileLocationNodeIds(fileName));
             files.add(tuple2);
             return;
         }
@@ -135,9 +135,10 @@ public class HHRDDInfo implements Serializable {
         }
     }
 
-    private Set<String> getFileLocationNodeIds(String fileName){
-        Set<String> nodeIps = fileNameToNodeIdsCache.get(fileName);
-        if(nodeIps==null) {
+    private int[] getFileLocationNodeIds(String fileName){
+        int[] nodeIds = fileNameToNodeIdsCache.get(fileName);
+        if(nodeIds==null) {
+            nodeIds = new int[keyOrder.length];
             String[] buckets = fileName.split("_");
             Map<String, Bucket<KeyValueFrequency>> keyValueCombination = new HashMap<>();
             for (int i = 0; i < keyOrder.length; i++) {
@@ -145,13 +146,15 @@ public class HHRDDInfo implements Serializable {
             }
             BucketCombination bucketCombination = new BucketCombination(keyValueCombination);
             Set<Node> nodes = bucketCombinationToNodeNumberMap.get(bucketCombination);
+            int i = 0 ;
             for (Node node : nodes) {
-                nodeIps.add(nodIdToIp.get(node.getNodeId()));
+                nodeIds[i]= node.getNodeId();
+                i++;
             }
 
-            fileNameToNodeIdsCache.put(fileName,nodeIps);
+            fileNameToNodeIdsCache.put(fileName,nodeIds);
         }
-        return nodeIps;
+        return nodeIds;
     }
 
 

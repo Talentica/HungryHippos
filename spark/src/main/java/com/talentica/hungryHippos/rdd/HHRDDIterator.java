@@ -11,10 +11,7 @@ import scala.collection.AbstractIterator;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author pooshans
@@ -34,17 +31,18 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
   private int recordLength;
   private Set<String> remoteFiles;
   private String filePath;
-  private Iterator<Tuple2<String,Set<String>>> fileIterator;
-  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,Set<String>>> files) throws IOException {
+  private Iterator<Tuple2<String,int[]>> fileIterator;
+  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, String> nodIdToIp) throws IOException {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
-    for(Tuple2<String,Set<String>> tuple2: files){
+    for(Tuple2<String,int[]> tuple2: files){
       File file = new File(filePath+File.separator+tuple2._1);
       if (!file.exists()) {
         logger.info("Downloading file {} from nodes {} ",filePath,tuple2._2);
         boolean isFileDownloaded = false;
         while (!isFileDownloaded) {
-          for (String ip : tuple2._2) {
+          for (int id : tuple2._2) {
+            String ip= nodIdToIp.get(id);
             isFileDownloaded = downloadFile(this.filePath+tuple2._1, ip);
             logger.info("File downloaded success status {} from ip {}",isFileDownloaded,ip);
             if (isFileDownloaded) {
@@ -69,7 +67,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
 
   private void iterateOnFiles() throws IOException {
     if(fileIterator.hasNext()){
-      Tuple2<String,Set<String>> tuple2 = fileIterator.next();
+      Tuple2<String,int[]> tuple2 = fileIterator.next();
       currentFile = tuple2._1;
       currentFilePath = this.filePath+currentFile;
       this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);

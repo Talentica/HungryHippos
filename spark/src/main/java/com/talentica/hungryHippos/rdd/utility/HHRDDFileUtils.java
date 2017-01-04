@@ -38,6 +38,8 @@ public class HHRDDFileUtils implements Serializable {
           T token = t.next();
           if (token instanceof Tuple2<?, ?>) {
             tuple2 = (Tuple2<?, ?>) token;
+          }else{
+            return;
           }
           out.write(tuple2._1 + "," + tuple2._2);
           out.newLine();

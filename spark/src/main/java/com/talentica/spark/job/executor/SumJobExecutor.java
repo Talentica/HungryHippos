@@ -122,10 +122,10 @@ public class SumJobExecutor implements Serializable {
 					}
 				}, true);
 
-		HHJavaRDD<Tuple2<String, Double>> hhJavaRDD = new HHJavaRDD<Tuple2<String, Double>>(JavaRDD.rdd(),
-				JavaRDD.classTag());
 		String fileDir = hhrddConfiguration.getOutputFile() + File.separatorChar + jobBroadcast.value().getJobId();
-		hhJavaRDD.saveAsTextFile(fileDir);
+		new HHJavaRDD<Tuple2<String, Double>>(JavaRDD.rdd(),
+				JavaRDD.classTag()).saveAsTextFile(fileDir);
+		
 		LOGGER.info("Output files are in directory {}", fileDir);
 
 	}

@@ -3,8 +3,6 @@
  */
 package com.talentica.spark.test;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author pooshans
  * @param <T>
@@ -25,8 +23,8 @@ import scala.reflect.ClassManifestFactory$;
 import scala.reflect.ClassTag;
 
 public class CustomRDDMain {
-  private static final ClassTag<ByteBuffer> BYTE_TAG =
-      ClassManifestFactory$.MODULE$.fromClass(ByteBuffer.class);
+  private static final ClassTag<String> STRING_TAG =
+      ClassManifestFactory$.MODULE$.fromClass(String.class);
 
   public static void main(final String[] args) {
     SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("CustomRDDApp");
@@ -35,15 +33,15 @@ public class CustomRDDMain {
     }
   }
 
-  public static class AlphabetRDD extends RDD<ByteBuffer> {
+  public static class AlphabetRDD extends RDD<String> {
     private static final long serialVersionUID = 1L;
 
     public AlphabetRDD(SparkContext sc) {
-      super(sc, new ArrayBuffer<Dependency<?>>(), BYTE_TAG);
+      super(sc, new ArrayBuffer<Dependency<?>>(), STRING_TAG);
     }
 
     @Override
-    public Iterator<ByteBuffer> compute(Partition partition, TaskContext taskContext) {
+    public Iterator<String> compute(Partition partition, TaskContext taskContext) {
       AlphabetRangePartition p = (AlphabetRangePartition) partition;
       return new CharacterIterator(p.from, p.to);
     }
@@ -94,7 +92,7 @@ public class CustomRDDMain {
   /**
    * Iterators over all characters between two characters
    */
-  public static class CharacterIterator extends AbstractIterator<ByteBuffer> {
+  public static class CharacterIterator extends AbstractIterator<String> {
     private char next;
     private char last;
 
@@ -109,9 +107,8 @@ public class CustomRDDMain {
     }
 
     @Override
-    public ByteBuffer next() {
-      //return Character.toString(next++);
-      return ByteBuffer.allocate(0);
+    public String next() {
+      return Character.toString(next++);
     }
   }
 

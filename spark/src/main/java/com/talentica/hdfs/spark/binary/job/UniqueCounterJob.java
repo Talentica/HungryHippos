@@ -26,17 +26,17 @@ public class UniqueCounterJob {
     String inputDataFilePath = args[2];
     String clientConfigFilePath = args[3];
     String outputFilePath = args[4];
+    HHRDDHelper.initialize(clientConfigFilePath);
     CustomHHJobConfiguration customHHJobConfiguration =
-        new CustomHHJobConfiguration(inputDataFilePath, clientConfigFilePath, outputFilePath);
+        new CustomHHJobConfiguration(inputDataFilePath, outputFilePath);
     Job job = new Job(new Integer[] {0}, 8, 0);
-
-    HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(inputDataFilePath,clientConfigFilePath);
+    HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(inputDataFilePath);
     HHRDD hhrdd = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
     Broadcast<Job> broadcastJob = context.broadcast(job);
     DataDescriptionConfig dataDescriptionConfig =
         new DataDescriptionConfig(FileSystemContext.getRootDirectory() + inputDataFilePath
             + File.separatorChar + "sharding-table" + File.separatorChar);
-    new UniqueCounterJobExecutor(customHHJobConfiguration.getOutputFileName() + File.separator)
+    new UniqueCounterJobExecutor(customHHJobConfiguration.getOutputDirectory() + File.separator)
         .startJob(context, hhrdd.toJavaRDD(), dataDescriptionConfig, broadcastJob);
     context.stop();
   }

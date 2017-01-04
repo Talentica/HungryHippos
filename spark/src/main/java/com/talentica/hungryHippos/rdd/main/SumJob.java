@@ -5,9 +5,14 @@ package com.talentica.hungryHippos.rdd.main;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
@@ -22,15 +27,32 @@ public class SumJob implements Serializable {
 
   private static final long serialVersionUID = 8326979063332184463L;
   private static JavaSparkContext context;
-  private static SumJobExecutor executor;
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-    executor = new SumJobExecutor(args);
-    CustomHHJobConfiguration customHHJobConfiguration = new CustomHHJobConfiguration(executor.getDistrDir(),
-        executor.getClientConf(), executor.getOutputFile());
-    initializeSparkContext();
+    validateProgramArgument(args);
+    String masterIp = args[0];
+    String appName = args[1];
+    String distrDir = args[2];
+    String clientConfigPath = args[3];
+    String outputDirectory = args[4];
+    initializeSparkContext(masterIp,appName);
+    HHRDDHelper.initialize(clientConfigPath);
+    SumJobExecutor executor = new SumJobExecutor();
+    Map<String,HHRDD> cacheRDD = new HashMap<>();
+    HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
+    Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
+            context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
+    CustomHHJobConfiguration customHHJobConfiguration =
+            new CustomHHJobConfiguration(distrDir,outputDirectory);
     for (Job job : getSumJobMatrix().getJobs()) {
-      executor.startSumJob(context, customHHJobConfiguration, job);
+      String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
+      HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
+      if (hipposRDD == null) {
+        hipposRDD = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
+        cacheRDD.put(keyOfHHRDD, hipposRDD);
+      }
+      Broadcast<Job> jobBroadcast = context.broadcast(job);
+      executor.startSumJob(hipposRDD,descriptionBroadcast,jobBroadcast, customHHJobConfiguration);
     }
     executor.stop(context);
   }
@@ -38,19 +60,41 @@ public class SumJob implements Serializable {
 
   private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JobMatrix sumJobMatrix = new JobMatrix();
-    sumJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
+    int count = 0;
+    for (int i = 0; i < 3; i++) {
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
+      for (int j = i + 1; j < 4; j++) {
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        for (int k = j + 1; k < 4; k++) {
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+        }
+      }
+    }
     return sumJobMatrix;
   }
 
-  private static void initializeSparkContext() {
+  private static void initializeSparkContext(String masterIp, String appName) {
     if (SumJob.context == null) {
       SparkConf conf =
-          new SparkConf().setMaster(executor.getMasterIp()).setAppName(executor.getAppName());
+          new SparkConf().setMaster(masterIp).setAppName(appName);
       try {
         SumJob.context = new JavaSparkContext(conf);
       } catch (Exception e) {
         e.printStackTrace();
       }
+    }
+  }
+
+  private static void validateProgramArgument(String args[]) {
+    if (args.length < 5) {
+      System.err.println(
+              "Improper arguments. Please provide in  proper order. i.e <spark-master-ip> <application-name> <distributed-directory> <client-configuration> <ouput-file-name>");
+      System.out.println(
+              "Parameter argumes should be {spark://{master}:7077} {test-app} {/distr/data} {{client-path}/client-config.xml} {output}");
+      System.exit(1);
     }
   }
 }

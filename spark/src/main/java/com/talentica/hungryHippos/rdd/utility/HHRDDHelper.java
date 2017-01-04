@@ -32,11 +32,17 @@ public class HHRDDHelper {
             "bucketCombinationToNodeNumbersMap";
     public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 
-    public static HHRDDConfigSerialized getHhrddConfigSerialized(String distributedPath, String clientConfigPath) throws JAXBException, FileNotFoundException {
+  public static void initialize(String clientConfigPath) throws JAXBException, FileNotFoundException {
+    ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
+    String servers = clientConfig.getCoordinationServers().getServers();
+    HungryHippoCurator.getInstance(servers);
+  }
 
-        ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
-        String servers = clientConfig.getCoordinationServers().getServers();
-        HungryHippoCurator.getInstance(servers);
+    public static String getActualPath(String path){
+        return FileSystemContext.getRootDirectory()+ path;
+    }
+
+    public static HHRDDConfigSerialized getHhrddConfigSerialized(String distributedPath) throws JAXBException, FileNotFoundException {
         String shardingFolderPath = FileSystemContext.getRootDirectory() + distributedPath
                 + HungryHippoCurator.ZK_PATH_SEPERATOR + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
         String directoryLocation = FileSystemContext.getRootDirectory() + distributedPath

@@ -21,31 +21,31 @@ import scala.Tuple2;
  */
 public class HHRDDFileUtils implements Serializable {
 
-	private static final long serialVersionUID = 4888239993511591404L;
+  private static final long serialVersionUID = 4888239993511591404L;
 
-	public static <T> void saveAsText(JavaRDD<T> javaRDD, String path) {
-			javaRDD.foreachPartition(new VoidFunction<Iterator<T>>() {
+  public static <T> void saveAsText(JavaRDD<T> javaRDD, String path) {
+    javaRDD.foreachPartition(new VoidFunction<Iterator<T>>() {
 
-				@Override
-				public void call(Iterator<T> t) throws Exception {
-					int partitionId = TaskContext.getPartitionId();
-					new File(path).mkdirs();
-					String filePath = path + File.separatorChar + "part-" + partitionId;
-					File file = new File(filePath);
-					BufferedWriter out = new BufferedWriter(new FileWriter(file),20480);
-					Tuple2<?, ?> tuple2 = null;
-					while (t.hasNext()) {
-						T token = t.next();
-						if (token instanceof Tuple2<?, ?>) {
-							tuple2 = (Tuple2<?, ?>) token;
-						}
-						out.write(tuple2._1 + "," + tuple2._2);
-						out.newLine();
-					}
-					out.flush();;
-					out.close();
-				}
-			});
-	}
+      @Override
+      public void call(Iterator<T> t) throws Exception {
+        int partitionId = TaskContext.getPartitionId();
+        new File(path).mkdirs();
+        String filePath = path + File.separatorChar + "part-" + partitionId;
+        File file = new File(filePath);
+        BufferedWriter out = new BufferedWriter(new FileWriter(file), 20480);
+        Tuple2<?, ?> tuple2 = null;
+        while (t.hasNext()) {
+          T token = t.next();
+          if (token instanceof Tuple2<?, ?>) {
+            tuple2 = (Tuple2<?, ?>) token;
+          }
+          out.write(tuple2._1 + "," + tuple2._2);
+          out.newLine();
+        }
+        out.flush();;
+        out.close();
+      }
+    });
+  }
 
 }

@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.rdd.main;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -45,8 +44,6 @@ public class UniqueCountJob implements Serializable{
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
             context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
-    CustomHHJobConfiguration customHHJobConfiguration =
-            new CustomHHJobConfiguration(distrDir,outputDirectory);
     for (Job job : getUniqueCountJobMatrix().getJobs()) {
       String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
       HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
@@ -55,7 +52,7 @@ public class UniqueCountJob implements Serializable{
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       Broadcast<Job> jobBroadcast = context.broadcast(job);
-      executor.startUniqueCountJob(hipposRDD,descriptionBroadcast,jobBroadcast, customHHJobConfiguration);
+      executor.startUniqueCountJob(hipposRDD,descriptionBroadcast,jobBroadcast, outputDirectory);
     }
     executor.stop(context);
   }

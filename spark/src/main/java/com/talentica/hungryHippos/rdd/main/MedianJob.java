@@ -1,24 +1,20 @@
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
-
-import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.spark.job.executor.MedianJobExecutor;
-import org.apache.spark.storage.StorageLevel;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
+
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by rajkishoreh on 16/12/16.
@@ -41,8 +37,6 @@ public class MedianJob {
         HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
         Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
                 context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
-        CustomHHJobConfiguration customHHJobConfiguration =
-                new CustomHHJobConfiguration(distrDir,outputDirectory);
         for (Job job : getSumJobMatrix().getJobs()) {
             String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
             HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
@@ -51,7 +45,7 @@ public class MedianJob {
                 cacheRDD.put(keyOfHHRDD, hipposRDD);
             }
             Broadcast<Job> jobBroadcast = context.broadcast(job);
-            executor.startMedianJob(hipposRDD,descriptionBroadcast,jobBroadcast, customHHJobConfiguration);
+            executor.startMedianJob(hipposRDD,descriptionBroadcast,jobBroadcast, outputDirectory);
         }
         executor.stop(context);
     }

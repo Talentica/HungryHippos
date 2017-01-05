@@ -1,20 +1,17 @@
 package com.talentica.hdfs.spark.binary.job;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
+import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class UniqueCounterJob {
 
@@ -27,8 +24,6 @@ public class UniqueCounterJob {
     String clientConfigFilePath = args[3];
     String outputFilePath = args[4];
     HHRDDHelper.initialize(clientConfigFilePath);
-    CustomHHJobConfiguration customHHJobConfiguration =
-        new CustomHHJobConfiguration(inputDataFilePath, outputFilePath);
     Job job = new Job(new Integer[] {0}, 8, 0);
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(inputDataFilePath);
     HHRDD hhrdd = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
@@ -36,7 +31,7 @@ public class UniqueCounterJob {
     DataDescriptionConfig dataDescriptionConfig =
         new DataDescriptionConfig(FileSystemContext.getRootDirectory() + inputDataFilePath
             + File.separatorChar + "sharding-table" + File.separatorChar);
-    new UniqueCounterJobExecutor(customHHJobConfiguration.getOutputDirectory() + File.separator)
+    new UniqueCounterJobExecutor(outputFilePath + File.separator)
         .startJob(context, hhrdd.toJavaRDD(), dataDescriptionConfig, broadcastJob);
     context.stop();
   }

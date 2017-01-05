@@ -2,7 +2,6 @@ package com.talentica.spark.job.executor;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.CustomHHJobConfiguration;
 import com.talentica.hungryHippos.rdd.HHJavaRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -34,7 +33,7 @@ public class MedianJobExecutor implements Serializable {
 
 
     public void startMedianJob(HHRDD hipposRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
-                               Broadcast<Job> jobBroadcast, CustomHHJobConfiguration customHHJobConfiguration) {
+                               Broadcast<Job> jobBroadcast, String ouputDirectory) {
         JavaPairRDD<String, Double> pairRDD =
                 hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
                     @Override
@@ -77,12 +76,12 @@ public class MedianJobExecutor implements Serializable {
             }
         }, true);
 
-        String distributedPath = customHHJobConfiguration.getOutputDirectory() + File.separator + jobBroadcast.value().getJobId();
+        String outputDistributedPath = ouputDirectory + File.separator + jobBroadcast.value().getJobId();
 
-        String actualPath =  HHRDDHelper.getActualPath(distributedPath);
+        String outputActualPath =  HHRDDHelper.getActualPath(outputDistributedPath);
         new HHJavaRDD<Tuple2<String, Double>>(resultRDD.rdd(),
-                resultRDD.classTag()).saveAsTextFile(actualPath);
-        LOGGER.info("Output files are in directory {}", actualPath);
+                resultRDD.classTag()).saveAsTextFile(outputActualPath);
+        LOGGER.info("Output files are in directory {}", outputActualPath);
     }
 
     public void stop(JavaSparkContext context) {

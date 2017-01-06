@@ -5,8 +5,6 @@ package com.talentica.hungryHippos.rdd.main;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -44,7 +42,6 @@ public class UniqueCountJob implements Serializable {
     HHRDDHelper.initialize(clientConfigPath);
 
     UniqueCountJobExecutor executor = new UniqueCountJobExecutor();
-    Map<String, HHRDD> cacheRDD = new HashMap<>();
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     HHRDDBuilder rddBuilder = new HHRDDBuilder(context, hhrddConfigSerialized);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =

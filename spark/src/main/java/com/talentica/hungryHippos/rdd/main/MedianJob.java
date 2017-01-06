@@ -35,7 +35,6 @@ public class MedianJob {
     initializeSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     MedianJobExecutor executor = new MedianJobExecutor();
-    Map<String, HHRDD> cacheRDD = new HashMap<>();
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     HHRDDBuilder rddBuilder = new HHRDDBuilder(context, hhrddConfigSerialized);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =

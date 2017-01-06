@@ -5,8 +5,6 @@ package com.talentica.hungryHippos.rdd.main;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -39,7 +37,6 @@ public class SumJob implements Serializable {
     initializeSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     SumJobExecutor executor = new SumJobExecutor();
-    Map<String, HHRDD> cacheRDD = new HashMap<>();
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     HHRDDBuilder rddBuilder = new HHRDDBuilder(context, hhrddConfigSerialized);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =

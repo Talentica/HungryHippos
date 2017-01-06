@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
  */
 public class HHRDDBuilder {
 
-  private static Map<String, HHRDD> cacheRDD = new HashMap<>();
+  private Map<String, HHRDD> cacheRDD = new HashMap<>();
   private JavaSparkContext context;
   private HHRDDConfigSerialized hhrddConfigSerialized;
   

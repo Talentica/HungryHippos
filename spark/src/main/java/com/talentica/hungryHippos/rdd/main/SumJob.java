@@ -16,8 +16,8 @@ import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.HHRDDBuilder;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -28,31 +28,33 @@ public class SumJob implements Serializable {
   private static final long serialVersionUID = 8326979063332184463L;
   private static JavaSparkContext context;
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws FileNotFoundException, JAXBException,
+      ClassNotFoundException, InstantiationException, IllegalAccessException {
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];
     String distrDir = args[2];
     String clientConfigPath = args[3];
     String outputDirectory = args[4];
-    initializeSparkContext(masterIp,appName);
+    initializeSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     SumJobExecutor executor = new SumJobExecutor();
-    Map<String,HHRDD> cacheRDD = new HashMap<>();
-    HHRDDBuilder.initialize(distrDir);
+    Map<String, HHRDD> cacheRDD = new HashMap<>();
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
+    HHRDDBuilder rddBuilder = new HHRDDBuilder(context, hhrddConfigSerialized);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
-            context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
+        context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
     for (Job job : getSumJobMatrix().getJobs()) {
-      HHRDD hipposRDD = HHRDDBuilder.gerOrCreateRDD(job, context);
+      HHRDD hipposRDD = rddBuilder.gerOrCreateRDD(job);
       Broadcast<Job> jobBroadcast = context.broadcast(job);
-      executor.startSumJob(hipposRDD,descriptionBroadcast,jobBroadcast, outputDirectory);
+      executor.startSumJob(hipposRDD, descriptionBroadcast, jobBroadcast, outputDirectory);
     }
     executor.stop(context);
   }
 
 
-  private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  private static JobMatrix getSumJobMatrix()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JobMatrix sumJobMatrix = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 3; i++) {
@@ -72,8 +74,7 @@ public class SumJob implements Serializable {
 
   private static void initializeSparkContext(String masterIp, String appName) {
     if (SumJob.context == null) {
-      SparkConf conf =
-          new SparkConf().setMaster(masterIp).setAppName(appName);
+      SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
       try {
         SumJob.context = new JavaSparkContext(conf);
       } catch (Exception e) {
@@ -85,9 +86,9 @@ public class SumJob implements Serializable {
   private static void validateProgramArgument(String args[]) {
     if (args.length < 5) {
       System.err.println(
-              "Improper arguments. Please provide in  proper order. i.e <spark-master-ip> <application-name> <distributed-directory> <client-configuration> <ouput-file-name>");
+          "Improper arguments. Please provide in  proper order. i.e <spark-master-ip> <application-name> <distributed-directory> <client-configuration> <ouput-file-name>");
       System.out.println(
-              "Parameter argumes should be {spark://{master}:7077} {test-app} {/distr/data} {{client-path}/client-config.xml} {output}");
+          "Parameter argumes should be {spark://{master}:7077} {test-app} {/distr/data} {{client-path}/client-config.xml} {output}");
       System.exit(1);
     }
   }

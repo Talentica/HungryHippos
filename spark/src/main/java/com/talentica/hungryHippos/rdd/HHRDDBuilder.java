@@ -3,11 +3,8 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -21,13 +18,16 @@ import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 public class HHRDDBuilder {
 
   private static Map<String, HHRDD> cacheRDD = new HashMap<>();
-  private static HHRDDConfigSerialized hhrddConfigSerialized;
-
-  public static void initialize(String distrDir) throws FileNotFoundException, JAXBException {
-    hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
+  private JavaSparkContext context;
+  private HHRDDConfigSerialized hhrddConfigSerialized;
+  
+  public HHRDDBuilder(JavaSparkContext context,HHRDDConfigSerialized hhrddConfigSerialized){
+    this.context = context;
+    this.hhrddConfigSerialized =hhrddConfigSerialized;
   }
-
-  public static HHRDD gerOrCreateRDD(Job job, JavaSparkContext context) {
+  
+  
+  public HHRDD gerOrCreateRDD(Job job) {
     if (hhrddConfigSerialized == null) {
       throw new RuntimeException("Please initialize the HHRDDBuilder");
     }

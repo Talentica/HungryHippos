@@ -17,7 +17,7 @@ import org.apache.spark.broadcast.Broadcast;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.RDDBuilder;
+import com.talentica.hungryHippos.rdd.HHRDDBuilder;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -39,12 +39,12 @@ public class SumJob implements Serializable {
     HHRDDHelper.initialize(clientConfigPath);
     SumJobExecutor executor = new SumJobExecutor();
     Map<String,HHRDD> cacheRDD = new HashMap<>();
-    RDDBuilder.initialize(distrDir);
+    HHRDDBuilder.initialize(distrDir);
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
             context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
     for (Job job : getSumJobMatrix().getJobs()) {
-      HHRDD hipposRDD = RDDBuilder.gerOrCreateRDD(job, context);
+      HHRDD hipposRDD = HHRDDBuilder.gerOrCreateRDD(job, context);
       Broadcast<Job> jobBroadcast = context.broadcast(job);
       executor.startSumJob(hipposRDD,descriptionBroadcast,jobBroadcast, outputDirectory);
     }

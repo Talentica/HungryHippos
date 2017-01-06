@@ -3,22 +3,25 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.spark.job.executor.SumJobExecutor;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
-
-import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
+
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
+import com.talentica.hungryHippos.rdd.RDDBuilder;
+import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.job.JobMatrix;
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import com.talentica.spark.job.executor.SumJobExecutor;
 
 public class SumJob implements Serializable {
 
@@ -36,16 +39,12 @@ public class SumJob implements Serializable {
     HHRDDHelper.initialize(clientConfigPath);
     SumJobExecutor executor = new SumJobExecutor();
     Map<String,HHRDD> cacheRDD = new HashMap<>();
+    RDDBuilder.initialize(distrDir);
     HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(distrDir);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
             context.broadcast(hhrddConfigSerialized.getFieldTypeArrayDataDescription());
     for (Job job : getSumJobMatrix().getJobs()) {
-      String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddConfigSerialized.getShardingIndexes());
-      HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
-      if (hipposRDD == null) {
-        hipposRDD = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
-        cacheRDD.put(keyOfHHRDD, hipposRDD);
-      }
+      HHRDD hipposRDD = RDDBuilder.gerOrCreateRDD(job, context);
       Broadcast<Job> jobBroadcast = context.broadcast(job);
       executor.startSumJob(hipposRDD,descriptionBroadcast,jobBroadcast, outputDirectory);
     }

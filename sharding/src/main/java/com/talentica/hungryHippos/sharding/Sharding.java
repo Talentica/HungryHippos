@@ -58,7 +58,8 @@ public class Sharding {
    * @param clusterConfig
    * @param context
    */
-  public Sharding(ClusterConfig clusterConfig, ShardingApplicationContext context, float bucketCountWeight) {
+  public Sharding(ClusterConfig clusterConfig, ShardingApplicationContext context,
+      float bucketCountWeight) {
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
     keys = context.getShardingDimensions();
@@ -254,8 +255,11 @@ public class Sharding {
       long[] remainingCapacity = new long[totalNoOfBuckets];
       // buckets.add(bucket);
       List<KeyValueFrequency> sortedKeyValueFrequencies = keyToListOfKeyValueFrequency.get(keys[i]);
+      int size = sortedKeyValueFrequencies.size();
+      logger.info("size of {}:{}", new Object[] {keys[i], size});
       if (!sortedKeyValueFrequencies.isEmpty()) {
         for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
+
           long sizeOfCurrentBucket = idealAverageSizeOfOneBucket;
           Long frequency = keyValueFrequency.getFrequency();
           if (frequency > idealAverageSizeOfOneBucket) {
@@ -265,29 +269,47 @@ public class Sharding {
                 new Object[] {keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket});
           }
           if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket
-              || bucket == null) {
+              || bucket == null || (totalNoOfBuckets - (bucketCount + 1)) >= size) {
             boolean flag = false;
-            for (int k = 0; k < totalNoOfBuckets; k++) {
-              if (remainingCapacity[k] > frequency) {
-                bucket = buckets.get(k);
-                flag = true;
+            if ((totalNoOfBuckets - (bucketCount + 1)) < size) {
+              for (int k = 0; k < totalNoOfBuckets; k++) {
+                if (remainingCapacity[k] > frequency) {
+
+                  bucket = buckets.get(k);
+                  logger.info(
+                      "found a bucket {} which can accomodate the frequency, will not create new bucket",
+                      bucket.getId());
+                  flag = true;
+                }
               }
             }
 
             if (!flag) {
-              bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
-              buckets.add(bucket);
-              remainingCapacity[bucket.getId()] = sizeOfCurrentBucket;
-              frequencyOfAlreadyAddedValues = 0;
+              if (bucketCount < (totalNoOfBuckets - 1)) {
+                bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
+                buckets.add(bucket);
+                remainingCapacity[bucket.getId()] = sizeOfCurrentBucket;
+                frequencyOfAlreadyAddedValues = 0;
+              } else {
+                logger.info(
+                    "Total Number of buckets are already created and will not create new bucket");
+                bucket = buckets.get(findTheLargestRemainingBucket(remainingCapacity));
+                logger.info(
+                    "remaining value is added to the bucket which has maximum remaning capacity:- {} ",
+                    bucket.getId());
+              }
+
             }
+
           }
           frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
           remainingCapacity[bucket.getId()] = remainingCapacity[bucket.getId()] - frequency;
           bucket.add(keyValueFrequency);
           valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
+          --size;
         }
         this.keysToListOfBucketsMap.put(keys[i], buckets);
-        logger.info("BucketCount is {} ", bucketCount);
+        logger.info("BucketCount is {} ", bucketCount + 1);
       }
     }
     if (logger.isDebugEnabled()) {
@@ -295,6 +317,25 @@ public class Sharding {
     }
     logger.info("Calculating keys to list of buckets map finished");
     return this.keysToListOfBucketsMap;
+  }
+
+
+  private int findTheLargestRemainingBucket(long[] capacity) {
+    int index = 0;
+    if (capacity == null || capacity.length == 0) {
+      logger.error("bucket array is empty or null");
+    } else {
+
+      long max = capacity[index];
+
+      for (int i = 1; i < capacity.length; i++) {
+        if (max < capacity[i]) {
+          max = capacity[i];
+          index = i;
+        }
+      }
+    }
+    return index;
   }
 
   /**
@@ -331,7 +372,7 @@ public class Sharding {
     for (DataTypes mutableCharArrayString : frequencyPerValue.keySet()) {
       totalofAllKeyValueFrequencies =
           totalofAllKeyValueFrequencies + frequencyPerValue.get(mutableCharArrayString);
-      sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets - 1);
+      sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets);
     }
     return sizeOfOneBucket;
   }

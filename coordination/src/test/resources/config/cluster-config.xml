@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:cluster-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/cluster"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/cluster cluster-config.xsd ">
+	<tns:node>
+		<tns:identifier>0</tns:identifier>
+		<tns:name>node0</tns:name>
+		<tns:ip>localhost</tns:ip>
+		<tns:port>2324</tns:port>
+	</tns:node>
+</tns:cluster-config>

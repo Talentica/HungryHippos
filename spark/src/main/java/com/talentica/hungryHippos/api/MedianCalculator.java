@@ -31,7 +31,16 @@ public class MedianCalculator {
 
 			if (leftKeyCount == 0 && rightKeyCount == 0) {
 				if (keys.length % 2 == 0 && !flag) {
-					return (n.key + n.parent.key) / 2.0;
+					if (n.keyCount == 1) {
+						/* no duplicate at current node */
+						return (n.key + n.parent.key) / 2.0;
+					} else {
+						/*
+						 * mid point found at current node and it's duplicate
+						 * value, simply return it.
+						 */
+						return n.key;
+					}
 				} else {
 					return n.key;
 				}
@@ -94,9 +103,6 @@ public class MedianCalculator {
 	}
 
 	private Node insert(Node parent, int key) {
-		if (key == 3) {
-			System.out.println();
-		}
 		if (parent == null) {
 			return new Node(key);
 		}

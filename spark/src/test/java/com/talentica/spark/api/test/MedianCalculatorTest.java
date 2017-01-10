@@ -53,9 +53,15 @@ public class MedianCalculatorTest {
 	}
 
 	@Test
-	public void testRandom() {
+	public void testFirstRandom() {
 		MedianCalculator avlTree = new MedianCalculator(100, 500, 65, 190, 234, 89, 1, -1, 56, 80, 100, 3);
 		Assert.assertEquals(84.5, avlTree.getMedian(), DELTA);
+	}
+
+	@Test
+	public void testSecondRandom() {
+		MedianCalculator avlTree = new MedianCalculator(1, 2, 50, 3, 4, 30, 2, 3);
+		Assert.assertEquals(3, avlTree.getMedian(), DELTA);
 	}
 
 }

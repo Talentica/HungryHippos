@@ -18,10 +18,10 @@ public class MedianCalculator {
 	}
 
 	public double getMedian() {
-		return traverseTree(root);
+		return traverseTree(root, false);
 	}
 
-	private double traverseTree(Node n) {
+	private double traverseTree(Node n, boolean flag) {
 		if (n == null) {
 			return 0.0;
 		} else {
@@ -30,66 +30,53 @@ public class MedianCalculator {
 			int rightKeyCount = childKeyCount(n.right);
 
 			if (leftKeyCount == 0 && rightKeyCount == 0) {
-				if (keys.length % 2 == 0) {
+				if (keys.length % 2 == 0 && !flag) {
 					return (n.key + n.parent.key) / 2.0;
 				} else {
 					return n.key;
 				}
 			}
+
 			if ((n.keyCount + leftKeyCount + n.leftCarry) < (rightKeyCount + n.rightCarry)) {
-				if (n.right != null && n.left != null) {
+				if (n.right != null) {
 					n.right.leftCarry = n.keyCount + leftKeyCount + n.leftCarry;
+					n.right.parent = n;
 				} else {
-					if (n.right != null) {
-						return (n.key + n.right.key) / 2.0;
-					} else {
+					if (n.left != null) {
 						return (n.key + n.left.key) / 2.0;
 					}
 				}
-				n.right.parent = n;
-				return traverseTree(n.right);
-			} else if ((n.keyCount + leftKeyCount + n.leftCarry) > (rightKeyCount + n.rightCarry)) {
-				if (n.right != null && n.left != null) {
-					n.left.leftCarry = n.leftCarry;
-					n.left.rightCarry = n.keyCount + rightKeyCount;
-				} else {
-					if (n.right != null) {
-						return (n.key + n.right.key) / 2.0;
-					} else {
-						return (n.key + n.left.key) / 2.0;
-					}
-				}
-				n.left.parent = n;
-				return traverseTree(n.left);
+				return traverseTree(n.right, flag);
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) < (leftKeyCount + n.leftCarry)) {
-				if (n.right != null && n.left != null) {
+				if (n.left != null) {
 					n.left.rightCarry = n.keyCount + rightKeyCount + n.rightCarry;
+					n.left.parent = n;
 				} else {
 					if (n.right != null) {
 						return (n.key + n.right.key) / 2.0;
-					} else {
-						return (n.key + n.left.key) / 2.0;
 					}
 				}
-				n.left.parent = n;
-				return traverseTree(n.left);
-			} else if ((n.keyCount + rightKeyCount + n.rightCarry) > (leftKeyCount + n.leftCarry)) {
-				if (n.right != null && n.left != null) {
-					n.right.rightCarry = n.rightCarry;
-					n.right.leftCarry = n.keyCount + leftKeyCount;
-				} else {
-					if (n.right != null) {
-						return (n.key + n.right.key) / 2.0;
-					} else {
-						return (n.key + n.left.key) / 2.0;
-					}
-				}
-				n.right.parent = n;
-				return traverseTree(n.right);
+				return traverseTree(n.left, flag);
 			} else if ((n.keyCount + leftKeyCount + n.leftCarry) == (rightKeyCount + n.rightCarry)) {
-				return (n.key + n.right.key) / 2.0;
+				if (n.right != null) {
+					n.right.leftCarry = n.keyCount + leftKeyCount + n.leftCarry;
+					n.right.parent = n;
+				} else {
+					if (n.left != null) {
+						return (n.key + n.left.key) / 2.0;
+					}
+				}
+				return (n.key + traverseTree(n.right, true)) / 2.0;
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) == (leftKeyCount + n.leftCarry)) {
-				return (n.key + n.left.key) / 2.0;
+				if (n.left != null) {
+					n.left.rightCarry = n.keyCount + rightKeyCount + n.rightCarry;
+					n.left.parent = n;
+				} else {
+					if (n.right != null) {
+						return (n.key + n.right.key) / 2.0;
+					}
+				}
+				return (n.key + traverseTree(n.left, true)) / 2.0;
 			} else {
 				return n.key;
 			}

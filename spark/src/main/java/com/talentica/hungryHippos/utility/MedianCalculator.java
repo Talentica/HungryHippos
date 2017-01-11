@@ -14,6 +14,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	private int totalCount;
 	private final static double denominator = 2.0;
 	private ClassNameIdentifier className;
+	private final static String exceptionMsg = "Type is neither Integer or Double";
 
 	public MedianCalculator() {
 	}
@@ -29,7 +30,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 			className = ClassNameIdentifier.getClassNameIdentifier(keys[0].getClass().getName());
 			insert(keys);
 		} else {
-			throw new IllegalClassException("Type is not either Integer or Double");
+			throw new IllegalClassException(exceptionMsg);
 		}
 
 	}
@@ -54,7 +55,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 			root = insert(root, key);
 			totalCount++;
 		} else {
-			throw new IllegalClassException("Type is not either Integer or Double");
+			throw new IllegalClassException(exceptionMsg);
 		}
 
 	}

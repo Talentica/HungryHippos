@@ -10,6 +10,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 
 	private Node root;
 	private int totalCount;
+	private final static double denominator = 2.0;
 
 	public MedianCalculator() {
 	}
@@ -60,9 +61,11 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 					if (n.keyCount == 1) {
 						/* no duplicate at current node */
 						if (n.key instanceof Integer) {
-							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.parent.key.toString())) / 2.0;
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.parent.key.toString()))
+									/ denominator;
 						} else if (n.key instanceof Double) {
-							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.parent.key.toString())) / 2.0;
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.parent.key.toString()))
+									/ denominator;
 						}
 					} else {
 						/*
@@ -84,9 +87,11 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 				} else {
 					if (n.left != null) {
 						if (n.key instanceof Integer) {
-							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString())) / 2.0;
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString()))
+									/ denominator;
 						} else if (n.key instanceof Double) {
-							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString())) / 2.0;
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString()))
+									/ denominator;
 						}
 					}
 				}
@@ -99,9 +104,11 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 				} else {
 					if (n.right != null) {
 						if (n.key instanceof Integer) {
-							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString())) / 2.0;
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString()))
+									/ denominator;
 						} else if (n.key instanceof Double) {
-							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString())) / 2.0;
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString()))
+									/ denominator;
 						}
 					}
 				}
@@ -114,16 +121,18 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 				} else {
 					if (n.left != null) {
 						if (n.key instanceof Integer) {
-							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString())) / 2.0;
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString()))
+									/ denominator;
 						} else if (n.key instanceof Double) {
-							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString())) / 2.0;
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString()))
+									/ denominator;
 						}
 					}
 				}
 				if (n.key instanceof Integer) {
-					return (Integer.valueOf(n.key.toString()) + traverseTree(n.right, true)) / 2.0;
+					return (Integer.valueOf(n.key.toString()) + traverseTree(n.right, true)) / denominator;
 				} else if (n.key instanceof Double) {
-					return (Double.valueOf(n.key.toString()) + traverseTree(n.right, true)) / 2.0;
+					return (Double.valueOf(n.key.toString()) + traverseTree(n.right, true)) / denominator;
 				}
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) == (leftKeyCount + n.leftCarry)) {
 				if (n.left != null) {
@@ -133,16 +142,18 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 				} else {
 					if (n.right != null) {
 						if (n.key instanceof Integer) {
-							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString())) / 2.0;
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString()))
+									/ denominator;
 						} else if (n.key instanceof Double) {
-							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString())) / 2.0;
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString()))
+									/ denominator;
 						}
 					}
 				}
 				if (n.key instanceof Integer) {
-					return (Integer.valueOf(n.key.toString()) + traverseTree(n.left, true)) / 2.0;
+					return (Integer.valueOf(n.key.toString()) + traverseTree(n.left, true)) / denominator;
 				} else if (n.key instanceof Double) {
-					return (Double.valueOf(n.key.toString()) + traverseTree(n.left, true)) / 2.0;
+					return (Double.valueOf(n.key.toString()) + traverseTree(n.left, true)) / denominator;
 				}
 			} else {
 				if (n.key instanceof Integer) {

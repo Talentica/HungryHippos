@@ -6,7 +6,7 @@ package com.talentica.spark.api.test;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.api.MedianCalculator;
+import com.talentica.hungryHippos.utility.MedianCalculator;
 
 /**
  * @author pooshans
@@ -74,6 +74,12 @@ public class MedianCalculatorTest {
 	public void testFourthRandom() {
 		MedianCalculator avlTree = new MedianCalculator(100, 300, 200, 500, 100, 400, 600, 499, 240);
 		Assert.assertEquals(300, avlTree.getMedian(), DELTA);
+	}
+	
+	@Test
+	public void testFifthRandom() {
+		MedianCalculator avlTree = new MedianCalculator(5,29,10,33,33,33,6,7,8,10);
+		Assert.assertEquals(10, avlTree.getMedian(), DELTA);
 	}
 
 	@Test

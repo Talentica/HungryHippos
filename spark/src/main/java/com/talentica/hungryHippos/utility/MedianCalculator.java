@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.api;
+package com.talentica.hungryHippos.utility;
 
 /**
  * This is the median calculator using AVL tree.

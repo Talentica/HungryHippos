@@ -1,26 +1,52 @@
 package com.talentica.hungryHippos.api;
 
 /**
+ * This is the median calculator using AVL tree.
+ * 
  * @author pooshans
  *
  */
 public class MedianCalculator {
 
 	private Node root;
-	private int[] keys;
+	private int totalCount;
+
+	public MedianCalculator() {
+	}
 
 	public MedianCalculator(int... keys) {
 		if (keys == null || keys.length == 0) {
 			throw new IllegalArgumentException("Null or empty array");
 		}
-		this.keys = keys;
+		this.totalCount = keys.length;
 		insert(keys);
 	}
 
+	/**
+	 * @return Returns the median.
+	 */
 	public double getMedian() {
 		return traverseTree(root, false);
 	}
 
+	/**
+	 * @param key
+	 *            : Key is sequentially added to the AVL tree.
+	 */
+	public void add(int key) {
+		root = insert(root, key);
+		totalCount++;
+	}
+
+	/**
+	 * @param n
+	 *            : It is the root of the AVL tree form where the actual
+	 *            traversal start for median search.
+	 * @param midPointFound
+	 *            : It the identifier which signal that one key is found in mid
+	 *            point and start looking for other one.
+	 * @return It returns the median.
+	 */
 	private double traverseTree(Node n, boolean midPointFound) {
 		if (n == null) {
 			return 0.0;
@@ -30,7 +56,7 @@ public class MedianCalculator {
 			int rightKeyCount = childKeyCount(n.right);
 
 			if (leftKeyCount == 0 && rightKeyCount == 0) {
-				if (keys.length % 2 == 0 && !midPointFound) {
+				if (totalCount % 2 == 0 && !midPointFound) {
 					if (n.keyCount == 1) {
 						/* no duplicate at current node */
 						return (n.key + n.parent.key) / 2.0;
@@ -96,6 +122,12 @@ public class MedianCalculator {
 		}
 	}
 
+	/**
+	 * @param n
+	 *            : Particular node of the AVL tree.
+	 * @return Returns the total count of the left and right child with
+	 *         duplicates.
+	 */
 	private int childKeyCount(Node n) {
 		if (n == null) {
 			return 0;
@@ -124,21 +156,21 @@ public class MedianCalculator {
 		return balancingNeeded ? balance(parent) : parent;
 	}
 
-	private Node balance(Node p) {
-		fixHeightAndChildCount(p);
-		if (bfactor(p) == 2) {
-			if (bfactor(p.right) < 0) {
-				p.right = rotateRight(p.right);
+	private Node balance(Node n) {
+		fixHeightAndChildCount(n);
+		if (bfactor(n) == 2) {
+			if (bfactor(n.right) < 0) {
+				n.right = rotateRight(n.right);
 			}
-			return rotateLeft(p);
+			return rotateLeft(n);
 		}
-		if (bfactor(p) == -2) {
-			if (bfactor(p.left) > 0) {
-				p.left = rotateLeft(p.left);
+		if (bfactor(n) == -2) {
+			if (bfactor(n.left) > 0) {
+				n.left = rotateLeft(n.left);
 			}
-			return rotateRight(p);
+			return rotateRight(n);
 		}
-		return p;
+		return n;
 	}
 
 	private Node rotateRight(Node p) {
@@ -159,25 +191,25 @@ public class MedianCalculator {
 		return p;
 	}
 
-	private void fixHeightAndChildCount(Node p) {
-		int hl = height(p.left);
-		int hr = height(p.right);
-		p.height = (hl > hr ? hl : hr) + 1;
-		p.childCount = 0;
-		if (p.left != null) {
-			p.childCount = p.left.childCount + 1;
+	private void fixHeightAndChildCount(Node n) {
+		int hl = height(n.left);
+		int hr = height(n.right);
+		n.height = (hl > hr ? hl : hr) + 1;
+		n.childCount = 0;
+		if (n.left != null) {
+			n.childCount = n.left.childCount + 1;
 		}
-		if (p.right != null) {
-			p.childCount += p.right.childCount + 1;
+		if (n.right != null) {
+			n.childCount += n.right.childCount + 1;
 		}
 	}
 
-	private int height(Node p) {
-		return p == null ? 0 : p.height;
+	private int height(Node n) {
+		return n == null ? 0 : n.height;
 	}
 
-	private int bfactor(Node p) {
-		return height(p.right) - height(p.left);
+	private int bfactor(Node n) {
+		return height(n.right) - height(n.left);
 	}
 
 	public void insert(int... keys) {

@@ -4,7 +4,6 @@
 package com.talentica.spark.api.test;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.api.MedianCalculator;
@@ -70,10 +69,20 @@ public class MedianCalculatorTest {
 		MedianCalculator avlTree = new MedianCalculator(-1, -2, -50, -3, -4, -30, -2, -3, -2, 10);
 		Assert.assertEquals(-2.5, avlTree.getMedian(), DELTA);
 	}
-	
+
 	@Test
 	public void testFourthRandom() {
-		MedianCalculator avlTree = new MedianCalculator(100,300,200,500,100,400,600,499,240);
+		MedianCalculator avlTree = new MedianCalculator(100, 300, 200, 500, 100, 400, 600, 499, 240);
+		Assert.assertEquals(300, avlTree.getMedian(), DELTA);
+	}
+
+	@Test
+	public void testFifthWithAddSequencially() {
+		int[] keys = new int[] { 100, 300, 200, 500, 100, 400, 600, 499, 240 };
+		MedianCalculator avlTree = new MedianCalculator();
+		for (int key : keys) {
+			avlTree.add(key);
+		}
 		Assert.assertEquals(300, avlTree.getMedian(), DELTA);
 	}
 

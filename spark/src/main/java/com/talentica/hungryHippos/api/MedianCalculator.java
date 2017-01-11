@@ -21,7 +21,7 @@ public class MedianCalculator {
 		return traverseTree(root, false);
 	}
 
-	private double traverseTree(Node n, boolean flag) {
+	private double traverseTree(Node n, boolean midPointFound) {
 		if (n == null) {
 			return 0.0;
 		} else {
@@ -30,7 +30,7 @@ public class MedianCalculator {
 			int rightKeyCount = childKeyCount(n.right);
 
 			if (leftKeyCount == 0 && rightKeyCount == 0) {
-				if (keys.length % 2 == 0 && !flag) {
+				if (keys.length % 2 == 0 && !midPointFound) {
 					if (n.keyCount == 1) {
 						/* no duplicate at current node */
 						return (n.key + n.parent.key) / 2.0;
@@ -49,26 +49,29 @@ public class MedianCalculator {
 			if ((n.keyCount + leftKeyCount + n.leftCarry) < (rightKeyCount + n.rightCarry)) {
 				if (n.right != null) {
 					n.right.leftCarry = n.keyCount + leftKeyCount + n.leftCarry;
+					n.right.rightCarry = n.rightCarry;
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
 						return (n.key + n.left.key) / 2.0;
 					}
 				}
-				return traverseTree(n.right, flag);
+				return traverseTree(n.right, midPointFound);
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) < (leftKeyCount + n.leftCarry)) {
 				if (n.left != null) {
 					n.left.rightCarry = n.keyCount + rightKeyCount + n.rightCarry;
+					n.left.leftCarry = n.leftCarry;
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {
 						return (n.key + n.right.key) / 2.0;
 					}
 				}
-				return traverseTree(n.left, flag);
+				return traverseTree(n.left, midPointFound);
 			} else if ((n.keyCount + leftKeyCount + n.leftCarry) == (rightKeyCount + n.rightCarry)) {
 				if (n.right != null) {
 					n.right.leftCarry = n.keyCount + leftKeyCount + n.leftCarry;
+					n.right.rightCarry = n.rightCarry;
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
@@ -79,6 +82,7 @@ public class MedianCalculator {
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) == (leftKeyCount + n.leftCarry)) {
 				if (n.left != null) {
 					n.left.rightCarry = n.keyCount + rightKeyCount + n.rightCarry;
+					n.left.leftCarry = n.leftCarry;
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {

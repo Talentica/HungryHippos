@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.spark.api.test;
+package com.talentica.spark.test;
 
 import org.junit.Assert;
 import org.junit.Test;

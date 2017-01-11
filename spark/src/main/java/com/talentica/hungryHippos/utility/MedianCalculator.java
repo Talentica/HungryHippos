@@ -6,7 +6,7 @@ package com.talentica.hungryHippos.utility;
  * @author pooshans
  *
  */
-public class MedianCalculator {
+public class MedianCalculator<T extends Comparable<? super T>> {
 
 	private Node root;
 	private int totalCount;
@@ -14,7 +14,7 @@ public class MedianCalculator {
 	public MedianCalculator() {
 	}
 
-	public MedianCalculator(int... keys) {
+	public MedianCalculator(T... keys) {
 		if (keys == null || keys.length == 0) {
 			throw new IllegalArgumentException("Null or empty array");
 		}
@@ -33,7 +33,7 @@ public class MedianCalculator {
 	 * @param key
 	 *            : Key is sequentially added to the AVL tree.
 	 */
-	public void add(int key) {
+	public void add(T key) {
 		root = insert(root, key);
 		totalCount++;
 	}
@@ -59,16 +59,20 @@ public class MedianCalculator {
 				if (totalCount % 2 == 0 && !midPointFound) {
 					if (n.keyCount == 1) {
 						/* no duplicate at current node */
-						return (n.key + n.parent.key) / 2.0;
+						if (n.key instanceof Integer) {
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.parent.key.toString())) / 2.0;
+						} else if (n.key instanceof Double) {
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.parent.key.toString())) / 2.0;
+						}
 					} else {
 						/*
 						 * mid point found at current node and it's duplicate
 						 * value, simply return it.
 						 */
-						return n.key;
+						return Double.valueOf(n.key.toString());
 					}
 				} else {
-					return n.key;
+					return Double.valueOf(n.key.toString());
 				}
 			}
 
@@ -79,7 +83,11 @@ public class MedianCalculator {
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
-						return (n.key + n.left.key) / 2.0;
+						if (n.key instanceof Integer) {
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString())) / 2.0;
+						} else if (n.key instanceof Double) {
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString())) / 2.0;
+						}
 					}
 				}
 				return traverseTree(n.right, midPointFound);
@@ -90,7 +98,11 @@ public class MedianCalculator {
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {
-						return (n.key + n.right.key) / 2.0;
+						if (n.key instanceof Integer) {
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString())) / 2.0;
+						} else if (n.key instanceof Double) {
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString())) / 2.0;
+						}
 					}
 				}
 				return traverseTree(n.left, midPointFound);
@@ -101,10 +113,18 @@ public class MedianCalculator {
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
-						return (n.key + n.left.key) / 2.0;
+						if (n.key instanceof Integer) {
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString())) / 2.0;
+						} else if (n.key instanceof Double) {
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString())) / 2.0;
+						}
 					}
 				}
-				return (n.key + traverseTree(n.right, true)) / 2.0;
+				if (n.key instanceof Integer) {
+					return (Integer.valueOf(n.key.toString()) + traverseTree(n.right, true)) / 2.0;
+				} else if (n.key instanceof Double) {
+					return (Double.valueOf(n.key.toString()) + traverseTree(n.right, true)) / 2.0;
+				}
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) == (leftKeyCount + n.leftCarry)) {
 				if (n.left != null) {
 					n.left.rightCarry = n.keyCount + rightKeyCount + n.rightCarry;
@@ -112,14 +132,27 @@ public class MedianCalculator {
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {
-						return (n.key + n.right.key) / 2.0;
+						if (n.key instanceof Integer) {
+							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString())) / 2.0;
+						} else if (n.key instanceof Double) {
+							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString())) / 2.0;
+						}
 					}
 				}
-				return (n.key + traverseTree(n.left, true)) / 2.0;
+				if (n.key instanceof Integer) {
+					return (Integer.valueOf(n.key.toString()) + traverseTree(n.left, true)) / 2.0;
+				} else if (n.key instanceof Double) {
+					return (Double.valueOf(n.key.toString()) + traverseTree(n.left, true)) / 2.0;
+				}
 			} else {
-				return n.key;
+				if (n.key instanceof Integer) {
+					return Integer.valueOf(n.key.toString());
+				} else if (n.key instanceof Double) {
+					return Double.valueOf(n.key.toString());
+				}
 			}
 		}
+		return 0.0;
 	}
 
 	/**
@@ -138,15 +171,15 @@ public class MedianCalculator {
 		}
 	}
 
-	private Node insert(Node parent, int key) {
+	private Node insert(Node parent, T key) {
 		if (parent == null) {
 			return new Node(key);
 		}
 		boolean balancingNeeded = false;
-		if (key < parent.key) {
+		if (key.compareTo(parent.key) < 0) {
 			parent.left = insert(parent.left, key);
 			balancingNeeded = true;
-		} else if (key > parent.key) {
+		} else if (key.compareTo(parent.key) > 0) {
 			parent.right = insert(parent.right, key);
 			balancingNeeded = true;
 		} else {
@@ -212,17 +245,17 @@ public class MedianCalculator {
 		return height(n.right) - height(n.left);
 	}
 
-	public void insert(int... keys) {
-		for (int key : keys) {
+	public void insert(T... keys) {
+		for (T key : keys) {
 			root = insert(root, key);
 		}
 	}
 
-	private static class Node {
+	private class Node {
 
 		private Node left;
 		private Node right;
-		private final int key;
+		private final T key;
 		private int height;
 		private int childCount;
 		private int keyCount = 0;
@@ -230,15 +263,10 @@ public class MedianCalculator {
 		private int rightCarry = 0;
 		private Node parent;
 
-		private Node(int value) {
+		private Node(T value) {
 			key = value;
 			height = 1;
 			keyCount++;
-		}
-
-		@Override
-		public String toString() {
-			return Integer.toString(key);
 		}
 	}
 

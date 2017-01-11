@@ -23,15 +23,11 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 		if (keys == null || keys.length == 0) {
 			throw new IllegalArgumentException("Null or empty array");
 		}
-
-		if (keys[0].getClass().getName().equals(Integer.class.getName())
-				|| keys[0].getClass().getName().equals(Double.class.getName())) {
-			this.totalCount = keys.length;
-			className = ClassNameIdentifier.getClassNameIdentifier(keys[0].getClass().getName());
-			insert(keys);
-		} else {
-			throw new IllegalClassException(exceptionMsg);
+		if (!isTypeValidated) {
+			checkClassType(keys[0]);
 		}
+		this.totalCount = keys.length;
+		insert(keys);
 
 	}
 
@@ -42,22 +38,31 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 		return traverseTree(root, false);
 	}
 
+	private boolean isTypeValidated = false;
+
 	/**
 	 * @param key
 	 *            : Key is sequentially added to the AVL tree.
 	 */
 	public void add(T key) {
+		if (!isTypeValidated) {
+			checkClassType(key);
+		}
+		root = insert(root, key);
+		totalCount++;
+
+	}
+
+	private void checkClassType(T key) {
 		if (key.getClass().getName().equals(Integer.class.getName())
 				|| key.getClass().getName().equals(Double.class.getName())) {
 			if (className == null) {
 				className = ClassNameIdentifier.getClassNameIdentifier(key.getClass().getName());
 			}
-			root = insert(root, key);
-			totalCount++;
+			isTypeValidated = true;
 		} else {
 			throw new IllegalClassException(exceptionMsg);
 		}
-
 	}
 
 	/**

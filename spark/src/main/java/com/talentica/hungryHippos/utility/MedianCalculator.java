@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.utility;
 
+import org.apache.commons.lang.IllegalClassException;
+
 /**
  * This is the median calculator using AVL tree.
  * 
@@ -15,12 +17,19 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	public MedianCalculator() {
 	}
 
-	public MedianCalculator(T... keys) {
+	public MedianCalculator(T[] keys) {
 		if (keys == null || keys.length == 0) {
 			throw new IllegalArgumentException("Null or empty array");
 		}
-		this.totalCount = keys.length;
-		insert(keys);
+
+		if (keys[0].getClass().getName().equals(Integer.class.getName())
+				|| keys[0].getClass().getName().equals(Double.class.getName())) {
+			this.totalCount = keys.length;
+			insert(keys);
+		} else {
+			throw new IllegalClassException("Type is not either Integer or Double");
+		}
+
 	}
 
 	/**
@@ -35,8 +44,14 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	 *            : Key is sequentially added to the AVL tree.
 	 */
 	public void add(T key) {
-		root = insert(root, key);
-		totalCount++;
+		if (key.getClass().getName().equals(Integer.class.getName())
+				|| key.getClass().getName().equals(Double.class.getName())) {
+			root = insert(root, key);
+			totalCount++;
+		} else {
+			throw new IllegalClassException("Type is not either Integer or Double");
+		}
+
 	}
 
 	/**
@@ -256,7 +271,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 		return height(n.right) - height(n.left);
 	}
 
-	public void insert(T... keys) {
+	public void insert(T[] keys) {
 		for (T key : keys) {
 			root = insert(root, key);
 		}

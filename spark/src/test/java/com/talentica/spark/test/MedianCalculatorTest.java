@@ -3,6 +3,7 @@
  */
 package com.talentica.spark.test;
 
+import org.apache.commons.lang.IllegalClassException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -91,6 +92,16 @@ public class MedianCalculatorTest {
 		MedianCalculator<Double> avlTree = new MedianCalculator<Double>(
 				new Double[] { 5.0, 29.4, 5.67, 10.99, 33.34, 33.90, 33.38, 6.00, 7.24, 8.88 });
 		Assert.assertEquals(9.935, avlTree.getMedian(), DELTA);
+	}
+
+	@Test
+	public void testDataType() {
+		try {
+			MedianCalculator<String> avlTree = new MedianCalculator<String>(new String[] { "a", "b" });
+			avlTree.getMedian();
+		} catch (IllegalClassException icex) {
+			Assert.assertTrue(true);
+		}
 	}
 
 	@Test

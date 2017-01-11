@@ -23,9 +23,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 		if (keys == null || keys.length == 0) {
 			throw new IllegalArgumentException("Null or empty array");
 		}
-		if (!isTypeValidated) {
-			checkClassType(keys[0]);
-		}
+		checkClassType(keys[0]);
 		this.totalCount = keys.length;
 		insert(keys);
 

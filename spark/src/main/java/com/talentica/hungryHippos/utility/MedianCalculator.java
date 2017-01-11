@@ -13,6 +13,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	private Node root;
 	private int totalCount;
 	private final static double denominator = 2.0;
+	private ClassNameIdentifier className;
 
 	public MedianCalculator() {
 	}
@@ -25,6 +26,7 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 		if (keys[0].getClass().getName().equals(Integer.class.getName())
 				|| keys[0].getClass().getName().equals(Double.class.getName())) {
 			this.totalCount = keys.length;
+			className = ClassNameIdentifier.getClassNameIdentifier(keys[0].getClass().getName());
 			insert(keys);
 		} else {
 			throw new IllegalClassException("Type is not either Integer or Double");
@@ -46,6 +48,9 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	public void add(T key) {
 		if (key.getClass().getName().equals(Integer.class.getName())
 				|| key.getClass().getName().equals(Double.class.getName())) {
+			if (className == null) {
+				className = ClassNameIdentifier.getClassNameIdentifier(key.getClass().getName());
+			}
 			root = insert(root, key);
 			totalCount++;
 		} else {
@@ -75,12 +80,15 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 				if (totalCount % 2 == 0 && !midPointFound) {
 					if (n.keyCount == 1) {
 						/* no duplicate at current node */
-						if (n.key instanceof Integer) {
+						switch (className) {
+						case IntegerClass:
 							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.parent.key.toString()))
 									/ denominator;
-						} else if (n.key instanceof Double) {
+						case DoubleClass:
 							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.parent.key.toString()))
 									/ denominator;
+						default:
+							return 0.0;
 						}
 					} else {
 						/*
@@ -101,12 +109,15 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
-						if (n.key instanceof Integer) {
+						switch (className) {
+						case IntegerClass:
 							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString()))
 									/ denominator;
-						} else if (n.key instanceof Double) {
+						case DoubleClass:
 							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString()))
 									/ denominator;
+						default:
+							return 0.0;
 						}
 					}
 				}
@@ -118,12 +129,15 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {
-						if (n.key instanceof Integer) {
+						switch (className) {
+						case IntegerClass:
 							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString()))
 									/ denominator;
-						} else if (n.key instanceof Double) {
+						case DoubleClass:
 							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString()))
 									/ denominator;
+						default:
+							return 0.0;
 						}
 					}
 				}
@@ -135,19 +149,25 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 					n.right.parent = n;
 				} else {
 					if (n.left != null) {
-						if (n.key instanceof Integer) {
+						switch (className) {
+						case IntegerClass:
 							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.left.key.toString()))
 									/ denominator;
-						} else if (n.key instanceof Double) {
+						case DoubleClass:
 							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.left.key.toString()))
 									/ denominator;
+						default:
+							return 0.0;
 						}
 					}
 				}
-				if (n.key instanceof Integer) {
+				switch (className) {
+				case IntegerClass:
 					return (Integer.valueOf(n.key.toString()) + traverseTree(n.right, true)) / denominator;
-				} else if (n.key instanceof Double) {
+				case DoubleClass:
 					return (Double.valueOf(n.key.toString()) + traverseTree(n.right, true)) / denominator;
+				default:
+					return 0.0;
 				}
 			} else if ((n.keyCount + rightKeyCount + n.rightCarry) == (leftKeyCount + n.leftCarry)) {
 				if (n.left != null) {
@@ -156,29 +176,37 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 					n.left.parent = n;
 				} else {
 					if (n.right != null) {
-						if (n.key instanceof Integer) {
+						switch (className) {
+						case IntegerClass:
 							return (Integer.valueOf(n.key.toString()) + Integer.valueOf(n.right.key.toString()))
 									/ denominator;
-						} else if (n.key instanceof Double) {
+						case DoubleClass:
 							return (Double.valueOf(n.key.toString()) + Double.valueOf(n.right.key.toString()))
 									/ denominator;
+						default:
+							return 0.0;
 						}
 					}
 				}
-				if (n.key instanceof Integer) {
+				switch (className) {
+				case IntegerClass:
 					return (Integer.valueOf(n.key.toString()) + traverseTree(n.left, true)) / denominator;
-				} else if (n.key instanceof Double) {
+				case DoubleClass:
 					return (Double.valueOf(n.key.toString()) + traverseTree(n.left, true)) / denominator;
+				default:
+					return 0.0;
 				}
 			} else {
-				if (n.key instanceof Integer) {
+				switch (className) {
+				case IntegerClass:
 					return Integer.valueOf(n.key.toString());
-				} else if (n.key instanceof Double) {
+				case DoubleClass:
 					return Double.valueOf(n.key.toString());
+				default:
+					return 0.0;
 				}
 			}
 		}
-		return 0.0;
 	}
 
 	/**
@@ -274,6 +302,31 @@ public class MedianCalculator<T extends Comparable<? super T>> {
 	public void insert(T[] keys) {
 		for (T key : keys) {
 			root = insert(root, key);
+		}
+	}
+
+	enum ClassNameIdentifier {
+		IntegerClass(Integer.class.getName()), DoubleClass(Double.class.getName());
+
+		private String className;
+
+		private ClassNameIdentifier(String className) {
+			this.className = className;
+		}
+
+		public String getClassName() {
+			return className;
+		}
+
+		public static ClassNameIdentifier getClassNameIdentifier(String className) {
+			if (className != null) {
+				for (ClassNameIdentifier classNameId : ClassNameIdentifier.values()) {
+					if (className.equals(classNameId.className)) {
+						return classNameId;
+					}
+				}
+			}
+			return null;
 		}
 	}
 

@@ -59,7 +59,7 @@ public class MedianJob {
 						while (itr.hasNext()) {
 							medianCalculator.add(itr.next().doubleValue());
 						}
-						Double median = medianCalculator.getMedian();
+						Double median = medianCalculator.median();
 						return new Tuple2<String, Double>(t._1, median);
 					}
 				});

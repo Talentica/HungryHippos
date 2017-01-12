@@ -75,7 +75,7 @@ public class MedianJobExecutor implements Serializable {
 						}
 
 						for (Entry<String, MedianCalculator<Double>> entry : map.entrySet()) {
-							Double median = entry.getValue().getMedian();
+							Double median = entry.getValue().median();
 							medianList.add(new Tuple2<String, Double>(entry.getKey(), median));
 						}
 						return medianList.iterator();

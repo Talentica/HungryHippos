@@ -302,6 +302,19 @@ public class MedianCalculator<T extends Comparable<? super T>> {
     }
   }
 
+  public int nodes() {
+    return traverse(root);
+  }
+
+  private int traverse(Node n) {
+    if (n == null) {
+      return 0;
+    }
+    int leftChildCount = traverse(n.left);
+    int rightChildCount = traverse(n.right);
+    return leftChildCount + rightChildCount + 1;
+  }
+
   enum ClassNameIdentifier {
     IntegerClass(Integer.class.getName()), DoubleClass(Double.class.getName());
 

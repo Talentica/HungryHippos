@@ -26,7 +26,7 @@ import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.hungryHippos.utility.MedianCalculator;
+import com.talentica.hungryhippos.ds.DescriptiveStatisticsNumber;
 
 import scala.Tuple2;
 
@@ -63,18 +63,18 @@ public class MedianJobExecutor implements Serializable {
 					public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t) throws Exception {
 
 						List<Tuple2<String, Double>> medianList = new ArrayList<>();
-						Map<String, MedianCalculator<Double>> map = new HashMap<>();
+						Map<String, DescriptiveStatisticsNumber<Double>> map = new HashMap<>();
 						while (t.hasNext()) {
 							Tuple2<String, Double> tuple2 = t.next();
-							MedianCalculator<Double> MedianCalculator = map.get(tuple2._1);
+							DescriptiveStatisticsNumber<Double> MedianCalculator = map.get(tuple2._1);
 							if (MedianCalculator == null) {
-								MedianCalculator = new MedianCalculator<Double>();
+								MedianCalculator = new DescriptiveStatisticsNumber<Double>();
 								map.put(tuple2._1, MedianCalculator);
 							}
 							MedianCalculator.add(tuple2._2);
 						}
 
-						for (Entry<String, MedianCalculator<Double>> entry : map.entrySet()) {
+						for (Entry<String, DescriptiveStatisticsNumber<Double>> entry : map.entrySet()) {
 							Double median = entry.getValue().median();
 							medianList.add(new Tuple2<String, Double>(entry.getKey(), median));
 						}

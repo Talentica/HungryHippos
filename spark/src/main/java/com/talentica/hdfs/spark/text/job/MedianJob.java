@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.utility.MedianCalculator;
+import com.talentica.hungryhippos.ds.DescriptiveStatisticsNumber;
 
 import scala.Tuple2;
 
@@ -34,7 +34,7 @@ public class MedianJob {
 	public static void runJob(SparkContext sc, JavaRDD<String> rdd, Broadcast<Job> broadcastJob) {
 		JavaPairRDD<String, Double> pairRDD = rdd.mapToPair(new PairFunction<String, String, Double>() {
 			private static final long serialVersionUID = -1129787304947692082L;
-
+			
 			@Override
 			public Tuple2<String, Double> call(String t) throws Exception {
 				String[] line = t.split(",");
@@ -54,7 +54,7 @@ public class MedianJob {
 
 					@Override
 					public Tuple2<String, Double> call(Tuple2<String, Iterable<Double>> t) throws Exception {
-						MedianCalculator<Double> medianCalculator = new MedianCalculator<Double>();
+					  DescriptiveStatisticsNumber<Double> medianCalculator = new DescriptiveStatisticsNumber<Double>();
 						Iterator<Double> itr = t._2.iterator();
 						while (itr.hasNext()) {
 							medianCalculator.add(itr.next().doubleValue());

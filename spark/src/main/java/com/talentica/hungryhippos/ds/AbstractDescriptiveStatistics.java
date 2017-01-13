@@ -144,31 +144,6 @@ public abstract class AbstractDescriptiveStatistics<T extends Comparable<? super
     return leftChildCount + rightChildCount + 1;
   }
 
-  enum ClassNameIdentifier {
-    IntegerClass(Integer.class.getName()), DoubleClass(Double.class.getName());
-
-    private String className;
-
-    private ClassNameIdentifier(String className) {
-      this.className = className;
-    }
-
-    public String getClassName() {
-      return className;
-    }
-
-    public static ClassNameIdentifier getClassNameIdentifier(String className) {
-      if (className != null) {
-        for (ClassNameIdentifier classNameId : ClassNameIdentifier.values()) {
-          if (className.equals(classNameId.className)) {
-            return classNameId;
-          }
-        }
-      }
-      return null;
-    }
-  }
-
   protected class Node<T> {
     protected Node<T> left;
     protected Node<T> right;

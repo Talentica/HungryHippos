@@ -38,7 +38,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
     for(Tuple2<String,int[]> tuple2: files){
       File file = new File(filePath+File.separator+tuple2._1);
       if (!file.exists()) {
-        logger.info("Downloading file {} from nodes {} ",filePath,tuple2._2);
+        logger.info("Downloading file {}/{} from nodes {} ",filePath,tuple2._1,tuple2._2);
         boolean isFileDownloaded = false;
         while (!isFileDownloaded) {
           for (int id : tuple2._2) {

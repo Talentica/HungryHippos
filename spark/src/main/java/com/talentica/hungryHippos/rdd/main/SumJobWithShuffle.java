@@ -10,27 +10,23 @@ import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
-import com.talentica.spark.job.executor.SumJobExecutor;
+import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SumJob implements Serializable {
+public class SumJobWithShuffle {
 
-  private static final long serialVersionUID = 8326979063332184463L;
-
-  private static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(SumJobWithShuffle.class);
   private static JavaSparkContext context;
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -47,15 +43,15 @@ public class SumJob implements Serializable {
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
             context.broadcast(hhrddInfo.getFieldDataDesc());
     for (Job job : getSumJobMatrix().getJobs()) {
+      Broadcast<Job> jobBroadcast = context.broadcast(job);
       String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddInfo.getShardingIndexes());
       HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = new HHRDD(context, hhrddInfo,job.getDimensions(),false);
+        hipposRDD = new HHRDD(context, hhrddInfo,job.getDimensions(),true);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
-      Broadcast<Job> jobBroadcast = context.broadcast(job);
-      JavaRDD<Tuple2<String, Long>> resultRDD=  SumJobExecutor.process(hipposRDD,descriptionBroadcast,jobBroadcast);
-      String outputDistributedPath = outputDirectory + File.separator + jobBroadcast.value().getJobId();
+      JavaPairRDD<String, Long> resultRDD=  SumJobExecutorWithShuffle.process(hipposRDD,descriptionBroadcast,jobBroadcast);
+      String outputDistributedPath = outputDirectory + File.separator + job.getJobId();
 
       String outputActualPath =  HHRDDHelper.getActualPath(outputDistributedPath);
       HHRDDFileUtils.saveAsText(resultRDD, outputActualPath);
@@ -84,11 +80,11 @@ public class SumJob implements Serializable {
   }
 
   private static void initializeSparkContext(String masterIp, String appName) {
-    if (SumJob.context == null) {
+    if (SumJobWithShuffle.context == null) {
       SparkConf conf =
           new SparkConf().setMaster(masterIp).setAppName(appName);
       try {
-        SumJob.context = new JavaSparkContext(conf);
+        SumJobWithShuffle.context = new JavaSparkContext(conf);
       } catch (Exception e) {
         e.printStackTrace();
       }

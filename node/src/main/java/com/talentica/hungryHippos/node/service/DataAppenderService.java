@@ -65,7 +65,7 @@ public class DataAppenderService implements Runnable {
             }else{
                 logger.info("[{}] joining {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
                 String lockString = destFolderPath+socket.getInetAddress();
-                FileJoiner.join(srcFolderPath, destFolderPath, lockString);
+                FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, lockString);
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
                 logger.info("[{}] Successfully joined {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
             }

@@ -4,7 +4,6 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,6 +19,7 @@ public class DataDistributorStarter {
   public static ExecutorService fileProviderService;
     public static ExecutorService dataAppenderServices;
     public static ExecutorService scpAccessServices;
+    public static ExecutorService metadataUpdaterServices;
     private static String hungryHippoBinDir;
 
 
@@ -40,6 +40,7 @@ public class DataDistributorStarter {
         fileProviderService = Executors.newFixedThreadPool(10);
         dataAppenderServices = Executors.newFixedThreadPool(noOfNodes+5);
         scpAccessServices = Executors.newFixedThreadPool(10);
+        metadataUpdaterServices = Executors.newFixedThreadPool(noOfNodes+5);
         while (true) {
             Socket socket = serverSocket.accept();
             serviceDeligator.execute(new ServiceDeligator(socket));

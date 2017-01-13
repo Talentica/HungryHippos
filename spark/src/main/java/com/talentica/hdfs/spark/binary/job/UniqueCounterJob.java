@@ -1,7 +1,7 @@
 package com.talentica.hdfs.spark.binary.job;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDConfigSerialized;
+import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -25,8 +25,8 @@ public class UniqueCounterJob {
     String outputFilePath = args[4];
     HHRDDHelper.initialize(clientConfigFilePath);
     Job job = new Job(new Integer[] {0}, 8, 0);
-    HHRDDConfigSerialized hhrddConfigSerialized = HHRDDHelper.getHhrddConfigSerialized(inputDataFilePath);
-    HHRDD hhrdd = new HHRDD(context, hhrddConfigSerialized,job.getDimensions());
+    HHRDDInfo hhrddInfo = HHRDDHelper.getHhrddInfo(inputDataFilePath);
+    HHRDD hhrdd = new HHRDD(context, hhrddInfo,job.getDimensions(),false);
     Broadcast<Job> broadcastJob = context.broadcast(job);
     DataDescriptionConfig dataDescriptionConfig =
         new DataDescriptionConfig(FileSystemContext.getRootDirectory() + inputDataFilePath

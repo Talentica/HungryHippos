@@ -18,6 +18,7 @@ public class DescriptiveStatisticsNumber<T extends Number> extends AbstractDescr
   /**
    * @return Returns the median.
    */
+  @Override
   public double median() {
     return traverseTree(root, false);
   }

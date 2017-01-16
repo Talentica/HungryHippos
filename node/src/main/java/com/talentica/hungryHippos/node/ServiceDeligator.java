@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.node.service.DataAppenderService;
 import com.talentica.hungryHippos.node.service.DataDistributorService;
+import com.talentica.hungryHippos.node.service.MetaDataUpdaterService;
 import com.talentica.hungryHippos.node.service.SCPAccessService;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
@@ -34,6 +35,9 @@ public class ServiceDeligator implements Runnable {
           break;
         case HungryHippoServicesConstants.SCP_ACCESS:
           DataDistributorStarter.scpAccessServices.execute(new SCPAccessService(socket));
+          break;
+        case HungryHippoServicesConstants.METADATA_UPDATER:
+          DataDistributorStarter.metadataUpdaterServices.execute(new MetaDataUpdaterService(socket));
           break;
         default:
           socket.close();

@@ -6,38 +6,27 @@ package com.talentica.spark.job.executor;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.HHJavaRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
-import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import java.io.File;
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
  * @author sudarshans
  */
-public class UniqueCountJobExecutor implements Serializable {
+public class UniqueCountJobExecutor {
 
-    private static final long serialVersionUID = -6660816277015211262L;
-    private static Logger LOGGER = LoggerFactory.getLogger(UniqueCountJobExecutor.class);
-
-
-    @SuppressWarnings("serial")
-    public void startUniqueCountJob(HHRDD hipposRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
-                                    Broadcast<Job> jobBroadcast, String ouputDirectory) {
+    public static JavaRDD<Tuple2<String, Long>> process(HHRDD hipposRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
+                                                        Broadcast<Job> jobBroadcast) {
         JavaPairRDD<String, Integer> javaRDD =
                 hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
                     private static final long serialVersionUID = -1533590342050196085L;
@@ -53,15 +42,6 @@ public class UniqueCountJobExecutor implements Serializable {
                                     .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
                         }
                         key = key + "|id=" + jobBroadcast.value().getJobId();
-                        StringBuilder builder = new StringBuilder();
-                        for (int index = 0; index < descriptionBroadcast.getValue()
-                                .getNumberOfDataFields(); index++) {
-                            builder.append(readerVar.readAtColumn(index).toString());
-                            if (index > 0) {
-                                builder.append(",");
-                            }
-                        }
-                        builder.append("\n");
                         Integer value = Integer.valueOf(readerVar.readAtColumn(jobBroadcast.value().getCalculationIndex()).toString());
                         return new Tuple2<String, Integer>(key, value);
                     }
@@ -78,13 +58,10 @@ public class UniqueCountJobExecutor implements Serializable {
                     HyperLogLog hyperLogLog = hyperLogLogMap.get(tuple2._1);
                     if (hyperLogLog == null) {
                         hyperLogLog = new HyperLogLog(0.01);
-                        hyperLogLog.offer(tuple2._2);
                         hyperLogLogMap.put(tuple2._1, hyperLogLog);
-                    } else {
-                        hyperLogLog.offer(tuple2._2);
                     }
+                    hyperLogLog.offer(tuple2._2);
                 }
-
                 for (Map.Entry<String, HyperLogLog> entry : hyperLogLogMap.entrySet()) {
                     uniqueValues.add(new Tuple2<String, Long>(entry.getKey(), entry.getValue().cardinality()));
                 }
@@ -92,16 +69,7 @@ public class UniqueCountJobExecutor implements Serializable {
             }
         }, true);
 
-        String outputDistributedPath = ouputDirectory + File.separator + jobBroadcast.value().getJobId();
-
-        String outputActualPath =  HHRDDHelper.getActualPath(outputDistributedPath);
-        new HHJavaRDD<Tuple2<String, Long>>(resultRDD.rdd(),
-                resultRDD.classTag()).saveAsTextFile(outputActualPath);
-        LOGGER.info("Output files are in directory {}", outputActualPath);
-    }
-
-    public void stop(JavaSparkContext context) {
-        context.stop();
+        return resultRDD;
     }
 
 }

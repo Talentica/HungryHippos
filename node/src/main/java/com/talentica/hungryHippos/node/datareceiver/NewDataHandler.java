@@ -203,9 +203,11 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         String baseFolderPath =  FileSystemContext.getRootDirectory() + hhFilePath;
         String srcFolderPath = baseFolderPath + File.separator + uniqueFolderName;
         String destFolderPath = baseFolderPath + File.separator + DATA_FILE_BASE_NAME;
+        String metadataFilePath = baseFolderPath + File.separator + FileSystemConstants.META_DATA_FOLDER_NAME
+                +File.separator+NodeInfo.INSTANCE.getId();
         byteBuf = null;
         try {
-            FileJoiner.join(srcFolderPath,destFolderPath,destFolderPath);
+            FileJoiner.INSTANCE.join(srcFolderPath,destFolderPath,destFolderPath,metadataFilePath);
             HHFileUploader.INSTANCE.uploadFile(srcFolderPath,destFolderPath,nodeToFileMap);
             FileUtils.deleteDirectory(new File(srcFolderPath));
             if (!checkIfFailed(hhFilePath)&&noError) {

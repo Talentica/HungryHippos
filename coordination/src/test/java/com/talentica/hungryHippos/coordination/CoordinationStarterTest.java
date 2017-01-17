@@ -47,15 +47,18 @@ import com.talentica.hungryHippos.coordination.context.DataPublisherApplicationC
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
+import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 import com.talentica.hungryhippos.config.datapublisher.DatapublisherConfig;
+import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 
 import junit.framework.Assert;
 
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@Ignore
+
 public class CoordinationStarterTest {
 
   private static final String USER_HOME = System.getProperty("user.home");
@@ -315,7 +318,10 @@ public class CoordinationStarterTest {
   }
 
   @After
-  public void tearDown() throws Exception {}
+  public void tearDown() throws Exception {
+    args = null;
+
+  }
 
   @Test
   public void testMain() throws FileNotFoundException, JAXBException, HungryHippoException {
@@ -332,49 +338,76 @@ public class CoordinationStarterTest {
 
     ZookeeperDefaultConfig zkDefaultConfig = coordinationConfig.getZookeeperDefaultConfig();
 
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getAlertPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getCleanup()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getFileidHhfsMapPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getFilesystemPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getHostPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getJobConfigPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getJobStatusPath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getNamespacePath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getRetry()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getShardingTablePath()));
-    assertTrue(hungryHippoCurator.checkExists(zkDefaultConfig.getTickTime()));
 
+    CoordinationConfig coordinationConfigFromZK = (CoordinationConfig) hungryHippoCurator
+        .readObject(CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+            + File.separatorChar + CoordinationConfigUtil.COORDINATION_CONFIGURATION);
+
+    ZookeeperDefaultConfig zkDefaultConfigFromZK = coordinationConfig.getZookeeperDefaultConfig();
+
+    // verify
+    assertEquals(zkDefaultConfig.getAlertPath(), zkDefaultConfigFromZK.getAlertPath());
+    assertEquals(zkDefaultConfig.getCleanup(), zkDefaultConfigFromZK.getCleanup());
+    assertEquals(zkDefaultConfig.getFileidHhfsMapPath(),
+        zkDefaultConfigFromZK.getFileidHhfsMapPath());
+    assertEquals(zkDefaultConfig.getFilesystemPath(), zkDefaultConfigFromZK.getFilesystemPath());
+    assertEquals(zkDefaultConfig.getHostPath(), zkDefaultConfigFromZK.getHostPath());
+    assertEquals(zkDefaultConfig.getJobConfigPath(), zkDefaultConfigFromZK.getJobConfigPath());
+    assertEquals(zkDefaultConfig.getJobStatusPath(), zkDefaultConfigFromZK.getJobStatusPath());
+    assertEquals(zkDefaultConfig.getNamespacePath(), zkDefaultConfigFromZK.getNamespacePath());
+    assertEquals(zkDefaultConfig.getRetry(), zkDefaultConfigFromZK.getRetry());
+    assertEquals(zkDefaultConfig.getShardingTablePath(),
+        zkDefaultConfigFromZK.getShardingTablePath());
+    assertEquals(zkDefaultConfig.getTickTime(), zkDefaultConfigFromZK.getTickTime());
 
     // verify clusterConfig details -> args[2]
     ClusterConfig clusterConfig = JaxbUtil.unmarshalFromFile(args[2], ClusterConfig.class);
 
-    ClusterConfig clusterConfigInZK = (ClusterConfig) hungryHippoCurator
+    ClusterConfig clusterConfigFromZK = (ClusterConfig) hungryHippoCurator
         .readObject(CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
             + File.separatorChar + CoordinationConfigUtil.CLUSTER_CONFIGURATION);
 
-    Assert.assertEquals(clusterConfig.getNode().size(), clusterConfigInZK.getNode().size());
-    assertTrue(clusterConfig.getNode().equals(clusterConfigInZK.getNode()));
+    Node node = clusterConfig.getNode().get(0);
+    Node nodeFromZK = clusterConfigFromZK.getNode().get(0);
+    assertEquals(clusterConfig.getNode().size(), clusterConfigFromZK.getNode().size());
+    assertEquals(node.getIp(), nodeFromZK.getIp());
+    assertEquals(node.getIdentifier(), nodeFromZK.getIdentifier());
+    assertEquals(node.getName(), nodeFromZK.getName());
+    assertEquals(node.getPort(), nodeFromZK.getPort());
 
     // verify datapublisher.xml -> args[3]
-
     DatapublisherConfig dataPublisherConfig =
         JaxbUtil.unmarshalFromFile(args[3], DatapublisherConfig.class);
-    DatapublisherConfig dataPublisherConfigInZK = (DatapublisherConfig) hungryHippoCurator
+    DatapublisherConfig dataPublisherConfigFromZK = (DatapublisherConfig) hungryHippoCurator
         .readObject(CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
             + File.separatorChar + CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION);
 
-    Assert.assertEquals(dataPublisherConfig.getNoOfAttemptsToConnectToNode(),
-        dataPublisherConfigInZK.getNoOfAttemptsToConnectToNode());
-    Assert.assertEquals(dataPublisherConfig.getNoOfBytesInEachMemoryArray(),
-        dataPublisherConfigInZK.getNoOfBytesInEachMemoryArray());
-    Assert.assertEquals(dataPublisherConfig.getNoOfDataReceiverThreads(),
-        dataPublisherConfigInZK.getNoOfDataReceiverThreads());
-    Assert.assertEquals(dataPublisherConfig.getServersConnectRetryIntervalInMs(),
-        dataPublisherConfigInZK.getServersConnectRetryIntervalInMs());
+    assertEquals(dataPublisherConfig.getNoOfAttemptsToConnectToNode(),
+        dataPublisherConfigFromZK.getNoOfAttemptsToConnectToNode());
+    assertEquals(dataPublisherConfig.getNoOfBytesInEachMemoryArray(),
+        dataPublisherConfigFromZK.getNoOfBytesInEachMemoryArray());
+    assertEquals(dataPublisherConfig.getNoOfDataReceiverThreads(),
+        dataPublisherConfigFromZK.getNoOfDataReceiverThreads());
+    assertEquals(dataPublisherConfig.getServersConnectRetryIntervalInMs(),
+        dataPublisherConfigFromZK.getServersConnectRetryIntervalInMs());
 
 
-    // verify filesystem-config.xml -> args[3]
 
+    // verify filesystem-config.xml -> args[4]
+    FileSystemConfig fileSystemConfig = JaxbUtil.unmarshalFromFile(args[4], FileSystemConfig.class);
+    FileSystemConfig fileSystemConfigFromZK = (FileSystemConfig) hungryHippoCurator
+        .readObject(CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+            + File.separatorChar + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION);
+
+    assertEquals(fileSystemConfig.getDataFilePrefix(), fileSystemConfigFromZK.getDataFilePrefix());
+    assertEquals(fileSystemConfig.getFileStreamBufferSize(),
+        fileSystemConfigFromZK.getFileStreamBufferSize());
+    assertEquals(fileSystemConfig.getMaxClientRequests(),
+        fileSystemConfigFromZK.getMaxClientRequests());
+    assertEquals(fileSystemConfig.getQueryRetryInterval(),
+        fileSystemConfigFromZK.getQueryRetryInterval());
+    assertEquals(fileSystemConfig.getRootDirectory(), fileSystemConfigFromZK.getRootDirectory());
+    assertEquals(fileSystemConfig.getServerPort(), fileSystemConfigFromZK.getServerPort());
   }
 
 

@@ -3,7 +3,6 @@ package com.talentica.hdfs.spark.binary.job;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -13,6 +12,7 @@ import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -21,10 +21,10 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 import scala.Tuple2;
 
-public class MedianJob {
+public class UniqueCountJob {
 
   private static JavaSparkContext context;
-  protected static Logger LOGGER = LoggerFactory.getLogger(MedianJob.class);
+  protected static Logger LOGGER = LoggerFactory.getLogger(UniqueCountJob.class);
   
   public static void main(String[] args){
     String masterIp = args[0];
@@ -39,7 +39,7 @@ public class MedianJob {
     JavaRDD<byte[]> rdd = context.binaryRecords(inputFile, dataDescriptionConfig.getRowSize());
     Broadcast<FieldTypeArrayDataDescription> dataDes =
         context.broadcast(dataDescriptionConfig.getDataDescription());
-    
+        
     for(Job job : getSumJobMatrix().getJobs()){
       Broadcast<Job> broadcastJob = context.broadcast(job);
       startJob(rdd,dataDes,broadcastJob,outputDir);
@@ -56,27 +56,17 @@ public class MedianJob {
   
   private static JobMatrix getSumJobMatrix(){
     JobMatrix medianJobMatrix = new JobMatrix();
-    int count = 0;
-    for (int i = 0; i < 3; i++) {
-      for (int j = i + 1; j < 4; j++) {
-        medianJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
-        medianJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
-        for (int k = j + 1; k < 4; k++) {
-          medianJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
-          medianJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
-        }
-      }
-    }
+    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
     return medianJobMatrix;
   }
   
   public static void startJob(JavaRDD<byte[]> rdd,Broadcast<FieldTypeArrayDataDescription> dataDes,
       Broadcast<Job> broadcastJob,String outputDir) {
-    JavaPairRDD<String, Double> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Double>() {
-      private static final long serialVersionUID = -4057434571069903937L;
+    JavaPairRDD<String, Integer> pairRDD = rdd.repartition(2000).mapToPair(new PairFunction<byte[], String, Integer>() {
+      private static final long serialVersionUID = -1533590342050196085L;
 
       @Override
-      public Tuple2<String, Double> call(byte[] buf) throws Exception {
+      public Tuple2<String, Integer> call(byte[] buf) throws Exception {
         HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         readerVar.setByteBuffer(byteBuffer);
@@ -86,25 +76,27 @@ public class MedianJob {
               .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
         }
         key = key + "|id=" + broadcastJob.value().getJobId();
-        Double value = (Double) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-        return new Tuple2<String, Double>(key, value);
+        Integer value = (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
+        return new Tuple2<>(key, value);
       }
     });
-    JavaPairRDD<String, Iterable<Double>> pairRDDGroupedByKey = pairRDD.groupByKey();
-    JavaPairRDD<String, Double> result = pairRDDGroupedByKey.mapToPair(new PairFunction<Tuple2<String,Iterable<Double>>, String, Double>() {
-      private static final long serialVersionUID = 484111559311975643L;
-      @Override
-      public Tuple2<String, Double> call(Tuple2<String, Iterable<Double>> t) throws Exception {
-        DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics();
-        Iterator<Double> itr = t._2.iterator();
-        while(itr.hasNext()){
-          descriptiveStatistics.addValue(itr.next());
-        }
-        Double median = descriptiveStatistics.getPercentile(50);
-        return new Tuple2<String, Double>(t._1, median);
-      }});
+    JavaPairRDD<String, Iterable<Integer>> pairRDDGroupedByKey = pairRDD.groupByKey();
+    JavaPairRDD<String, Long> result = pairRDDGroupedByKey
+        .mapToPair(new PairFunction<Tuple2<String, Iterable<Integer>>, String, Long>() {
+          private static final long serialVersionUID = 484111559311975643L;
+
+          @Override
+          public Tuple2<String, Long> call(Tuple2<String, Iterable<Integer>> t) throws Exception {
+            HyperLogLog hyperLogLog = new HyperLogLog(0.01);
+            Iterator<Integer> itr = t._2.iterator();
+            while (itr.hasNext()) {
+              hyperLogLog.offer(itr.next());
+            }
+            Long count = hyperLogLog.cardinality();
+            return new Tuple2<>(t._1, count);
+          }
+        });
     result.saveAsTextFile(outputDir + broadcastJob.value().getJobId());
-    LOGGER.info("Output files are in directory {}",
-        outputDir +  broadcastJob.value().getJobId());
+    LOGGER.info("Output files are in directory {}", outputDir + broadcastJob.value().getJobId());
   }
 }

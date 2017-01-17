@@ -1,5 +1,6 @@
 package com.talentica.hdfs.spark.text.job;
 
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -18,18 +19,31 @@ import scala.Tuple2;
 public class SumJob {
   
   private static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
-
-  public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
-    SparkContext sc = new SparkContext(args);
-    JavaSparkContext jsc = sc.initContext();
-    JavaRDD<String> rdd = jsc.textFile(sc.getDistrFile());
+  private static JavaSparkContext context;
+  
+  public static void main(String[] args){
+    String masterIp = args[0];
+    String appName = args[1];
+    String inputFile = args[2];
+    String outputDir = args[3];
+    
+    initSparkContext(masterIp,appName);
+    
+    JavaRDD<String> rdd = context.textFile(inputFile);
     for(Job job : getSumJobMatrix().getJobs()){
-      Broadcast<Job> broadcastJob = jsc.broadcast(job);
-      runJob(sc,rdd,broadcastJob);
+      Broadcast<Job> broadcastJob = context.broadcast(job);
+      runJob(rdd,broadcastJob,outputDir);
     }
   }
   
-  public static void runJob(SparkContext sc,JavaRDD<String> rdd,Broadcast<Job> broadcastJob){
+  private static void initSparkContext(String masterIp,String appName){
+    if(context == null){
+      SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
+      context = new JavaSparkContext(conf);
+    }
+  }
+  
+  public static void runJob(JavaRDD<String> rdd,Broadcast<Job> broadcastJob,String outputDir){
     
     Function<Double,Double> createCombiner = new Function<Double,Double>(){
       @Override
@@ -73,12 +87,12 @@ public class SumJob {
           return v1 + v2;
         }
       });
-    pairRDD.saveAsTextFile(sc.getOutputDir() + broadcastJob.value().getJobId());
+    pairRDD.saveAsTextFile(outputDir + broadcastJob.value().getJobId());
     LOGGER.info("Output files are in directory {}",
-        sc.getOutputDir() +  broadcastJob.value().getJobId());
+        outputDir +  broadcastJob.value().getJobId());
   }
   
-  private static JobMatrix getSumJobMatrix() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  private static JobMatrix getSumJobMatrix(){
     JobMatrix medianJobMatrix = new JobMatrix();
     medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
     return medianJobMatrix;

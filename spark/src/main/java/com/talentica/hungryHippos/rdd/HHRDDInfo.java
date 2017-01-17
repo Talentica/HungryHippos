@@ -71,7 +71,105 @@ public class HHRDDInfo implements Serializable {
         return fieldDataDesc;
     }
 
-    public Partition[] getPartition(int id,
+    public Partition[] getPartitions(int id, int noOfExecutors,
+                                     List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
+                                     List<String> jobShardingDimensionsKey, String primaryDimensionKey) {
+        int noOfShardingDimensions = keyOrder.length;
+        int noOfEstimatedPartitions = 1;
+        int[] jobShardingDimensionsArray = new int[jobShardingDimensions.size()];
+        int i = 0;
+        for (String shardingDimensionKey : jobShardingDimensionsKey) {
+            int bucketSize = bucketToNodeNumberMap.get(shardingDimensionKey).size();
+            noOfEstimatedPartitions = noOfEstimatedPartitions * bucketSize;
+            jobShardingDimensionsArray[i] = jobShardingDimensions.get(i);
+            System.out.print(jobShardingDimensionsArray[i]);
+            i++;
+
+        }
+
+        System.out.println("");
+
+        int[][] combinationArray = new int[noOfEstimatedPartitions][];
+        populateCombination(combinationArray, null, 0, jobShardingDimensionsArray, 0);
+
+        Partition[] partitions = null;
+        if(noOfEstimatedPartitions<=noOfExecutors){
+            partitions = new HHRDDPartition[noOfEstimatedPartitions];
+            for (int index = 0; index < noOfEstimatedPartitions; index++) {
+                List<Tuple2<String, int[]>> files = new ArrayList<>();
+                listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray, combinationArray[index]);
+                System.out.println();
+                int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey).get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
+                List<String> preferredHosts = new ArrayList<>();
+                preferredHosts.add(nodIdToIp.get(preferredNodeId));
+                partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
+                        this.fieldDataDesc, preferredHosts, files, nodIdToIp);
+            }
+
+        }else{
+            long idealPartitionFileSize = 128 * 1024 * 1024;
+            PriorityQueue<PartitionBucket> partitionBuckets = new PriorityQueue<>();
+            PartitionBucket partitionBucket = new PartitionBucket(0);
+            partitionBuckets.offer(partitionBucket);
+            int fileCount = 0;
+            for (int index = 0; index < noOfEstimatedPartitions; index++) {
+                partitionBucket = partitionBuckets.poll();
+                List<Tuple2<String, int[]>> files = new ArrayList<>();
+                listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray, combinationArray[index]);
+                long listFileSize = 0;
+                for (int j = 0; j < files.size(); j++) {
+                    listFileSize+=fileNameToSizeWholeMap.get(files.get(j)._1);
+                }
+                if (partitionBucket.getSize() + listFileSize > idealPartitionFileSize
+                        && partitionBucket.getSize() != 0) {
+                    partitionBuckets.offer(partitionBucket);
+                    partitionBucket = new PartitionBucket(0);
+                }
+                for (int j = 0; j < files.size(); j++) {
+                    String fileName = files.get(j)._1;
+                    partitionBucket.addFile(fileToNodeId.get(fileName), fileNameToSizeWholeMap.get(fileName));
+                    fileCount++;
+                }
+                partitionBuckets.offer(partitionBucket);
+            }
+            int partitionIdx = 0;
+            Iterator<PartitionBucket> partitionBucketIterator = partitionBuckets.iterator();
+            List<Partition> listOfPartitions = new ArrayList<>();
+            while (partitionBucketIterator.hasNext()) {
+                PartitionBucket partitionBucket1 = partitionBucketIterator.next();
+                PriorityQueue<NodeBucket> nodeBuckets = new PriorityQueue<>();
+                for (Map.Entry<Integer, NodeBucket> nodeBucketEntry : partitionBucket1.getNodeBucketMap().entrySet()) {
+                    nodeBuckets.offer(nodeBucketEntry.getValue());
+                }
+                int maxNoOfPreferredNodes = 3;//No of Preferred Nodes
+                int remNoOfPreferredNodes = maxNoOfPreferredNodes;
+                NodeBucket nodeBucket;
+                List<String> preferredIpList = new ArrayList<>();
+                while ((nodeBucket = nodeBuckets.poll()) != null && remNoOfPreferredNodes > 0) {
+                    preferredIpList.add(nodIdToIp.get(nodeBucket.getId()));
+                    remNoOfPreferredNodes--;
+                }
+                List<Tuple2<String, int[]>> files = partitionBucket1.getFiles();
+                if (!files.isEmpty()) {
+                    Partition partition = new HHRDDPartition(id, partitionIdx, new File(this.directoryLocation).getPath(),
+                            this.fieldDataDesc, preferredIpList, files, nodIdToIp);
+                    partitionIdx++;
+                    listOfPartitions.add(partition);
+                }
+            }
+            System.out.println("file count : " + fileCount);
+            System.out.println("PartitionSize : " + listOfPartitions.size());
+            partitions = new Partition[listOfPartitions.size()];
+            for (int j = 0; j < partitions.length; j++) {
+                partitions[j] = listOfPartitions.get(j);
+            }
+
+        }
+
+        return partitions;
+    }
+
+    /*public Partition[] getPartitions(int id,
                                     List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
                                     List<String> jobShardingDimensionsKey, String primaryDimensionKey) {
         int noOfShardingDimensions = keyOrder.length;
@@ -104,7 +202,7 @@ public class HHRDDInfo implements Serializable {
                     this.fieldDataDesc, preferredHosts, files, nodIdToIp);
         }
         return partitions;
-    }
+    }*/
 
     public Partition[] getOptimizedPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
                                               List<String> jobShardingDimensionsKey, String primaryDimensionKey) {

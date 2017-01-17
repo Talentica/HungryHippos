@@ -67,11 +67,11 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
             jobDimensionIdx++;
         }
 
+        int noOfExecutors = sc.defaultParallelism();
         if (requiresShuffle) {
-            int noOfExecutors = sc.defaultParallelism();
             this.partitions = hhrddInfo.getOptimizedPartitions(id, noOfExecutors, jobShardingDimensions,jobPrimaryDimensionIdx, jobShardingDimensionsKey,primaryDimensionKey);
         } else {
-            this.partitions = hhrddInfo.getPartition(id, jobShardingDimensions, jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
+            this.partitions = hhrddInfo.getPartitions(id, noOfExecutors,jobShardingDimensions, jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
 
         }
 

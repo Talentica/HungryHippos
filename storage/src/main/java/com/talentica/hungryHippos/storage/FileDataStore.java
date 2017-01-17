@@ -32,21 +32,22 @@ public class FileDataStore implements DataStore {
     private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
     private String uniqueFileName;
     private String dataFilePrefix;
+    private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
 
     private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
             new HashMap<>();
 
     public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
 
-    public FileDataStore(Map<Integer,String> fileNames,int maxBucketSize, int numDimensions, DataDescription dataDescription,
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions, DataDescription dataDescription,
 
                          String hungryHippoFilePath, String nodeId, ShardingApplicationContext context,
                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
-        this(fileNames,maxBucketSize, numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context, fileName);
+        this(fileNames, maxBucketSize, numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context, fileName);
     }
 
-    public FileDataStore(Map<Integer,String> fileNames,int maxBucketSize, int numDimensions, DataDescription dataDescription,
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,
                          ShardingApplicationContext context, String fileName) throws IOException {
         this.context = context;
@@ -58,7 +59,7 @@ public class FileDataStore implements DataStore {
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
         this.uniqueFileName = fileName;
-        int maxFiles = (int)Math.pow(maxBucketSize,numDimensions);
+        int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
         this.outputStreams = new OutputStream[maxFiles];
         if (!readOnly) {
             File file = new File(dataFilePrefix);
@@ -70,18 +71,35 @@ public class FileDataStore implements DataStore {
                     logger.info("Not able to create dataFolder");
                 }
             }
-            dataFilePrefix=dataFilePrefix+"/";
-            for (Map.Entry<Integer,String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES),1024);
-                fileNameToOutputStreamMap.put( entry.getValue(), outputStreams[entry.getKey()]);
+            dataFilePrefix = dataFilePrefix + "/";
+            allocateResources(fileNames,this.outputStreams,this.dataFilePrefix,this.fileNameToOutputStreamMap);
+
+        }
+    }
+
+    private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
+        System.gc();
+        long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
+        long usableMemory = availablePrimaryMemory - sparedMemory;
+        long memoryRequiredForBufferedStream = fileNames.size() * 1024;
+        if (usableMemory > memoryRequiredForBufferedStream) {
+            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 1024);
+                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
+            }
+        } else {
+            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                outputStreams[entry.getKey()] = new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES);
+                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
             }
         }
     }
 
+
     public FileDataStore(int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,
                          ShardingApplicationContext context) throws IOException {
-        this(null,0, numDimensions, dataDescription, hungryHippoFilePath, nodeId, readOnly, context,
+        this(null, 0, numDimensions, dataDescription, hungryHippoFilePath, nodeId, readOnly, context,
                 "<fileName>");
     }
 
@@ -89,9 +107,9 @@ public class FileDataStore implements DataStore {
     public void storeRow(String name, byte[] raw) {
         try {
             fileNameToOutputStreamMap.get(name).write(raw);
-        } catch (NullPointerException e){
-            logger.error(name+" not present");
-        } catch(IOException e) {
+        } catch (NullPointerException e) {
+            logger.error(name + " not present");
+        } catch (IOException e) {
             logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
         }
     }
@@ -100,7 +118,7 @@ public class FileDataStore implements DataStore {
     public void storeRow(int index, byte[] raw) {
         try {
             outputStreams[index].write(raw);
-        } catch(IOException e) {
+        } catch (IOException e) {
             logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
         }
     }

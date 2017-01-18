@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hdfs.spark.text.dataframe;
+package com.talentica.hdfs.spark.binary.dataframe;
 
 /**
  * @author pooshans

@@ -1,4 +1,4 @@
-package com.talentica.hdfs.spark.text.dataframe;
+package com.talentica.hdfs.spark.binary.dataframe;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

@@ -26,7 +26,7 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
  * @author pooshans
  *
  */
-public class HdfsDataFrame {
+public class HdfsDataFrameMain {
 
   private static JavaSparkContext context;
 

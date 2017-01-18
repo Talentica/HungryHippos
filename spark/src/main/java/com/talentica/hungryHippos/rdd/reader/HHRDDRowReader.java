@@ -25,6 +25,10 @@ public class HHRDDRowReader implements Serializable {
     this.source = source;
   }
 
+  public ByteBuffer getByteBuffer() {
+    return this.source;
+  }
+
   /**
    * creates a new instance of DynamicMarshal using the {@value dataDescription}
    * 
@@ -32,6 +36,10 @@ public class HHRDDRowReader implements Serializable {
    */
   public HHRDDRowReader(FieldTypeArrayDataDescription dataDescription) {
     this.dataDescription = dataDescription;
+  }
+
+  public FieldTypeArrayDataDescription getFieldDataDescription() {
+    return this.dataDescription;
   }
 
   /**
@@ -72,7 +80,7 @@ public class HHRDDRowReader implements Serializable {
    * @param source
    * @return {@link MutableCharArrayString}
    */
-  private MutableCharArrayString readValueString(int index) {
+  public MutableCharArrayString readValueString(int index) {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
     int size = locator.getSize();
@@ -86,7 +94,5 @@ public class HHRDDRowReader implements Serializable {
     }
     return charArrayString;
   }
-
-
 
 }

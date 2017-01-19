@@ -31,7 +31,7 @@ public class HHTupleType<T> implements Cloneable {
       DataLocator locator = dataDescription.locateField(col);
       dataType.add(locator.getDataType());
     }
-    defaultValidation(this);
+    defaultDataTypeValidation(this);
   }
 
   public Object clone() throws CloneNotSupportedException {
@@ -45,7 +45,7 @@ public class HHTupleType<T> implements Cloneable {
    * @throws NoSuchFieldException
    * @throws SecurityException
    */
-  protected <T> void defaultValidation(T clazz) throws NoSuchFieldException, SecurityException {
+  protected <T> void defaultDataTypeValidation(T clazz) throws NoSuchFieldException, SecurityException {
     for (int index = 0; index < dataType.size(); index++) {
       DataLocator locator = dataDescription.locateField(index);
       Field column = clazz.getClass().getDeclaredField("key" + (index + 1));

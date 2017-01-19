@@ -16,8 +16,7 @@ public class HHTupleBuilder implements Serializable {
   public static HHTuple getHHTuple(HHRDDRowReader hhrddRowReader) throws NoSuchFieldException,
       SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
       InvocationTargetException, InstantiationException, CloneNotSupportedException {
-    HHTuple tuple = createTuple(hhrddRowReader);
-    return tuple;
+    return createTuple(hhrddRowReader);
   }
 
   private static HHTuple createTuple(HHRDDRowReader hhrddRowReader)

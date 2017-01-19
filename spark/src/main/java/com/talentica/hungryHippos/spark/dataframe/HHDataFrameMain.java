@@ -36,8 +36,7 @@ public class HHDataFrameMain {
     String masterIp = args[0];
     String appName = args[1];
     String inputFile = args[2];
-    String outputDir = args[3];
-    String shardingFolderPath = args[4];
+    String shardingFolderPath = args[3];
     initSparkContext(masterIp, appName);
     DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(shardingFolderPath);
     JavaRDD<byte[]> rdd = context.binaryRecords(inputFile, dataDescriptionConfig.getRowSize());

@@ -15,7 +15,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
  * @author pooshans
  *
  */
-public abstract class AbstractTuple implements Cloneable{
+public abstract class AbstractTuple implements Cloneable {
 
   protected List<DataType> dataType = new ArrayList<DataType>();
   private FieldTypeArrayDataDescription dataDescription;
@@ -28,9 +28,10 @@ public abstract class AbstractTuple implements Cloneable{
     }
   }
 
-  public Object clone() throws CloneNotSupportedException{
+  public Object clone() throws CloneNotSupportedException {
     return super.clone();
   }
+
   protected void defaultValidation(Class<?> clazz) throws NoSuchFieldException, SecurityException {
     for (int index = 0; index < dataType.size(); index++) {
       DataLocator locator = dataDescription.locateField(index);
@@ -38,35 +39,35 @@ public abstract class AbstractTuple implements Cloneable{
       switch (locator.getDataType()) {
         case BYTE:
           if (!column.getGenericType().getTypeName().equals(Byte.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case CHAR:
           if (!column.getGenericType().getTypeName().equals(Character.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case SHORT:
           if (!column.getGenericType().getTypeName().equals(Short.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case INT:
           if (!column.getGenericType().getTypeName().equals(Integer.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case LONG:
           if (!column.getGenericType().getTypeName().equals(Long.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case FLOAT:
           if (!column.getGenericType().getTypeName().equals(Float.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case DOUBLE:
           if (!column.getGenericType().getTypeName().equals(Double.TYPE.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         case STRING:
           if (!column.getGenericType().getTypeName().equals(String.class.getName()))
-            throw new RuntimeException("Invalid data type");
+            throw new RuntimeException("Invalid data type for column :: " + "key" + (index + 1));
           break;
         default:
           throw new RuntimeException("Invalid data type");

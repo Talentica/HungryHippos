@@ -43,7 +43,7 @@ public class HHDataFrameMain {
     HHRDDRowReader hhrddRowReader = new HHRDDRowReader(dataDescriptionConfig.getDataDescription());
     Broadcast<HHRDDRowReader> rowReader = context.broadcast(hhrddRowReader);
     SparkSession sparkSession =
-        SparkSession.builder().master("local[*]").appName("test").getOrCreate();
+        SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
     JavaRDD<HHTupleType<HHTuple>> rdd1 =
         rdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, HHTupleType<HHTuple>>() {
           @Override
@@ -59,8 +59,9 @@ public class HHDataFrameMain {
           }
         }, true);
     Dataset<Row> rows = sparkSession.sqlContext().createDataFrame(rdd1, HHTuple.class);
-    rows.createOrReplaceTempView("data");
-    Dataset<Row> rs = sparkSession.sql("SELECT * FROM data WHERE key1 like 'a' ");
+    rows.createOrReplaceTempView("TableView");
+    Dataset<Row> rs = sparkSession
+        .sql("SELECT * FROM TableView WHERE key1 like 'a' and key2 like 'a' and key3 like 'a' ");
     rs.show();
     context.stop();
   }

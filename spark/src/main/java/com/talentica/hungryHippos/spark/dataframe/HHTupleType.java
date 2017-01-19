@@ -52,43 +52,43 @@ public class HHTupleType<T> implements Cloneable {
       switch (locator.getDataType()) {
         case BYTE:
           if (!column.getGenericType().getTypeName().equals(Byte.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Byte.TYPE.getName());
           break;
         case CHAR:
           if (!column.getGenericType().getTypeName().equals(Character.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Character.TYPE.getName());
           break;
         case SHORT:
           if (!column.getGenericType().getTypeName().equals(Short.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Short.TYPE.getName());
           break;
         case INT:
           if (!column.getGenericType().getTypeName().equals(Integer.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Integer.TYPE.getName());
           break;
         case LONG:
           if (!column.getGenericType().getTypeName().equals(Long.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Long.TYPE.getName());
           break;
         case FLOAT:
           if (!column.getGenericType().getTypeName().equals(Float.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Float.TYPE.getName());
           break;
         case DOUBLE:
           if (!column.getGenericType().getTypeName().equals(Double.TYPE.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + Double.TYPE.getName());
           break;
         case STRING:
           if (!column.getGenericType().getTypeName().equals(String.class.getName()))
-            throw new RuntimeException(
-                "Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+                + ". Expecting data type :: " + String.class.getName());
           break;
         default:
           throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1));

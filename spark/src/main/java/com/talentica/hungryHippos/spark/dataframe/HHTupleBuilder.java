@@ -23,12 +23,12 @@ public class HHTupleBuilder implements Serializable {
   private static HHTuple createTuple(HHRDDRowReader hhrddRowReader)
       throws NoSuchFieldException, CloneNotSupportedException, IllegalAccessException {
     int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
-    HHTuple tuple = getTupleInstance(hhrddRowReader.getFieldDataDescription());
-    fillupTuple(hhrddRowReader, columns, tuple);
+    HHTuple tuple = createEmptyTuple(hhrddRowReader.getFieldDataDescription());
+    fillupEmptyTuple(hhrddRowReader, columns, tuple);
     return tuple;
   }
 
-  private static void fillupTuple(HHRDDRowReader hhrddRowReader, int columns, HHTuple tuple)
+  private static void fillupEmptyTuple(HHRDDRowReader hhrddRowReader, int columns, HHTuple tuple)
       throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
     for (int col = 0; col < columns; col++) {
@@ -72,7 +72,7 @@ public class HHTupleBuilder implements Serializable {
     }
   }
 
-  private static HHTuple getTupleInstance(
+  private static HHTuple createEmptyTuple(
       FieldTypeArrayDataDescription fieldTypeArrayDataDescription)
       throws NoSuchFieldException, CloneNotSupportedException {
     HHTuple tuple;

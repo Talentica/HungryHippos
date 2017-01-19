@@ -3,6 +3,7 @@
  */
 package com.talentica.hdfs.spark.binary.dataframe;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,15 +13,14 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 import com.talentica.hdfs.spark.binary.job.DataDescriptionConfig;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryhippos.config.sharding.Column;
 
 /**
  * @author pooshans
@@ -30,41 +30,38 @@ public class HdfsDataFrameMain {
 
   private static JavaSparkContext context;
 
-  public static void main(String[] args)
-      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws ClassNotFoundException, InstantiationException,
+      IllegalAccessException, NoSuchFieldException, SecurityException, IllegalArgumentException,
+      NoSuchMethodException, InvocationTargetException {
     String masterIp = args[0];
     String appName = args[1];
     String inputFile = args[2];
     String outputDir = args[3];
     String shardingFolderPath = args[4];
-
     initSparkContext(masterIp, appName);
     DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(shardingFolderPath);
     JavaRDD<byte[]> rdd = context.binaryRecords(inputFile, dataDescriptionConfig.getRowSize());
-    FieldTypeArrayDataDescription fieldTypeArrayDataDescription =
-        dataDescriptionConfig.getDataDescription();
-    int columns = dataDescriptionConfig.getShardingClientConf().getInput().getDataDescription()
-        .getColumn().size();
     HHRDDRowReader hhrddRowReader = new HHRDDRowReader(dataDescriptionConfig.getDataDescription());
-    JavaRDD<SchemaBean> rdd1 =
-        rdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, SchemaBean>() {
-          @Override
-          public Iterator<SchemaBean> call(Iterator<byte[]> t) throws Exception {
-            List<SchemaBean> readerList = new ArrayList<SchemaBean>();
-            while (t.hasNext()) {
-              byte[] b = t.next();
-              hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-              SchemaBuilder schemaBuilder = new SchemaBuilder(hhrddRowReader, columns);
-              readerList.add(schemaBuilder.getSchemaBean());
-            }
-            return readerList.iterator();
-          }
-        }, true);
+    List<Column> columns =
+        dataDescriptionConfig.getShardingClientConf().getInput().getDataDescription().getColumn();
+    Broadcast<Integer> columnVal = context.broadcast(columns.size());
     SparkSession sparkSession =
         SparkSession.builder().master("local[*]").appName("test").getOrCreate();
-    Dataset<Row> rows = sparkSession.sqlContext().createDataFrame(rdd1, SchemaBean.class);
+    JavaRDD<AbstractTuple> rdd1 = rdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, AbstractTuple>() {
+      @Override
+      public Iterator<AbstractTuple> call(Iterator<byte[]> t) throws Exception {
+        List<AbstractTuple> tupleList = new ArrayList<AbstractTuple>();
+        while (t.hasNext()) {
+          byte[] b = t.next();
+          hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
+          tupleList.add(TupleBuilder.getRow(hhrddRowReader, columnVal.getValue()));
+        }
+        return tupleList.iterator();
+      }
+    }, true);
+    Dataset<Row> rows = sparkSession.sqlContext().createDataFrame(rdd1, Tuple.class);
     rows.createOrReplaceTempView("data");
-    Dataset<Row> rs = sparkSession.sql("SELECT * FROM data WHERE column1 like 'h' ");
+    Dataset<Row> rs = sparkSession.sql("SELECT * FROM data ");
     rs.show();
     context.stop();
   }
@@ -74,12 +71,5 @@ public class HdfsDataFrameMain {
       SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
       context = new JavaSparkContext(conf);
     }
-  }
-
-  private static JobMatrix getSumJobMatrix()
-      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JobMatrix medianJobMatrix = new JobMatrix();
-    medianJobMatrix.addJob(new Job(new Integer[] {0, 1}, 6, 0));
-    return medianJobMatrix;
   }
 }

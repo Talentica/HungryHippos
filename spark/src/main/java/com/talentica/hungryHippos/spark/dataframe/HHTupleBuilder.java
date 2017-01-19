@@ -13,12 +13,23 @@ public class HHTupleBuilder implements Serializable {
   private static HHTuple tupleObj;
   private final static String KEY_PRIFIX = "key";
 
-  public static HHTuple getHHTuple(HHRDDRowReader hhrddRowReader)
-      throws NoSuchFieldException, SecurityException, IllegalArgumentException,
-      IllegalAccessException, NoSuchMethodException, InvocationTargetException,
-      InstantiationException, CloneNotSupportedException {
+  public static HHTuple getHHTuple(HHRDDRowReader hhrddRowReader) throws NoSuchFieldException,
+      SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException,
+      InvocationTargetException, InstantiationException, CloneNotSupportedException {
+    HHTuple tuple = createTuple(hhrddRowReader);
+    return tuple;
+  }
+
+  private static HHTuple createTuple(HHRDDRowReader hhrddRowReader)
+      throws NoSuchFieldException, CloneNotSupportedException, IllegalAccessException {
     int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
-    HHTuple tuple = getTuple(hhrddRowReader.getFieldDataDescription());
+    HHTuple tuple = getTupleInstance(hhrddRowReader.getFieldDataDescription());
+    fillupTuple(hhrddRowReader, columns, tuple);
+    return tuple;
+  }
+
+  private static void fillupTuple(HHRDDRowReader hhrddRowReader, int columns, HHTuple tuple)
+      throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
     for (int col = 0; col < columns; col++) {
       DataLocator locator = hhrddRowReader.getFieldDataDescription().locateField(col);
@@ -59,10 +70,10 @@ public class HHTupleBuilder implements Serializable {
           throw new RuntimeException("Invalid data type");
       }
     }
-    return tuple;
   }
 
-  private static HHTuple getTuple(FieldTypeArrayDataDescription fieldTypeArrayDataDescription)
+  private static HHTuple getTupleInstance(
+      FieldTypeArrayDataDescription fieldTypeArrayDataDescription)
       throws NoSuchFieldException, CloneNotSupportedException {
     HHTuple tuple;
     if (tupleObj == null) {
@@ -73,4 +84,5 @@ public class HHTupleBuilder implements Serializable {
     }
     return tuple;
   }
+
 }

@@ -53,7 +53,7 @@ public class HHDataFrameMain {
             while (t.hasNext()) {
               byte[] b = t.next();
               hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-              tupleList.add(HHTupleBuilder.getRow(rowReader.getValue()));
+              tupleList.add(HHTupleBuilder.getHHTuple(rowReader.getValue()));
             }
             return tupleList.iterator();
           }

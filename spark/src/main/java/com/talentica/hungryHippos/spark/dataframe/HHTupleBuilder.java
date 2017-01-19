@@ -13,7 +13,7 @@ public class HHTupleBuilder implements Serializable {
   private static HHTuple tupleObj;
   private final static String KEY_PRIFIX = "key";
 
-  public static HHTuple getRow(HHRDDRowReader hhrddRowReader)
+  public static HHTuple getHHTuple(HHRDDRowReader hhrddRowReader)
       throws NoSuchFieldException, SecurityException, IllegalArgumentException,
       IllegalAccessException, NoSuchMethodException, InvocationTargetException,
       InstantiationException, CloneNotSupportedException {

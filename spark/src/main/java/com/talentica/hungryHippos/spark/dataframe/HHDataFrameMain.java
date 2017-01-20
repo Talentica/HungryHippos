@@ -3,11 +3,14 @@
  */
 package com.talentica.hungryHippos.spark.dataframe;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -18,8 +21,10 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import com.talentica.hdfs.spark.binary.job.DataDescriptionConfig;
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
 /**
  * @author pooshans
@@ -32,20 +37,21 @@ public class HHDataFrameMain {
   @SuppressWarnings("serial")
   public static void main(String[] args) throws ClassNotFoundException, InstantiationException,
       IllegalAccessException, NoSuchFieldException, SecurityException, IllegalArgumentException,
-      NoSuchMethodException, InvocationTargetException {
+      NoSuchMethodException, InvocationTargetException, FileNotFoundException, JAXBException {
     String masterIp = args[0];
     String appName = args[1];
-    String inputFile = args[2];
-    String shardingFolderPath = args[3];
+    String hhFilePath = args[2];
+    String clientConfigPath = args[3];
     initSparkContext(masterIp, appName);
-    DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(shardingFolderPath);
-    JavaRDD<byte[]> rdd = context.binaryRecords(inputFile, dataDescriptionConfig.getRowSize());
-    HHRDDRowReader hhrddRowReader = new HHRDDRowReader(dataDescriptionConfig.getDataDescription());
+    HHRDDHelper.initialize(clientConfigPath);
+    HHRDDInfo hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
+    HHRDD hipposRDD = new HHRDD(context, hhrddInfo, false);
+    HHRDDRowReader hhrddRowReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
     Broadcast<HHRDDRowReader> rowReader = context.broadcast(hhrddRowReader);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    JavaRDD<HHTupleType<HHTuple>> rddForDataframe =
-        rdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, HHTupleType<HHTuple>>() {
+    JavaRDD<HHTupleType<HHTuple>> rddForDataframe = hipposRDD.toJavaRDD()
+        .mapPartitions(new FlatMapFunction<Iterator<byte[]>, HHTupleType<HHTuple>>() {
           @Override
           public Iterator<HHTupleType<HHTuple>> call(Iterator<byte[]> t) throws Exception {
             List<HHTupleType<HHTuple>> tupleList = new ArrayList<HHTupleType<HHTuple>>();

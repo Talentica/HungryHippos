@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.spark.dataframe;
+package com.talentica.hungryHippos.dataframe;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 

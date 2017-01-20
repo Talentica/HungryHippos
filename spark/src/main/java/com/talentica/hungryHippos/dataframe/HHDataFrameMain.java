@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.spark.dataframe;
+package com.talentica.hungryHippos.dataframe;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;

@@ -1,4 +1,4 @@
-package com.talentica.hungryHippos.spark.dataframe;
+package com.talentica.hungryHippos.dataframe;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

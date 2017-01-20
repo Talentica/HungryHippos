@@ -8,6 +8,12 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
+/**
+ * To create new tuple for each row of the records to get ready for SQL query..
+ * 
+ * @author pooshans
+ *
+ */
 public class HHTupleBuilder implements Serializable {
   private static final long serialVersionUID = -9090118505722532509L;
   private static HHTuple tupleObj;
@@ -19,6 +25,15 @@ public class HHTupleBuilder implements Serializable {
     return createTuple(hhrddRowReader);
   }
 
+  /**
+   * To create the new Tuple for each row.
+   * 
+   * @param hhrddRowReader
+   * @return HHTuple
+   * @throws NoSuchFieldException
+   * @throws CloneNotSupportedException
+   * @throws IllegalAccessException
+   */
   private static HHTuple createTuple(HHRDDRowReader hhrddRowReader)
       throws NoSuchFieldException, CloneNotSupportedException, IllegalAccessException {
     int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
@@ -27,6 +42,17 @@ public class HHTupleBuilder implements Serializable {
     return tuple;
   }
 
+  /**
+   * To populate the existing empty tuple with under-laying row in process. It also convert the
+   * binary format of the particular to corresponding data type object for each column of under
+   * processing row.
+   * 
+   * @param hhrddRowReader
+   * @param columns
+   * @param tuple
+   * @throws NoSuchFieldException
+   * @throws IllegalAccessException
+   */
   private static void fillupEmptyTuple(HHRDDRowReader hhrddRowReader, int columns, HHTuple tuple)
       throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
@@ -71,6 +97,16 @@ public class HHTupleBuilder implements Serializable {
     }
   }
 
+  /**
+   * To create the empty tuple and do first time dataType validation internally with the specified
+   * in {@code ShardingClientConfig} or sharding-client.xml and later on it just return the clone of
+   * the existing one to avoid regular validation.
+   * 
+   * @param fieldTypeArrayDataDescription
+   * @return HHTuple
+   * @throws NoSuchFieldException
+   * @throws CloneNotSupportedException
+   */
   private static HHTuple createEmptyTuple(
       FieldTypeArrayDataDescription fieldTypeArrayDataDescription)
       throws NoSuchFieldException, CloneNotSupportedException {

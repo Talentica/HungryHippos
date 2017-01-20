@@ -7,7 +7,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 
 /**
  * This class stores the values for particular row with defined data type for each column. In other
- * words, it is simply a bean class to store the tuple imformation from the file system.
+ * words, it is simply a bean class to store the tuple information from the file system for each row.
  * 
  * @author pooshans
  *

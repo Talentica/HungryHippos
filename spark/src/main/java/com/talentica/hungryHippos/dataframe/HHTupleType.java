@@ -45,7 +45,12 @@ public class HHTupleType<T> implements Cloneable {
    * @throws NoSuchFieldException
    * @throws SecurityException
    */
-  protected <T> void defaultDataTypeValidation(T clazz) throws NoSuchFieldException, SecurityException {
+  protected <T> void defaultDataTypeValidation(T clazz)
+      throws NoSuchFieldException, SecurityException {
+    int noOfFields = clazz.getClass().getDeclaredFields().length;
+    if (noOfFields != dataType.size()) {
+      throw new RuntimeException("Number of fields mismatch defined in Tuple.");
+    }
     for (int index = 0; index < dataType.size(); index++) {
       DataLocator locator = dataDescription.locateField(index);
       Field column = clazz.getClass().getDeclaredField("key" + (index + 1));

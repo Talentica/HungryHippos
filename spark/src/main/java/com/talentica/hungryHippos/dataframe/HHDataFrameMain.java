@@ -26,7 +26,6 @@ public class HHDataFrameMain {
 
   private static JavaSparkContext context;
 
-  @SuppressWarnings("serial")
   public static void main(String[] args) throws ClassNotFoundException, InstantiationException,
       IllegalAccessException, NoSuchFieldException, SecurityException, IllegalArgumentException,
       NoSuchMethodException, InvocationTargetException, FileNotFoundException, JAXBException {

@@ -23,31 +23,46 @@ import com.talentica.torrent.util.TorrentGenerator;
 
 public class DataSynchronizerStarterIntegrationTest {
 
-  private static final String ZOOKEEPER_CONN_STRING = "138.68.17.228:2181";
+  private static final String ZOOKEEPER_CONN_STRING = "localhost:2181";
 
-  private static final String ORIGIN_HOST = "138.68.17.228";
+  private static final String ORIGIN_HOST = "localhost";
 
-  private static final String TRACKER_HOST = "138.68.17.228";
+  private static final String TRACKER_HOST = "localhost";
 
   private static final String TRACKER_PORT = "6969";
 
-  private static final String SEED_FILE_PATH = "/root/testNewFile1";
+  private String SEED_FILE_PATH = "";
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  private static final Thread START_TRACKER_DATA_SYNCHRONIZER_THREAD = new Thread(new Runnable() {
+  private static final Thread START_TRACKER_THREAD = new Thread(new Runnable() {
     @Override
     public void run() {
       TorrentTrackerStarter.main(new String[] {ZOOKEEPER_CONN_STRING, TRACKER_HOST, TRACKER_PORT});
+
+    }
+  });
+
+  private static final Thread START_DATA_SYNCHRONIZER_THREAD = new Thread(new Runnable() {
+    @Override
+    public void run() {
+
       DataSynchronizerStarter.main(new String[] {ZOOKEEPER_CONN_STRING, ORIGIN_HOST});
     }
   });
 
+
+
   private CuratorFramework client;
 
   @Before
-  public void setup() {
-    START_TRACKER_DATA_SYNCHRONIZER_THREAD.start();
+  public void setup() throws InterruptedException {
+    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    SEED_FILE_PATH = classLoader.getResource("TestTorrentGenerationSourceFile.txt").getPath();
+    START_TRACKER_THREAD.start();
+    Thread.sleep(10000);
+    START_DATA_SYNCHRONIZER_THREAD.start();
+    Thread.sleep(10000);
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(
         Environment.getCoordinationServerConnectionRetryBaseSleepTimeInMs(),
         Environment.getCoordinationServerConnectionRetryMaxTimes());
@@ -61,8 +76,7 @@ public class DataSynchronizerStarterIntegrationTest {
     FileMetadata fileMetadata = new FileMetadata();
     fileMetadata.setOriginHost(ORIGIN_HOST);
     fileMetadata.setPath(SEED_FILE_PATH);
-    File torrentFile = TorrentGenerator.generateTorrentFile(client,
-        new File("/home/nitink/hhfs/node1file/testNewFile1"));
+    File torrentFile = TorrentGenerator.generateTorrentFile(client, new File(SEED_FILE_PATH));
     fileMetadata.setBase64EncodedTorrentFile(
         DatatypeConverter.printBase64Binary(FileUtils.readFileToByteArray(torrentFile)));
     client.create().creatingParentsIfNeeded().forPath(
@@ -76,7 +90,9 @@ public class DataSynchronizerStarterIntegrationTest {
 
   @After
   public void teardown() {
-    START_TRACKER_DATA_SYNCHRONIZER_THREAD.interrupt();
+
+    START_DATA_SYNCHRONIZER_THREAD.interrupt();
+    START_TRACKER_THREAD.interrupt();
     client.close();
   }
 

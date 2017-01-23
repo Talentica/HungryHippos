@@ -81,10 +81,7 @@ public class DataReceiver {
 
   public static void main(String[] args) {
     try {
-      String hungryHippoBinDir = System.getProperty("hh.bin.dir");
-      if (hungryHippoBinDir == null || "".equals(hungryHippoBinDir)) {
-        throw new RuntimeException("System property hh.bin.dir is not set. Set the property value to HungryHippo bin Directory");
-      }
+    
       validateArguments(args);
       ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
       String connectString = clientConfig.getCoordinationServers().getServers();

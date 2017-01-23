@@ -17,43 +17,38 @@ public class DataDistributorStarter {
 
   public static ExecutorService dataDistributorService;
   public static ExecutorService fileProviderService;
-    public static ExecutorService dataAppenderServices;
-    public static ExecutorService scpAccessServices;
-    public static ExecutorService metadataUpdaterServices;
-    private static String hungryHippoBinDir;
+  public static ExecutorService dataAppenderServices;
+  public static ExecutorService scpAccessServices;
+  public static ExecutorService metadataUpdaterServices;
 
 
-    public static void main(String[] args) throws Exception {
-        validateArguments(args);
-        hungryHippoBinDir = System.getProperty("hh.bin.dir");
-        if (hungryHippoBinDir == null || "".equals(hungryHippoBinDir)) {
-            throw new RuntimeException("System property hh.bin.dir is not set. Set the property value to HungryHippo bin Directory");
-        }
-        ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
-        String connectString = clientConfig.getCoordinationServers().getServers();
-        int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
-        HungryHippoCurator.getInstance(connectString, sessionTimeOut);
-        int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
-        ServerSocket serverSocket = new ServerSocket(8789);
-        ExecutorService serviceDeligator = Executors.newFixedThreadPool(10);
-        dataDistributorService = Executors.newFixedThreadPool(10);
-        fileProviderService = Executors.newFixedThreadPool(10);
-        dataAppenderServices = Executors.newFixedThreadPool(noOfNodes+5);
-        scpAccessServices = Executors.newFixedThreadPool(10);
-        metadataUpdaterServices = Executors.newFixedThreadPool(noOfNodes+5);
-        while (true) {
-            Socket socket = serverSocket.accept();
-            serviceDeligator.execute(new ServiceDeligator(socket));
-        }
+
+  public static void main(String[] args) throws Exception {
+    validateArguments(args);
+
+    ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
+    String connectString = clientConfig.getCoordinationServers().getServers();
+    int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
+    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+    int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
+    ServerSocket serverSocket = new ServerSocket(8789);
+    ExecutorService serviceDeligator = Executors.newFixedThreadPool(10);
+    dataDistributorService = Executors.newFixedThreadPool(10);
+    fileProviderService = Executors.newFixedThreadPool(10);
+    dataAppenderServices = Executors.newFixedThreadPool(noOfNodes + 5);
+    scpAccessServices = Executors.newFixedThreadPool(10);
+    metadataUpdaterServices = Executors.newFixedThreadPool(noOfNodes + 5);
+    while (true) {
+      Socket socket = serverSocket.accept();
+      serviceDeligator.execute(new ServiceDeligator(socket));
     }
+  }
 
-    private static void validateArguments(String[] args) {
-        if (args.length < 1) {
-            throw new RuntimeException("Please provide client-config.xml to connect to zookeeper.");
-        }
+  private static void validateArguments(String[] args) {
+    if (args.length < 1) {
+      throw new RuntimeException("Please provide client-config.xml to connect to zookeeper.");
     }
+  }
 
-    public static String getHungryHippoBinDir() {
-        return hungryHippoBinDir;
-    }
+
 }

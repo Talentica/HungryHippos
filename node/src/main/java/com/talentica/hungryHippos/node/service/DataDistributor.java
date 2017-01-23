@@ -57,7 +57,7 @@ public class DataDistributor {
     }
 
 
-    public static void distribute(String hhFilePath, String srcDataPath) throws Exception {
+  public static void distribute(String hhFilePath, String srcDataPath) throws Exception {
         NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
                 DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
         String BAD_RECORDS_FILE = srcDataPath + "_distributor.err";

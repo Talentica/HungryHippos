@@ -57,7 +57,7 @@ public class ShardingStarter {
       String clientConfigFilePath = args[0];
       String shardingFolderPath = args[1];
       float bucketCountWeight = 0.5f;
-      if(args.length>2){
+      if (args.length > 2) {
         bucketCountWeight = Float.parseFloat(args[2]);
       }
 
@@ -132,10 +132,10 @@ public class ShardingStarter {
    * @throws KeeperException
    */
   private static void doSharding(ShardingClientConfig shardingClientConfig,
-      String shardingClientConfigFilePath, String shardingServerConfigFilePath, String tempDir, float bucketCountWeight)
-      throws ClassNotFoundException, IOException, NoSuchMethodException, IllegalAccessException,
-      InvocationTargetException, InstantiationException, InterruptedException, JAXBException,
-      KeeperException {
+      String shardingClientConfigFilePath, String shardingServerConfigFilePath, String tempDir,
+      float bucketCountWeight) throws ClassNotFoundException, IOException, NoSuchMethodException,
+      IllegalAccessException, InvocationTargetException, InstantiationException,
+      InterruptedException, JAXBException, KeeperException {
     LOGGER.info("SHARDING STARTED");
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =

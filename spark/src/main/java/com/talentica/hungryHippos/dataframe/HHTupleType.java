@@ -28,7 +28,7 @@ public abstract class HHTupleType<T> implements Cloneable {
   protected T tuple;
 
   public HHTupleType(HHRDDRowReader hhrddRowReader)
-      throws NoSuchFieldException, SecurityException, IllegalAccessException {
+      throws NoSuchFieldException, SecurityException, IllegalAccessException, InstantiationException {
     this.hhrddRowReader = hhrddRowReader;
     this.dataDescription = hhrddRowReader.getFieldDataDescription();
     for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
@@ -47,7 +47,7 @@ public abstract class HHTupleType<T> implements Cloneable {
     return this.tuple;
   }
 
-  protected abstract T createTuple();
+  public abstract T createTuple() throws InstantiationException, IllegalAccessException;
 
   private static boolean isDataTypeValidated = false;
 
@@ -57,8 +57,11 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @param clazz
    * @throws NoSuchFieldException
    * @throws SecurityException
+   * @throws IllegalAccessException
+   * @throws InstantiationException
    */
-  protected void defaultTypleDatatypeValidation() throws NoSuchFieldException, SecurityException {
+  protected void defaultTypleDatatypeValidation() throws NoSuchFieldException, SecurityException,
+      InstantiationException, IllegalAccessException {
     tuple = createTuple();
     if (isDataTypeValidated)
       return;

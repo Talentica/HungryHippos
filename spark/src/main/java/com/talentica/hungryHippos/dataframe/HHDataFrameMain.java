@@ -5,14 +5,11 @@ package com.talentica.hungryHippos.dataframe;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -47,25 +44,23 @@ public class HHDataFrameMain {
     Broadcast<HHRDDRowReader> rowReader = context.broadcast(hhrddRowReader);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    JavaRDD<HHTuple> rddForDataframe = hipposRDD.toJavaRDD().map(new Function<byte[], HHTuple>() {
-      HHRDDRowReader hhrddRowReader = rowReader.getValue();
-
-      @Override
-      public HHTuple call(byte[] v1) throws Exception {
-        hhrddRowReader.setByteBuffer(ByteBuffer.wrap(v1));
-        return new HHTupleType<HHTuple>(hhrddRowReader) {
-          @Override
-          protected HHTuple createTuple() {
-            return new HHTuple();
-          }
-        }.getTuple();
-      }
-    });
-    Dataset<Row> rows = sparkSession.sqlContext().createDataFrame(rddForDataframe, HHTuple.class);
-    rows.createOrReplaceTempView("TableView");
+    
+    
+    // Data set for row by row transformation internally.
+    HHDataset hhDataset = new HHDataset(hipposRDD, hhrddInfo, sparkSession);
+    Dataset<Row> dataset = hhDataset.toDatasetByRow(HHTuple.class);
+    dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
-        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'a' and key3 LIKE 'a' ");
-    rs.show();
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs.show(false);
+
+    // Data set for row by row for each partition transformation internally.
+    Dataset<Row> dataset1 = hhDataset.toDatasetByRow(HHTuple.class);
+    dataset1.createOrReplaceTempView("TableView1");
+    Dataset<Row> rs1 = sparkSession
+        .sql("SELECT * FROM TableView1 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs1.show(false);
+
     context.stop();
   }
 

@@ -27,8 +27,17 @@ public abstract class HHTupleType<T> implements Cloneable {
   private HHRDDRowReader hhrddRowReader;
   protected T tuple;
 
-  public HHTupleType(HHRDDRowReader hhrddRowReader)
-      throws NoSuchFieldException, SecurityException, IllegalAccessException, InstantiationException {
+  /**
+   * Constructor of the HHTupleType
+   * 
+   * @param hhrddRowReader
+   * @throws NoSuchFieldException
+   * @throws SecurityException
+   * @throws IllegalAccessException
+   * @throws InstantiationException
+   */
+  public HHTupleType(HHRDDRowReader hhrddRowReader) throws NoSuchFieldException, SecurityException,
+      IllegalAccessException, InstantiationException {
     this.hhrddRowReader = hhrddRowReader;
     this.dataDescription = hhrddRowReader.getFieldDataDescription();
     for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {

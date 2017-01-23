@@ -50,7 +50,7 @@ public class HHDataFrameMain {
     rs.show(false);
 
     // Data set for row by row for each partition transformation internally.
-    Dataset<Row> dataset1 = hhDataset.toDatasetByRow(HHTuple.class);
+    Dataset<Row> dataset1 = hhDataset.toDatasetByPartition(HHTuple.class);
     dataset1.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = sparkSession
         .sql("SELECT * FROM TableView1 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");

@@ -3,21 +3,15 @@
  */
 package com.talentica.hungryHippos.dataframe;
 
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-
 /**
  * This class stores the values for particular row with defined data type for each column. In other
- * words, it is simply a bean class to store the tuple information from the file system for each row.
+ * words, it is simply a bean class to store the tuple information from the file system for each
+ * row.
  * 
  * @author pooshans
  *
  */
-public class HHTuple extends HHTupleType<HHTuple> {
-
-  public HHTuple(FieldTypeArrayDataDescription dataDescription)
-      throws NoSuchFieldException, SecurityException {
-    super(dataDescription);
-  }
+public class HHTuple {
 
   private String key1;
   private String key2;

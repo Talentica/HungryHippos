@@ -32,7 +32,6 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
       boolean requiresShuffle) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
     this.id = sc.sc().newRddId();
-
     String[] keyOrder = hhrddInfo.getKeyOrder();
     int[] shardingIndexes = hhrddInfo.getShardingIndexes();
     List<Integer> jobShardingDimensions = new ArrayList<>();

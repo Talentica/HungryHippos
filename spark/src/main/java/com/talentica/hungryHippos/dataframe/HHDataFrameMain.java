@@ -6,16 +6,13 @@ package com.talentica.hungryHippos.dataframe;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -50,24 +47,24 @@ public class HHDataFrameMain {
     Broadcast<HHRDDRowReader> rowReader = context.broadcast(hhrddRowReader);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    JavaRDD<HHTupleType<HHTuple>> rddForDataframe = hipposRDD.toJavaRDD()
-        .mapPartitions(new FlatMapFunction<Iterator<byte[]>, HHTupleType<HHTuple>>() {
+    JavaRDD<HHTuple> rddForDataframe = hipposRDD.toJavaRDD().map(new Function<byte[], HHTuple>() {
+      HHRDDRowReader hhrddRowReader = rowReader.getValue();
+
+      @Override
+      public HHTuple call(byte[] v1) throws Exception {
+        hhrddRowReader.setByteBuffer(ByteBuffer.wrap(v1));
+        return new HHTupleType<HHTuple>(hhrddRowReader) {
           @Override
-          public Iterator<HHTupleType<HHTuple>> call(Iterator<byte[]> t) throws Exception {
-            List<HHTupleType<HHTuple>> tupleList = new ArrayList<HHTupleType<HHTuple>>();
-            HHRDDRowReader hhrddRowReader = rowReader.getValue();
-            while (t.hasNext()) {
-              byte[] b = t.next();
-              hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-              tupleList.add(HHTupleBuilder.getHHTuple(rowReader.getValue()));
-            }
-            return tupleList.iterator();
+          protected HHTuple createTuple() {
+            return new HHTuple();
           }
-        }, true);
+        }.getTuple();
+      }
+    });
     Dataset<Row> rows = sparkSession.sqlContext().createDataFrame(rddForDataframe, HHTuple.class);
     rows.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
-        .sql("SELECT * FROM TableView WHERE key1 like 'a' and key2 like 'a' and key3 like 'a' ");
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'a' and key3 LIKE 'a' ");
     rs.show();
     context.stop();
   }

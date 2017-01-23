@@ -10,14 +10,12 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 
 /**
@@ -40,14 +38,12 @@ public class HHDataFrameMain {
     HHRDDHelper.initialize(clientConfigPath);
     HHRDDInfo hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     HHRDD hipposRDD = new HHRDD(context, hhrddInfo, false);
-    HHRDDRowReader hhrddRowReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
-    Broadcast<HHRDDRowReader> rowReader = context.broadcast(hhrddRowReader);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    
-    
-    // Data set for row by row transformation internally.
+
     HHDataset hhDataset = new HHDataset(hipposRDD, hhrddInfo, sparkSession);
+
+    // Data set for row by row transformation internally.
     Dataset<Row> dataset = hhDataset.toDatasetByRow(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession

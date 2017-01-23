@@ -65,12 +65,7 @@ public class HHDataset implements Serializable {
       public T call(byte[] b) throws Exception {
         HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();
         hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-        return new HHTupleType<T>(hhrddRowReader) {
-          @Override
-          public T createTuple() throws InstantiationException, IllegalAccessException {
-            return (T) beanClazz.newInstance();
-          }
-        }.getTuple();
+        return getTuple(beanClazz, hhrddRowReader);
       }
     });
     Dataset<Row> dataset =
@@ -94,12 +89,7 @@ public class HHDataset implements Serializable {
         HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();
         while (t.hasNext()) {
           hhrddRowReader.setByteBuffer(ByteBuffer.wrap(t.next()));
-          tupleList.add(new HHTupleType<T>(hhrddRowReader) {
-            @Override
-            public T createTuple() throws InstantiationException, IllegalAccessException {
-              return (T) beanClazz.newInstance();
-            }
-          }.getTuple());
+          tupleList.add(getTuple(beanClazz, hhrddRowReader));
         }
         return tupleList.iterator();
       }
@@ -107,5 +97,15 @@ public class HHDataset implements Serializable {
     Dataset<Row> dataset =
         sparkSession.sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
     return dataset;
+  }
+
+  private <T> T getTuple(Class<T> beanClazz, HHRDDRowReader hhrddRowReader)
+      throws NoSuchFieldException, IllegalAccessException, InstantiationException {
+    return new HHTupleType<T>(hhrddRowReader) {
+      @Override
+      public T createTuple() throws InstantiationException, IllegalAccessException {
+        return (T) beanClazz.newInstance();
+      }
+    }.getTuple();
   }
 }

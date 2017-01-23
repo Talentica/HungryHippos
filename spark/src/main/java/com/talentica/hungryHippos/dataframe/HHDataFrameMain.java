@@ -53,7 +53,7 @@ public class HHDataFrameMain {
     Dataset<Row> dataset1 = hhDataset.toDatasetByPartition(HHTuple.class);
     dataset1.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = sparkSession
-        .sql("SELECT * FROM TableView1 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs1.show(false);
 
     context.stop();

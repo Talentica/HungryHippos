@@ -123,37 +123,37 @@ public class HHDatasetConverter implements Serializable {
       public Row call(byte[] b) throws Exception {
         return getRow(hhrddRowReader, columns, b);
       }
-
-      private Row getRow(HHRDDRowReader hhrddRowReader, int columns, byte[] b)
-          throws UnsupportedDataTypeException {
-        hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-        Object[] tuple = new Object[columns];
-        for (int index = 0; index < columns; index++) {
-          Object obj = hhrddRowReader.readAtColumn(index);
-          if (obj instanceof MutableCharArrayString) {
-            tuple[index] = ((MutableCharArrayString) hhrddRowReader.readAtColumn(index)).toString();
-          } else if (obj instanceof Double) {
-            tuple[index] = ((Double) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Integer) {
-            tuple[index] = ((Integer) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Byte) {
-            tuple[index] = ((Byte) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Character) {
-            tuple[index] = ((Character) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Short) {
-            tuple[index] = ((Short) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Long) {
-            tuple[index] = ((Long) (hhrddRowReader.readAtColumn(index)));
-          } else if (obj instanceof Float) {
-            tuple[index] = ((Float) (hhrddRowReader.readAtColumn(index)));
-          } else {
-            throw new UnsupportedDataTypeException("Invalid data type conversion");
-          }
-        }
-        return RowFactory.create(tuple);
-      }
     });
     return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+  }
+
+  private Row getRow(HHRDDRowReader hhrddRowReader, int columns, byte[] b)
+      throws UnsupportedDataTypeException {
+    hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
+    Object[] tuple = new Object[columns];
+    for (int index = 0; index < columns; index++) {
+      Object obj = hhrddRowReader.readAtColumn(index);
+      if (obj instanceof MutableCharArrayString) {
+        tuple[index] = ((MutableCharArrayString) hhrddRowReader.readAtColumn(index)).toString();
+      } else if (obj instanceof Double) {
+        tuple[index] = ((Double) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Integer) {
+        tuple[index] = ((Integer) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Byte) {
+        tuple[index] = ((Byte) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Character) {
+        tuple[index] = ((Character) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Short) {
+        tuple[index] = ((Short) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Long) {
+        tuple[index] = ((Long) (hhrddRowReader.readAtColumn(index)));
+      } else if (obj instanceof Float) {
+        tuple[index] = ((Float) (hhrddRowReader.readAtColumn(index)));
+      } else {
+        throw new UnsupportedDataTypeException("Invalid data type conversion");
+      }
+    }
+    return RowFactory.create(tuple);
   }
 
   private StructType createSchema(String[] fieldName, HHRDDRowReader hhrddRowReader, int columns)

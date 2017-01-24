@@ -66,6 +66,14 @@ public class HHDatasetTestMain {
         .sql("SELECT * FROM TableView WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
     rs.show(false);
 
+    StructType schema1 = hhWithoutJobDC
+        .createSchema(new String[] {"K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9"});
+    Dataset<Row> dataset1 = sparkSession.sqlContext().createDataFrame(rowRDD, schema1);
+    dataset.createOrReplaceTempView("TableView1");
+    Dataset<Row> rs1 = sparkSession
+        .sql("SELECT * FROM TableView1 WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
+    rs1.show(false);
+
     context.stop();
   }
 

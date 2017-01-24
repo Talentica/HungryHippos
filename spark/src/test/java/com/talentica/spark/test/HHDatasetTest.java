@@ -63,7 +63,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhWithJobDC.toDatasetByRow(HHTuple.class);
+    Dataset<Row> dataset = hhWithJobDC.mapToBeanDS(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
@@ -73,7 +73,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhWithoutJobDC.toDatasetByRow(HHTuple.class);
+    Dataset<Row> dataset = hhWithoutJobDC.mapToBeanDS(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
@@ -83,7 +83,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhWithJobDC.toDatasetByRow(HHTuple.class);
+    Dataset<Row> dataset = hhWithJobDC.mapToBeanDS(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
@@ -93,7 +93,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhWithoutJobDC.toDatasetByRow(HHTuple.class);
+    Dataset<Row> dataset = hhWithoutJobDC.mapToBeanDS(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
@@ -102,8 +102,8 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testStructTypeDatasetWithJob() throws UnsupportedDataTypeException {
-    Dataset<Row> dataset = hhWithJobDC.toDatasetStructType(new String[] {"Column1", "Column2",
+  public void testStructTypeDatasetWithJob() throws UnsupportedDataTypeException, ClassNotFoundException {
+    Dataset<Row> dataset = hhWithJobDC.mapToStructTypeDS(new String[] {"Column1", "Column2",
         "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession.sql(
@@ -113,8 +113,8 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testStructTypeDatasetWithoutJob() throws UnsupportedDataTypeException {
-    Dataset<Row> dataset = hhWithoutJobDC.toDatasetStructType(new String[] {"Column1", "Column2",
+  public void testStructTypeDatasetWithoutJob() throws UnsupportedDataTypeException, ClassNotFoundException {
+    Dataset<Row> dataset = hhWithoutJobDC.mapToStructTypeDS(new String[] {"Column1", "Column2",
         "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession.sql(
@@ -125,8 +125,8 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
-      throws UnsupportedDataTypeException {
-    Dataset<Row> dataset = hhWithoutJobDC.toDatasetStructType(new String[] {"key1", "key2", "key3",
+      throws UnsupportedDataTypeException, ClassNotFoundException {
+    Dataset<Row> dataset = hhWithoutJobDC.mapToStructTypeDS(new String[] {"key1", "key2", "key3",
         "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
@@ -134,7 +134,6 @@ public class HHDatasetTest implements Serializable {
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
-
 
   private void initSparkContext(String masterIp, String appName) {
     if (context == null) {

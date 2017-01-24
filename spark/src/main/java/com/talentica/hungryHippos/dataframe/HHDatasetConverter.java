@@ -74,7 +74,7 @@ public class HHDatasetConverter implements Serializable {
    * @return Dataset<Row>
    * @throws ClassNotFoundException
    */
-  public <T> Dataset<Row> toDatasetByRow(Class<T> beanClazz) throws ClassNotFoundException {
+  public <T> Dataset<Row> mapToBeanDS(Class<T> beanClazz) throws ClassNotFoundException {
     JavaRDD<T> rddDataframe = javaRdd.map(new Function<byte[], T>() {
       @Override
       public T call(byte[] b) throws Exception {
@@ -89,13 +89,35 @@ public class HHDatasetConverter implements Serializable {
 
   /**
    * To translate the HungryHippos's row representation to required Spark data set format processing
+   * row by row. It is supported for schema definition of {@code StructType}.
+   * 
+   * @param fieldName
+   * @return Dataset<Row>
+   * @throws ClassNotFoundException
+   * @throws UnsupportedDataTypeException
+   */
+  public Dataset<Row> mapToStructTypeDS(String[] fieldName)
+      throws ClassNotFoundException, UnsupportedDataTypeException {
+    StructType schema = createSchema(fieldName);
+    JavaRDD<Row> rowRDD = javaRdd.map(new Function<byte[], Row>() {
+      @Override
+      public Row call(byte[] b) throws Exception {
+        return getRow(b);
+      }
+    });
+    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+  }
+
+  /**
+   * To translate the HungryHippos's row representation to required Spark data set format processing
    * row by row for each partition.
    * 
    * @param beanClazz
-   * @return
+   * @return Dataset<Row>
    * @throws ClassNotFoundException
    */
-  public <T> Dataset<Row> toDatasetByPartition(Class<T> beanClazz) throws ClassNotFoundException {
+  public <T> Dataset<Row> mapPartitionToBeanTypeDS(Class<T> beanClazz)
+      throws ClassNotFoundException {
     JavaRDD<T> rddDataframe = javaRdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, T>() {
       @Override
       public Iterator<T> call(Iterator<byte[]> t) throws Exception {
@@ -113,18 +135,26 @@ public class HHDatasetConverter implements Serializable {
   }
 
   /**
-   * To convert the underlying representation of HH data type to Spark StructType.
+   * To translate the HungryHippos's row representation to required Spark data set format processing
+   * row by row for each partition. It is supported for schema definition of {@code StructType}.
    * 
    * @param fieldName
    * @return Dataset<Row>
+   * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> toDatasetStructType(String[] fieldName) throws UnsupportedDataTypeException {
+  public Dataset<Row> mapPartitionToStructTypeDS(String[] fieldName)
+      throws ClassNotFoundException, UnsupportedDataTypeException {
     StructType schema = createSchema(fieldName);
-    JavaRDD<Row> rowRDD = javaRdd.map(new Function<byte[], Row>() {
+    JavaRDD<Row> rowRDD = javaRdd.mapPartitions(new FlatMapFunction<Iterator<byte[]>, Row>() {
       @Override
-      public Row call(byte[] b) throws Exception {
-        return getRow(b);
+      public Iterator<Row> call(Iterator<byte[]> t) throws Exception {
+        List<Row> tupleList = new ArrayList<Row>();
+        while (t.hasNext()) {
+          hhRDDReader.setByteBuffer(ByteBuffer.wrap(t.next()));
+          tupleList.add(getRow(t.next()));
+        }
+        return tupleList.iterator();
       }
     });
     return sparkSession.sqlContext().createDataFrame(rowRDD, schema);

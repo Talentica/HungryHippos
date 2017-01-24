@@ -52,6 +52,7 @@ public class HHDatasetTestMain {
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
     hhWithoutJobDC = new HHDatasetConverter(hhWithoutJobRDD, hhrddInfo, sparkSession);
 
+    // Column header is user defined.
     StructType schema = hhWithoutJobDC.createSchema(
         new String[] {"Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"});
     JavaRDD<Row> rowRDD = hhWithoutJobRDD.toJavaRDD().map(new Function<byte[], Row>() {
@@ -66,12 +67,13 @@ public class HHDatasetTestMain {
         .sql("SELECT * FROM TableView WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
     rs.show(false);
 
+    // Simply changed the column header for same RDD.
     StructType schema1 = hhWithoutJobDC
         .createSchema(new String[] {"K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9"});
     Dataset<Row> dataset1 = sparkSession.sqlContext().createDataFrame(rowRDD, schema1);
-    dataset.createOrReplaceTempView("TableView1");
+    dataset1.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = sparkSession
-        .sql("SELECT * FROM TableView1 WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
+        .sql("SELECT * FROM TableView1 WHERE K1 LIKE 'a' and K2 LIKE 'b' and K3 LIKE 'a' ");
     rs1.show(false);
 
     context.stop();

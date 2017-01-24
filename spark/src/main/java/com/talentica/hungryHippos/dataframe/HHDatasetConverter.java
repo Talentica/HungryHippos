@@ -42,7 +42,7 @@ public class HHDatasetConverter implements Serializable {
   private static final long serialVersionUID = 3564747948683195956L;
   private JavaRDD<byte[]> javaRdd;
   private SparkSession sparkSession;
-  private Broadcast<HHRDDRowReader> hhBroadcasetReader;
+  private HHRDDRowReader hhRDDReader;
 
   /**
    * Constructor of HHDataset
@@ -54,9 +54,7 @@ public class HHDatasetConverter implements Serializable {
   public HHDatasetConverter(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
     this.javaRdd = hhRdd.toJavaRDD();
     this.sparkSession = sparkSession;
-    hhBroadcasetReader =
-        sparkSession.sparkContext().broadcast(new HHRDDRowReader(hhrddInfo.getFieldDataDesc()),
-            ClassManifestFactory.fromClass(HHRDDRowReader.class));
+    hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
   }
 
   /**
@@ -71,9 +69,8 @@ public class HHDatasetConverter implements Serializable {
     JavaRDD<T> rddDataframe = javaRdd.map(new Function<byte[], T>() {
       @Override
       public T call(byte[] b) throws Exception {
-        HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();
-        hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
-        return getTuple(beanClazz, hhrddRowReader);
+        hhRDDReader.setByteBuffer(ByteBuffer.wrap(b));
+        return getTuple(beanClazz);
       }
     });
     Dataset<Row> dataset =
@@ -94,10 +91,9 @@ public class HHDatasetConverter implements Serializable {
       @Override
       public Iterator<T> call(Iterator<byte[]> t) throws Exception {
         List<T> tupleList = new ArrayList<T>();
-        HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();
         while (t.hasNext()) {
-          hhrddRowReader.setByteBuffer(ByteBuffer.wrap(t.next()));
-          tupleList.add(getTuple(beanClazz, hhrddRowReader));
+          hhRDDReader.setByteBuffer(ByteBuffer.wrap(t.next()));
+          tupleList.add(getTuple(beanClazz));
         }
         return tupleList.iterator();
       }
@@ -115,40 +111,38 @@ public class HHDatasetConverter implements Serializable {
    * @throws UnsupportedDataTypeException
    */
   public Dataset<Row> toDatasetStructType(String[] fieldName) throws UnsupportedDataTypeException {
-    HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();
-    int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
-    StructType schema = createSchema(fieldName, hhrddRowReader, columns);
+    StructType schema = createSchema(fieldName);
     JavaRDD<Row> rowRDD = javaRdd.map(new Function<byte[], Row>() {
       @Override
       public Row call(byte[] b) throws Exception {
-        return getRow(hhrddRowReader, columns, b);
+        return getRow(b);
       }
     });
     return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }
 
-  private Row getRow(HHRDDRowReader hhrddRowReader, int columns, byte[] b)
-      throws UnsupportedDataTypeException {
-    hhrddRowReader.setByteBuffer(ByteBuffer.wrap(b));
+  public Row getRow(byte[] b) throws UnsupportedDataTypeException {
+    int columns = hhRDDReader.getFieldDataDescription().getNumberOfDataFields();
+    hhRDDReader.setByteBuffer(ByteBuffer.wrap(b));
     Object[] tuple = new Object[columns];
     for (int index = 0; index < columns; index++) {
-      Object obj = hhrddRowReader.readAtColumn(index);
+      Object obj = hhRDDReader.readAtColumn(index);
       if (obj instanceof MutableCharArrayString) {
-        tuple[index] = ((MutableCharArrayString) hhrddRowReader.readAtColumn(index)).toString();
+        tuple[index] = ((MutableCharArrayString) hhRDDReader.readAtColumn(index)).toString();
       } else if (obj instanceof Double) {
-        tuple[index] = ((Double) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Double) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Integer) {
-        tuple[index] = ((Integer) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Integer) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Byte) {
-        tuple[index] = ((Byte) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Byte) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Character) {
-        tuple[index] = ((Character) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Character) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Short) {
-        tuple[index] = ((Short) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Short) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Long) {
-        tuple[index] = ((Long) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Long) (hhRDDReader.readAtColumn(index)));
       } else if (obj instanceof Float) {
-        tuple[index] = ((Float) (hhrddRowReader.readAtColumn(index)));
+        tuple[index] = ((Float) (hhRDDReader.readAtColumn(index)));
       } else {
         throw new UnsupportedDataTypeException("Invalid data type conversion");
       }
@@ -156,11 +150,11 @@ public class HHDatasetConverter implements Serializable {
     return RowFactory.create(tuple);
   }
 
-  private StructType createSchema(String[] fieldName, HHRDDRowReader hhrddRowReader, int columns)
-      throws UnsupportedDataTypeException {
+  public StructType createSchema(String[] fieldName) throws UnsupportedDataTypeException {
     List<StructField> fields = new ArrayList<>();
-    for (int index = 0; index < columns; index++) {
-      DataLocator locator = hhrddRowReader.getFieldDataDescription().locateField(index);
+    for (int index = 0; index < hhRDDReader.getFieldDataDescription()
+        .getNumberOfDataFields(); index++) {
+      DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(index);
       StructField field = null;
       switch (locator.getDataType()) {
         case BYTE:
@@ -196,13 +190,14 @@ public class HHDatasetConverter implements Serializable {
     return schema;
   }
 
-  private <T> T getTuple(Class<T> beanClazz, HHRDDRowReader hhrddRowReader)
+  private <T> T getTuple(Class<T> beanClazz)
       throws NoSuchFieldException, IllegalAccessException, InstantiationException {
-    return new HHTupleType<T>(hhrddRowReader) {
+    return new HHTupleType<T>(hhRDDReader) {
       @Override
       public T createTuple() throws InstantiationException, IllegalAccessException {
         return (T) beanClazz.newInstance();
       }
     }.getTuple();
   }
+
 }

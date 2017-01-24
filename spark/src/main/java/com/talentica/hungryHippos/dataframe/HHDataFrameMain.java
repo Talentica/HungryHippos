@@ -10,10 +10,13 @@ import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
@@ -47,11 +50,12 @@ public class HHDataFrameMain {
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
 
-    HHDatasetConverter hhDatasetConverter = new HHDatasetConverter(hipposRDD, hhrddInfo, sparkSession);
+    HHDatasetConverter hhDatasetConverter =
+        new HHDatasetConverter(hipposRDD, hhrddInfo, sparkSession);
 
     // Data set for struct type.
-    Dataset<Row> dataset1 = hhDatasetConverter.toDatasetStructType(new String[] {"Column1", "Column2",
-        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+    Dataset<Row> dataset1 = hhDatasetConverter.toDatasetStructType(new String[] {"Column1",
+        "Column2", "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset1.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = sparkSession.sql(
         "SELECT * FROM TableView1 WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
@@ -72,14 +76,33 @@ public class HHDataFrameMain {
     rs3.show(false);
 
     // HHDatasetConverter for with job.
-    HHDatasetConverter hhDatasetConverter1 = new HHDatasetConverter(hipposRDD1, hhrddInfo, sparkSession);
-    Dataset<Row> dataset4 = hhDatasetConverter1.toDatasetStructType(new String[] {"Column1", "Column2",
-        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+    HHDatasetConverter hhDatasetConverter1 =
+        new HHDatasetConverter(hipposRDD1, hhrddInfo, sparkSession);
+    Dataset<Row> dataset4 = hhDatasetConverter1.toDatasetStructType(new String[] {"Column1",
+        "Column2", "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset4.createOrReplaceTempView("TableView4");
     Dataset<Row> rs4 = sparkSession.sql(
         "SELECT * FROM TableView4 WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs4.show(false);
-    
+
+
+    // Client side exposure of the HH conversion API
+    HHDatasetConverter hhDatasetConverter2 =
+        new HHDatasetConverter(hipposRDD1, hhrddInfo, sparkSession);
+    StructType schema = hhDatasetConverter2.createSchema(
+        new String[] {"Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"});
+    JavaRDD<Row> rowRDD = hipposRDD1.toJavaRDD().map(new Function<byte[], Row>() {
+      @Override
+      public Row call(byte[] b) throws Exception {
+        return hhDatasetConverter2.getRow(b);
+      }
+    });
+    Dataset<Row> dataset5 = sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    dataset5.createOrReplaceTempView("TableView5");
+    Dataset<Row> rs5 = sparkSession
+        .sql("SELECT * FROM TableView5 WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
+    rs5.show(false);
+
     context.stop();
 
   }

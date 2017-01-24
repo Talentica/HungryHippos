@@ -4,9 +4,9 @@
 package com.talentica.hungryHippos.dataframe;
 
 /**
- * This class stores the values for particular row with defined data type for each column. In other
- * words, it is simply a bean class to store the tuple information from the file system for each
- * row.
+ * It should be written by client. This class stores the values for particular row with defined data
+ * type for each column. In other words, it is simply a bean class to store the tuple information
+ * from the file system for each row.
  * 
  * @author pooshans
  *

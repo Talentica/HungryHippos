@@ -71,7 +71,7 @@ public class HHDatasetConverter implements Serializable {
    * row by row.
    * 
    * @param beanClazz
-   * @return Dataset<Row>
+   * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    */
   public <T> Dataset<Row> mapToBeanDS(Class<T> beanClazz) throws ClassNotFoundException {
@@ -91,8 +91,9 @@ public class HHDatasetConverter implements Serializable {
    * To translate the HungryHippos's row representation to required Spark data set format processing
    * row by row. It is supported for schema definition of {@code StructType}.
    * 
-   * @param fieldName
-   * @return Dataset<Row>
+   * @param fieldName : It is user defined column name. i.e new String[] {"Col1", "Col2", "Col3",
+   *        "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"}
+   * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
@@ -113,7 +114,7 @@ public class HHDatasetConverter implements Serializable {
    * row by row for each partition.
    * 
    * @param beanClazz
-   * @return Dataset<Row>
+   * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    */
   public <T> Dataset<Row> mapPartitionToBeanTypeDS(Class<T> beanClazz)
@@ -138,8 +139,9 @@ public class HHDatasetConverter implements Serializable {
    * To translate the HungryHippos's row representation to required Spark data set format processing
    * row by row for each partition. It is supported for schema definition of {@code StructType}.
    * 
-   * @param fieldName
-   * @return Dataset<Row>
+   * @param fieldName : It is user defined column name. i.e new String[] {"Col1", "Col2", "Col3",
+   *        "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"}
+   * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */

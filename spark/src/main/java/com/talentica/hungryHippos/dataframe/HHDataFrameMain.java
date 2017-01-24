@@ -38,7 +38,12 @@ public class HHDataFrameMain {
     initSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     HHRDDInfo hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
+
+    // RDD without any job. It loads all the partition in RDD.
     HHRDD hipposRDD = new HHRDD(context, hhrddInfo, false);
+
+    // RDD with job. Selected loading of the partition based on job's nature.
+    HHRDD hipposRDD1 = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
 
@@ -65,7 +70,18 @@ public class HHDataFrameMain {
     Dataset<Row> rs3 = sparkSession
         .sql("SELECT * FROM TableView3 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs3.show(false);
+
+    // HHDatasetConverter for with job.
+    HHDatasetConverter hhDataset1 = new HHDatasetConverter(hipposRDD1, hhrddInfo, sparkSession);
+    Dataset<Row> dataset4 = hhDataset1.toDatasetStructType(new String[] {"Column1", "Column2",
+        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+    dataset4.createOrReplaceTempView("TableView4");
+    Dataset<Row> rs4 = sparkSession.sql(
+        "SELECT * FROM TableView4 WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
+    rs4.show(false);
+    
     context.stop();
+
   }
 
   private static void initSparkContext(String masterIp, String appName) {

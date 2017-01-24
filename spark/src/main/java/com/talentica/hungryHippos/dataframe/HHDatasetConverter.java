@@ -107,6 +107,13 @@ public class HHDatasetConverter implements Serializable {
     return dataset;
   }
 
+  /**
+   * To convert the underlying representation of HH data type to Spark StructType.
+   * 
+   * @param fieldName
+   * @return Dataset<Row>
+   * @throws UnsupportedDataTypeException
+   */
   public Dataset<Row> toDatasetStructType(String[] fieldName) throws UnsupportedDataTypeException {
     List<StructField> fields = new ArrayList<>();
     HHRDDRowReader hhrddRowReader = hhBroadcasetReader.getValue();

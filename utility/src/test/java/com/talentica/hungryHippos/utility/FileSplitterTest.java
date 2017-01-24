@@ -15,9 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
-
+@Ignore
 public class FileSplitterTest {
   private String filepath = "/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata.txt";
   private int numberOfChunks = 10;

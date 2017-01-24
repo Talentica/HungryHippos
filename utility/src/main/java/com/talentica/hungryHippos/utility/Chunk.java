@@ -9,7 +9,6 @@ public class Chunk {
   private long start;
   private long end;
   private long idealSizeOfChunk;
-  private String fileType = null;
   private HHFStream hhfsStream;
 
   public Chunk(String parentFilePath, String fileName, int id, long start, long end,
@@ -24,9 +23,6 @@ public class Chunk {
 
   }
 
-  public String getFileType() {
-    return this.fileType;
-  }
 
   public String getParentFilePath() {
     return parentFilePath;
@@ -76,9 +72,8 @@ public class Chunk {
 
   private void setDetails(String name) {
     this.parentFileName = name;
-    String[] str = name.split("\\.");
-    this.name = str[0] + "-" + this.id;
-    this.fileType = str[1];
+    this.name = name + "-" + this.id;
+
 
   }
 

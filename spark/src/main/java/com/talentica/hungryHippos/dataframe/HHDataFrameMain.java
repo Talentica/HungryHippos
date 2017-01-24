@@ -6,6 +6,7 @@ package com.talentica.hungryHippos.dataframe;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
@@ -28,7 +29,8 @@ public class HHDataFrameMain {
 
   public static void main(String[] args) throws ClassNotFoundException, InstantiationException,
       IllegalAccessException, NoSuchFieldException, SecurityException, IllegalArgumentException,
-      NoSuchMethodException, InvocationTargetException, FileNotFoundException, JAXBException {
+      NoSuchMethodException, InvocationTargetException, FileNotFoundException, JAXBException,
+      UnsupportedDataTypeException {
     String masterIp = args[0];
     String appName = args[1];
     String hhFilePath = args[2];
@@ -40,22 +42,29 @@ public class HHDataFrameMain {
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
 
-    HHDataset hhDataset = new HHDataset(hipposRDD, hhrddInfo, sparkSession);
+    HHDatasetConverter hhDataset = new HHDatasetConverter(hipposRDD, hhrddInfo, sparkSession);
 
-    // Data set for row by row transformation internally.
-    Dataset<Row> dataset = hhDataset.toDatasetByRow(HHTuple.class);
-    dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
-        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
-    rs.show(false);
-
-    // Data set for row by row for each partition transformation internally.
-    Dataset<Row> dataset1 = hhDataset.toDatasetByPartition(HHTuple.class);
+    // Data set for struct type.
+    Dataset<Row> dataset1 = hhDataset.toDatasetStructType(new String[] {"Column1", "Column2",
+        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset1.createOrReplaceTempView("TableView1");
-    Dataset<Row> rs1 = sparkSession
-        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    Dataset<Row> rs1 = sparkSession.sql(
+        "SELECT * FROM TableView1 WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs1.show(false);
 
+    // Data set for row by row transformation internally.
+    Dataset<Row> dataset2 = hhDataset.toDatasetByRow(HHTuple.class);
+    dataset2.createOrReplaceTempView("TableView2");
+    Dataset<Row> rs2 = sparkSession
+        .sql("SELECT * FROM TableView2 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs2.show(false);
+
+    // Data set for row by row for each partition transformation internally.
+    Dataset<Row> dataset3 = hhDataset.toDatasetByPartition(HHTuple.class);
+    dataset3.createOrReplaceTempView("TableView3");
+    Dataset<Row> rs3 = sparkSession
+        .sql("SELECT * FROM TableView3 WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs3.show(false);
     context.stop();
   }
 

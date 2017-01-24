@@ -80,7 +80,7 @@ public abstract class HHTupleType<T> implements Cloneable {
     }
     for (int index = 0; index < dataType.size(); index++) {
       DataLocator locator = dataDescription.locateField(index);
-      Field column = tuple.getClass().getDeclaredField("key" + (index + 1));
+      Field column = tuple.getClass().getDeclaredField(KEY_PRIFIX + (index + 1));
       switch (locator.getDataType()) {
         case BYTE:
           if (!column.getGenericType().getTypeName().equals(Byte.TYPE.getName()))

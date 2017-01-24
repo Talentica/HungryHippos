@@ -77,6 +77,11 @@ public class DataPublisherStarter {
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       checkFilesInSync(shardingZipRemotePath);
       List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+
+      for (int i = 0; i < nodes.size(); i++) {
+        LOGGER.info("i = {} , node.id = {} , node.ip = {}", i, nodes.get(i).getIdentifier(), nodes.get(i).getIp());
+      }
+
       int noOfChunks = getNoOfChunks(args, nodes);
       File srcFile = new File(sourcePath);
       updateZookeeperNodes(destinationPath);
@@ -219,6 +224,7 @@ public class DataPublisherStarter {
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       int nodeId) throws IOException, InterruptedException {
     Node node = nodes.get(nodeId);
+
     // transferChunk(remotePath, chunkFilePath, node);
     requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, chunk,
         node);
@@ -227,6 +233,7 @@ public class DataPublisherStarter {
   private static void requestDataDistribution(String destinationPath, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       Node node) throws IOException, InterruptedException {
+
     Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
     dataInputStreamMap.put(chunk.getId(), new DataInputStream(socket.getInputStream()));
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());

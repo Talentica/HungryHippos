@@ -42,6 +42,7 @@ public class ChunkUpload implements Runnable {
 
     try {
       int nodeId = chunk.getId() % nodes.size();
+      
       logger.info("[{}] Uploading chunk {}", Thread.currentThread().getName(), chunk.getId());
       DataPublisherStarter.uploadChunk(destinationPath, nodes, remotePath, dataInputStreamMap,
           socketMap, this.chunk, nodeId);

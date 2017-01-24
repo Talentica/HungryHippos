@@ -1,7 +1,5 @@
 package com.talentica.hungryHippos.utility;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +16,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+
 
 public class FileSplitterTest {
   private String filepath = "/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata.txt";
@@ -52,7 +51,7 @@ public class FileSplitterTest {
 
     }
 
-    List<File> chunkFiles = createFileFromChunk(chunks);
+    // List<File> chunkFiles = createFileFromChunk(chunks);
     // assertTrue(checkTwoFiles(files, chunkFiles));
 
     // assertTrue(verifyChunkContent(files, chunks));

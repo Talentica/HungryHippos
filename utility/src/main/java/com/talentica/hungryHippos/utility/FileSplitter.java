@@ -77,7 +77,8 @@ public class FileSplitter {
 
     StopWatch stopWatch = new StopWatch();
     // List<Chunk> files = splitFile(totalChunkSizeInbytes);
-    List<Chunk> files = splitFileByte(totalChunkSizeInbytes);
+    //List<Chunk> files = splitFileByte(totalChunkSizeInbytes);
+     List<Chunk> files = splitFileByte_1(totalChunkSizeInbytes);
     logger.info("finished splitting file. It took {} seconds", stopWatch.elapsedTime());
     System.out.println("finished splitting file. It took " + stopWatch.elapsedTime() + " seconds");
 
@@ -143,6 +144,83 @@ public class FileSplitter {
 
   }
 
+
+  private List<Chunk> splitFileByte_1(long totalChunkSizeInbytes) throws IOException {
+    int counter = 0;
+    List<Chunk> chunks = new ArrayList<>();
+    File file = new File(filePath);
+    if (numberOfChunks == 1) {
+      Chunk chunk = new Chunk(file.getParent(), file.getName(), counter, 0l, fileSizeInbytes,
+          totalChunkSizeInbytes);
+      chunks.add(chunk);
+      return chunks;
+    }
+
+    int idealBufferSize = 8192;
+
+    InputStream inputStream = new FileInputStream(file);
+    BufferedInputStream bis = new BufferedInputStream(inputStream);
+    byte[] buffer = new byte[idealBufferSize];
+    int read = 0;
+    long bytesRead = 0;
+    int carrier = 0;
+
+    while (counter < numberOfChunks) {
+
+      long startPos = bytesRead;
+      long remainingBytesToRead = totalChunkSizeInbytes;
+      long bytesToSkip = remainingBytesToRead - idealBufferSize;
+
+
+
+      if (counter == numberOfChunks - 1) {
+
+        bytesRead = fileSizeInbytes;
+
+      } else {
+
+        inputStream.skip(bytesToSkip);
+
+        read = bis.read(buffer);
+
+        int j = 0;
+
+        for (int i = read - 1;; i--) {
+
+          if (buffer[i] == eof[0]) {
+
+            break;
+          }
+          j++;
+        }
+
+        bytesRead = bytesRead + totalChunkSizeInbytes - j;
+        bytesRead += carrier;
+        carrier = j;
+      }
+      Chunk chunk = new Chunk(filePath, file.getName(), counter++, startPos, bytesRead,
+          totalChunkSizeInbytes);
+      chunks.add(chunk);
+
+
+
+      reset(buffer);
+
+    }
+
+    bis.close();
+
+    return Collections.unmodifiableList(chunks);
+
+  }
+
+  private void reset(byte[] buffer) {
+
+    for (int i = 0; i < buffer.length; i++) {
+      buffer[i] = 0;
+    }
+
+  }
 
   private List<Chunk> splitFileByte(long totalChunkSizeInbytes) throws IOException {
     int counter = 0;

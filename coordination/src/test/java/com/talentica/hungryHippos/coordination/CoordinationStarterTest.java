@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.org.apache.bcel.internal.util.ClassLoader;
@@ -40,7 +41,7 @@ import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 import com.talentica.hungryhippos.config.datapublisher.DatapublisherConfig;
 import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 
-
+@Ignore
 public class CoordinationStarterTest {
 
   private static final String USER_HOME = System.getProperty("user.home");

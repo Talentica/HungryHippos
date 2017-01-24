@@ -82,12 +82,12 @@ public class HHRDDInfo implements Serializable {
             int bucketSize = bucketToNodeNumberMap.get(shardingDimensionKey).size();
             noOfEstimatedPartitions = noOfEstimatedPartitions * bucketSize;
             jobShardingDimensionsArray[i] = jobShardingDimensions.get(i);
-            System.out.print(jobShardingDimensionsArray[i]);
+            //System.out.print(jobShardingDimensionsArray[i]);
             i++;
 
         }
 
-        System.out.println("");
+        //System.out.println("");
 
         int[][] combinationArray = new int[noOfEstimatedPartitions][];
         populateCombination(combinationArray, null, 0, jobShardingDimensionsArray, 0);

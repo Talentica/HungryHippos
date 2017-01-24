@@ -14,7 +14,6 @@ import javax.activation.UnsupportedDataTypeException;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -28,8 +27,6 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
-
-import scala.reflect.ClassManifestFactory;
 
 /**
  * To create the data set for given HungryHippos RDD.
@@ -45,7 +42,8 @@ public class HHDatasetConverter implements Serializable {
   private HHRDDRowReader hhRDDReader;
 
   /**
-   * Constructor of HHDataset
+   * Constructor of {@code HHDatasetConverter} which is instantiated if client requires prebuild
+   * {@code Dataset}.
    * 
    * @param hhRdd
    * @param hhrddInfo
@@ -54,6 +52,16 @@ public class HHDatasetConverter implements Serializable {
   public HHDatasetConverter(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
     this.javaRdd = hhRdd.toJavaRDD();
     this.sparkSession = sparkSession;
+    hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
+  }
+
+  /**
+   * Constructor of {@code HHDatasetConverter} which is required to only if clien need utility such
+   * as {@link #getRow(byte[])} or {@link #createSchema(String[])}
+   * 
+   * @param hhrddInfo
+   */
+  public HHDatasetConverter(HHRDDInfo hhrddInfo) {
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
   }
 

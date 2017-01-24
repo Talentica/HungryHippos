@@ -62,7 +62,7 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testDatasetForBeanWithJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByRowWiseWithJob() throws ClassNotFoundException {
     Dataset<Row> dataset = hhWithJobDC.toDatasetByRow(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
@@ -72,7 +72,27 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testDatasetForBeanWithoutJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByRowWiseWithoutJob() throws ClassNotFoundException {
+    Dataset<Row> dataset = hhWithoutJobDC.toDatasetByRow(HHTuple.class);
+    dataset.createOrReplaceTempView("TableView");
+    Dataset<Row> rs = sparkSession
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs.show(false);
+    Assert.assertTrue(rs.count() > 0);
+  }
+
+  @Test
+  public void testDatasetForBeanByPartitionWithJob() throws ClassNotFoundException {
+    Dataset<Row> dataset = hhWithJobDC.toDatasetByRow(HHTuple.class);
+    dataset.createOrReplaceTempView("TableView");
+    Dataset<Row> rs = sparkSession
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs.show(false);
+    Assert.assertTrue(rs.count() > 0);
+  }
+
+  @Test
+  public void testDatasetForBeanByPartitionWithoutJob() throws ClassNotFoundException {
     Dataset<Row> dataset = hhWithoutJobDC.toDatasetByRow(HHTuple.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession

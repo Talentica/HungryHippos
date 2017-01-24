@@ -29,7 +29,8 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 /**
- * To create the data set for given HungryHippos RDD.
+ * To create the data set for given HungryHippos RDD which convert the underlying HH data
+ * representation to the Spark recognized data format.
  * 
  * @author pooshans
  * @param <T>

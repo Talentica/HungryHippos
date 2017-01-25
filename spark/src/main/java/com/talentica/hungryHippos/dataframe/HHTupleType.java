@@ -45,7 +45,7 @@ public abstract class HHTupleType<T> implements Cloneable {
       DataLocator locator = dataDescription.locateField(col);
       dataType.add(locator.getDataType());
     }
-    defaultTypleDatatypeValidation();
+    defaultTypeValidation();
     prepareTuple();
   }
 
@@ -70,7 +70,7 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  protected void defaultTypleDatatypeValidation() throws NoSuchFieldException, SecurityException,
+  protected void defaultTypeValidation() throws NoSuchFieldException, SecurityException,
       InstantiationException, IllegalAccessException {
     tuple = createTuple();
     if (isDataTypeValidated)

@@ -17,6 +17,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
+import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
@@ -50,7 +51,8 @@ public class HHDatasetTestMain {
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhDSWithoutJobBuilder = new HHDatasetBuilder(hhWithoutJobRDD, hhrddInfo, sparkSession);
+    hhDSWithoutJobBuilder =
+        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, sparkSession);
 
     // Column header is user defined.
     StructType schema = hhDSWithoutJobBuilder.createSchema(

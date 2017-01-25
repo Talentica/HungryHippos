@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
 import com.talentica.hungryHippos.dataframe.HHTuple;
 import com.talentica.hungryHippos.rdd.HHRDD;
@@ -57,8 +58,9 @@ public class HHDatasetTest implements Serializable {
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     hhWithJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhDSWithoutJobBuilder = new HHDatasetBuilder(hhWithoutJobRDD, hhrddInfo, sparkSession);
-    hhDSWithJobBuilder = new HHDatasetBuilder(hhWithJobRDD, hhrddInfo, sparkSession);
+    hhDSWithoutJobBuilder =
+        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, sparkSession);
+    hhDSWithJobBuilder = HHDataframeFactory.createHHDataset(hhWithJobRDD, hhrddInfo, sparkSession);
   }
 
   @Test
@@ -102,7 +104,8 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testStructTypeDatasetWithJob() throws UnsupportedDataTypeException, ClassNotFoundException {
+  public void testStructTypeDatasetWithJob()
+      throws UnsupportedDataTypeException, ClassNotFoundException {
     Dataset<Row> dataset = hhDSWithJobBuilder.mapToStructTypeDS(new String[] {"Column1", "Column2",
         "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
@@ -113,9 +116,10 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testStructTypeDatasetWithoutJob() throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"Column1", "Column2",
-        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+  public void testStructTypeDatasetWithoutJob()
+      throws UnsupportedDataTypeException, ClassNotFoundException {
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"Column1",
+        "Column2", "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession.sql(
         "SELECT * FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
@@ -126,8 +130,8 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"key1", "key2", "key3",
-        "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"key1", "key2",
+        "key3", "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");

@@ -7,30 +7,31 @@ package com.talentica.hungryHippos.dataframe;
  * It should be written by client. This class stores the values for particular row with defined data
  * type for each column. In other words, it is simply a bean class to store the tuple information
  * from the file system for each row. Property name could be as per user convenient. However, user
- * is supposed to provide proper index {@code HHFieldOrder} of the as per data stored in file system.
+ * is supposed to provide proper index by annotating {@code HHFieldOrder} over field of the as per
+ * data stored in file system.
  * 
  * @author pooshans
  *
  */
 public class HHTuple {
 
-  @HHFieldOrder(index = 0)
+  @HHField(index = 0)
   private String col1;
-  @HHFieldOrder(index = 1)
+  @HHField(index = 1)
   private String col2;
-  @HHFieldOrder(index = 2)
+  @HHField(index = 2)
   private String col3;
-  @HHFieldOrder(index = 3)
+  @HHField(index = 3)
   private String col4;
-  @HHFieldOrder(index = 4)
+  @HHField(index = 4)
   private String col5;
-  @HHFieldOrder(index = 5)
+  @HHField(index = 5)
   private String col6;
-  @HHFieldOrder(index = 6)
+  @HHField(index = 6)
   private double col7;
-  @HHFieldOrder(index = 7)
+  @HHField(index = 7)
   private double col8;
-  @HHFieldOrder(index = 8)
+  @HHField(index = 8)
   private String col9;
 
   public String getCol1() {

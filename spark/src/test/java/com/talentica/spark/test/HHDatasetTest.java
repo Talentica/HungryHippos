@@ -67,7 +67,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(TupleBean.class);
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -77,7 +77,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(TupleBean.class);
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -87,7 +87,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(TupleBean.class);
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -97,7 +97,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(TupleBean.class);
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -108,7 +108,7 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToStructTypeDS(new String[] {"Column1", "Column2",
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(new String[] {"Column1", "Column2",
         "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession.sql(
@@ -120,7 +120,7 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"Column1",
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1",
         "Column2", "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession.sql(
@@ -132,7 +132,7 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToStructTypeDS(new String[] {"key1", "key2",
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"key1", "key2",
         "key3", "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession

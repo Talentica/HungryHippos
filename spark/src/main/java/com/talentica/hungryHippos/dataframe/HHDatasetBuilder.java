@@ -59,7 +59,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    */
-  public <T> Dataset<Row> mapToBeanDS(Class<T> beanClazz) throws ClassNotFoundException {
+  public <T> Dataset<Row> mapToDataset(Class<T> beanClazz) throws ClassNotFoundException {
     JavaRDD<T> rddDataframe = mapToJavaRDD(beanClazz);
     Dataset<Row> dataset =
         sparkSession.sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
@@ -77,7 +77,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapToStructTypeDS(String[] fieldName)
+  public Dataset<Row> mapToDataset(String[] fieldName)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     StructType schema = createSchema(fieldName);
     JavaRDD<Row> rowRDD = mapToJavaRDD();
@@ -92,7 +92,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    */
-  public <T> Dataset<Row> mapPartitionToBeanTypeDS(Class<T> beanClazz)
+  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz)
       throws ClassNotFoundException {
     JavaRDD<T> rddDataframe = mapPartitionToJavaRDD(beanClazz);
     Dataset<Row> dataset =
@@ -110,7 +110,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapPartitionToStructTypeDS(String[] fieldName)
+  public Dataset<Row> mapPartitionToDataset(String[] fieldName)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     StructType schema = createSchema(fieldName);
     JavaRDD<Row> rowRDD = mapPartitionToJavaRDD();

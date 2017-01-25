@@ -29,14 +29,14 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 /**
- * To create the data set for given HungryHippos RDD which convert the underlying HH data
+ * To build the data set for given HungryHippos RDD which convert the underlying HH data
  * representation to the Spark recognized data format.
  * 
  * @author pooshans
  * @param <T>
  *
  */
-public class HHDatasetConverter implements Serializable {
+public class HHDatasetBuilder implements Serializable {
   private static final long serialVersionUID = 3564747948683195956L;
   private JavaRDD<byte[]> javaRdd;
   private SparkSession sparkSession;
@@ -50,7 +50,7 @@ public class HHDatasetConverter implements Serializable {
    * @param hhrddInfo
    * @param sparkSession
    */
-  public HHDatasetConverter(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
+  public HHDatasetBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
     this.javaRdd = hhRdd.toJavaRDD();
     this.sparkSession = sparkSession;
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
@@ -62,7 +62,7 @@ public class HHDatasetConverter implements Serializable {
    * 
    * @param hhrddInfo
    */
-  public HHDatasetConverter(HHRDDInfo hhrddInfo) {
+  public HHDatasetBuilder(HHRDDInfo hhrddInfo) {
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
   }
 

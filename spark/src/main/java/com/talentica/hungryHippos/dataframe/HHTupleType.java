@@ -5,6 +5,8 @@ package com.talentica.hungryHippos.dataframe;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
@@ -23,7 +25,6 @@ public abstract class HHTupleType<T> implements Cloneable {
 
   protected List<DataType> dataType = new ArrayList<DataType>();
   private FieldTypeArrayDataDescription dataDescription;
-  private final static String KEY_PRIFIX = "key";
   private HHRDDRowReader hhrddRowReader;
   protected T tuple;
 
@@ -74,56 +75,56 @@ public abstract class HHTupleType<T> implements Cloneable {
     tuple = createTuple();
     if (isDataTypeValidated)
       return;
-    int noOfFields = tuple.getClass().getDeclaredFields().length;
-    if (noOfFields != dataType.size()) {
+    Field[] fields = HHFieldOrderUtil.getOrderedDeclaredFields(tuple.getClass());
+    if (fields.length != dataType.size()) {
       throw new RuntimeException("Number of fields mismatch defined in Tuple.");
     }
     for (int index = 0; index < dataType.size(); index++) {
       DataLocator locator = dataDescription.locateField(index);
-      Field column = tuple.getClass().getDeclaredField(KEY_PRIFIX + (index + 1));
+      Field column = fields[index];
       switch (locator.getDataType()) {
         case BYTE:
           if (!column.getGenericType().getTypeName().equals(Byte.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Byte.TYPE.getName());
           break;
         case CHAR:
           if (!column.getGenericType().getTypeName().equals(Character.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Character.TYPE.getName());
           break;
         case SHORT:
           if (!column.getGenericType().getTypeName().equals(Short.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Short.TYPE.getName());
           break;
         case INT:
           if (!column.getGenericType().getTypeName().equals(Integer.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Integer.TYPE.getName());
           break;
         case LONG:
           if (!column.getGenericType().getTypeName().equals(Long.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Long.TYPE.getName());
           break;
         case FLOAT:
           if (!column.getGenericType().getTypeName().equals(Float.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Float.TYPE.getName());
           break;
         case DOUBLE:
           if (!column.getGenericType().getTypeName().equals(Double.TYPE.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + Double.TYPE.getName());
           break;
         case STRING:
           if (!column.getGenericType().getTypeName().equals(String.class.getName()))
-            throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1)
+            throw new RuntimeException("Invalid data type for field :: " + column.getName()
                 + ". Expecting data type :: " + String.class.getName());
           break;
         default:
-          throw new RuntimeException("Invalid data type for column :: " + KEY_PRIFIX + (index + 1));
+          throw new RuntimeException("Invalid data type for field :: " + column.getName());
       }
 
     }
@@ -139,9 +140,10 @@ public abstract class HHTupleType<T> implements Cloneable {
   private void prepareTuple() throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
     int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
+    Field[] fields = getFields(clazz);
     for (int col = 0; col < columns; col++) {
       DataLocator locator = hhrddRowReader.getFieldDataDescription().locateField(col);
-      Field column = clazz.getDeclaredField(KEY_PRIFIX + (col + 1));
+      Field column = fields[col];
       column.setAccessible(true);
       switch (locator.getDataType()) {
         case BYTE:
@@ -179,5 +181,25 @@ public abstract class HHTupleType<T> implements Cloneable {
       }
     }
 
+  }
+
+  private Field[] getFields(Class<?> clazz) {
+    Field[] fields = clazz.getDeclaredFields();
+    Arrays.sort(fields, new Comparator<Field>() {
+      @Override
+      public int compare(Field field1, Field field2) {
+        HHFieldOrder hhOdr1 = field1.getAnnotation(HHFieldOrder.class);
+        HHFieldOrder hhOdr2 = field2.getAnnotation(HHFieldOrder.class);
+        if (hhOdr1 != null && hhOdr2 != null) {
+          return hhOdr1.index() - hhOdr2.index();
+        } else if (hhOdr1 != null && hhOdr2 == null) {
+          return -1;
+        } else if (hhOdr1 == null && hhOdr2 != null) {
+          return 1;
+        }
+        return field1.getName().compareTo(field2.getName());
+      }
+    });
+    return fields;
   }
 }

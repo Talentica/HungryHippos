@@ -17,7 +17,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
-import com.talentica.hungryHippos.dataframe.HHDatasetConverter;
+import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -36,7 +36,7 @@ public class HHDatasetTestMain {
   private static HHRDDInfo hhrddInfo;
   private static HHRDD hhWithoutJobRDD;
   private static SparkSession sparkSession;
-  private static HHDatasetConverter hhWithoutJobDC;
+  private static HHDatasetBuilder hhDSWithoutJobBuilder;
 
   public static void main(String[] args)
       throws UnsupportedDataTypeException, FileNotFoundException, JAXBException {
@@ -50,15 +50,15 @@ public class HHDatasetTestMain {
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhWithoutJobDC = new HHDatasetConverter(hhWithoutJobRDD, hhrddInfo, sparkSession);
+    hhDSWithoutJobBuilder = new HHDatasetBuilder(hhWithoutJobRDD, hhrddInfo, sparkSession);
 
     // Column header is user defined.
-    StructType schema = hhWithoutJobDC.createSchema(
+    StructType schema = hhDSWithoutJobBuilder.createSchema(
         new String[] {"Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"});
     JavaRDD<Row> rowRDD = hhWithoutJobRDD.toJavaRDD().map(new Function<byte[], Row>() {
       @Override
       public Row call(byte[] b) throws Exception {
-        return hhWithoutJobDC.getRow(b);
+        return hhDSWithoutJobBuilder.getRow(b);
       }
     });
     Dataset<Row> dataset = sparkSession.sqlContext().createDataFrame(rowRDD, schema);
@@ -68,7 +68,7 @@ public class HHDatasetTestMain {
     rs.show(false);
 
     // Simply changed the column header for same RDD.
-    StructType schema1 = hhWithoutJobDC
+    StructType schema1 = hhDSWithoutJobBuilder
         .createSchema(new String[] {"K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9"});
     Dataset<Row> dataset1 = sparkSession.sqlContext().createDataFrame(rowRDD, schema1);
     dataset1.createOrReplaceTempView("TableView1");

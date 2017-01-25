@@ -41,7 +41,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   }
 
   /**
-   * Constructor of {@code HHDatasetConverter} which is required to only if clien need utility such
+   * Constructor of {@code HHDatasetConverter} which is required to only if client need utility such
    * as {@link #getRow(byte[])} or {@link #createSchema(String[])}
    * 
    * @param hhrddInfo

@@ -31,6 +31,7 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
  * To create the HHJavaRDD by translating the HH row records to spark recognized RDD row.
  * 
  * @author pooshans
+ * @since 25/01/2017
  *
  */
 public class HHJavaRDDBuilder implements Serializable {

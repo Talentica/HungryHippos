@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
  * Instantiate this class to create the tuple for each row.
  * 
  * @author pooshans
+ * @since 25/01/2017
  *
  */
 public abstract class HHTupleType<T> implements Cloneable {

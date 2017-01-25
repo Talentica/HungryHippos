@@ -9,8 +9,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation is used to make the property of the class in particular order guided by this indexing
- * while fetching the fields by reflection.
+ * This annotation is used to make the property of the class in particular order guided by provided
+ * index.
  * 
  * @author pooshans
  *

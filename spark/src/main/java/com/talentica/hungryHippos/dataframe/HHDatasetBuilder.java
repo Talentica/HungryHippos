@@ -86,14 +86,29 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
 
   /**
    * To translate the HungryHippos's row representation to required Spark data set format processing
+   * row by row. It is supported for schema definition of {@code StructType}.
+   * 
+   * @param schema
+   * @return {@code Dataset<Row>}
+   * @throws ClassNotFoundException
+   * @throws UnsupportedDataTypeException
+   */
+  public Dataset<Row> mapToDataset(StructType schema)
+      throws ClassNotFoundException, UnsupportedDataTypeException {
+    JavaRDD<Row> rowRDD = mapToJavaRDD();
+    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+  }
+
+
+  /**
+   * To translate the HungryHippos's row representation to required Spark data set format processing
    * row by row for each partition.
    * 
    * @param beanClazz
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
    */
-  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz)
-      throws ClassNotFoundException {
+  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz) throws ClassNotFoundException {
     JavaRDD<T> rddDataframe = mapPartitionToJavaRDD(beanClazz);
     Dataset<Row> dataset =
         sparkSession.sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
@@ -113,6 +128,21 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   public Dataset<Row> mapPartitionToDataset(String[] fieldName)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     StructType schema = createSchema(fieldName);
+    JavaRDD<Row> rowRDD = mapPartitionToJavaRDD();
+    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+  }
+
+  /**
+   * To translate the HungryHippos's row representation to required Spark data set format processing
+   * row by row for each partition. It is supported for schema definition of {@code StructType}.
+   * 
+   * @param schema
+   * @return {@code Dataset<Row>}
+   * @throws ClassNotFoundException
+   * @throws UnsupportedDataTypeException
+   */
+  public Dataset<Row> mapPartitionToDataset(StructType schema)
+      throws ClassNotFoundException, UnsupportedDataTypeException {
     JavaRDD<Row> rowRDD = mapPartitionToJavaRDD();
     return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }

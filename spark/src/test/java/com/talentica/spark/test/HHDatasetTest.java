@@ -23,7 +23,6 @@ import org.junit.Test;
 
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
-import com.talentica.hungryHippos.dataframe.HHTuple;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -67,7 +66,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(HHTuple.class);
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -77,7 +76,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(HHTuple.class);
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -87,7 +86,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(HHTuple.class);
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToBeanDS(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -97,7 +96,7 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testDatasetForBeanByPartitionWithoutJob() throws ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(HHTuple.class);
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToBeanDS(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");

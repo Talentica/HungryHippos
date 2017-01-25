@@ -1,19 +1,21 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.dataframe;
+package com.talentica.spark.test;
+
+import com.talentica.hungryHippos.dataframe.HHField;
 
 /**
- * It should be written by client. This class stores the values for particular row with defined data
- * type for each column. In other words, it is simply a bean class to store the tuple information
- * from the file system for each row. Property name could be as per user convenient. However, user
- * is supposed to provide proper index by annotating {@code HHFieldOrder} over field of the as per
- * data stored in file system.
+ * It is and example and supposed to be written by client. This class stores the values for
+ * particular row with defined data type for each column. In other words, it is simply a bean class
+ * to store the tuple information from the file system for each row. Property name could be as per
+ * user convenient. However, user is supposed to provide proper index by annotating
+ * {@code HHFieldOrder} over field of the as per data stored in file system.
  * 
  * @author pooshans
  *
  */
-public class HHTuple {
+public class TupleBean {
 
   @HHField(index = 0)
   private String col1;

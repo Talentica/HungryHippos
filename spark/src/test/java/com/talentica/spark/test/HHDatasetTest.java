@@ -10,10 +10,12 @@ import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.StructType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -135,6 +137,19 @@ public class HHDatasetTest implements Serializable {
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = sparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    rs.show(false);
+    Assert.assertTrue(rs.count() > 0);
+  }
+
+  @Test
+  public void testHHJavaRDDAndHHDataset() throws UnsupportedDataTypeException {
+    JavaRDD<Row> javaRDD = hhDSWithoutJobBuilder.mapToJavaRDD();
+    StructType schema = hhDSWithoutJobBuilder.createSchema(new String[] {"key1", "key2", "key3",
+        "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
+    Dataset<Row> dataset = sparkSession.sqlContext().createDataFrame(javaRDD, schema);
+    dataset.createOrReplaceTempView("TableView");
+    Dataset<Row> rs = sparkSession
+        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'c' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }

@@ -140,7 +140,7 @@ public abstract class HHTupleType<T> implements Cloneable {
   private void prepareTuple() throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
     int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
-    Field[] fields = getFields(clazz);
+    Field[] fields = HHFieldOrderUtil.getOrderedDeclaredFields(clazz);
     for (int col = 0; col < columns; col++) {
       DataLocator locator = hhrddRowReader.getFieldDataDescription().locateField(col);
       Field column = fields[col];
@@ -181,25 +181,5 @@ public abstract class HHTupleType<T> implements Cloneable {
       }
     }
 
-  }
-
-  private Field[] getFields(Class<?> clazz) {
-    Field[] fields = clazz.getDeclaredFields();
-    Arrays.sort(fields, new Comparator<Field>() {
-      @Override
-      public int compare(Field field1, Field field2) {
-        HHFieldOrder hhOdr1 = field1.getAnnotation(HHFieldOrder.class);
-        HHFieldOrder hhOdr2 = field2.getAnnotation(HHFieldOrder.class);
-        if (hhOdr1 != null && hhOdr2 != null) {
-          return hhOdr1.index() - hhOdr2.index();
-        } else if (hhOdr1 != null && hhOdr2 == null) {
-          return -1;
-        } else if (hhOdr1 == null && hhOdr2 != null) {
-          return 1;
-        }
-        return field1.getName().compareTo(field2.getName());
-      }
-    });
-    return fields;
   }
 }

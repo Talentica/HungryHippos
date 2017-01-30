@@ -1,7 +1,9 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
+import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -31,7 +33,9 @@ public class DataAppenderService implements Runnable {
     public void run() {
         File srcFolder = null;
         String srcFolderPath = null;
+        String hhFilePath = null;
         try {
+            hhFilePath = dataInputStream.readUTF();
             srcFolderPath = dataInputStream.readUTF();
             srcFolder = new File(srcFolderPath);
             srcFolder.mkdirs();
@@ -75,6 +79,9 @@ public class DataAppenderService implements Runnable {
             try {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
+                if(hhFilePath!=null){
+                    NewDataHandler.updateFailure(hhFilePath, e.getMessage());
+                }
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

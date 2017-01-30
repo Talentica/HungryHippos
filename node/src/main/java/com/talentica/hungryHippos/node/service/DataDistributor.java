@@ -13,12 +13,14 @@ import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
+import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.sharding.*;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.slf4j.Logger;
@@ -57,7 +59,7 @@ public class DataDistributor {
     }
 
 
-  public static void distribute(String hhFilePath, String srcDataPath) throws Exception {
+  public static void distribute(String hhFilePath, String srcDataPath, int fileId, String fileIdToHHpath) throws Exception {
         NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
                 DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
         String BAD_RECORDS_FILE = srcDataPath + "_distributor.err";
@@ -87,11 +89,9 @@ public class DataDistributor {
         BucketsCalculator bucketsCalculator =
                 new BucketsCalculator(keyToValueToBucketMap, context);
         Map<Integer, OutputStream> targets = new HashMap<>();
-        String fileIdToHHBasepath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                .getZookeeperDefaultConfig().getFileidHhfsMapPath() + HungryHippoCurator.ZK_PATH_SEPERATOR;
-        int fileId = fileIdToHHPathMap(fileIdToHHBasepath, hhFilePath);
+
         byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
-        String fileIdToHHpath = fileIdToHHBasepath + fileId;
+
         File srcFile = new File(srcDataPath);
         LOGGER.info("Size of file {} is {}", srcDataPath, srcFile.length());
         LOGGER.info("***CREATE SOCKET CONNECTIONS*** for {}", hhFilePath);
@@ -101,11 +101,18 @@ public class DataDistributor {
             String server = servers.get(nodeId);
             Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
             sockets.put(nodeId, socket);
-            BufferedOutputStream bos =
-                    new BufferedOutputStream(sockets.get(nodeId).getOutputStream(), 8388608);
-            targets.put(nodeId, bos);
-            bos.write(fileIdInBytes);
-            bos.flush();
+            OutputStream os;
+            if(MemoryStatus.getUsableMemory()>8388608){
+                os = new BufferedOutputStream(socket.getOutputStream(), 8388608);
+            }else if (MemoryStatus.getUsableMemory()>8192){
+                os = new BufferedOutputStream(socket.getOutputStream(), 8192);
+            }else{
+                os = new BufferedOutputStream(socket.getOutputStream(), 2048);
+            }
+
+            targets.put(nodeId, os);
+            os.write(fileIdInBytes);
+            os.flush();
             createNodeLink(fileIdToHHpath, nodeId);
         }
 
@@ -185,18 +192,7 @@ public class DataDistributor {
             targets.get(nodeId).close();
             sockets.get(nodeId).close();
         }
-        LOGGER.info("Waiting for data receiver signal for {}", hhFilePath);
-        while (true) {
-            List<String> children = curator.getChildren(fileIdToHHpath);
-            if (children == null || children.isEmpty()) {
-                curator.deletePersistentNodeIfExits(fileIdToHHpath);
-                break;
-            }
-            if (NewDataHandler.checkIfFailed(hhFilePath)) {
-                throw new RuntimeException("File distribution failed for " + hhFilePath + " in " + NodeInfo.INSTANCE.getIp());
-            }
-        }
-        LOGGER.info("Data received successfully for {}", hhFilePath);
+      System.gc();
     }
 
     /**
@@ -212,21 +208,7 @@ public class DataDistributor {
         return shardingTableLocation;
     }
 
-    private static int fileIdToHHPathMap(String path, String inputHHPath) {
-        int i = 0;
-        while (true) {
-            try {
-                curator.createPersistentNode(path + i, inputHHPath);
-                return i;
-            } catch (HungryHippoException e) {
-                if (e instanceof HungryHippoException) {
-                    i++;
-                } else {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
+
 
     private static int indexCalculator(int[] values, int base){
         int index = 0;

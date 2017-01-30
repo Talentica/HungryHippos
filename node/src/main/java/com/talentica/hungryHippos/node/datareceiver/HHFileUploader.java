@@ -33,7 +33,7 @@ public enum HHFileUploader {
         this.fileUploadService = Executors.newFixedThreadPool(nodes.size());
     }
 
-    public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap) throws IOException, InterruptedException {
+    public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath) throws IOException, InterruptedException {
         LOGGER.info("Inside uploadFile for {} from {}", destinationPath, srcFolderPath);
         String remoteTargetFolder = srcFolderPath;
         LOGGER.info("Sending Replica Data To Nodes for {}", destinationPath);
@@ -48,7 +48,7 @@ public enum HHFileUploader {
             int nodeId = node.getIdentifier();
             Set<String> fileNames = nodeToFileMap.get(nodeId);
             if (fileNames != null && !fileNames.isEmpty()) {
-                FileUploader fileUploader  = new FileUploader(countDownLatch,srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg, idx, dataInputStreamMap, socketMap, node, fileNames);
+                FileUploader fileUploader  = new FileUploader(countDownLatch,srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath);
                 fileUploaders.add(fileUploader);
                 fileUploadService.execute(fileUploader);
                 idx++;

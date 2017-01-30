@@ -38,10 +38,10 @@ public enum FileJoiner {
     }
 
     public void join(String srcFolderPath, String destFolderPath, String lockString) throws IOException, InterruptedException {
-        join(srcFolderPath, destFolderPath, lockString, null);
+        join(srcFolderPath, destFolderPath, lockString, null,null);
     }
 
-    public void join(String srcFolderPath, String destFolderPath, String lockString, String metadataFilePath) throws IOException, InterruptedException {
+    public void join(String srcFolderPath, String destFolderPath, String lockString, String metadataFilePath, String hhFilePath) throws IOException, InterruptedException {
         LOGGER.info("Moving data from {} to {}", srcFolderPath, destFolderPath);
 
         AtomicInteger lock = getLock(lockString);
@@ -96,7 +96,7 @@ public enum FileJoiner {
                     int idx = 0;
                     for (Node node : nodes) {
                         if (node.getIdentifier() != NodeInfo.INSTANCE.getIdentifier()) {
-                            MetaDataUploader metaDataUploader = new MetaDataUploader(countDownLatch, node, metadataFilePath);
+                            MetaDataUploader metaDataUploader = new MetaDataUploader(countDownLatch, node, metadataFilePath, hhFilePath);
                             metaDataUploaders[idx] = metaDataUploader;
                             metadataUploaderService.execute(metaDataUploader);
                             idx++;
@@ -106,10 +106,11 @@ public enum FileJoiner {
                     boolean metadataUpdateSuccessStatus = true;
                     for (int i = 0; i < metaDataUploaders.length; i++) {
                         metadataUpdateSuccessStatus = metadataUpdateSuccessStatus && metaDataUploaders[i].isSuccess();
+                        if (!metadataUpdateSuccessStatus) {
+                            throw new RuntimeException("Metadata update failed for "+metaDataUploaders[i].getNode().getIp());
+                        }
                     }
-                    if (!metadataUpdateSuccessStatus) {
-                        throw new RuntimeException("Metadata update failed");
-                    }
+
                     LOGGER.info("Completed Uploading metadata for {}", srcFolderPath);
                 } else {
                     for (int i = 0; i < srcFilePaths.length; i++) {

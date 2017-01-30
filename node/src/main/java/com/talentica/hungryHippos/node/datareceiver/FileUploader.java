@@ -27,9 +27,10 @@ public class FileUploader implements Runnable {
     private Node node;
     private Set<String> fileNames;
     private boolean success;
+    private String hhFilePath;
 
 
-    public FileUploader(CountDownLatch countDownLatch, String srcFolderPath, String destinationPath, String remoteTargetFolder, String commonCommandArg, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node, Set<String> fileNames) {
+    public FileUploader(CountDownLatch countDownLatch, String srcFolderPath, String destinationPath, String remoteTargetFolder, String commonCommandArg, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node, Set<String> fileNames, String hhFilePath) {
         this.countDownLatch = countDownLatch;
         this.srcFolderPath = srcFolderPath;
         this.destinationPath = destinationPath;
@@ -41,6 +42,7 @@ public class FileUploader implements Runnable {
         this.node = node;
         this.fileNames = fileNames;
         this.success = false;
+        this.hhFilePath = hhFilePath;
     }
 
     @Override
@@ -75,10 +77,11 @@ public class FileUploader implements Runnable {
                 throw new RuntimeException("File transfer failed for " + srcFolderPath);
             }
             logger.info("[{}] Lock released for {}", Thread.currentThread().getName(), srcFolderPath);
-            Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+            Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
             dataInputStreamMap.put(idx, new DataInputStream(socket.getInputStream()));
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             dos.writeInt(HungryHippoServicesConstants.DATA_APPENDER);
+            dos.writeUTF(hhFilePath);
             dos.writeUTF(remoteTargetFolder);
             dos.writeUTF(tarFileName);
             dos.writeUTF(destinationPath);

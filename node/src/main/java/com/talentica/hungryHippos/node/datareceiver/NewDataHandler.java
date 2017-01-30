@@ -207,8 +207,8 @@ public class NewDataHandler extends ChannelHandlerAdapter {
                 +File.separator+NodeInfo.INSTANCE.getId();
         byteBuf = null;
         try {
-            FileJoiner.INSTANCE.join(srcFolderPath,destFolderPath,destFolderPath,metadataFilePath);
-            HHFileUploader.INSTANCE.uploadFile(srcFolderPath,destFolderPath,nodeToFileMap);
+            FileJoiner.INSTANCE.join(srcFolderPath,destFolderPath,destFolderPath,metadataFilePath,hhFilePath);
+            HHFileUploader.INSTANCE.uploadFile(srcFolderPath,destFolderPath,nodeToFileMap, hhFilePath);
             FileUtils.deleteDirectory(new File(srcFolderPath));
             if (!checkIfFailed(hhFilePath)&&noError) {
                 clearNode(fileId);
@@ -216,10 +216,11 @@ public class NewDataHandler extends ChannelHandlerAdapter {
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.error(e.toString());
-            updateFailure(hhFilePath,NodeInfo.INSTANCE.getIp()+" : "+e.toString());
+            updateFailure(hhFilePath,e.toString());
         }
         LOGGER.info("Closed connection from {} FileId : {}",senderIp,fileId);
         ctx.channel().close();
+        System.gc();
         LOGGER.info("Exiting handlerRemoved");
     }
 
@@ -249,7 +250,14 @@ public class NewDataHandler extends ChannelHandlerAdapter {
                 .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
         String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
                 + FileSystemConstants.PUBLISH_FAILED;
-        curator.createPersistentNodeIfNotPresent(pathForFailureNode, cause);
+        try {
+            if(checkIfFailed(hhFilePath)){
+                cause =  cause + "\n" + curator.getZnodeData(pathForFailureNode);
+            }
+        } catch (HungryHippoException e) {
+            e.printStackTrace();
+        }
+        curator.createPersistentNodeIfNotPresent(pathForFailureNode, NodeInfo.INSTANCE.getIp()+" : "+ cause);
     }
 
     public static boolean checkIfFailed(String hhFilePath) throws HungryHippoException {
@@ -287,7 +295,7 @@ public class NewDataHandler extends ChannelHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         this.noError = false;
-        updateFailure(hhFilePath,NodeInfo.INSTANCE.getIp()+" : "+cause.toString());
+        updateFailure(hhFilePath,cause.toString());
         cause.printStackTrace();
         LOGGER.error(cause.toString());
         ctx.channel().close();

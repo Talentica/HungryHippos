@@ -18,6 +18,8 @@ public class MemoryStatus {
 
   private static final long MAX_MEMORY = Runtime.getRuntime().maxMemory() / _1MB;
 
+  private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
+
   /**
    * Return memory in MB
    * 
@@ -62,6 +64,12 @@ public class MemoryStatus {
       throw new RuntimeException(
           "Either very less memory is available to run jobs or the amount of threshold memory configured is too high.");
     }
+  }
+
+  public synchronized static long getUsableMemory() {
+    System.gc();
+    long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
+    return availablePrimaryMemory - sparedMemory;
   }
 
 }

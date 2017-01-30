@@ -6,6 +6,7 @@ import java.util.Iterator;
 import com.talentica.hungryHippos.client.data.parser.DataParser;
 import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
+import com.talentica.hungryHippos.utility.MemoryStatus;
 
 /**
  * {@code FileReader} used for reading file with specified {@link DataParser}.
@@ -32,7 +33,13 @@ public class FileReader implements Reader {
       throws RuntimeException, FileNotFoundException {
     this.dataParser = parser;
     this.filepath = filePath;
-    dataInputStream = new BufferedInputStream(new FileInputStream(filePath),10485760);
+    if(MemoryStatus.getUsableMemory()>10485760){
+      dataInputStream = new BufferedInputStream(new FileInputStream(filePath),10485760);
+    }else if(MemoryStatus.getUsableMemory()>10240){
+      dataInputStream = new BufferedInputStream(new FileInputStream(filePath),10240);
+    }else{
+      dataInputStream = new BufferedInputStream(new FileInputStream(filePath),2048);
+    }
     iterator = dataParser.iterator(dataInputStream);
   }
 
@@ -69,7 +76,13 @@ public class FileReader implements Reader {
       dataInputStream.close();
 
     }
-    dataInputStream = new BufferedInputStream(new FileInputStream(this.filepath),10485760);
+    if(MemoryStatus.getUsableMemory()>10485760){
+      dataInputStream = new BufferedInputStream(new FileInputStream(this.filepath),10485760);
+    }else if(MemoryStatus.getUsableMemory()>10240){
+      dataInputStream = new BufferedInputStream(new FileInputStream(this.filepath),10240);
+    }else{
+      dataInputStream = new BufferedInputStream(new FileInputStream(this.filepath),2048);
+    }
     iterator = dataParser.iterator(dataInputStream);
   }
 

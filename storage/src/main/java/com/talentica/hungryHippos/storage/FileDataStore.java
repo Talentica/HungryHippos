@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.storage;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
@@ -32,7 +33,6 @@ public class FileDataStore implements DataStore {
     private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
     private String uniqueFileName;
     private String dataFilePrefix;
-    private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
 
     private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
             new HashMap<>();
@@ -78,13 +78,11 @@ public class FileDataStore implements DataStore {
     }
 
     private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
-        System.gc();
-        long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
-        long usableMemory = availablePrimaryMemory - sparedMemory;
-        long memoryRequiredForBufferedStream = fileNames.size() * 1024;
+        long usableMemory = MemoryStatus.getUsableMemory();
+        long memoryRequiredForBufferedStream = fileNames.size() * 102400;
         if (usableMemory > memoryRequiredForBufferedStream) {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 1024);
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 102400);
                 fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
             }
         } else {
@@ -94,7 +92,6 @@ public class FileDataStore implements DataStore {
             }
         }
     }
-
 
     public FileDataStore(int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,

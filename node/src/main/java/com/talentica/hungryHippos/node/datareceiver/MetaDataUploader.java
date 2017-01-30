@@ -3,6 +3,8 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,28 +15,35 @@ import java.util.concurrent.CountDownLatch;
  */
 public class MetaDataUploader implements Runnable {
 
+
+    private static final Logger logger = LoggerFactory.getLogger(MetaDataUploader.class);
+
     private Node node ;
     private String metadatFilerPath;
     private boolean success;
     private CountDownLatch countDownLatch;
+    private String hhFilePath;
 
-    public MetaDataUploader(CountDownLatch countDownLatch, Node node, String metadatFilerPath ) {
+
+    public MetaDataUploader(CountDownLatch countDownLatch, Node node, String metadatFilerPath , String hhFilePath) {
         this.node = node;
         this.metadatFilerPath = metadatFilerPath;
         this.success = false;
         this.countDownLatch = countDownLatch;
+        this.hhFilePath = hhFilePath;
     }
 
     @Override
     public void run() {
         Socket socket = null;
         try {
-            socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+            socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
             File metadataFile = new File(metadatFilerPath);
             long metadatFileSize = metadataFile.length();
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             dos.writeInt(HungryHippoServicesConstants.METADATA_UPDATER);
+            dos.writeUTF(hhFilePath);
             dos.writeUTF(metadatFilerPath);
             dos.writeLong(metadatFileSize);
             int bufferSize = 2048;
@@ -45,6 +54,7 @@ public class MetaDataUploader implements Runnable {
                 dos.write(buffer,0,len);
             }
             dos.flush();
+            bis.close();
             String response = dis.readUTF();
             if(!HungryHippoServicesConstants.SUCCESS.equals(response)){
                 success = false;
@@ -52,6 +62,7 @@ public class MetaDataUploader implements Runnable {
                 success = true;
             }
         } catch (IOException |InterruptedException e) {
+            logger.error("Failed to upload metadata to {} for {} Reason: ",node.getIp(),metadatFilerPath,e.getMessage() );
             e.printStackTrace();
         }finally {
             countDownLatch.countDown();
@@ -64,6 +75,10 @@ public class MetaDataUploader implements Runnable {
             }
         }
 
+    }
+
+    public Node getNode() {
+        return node;
     }
 
     public boolean isSuccess() {

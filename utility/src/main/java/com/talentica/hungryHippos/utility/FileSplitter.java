@@ -150,7 +150,7 @@ public class FileSplitter {
     List<Chunk> chunks = new ArrayList<>();
     File file = new File(filePath);
     if (numberOfChunks == 1) {
-      Chunk chunk = new Chunk(file.getParent(), file.getName(), counter, 0l, fileSizeInbytes,
+      Chunk chunk = new Chunk(filePath, file.getName(), counter, 0l, fileSizeInbytes,
           totalChunkSizeInbytes);
       chunks.add(chunk);
       return chunks;

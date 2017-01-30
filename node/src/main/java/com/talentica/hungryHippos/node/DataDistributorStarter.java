@@ -20,24 +20,24 @@ public class DataDistributorStarter {
   public static ExecutorService dataAppenderServices;
   public static ExecutorService scpAccessServices;
   public static ExecutorService metadataUpdaterServices;
-
+  public static ClientConfig clientConfig;
 
 
   public static void main(String[] args) throws Exception {
     validateArguments(args);
 
-    ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
+    clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
     String connectString = clientConfig.getCoordinationServers().getServers();
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
     ServerSocket serverSocket = new ServerSocket(8789);
     ExecutorService serviceDeligator = Executors.newFixedThreadPool(10);
-    dataDistributorService = Executors.newFixedThreadPool(10);
+    dataDistributorService = Executors.newFixedThreadPool(1);
     fileProviderService = Executors.newFixedThreadPool(10);
-    dataAppenderServices = Executors.newFixedThreadPool(noOfNodes + 5);
-    scpAccessServices = Executors.newFixedThreadPool(10);
-    metadataUpdaterServices = Executors.newFixedThreadPool(noOfNodes + 5);
+    dataAppenderServices = Executors.newFixedThreadPool(1);
+    scpAccessServices = Executors.newFixedThreadPool(1);
+    metadataUpdaterServices = Executors.newFixedThreadPool(1);
     while (true) {
       Socket socket = serverSocket.accept();
       serviceDeligator.execute(new ServiceDeligator(socket));

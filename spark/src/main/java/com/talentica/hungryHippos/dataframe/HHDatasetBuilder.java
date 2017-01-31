@@ -27,6 +27,7 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
  */
 public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   private static final long serialVersionUID = 3564747948683195956L;
+  private SparkSession sparkSession;
 
   /**
    * Constructor of {@code HHDatasetConverter} which is instantiated if client requires prebuild
@@ -37,7 +38,8 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @param sparkSession
    */
   public HHDatasetBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
-    super(hhRdd, hhrddInfo, sparkSession);
+    super(hhRdd, hhrddInfo);
+    this.sparkSession = sparkSession;
   }
 
   /**

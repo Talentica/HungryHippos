@@ -26,9 +26,8 @@ public class HHDataframeFactory {
     return new HHDatasetBuilder(hhrddInfo);
   }
 
-  public static HHJavaRDDBuilder createHHJavaRDD(HHRDD hhRdd, HHRDDInfo hhrddInfo,
-      SparkSession sparkSession) {
-    return new HHJavaRDDBuilder(hhRdd, hhrddInfo, sparkSession);
+  public static HHJavaRDDBuilder createHHJavaRDD(HHRDD hhRdd, HHRDDInfo hhrddInfo) {
+    return new HHJavaRDDBuilder(hhRdd, hhrddInfo);
   }
 
   public static HHJavaRDDBuilder createHHJavaRDD(HHRDDInfo hhrddInfo) {

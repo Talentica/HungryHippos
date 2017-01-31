@@ -44,9 +44,8 @@ public class HHJavaRDDBuilder implements Serializable {
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
   }
 
-  public HHJavaRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
+  public HHJavaRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo) {
     this.javaRdd = hhRdd.toJavaRDD();
-    this.sparkSession = sparkSession;
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
   }
 

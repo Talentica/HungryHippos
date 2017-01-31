@@ -81,8 +81,6 @@ public class DataGenerator {
       int i5 = (int) (key5ValueSet.length * skewRandom());
       // int i6 = (int) (key6ValueSet.length * skewRandom());
 
-
-
       String key1 = key1ValueSet[i1];
       String key2 = key2ValueSet[i2];
       String key3 = key3ValueSet[i3];
@@ -91,8 +89,6 @@ public class DataGenerator {
       int key6 = ran.nextInt(899) + 100;
       int key7 = ran.nextInt(89999) + 10000;
       double key8 = Math.random();
-
-
 
       out.println(key1 + "," + key2 + "," + key3 + "," + key4 + "," + key5 + "," + key6 + "," + key7
           + "," + key8 + ",xyz");

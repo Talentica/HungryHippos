@@ -96,6 +96,7 @@ public class FileUploader implements Runnable {
                 dos.write(buffer, 0, len);
             }
             dos.flush();
+            bis.close();
             socketMap.put(idx, socket);
             success = true;
             this.countDownLatch.countDown();

@@ -84,6 +84,7 @@ public class DataDistributorService implements Runnable {
                 int fileId = fileIdToHHPathMap(fileIdToHHBasepath, hhFilePath);
                 fileIdToHHpath = fileIdToHHBasepath + fileId;
                 DataDistributor.distribute(hhFilePath, srcDataPath,fileId,fileIdToHHpath);
+                checkPublishStatus(hhFilePath,fileIdToHHpath);
             }
             dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             dataOutputStream.flush();

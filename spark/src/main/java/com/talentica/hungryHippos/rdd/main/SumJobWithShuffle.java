@@ -65,14 +65,14 @@ public class SumJobWithShuffle {
     JobMatrix sumJobMatrix = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 3; i++) {
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 4, count++));
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 5, count++));
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
       for (int j = i + 1; j < 4; j++) {
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 4, count++));
         sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 5, count++));
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
         for (int k = j + 1; k < 4; k++) {
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 4, count++));
           sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 5, count++));
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
         }
       }
     }

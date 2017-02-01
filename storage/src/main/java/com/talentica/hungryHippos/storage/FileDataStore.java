@@ -79,10 +79,10 @@ public class FileDataStore implements DataStore {
 
     private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
         long usableMemory = MemoryStatus.getUsableMemory();
-        long memoryRequiredForBufferedStream = fileNames.size() * 102400;
+        long memoryRequiredForBufferedStream = fileNames.size() * 1024;
         if (usableMemory > memoryRequiredForBufferedStream) {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 102400);
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 1024);
                 fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
             }
         } else {

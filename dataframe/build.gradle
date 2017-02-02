@@ -1,0 +1,19 @@
+apply plugin: 'java'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+def generatedJava = 'src/main/generated'
+sourceSets {
+    main {
+        java {
+            srcDirs += generatedJava
+        }
+    }
+}
+
+dependencies {
+     compile project (':spark')
+       
+}

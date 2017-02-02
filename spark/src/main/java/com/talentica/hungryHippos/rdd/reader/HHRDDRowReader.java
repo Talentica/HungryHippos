@@ -16,13 +16,31 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 public class HHRDDRowReader implements Serializable {
 
   private static final long serialVersionUID = -5800537222182360030L;
-
   private FieldTypeArrayDataDescription dataDescription;
-
   private ByteBuffer source = null;
+  private int allocatedSize = 0;
+  private byte[] b;
 
-  public void setByteBuffer(ByteBuffer source) {
-    this.source = source;
+  /**
+   * It wraps over the byte[] and create the new HeapByteBuffer if an only if byte[] array has
+   * different capacity than earlier otherwise reuse the existing one.
+   * 
+   * @param b
+   * @return instance of the current object
+   */
+  public HHRDDRowReader wrap(byte[] b) {
+    this.b = b;
+    if (source == null) {
+      allocatedSize = this.b.length;
+      source = ByteBuffer.wrap(this.b);
+    } else {
+      if (allocatedSize != this.b.length) {
+        allocatedSize = this.b.length;
+        source = ByteBuffer.wrap(this.b);
+      }
+    }
+    source.clear();
+    return this;
   }
 
   public ByteBuffer getByteBuffer() {

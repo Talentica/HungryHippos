@@ -4,7 +4,6 @@
 package com.talentica.hungryHippos.dataframe;
 
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -59,7 +58,7 @@ public class HHJavaRDDBuilder implements Serializable {
     return javaRdd.map(new Function<byte[], T>() {
       @Override
       public T call(byte[] b) throws Exception {
-        hhRDDReader.setByteBuffer(ByteBuffer.wrap(b));
+        hhRDDReader.wrap(b);
         return getTuple(beanClazz);
       }
     });
@@ -91,7 +90,7 @@ public class HHJavaRDDBuilder implements Serializable {
       public Iterator<T> call(Iterator<byte[]> t) throws Exception {
         List<T> tupleList = new ArrayList<T>();
         while (t.hasNext()) {
-          hhRDDReader.setByteBuffer(ByteBuffer.wrap(t.next()));
+          hhRDDReader.wrap(t.next());
           tupleList.add(getTuple(beanClazz));
         }
         return tupleList.iterator();
@@ -110,7 +109,6 @@ public class HHJavaRDDBuilder implements Serializable {
       public Iterator<Row> call(Iterator<byte[]> t) throws Exception {
         List<Row> tupleList = new ArrayList<Row>();
         while (t.hasNext()) {
-          hhRDDReader.setByteBuffer(ByteBuffer.wrap(t.next()));
           tupleList.add(getRow(t.next()));
         }
         return tupleList.iterator();
@@ -176,6 +174,7 @@ public class HHJavaRDDBuilder implements Serializable {
     }.getTuple();
   }
 
+  boolean init = false;
 
   /**
    * It is used to convert the byte representation of the row into Spark recognized Row.
@@ -186,7 +185,7 @@ public class HHJavaRDDBuilder implements Serializable {
    */
   public Row getRow(byte[] b) throws UnsupportedDataTypeException {
     int columns = hhRDDReader.getFieldDataDescription().getNumberOfDataFields();
-    hhRDDReader.setByteBuffer(ByteBuffer.wrap(b));
+    hhRDDReader.wrap(b);
     Object[] tuple = new Object[columns];
     for (int index = 0; index < columns; index++) {
       Object obj = hhRDDReader.readAtColumn(index);

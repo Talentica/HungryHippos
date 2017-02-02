@@ -36,8 +36,7 @@ public class MedianJobExecutor {
           @Override
           public Tuple2<String, Integer> call(byte[] bytes) throws Exception {
             HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
-            ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-            reader.setByteBuffer(byteBuffer);
+            reader.wrap(bytes);
             String key = "";
             for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
               key = key + ((MutableCharArrayString) reader

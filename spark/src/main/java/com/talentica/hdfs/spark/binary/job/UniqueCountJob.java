@@ -25,61 +25,61 @@ public class UniqueCountJob {
 
   private static JavaSparkContext context;
   protected static Logger LOGGER = LoggerFactory.getLogger(UniqueCountJob.class);
-  
-  public static void main(String[] args){
+
+  public static void main(String[] args) {
     String masterIp = args[0];
     String appName = args[1];
     String inputFile = args[2];
     String outputDir = args[3];
     String shardingFolderPath = args[4];
-    
-    initSparkContext(masterIp,appName);
-    
+
+    initSparkContext(masterIp, appName);
+
     DataDescriptionConfig dataDescriptionConfig = new DataDescriptionConfig(shardingFolderPath);
     JavaRDD<byte[]> rdd = context.binaryRecords(inputFile, dataDescriptionConfig.getRowSize());
     Broadcast<FieldTypeArrayDataDescription> dataDes =
         context.broadcast(dataDescriptionConfig.getDataDescription());
-        
-    for(Job job : getSumJobMatrix().getJobs()){
+
+    for (Job job : getSumJobMatrix().getJobs()) {
       Broadcast<Job> broadcastJob = context.broadcast(job);
-      startJob(rdd,dataDes,broadcastJob,outputDir);
+      startJob(rdd, dataDes, broadcastJob, outputDir);
     }
     context.stop();
   }
-  
-  private static void initSparkContext(String masterIp,String appName){
-    if(context == null){
+
+  private static void initSparkContext(String masterIp, String appName) {
+    if (context == null) {
       SparkConf conf = new SparkConf().setMaster(masterIp).setAppName(appName);
       context = new JavaSparkContext(conf);
     }
   }
-  
-  private static JobMatrix getSumJobMatrix(){
+
+  private static JobMatrix getSumJobMatrix() {
     JobMatrix medianJobMatrix = new JobMatrix();
-    medianJobMatrix.addJob(new Job(new Integer[] {0,1},6,0));
+    medianJobMatrix.addJob(new Job(new Integer[] {0, 1}, 6, 0));
     return medianJobMatrix;
   }
-  
-  public static void startJob(JavaRDD<byte[]> rdd,Broadcast<FieldTypeArrayDataDescription> dataDes,
-      Broadcast<Job> broadcastJob,String outputDir) {
-    JavaPairRDD<String, Integer> pairRDD = rdd.repartition(2000).mapToPair(new PairFunction<byte[], String, Integer>() {
-      private static final long serialVersionUID = -1533590342050196085L;
 
-      @Override
-      public Tuple2<String, Integer> call(byte[] buf) throws Exception {
-        HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
-        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-        readerVar.setByteBuffer(byteBuffer);
-        String key = "";
-        for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-          key = key + ((MutableCharArrayString) readerVar
-              .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
-        }
-        key = key + "|id=" + broadcastJob.value().getJobId();
-        Integer value = (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-        return new Tuple2<>(key, value);
-      }
-    });
+  public static void startJob(JavaRDD<byte[]> rdd, Broadcast<FieldTypeArrayDataDescription> dataDes,
+      Broadcast<Job> broadcastJob, String outputDir) {
+    JavaPairRDD<String, Integer> pairRDD =
+        rdd.repartition(2000).mapToPair(new PairFunction<byte[], String, Integer>() {
+          private static final long serialVersionUID = -1533590342050196085L;
+
+          @Override
+          public Tuple2<String, Integer> call(byte[] buf) throws Exception {
+            HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
+            String key = "";
+            for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
+              key = key + ((MutableCharArrayString) readerVar.wrap(buf)
+                  .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
+            }
+            key = key + "|id=" + broadcastJob.value().getJobId();
+            Integer value =
+                (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
+            return new Tuple2<>(key, value);
+          }
+        });
     JavaPairRDD<String, Iterable<Integer>> pairRDDGroupedByKey = pairRDD.groupByKey();
     JavaPairRDD<String, Long> result = pairRDDGroupedByKey
         .mapToPair(new PairFunction<Tuple2<String, Iterable<Integer>>, String, Long>() {

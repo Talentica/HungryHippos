@@ -5,6 +5,7 @@ package com.talentica.spark.test;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
@@ -166,4 +167,15 @@ public class HHDatasetTest implements Serializable {
     context.stop();
   }
 
+  public static void main(String[] args) {
+    byte[] b = new byte[]{12,13};
+    ByteBuffer buffer = ByteBuffer.wrap(b);
+    System.out.println(buffer.get());
+    System.out.println(buffer.get());
+    b[0] = 15;
+    b[1] = 16;
+    buffer.flip();
+    System.out.println(buffer.get());
+    System.out.println(buffer.get());
+  }
 }

@@ -50,8 +50,7 @@ public class SumJobExecutorWithShuffle {
                 @Override
                 public Tuple2<String, Integer> call(byte[] buf) throws Exception {
                     HHRDDRowReader readerVar = new HHRDDRowReader(descriptionBroadcast.getValue());
-                    ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                    readerVar.setByteBuffer(byteBuffer);
+                    readerVar.wrap(buf);
                     String key = "";
                     for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
                         key = key + ((MutableCharArrayString) readerVar

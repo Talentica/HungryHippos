@@ -9,6 +9,7 @@ public interface HungryHippoServicesConstants {
     int DATA_APPENDER = 3;
     int SCP_ACCESS = 4;
     int METADATA_UPDATER = 5;
+    int METADATA_SYNCHRONIZER = 6;
     String SUCCESS = "SUCCESS";
     String FAILURE = "FAILURE";
 

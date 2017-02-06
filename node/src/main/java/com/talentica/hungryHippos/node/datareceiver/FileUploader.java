@@ -82,11 +82,11 @@ public class FileUploader implements Runnable {
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             dos.writeInt(HungryHippoServicesConstants.DATA_APPENDER);
             dos.writeUTF(hhFilePath);
-            dos.writeUTF(remoteTargetFolder);
             dos.writeUTF(tarFileName);
             dos.writeUTF(destinationPath);
             dos.flush();
             File srcFile = new File(srcFolderPath+File.separator+tarFileName);
+            srcFile.deleteOnExit();
             dos.writeLong(srcFile.length());
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
@@ -97,6 +97,7 @@ public class FileUploader implements Runnable {
             }
             dos.flush();
             bis.close();
+            srcFile.delete();
             socketMap.put(idx, socket);
             success = true;
             this.countDownLatch.countDown();

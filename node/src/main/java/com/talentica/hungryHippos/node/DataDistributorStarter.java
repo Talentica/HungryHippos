@@ -20,6 +20,7 @@ public class DataDistributorStarter {
   public static ExecutorService dataAppenderServices;
   public static ExecutorService scpAccessServices;
   public static ExecutorService metadataUpdaterServices;
+  public static ExecutorService metadataSynchronizerServices;
   public static ClientConfig clientConfig;
 
 
@@ -33,11 +34,12 @@ public class DataDistributorStarter {
     int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
     ServerSocket serverSocket = new ServerSocket(8789);
     ExecutorService serviceDeligator = Executors.newFixedThreadPool(10);
-    dataDistributorService = Executors.newFixedThreadPool(1);
+    dataDistributorService = Executors.newFixedThreadPool(4);
     fileProviderService = Executors.newFixedThreadPool(10);
     dataAppenderServices = Executors.newFixedThreadPool(1);
     scpAccessServices = Executors.newFixedThreadPool(1);
     metadataUpdaterServices = Executors.newFixedThreadPool(1);
+    metadataSynchronizerServices = Executors.newFixedThreadPool(1);
     while (true) {
       Socket socket = serverSocket.accept();
       serviceDeligator.execute(new ServiceDeligator(socket));

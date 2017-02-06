@@ -77,11 +77,6 @@ public class DataPublisherStarter {
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       checkFilesInSync(shardingZipRemotePath);
       List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-
-      for (int i = 0; i < nodes.size(); i++) {
-        LOGGER.info("i = {} , node.id = {} , node.ip = {}", i, nodes.get(i).getIdentifier(), nodes.get(i).getIp());
-      }
-
       int noOfChunks = getNoOfChunks(args, nodes);
       File srcFile = new File(sourcePath);
       updateZookeeperNodes(destinationPath);
@@ -143,7 +138,7 @@ public class DataPublisherStarter {
       if (!success) {
         throw new RuntimeException("File Publish Failed for " + destinationPath);
       }
-
+      updateMetaData(destinationPath,nodes);
       updateSuccessFul();
 
       long endTime = System.currentTimeMillis();
@@ -219,12 +214,28 @@ public class DataPublisherStarter {
     }
   }
 
+  public static void updateMetaData(String hhFilePath, List<Node> nodes) throws IOException, InterruptedException {
+    for(int i = 0 ; i< nodes.size(); i++){
+      updateNodeMetaData(hhFilePath,nodes.get(i));
+    }
+  }
+
+  public static void updateNodeMetaData(String hhFilePath, Node node) throws IOException, InterruptedException {
+    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+    DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+    DataInputStream dis = new DataInputStream(socket.getInputStream());
+    dos.writeInt(HungryHippoServicesConstants.METADATA_SYNCHRONIZER);
+    dos.writeUTF(hhFilePath);
+    String status = dis.readUTF();
+    if(!HungryHippoServicesConstants.SUCCESS.equals(status)){
+      throw new RuntimeException("Metadata Synchronizer update failed for ip : "+node.getIp());
+    }
+  }
 
   public static void uploadChunk(String destinationPath, List<Node> nodes, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       int nodeId) throws IOException, InterruptedException {
     Node node = nodes.get(nodeId);
-
     // transferChunk(remotePath, chunkFilePath, node);
     requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, chunk,
         node);
@@ -233,8 +244,7 @@ public class DataPublisherStarter {
   private static void requestDataDistribution(String destinationPath, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       Node node) throws IOException, InterruptedException {
-
-    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
     dataInputStreamMap.put(chunk.getId(), new DataInputStream(socket.getInputStream()));
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
     dos.writeInt(HungryHippoServicesConstants.DATA_DISTRIBUTOR);

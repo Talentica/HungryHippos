@@ -28,7 +28,6 @@ public class DataDistributorService implements Runnable {
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private Socket socket;
-    private static final String SCRIPT_FOR_DATA_DISTRIBUTE = "data-distributor-executor.sh";
 
     public DataDistributorService(Socket socket) throws IOException {
         this.socket = socket;
@@ -77,14 +76,8 @@ public class DataDistributorService implements Runnable {
             System.gc();
             dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             System.out.println("finished reading");
-            String fileIdToHHpath = null;
             if (!NewDataHandler.checkIfFailed(hhFilePath)) {
-                String fileIdToHHBasepath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                        .getZookeeperDefaultConfig().getFileidHhfsMapPath() + HungryHippoCurator.ZK_PATH_SEPERATOR;
-                int fileId = fileIdToHHPathMap(fileIdToHHBasepath, hhFilePath);
-                fileIdToHHpath = fileIdToHHBasepath + fileId;
-                DataDistributor.distribute(hhFilePath, srcDataPath,fileId,fileIdToHHpath);
-                checkPublishStatus(hhFilePath,fileIdToHHpath);
+                DataDistributor.distribute(hhFilePath, srcDataPath);
             }
             dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             dataOutputStream.flush();
@@ -115,23 +108,6 @@ public class DataDistributorService implements Runnable {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void printForExecutionStream(InputStream inputStream, boolean error) throws IOException {
-        String line;
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
-        if(error){
-            while ((line = br.readLine()) != null) {
-                logger.error(line);
-            }
-        }else{
-            while ((line = br.readLine()) != null) {
-                logger.info(line);
-            }
-        }
-
-        br.close();
     }
 
     private void checkPublishStatus(String hhFilePath, String fileIdToHHpath) throws HungryHippoException {

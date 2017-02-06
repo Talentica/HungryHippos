@@ -20,6 +20,7 @@ import com.talentica.hungryHippos.sharding.*;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -59,15 +60,13 @@ public class DataDistributor {
     }
 
 
-  public static void distribute(String hhFilePath, String srcDataPath, int fileId, String fileIdToHHpath) throws Exception {
+  public static void distribute(String hhFilePath, String srcDataPath) throws Exception {
         NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE = Integer.valueOf(
                 DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
         String BAD_RECORDS_FILE = srcDataPath + "_distributor.err";
         String shardingTablePath = getShardingTableLocation(hhFilePath);
         NewDataHandler.updateFilesIfRequired(shardingTablePath);
         ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
-        Map<Integer, String> servers = loadServers();
-
         FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
         dataDescription.setKeyOrder(context.getShardingDimensions());
         byte[] buf = new byte[dataDescription.getSize()];
@@ -77,6 +76,8 @@ public class DataDistributor {
                 context.getKeytovaluetobucketMapFilePath();
         String keyToBucketToNodePath =
                 context.getBuckettoNodeNumberMapFilePath();
+      String bucketCombinationPath =
+              context.getBucketCombinationtoNodeNumbersMapFilePath();
         Map<String, String> dataTypeMap =
                 ShardingFileUtil.getDataTypeMap(context);
 
@@ -86,35 +87,13 @@ public class DataDistributor {
                 ShardingFileUtil.readFromFileKeyToValueToBucket(keyToValueToBucketPath, dataTypeMap);
         HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> keyToBucketToNodetMap =
                 ShardingFileUtil.readFromFileBucketToNodeNumber(keyToBucketToNodePath);
+      Map<BucketCombination, Set<Node>> bucketCombinationNodeMap =
+              ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
         BucketsCalculator bucketsCalculator =
                 new BucketsCalculator(keyToValueToBucketMap, context);
-        Map<Integer, OutputStream> targets = new HashMap<>();
 
-        byte[] fileIdInBytes = ByteBuffer.allocate(4).putInt(fileId).array();
 
         File srcFile = new File(srcDataPath);
-        LOGGER.info("Size of file {} is {}", srcDataPath, srcFile.length());
-        LOGGER.info("***CREATE SOCKET CONNECTIONS*** for {}", hhFilePath);
-
-        Map<Integer, Socket> sockets = new HashMap<>();
-        for (Integer nodeId : servers.keySet()) {
-            String server = servers.get(nodeId);
-            Socket socket = ServerUtils.connectToServer(server, NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE);
-            sockets.put(nodeId, socket);
-            OutputStream os;
-            if(MemoryStatus.getUsableMemory()>8388608){
-                os = new BufferedOutputStream(socket.getOutputStream(), 8388608);
-            }else if (MemoryStatus.getUsableMemory()>8192){
-                os = new BufferedOutputStream(socket.getOutputStream(), 8192);
-            }else{
-                os = new BufferedOutputStream(socket.getOutputStream(), 2048);
-            }
-
-            targets.put(nodeId, os);
-            os.write(fileIdInBytes);
-            os.flush();
-            createNodeLink(fileIdToHHpath, nodeId);
-        }
 
         String dataParserClassName =
                 context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
@@ -122,24 +101,22 @@ public class DataDistributor {
                 (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
                         .newInstance(context.getConfiguredDataDescription());
 
+
         LOGGER.info("\n\tDISTRIBUTION OF DATA ACROSS THE NODES STARTED... for {}", hhFilePath);
 
         if(srcFile.exists()) {
-
+            HHFileMapper hhFileMapper = new HHFileMapper(hhFilePath,context,dataDescription,
+                    keyToBucketToNodetMap,bucketCombinationNodeMap,keyOrder);
             Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
                     srcDataPath, dataParser);
             int lineNo = 0;
             FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
             fileWriter.openFile();
 
-            int flushTriggerCount = 0;
-
             String keyZero = keyOrder[0];
             int[] buckets = new int[keyOrder.length];
             int maxBucketSize =Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
             int index;
-            int receivingNodeId;
-            ByteBuffer indexBuffer = ByteBuffer.allocate(4);
             Bucket<KeyValueFrequency> bucket;
             String key;
             int keyIndex;
@@ -156,12 +133,7 @@ public class DataDistributor {
                     break;
                 }
 
-                keyIndex = Integer.parseInt(keyZero.substring(3)) - 1;
-                bucket = bucketsCalculator.getBucketNumberForValue(keyZero, parts[keyIndex]);
-                buckets[0] = bucket.getId();
-                receivingNodeId = keyToBucketToNodetMap.get(keyZero).get(bucket).getNodeId();
-
-                for (int i = 1; i < keyOrder.length; i++) {
+                for (int i = 0; i < keyOrder.length; i++) {
                     key = keyOrder[i];
                     keyIndex = Integer.parseInt(key.substring(3)) - 1;
                     bucket = bucketsCalculator.getBucketNumberForValue(key, parts[keyIndex]);
@@ -173,25 +145,14 @@ public class DataDistributor {
                 for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
                     dynamicMarshal.writeValue(i, parts[i], byteBuffer);
                 }
-                indexBuffer.clear();
-                targets.get(receivingNodeId).write(indexBuffer.putInt(index).array());
-                targets.get(receivingNodeId).write(buf);
-                flushTriggerCount++;
+                hhFileMapper.storeRow(index,buf);
 
-                if (flushTriggerCount > 100000) {
-                    for (Integer nodeId : targets.keySet()) {
-                        targets.get(nodeId).flush();
-                    }
-                    flushTriggerCount = 0;
-                }
             }
+            srcFile.delete();
+            hhFileMapper.sync();
             fileWriter.close();
         }
-        for (Integer nodeId : targets.keySet()) {
-            targets.get(nodeId).flush();
-            targets.get(nodeId).close();
-            sockets.get(nodeId).close();
-        }
+
       System.gc();
     }
 

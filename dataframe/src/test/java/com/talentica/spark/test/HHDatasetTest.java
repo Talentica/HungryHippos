@@ -130,8 +130,7 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1", "Column2",
-        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");

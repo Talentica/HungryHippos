@@ -22,8 +22,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.foundationdb.sql.StandardException;
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
+import com.talentica.hungryHippos.dataframe.HHSparkSession;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -44,6 +46,7 @@ public class HHDatasetTest implements Serializable {
   private HHRDD hhWithoutJobRDD;
   private HHRDD hhWithJobRDD;
   private SparkSession sparkSession;
+  private HHSparkSession hhSparkSession;
   private HHDatasetBuilder hhDSWithoutJobBuilder;
   private HHDatasetBuilder hhDSWithJobBuilder;
 
@@ -61,46 +64,52 @@ public class HHDatasetTest implements Serializable {
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     hhWithJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
+    hhSparkSession = new HHSparkSession(sparkSession.sparkContext());
     hhDSWithoutJobBuilder =
-        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, sparkSession);
-    hhDSWithJobBuilder = HHDataframeFactory.createHHDataset(hhWithJobRDD, hhrddInfo, sparkSession);
+        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, hhSparkSession);
+    hhDSWithJobBuilder =
+        HHDataframeFactory.createHHDataset(hhWithJobRDD, hhrddInfo, hhSparkSession);
   }
 
   @Test
-  public void testDatasetForBeanByRowWiseWithJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByRowWiseWithJob()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
 
   @Test
-  public void testDatasetForBeanByRowWiseWithoutJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByRowWiseWithoutJob()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
 
   @Test
-  public void testDatasetForBeanByPartitionWithJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByPartitionWithJob()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
 
   @Test
-  public void testDatasetForBeanByPartitionWithoutJob() throws ClassNotFoundException {
+  public void testDatasetForBeanByPartitionWithoutJob()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -108,12 +117,12 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testStructTypeDatasetWithJob()
-      throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(new String[] {"Column1", "Column2",
-        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+      throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
+    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(
+        new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession.sql(
-        "SELECT * FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
+    Dataset<Row> rs = hhSparkSession.sql(
+        "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
@@ -121,10 +130,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1",
-        "Column2", "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1", "Column2",
+        "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession.sql(
+    Dataset<Row> rs = hhSparkSession.sql(
         "SELECT * FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -132,12 +141,12 @@ public class HHDatasetTest implements Serializable {
 
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
-      throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"key1", "key2",
-        "key3", "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
+      throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
+    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(
+        new String[] {"key1", "key2", "key3", null, null, null, "Column4", null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
-        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
+    Dataset<Row> rs = hhSparkSession.sql(
+        "SELECT  Column4 FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
@@ -145,11 +154,12 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testHHJavaRDDAndHHDataset() throws UnsupportedDataTypeException {
     JavaRDD<Row> javaRDD = hhDSWithoutJobBuilder.mapToJavaRDD();
-    StructType schema = hhDSWithoutJobBuilder.createSchema(new String[] {"key1", "key2", "key3",
-        "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
-    Dataset<Row> dataset = sparkSession.sqlContext().createDataFrame(javaRDD, schema);
+    StructType schema = hhDSWithoutJobBuilder.getOrCreateSchema(new String[] {"key1", "key2",
+        "key3", "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
+
+    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(javaRDD, schema);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'c' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -168,7 +178,7 @@ public class HHDatasetTest implements Serializable {
   }
 
   public static void main(String[] args) {
-    byte[] b = new byte[]{12,13};
+    byte[] b = new byte[] {12, 13};
     ByteBuffer buffer = ByteBuffer.wrap(b);
     System.out.println(buffer.get());
     System.out.println(buffer.get());

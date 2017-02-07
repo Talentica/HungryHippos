@@ -19,6 +19,7 @@ import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
+import com.talentica.hungryHippos.dataframe.HHSparkSession;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -38,6 +39,7 @@ public class HHDatasetTestMain {
   private static HHRDDInfo hhrddInfo;
   private static HHRDD hhWithoutJobRDD;
   private static SparkSession sparkSession;
+  private static HHSparkSession hhSparkSession;
   private static HHDatasetBuilder hhDSWithoutJobBuilder;
 
   public static void main(String[] args)
@@ -52,11 +54,12 @@ public class HHDatasetTestMain {
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
+    hhSparkSession = new HHSparkSession(sparkSession.sparkContext());
     hhDSWithoutJobBuilder =
-        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, sparkSession);
+        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, hhSparkSession);
 
     // Column header is user defined.
-    StructType schema = hhDSWithoutJobBuilder.createSchema(
+    StructType schema = hhDSWithoutJobBuilder.getOrCreateSchema(
         new String[] {"Col1", "Col2", "Col3", "Col4", "Col5", "Col6", "Col7", "Col8", "Col9"});
     JavaRDD<Row> rowRDD = hhWithoutJobRDD.toJavaRDD().map(new Function<byte[], Row>() {
       @Override
@@ -64,18 +67,18 @@ public class HHDatasetTestMain {
         return hhDSWithoutJobBuilder.getRow(b);
       }
     });
-    Dataset<Row> dataset = sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = sparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE Col1 LIKE 'a' and Col2 LIKE 'b' and Col3 LIKE 'a' ");
     rs.show(false);
 
     // Simply changed the column header for same RDD.
     StructType schema1 = hhDSWithoutJobBuilder
-        .createSchema(new String[] {"K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9"});
-    Dataset<Row> dataset1 = sparkSession.sqlContext().createDataFrame(rowRDD, schema1);
+        .getOrCreateSchema(new String[] {"K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9"});
+    Dataset<Row> dataset1 = hhSparkSession.sqlContext().createDataFrame(rowRDD, schema1);
     dataset1.createOrReplaceTempView("TableView1");
-    Dataset<Row> rs1 = sparkSession
+    Dataset<Row> rs1 = hhSparkSession
         .sql("SELECT * FROM TableView1 WHERE K1 LIKE 'a' and K2 LIKE 'b' and K3 LIKE 'a' ");
     rs1.show(false);
 

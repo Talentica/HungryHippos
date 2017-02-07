@@ -5,8 +5,10 @@ package com.talentica.hungryHippos.dataframe;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.activation.UnsupportedDataTypeException;
 
@@ -15,13 +17,13 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.dataframe.HHSparkSession.FieldInfo;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
@@ -36,17 +38,20 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 public class HHJavaRDDBuilder implements Serializable {
   private static final long serialVersionUID = -2899308802854212675L;
   protected JavaRDD<byte[]> javaRdd;
-  protected SparkSession sparkSession;
   protected HHRDDRowReader hhRDDReader;
+  protected HHSparkSession hhSparkSession;
 
-  public HHJavaRDDBuilder(HHRDDInfo hhrddInfo) {
+  public HHJavaRDDBuilder(HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
+    this.hhSparkSession = hhSparkSession;
   }
 
-  public HHJavaRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo) {
+  public HHJavaRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
     this.javaRdd = hhRdd.toJavaRDD();
     hhRDDReader = new HHRDDRowReader(hhrddInfo.getFieldDataDesc());
+    this.hhSparkSession = hhSparkSession;
   }
+
 
   /**
    * It translate the each row to a tuple in map.
@@ -116,6 +121,8 @@ public class HHJavaRDDBuilder implements Serializable {
     });
   }
 
+  private StructType schema = null;
+  private Set<FieldInfo> entireFieldInfo = new HashSet<FieldInfo>();
 
   /**
    * It is used to create the schema by providing the schema definition.
@@ -124,49 +131,63 @@ public class HHJavaRDDBuilder implements Serializable {
    * @return StructType
    * @throws UnsupportedDataTypeException
    */
-  public StructType createSchema(String[] fieldName) throws UnsupportedDataTypeException {
-    List<StructField> fields = new ArrayList<>();
+  public StructType getOrCreateSchema(String[] fieldName) throws UnsupportedDataTypeException {
+    List<StructField> fields;
+    if (schema != null) {
+      return schema;
+    } else {
+      fields = new ArrayList<StructField>();
+      entireFieldInfo.clear();
+    }
     for (int index = 0; index < hhRDDReader.getFieldDataDescription()
         .getNumberOfDataFields(); index++) {
+      String name = fieldName[index];
+      if (name == null) {
+        entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false, false));
+        continue;
+      } else {
+        entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false, true));
+      }
       DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(index);
       StructField field = null;
       switch (locator.getDataType()) {
         case BYTE:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.ByteType, true);
+          field = DataTypes.createStructField(name, DataTypes.ByteType, true);
           break;
         case CHAR:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.StringType, true);
+          field = DataTypes.createStructField(name, DataTypes.StringType, true);
           break;
         case SHORT:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.ShortType, true);
+          field = DataTypes.createStructField(name, DataTypes.ShortType, true);
           break;
         case INT:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.IntegerType, true);
+          field = DataTypes.createStructField(name, DataTypes.IntegerType, true);
           break;
         case LONG:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.LongType, true);
+          field = DataTypes.createStructField(name, DataTypes.LongType, true);
           break;
         case FLOAT:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.FloatType, true);
+          field = DataTypes.createStructField(name, DataTypes.FloatType, true);
           break;
         case DOUBLE:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.DoubleType, true);
+          field = DataTypes.createStructField(name, DataTypes.DoubleType, true);
           break;
         case STRING:
-          field = DataTypes.createStructField(fieldName[index], DataTypes.StringType, true);
+          field = DataTypes.createStructField(name, DataTypes.StringType, true);
           break;
         default:
           throw new UnsupportedDataTypeException("Invalid field data type");
       }
       fields.add(field);
     }
-    StructType schema = DataTypes.createStructType(fields);
+    hhSparkSession.setFieldInfo(entireFieldInfo);
+    schema = DataTypes.createStructType(fields);
     return schema;
   }
 
   protected <T> T getTuple(Class<T> beanClazz)
       throws NoSuchFieldException, IllegalAccessException, InstantiationException {
-    return new HHTupleType<T>(hhRDDReader) {
+    return new HHTupleType<T>(hhRDDReader, hhSparkSession) {
       @Override
       public T createTuple() throws InstantiationException, IllegalAccessException {
         return (T) beanClazz.newInstance();
@@ -184,27 +205,35 @@ public class HHJavaRDDBuilder implements Serializable {
    * @throws UnsupportedDataTypeException
    */
   public Row getRow(byte[] b) throws UnsupportedDataTypeException {
-    int columns = hhRDDReader.getFieldDataDescription().getNumberOfDataFields();
+    if (!hhSparkSession.isSqlStmtParsed()) {
+      hhSparkSession.parseSQLStatement();
+    }
     hhRDDReader.wrap(b);
-    Object[] tuple = new Object[columns];
-    for (int index = 0; index < columns; index++) {
-      Object obj = hhRDDReader.readAtColumn(index);
+    Object[] tuple = new Object[hhSparkSession.getTotalSQLFields()];
+    Iterator<FieldInfo> fieldInfoItr = entireFieldInfo.iterator();
+    int index = 0;
+    while (fieldInfoItr.hasNext()) {
+      FieldInfo fieldInfo = fieldInfoItr.next();
+      if (!fieldInfo.isPartOfSqlStmt()) {
+        continue;
+      }
+      Object obj = hhRDDReader.readAtColumn(fieldInfo.getIndex());
       if (obj instanceof MutableCharArrayString) {
-        tuple[index] = ((MutableCharArrayString) hhRDDReader.readAtColumn(index)).toString();
+        tuple[index++] = ((MutableCharArrayString) obj).toString();
       } else if (obj instanceof Double) {
-        tuple[index] = ((Double) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Double) (obj));
       } else if (obj instanceof Integer) {
-        tuple[index] = ((Integer) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Integer) (obj));
       } else if (obj instanceof Byte) {
-        tuple[index] = ((Byte) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Byte) (obj));
       } else if (obj instanceof Character) {
-        tuple[index] = ((Character) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Character) (obj));
       } else if (obj instanceof Short) {
-        tuple[index] = ((Short) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Short) (obj));
       } else if (obj instanceof Long) {
-        tuple[index] = ((Long) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Long) (obj));
       } else if (obj instanceof Float) {
-        tuple[index] = ((Float) (hhRDDReader.readAtColumn(index)));
+        tuple[index++] = ((Float) (obj));
       } else {
         throw new UnsupportedDataTypeException("Invalid data type conversion");
       }

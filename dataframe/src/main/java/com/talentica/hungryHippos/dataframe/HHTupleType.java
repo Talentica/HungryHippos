@@ -7,11 +7,15 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.dataframe.HHSparkSession.FieldInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 /**
@@ -27,6 +31,7 @@ public abstract class HHTupleType<T> implements Cloneable {
   protected List<DataType> dataType = new ArrayList<DataType>();
   private FieldTypeArrayDataDescription dataDescription;
   private HHRDDRowReader hhrddRowReader;
+  private HHSparkSession hhSparkSession;
   protected T tuple;
 
   /**
@@ -38,15 +43,18 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public HHTupleType(HHRDDRowReader hhrddRowReader) throws NoSuchFieldException, SecurityException,
-      IllegalAccessException, InstantiationException {
+  public HHTupleType(HHRDDRowReader hhrddRowReader, HHSparkSession hhSparkSession)
+      throws NoSuchFieldException, SecurityException, IllegalAccessException,
+      InstantiationException {
     this.hhrddRowReader = hhrddRowReader;
+    this.hhSparkSession = hhSparkSession;
     this.dataDescription = hhrddRowReader.getFieldDataDescription();
     for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
       DataLocator locator = dataDescription.locateField(col);
       dataType.add(locator.getDataType());
     }
     defaultTypeValidation();
+    createFieldInfo();
     prepareTuple();
   }
 
@@ -54,7 +62,7 @@ public abstract class HHTupleType<T> implements Cloneable {
     return super.clone();
   }
 
-  public T getTuple() {
+  public T getTuple() throws InstantiationException, IllegalAccessException {
     return this.tuple;
   }
 
@@ -132,6 +140,21 @@ public abstract class HHTupleType<T> implements Cloneable {
     isDataTypeValidated = true;
   }
 
+  private static Set<FieldInfo> entireFieldInfo = new HashSet<FieldInfo>();
+
+  protected void createFieldInfo() throws InstantiationException, IllegalAccessException {
+    if (!entireFieldInfo.isEmpty()) {
+      return;
+    }
+    Field[] fields = getOrderedDeclaredFields(tuple.getClass());
+    for (int index = 0; index < fields.length; index++) {
+      Field column = fields[index];
+      entireFieldInfo
+          .add(hhSparkSession.getFieldInfoInstance(column.getName(), index, false, true));
+    }
+
+  }
+
   /**
    * To make tuple ready with complete information of the row.
    * 
@@ -139,12 +162,21 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @throws IllegalAccessException
    */
   private void prepareTuple() throws NoSuchFieldException, IllegalAccessException {
+    if (!hhSparkSession.isSqlStmtParsed()) {
+      hhSparkSession.setFieldInfo(entireFieldInfo);
+      hhSparkSession.parseSQLStatement();
+    }
     Class<?> clazz = tuple.getClass();
-    int columns = hhrddRowReader.getFieldDataDescription().getNumberOfDataFields();
     Field[] fields = getOrderedDeclaredFields(clazz);
-    for (int col = 0; col < columns; col++) {
-      DataLocator locator = hhrddRowReader.getFieldDataDescription().locateField(col);
-      Field column = fields[col];
+    Iterator<FieldInfo> fieldInfoItr = hhSparkSession.getFieldInfo().iterator();
+    while (fieldInfoItr.hasNext()) {
+      FieldInfo fieldInfo = fieldInfoItr.next();
+      if (!fieldInfo.isPartOfSqlStmt()) {
+        continue;
+      }
+      DataLocator locator =
+          hhrddRowReader.getFieldDataDescription().locateField(fieldInfo.getIndex());
+      Field column = fields[fieldInfo.getIndex()];
       column.setAccessible(true);
       switch (locator.getDataType()) {
         case BYTE:
@@ -175,7 +207,7 @@ public abstract class HHTupleType<T> implements Cloneable {
               Double.valueOf(hhrddRowReader.getByteBuffer().getDouble(locator.getOffset())));
           break;
         case STRING:
-          column.set(tuple, hhrddRowReader.readValueString(col).toString());
+          column.set(tuple, hhrddRowReader.readValueString(fieldInfo.getIndex()).toString());
           break;
         default:
           throw new RuntimeException("Invalid data type");

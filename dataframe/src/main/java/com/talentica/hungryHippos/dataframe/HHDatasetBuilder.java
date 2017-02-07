@@ -10,7 +10,6 @@ import javax.activation.UnsupportedDataTypeException;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
@@ -27,7 +26,6 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
  */
 public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   private static final long serialVersionUID = 3564747948683195956L;
-  private SparkSession sparkSession;
 
   /**
    * Constructor of {@code HHDatasetConverter} which is instantiated if client requires prebuild
@@ -37,19 +35,18 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @param hhrddInfo
    * @param sparkSession
    */
-  public HHDatasetBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, SparkSession sparkSession) {
-    super(hhRdd, hhrddInfo);
-    this.sparkSession = sparkSession;
+  public HHDatasetBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
+    super(hhRdd, hhrddInfo, hhSparkSession);
   }
 
   /**
    * Constructor of {@code HHDatasetConverter} which is required to only if client need utility such
-   * as {@link #getRow(byte[])} or {@link #createSchema(String[])}
+   * as {@link #getRow(byte[])} or {@link #getOrCreateSchema(String[])}
    * 
    * @param hhrddInfo
    */
-  public HHDatasetBuilder(HHRDDInfo hhrddInfo) {
-    super(hhrddInfo);
+  public HHDatasetBuilder(HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
+    super(hhrddInfo, hhSparkSession);
   }
 
 
@@ -60,11 +57,15 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @param beanClazz
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
+   * @throws IllegalAccessException
+   * @throws InstantiationException
    */
-  public <T> Dataset<Row> mapToDataset(Class<T> beanClazz) throws ClassNotFoundException {
+  public <T> Dataset<Row> mapToDataset(Class<T> beanClazz)
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    
     JavaRDD<T> rddDataframe = mapToJavaRDD(beanClazz);
-    Dataset<Row> dataset =
-        sparkSession.sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
+    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rddDataframe,
+        Class.forName(beanClazz.getName()));
     return dataset;
   }
 
@@ -81,9 +82,9 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    */
   public Dataset<Row> mapToDataset(String[] fieldName)
       throws ClassNotFoundException, UnsupportedDataTypeException {
-    StructType schema = createSchema(fieldName);
+    StructType schema = getOrCreateSchema(fieldName);
     JavaRDD<Row> rowRDD = mapToJavaRDD();
-    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    return hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }
 
   /**
@@ -98,7 +99,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   public Dataset<Row> mapToDataset(StructType schema)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     JavaRDD<Row> rowRDD = mapToJavaRDD();
-    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    return hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }
 
 
@@ -109,11 +110,13 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @param beanClazz
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
+   * @throws IllegalAccessException 
+   * @throws InstantiationException 
    */
-  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz) throws ClassNotFoundException {
+  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JavaRDD<T> rddDataframe = mapPartitionToJavaRDD(beanClazz);
-    Dataset<Row> dataset =
-        sparkSession.sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
+    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rddDataframe,
+        Class.forName(beanClazz.getName()));
     return dataset;
   }
 
@@ -129,9 +132,9 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    */
   public Dataset<Row> mapPartitionToDataset(String[] fieldName)
       throws ClassNotFoundException, UnsupportedDataTypeException {
-    StructType schema = createSchema(fieldName);
+    StructType schema = getOrCreateSchema(fieldName);
     JavaRDD<Row> rowRDD = mapPartitionToJavaRDD();
-    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    return hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }
 
   /**
@@ -146,7 +149,7 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
   public Dataset<Row> mapPartitionToDataset(StructType schema)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     JavaRDD<Row> rowRDD = mapPartitionToJavaRDD();
-    return sparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    return hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
   }
 
 }

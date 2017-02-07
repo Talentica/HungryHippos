@@ -149,8 +149,7 @@ public abstract class HHTupleType<T> implements Cloneable {
     Field[] fields = getOrderedDeclaredFields(tuple.getClass());
     for (int index = 0; index < fields.length; index++) {
       Field column = fields[index];
-      entireFieldInfo
-          .add(hhSparkSession.getFieldInfoInstance(column.getName(), index, false, true));
+      entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(column.getName(), index, false));
     }
 
   }

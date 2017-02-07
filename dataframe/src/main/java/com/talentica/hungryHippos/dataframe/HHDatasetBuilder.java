@@ -10,6 +10,7 @@ import javax.activation.UnsupportedDataTypeException;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
@@ -62,10 +63,10 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    */
   public <T> Dataset<Row> mapToDataset(Class<T> beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    
     JavaRDD<T> rddDataframe = mapToJavaRDD(beanClazz);
     Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rddDataframe,
         Class.forName(beanClazz.getName()));
+    hhSparkSession.setLogicalPlan(dataset.logicalPlan());
     return dataset;
   }
 
@@ -84,7 +85,10 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
       throws ClassNotFoundException, UnsupportedDataTypeException {
     StructType schema = getOrCreateSchema(fieldName);
     JavaRDD<Row> rowRDD = mapToJavaRDD();
-    return hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rowRDD, schema);
+    LogicalPlan logicalPlan = dataset.logicalPlan();
+    hhSparkSession.setLogicalPlan(logicalPlan);
+    return dataset;
   }
 
   /**
@@ -110,10 +114,11 @@ public class HHDatasetBuilder extends HHJavaRDDBuilder implements Serializable {
    * @param beanClazz
    * @return {@code Dataset<Row>}
    * @throws ClassNotFoundException
-   * @throws IllegalAccessException 
-   * @throws InstantiationException 
+   * @throws IllegalAccessException
+   * @throws InstantiationException
    */
-  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz)
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JavaRDD<T> rddDataframe = mapPartitionToJavaRDD(beanClazz);
     Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(rddDataframe,
         Class.forName(beanClazz.getName()));

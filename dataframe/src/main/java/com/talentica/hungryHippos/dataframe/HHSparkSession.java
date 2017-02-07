@@ -11,6 +11,7 @@ import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan;
 
 /**
  * @author pooshans
@@ -18,10 +19,11 @@ import org.apache.spark.sql.SparkSession;
  */
 public class HHSparkSession extends SparkSession {
   private static final long serialVersionUID = -7510199519029156054L;
-  private int totalFieldsInSQLStmt;
+  private int selectedColumnsInSQLStmt;
   private Set<FieldInfo> entireFieldInfo;
   private String sqlText;
   protected boolean sqlStmtParsed = false;
+  protected LogicalPlan logicalPlan;
 
   public HHSparkSession(SparkContext sc) {
     super(sc);
@@ -30,11 +32,10 @@ public class HHSparkSession extends SparkSession {
   @Override
   public Dataset<Row> sql(String sqlText) {
     return super.sql(this.sqlText = sqlText);
-
   }
 
   protected void parseSQLStatement() {
-    totalFieldsInSQLStmt = 0;
+    selectedColumnsInSQLStmt = 0;
     if (sqlText == null)
       throw new RuntimeException("SQL query can not be null");
     if (sqlText.contains("*")) {
@@ -46,11 +47,15 @@ public class HHSparkSession extends SparkSession {
         if (fieldInfo.getName() != null && sqlText.contains(fieldInfo.getName())
             && !fieldInfo.isPartOfSqlStmt()) {
           fieldInfo.setPartOfSqlStmt(true);
-          totalFieldsInSQLStmt++;
+          selectedColumnsInSQLStmt++;
         }
       }
     }
     sqlStmtParsed = true;
+  }
+
+  protected void setLogicalPlan(LogicalPlan logicalPlan) {
+    this.logicalPlan = logicalPlan;
   }
 
   private void setAllTrue() {
@@ -58,7 +63,7 @@ public class HHSparkSession extends SparkSession {
     while (fieldInfoItr.hasNext()) {
       FieldInfo fieldInfo = fieldInfoItr.next();
       fieldInfo.setPartOfSqlStmt(true);
-      totalFieldsInSQLStmt++;
+      selectedColumnsInSQLStmt++;
     }
   }
 
@@ -79,12 +84,11 @@ public class HHSparkSession extends SparkSession {
   }
 
   protected int getTotalSQLFields() {
-    return totalFieldsInSQLStmt;
+    return selectedColumnsInSQLStmt;
   }
 
-  protected FieldInfo getFieldInfoInstance(String name, int index, boolean partOfSqlStmt,
-      boolean partOfDataset) {
-    return new FieldInfo(name, index, partOfSqlStmt, partOfDataset);
+  protected FieldInfo getFieldInfoInstance(String name, int index, boolean partOfSqlStmt) {
+    return new FieldInfo(name, index, partOfSqlStmt);
   }
 
   protected class FieldInfo implements Serializable {
@@ -92,13 +96,11 @@ public class HHSparkSession extends SparkSession {
     private String name;
     private int index;
     private boolean partOfSqlStmt;
-    private boolean partOfDataset;
 
-    public FieldInfo(String name, int index, boolean partOfSqlStmt, boolean partOfDataset) {
+    public FieldInfo(String name, int index, boolean partOfSqlStmt) {
       this.name = name;
       this.index = index;
       this.partOfSqlStmt = partOfSqlStmt;
-      this.partOfDataset = partOfDataset;
     }
 
     public String getName() {
@@ -123,14 +125,6 @@ public class HHSparkSession extends SparkSession {
 
     public void setPartOfSqlStmt(boolean partOfSqlStmt) {
       this.partOfSqlStmt = partOfSqlStmt;
-    }
-
-    public boolean isPartOfDataset() {
-      return partOfDataset;
-    }
-
-    public void setPartOfDataset(boolean partOfDataset) {
-      this.partOfDataset = partOfDataset;
     }
 
     @Override

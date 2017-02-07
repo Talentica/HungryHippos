@@ -142,11 +142,9 @@ public class HHJavaRDDBuilder implements Serializable {
     for (int index = 0; index < hhRDDReader.getFieldDataDescription()
         .getNumberOfDataFields(); index++) {
       String name = fieldName[index];
+      entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false));
       if (name == null) {
-        entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false, false));
         continue;
-      } else {
-        entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false, true));
       }
       DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(index);
       StructField field = null;

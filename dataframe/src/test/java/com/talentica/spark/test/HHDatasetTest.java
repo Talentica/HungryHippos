@@ -134,7 +134,7 @@ public class HHDatasetTest implements Serializable {
         "Column3", "Column4", "Column5", "Column6", "Column7", "Column8", "Column9"});
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
-        "SELECT * FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
+        "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }

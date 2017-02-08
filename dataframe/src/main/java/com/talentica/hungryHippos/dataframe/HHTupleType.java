@@ -7,15 +7,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.dataframe.HHSparkSession.FieldInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 
 /**
@@ -54,7 +51,6 @@ public abstract class HHTupleType<T> implements Cloneable {
       dataType.add(locator.getDataType());
     }
     defaultTypeValidation();
-    createFieldInfo();
     prepareTuple();
   }
 
@@ -85,12 +81,12 @@ public abstract class HHTupleType<T> implements Cloneable {
     if (isDataTypeValidated)
       return;
     Field[] fields = getOrderedDeclaredFields(tuple.getClass());
-    if (fields.length != dataType.size()) {
-      throw new RuntimeException("Number of fields mismatch defined in Tuple.");
-    }
-    for (int index = 0; index < dataType.size(); index++) {
-      DataLocator locator = dataDescription.locateField(index);
-      Field column = fields[index];
+    Iterator<Column> colItr = hhSparkSession.getColumnInfo().iterator();
+    while(colItr.hasNext()) {
+      Column col = colItr.next();
+      if(!col.isPartOfSqlStmt()) continue;
+      DataLocator locator = dataDescription.locateField(col.getIndex());
+      Field column = fields[col.getIndex()];
       switch (locator.getDataType()) {
         case BYTE:
           if (!column.getGenericType().getTypeName().equals(Byte.TYPE.getName()))
@@ -140,20 +136,6 @@ public abstract class HHTupleType<T> implements Cloneable {
     isDataTypeValidated = true;
   }
 
-  private static Set<FieldInfo> entireFieldInfo = new HashSet<FieldInfo>();
-
-  protected void createFieldInfo() throws InstantiationException, IllegalAccessException {
-    if (!entireFieldInfo.isEmpty()) {
-      return;
-    }
-    Field[] fields = getOrderedDeclaredFields(tuple.getClass());
-    for (int index = 0; index < fields.length; index++) {
-      Field column = fields[index];
-      entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(column.getName(), index, false));
-    }
-
-  }
-
   /**
    * To make tuple ready with complete information of the row.
    * 
@@ -161,21 +143,15 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @throws IllegalAccessException
    */
   private void prepareTuple() throws NoSuchFieldException, IllegalAccessException {
-    if (!hhSparkSession.isSqlStmtParsed()) {
-      hhSparkSession.setFieldInfo(entireFieldInfo);
-      hhSparkSession.parseSQLStatement();
-    }
     Class<?> clazz = tuple.getClass();
     Field[] fields = getOrderedDeclaredFields(clazz);
-    Iterator<FieldInfo> fieldInfoItr = hhSparkSession.getFieldInfo().iterator();
+    Iterator<Column> fieldInfoItr = hhSparkSession.getColumnInfo().iterator();
     while (fieldInfoItr.hasNext()) {
-      FieldInfo fieldInfo = fieldInfoItr.next();
-      if (!fieldInfo.isPartOfSqlStmt()) {
-        continue;
-      }
+      Column columnInfo = fieldInfoItr.next();
+      if(!columnInfo.isPartOfSqlStmt()) continue;
       DataLocator locator =
-          hhrddRowReader.getFieldDataDescription().locateField(fieldInfo.getIndex());
-      Field column = fields[fieldInfo.getIndex()];
+          hhrddRowReader.getFieldDataDescription().locateField(columnInfo.getIndex());
+      Field column = fields[columnInfo.getIndex()];
       column.setAccessible(true);
       switch (locator.getDataType()) {
         case BYTE:
@@ -206,7 +182,7 @@ public abstract class HHTupleType<T> implements Cloneable {
               Double.valueOf(hhrddRowReader.getByteBuffer().getDouble(locator.getOffset())));
           break;
         case STRING:
-          column.set(tuple, hhrddRowReader.readValueString(fieldInfo.getIndex()).toString());
+          column.set(tuple, hhrddRowReader.readValueString(columnInfo.getIndex()).toString());
           break;
         default:
           throw new RuntimeException("Invalid data type");

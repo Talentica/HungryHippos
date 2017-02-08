@@ -3,9 +3,9 @@
  */
 package com.talentica.hungryHippos.dataframe;
 
-import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import javax.activation.UnsupportedDataTypeException;
 
@@ -25,22 +25,19 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
  */
 public class HHSparkSession extends SparkSession {
   private static final long serialVersionUID = -7510199519029156054L;
-  private int selectedColumnsInSQLStmt;
-  private Set<FieldInfo> entireFieldInfo;
-  private String sqlText;
-  protected boolean sqlStmtParsed = false;
   private HHJavaRDDBuilder hhJavaRDDBuilder;
+  private HashSet<Column> columnInfo;
 
   public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
     super(sc);
     this.hhJavaRDDBuilder = HHDataframeFactory.createHHJavaRDD(hhRdd, hhrddInfo, this);
+    this.columnInfo = new HashSet<>();
   }
 
   @Override
   public Dataset<Row> sql(String sqlText) {
-    return super.sql(this.sqlText = sqlText);
+    return super.sql(sqlText);
   }
-
 
   /**
    * To translate the HungryHippos's row representation to required Spark data set format processing
@@ -71,9 +68,8 @@ public class HHSparkSession extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapToDataset(String[] fieldName)
-      throws ClassNotFoundException, UnsupportedDataTypeException {
-    StructType schema = hhJavaRDDBuilder.getOrCreateSchema(fieldName);
+  public Dataset<Row> mapToDataset() throws ClassNotFoundException, UnsupportedDataTypeException {
+    StructType schema = hhJavaRDDBuilder.getOrCreateSchema();
     JavaRDD<Row> rowRDD = hhJavaRDDBuilder.mapToJavaRDD();
     Dataset<Row> dataset = sqlContext().createDataFrame(rowRDD, schema);
     return dataset;
@@ -123,9 +119,9 @@ public class HHSparkSession extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapPartitionToDataset(String[] fieldName)
+  public Dataset<Row> mapPartitionToDataset()
       throws ClassNotFoundException, UnsupportedDataTypeException {
-    StructType schema = hhJavaRDDBuilder.getOrCreateSchema(fieldName);
+    StructType schema = hhJavaRDDBuilder.getOrCreateSchema();
     JavaRDD<Row> rowRDD = hhJavaRDDBuilder.mapPartitionToJavaRDD();
     return sqlContext().createDataFrame(rowRDD, schema);
   }
@@ -145,120 +141,40 @@ public class HHSparkSession extends SparkSession {
     return sqlContext().createDataFrame(rowRDD, schema);
   }
 
+  public HHSparkSession add(Column column) {
+    this.columnInfo.add(column);
+    return this;
+  }
 
-  protected void parseSQLStatement() {
-    selectedColumnsInSQLStmt = 0;
-    if (sqlText == null)
-      throw new RuntimeException("SQL query can not be null");
-    if (sqlText.contains("*")) {
-      setAllTrue();
-    } else {
-      Iterator<FieldInfo> fieldInfoItr = entireFieldInfo.iterator();
-      while (fieldInfoItr.hasNext()) {
-        FieldInfo fieldInfo = fieldInfoItr.next();
-        if (fieldInfo.getName() != null && sqlText.contains(fieldInfo.getName())
-            && !fieldInfo.isPartOfSqlStmt()) {
-          fieldInfo.setPartOfSqlStmt(true);
-          selectedColumnsInSQLStmt++;
-        }
+  public HashSet<Column> getColumnInfo() {
+    return columnInfo;
+  }
+
+  public void start() {
+    if (!columnInfo.isEmpty()) {
+      columnInfo.clear();
+    }
+  }
+
+  /**
+   * It toggle the status of the column. If the status of the column is false it makes it true and
+   * vice-versa.
+   * 
+   * @param name
+   */
+  public void toggleColumnStatus(String name) {
+    Iterator<Column> colItr = columnInfo.iterator();
+    while (colItr.hasNext()) {
+      Column col = colItr.next();
+      if (col.getName().equalsIgnoreCase(name)) {
+        col.setPartOfSqlStmt(!col.isPartOfSqlStmt());
+        break;
       }
     }
-    sqlStmtParsed = true;
   }
 
-
-  private void setAllTrue() {
-    Iterator<FieldInfo> fieldInfoItr = entireFieldInfo.iterator();
-    while (fieldInfoItr.hasNext()) {
-      FieldInfo fieldInfo = fieldInfoItr.next();
-      fieldInfo.setPartOfSqlStmt(true);
-      selectedColumnsInSQLStmt++;
-    }
-  }
-
-  public boolean isSqlStmtParsed() {
-    return sqlStmtParsed;
-  }
-
-  public void setSqlStmtParsed(boolean sqlStmtParsed) {
-    this.sqlStmtParsed = sqlStmtParsed;
-  }
-
-  protected void setFieldInfo(Set<FieldInfo> entireFieldInfo) {
-    this.entireFieldInfo = entireFieldInfo;
-  }
-
-  protected Set<FieldInfo> getFieldInfo() {
-    return entireFieldInfo;
-  }
-
-  protected int getTotalSQLFields() {
-    return selectedColumnsInSQLStmt;
-  }
-
-  protected FieldInfo getFieldInfoInstance(String name, int index, boolean partOfSqlStmt) {
-    return new FieldInfo(name, index, partOfSqlStmt);
-  }
-
-  protected class FieldInfo implements Serializable {
-    private static final long serialVersionUID = 9070250323611650296L;
-    private String name;
-    private int index;
-    private boolean partOfSqlStmt;
-
-    public FieldInfo(String name, int index, boolean partOfSqlStmt) {
-      this.name = name;
-      this.index = index;
-      this.partOfSqlStmt = partOfSqlStmt;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public int getIndex() {
-      return index;
-    }
-
-    public void setIndex(int index) {
-      this.index = index;
-    }
-
-    public boolean isPartOfSqlStmt() {
-      return partOfSqlStmt;
-    }
-
-    public void setPartOfSqlStmt(boolean partOfSqlStmt) {
-      this.partOfSqlStmt = partOfSqlStmt;
-    }
-
-    @Override
-    public String toString() {
-      return "FieldInfo [name=" + name + ", index=" + index + "]";
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o)
-        return true;
-      if (o == null || !(o instanceof FieldInfo)) {
-        return false;
-      }
-      FieldInfo that = (FieldInfo) o;
-      return name.equals(that.name) && index == that.index;
-    }
-
-    @Override
-    public int hashCode() {
-      int h = 0;
-      h = 31 * index + (name != null ? name.hashCode() : 0);
-      return h;
-    }
-
+  public void end() {
+    columnInfo.clear();
   }
 
 }

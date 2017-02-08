@@ -5,10 +5,8 @@ package com.talentica.hungryHippos.dataframe;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.activation.UnsupportedDataTypeException;
 
@@ -23,7 +21,6 @@ import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.dataframe.HHSparkSession.FieldInfo;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
@@ -37,7 +34,7 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
  * @since 25/01/2017
  *
  */
-public class HHJavaRDDBuilder<T> implements Serializable {
+public class HHJavaRDDBuilder implements Serializable {
   private static final long serialVersionUID = -2899308802854212675L;
   protected JavaRDD<byte[]> javaRdd;
   protected HHRDDRowReader hhRDDReader;
@@ -123,9 +120,6 @@ public class HHJavaRDDBuilder<T> implements Serializable {
     });
   }
 
-  private StructType schema = null;
-  private Set<FieldInfo> entireFieldInfo = new HashSet<FieldInfo>();
-
   /**
    * It is used to create the schema by providing the schema definition.
    * 
@@ -133,54 +127,45 @@ public class HHJavaRDDBuilder<T> implements Serializable {
    * @return StructType
    * @throws UnsupportedDataTypeException
    */
-  public StructType getOrCreateSchema(String[] fieldName) throws UnsupportedDataTypeException {
-    List<StructField> fields;
-    if (schema != null) {
-      return schema;
-    } else {
-      fields = new ArrayList<StructField>();
-      entireFieldInfo.clear();
-    }
-    for (int index = 0; index < hhRDDReader.getFieldDataDescription()
-        .getNumberOfDataFields(); index++) {
-      String name = fieldName[index];
-      entireFieldInfo.add(hhSparkSession.getFieldInfoInstance(name, index, false));
-      if (name == null) {
-        continue;
-      }
-      DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(index);
+  public StructType getOrCreateSchema() throws UnsupportedDataTypeException {
+    StructType schema;
+    List<StructField> fields = new ArrayList<StructField>();
+    Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
+    while (columnItr.hasNext()) {
+      Column column = columnItr.next();
+      if(!column.isPartOfSqlStmt()) continue;
+      DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(column.getIndex());
       StructField field = null;
       switch (locator.getDataType()) {
         case BYTE:
-          field = DataTypes.createStructField(name, DataTypes.ByteType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.ByteType, true);
           break;
         case CHAR:
-          field = DataTypes.createStructField(name, DataTypes.StringType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.StringType, true);
           break;
         case SHORT:
-          field = DataTypes.createStructField(name, DataTypes.ShortType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.ShortType, true);
           break;
         case INT:
-          field = DataTypes.createStructField(name, DataTypes.IntegerType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.IntegerType, true);
           break;
         case LONG:
-          field = DataTypes.createStructField(name, DataTypes.LongType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.LongType, true);
           break;
         case FLOAT:
-          field = DataTypes.createStructField(name, DataTypes.FloatType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.FloatType, true);
           break;
         case DOUBLE:
-          field = DataTypes.createStructField(name, DataTypes.DoubleType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.DoubleType, true);
           break;
         case STRING:
-          field = DataTypes.createStructField(name, DataTypes.StringType, true);
+          field = DataTypes.createStructField(column.getName(), DataTypes.StringType, true);
           break;
         default:
           throw new UnsupportedDataTypeException("Invalid field data type");
       }
       fields.add(field);
     }
-    hhSparkSession.setFieldInfo(entireFieldInfo);
     schema = DataTypes.createStructType(fields);
     return schema;
   }
@@ -196,8 +181,6 @@ public class HHJavaRDDBuilder<T> implements Serializable {
     }.getTuple();
   }
 
-  boolean init = false;
-
   /**
    * It is used to convert the byte representation of the row into Spark recognized Row.
    * 
@@ -206,19 +189,14 @@ public class HHJavaRDDBuilder<T> implements Serializable {
    * @throws UnsupportedDataTypeException
    */
   public Row getRow(byte[] b) throws UnsupportedDataTypeException {
-    if (!hhSparkSession.isSqlStmtParsed()) {
-      hhSparkSession.parseSQLStatement();
-    }
     hhRDDReader.wrap(b);
-    Object[] tuple = new Object[hhSparkSession.getTotalSQLFields()];
-    Iterator<FieldInfo> fieldInfoItr = entireFieldInfo.iterator();
+    Object[] tuple = new Object[hhSparkSession.getColumnInfo().size()];
+    Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
     int index = 0;
-    while (fieldInfoItr.hasNext()) {
-      FieldInfo fieldInfo = fieldInfoItr.next();
-      if (!fieldInfo.isPartOfSqlStmt()) {
-        continue;
-      }
-      Object obj = hhRDDReader.readAtColumn(fieldInfo.getIndex());
+    while (columnItr.hasNext()) {
+      Column column = columnItr.next();
+      if(!column.isPartOfSqlStmt()) continue;
+      Object obj = hhRDDReader.readAtColumn(column.getIndex());
       if (obj instanceof MutableCharArrayString) {
         tuple[index++] = ((MutableCharArrayString) obj).toString();
       } else if (obj instanceof Double) {

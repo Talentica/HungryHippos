@@ -32,10 +32,12 @@ import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
  * To create the HHJavaRDD by translating the HH row records to spark recognized RDD row.
  * 
  * @author pooshans
+ * @param <T>
+ * @param <T>
  * @since 25/01/2017
  *
  */
-public class HHJavaRDDBuilder implements Serializable {
+public class HHJavaRDDBuilder<T> implements Serializable {
   private static final long serialVersionUID = -2899308802854212675L;
   protected JavaRDD<byte[]> javaRdd;
   protected HHRDDRowReader hhRDDReader;
@@ -183,12 +185,13 @@ public class HHJavaRDDBuilder implements Serializable {
     return schema;
   }
 
-  protected <T> T getTuple(Class<T> beanClazz)
-      throws NoSuchFieldException, IllegalAccessException, InstantiationException {
+
+  protected <T> T getTuple(Class<T> beanClazz) throws NoSuchFieldException, IllegalAccessException,
+      InstantiationException, CloneNotSupportedException {
     return new HHTupleType<T>(hhRDDReader, hhSparkSession) {
       @Override
       public T createTuple() throws InstantiationException, IllegalAccessException {
-        return (T) beanClazz.newInstance();
+        return beanClazz.newInstance();
       }
     }.getTuple();
   }

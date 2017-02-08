@@ -11,20 +11,16 @@ import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.StructType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.foundationdb.sql.StandardException;
-import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
-import com.talentica.hungryHippos.dataframe.HHDatasetBuilder;
 import com.talentica.hungryHippos.dataframe.HHSparkSession;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
@@ -45,10 +41,8 @@ public class HHDatasetTest implements Serializable {
   private HHRDDInfo hhrddInfo;
   private HHRDD hhWithoutJobRDD;
   private HHRDD hhWithJobRDD;
-  private SparkSession sparkSession;
-  private HHSparkSession hhSparkSession;
-  private HHDatasetBuilder hhDSWithoutJobBuilder;
-  private HHDatasetBuilder hhDSWithJobBuilder;
+  private HHSparkSession hhWithoutJobSparkSession;
+  private HHSparkSession hhWithJobSparkSession;
 
   @Before
   public void setUp() throws FileNotFoundException, JAXBException, UnsupportedDataTypeException,
@@ -63,21 +57,20 @@ public class HHDatasetTest implements Serializable {
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
     hhWithJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
-    sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhSparkSession = new HHSparkSession(sparkSession.sparkContext());
-    hhDSWithoutJobBuilder =
-        HHDataframeFactory.createHHDataset(hhWithoutJobRDD, hhrddInfo, hhSparkSession);
-    hhDSWithJobBuilder =
-        HHDataframeFactory.createHHDataset(hhWithJobRDD, hhrddInfo, hhSparkSession);
+    SparkSession sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
+    hhWithoutJobSparkSession =
+        new HHSparkSession(sparkSession.sparkContext(), hhWithoutJobRDD, hhrddInfo);
+    hhWithJobSparkSession =
+        new HHSparkSession(sparkSession.sparkContext(), hhWithJobRDD, hhrddInfo);
   }
 
   @Test
   public void testDatasetForBeanByRowWiseWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession
-        .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
+    Dataset<Row> rs = hhWithJobSparkSession
+        .sql("SELECT col1,col4 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
@@ -85,9 +78,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession
+    Dataset<Row> rs = hhWithoutJobSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -96,9 +89,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByPartitionWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession
+    Dataset<Row> rs = hhWithJobSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -107,9 +100,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByPartitionWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession
+    Dataset<Row> rs = hhWithoutJobSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -118,10 +111,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    Dataset<Row> dataset = hhDSWithJobBuilder.mapToDataset(
+    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(
         new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession.sql(
+    Dataset<Row> rs = hhWithJobSparkSession.sql(
         "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -130,9 +123,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
+    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(
+        new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession.sql(
+    Dataset<Row> rs = hhWithoutJobSparkSession.sql(
         "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -141,28 +135,15 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    Dataset<Row> dataset = hhDSWithoutJobBuilder.mapToDataset(
+    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(
         new String[] {"key1", "key2", "key3", null, null, null, "Column4", null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession.sql(
+    Dataset<Row> rs = hhWithoutJobSparkSession.sql(
         "SELECT  Column4 FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
   }
 
-  @Test
-  public void testHHJavaRDDAndHHDataset() throws UnsupportedDataTypeException {
-    JavaRDD<Row> javaRDD = hhDSWithoutJobBuilder.mapToJavaRDD();
-    StructType schema = hhDSWithoutJobBuilder.getOrCreateSchema(new String[] {"key1", "key2",
-        "key3", "Column1", "Column2", "Column3", "Column4", "Column5", "Column6"});
-
-    Dataset<Row> dataset = hhSparkSession.sqlContext().createDataFrame(javaRDD, schema);
-    dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhSparkSession
-        .sql("SELECT * FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'c' ");
-    rs.show(false);
-    Assert.assertTrue(rs.count() > 0);
-  }
 
   private void initSparkContext(String masterIp, String appName) {
     if (context == null) {

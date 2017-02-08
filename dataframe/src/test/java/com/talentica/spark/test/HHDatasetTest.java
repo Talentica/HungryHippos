@@ -39,10 +39,10 @@ public class HHDatasetTest implements Serializable {
   private String clientConfigPath;
   private JavaSparkContext context;
   private HHRDDInfo hhrddInfo;
-  private HHRDD hhWithoutJobRDD;
-  private HHRDD hhWithJobRDD;
-  private HHSparkSession hhWithoutJobSparkSession;
-  private HHSparkSession hhWithJobSparkSession;
+  private HHRDD hhDefaultRDD;
+  private HHRDD hhJobRDD;
+  private HHSparkSession hhSparkSession;
+  private HHSparkSession hhJobSparkSession;
 
   @Before
   public void setUp() throws FileNotFoundException, JAXBException, UnsupportedDataTypeException,
@@ -55,21 +55,21 @@ public class HHDatasetTest implements Serializable {
     initSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
-    hhWithoutJobRDD = new HHRDD(context, hhrddInfo, false);
-    hhWithJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
+    hhDefaultRDD = new HHRDD(context, hhrddInfo, false);
+    hhJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
     SparkSession sparkSession = SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhWithoutJobSparkSession =
-        new HHSparkSession(sparkSession.sparkContext(), hhWithoutJobRDD, hhrddInfo);
-    hhWithJobSparkSession =
-        new HHSparkSession(sparkSession.sparkContext(), hhWithJobRDD, hhrddInfo);
+    hhSparkSession =
+        new HHSparkSession(sparkSession.sparkContext(), hhDefaultRDD, hhrddInfo);
+    hhJobSparkSession =
+        new HHSparkSession(sparkSession.sparkContext(), hhJobRDD, hhrddInfo);
   }
 
   @Test
   public void testDatasetForBeanByRowWiseWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithJobSparkSession
+    Dataset<Row> rs = hhJobSparkSession
         .sql("SELECT col1,col4 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -78,9 +78,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithoutJobSparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -89,9 +89,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByPartitionWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithJobSparkSession
+    Dataset<Row> rs = hhJobSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -100,9 +100,9 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testDatasetForBeanByPartitionWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithoutJobSparkSession
+    Dataset<Row> rs = hhSparkSession
         .sql("SELECT * FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -111,10 +111,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    Dataset<Row> dataset = hhWithJobSparkSession.mapToDataset(
+    Dataset<Row> dataset = hhJobSparkSession.mapToDataset(
         new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithJobSparkSession.sql(
+    Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -123,10 +123,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(
+    Dataset<Row> dataset = hhSparkSession.mapToDataset(
         new String[] {"Column1", "Column2", "Column3", null, null, null, null, null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithoutJobSparkSession.sql(
+    Dataset<Row> rs = hhSparkSession.sql(
         "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);
@@ -135,10 +135,10 @@ public class HHDatasetTest implements Serializable {
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    Dataset<Row> dataset = hhWithoutJobSparkSession.mapToDataset(
+    Dataset<Row> dataset = hhSparkSession.mapToDataset(
         new String[] {"key1", "key2", "key3", null, null, null, "Column4", null, null});
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhWithoutJobSparkSession.sql(
+    Dataset<Row> rs = hhSparkSession.sql(
         "SELECT  Column4 FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs.show(false);
     Assert.assertTrue(rs.count() > 0);

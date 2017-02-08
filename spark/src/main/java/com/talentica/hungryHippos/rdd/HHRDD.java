@@ -9,7 +9,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
 import org.apache.spark.TaskContext;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.rdd.RDD;
 
 import scala.collection.Iterator;
@@ -109,4 +111,5 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     }
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
+
 }

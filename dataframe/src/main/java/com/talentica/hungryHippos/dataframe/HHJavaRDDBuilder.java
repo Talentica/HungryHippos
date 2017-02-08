@@ -133,7 +133,8 @@ public class HHJavaRDDBuilder implements Serializable {
     Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
     while (columnItr.hasNext()) {
       Column column = columnItr.next();
-      if(!column.isPartOfSqlStmt()) continue;
+      if (!column.isPartOfSqlStmt())
+        continue;
       DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(column.getIndex());
       StructField field = null;
       switch (locator.getDataType()) {
@@ -171,7 +172,7 @@ public class HHJavaRDDBuilder implements Serializable {
   }
 
 
-  protected <T> T getTuple(Class<T> beanClazz) throws NoSuchFieldException, IllegalAccessException,
+  private <T> T getTuple(Class<T> beanClazz) throws NoSuchFieldException, IllegalAccessException,
       InstantiationException, CloneNotSupportedException {
     return new HHTupleType<T>(hhRDDReader, hhSparkSession) {
       @Override
@@ -188,14 +189,15 @@ public class HHJavaRDDBuilder implements Serializable {
    * @return Row
    * @throws UnsupportedDataTypeException
    */
-  public Row getRow(byte[] b) throws UnsupportedDataTypeException {
+  private Row getRow(byte[] b) throws UnsupportedDataTypeException {
     hhRDDReader.wrap(b);
     Object[] tuple = new Object[hhSparkSession.getColumnInfo().size()];
     Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
     int index = 0;
     while (columnItr.hasNext()) {
       Column column = columnItr.next();
-      if(!column.isPartOfSqlStmt()) continue;
+      if (!column.isPartOfSqlStmt())
+        continue;
       Object obj = hhRDDReader.readAtColumn(column.getIndex());
       if (obj instanceof MutableCharArrayString) {
         tuple[index++] = ((MutableCharArrayString) obj).toString();

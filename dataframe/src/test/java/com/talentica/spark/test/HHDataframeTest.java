@@ -68,8 +68,8 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetGroupByForBeanWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhJobSparkSession.start();
-    hhJobSparkSession.add(new Column("col3", 2, true)).add(new Column("col4", 3, true))
-        .add(new Column("col2", 1, true)).add(new Column("col1", 0, true));
+    hhJobSparkSession.addColumn(new Column("col3", 2, true)).addColumn(new Column("col4", 3, true))
+        .addColumn(new Column("col2", 1, true)).addColumn(new Column("col1", 0, true));
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
@@ -83,8 +83,8 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByRowWiseWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhSparkSession.start();
-    hhSparkSession.add(new Column("col1", 0, true)).add(new Column("col2", 1, true))
-        .add(new Column("col3", 2, true));
+    hhSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
+        .addColumn(new Column("col3", 2, true));
     Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -98,8 +98,8 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByPartitionWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhJobSparkSession.start();
-    hhJobSparkSession.add(new Column("col1", 0, true)).add(new Column("col2", 1, true))
-        .add(new Column("col3", 2, true));
+    hhJobSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
+        .addColumn(new Column("col3", 2, true));
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
@@ -113,8 +113,8 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByPartitionWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhSparkSession.start();
-    hhSparkSession.add(new Column("col1", 0, true)).add(new Column("col2", 1, true))
-        .add(new Column("col3", 2, true)).add(new Column("col5", 4, true));
+    hhSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
+        .addColumn(new Column("col3", 2, true)).addColumn(new Column("col5", 4, true));
     Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -128,8 +128,8 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
     hhJobSparkSession.start();
-    hhJobSparkSession.add(new Column("Column1", 0, true)).add(new Column("Column2", 1, true))
-        .add(new Column("Column3", 2, true)).add(new Column("Column4", 3, false));
+    hhJobSparkSession.addColumn(new Column("Column1", 0, true)).addColumn(new Column("Column2", 1, true))
+        .addColumn(new Column("Column3", 2, true)).addColumn(new Column("Column4", 3, false));
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
@@ -148,8 +148,8 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
     hhSparkSession.start();
-    hhSparkSession.add(new Column("Column1", 0, true)).add(new Column("Column2", 1, true))
-        .add(new Column("Column3", 2, true));
+    hhSparkSession.addColumn(new Column("Column1", 0, true)).addColumn(new Column("Column2", 1, true))
+        .addColumn(new Column("Column3", 2, true));
     Dataset<Row> dataset = hhSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -163,8 +163,8 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
     hhSparkSession.start();
-    hhSparkSession.add(new Column("key1", 0, true)).add(new Column("key2", 1, true))
-        .add(new Column("key3", 2, true)).add(new Column("Column4", 0, true));
+    hhSparkSession.addColumn(new Column("key1", 0, true)).addColumn(new Column("key2", 1, true))
+        .addColumn(new Column("key3", 2, true)).addColumn(new Column("Column4", 0, true));
     Dataset<Row> dataset = hhSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(

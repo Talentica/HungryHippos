@@ -34,15 +34,16 @@ public class BinaryFileReader {
   public static void main(String[] args) throws IOException, ClassNotFoundException,
       KeeperException, InterruptedException, JAXBException {
     if (args.length != 2) {
-      System.out.println(
-          "Argument required sharding folder and data file name");
+      System.out.println("Argument required sharding folder and data file name");
       System.exit(0);
     }
     context = new ShardingApplicationContext(args[0]);
-      String dataFileName = args[1];
-      FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
+    String dataFileName = args[1];
+    for (int i = 0; i < 20; i++) {
+      FileInputStream fileInputStream =
+          new FileInputStream(new File(dataFileName + i));
       DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-      File readableDataFile = new File(dataFileName + "_read");
+      File readableDataFile = new File(dataFileName+ i + "_read");
       FileWriter fileWriter = new FileWriter(readableDataFile);
       try {
         DynamicMarshal dynamicMarshal = getDynamicMarshal();
@@ -66,6 +67,7 @@ public class BinaryFileReader {
         fileInputStream.close();
       }
       LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
+    }
   }
 
   private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,

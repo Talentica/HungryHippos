@@ -74,7 +74,7 @@ public class FileUploader implements Runnable {
                 logger.error("[{}] Files failed for tar : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
                 this.countDownLatch.countDown();
-                throw new RuntimeException("File transfer failed for " + srcFolderPath);
+                throw new RuntimeException("File transfer failed for " + srcFolderPath+" to "+node.getIp());
             }
             logger.info("[{}] Lock released for {}", Thread.currentThread().getName(), srcFolderPath);
             Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
@@ -105,7 +105,7 @@ public class FileUploader implements Runnable {
             e.printStackTrace();
             success = false;
             this.countDownLatch.countDown();
-            throw new RuntimeException("File transfer failed for " + srcFolderPath);
+            throw new RuntimeException("File transfer failed for " + srcFolderPath+" to "+node.getIp());
         }
     }
 

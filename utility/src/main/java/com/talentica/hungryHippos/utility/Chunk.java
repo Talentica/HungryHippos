@@ -19,7 +19,7 @@ public class Chunk {
     this.setDetails(fileName);
     this.start = start;
     this.end = end;
-    this.idealSizeOfChunk = idealSizeOfChunk;
+    this.idealSizeOfChunk = 134217728; // 128000000 bytes = 128 MB.
 
   }
 
@@ -27,8 +27,6 @@ public class Chunk {
   public String getParentFilePath() {
     return parentFilePath;
   }
-
-
 
   public String getFileName() {
     return name;
@@ -73,8 +71,6 @@ public class Chunk {
   private void setDetails(String name) {
     this.parentFileName = name;
     this.name = name + "-" + this.id;
-
-
   }
 
   @Override

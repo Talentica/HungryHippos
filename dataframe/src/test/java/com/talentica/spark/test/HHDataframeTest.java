@@ -5,7 +5,6 @@ package com.talentica.spark.test;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 import javax.activation.UnsupportedDataTypeException;
 import javax.xml.bind.JAXBException;
@@ -21,8 +20,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.foundationdb.sql.StandardException;
-import com.talentica.hungryHippos.dataframe.Column;
 import com.talentica.hungryHippos.dataframe.HHSparkSession;
+import com.talentica.hungryHippos.dataframe.HHStructField;
+import com.talentica.hungryHippos.dataframe.HHStructType;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
@@ -68,12 +68,13 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetGroupByForBeanWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhJobSparkSession.start();
-    hhJobSparkSession.addColumn(new Column("col3", 2, true)).addColumn(new Column("col4", 3, true))
-        .addColumn(new Column("col2", 1, true)).addColumn(new Column("col1", 0, true));
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("col3", 2, true)).add(new HHStructField("col4", 3, true))
+        .add(new HHStructField("col2", 1, true)).add(new HHStructField("col1", 0, true));
+    hhJobSparkSession.addHHStructType(hhStructType);
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
-    Dataset<Row> rs = hhJobSparkSession.sql(
-        "SELECT sum(col4) as sum FROM TableView GROUP BY col1");
+    Dataset<Row> rs = hhJobSparkSession.sql("SELECT sum(col4) as sum FROM TableView GROUP BY col1");
     rs.show(false);
     hhJobSparkSession.end();
     Assert.assertNotNull(rs);
@@ -83,8 +84,10 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByRowWiseWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhSparkSession.start();
-    hhSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
-        .addColumn(new Column("col3", 2, true));
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
+        .add(new HHStructField("col3", 2, true));
+    hhSparkSession.addHHStructType(hhStructType);
     Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -98,8 +101,10 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByPartitionWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhJobSparkSession.start();
-    hhJobSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
-        .addColumn(new Column("col3", 2, true));
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
+        .add(new HHStructField("col3", 2, true));
+    hhJobSparkSession.addHHStructType(hhStructType);
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
@@ -113,8 +118,10 @@ public class HHDataframeTest implements Serializable {
   public void testDatasetForBeanByPartitionWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhSparkSession.start();
-    hhSparkSession.addColumn(new Column("col1", 0, true)).addColumn(new Column("col2", 1, true))
-        .addColumn(new Column("col3", 2, true)).addColumn(new Column("col5", 4, true));
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
+        .add(new HHStructField("col3", 2, true)).add(new HHStructField("col5", 4, true));
+    hhSparkSession.addHHStructType(hhStructType);
     Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -128,14 +135,19 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
     hhJobSparkSession.start();
-    hhJobSparkSession.addColumn(new Column("Column1", 0, true)).addColumn(new Column("Column2", 1, true))
-        .addColumn(new Column("Column3", 2, true)).addColumn(new Column("Column4", 3, false));
+
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("Column1", 0, true))
+        .add(new HHStructField("Column2", 1, true)).add(new HHStructField("Column3", 2, true))
+        .add(new HHStructField("Column4", 3, false));
+
+    hhJobSparkSession.addHHStructType(hhStructType);
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
-    hhJobSparkSession.toggleColumnStatus("Column3");
+    hhJobSparkSession.toggleHHStructFieldStatus("Column3");
     dataset.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = hhJobSparkSession
         .sql("SELECT Column1, Column2 FROM TableView1 WHERE Column1 LIKE 'a' and Column2 LIKE 'b'");
@@ -148,8 +160,12 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
     hhSparkSession.start();
-    hhSparkSession.addColumn(new Column("Column1", 0, true)).addColumn(new Column("Column2", 1, true))
-        .addColumn(new Column("Column3", 2, true));
+
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("Column1", 0, true))
+        .add(new HHStructField("Column2", 1, true)).add(new HHStructField("Column3", 2, true));
+    hhSparkSession.addHHStructType(hhStructType);
+
     Dataset<Row> dataset = hhSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -163,8 +179,12 @@ public class HHDataframeTest implements Serializable {
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
     hhSparkSession.start();
-    hhSparkSession.addColumn(new Column("key1", 0, true)).addColumn(new Column("key2", 1, true))
-        .addColumn(new Column("key3", 2, true)).addColumn(new Column("Column4", 0, true));
+
+    HHStructType hhStructType = new HHStructType();
+    hhStructType.add(new HHStructField("key1", 0, true)).add(new HHStructField("key2", 1, true))
+        .add(new HHStructField("key3", 2, true)).add(new HHStructField("Column4", 0, true));
+    hhSparkSession.addHHStructType(hhStructType);
+
     Dataset<Row> dataset = hhSparkSession.mapToDataset();
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
@@ -187,15 +207,4 @@ public class HHDataframeTest implements Serializable {
     context.stop();
   }
 
-  public static void main(String[] args) {
-    byte[] b = new byte[] {12, 13};
-    ByteBuffer buffer = ByteBuffer.wrap(b);
-    System.out.println(buffer.get());
-    System.out.println(buffer.get());
-    b[0] = 15;
-    b[1] = 16;
-    buffer.flip();
-    System.out.println(buffer.get());
-    System.out.println(buffer.get());
-  }
 }

@@ -130,9 +130,9 @@ public class HHJavaRDDBuilder implements Serializable {
   public StructType getOrCreateSchema() throws UnsupportedDataTypeException {
     StructType schema;
     List<StructField> fields = new ArrayList<StructField>();
-    Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
-    while (columnItr.hasNext()) {
-      Column column = columnItr.next();
+    Iterator<HHStructField> hhStructType = hhSparkSession.getHHStructType().iterator();
+    while (hhStructType.hasNext()) {
+      HHStructField column = hhStructType.next();
       if (!column.isPartOfSqlStmt())
         continue;
       DataLocator locator = hhRDDReader.getFieldDataDescription().locateField(column.getIndex());
@@ -191,11 +191,11 @@ public class HHJavaRDDBuilder implements Serializable {
    */
   private Row getRow(byte[] b) throws UnsupportedDataTypeException {
     hhRDDReader.wrap(b);
-    Object[] tuple = new Object[hhSparkSession.getColumnInfo().size()];
-    Iterator<Column> columnItr = hhSparkSession.getColumnInfo().iterator();
+    Object[] tuple = new Object[hhSparkSession.getHHStructType().size()];
+    Iterator<HHStructField> hhStructType = hhSparkSession.getHHStructType().iterator();
     int index = 0;
-    while (columnItr.hasNext()) {
-      Column column = columnItr.next();
+    while (hhStructType.hasNext()) {
+      HHStructField column = hhStructType.next();
       if (!column.isPartOfSqlStmt())
         continue;
       Object obj = hhRDDReader.readAtColumn(column.getIndex());

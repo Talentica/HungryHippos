@@ -10,13 +10,13 @@ import java.io.Serializable;
  * @author pooshans
  *
  */
-public class Column implements Serializable {
-  private static final long serialVersionUID = 9070250323611650296L;
+public class HHStructField implements Serializable {
+  private static final long serialVersionUID = 7968184949922361937L;
   private String name;
   private int index;
   private boolean partOfSqlStmt;
 
-  public Column(String name, int index, boolean partOfSqlStmt) {
+  public HHStructField(String name, int index, boolean partOfSqlStmt) {
     this.name = name;
     this.index = index;
     this.partOfSqlStmt = partOfSqlStmt;
@@ -55,10 +55,10 @@ public class Column implements Serializable {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || !(o instanceof Column)) {
+    if (o == null || !(o instanceof HHStructField)) {
       return false;
     }
-    Column that = (Column) o;
+    HHStructField that = (HHStructField) o;
     return name.equals(that.name) && index == that.index;
   }
 

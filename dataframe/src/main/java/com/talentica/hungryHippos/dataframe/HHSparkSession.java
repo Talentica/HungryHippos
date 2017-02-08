@@ -3,10 +3,6 @@
  */
 package com.talentica.hungryHippos.dataframe;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-
 import javax.activation.UnsupportedDataTypeException;
 
 import org.apache.spark.SparkContext;
@@ -26,12 +22,12 @@ import com.talentica.hungryHippos.rdd.HHRDDInfo;
 public class HHSparkSession extends SparkSession {
   private static final long serialVersionUID = -7510199519029156054L;
   private HHJavaRDDBuilder hhJavaRDDBuilder;
-  private HashSet<Column> columnInfo;
+  private HHStructType hhStructType;
 
   public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
     super(sc);
     this.hhJavaRDDBuilder = HHDataframeFactory.createHHJavaRDD(hhRdd, hhrddInfo, this);
-    this.columnInfo = new HashSet<>();
+    this.hhStructType = new HHStructType();
   }
 
   @Override
@@ -141,18 +137,17 @@ public class HHSparkSession extends SparkSession {
     return sqlContext().createDataFrame(rowRDD, schema);
   }
 
-  public HHSparkSession add(Column column) {
-    this.columnInfo.add(column);
-    return this;
+  public void addHHStructType(HHStructType hhStructType) {
+    this.hhStructType = hhStructType;
   }
 
-  public HashSet<Column> getColumnInfo() {
-    return columnInfo;
+  protected HHStructType getHHStructType() {
+    return this.hhStructType;
   }
 
   public void start() {
-    if (!columnInfo.isEmpty()) {
-      columnInfo.clear();
+    if (!hhStructType.isEmpty()) {
+      hhStructType.clear();
     }
   }
 
@@ -160,21 +155,14 @@ public class HHSparkSession extends SparkSession {
    * It toggle the status of the column. If the status of the column is false it makes it true and
    * vice-versa.
    * 
-   * @param name
+   * @param columnName
    */
-  public void toggleColumnStatus(String name) {
-    Iterator<Column> colItr = columnInfo.iterator();
-    while (colItr.hasNext()) {
-      Column col = colItr.next();
-      if (col.getName().equalsIgnoreCase(name)) {
-        col.setPartOfSqlStmt(!col.isPartOfSqlStmt());
-        break;
-      }
-    }
+  public void toggleHHStructFieldStatus(String columnName) {
+    hhStructType.toggleColumnStatus(columnName);
   }
 
   public void end() {
-    columnInfo.clear();
+    hhStructType.clear();
   }
 
 }

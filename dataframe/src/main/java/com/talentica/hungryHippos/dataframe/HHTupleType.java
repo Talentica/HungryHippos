@@ -81,9 +81,9 @@ public abstract class HHTupleType<T> implements Cloneable {
     if (isDataTypeValidated)
       return;
     Field[] fields = getOrderedDeclaredFields(tuple.getClass());
-    Iterator<Column> colItr = hhSparkSession.getColumnInfo().iterator();
+    Iterator<HHStructField> colItr = hhSparkSession.getHHStructType().iterator();
     while(colItr.hasNext()) {
-      Column col = colItr.next();
+      HHStructField col = colItr.next();
       if(!col.isPartOfSqlStmt()) continue;
       DataLocator locator = dataDescription.locateField(col.getIndex());
       Field column = fields[col.getIndex()];
@@ -145,9 +145,9 @@ public abstract class HHTupleType<T> implements Cloneable {
   private void prepareTuple() throws NoSuchFieldException, IllegalAccessException {
     Class<?> clazz = tuple.getClass();
     Field[] fields = getOrderedDeclaredFields(clazz);
-    Iterator<Column> fieldInfoItr = hhSparkSession.getColumnInfo().iterator();
+    Iterator<HHStructField> fieldInfoItr = hhSparkSession.getHHStructType().iterator();
     while (fieldInfoItr.hasNext()) {
-      Column columnInfo = fieldInfoItr.next();
+      HHStructField columnInfo = fieldInfoItr.next();
       if(!columnInfo.isPartOfSqlStmt()) continue;
       DataLocator locator =
           hhrddRowReader.getFieldDataDescription().locateField(columnInfo.getIndex());

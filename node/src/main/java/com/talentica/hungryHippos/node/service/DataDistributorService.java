@@ -94,7 +94,7 @@ public class DataDistributorService implements Runnable {
             }
             e.printStackTrace();
         } finally {
-
+            DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
             if (srcDataPath != null) {
                 try {
                     FileUtils.deleteDirectory((new File(srcDataPath)).getParentFile());

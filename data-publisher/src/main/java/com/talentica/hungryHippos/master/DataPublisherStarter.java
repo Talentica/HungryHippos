@@ -80,8 +80,7 @@ public class DataPublisherStarter {
       int noOfChunks = getNoOfChunks(args, nodes);
       File srcFile = new File(sourcePath);
       updateZookeeperNodes(destinationPath);
-      String remotePath = FileSystemContext.getRootDirectory() + destinationPath + File.separator
-          + UUID.randomUUID().toString();
+      String remotePath = FileSystemContext.getRootDirectory() + destinationPath + File.separator;
       long startTime = System.currentTimeMillis();
       Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
       Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
@@ -235,46 +234,63 @@ public class DataPublisherStarter {
   public static void uploadChunk(String destinationPath, List<Node> nodes, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       int nodeId) throws IOException, InterruptedException {
-    Node node = nodes.get(nodeId);
-    // transferChunk(remotePath, chunkFilePath, node);
-    requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, chunk,
-        node);
+
+    int index=0;
+    boolean successfulUpload = false;
+    while(!successfulUpload){
+      index=index%nodes.size();
+      Node node = nodes.get(index);
+      successfulUpload = requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, chunk,
+              node);
+      index++;
+    }
+
   }
 
-  private static void requestDataDistribution(String destinationPath, String remotePath,
+  private static boolean requestDataDistribution(String destinationPath, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Chunk chunk,
       Node node) throws IOException, InterruptedException {
     Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
-    dataInputStreamMap.put(chunk.getId(), new DataInputStream(socket.getInputStream()));
+    DataInputStream dis = new DataInputStream(socket.getInputStream());
+
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
     dos.writeInt(HungryHippoServicesConstants.DATA_DISTRIBUTOR);
-    dos.writeUTF(destinationPath);
-    dos.writeUTF(remotePath + File.separator + chunk.getFileName());
-    dos.writeLong(chunk.getActualSizeOfChunk());
     dos.flush();
-    int size = socket.getSendBufferSize();
-    byte[] buffer = new byte[size];
-    HHFStream hhfsStream = chunk.getHHFStream();
-    int read = 0;
-    StopWatch stopWatch = new StopWatch();
-    LOGGER.info("Started data Transfer of chunk {} ", chunk.getId());
-    while ((read = hhfsStream.read(buffer)) != -1) {
-      dos.write(buffer, 0, read);
-    }
-    dos.flush();
-    hhfsStream.close();
-    LOGGER.info("Finished transferring chunk {} , it took {} seconds", chunk.getId(),
-        stopWatch.elapsedTime());
-    // socket.shutdownOutput();
+    boolean dataDistributorAvailable =  dis.readBoolean();
+    LOGGER.info("[{}] DataDistributor Available in {} : {}",Thread.currentThread().getName(),node.getIp(),dataDistributorAvailable);
+    if(dataDistributorAvailable){
+      dataInputStreamMap.put(chunk.getId(),dis );
+      dos.writeUTF(destinationPath);
+      dos.writeUTF(remotePath+UUID.randomUUID().toString() + File.separator + chunk.getFileName());
+      dos.writeLong(chunk.getActualSizeOfChunk());
+      dos.flush();
+      int size = socket.getSendBufferSize();
+      byte[] buffer = new byte[size];
+      HHFStream hhfsStream = chunk.getHHFStream();
+      int read = 0;
+      StopWatch stopWatch = new StopWatch();
+      LOGGER.info("Started data Transfer of chunk {} ", chunk.getId());
+      LOGGER.info("Chunk size of chunk id {} is {} ", chunk.getId(),chunk.getActualSizeOfChunk());
+      while ((read = hhfsStream.read(buffer)) != -1) {
+        dos.write(buffer, 0, read);
+      }
+      dos.flush();
+      hhfsStream.close();
+      LOGGER.info("Finished transferring chunk {} , it took {} seconds", chunk.getId(),
+              stopWatch.elapsedTime());
 
-    if (dataInputStreamMap.get(chunk.getId()).readUTF()
-        .equals(HungryHippoServicesConstants.SUCCESS)) {
-      LOGGER.info("chunk with {} id reached the node {} id successfully ", chunk.getId(),
-          node.getIdentifier());
-    } else {
-      throw new RuntimeException("Chunk was not successfully uploaded");
+      if (dataInputStreamMap.get(chunk.getId()).readUTF()
+              .equals(HungryHippoServicesConstants.SUCCESS)) {
+        LOGGER.info("chunk with {} id reached the node {} id successfully ", chunk.getId(),
+                node.getIdentifier());
+      } else {
+        throw new RuntimeException("Chunk was not successfully uploaded");
+      }
+      socketMap.put(chunk.getId(), socket);
+    }else{
+      socket.close();
     }
-    socketMap.put(chunk.getId(), socket);
+    return dataDistributorAvailable;
 
   }
 

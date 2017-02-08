@@ -32,7 +32,7 @@ import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
  * @since 25/01/2017
  *
  */
-public class HHDatasetTest implements Serializable {
+public class HHDataframeTest implements Serializable {
   private static final long serialVersionUID = -602425589870050732L;
   private String masterIp;
   private String appName;
@@ -65,7 +65,7 @@ public class HHDatasetTest implements Serializable {
   }
 
   @Test
-  public void testDatasetForBeanByRowWiseWithJob()
+  public void testDatasetGroupByForBeanWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     hhJobSparkSession.start();
     hhJobSparkSession.add(new Column("col3", 2, true)).add(new Column("col4", 3, true))
@@ -73,7 +73,7 @@ public class HHDatasetTest implements Serializable {
     Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
-        "SELECT col1,col4 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
+        "SELECT sum(col4) as sum FROM TableView GROUP BY col1");
     rs.show(false);
     hhJobSparkSession.end();
     Assert.assertNotNull(rs);

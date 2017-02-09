@@ -67,7 +67,6 @@ public class HHDataframeTest implements Serializable {
   @Test
   public void testDatasetGroupByForBeanWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    hhJobSparkSession.start();
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("col3", 2, true)).add(new HHStructField("col4", 3, true))
         .add(new HHStructField("col2", 1, true)).add(new HHStructField("col1", 0, true));
@@ -76,14 +75,12 @@ public class HHDataframeTest implements Serializable {
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql("SELECT sum(col4) as sum FROM TableView GROUP BY col1");
     rs.show(false);
-    hhJobSparkSession.end();
     Assert.assertNotNull(rs);
   }
 
   @Test
   public void testDatasetForBeanByRowWiseWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    hhSparkSession.start();
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
         .add(new HHStructField("col3", 2, true));
@@ -93,14 +90,12 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT col1,col2,col3 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
-    hhSparkSession.end();
     Assert.assertNotNull(rs);
   }
 
   @Test
   public void testDatasetForBeanByPartitionWithJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    hhJobSparkSession.start();
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
         .add(new HHStructField("col3", 2, true));
@@ -110,14 +105,12 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT col1,col2,col3 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
-    hhJobSparkSession.end();
     Assert.assertNotNull(rs);
   }
 
   @Test
   public void testDatasetForBeanByPartitionWithoutJob()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    hhSparkSession.start();
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("col1", 0, true)).add(new HHStructField("col2", 1, true))
         .add(new HHStructField("col3", 2, true)).add(new HHStructField("col5", 4, true));
@@ -127,14 +120,12 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT col1,col2,col5 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
     rs.show(false);
-    hhSparkSession.end();
     Assert.assertNotNull(rs);
   }
 
   @Test
   public void testStructTypeDatasetWithJob()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    hhJobSparkSession.start();
 
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("Column1", 0, true))
@@ -152,14 +143,12 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs1 = hhJobSparkSession
         .sql("SELECT Column1, Column2 FROM TableView1 WHERE Column1 LIKE 'a' and Column2 LIKE 'b'");
     rs1.show(false);
-    hhJobSparkSession.end();
     Assert.assertNotNull(rs1);
   }
 
   @Test
   public void testStructTypeDatasetWithoutJob()
       throws UnsupportedDataTypeException, ClassNotFoundException {
-    hhSparkSession.start();
 
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("Column1", 0, true))
@@ -171,14 +160,12 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
-    hhSparkSession.end();
     Assert.assertNotNull(rs);
   }
 
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
       throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
-    hhSparkSession.start();
 
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("key1", 0, true)).add(new HHStructField("key2", 1, true))
@@ -190,7 +177,6 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT  Column4 FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");
     rs.show(false);
-    hhSparkSession.end();
     Assert.assertNotNull(rs);
   }
 

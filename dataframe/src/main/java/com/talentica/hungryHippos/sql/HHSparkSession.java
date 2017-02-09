@@ -29,7 +29,6 @@ public class HHSparkSession extends SparkSession {
   public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
     super(sc);
     this.hhJavaRDDBuilder = HHDataframeFactory.createHHJavaRDD(hhRdd, hhrddInfo, this);
-    this.hhStructType = new HHStructType();
   }
 
   @Override
@@ -147,11 +146,6 @@ public class HHSparkSession extends SparkSession {
     return this.hhStructType;
   }
 
-  public void start() {
-    if (!hhStructType.isEmpty()) {
-      hhStructType.clear();
-    }
-  }
 
   /**
    * It toggle the status of the column. If the status of the column is false it makes it true and
@@ -161,10 +155,6 @@ public class HHSparkSession extends SparkSession {
    */
   public void toggleHHStructFieldStatus(String[] columnsName) {
     hhStructType.toggleColumnStatus(columnsName);
-  }
-
-  public void end() {
-    hhStructType.clear();
   }
 
 }

@@ -14,7 +14,8 @@ import com.talentica.torrent.coordination.FileSynchronizerListener;
 
 /**
  * This class is for coordinating with the Data-synchronizer by notifying and getting information.
- * @author rajkishoreh 
+ * 
+ * @author rajkishoreh
  * @since 22/8/16.
  */
 public class DataSyncCoordinator {
@@ -54,9 +55,7 @@ public class DataSyncCoordinator {
 
     List<Node> nodeList = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
     int totalNoOfNodes = nodeList.size();
-    int requiredSuccessNodes = totalNoOfNodes - 1;
-    if (requiredSuccessNodes == 0)
-      return true;
+    int requiredSuccessNodes = totalNoOfNodes;
     String nodeForCheckingSuccess =
         FileDownloaderListener.FILES_DOWNLOAD_SUCCESS_NODE_PATH + seedFilePath;
     String nodeForCheckingFailure = FileDownloaderListener.FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH
@@ -66,7 +65,6 @@ public class DataSyncCoordinator {
       if (successNodeStat != null) {
         int numSuccessNodes = successNodeStat.getNumChildren();
         if (numSuccessNodes == requiredSuccessNodes) {
-
           return true;
         }
       }
@@ -74,11 +72,19 @@ public class DataSyncCoordinator {
       Stat failureNodeStat = curator.getStat(nodeForCheckingFailure);
       if (failureNodeStat != null) {
         int numFailureNodes = failureNodeStat.getNumChildren();
+        LOGGER.info("failed for number of nodes :{}", numFailureNodes);
         if (numFailureNodes > 0) {
-          return false;
+          List<String> failedNodes = curator.getChildren(nodeForCheckingFailure);
+          for (String node : failedNodes) {
+            LOGGER.info("failed for node :{}", node);
+          }
         }
+        return false;
       }
+      Thread.sleep(1000);
     }
 
   }
+
+
 }

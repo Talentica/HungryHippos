@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 /**
  * {@code ShardingStarter} used for creating the sharding table.
@@ -90,10 +91,9 @@ public class ShardingStarter {
       new File(tempDir).mkdirs();
       doSharding(shardingClientConfig, context.getShardingClientConfigFilePath(),
           context.getShardingServerConfigFilePath(), tempDir, bucketCountWeight);
-      Node randomNode = RandomNodePicker.getRandomNode();
+      List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
       String uploadDestinationPath = getUploadDestinationPath(shardingClientConfig);
-      uploadShardingData(randomNode, shardingClientConfig, tempDir);
-      DataSyncCoordinator.notifyFileSync(randomNode.getIp(), uploadDestinationPath);
+      uploadShardingData(nodes, shardingClientConfig, tempDir);
       curator.createPersistentNode(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, uploadDestinationPath);
       long endTime = System.currentTimeMillis();
@@ -109,6 +109,7 @@ public class ShardingStarter {
         }
       }
     }
+
   }
 
   private static void validateArguments(String[] args) {
@@ -163,17 +164,17 @@ public class ShardingStarter {
   /**
    * Uploads Sharding related data to node
    * 
-   * @param randomNode
+   * @param nodes
    * @param shardingClientConfig
    * @param tempDir
    */
-  private static void uploadShardingData(Node randomNode, ShardingClientConfig shardingClientConfig,
-      String tempDir) {
+  private static void uploadShardingData(List<Node> nodes,
+      ShardingClientConfig shardingClientConfig, String tempDir) {
     LOGGER.info("Uploading sharding data.");
-    Output outputConfiguration = clientConfig.getOutput();
+    // Output outputConfiguration = clientConfig.getOutput();
     ShardingTableCopier shardingTableCopier =
-        new ShardingTableCopier(tempDir, shardingClientConfig, outputConfiguration);
-    shardingTableCopier.copyToRandomNodeInCluster(randomNode);
+        new ShardingTableCopier(tempDir, shardingClientConfig);
+    shardingTableCopier.copyToAllNodeInCluster(nodes);
     LOGGER.info("Upload completed.");
   }
 

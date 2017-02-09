@@ -1,33 +1,19 @@
 package com.talentica.hungryHippos.utility;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.media.jfxmedia.events.NewFrameEvent;
 
 /**
  * This class is used for splitting big input file. The first argument accepts the number of smaller
@@ -42,7 +28,10 @@ public class FileSplitter {
   private String filePath = null;
   private int numberOfChunks = 0;
   private long fileSizeInbytes = 0l;
+
   private long sizeOfChunk;
+
+
   private Logger logger = LoggerFactory.getLogger(FileSplitter.class);
   private byte[] eof = System.lineSeparator().getBytes(StandardCharsets.UTF_8);
 

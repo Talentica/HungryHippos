@@ -22,6 +22,7 @@ public class DataDistributorStarter {
   public static ExecutorService publishAccessServices;
   public static ExecutorService metadataUpdaterServices;
   public static ExecutorService metadataSynchronizerServices;
+  public static ExecutorService fileService;
   public static AtomicInteger noOfAvailableDataDistributors;
   public static int noOfDataDistributors;
   public static ClientConfig clientConfig;
@@ -44,6 +45,7 @@ public class DataDistributorStarter {
     publishAccessServices = Executors.newFixedThreadPool(1);
     metadataUpdaterServices = Executors.newFixedThreadPool(1);
     metadataSynchronizerServices = Executors.newFixedThreadPool(1);
+    fileService = Executors.newFixedThreadPool(1);
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
     while (true) {
       Socket socket = serverSocket.accept();

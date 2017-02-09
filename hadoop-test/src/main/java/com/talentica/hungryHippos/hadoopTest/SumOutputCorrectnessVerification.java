@@ -1,7 +1,5 @@
 package com.talentica.hungryHippos.hadoopTest;
 
-import org.apache.hadoop.io.Text;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;

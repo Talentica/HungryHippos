@@ -118,6 +118,7 @@ public class DataPublisherStarter {
       while (!executorService.isTerminated()) {
 
       }
+
       boolean success = true;
       for (int i = 0; i < noOfParallelThreads; i++) {
         success = success && chunkUpload[i].isSuccess();
@@ -267,8 +268,7 @@ public class DataPublisherStarter {
     if (dataDistributorAvailable) {
       dataInputStreamMap.put(chunk.getId(), dis);
       dos.writeUTF(destinationPath);
-      dos.writeUTF(
-          remotePath + uuid + File.separator + chunk.getFileName());
+      dos.writeUTF(remotePath + uuid + File.separator + chunk.getFileName());
       dos.writeLong(chunk.getActualSizeOfChunk());
       dos.flush();
       int size = socket.getSendBufferSize();

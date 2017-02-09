@@ -26,17 +26,18 @@ public class DataGenerator {
       allNumbers[i] = (char) ('0' + i);
     }
   }
-  public static String[] key1ValueSet = generateAllCombinations(1, allChars).toArray(new String[0]);
+  public static String[] key1ValueSet = generateAllCombinations(2, allChars).toArray(new String[0]);
 
   public static String[] key2ValueSet = generateAllCombinations(1, allChars).toArray(new String[0]);
 
-  public static String[] key3ValueSet = generateAllCombinations(1, allChars).toArray(new String[0]);
+  public static String[] key3ValueSet =
+      generateAllCombinations(2, allChars).toArray(new String[0]);
 
   public static String[] key4ValueSet =
-      generateAllCombinations(1, allNumbers).toArray(new String[0]);
+      generateAllCombinations(2, allChars).toArray(new String[0]);
 
   public static String[] key5ValueSet =
-      generateAllCombinations(1, allNumbers).toArray(new String[0]);
+      generateAllCombinations(2, allChars).toArray(new String[0]);
 
   /*
    * public static String[] key6ValueSet = generateAllCombinations(3, allNumbers).toArray(new
@@ -62,6 +63,13 @@ public class DataGenerator {
     return retList;
   }
 
+  private static List<String> generateAllCombinations_1(int value, char[] sourceChars) {
+    Random ran = new Random();
+    int numChars = ran.nextInt(value) + 1;
+    return generateAllCombinations(numChars, sourceChars);
+
+  }
+
   private static double skewRandom() {
     double start = Math.random();
     return start * start;
@@ -83,15 +91,15 @@ public class DataGenerator {
 
       String key1 = key1ValueSet[i1];
       String key2 = key2ValueSet[i2];
-      String key3 = key3ValueSet[i3];
+      int key3 = ran.nextInt(30) + 10;
       String key4 = key4ValueSet[i4];
-      String key5 = key5ValueSet[i5];
-      int key6 = ran.nextInt(899) + 100;
-      int key7 = ran.nextInt(89999) + 10000;
-      double key8 = Math.random();
+      int key5 = ran.nextInt(899) + 100;
+      int key6 = ran.nextInt(89999) + 10000;
+      String key7 = key3ValueSet[i3];
+      String key8 = key5ValueSet[i5];
 
       out.println(key1 + "," + key2 + "," + key3 + "," + key4 + "," + key5 + "," + key6 + "," + key7
-          + "," + key8 + ",xyz");
+          + "," + key8 + ",xy");
     }
     long end = System.currentTimeMillis();
     out.flush();

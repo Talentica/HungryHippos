@@ -1,22 +1,22 @@
 package com.talentica.hungryhippos.filesystem.util;
 
 
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBException;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.concurrent.CountDownLatch;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 
 /**
  * This is a Test class for FileSystemUtils. Created by rajkishoreh on 11/7/16.

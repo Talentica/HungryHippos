@@ -31,10 +31,15 @@ public class ServiceDelegator implements Runnable {
           DataDistributorStarter.dataAppenderServices.execute(new DataAppenderService(socket));
           break;
         case HungryHippoServicesConstants.METADATA_UPDATER:
-          DataDistributorStarter.metadataUpdaterServices.execute(new MetaDataUpdaterService(socket));
+          DataDistributorStarter.metadataUpdaterServices
+              .execute(new MetaDataUpdaterService(socket));
           break;
         case HungryHippoServicesConstants.METADATA_SYNCHRONIZER:
-          DataDistributorStarter.metadataSynchronizerServices.execute(new MetaDataSynchronizerService(socket));
+          DataDistributorStarter.metadataSynchronizerServices
+              .execute(new MetaDataSynchronizerService(socket));
+          break;
+        case HungryHippoServicesConstants.ACCEPT_FILE:
+          DataDistributorStarter.fileService.execute(new AcceptFileService(socket));
           break;
         default:
           socket.close();

@@ -2,8 +2,6 @@ package com.talentica.hungryhippos.filesystem.command;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -15,9 +13,7 @@ import org.apache.commons.cli.ParseException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.scp.ScpCommandExecutor;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
-import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
 import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
 import com.talentica.hungryhippos.filesystem.main.HungryHipposCommandLauncher;
 

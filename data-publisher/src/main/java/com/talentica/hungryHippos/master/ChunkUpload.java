@@ -1,18 +1,16 @@
 package com.talentica.hungryHippos.master;
 
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
-import com.talentica.hungryHippos.utility.Chunk;
-import com.talentica.hungryhippos.config.cluster.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryhippos.config.cluster.Node;
 
 /**
  * Created by rajkishoreh on 19/12/16.

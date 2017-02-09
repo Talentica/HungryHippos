@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.dataframe;
 
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
+import com.talentica.hungryHippos.sql.HHSparkSession;
 
 /**
  * Factory used to construct the object for data frame.

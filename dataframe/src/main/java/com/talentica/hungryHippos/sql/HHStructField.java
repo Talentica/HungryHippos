@@ -1,12 +1,15 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.dataframe;
+package com.talentica.hungryHippos.sql;
 
 import java.io.Serializable;
 
 
 /**
+ * It is the column of the schema and wrapped with the {@code HHStructType} to represent schema
+ * definition.
+ * 
  * @author pooshans
  *
  */

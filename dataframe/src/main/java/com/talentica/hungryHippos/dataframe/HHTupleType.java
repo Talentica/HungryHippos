@@ -14,6 +14,8 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.sql.HHSparkSession;
+import com.talentica.hungryHippos.sql.HHStructField;
 
 /**
  * This class is required to do default validation data type for each column. Users are required to

@@ -20,12 +20,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.foundationdb.sql.StandardException;
-import com.talentica.hungryHippos.dataframe.HHSparkSession;
-import com.talentica.hungryHippos.dataframe.HHStructField;
-import com.talentica.hungryHippos.dataframe.HHStructType;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
+import com.talentica.hungryHippos.sql.HHSparkSession;
+import com.talentica.hungryHippos.sql.HHStructField;
+import com.talentica.hungryHippos.sql.HHStructType;
 
 /**
  * @author pooshans
@@ -147,7 +147,7 @@ public class HHDataframeTest implements Serializable {
     Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
     rs.show(false);
-    hhJobSparkSession.toggleHHStructFieldStatus("Column3");
+    hhJobSparkSession.toggleHHStructFieldStatus(new String[] {"Column3"});
     dataset.createOrReplaceTempView("TableView1");
     Dataset<Row> rs1 = hhJobSparkSession
         .sql("SELECT Column1, Column2 FROM TableView1 WHERE Column1 LIKE 'a' and Column2 LIKE 'b'");

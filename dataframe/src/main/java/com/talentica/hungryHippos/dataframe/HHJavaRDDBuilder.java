@@ -24,6 +24,8 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.sql.HHSparkSession;
+import com.talentica.hungryHippos.sql.HHStructField;
 
 /**
  * To create the HHJavaRDD by translating the HH row records to spark recognized RDD row.

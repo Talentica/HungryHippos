@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.dataframe;
+package com.talentica.hungryHippos.sql;
 
 import javax.activation.UnsupportedDataTypeException;
 
@@ -12,6 +12,8 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
+import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
+import com.talentica.hungryHippos.dataframe.HHJavaRDDBuilder;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 
@@ -141,7 +143,7 @@ public class HHSparkSession extends SparkSession {
     this.hhStructType = hhStructType;
   }
 
-  protected HHStructType getHHStructType() {
+  public HHStructType getHHStructType() {
     return this.hhStructType;
   }
 
@@ -155,10 +157,10 @@ public class HHSparkSession extends SparkSession {
    * It toggle the status of the column. If the status of the column is false it makes it true and
    * vice-versa.
    * 
-   * @param columnName
+   * @param columnsName
    */
-  public void toggleHHStructFieldStatus(String columnName) {
-    hhStructType.toggleColumnStatus(columnName);
+  public void toggleHHStructFieldStatus(String[] columnsName) {
+    hhStructType.toggleColumnStatus(columnsName);
   }
 
   public void end() {

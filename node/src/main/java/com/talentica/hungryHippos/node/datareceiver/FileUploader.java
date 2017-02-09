@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -47,34 +48,35 @@ public class FileUploader implements Runnable {
 
     @Override
     public void run() {
+        String tarFileName = UUID.randomUUID().toString() + ".tar";
+        File srcFile = new File(srcFolderPath + File.separator + tarFileName);
         try {
             String line;
             String fileNamesArg = StringUtils.join(fileNames, " ");
-            logger.info("[{}] File Upload started for {} to {}", Thread.currentThread().getName(), srcFolderPath,node.getIp());
-
+            logger.info("[{}] File Upload started for {} to {}", Thread.currentThread().getName(), srcFolderPath, node.getIp());
             int processStatus = -1;
-            int noOfRemainingAttempts =25;
-            String tarFileName = Thread.currentThread().getId()+".tar";
-            while(noOfRemainingAttempts>0&&processStatus<0){
-            Process tarProcess = Runtime.getRuntime().exec(commonCommandArg + " " + tarFileName + " " + fileNamesArg);
-            processStatus = tarProcess.waitFor();
+            int noOfRemainingAttempts = 25;
+            while (noOfRemainingAttempts > 0 && (processStatus < 0 || !srcFile.exists())) {
+                Process tarProcess = Runtime.getRuntime().exec(commonCommandArg + " " + tarFileName + " " + fileNamesArg);
+                processStatus = tarProcess.waitFor();
 
-            if (processStatus != 0) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(tarProcess.getErrorStream()));
-                while ((line = br.readLine()) != null) {
-                    logger.error(line);
+                if (processStatus != 0) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(tarProcess.getErrorStream()));
+                    while ((line = br.readLine()) != null) {
+                        logger.error(line);
+                    }
+                    br.close();
+                    logger.error("[{}] Retrying File tar for {} after 5 seconds", Thread.currentThread().getName(), srcFolderPath);
+                    noOfRemainingAttempts--;
+                    Thread.sleep(5000);
                 }
-                br.close();
+
             }
-            logger.error("[{}] Retrying File tar for {} after 5 seconds", Thread.currentThread().getName(), srcFolderPath);
-            noOfRemainingAttempts--;
-            Thread.sleep(5000);            
-            }
-            if(processStatus<0){
+            if (processStatus < 0 || !srcFile.exists()) {
                 logger.error("[{}] Files failed for tar : {}", Thread.currentThread().getName(), fileNamesArg);
                 success = false;
                 this.countDownLatch.countDown();
-                throw new RuntimeException("File transfer failed for " + srcFolderPath+" to "+node.getIp());
+                throw new RuntimeException("File transfer failed for " + srcFolderPath + " to " + node.getIp());
             }
             logger.info("[{}] Lock released for {}", Thread.currentThread().getName(), srcFolderPath);
             Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
@@ -85,19 +87,18 @@ public class FileUploader implements Runnable {
             dos.writeUTF(tarFileName);
             dos.writeUTF(destinationPath);
             dos.flush();
-            File srcFile = new File(srcFolderPath+File.separator+tarFileName);
-            srcFile.deleteOnExit();
+
             dos.writeLong(srcFile.length());
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(srcFile),10*bufferSize);
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(srcFile), 10 * bufferSize);
             int len;
-            while((len=bis.read(buffer))>-1) {
+            while ((len = bis.read(buffer)) > -1) {
                 dos.write(buffer, 0, len);
             }
             dos.flush();
             bis.close();
-            srcFile.delete();
+
             socketMap.put(idx, socket);
             success = true;
             this.countDownLatch.countDown();
@@ -105,7 +106,14 @@ public class FileUploader implements Runnable {
             e.printStackTrace();
             success = false;
             this.countDownLatch.countDown();
-            throw new RuntimeException("File transfer failed for " + srcFolderPath+" to "+node.getIp());
+            if (!(new File(srcFolderPath)).exists()) {
+                logger.error("[{}] Source folder {} does not exist", Thread.currentThread().getName(), srcFolderPath);
+            }
+            throw new RuntimeException("File transfer failed for " + srcFolderPath + " to " + node.getIp());
+        } finally {
+            if (srcFile.exists()) {
+                srcFile.delete();
+            }
         }
     }
 

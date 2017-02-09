@@ -12,6 +12,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * Created by rajkishoreh on 19/12/16.
@@ -24,13 +25,13 @@ public class ChunkUpload implements Runnable {
   boolean success;
   private String destinationPath;
   private String remotePath;
-  private List<Node> nodes;
+  private Queue<Node> nodes;
 
 
 
   public ChunkUpload(String destinationPath, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap,
-      List<Node> nodes) {
+      Queue<Node> nodes) {
     this.destinationPath = destinationPath;
     this.remotePath = remotePath;
     this.dataInputStreamMap = dataInputStreamMap;

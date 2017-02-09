@@ -42,11 +42,12 @@ public class FileSplitter {
   private String filePath = null;
   private int numberOfChunks = 0;
   private long fileSizeInbytes = 0l;
-  private long sizeOfChunk = 134217728; // 128 MB 
+  private long sizeOfChunk;
   private Logger logger = LoggerFactory.getLogger(FileSplitter.class);
   private byte[] eof = System.lineSeparator().getBytes(StandardCharsets.UTF_8);
 
-  public FileSplitter(String filePath) throws IOException {
+  public FileSplitter(String filePath, long sizeOfChunk) throws IOException {
+    this.sizeOfChunk = sizeOfChunk;
     this.filePath = filePath;
     this.fileSizeInbytes = Files.size(Paths.get(filePath));
     numberOfChunks = (int) Math.ceil((fileSizeInbytes * 1.0 / sizeOfChunk));

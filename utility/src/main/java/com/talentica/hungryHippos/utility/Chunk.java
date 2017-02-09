@@ -19,8 +19,7 @@ public class Chunk {
     this.setDetails(fileName);
     this.start = start;
     this.end = end;
-    this.idealSizeOfChunk = 134217728; // 128000000 bytes = 128 MB.
-
+    this.idealSizeOfChunk = idealSizeOfChunk;
   }
 
 

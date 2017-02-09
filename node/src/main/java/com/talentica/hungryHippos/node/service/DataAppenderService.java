@@ -58,19 +58,46 @@ public class DataAppenderService implements Runnable {
             }
             bos.flush();
             bos.close();
-            Process untarProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir")+SCRIPT_FOR_UNTAR_AND_REMOVE_SRC+" "+srcFolderPath+" "+srcTarFileName);
-            int untarProcessStatus = untarProcess.waitFor();
-            srcTarFile.delete();
-            String line;
-            if(untarProcessStatus!=0){
-                BufferedReader br = new BufferedReader(new InputStreamReader(untarProcess.getErrorStream()));
-                while ((line = br.readLine()) != null) {
-                    logger.error(line);
+            int untarProcessStatus=-1;
+            int noOfRemainingAttempts = 25;
+            while(noOfRemainingAttempts>0&&untarProcessStatus<0){
+                File[] files = srcFolder.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File pathname) {
+                        if(pathname.getAbsolutePath().contains(srcTarFileName)){
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                for (int i = 0; i < files.length; i++) {
+                    files[i].delete();
                 }
-                br.close();
+                Process untarProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir")+SCRIPT_FOR_UNTAR_AND_REMOVE_SRC+" "+srcFolderPath+" "+srcTarFileName);
+                untarProcessStatus = untarProcess.waitFor();
+                String line;
+                if(untarProcessStatus!=0){
+                    BufferedReader br = new BufferedReader(new InputStreamReader(untarProcess.getErrorStream()));
+                    while ((line = br.readLine()) != null) {
+                        logger.error(line);
+                    }
+                    br.close();
+                    br = new BufferedReader(new InputStreamReader(untarProcess.getInputStream()));
+                    while ((line = br.readLine()) != null) {
+                        logger.info(line);
+                    }
+                    br.close();
+                    noOfRemainingAttempts--;
+                    logger.error("[{}] Retrying File untar for {} after 5 seconds", Thread.currentThread().getName(), srcFolderPath);
+                    Thread.sleep(5000);
+                }
+            }
+            srcTarFile.delete();
+            if(untarProcessStatus<0){
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 logger.info("[{}] unable to untar {} , File exists status {}",Thread.currentThread().getName(),srcTarFilePath);
-            }else{
+            }
+            else{
                 logger.info("[{}] joining {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
                 String lockString = destFolderPath;
                 FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, lockString);

@@ -3,44 +3,32 @@
  */
 package com.talentica.hungryHippos.master;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
-import com.talentica.hungryHippos.utility.Chunk;
-import com.talentica.hungryHippos.utility.FileSplitter;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
-import com.talentica.hungryHippos.utility.HHFStream;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import com.talentica.hungryHippos.utility.StopWatch;
+import com.talentica.hungryHippos.utility.*;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.eclipse.jetty.util.ArrayQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
@@ -57,7 +45,7 @@ public class DataPublisherStarter {
   private static String pathForFailureNode;
   private static String pathForClientUploadsInParallelNode;
   private static String pathForClientUploadNode;
-  static Map<Integer, List<Node>> listOfNodesAssignedToThread = new HashMap<>();
+  static Map<Integer, Queue<Node>> listOfNodesAssignedToThread = new HashMap<>();
   static Queue<Chunk> queue;
 
   /**
@@ -71,6 +59,10 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
+    long sizeOfChunk = 128*1024*1024;//128MB
+    if(args.length>3){
+      sizeOfChunk = Long.parseLong(args[3]);
+    }
 
     try {
       ClientConfig clientConfig =
@@ -90,7 +82,8 @@ public class DataPublisherStarter {
       Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
       List<Chunk> chunks = null;
 
-      FileSplitter fileSplitter = new FileSplitter(sourcePath);
+
+      FileSplitter fileSplitter = new FileSplitter(sourcePath, sizeOfChunk);
 
       int noOfChunks = fileSplitter.getNumberOfchunks();
 
@@ -102,7 +95,7 @@ public class DataPublisherStarter {
 
 
       for (int i = 0; i < noOfParallelThreads; i++) {
-        listOfNodesAssignedToThread.put(i, new ArrayList<>());
+        listOfNodesAssignedToThread.put(i, new ArrayQueue<>(nodes.size()));
       }
 
       for (int i = 0; i < nodes.size(); i++) {
@@ -114,9 +107,11 @@ public class DataPublisherStarter {
       queue.addAll(chunks);
 
       for (int i = 0; i < noOfParallelThreads; i++) {
-        chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, dataInputStreamMap, socketMap,
-            listOfNodesAssignedToThread.get(i));
-        executorService.execute(chunkUpload[i]);
+        if(!listOfNodesAssignedToThread.get(i).isEmpty()){
+          chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, dataInputStreamMap, socketMap,
+                  listOfNodesAssignedToThread.get(i));
+          executorService.execute(chunkUpload[i]);
+        }
       }
 
       executorService.shutdown();
@@ -231,18 +226,16 @@ public class DataPublisherStarter {
     }
   }
 
-  public static void uploadChunk(String destinationPath, List<Node> nodes, String remotePath,
+  public static void uploadChunk(String destinationPath, Queue<Node> nodes, String remotePath,
       Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap)
       throws IOException, InterruptedException {
 
-    int index = 0;
     boolean successfulUpload = false;
     while (!successfulUpload) {
-      index = index % nodes.size();
-      Node node = nodes.get(index);
+      Node node = nodes.poll();
       successfulUpload =
           requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
-      index++;
+      while(!nodes.offer(node));
     }
 
   }

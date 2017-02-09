@@ -43,7 +43,7 @@ public class FileSplitterTest {
     files.add(new File("/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata-9.txt"));
     files.add(new File("/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata-10.txt"));
 
-    FileSplitter fileSplitter = new FileSplitter(filepath);
+    FileSplitter fileSplitter = new FileSplitter(filepath,1024*1024);
     List<Chunk> chunks = fileSplitter.start();
 
     byte[] buffer = new byte[8192];

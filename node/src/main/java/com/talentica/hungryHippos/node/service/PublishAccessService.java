@@ -35,8 +35,10 @@ public class PublishAccessService implements Runnable {
             if(count<0){
                 DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
                 this.dataOutputStream.writeBoolean(false);
+                this.dataOutputStream.flush();
             }else{
                 this.dataOutputStream.writeBoolean(true);
+                this.dataOutputStream.flush();
                 DataDistributorStarter.dataDistributorService.execute(new DataDistributorService(socket));
             }
             logger.info("Lock released from {}", this.socket.getInetAddress());

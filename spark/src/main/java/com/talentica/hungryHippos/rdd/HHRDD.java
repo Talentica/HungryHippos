@@ -72,8 +72,10 @@ public abstract class HHRDD<T> extends RDD<T> implements Serializable {
 
   }
 
-  public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle,ClassTag<T> classTag) {
-    this(sc, hhrddInfo, ArrayUtils.toObject(hhrddInfo.getShardingIndexes()), requiresShuffle,classTag);
+  public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle,
+      ClassTag<T> classTag) {
+    this(sc, hhrddInfo, ArrayUtils.toObject(hhrddInfo.getShardingIndexes()), requiresShuffle,
+        classTag);
   }
 
   @Override
@@ -81,7 +83,7 @@ public abstract class HHRDD<T> extends RDD<T> implements Serializable {
     return this.partitions;
   }
 
-  
+
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
     List<String> nodes = new ArrayList<>();
@@ -91,34 +93,5 @@ public abstract class HHRDD<T> extends RDD<T> implements Serializable {
     }
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
-  
-
-  /*@Override
-  public <T> Iterator<T> compute(Partition partition, TaskContext taskContext) {
-    HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
-    HHRDDIterator iterator = null;
-    try {
-      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return (Iterator<T>) iterator;
-  }
-
-  @Override
-  public Partition[] getPartitions() {
-    return this.partitions;
-  }*/
-
-  /*@Override
-  public Seq<String> getPreferredLocations(Partition partition) {
-    List<String> nodes = new ArrayList<>();
-    nodes.addAll(((HHRDDPartition) partition).getPreferredHosts());
-    if (nodes == null || nodes.isEmpty()) {
-      return null;
-    }
-    return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
-  }*/
 
 }

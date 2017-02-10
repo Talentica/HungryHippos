@@ -31,8 +31,8 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
   private long currentDataFileSize;
 
   public HHBinaryRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
-    super(filePath, rowSize, files, nodIdToIp);
+      Map<Integer, SerializedNode> nodeInfo) throws IOException {
+    super(filePath, rowSize, files, nodeInfo);
   }
 
   @Override

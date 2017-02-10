@@ -44,7 +44,7 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
     HHBinaryRDDIterator iterator = null;
     try {
       iterator = new HHBinaryRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
+          hhRDDPartion.getFiles(), hhRDDPartion.getNodeInfo());
     } catch (IOException e) {
       e.printStackTrace();
     }

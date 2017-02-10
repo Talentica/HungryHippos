@@ -22,7 +22,7 @@ public class HHRDDInfo implements Serializable {
   private String[] keyOrder;
   private int noOfDimensions;
   private Map<String, int[]> fileNameToNodeIdsCache;
-  private Map<Integer, SerializedNode> nodIdToIp;
+  private Map<Integer, SerializedNode> nodeInfo;
   private Map<String, Long> fileNameToSizeWholeMap;
   private Map<String, Tuple2<String, int[]>> fileToNodeId;
   private Map<String, Map<Integer, List<String>>> keyToBucketToFileList;
@@ -34,13 +34,13 @@ public class HHRDDInfo implements Serializable {
 
   public HHRDDInfo(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      Map<String, Long> fileNameToSizeWholeMap, String[] keyOrder, Map<Integer, SerializedNode> nodIdToIp,
+      Map<String, Long> fileNameToSizeWholeMap, String[] keyOrder, Map<Integer, SerializedNode> nodeInfo,
       int[] shardingIndexes, FieldTypeArrayDataDescription fieldDataDesc,
       String directoryLocation) {
     this.bucketCombinationToNodeNumberMap = bucketCombinationToNodeNumberMap;
     this.bucketToNodeNumberMap = bucketToNodeNumberMap;
     this.keyOrder = keyOrder;
-    this.nodIdToIp = nodIdToIp;
+    this.nodeInfo = nodeInfo;
     this.fileNameToNodeIdsCache = new HashMap<>();
     this.noOfDimensions = keyOrder.length;
     this.fileNameToSizeWholeMap = fileNameToSizeWholeMap;
@@ -106,10 +106,10 @@ public class HHRDDInfo implements Serializable {
         int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey)
             .get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
         List<String> preferredHosts = new ArrayList<>();
-        preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
+        preferredHosts.add(nodeInfo.get(preferredNodeId).getIp());
         partitions[index] =
             new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-                this.fieldDataDesc, preferredHosts, files, nodIdToIp);
+                this.fieldDataDesc, preferredHosts, files, nodeInfo);
       }
 
     } else {
@@ -154,14 +154,14 @@ public class HHRDDInfo implements Serializable {
         NodeBucket nodeBucket;
         List<String> preferredIpList = new ArrayList<>();
         while ((nodeBucket = nodeBuckets.poll()) != null && remNoOfPreferredNodes > 0) {
-          preferredIpList.add(nodIdToIp.get(nodeBucket.getId()).getIp());
+          preferredIpList.add(nodeInfo.get(nodeBucket.getId()).getIp());
           remNoOfPreferredNodes--;
         }
         List<Tuple2<String, int[]>> files = partitionBucket1.getFiles();
         if (!files.isEmpty()) {
           Partition partition =
               new HHRDDPartition(id, partitionIdx, new File(this.directoryLocation).getPath(),
-                  this.fieldDataDesc, preferredIpList, files, nodIdToIp);
+                  this.fieldDataDesc, preferredIpList, files, nodeInfo);
           partitionIdx++;
           listOfPartitions.add(partition);
         }
@@ -254,14 +254,14 @@ public class HHRDDInfo implements Serializable {
         NodeBucket nodeBucket;
         List<String> preferredIpList = new ArrayList<>();
         while ((nodeBucket = nodeBuckets.poll()) != null && remNoOfPreferredNodes > 0) {
-          preferredIpList.add(nodIdToIp.get(nodeBucket.getId()).getIp());
+          preferredIpList.add(nodeInfo.get(nodeBucket.getId()).getIp());
           remNoOfPreferredNodes--;
         }
         List<Tuple2<String, int[]>> files = partitionBucket1.getFiles();
         if (!files.isEmpty()) {
           Partition partition =
               new HHRDDPartition(id, partitionIdx, new File(this.directoryLocation).getPath(),
-                  this.fieldDataDesc, preferredIpList, files, nodIdToIp);
+                  this.fieldDataDesc, preferredIpList, files, nodeInfo);
           partitionIdx++;
           listOfPartitions.add(partition);
         }
@@ -281,10 +281,10 @@ public class HHRDDInfo implements Serializable {
         int preferredNodeId =
             fileEntry.getValue()._2[jobShardingDimensions.get(jobPrimaryDimensionIdx)];
         List<String> preferredHosts = new ArrayList<>();
-        preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
+        preferredHosts.add(nodeInfo.get(preferredNodeId).getIp());
         partitions[index] =
             new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-                this.fieldDataDesc, preferredHosts, files, nodIdToIp);
+                this.fieldDataDesc, preferredHosts, files, nodeInfo);
         index++;
       }
     }

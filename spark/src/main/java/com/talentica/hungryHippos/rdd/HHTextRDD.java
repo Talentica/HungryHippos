@@ -41,7 +41,7 @@ public class HHTextRDD extends HHRDD<String> implements Serializable {
     HHTextRDDIterator iterator = null;
     try {
       iterator = new HHTextRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getFiles(),
-          hhRDDPartion.getNodIdToIp());
+          hhRDDPartion.getNodeInfo());
     } catch (IOException e) {
       e.printStackTrace();
     }

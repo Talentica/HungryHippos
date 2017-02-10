@@ -33,13 +33,13 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   protected int recordLength;
 
   public HHRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
-    downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
+      Map<Integer, SerializedNode> nodeInfo) throws IOException {
+    downloadRemoteFilesIfNotExists(filePath, files, nodeInfo);
   }
 
   public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
-    downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
+      Map<Integer, SerializedNode> nodeInfo) throws IOException {
+    downloadRemoteFilesIfNotExists(filePath, files, nodeInfo);
     // this.hhRDDRowReader = new HHRDDRowReader(dataDescription);
     this.byteBufferBytes = new byte[rowSize];
     // this.byteBuffer = ByteBuffer.wrap(byteBufferBytes);
@@ -55,7 +55,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   protected abstract void closeStream() throws IOException;
 
   private void downloadRemoteFilesIfNotExists(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodeInfo) throws IOException {
     this.filePath = filePath + File.separator;
     remoteFiles = new HashSet<>();
     for (Tuple2<String, int[]> tuple2 : files) {
@@ -65,8 +65,8 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
         boolean isFileDownloaded = false;
         while (!isFileDownloaded) {
           for (int id : tuple2._2) {
-            String ip = nodIdToIp.get(id).getIp();
-            int port = nodIdToIp.get(id).getPort();
+            String ip = nodeInfo.get(id).getIp();
+            int port = nodeInfo.get(id).getPort();
             isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
             logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
             if (isFileDownloaded) {

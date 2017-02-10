@@ -21,6 +21,8 @@ import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import scala.Tuple2;
 
 /**
+ * This class provides the iterator over the partition for the text storage system.
+ * 
  * @author pooshans
  *
  */
@@ -36,7 +38,7 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
 
 
   @Override
-  protected boolean downloadFile(String filePath, String ip,int port) {
+  protected boolean downloadFile(String filePath, String ip, int port) {
     Socket socket = null;
     try {
       File file = new File(filePath);

@@ -18,6 +18,9 @@ import scala.Tuple2;
 import scala.collection.AbstractIterator;
 
 /**
+ * It is an abstract class which need to be extended by the sub class to facilitate the iteration
+ * over the partition.
+ * 
  * @author pooshans
  * @param <T>
  *

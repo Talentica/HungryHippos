@@ -21,6 +21,8 @@ import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import scala.Tuple2;
 
 /**
+ * This class provides the iteration over the partition of binary file storage system.
+ * 
  * @author pooshans
  *
  */
@@ -47,7 +49,7 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
   }
 
   @Override
-  protected boolean downloadFile(String filePath, String ip,int port) {
+  protected boolean downloadFile(String filePath, String ip, int port) {
     Socket socket = null;
     try {
       File file = new File(filePath);

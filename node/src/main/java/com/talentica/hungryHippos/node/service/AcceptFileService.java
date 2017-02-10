@@ -12,8 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AcceptFileService implements Runnable {
 
+  private static Logger logger = LoggerFactory.getLogger(AcceptFileService.class);
   private Socket socket;
 
   public AcceptFileService(Socket socket) {
@@ -24,17 +29,19 @@ public class AcceptFileService implements Runnable {
   public void run() {
     DataInputStream dis = null;
     DataOutputStream dos = null;
+    Path parentDir = null;
     try {
       dis = new DataInputStream(this.socket.getInputStream());
       dos = new DataOutputStream(this.socket.getOutputStream());
       String destinationPath = dis.readUTF();
       long size = dis.readLong();
-
+      logger.debug("file size to accept is {}", size);
       int idealBufSize = 8192;
       byte[] buffer = new byte[idealBufSize];
       File file = new File(destinationPath);
-      Path parentDir = Paths.get(file.getParent());
+      parentDir = Paths.get(file.getParent());
       if (!(Files.exists(parentDir))) {
+        logger.debug("created parent folder {}", parentDir);
         Files.createDirectories(parentDir);
       }
 
@@ -45,28 +52,29 @@ public class AcceptFileService implements Runnable {
         bos.write(buffer, 0, read);
         size -= read;
       }
+
       bos.flush();
       bos.close();
+      logger.debug("accepted all the data send");
       dos.writeBoolean(true);
       dos.flush();
     } catch (IOException e) {
+      logger.error(e.getMessage());
       try {
+        FileUtils.deleteDirectory(parentDir.toFile());
         dos.writeBoolean(false);
         dos.flush();
+
       } catch (IOException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
+        logger.error(e1.getMessage());
       }
 
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } finally {
       if (this.socket != null) {
         try {
           socket.close();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          logger.error(e.getMessage());
         }
       }
     }

@@ -9,17 +9,23 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 
 public class ShardingFileUploader implements Runnable {
 
+  private static final Logger logger = LoggerFactory.getLogger(ShardingFileUploader.class);
   private Node node;
   private boolean success;
   private String destinationPath;
   private String sourceFile;
   private int idealSizeOfBuffer = 8192;
+  private long end;
+  private long start;
 
   public ShardingFileUploader(Node node, String sourceFile, String destinationPath) {
     this.node = node;
@@ -37,13 +43,31 @@ public class ShardingFileUploader implements Runnable {
 
   @Override
   public void run() {
+
+    transferData();
+
+    if (!this.success) {
+      int retry = 0;
+      while (retry < 5) {
+        retry++;
+        logger.warn("transfer of sharding table failed on  {} ", node.getIp());
+        logger.info("retrying transfer  on {} ", node.getIp());
+        transferData();
+      }
+    } else {
+      logger.info("transfer of sharding table completed on  {} in {} ms", node.getIp(),
+          ((end - start)));
+    }
+  }
+
+
+  private void transferData() {
     DataInputStream dis = null;
     DataOutputStream dos = null;
     FileInputStream fis = null;
     Socket socket = null;
-
     try {
-      socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
+      socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
       dis = new DataInputStream(socket.getInputStream());
       dos = new DataOutputStream(socket.getOutputStream());
       long size = Files.size(Paths.get(sourceFile));
@@ -54,18 +78,14 @@ public class ShardingFileUploader implements Runnable {
       byte[] buffer = new byte[idealSizeOfBuffer];
       int read = 0;
       fis = new FileInputStream(new File(sourceFile));
+      start = System.currentTimeMillis();
       while ((read = fis.read(buffer)) != -1) {
         dos.write(buffer, 0, read);
       }
       dos.flush();
-      this.success = dis.readBoolean();
-      if (!this.success) {
-        // TODO provide retry.
-        System.out.println("transfer of shardingTable failed");
-      } else {
-        System.out.println("transfer completed");
-      }
 
+      this.success = dis.readBoolean();
+      end = System.currentTimeMillis();
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();
     } finally {
@@ -80,7 +100,6 @@ public class ShardingFileUploader implements Runnable {
       } catch (IOException e) {
         e.printStackTrace();
       }
-
 
     }
   }

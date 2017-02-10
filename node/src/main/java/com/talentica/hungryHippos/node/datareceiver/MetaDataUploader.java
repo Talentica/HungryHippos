@@ -37,7 +37,7 @@ public class MetaDataUploader implements Runnable {
     public void run() {
         Socket socket = null;
         try {
-            socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
+            socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
             File metadataFile = new File(metadatFilerPath);
             long metadatFileSize = metadataFile.length();
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());

@@ -59,8 +59,8 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
-    long sizeOfChunk = 128*1024*1024;//128MB
-    if(args.length>3){
+    long sizeOfChunk = 128 * 1024 * 1024;// 128MB
+    if (args.length > 3) {
       sizeOfChunk = Long.parseLong(args[3]);
     }
 
@@ -112,9 +112,9 @@ public class DataPublisherStarter {
       queue.addAll(chunks);
 
       for (int i = 0; i < noOfParallelThreads; i++) {
-        if(!listOfNodesAssignedToThread.get(i).isEmpty()){
-          chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, dataInputStreamMap, socketMap,
-                  listOfNodesAssignedToThread.get(i));
+        if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
+          chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, dataInputStreamMap,
+              socketMap, listOfNodesAssignedToThread.get(i));
           executorService.execute(chunkUpload[i]);
         }
       }
@@ -223,7 +223,7 @@ public class DataPublisherStarter {
 
   public static void updateNodeMetaData(String hhFilePath, Node node)
       throws IOException, InterruptedException {
-    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 10);
+    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 10);
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
     DataInputStream dis = new DataInputStream(socket.getInputStream());
     dos.writeInt(HungryHippoServicesConstants.METADATA_SYNCHRONIZER);
@@ -243,7 +243,7 @@ public class DataPublisherStarter {
       Node node = nodes.poll();
       successfulUpload =
           requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
-      while(!nodes.offer(node));
+      while (!nodes.offer(node));
     }
 
   }
@@ -261,7 +261,7 @@ public class DataPublisherStarter {
     if (chunk == null) {
       return true;
     }
-    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + 8789, 50);
+    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
     DataInputStream dis = new DataInputStream(socket.getInputStream());
 
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
@@ -310,16 +310,7 @@ public class DataPublisherStarter {
 
   }
 
-  /*
-   * private static void transferChunk(String remotePath, String chunkFilePath, Node node) throws
-   * IOException, InterruptedException { Socket socket = ServerUtils.connectToServer(node.getIp() +
-   * ":" + 8789, 10); DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-   * DataInputStream dis = new DataInputStream(socket.getInputStream());
-   * dos.writeInt(HungryHippoServicesConstants.SCP_ACCESS); dos.flush(); String status =
-   * dis.readUTF(); if (!HungryHippoServicesConstants.SUCCESS.equals(status)) { throw new
-   * RuntimeException("File Scp not possible"); } ScpCommandExecutor.upload(userName, node.getIp(),
-   * remotePath, chunkFilePath); dos.writeBoolean(true); socket.close(); }
-   */
+
 
   private static void validateArguments(String[] args) {
     if (args.length < 3) {

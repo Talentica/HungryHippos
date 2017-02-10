@@ -1,15 +1,14 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
-
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
  * Created by rajkishoreh on 23/11/16.
@@ -35,8 +34,7 @@ public class DataDistributorStarter {
     String connectString = clientConfig.getCoordinationServers().getServers();
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator.getInstance(connectString, sessionTimeOut);
-    int noOfNodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode().size();
-    ServerSocket serverSocket = new ServerSocket(8789);
+    ServerSocket serverSocket = new ServerSocket(NodeInfo.INSTANCE.getPort());
     ExecutorService serviceDelegator = Executors.newFixedThreadPool(10);
     noOfDataDistributors = 4;
     dataDistributorService = Executors.newFixedThreadPool(noOfDataDistributors);

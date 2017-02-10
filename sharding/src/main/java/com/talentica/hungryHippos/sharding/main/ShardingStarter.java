@@ -97,7 +97,7 @@ public class ShardingStarter {
       curator.createPersistentNode(shardingTablePathOnZk + FileSystemConstants.ZK_PATH_SEPARATOR
           + FileSystemConstants.SHARDED, uploadDestinationPath);
       long endTime = System.currentTimeMillis();
-      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000));
+      LOGGER.info("It took {} seconds of time to do sharding.", ((endTime - startTime) / 1000.0));
     } catch (Exception exception) {
       LOGGER.error("Error occurred while sharding.", exception);
       if (isFileCreated) {

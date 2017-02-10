@@ -24,7 +24,7 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class HHRDDTextIterator extends AbstractHHRDDIterator<String> implements Serializable {
+public class HHRDDTextIterator extends HHRDDIterator<String> implements Serializable {
 
   private static final long serialVersionUID = 3316311904434033364L;
   private BufferedReader bufferedReader;

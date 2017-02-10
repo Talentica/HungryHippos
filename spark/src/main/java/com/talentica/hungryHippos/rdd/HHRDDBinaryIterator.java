@@ -24,7 +24,7 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class HHRDDBinaryIterator extends AbstractHHRDDIterator<byte[]> implements Serializable {
+public class HHRDDBinaryIterator extends HHRDDIterator<byte[]> implements Serializable {
 
   private static final long serialVersionUID = 6639856882717975103L;
   private BufferedInputStream dataInputStream;

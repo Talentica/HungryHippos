@@ -22,8 +22,8 @@ import scala.collection.AbstractIterator;
  * @param <T>
  *
  */
-public abstract class AbstractHHRDDIterator<T> extends AbstractIterator<T> {
-  private static Logger logger = LoggerFactory.getLogger(AbstractHHRDDIterator.class);
+public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
+  private static Logger logger = LoggerFactory.getLogger(HHRDDIterator.class);
   protected Set<String> remoteFiles;
   protected String currentFile;
   protected String currentFilePath;
@@ -32,12 +32,12 @@ public abstract class AbstractHHRDDIterator<T> extends AbstractIterator<T> {
   protected Iterator<Tuple2<String, int[]>> fileIterator;
   protected int recordLength;
 
-  public AbstractHHRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
+  public HHRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
       Map<Integer, String> nodIdToIp) throws IOException {
     downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
   }
 
-  public AbstractHHRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
+  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
       Map<Integer, String> nodIdToIp) throws IOException {
     downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
     // this.hhRDDRowReader = new HHRDDRowReader(dataDescription);

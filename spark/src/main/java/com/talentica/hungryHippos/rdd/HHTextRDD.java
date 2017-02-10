@@ -16,6 +16,7 @@ import scala.reflect.ClassManifestFactory$;
 import scala.reflect.ClassTag;
 
 /**
+ * This RDD is build on the text {@code HungryHipposFileSystem}.
  * @author pooshans
  *
  */

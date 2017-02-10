@@ -33,12 +33,12 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   protected int recordLength;
 
   public HHRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, String> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
   }
 
   public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
-      Map<Integer, String> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     downloadRemoteFilesIfNotExists(filePath, files, nodIdToIp);
     // this.hhRDDRowReader = new HHRDDRowReader(dataDescription);
     this.byteBufferBytes = new byte[rowSize];
@@ -50,12 +50,12 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
 
   protected abstract void iterateOnFiles() throws IOException;
 
-  protected abstract boolean downloadFile(String filePath, String ip);
+  protected abstract boolean downloadFile(String filePath, String ip, int port);
 
   protected abstract void closeStream() throws IOException;
 
   private void downloadRemoteFilesIfNotExists(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, String> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     this.filePath = filePath + File.separator;
     remoteFiles = new HashSet<>();
     for (Tuple2<String, int[]> tuple2 : files) {
@@ -65,8 +65,9 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
         boolean isFileDownloaded = false;
         while (!isFileDownloaded) {
           for (int id : tuple2._2) {
-            String ip = nodIdToIp.get(id);
-            isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip);
+            String ip = nodIdToIp.get(id).getIp();
+            int port = nodIdToIp.get(id).getPort();
+            isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
             logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
             if (isFileDownloaded) {
               break;

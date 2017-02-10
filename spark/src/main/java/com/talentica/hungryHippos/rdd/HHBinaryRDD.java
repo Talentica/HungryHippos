@@ -19,10 +19,12 @@ import scala.reflect.ClassManifestFactory$;
 import scala.reflect.ClassTag;
 
 /**
+ * This RDD is build for the binary storage file system.
+ * 
  * @author pooshans
  *
  */
-public class HHBinaryRDD extends HHRDD<byte[]>  implements Serializable{
+public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
   private static final long serialVersionUID = -7855737619208668440L;
   private static final ClassTag<byte[]> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(byte[].class);

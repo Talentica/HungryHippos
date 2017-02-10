@@ -30,17 +30,16 @@ public class HHRDDTextIterator extends HHRDDIterator<String> implements Serializ
   private BufferedReader bufferedReader;
 
   public HHRDDTextIterator(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, String> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     super(filePath, files, nodIdToIp);
   }
 
 
   @Override
-  protected boolean downloadFile(String filePath, String ip) {
+  protected boolean downloadFile(String filePath, String ip,int port) {
     Socket socket = null;
     try {
       File file = new File(filePath);
-      int port = 8789;
       int bufferSIze = 2048;
       socket = new Socket(ip, port);
       InputStreamReader isr = new InputStreamReader(socket.getInputStream());

@@ -15,6 +15,9 @@ import scala.collection.mutable.Seq;
 import scala.reflect.ClassTag;
 
 /**
+ * It is an abstract class that needs to be extended by the sub class for different file system such
+ * as binary or text file.
+ * 
  * @author pooshans
  */
 public abstract class HHRDD<T> extends RDD<T> implements Serializable {

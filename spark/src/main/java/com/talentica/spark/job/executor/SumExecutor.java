@@ -1,8 +1,9 @@
 /**
- *
+ * 
  */
 package com.talentica.spark.job.executor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,26 +26,46 @@ import scala.Tuple2;
 
 /**
  * @author pooshans
+ *
  */
-public class SumJobExecutor {
+public class SumExecutor<T> implements Serializable {
 
-  public static JavaRDD<Tuple2<String, Double>> process(HHRDD hipposRDD,
+  private static final long serialVersionUID = 2938355892415268963L;
+
+  public <T> JavaRDD<Tuple2<String, Double>> process(HHRDD<T> hipposRDD,
       Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast, Broadcast<Job> jobBroadcast) {
 
     JavaPairRDD<String, Double> javaRDD =
-        hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
+        hipposRDD.toJavaRDD().mapToPair(new PairFunction<T, String, Double>() {
           @Override
-          public Tuple2<String, Double> call(byte[] bytes) throws Exception {
-            HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
-            reader.wrap(bytes);
-            String key = "";
-            for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-              key = key + ((MutableCharArrayString) reader
-                  .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
+          public Tuple2<String, Double> call(T type) throws Exception {
+            if (type instanceof byte[]) {
+              byte[] bytes = (byte[]) type;
+              HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
+              reader.wrap(bytes);
+              String key = "";
+              for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+                key = key + ((MutableCharArrayString) reader
+                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
+              }
+              key = key + "|id=" + jobBroadcast.value().getJobId();
+              Double value =
+                  (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
+              return new Tuple2<String, Double>(key, value);
+            } else if (type instanceof String) {
+              String line = (String) type;
+              String[] token = line.split(",");
+              String key = "";
+              for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+                key = key + token[index];
+              }
+              key = key + "|id=" + jobBroadcast.value().getJobId();
+              Double value = Double.valueOf(token[jobBroadcast.value().getCalculationIndex()]);
+              return new Tuple2<String, Double>(key, value);
+            } else {
+              throw new RuntimeException(
+                  "Invalid type paramter exeception. Only supported type is byte[] and String");
             }
-            key = key + "|id=" + jobBroadcast.value().getJobId();
-            Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-            return new Tuple2<String, Double>(key, value);
           }
         });
     JavaRDD<Tuple2<String, Double>> resultRDD = javaRDD.mapPartitions(
@@ -75,5 +96,6 @@ public class SumJobExecutor {
 
     return resultRDD;
   }
+
 
 }

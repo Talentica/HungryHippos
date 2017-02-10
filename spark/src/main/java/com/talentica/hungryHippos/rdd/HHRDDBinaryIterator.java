@@ -31,7 +31,7 @@ public class HHRDDBinaryIterator extends HHRDDIterator<byte[]> implements Serial
   private long currentDataFileSize;
 
   public HHRDDBinaryIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
-      Map<Integer, String> nodIdToIp) throws IOException {
+      Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     super(filePath, rowSize, files, nodIdToIp);
   }
 
@@ -47,11 +47,10 @@ public class HHRDDBinaryIterator extends HHRDDIterator<byte[]> implements Serial
   }
 
   @Override
-  protected boolean downloadFile(String filePath, String ip) {
+  protected boolean downloadFile(String filePath, String ip,int port) {
     Socket socket = null;
     try {
       File file = new File(filePath);
-      int port = 8789;
       int bufferSIze = 2048;
       socket = new Socket(ip, port);
       DataInputStream dis = new DataInputStream(socket.getInputStream());

@@ -75,11 +75,12 @@ public class HHRDDTextIterator extends HHRDDIterator<String> implements Serializ
   @Override
   public boolean hasNext() {
     try {
-      if (!bufferedReader.ready()) {
+      boolean isReady = bufferedReader.ready();
+      if (!isReady) {
         closeStream();
         iterateOnFiles();
       }
-      return bufferedReader.ready();
+      return isReady;
     } catch (IOException e) {
       e.printStackTrace();
     }

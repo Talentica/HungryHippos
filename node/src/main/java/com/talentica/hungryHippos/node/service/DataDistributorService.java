@@ -76,7 +76,7 @@ public class DataDistributorService implements Runnable {
       bos = null;
       System.gc();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
-      
+      dataOutputStream.flush();
       if (!NewDataHandler.checkIfFailed(hhFilePath)) {
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }

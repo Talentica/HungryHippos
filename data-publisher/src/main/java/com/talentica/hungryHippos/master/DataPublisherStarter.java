@@ -102,6 +102,11 @@ public class DataPublisherStarter {
         int threadNo = i % noOfParallelThreads;
         listOfNodesAssignedToThread.get(threadNo).add(nodes.get(i));
       }
+      if(nodes.size() < noOfParallelThreads){
+        for (int i = nodes.size(); i < noOfParallelThreads; i++) {
+          listOfNodesAssignedToThread.get(i).addAll(nodes);
+        }
+      }
 
       queue = new ArrayBlockingQueue<>(chunks.size());
       queue.addAll(chunks);
@@ -121,7 +126,9 @@ public class DataPublisherStarter {
 
       boolean success = true;
       for (int i = 0; i < noOfParallelThreads; i++) {
-        success = success && chunkUpload[i].isSuccess();
+        if(!listOfNodesAssignedToThread.get(i).isEmpty()) {
+          success = success && chunkUpload[i].isSuccess();
+        }
       }
       if (!success) {
         throw new RuntimeException("File Publish failed");

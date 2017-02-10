@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.spark.test;
+package com.talentica.hungryHippos.main;
 
 import com.talentica.hungryHippos.dataframe.HHField;
 

@@ -4,6 +4,7 @@
 package com.talentica.hungryHippos.rdd.main;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.rdd.HHBinaryRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.job.Job;
@@ -38,16 +39,16 @@ public class SumJobWithShuffle {
     String outputDirectory = args[4];
     initializeSparkContext(masterIp,appName);
     HHRDDHelper.initialize(clientConfigPath);
-    Map<String,HHRDD> cacheRDD = new HashMap<>();
+    Map<String,HHBinaryRDD> cacheRDD = new HashMap<>();
     HHRDDInfo hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
             context.broadcast(hhrddInfo.getFieldDataDesc());
     for (Job job : getSumJobMatrix().getJobs()) {
       Broadcast<Job> jobBroadcast = context.broadcast(job);
       String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddInfo.getShardingIndexes());
-      HHRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
+      HHBinaryRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = new HHRDD(context, hhrddInfo,job.getDimensions(),true);
+        hipposRDD = new HHBinaryRDD(context, hhrddInfo,job.getDimensions(),true);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       JavaPairRDD<String, Long> resultRDD=  SumJobExecutorWithShuffle.process(hipposRDD,descriptionBroadcast,jobBroadcast);

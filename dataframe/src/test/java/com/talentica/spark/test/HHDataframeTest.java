@@ -19,8 +19,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.foundationdb.sql.StandardException;
-import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.main.TupleBean;
+import com.talentica.hungryHippos.rdd.HHBinaryRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.utility.HHRDDHelper;
 import com.talentica.hungryHippos.sql.HHSparkSession;
@@ -40,8 +40,8 @@ public class HHDataframeTest implements Serializable {
   private String clientConfigPath;
   private JavaSparkContext context;
   private HHRDDInfo hhrddInfo;
-  private HHRDD hhDefaultRDD;
-  private HHRDD hhJobRDD;
+  private HHBinaryRDD hhDefaultRDD;
+  private HHBinaryRDD hhJobRDD;
   private HHSparkSession hhSparkSession;
   private HHSparkSession hhJobSparkSession;
 
@@ -56,8 +56,8 @@ public class HHDataframeTest implements Serializable {
     initSparkContext(masterIp, appName);
     HHRDDHelper.initialize(clientConfigPath);
     hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
-    hhDefaultRDD = new HHRDD(context, hhrddInfo, false);
-    hhJobRDD = new HHRDD(context, hhrddInfo, new Integer[] {0}, false);
+    hhDefaultRDD = new HHBinaryRDD(context, hhrddInfo, false);
+    hhJobRDD = new HHBinaryRDD(context, hhrddInfo, new Integer[] {0}, false);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
     hhSparkSession = new HHSparkSession(sparkSession.sparkContext(), hhDefaultRDD, hhrddInfo);
@@ -125,7 +125,7 @@ public class HHDataframeTest implements Serializable {
 
   @Test
   public void testStructTypeDatasetWithJob()
-      throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
+      throws UnsupportedDataTypeException, ClassNotFoundException {
 
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("Column1", 0, true))
@@ -165,7 +165,7 @@ public class HHDataframeTest implements Serializable {
 
   @Test
   public void testStructTypeDatasetWithJobForDifferentColumnName()
-      throws UnsupportedDataTypeException, ClassNotFoundException, StandardException {
+      throws UnsupportedDataTypeException, ClassNotFoundException {
 
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("key1", 0, true)).add(new HHStructField("key2", 1, true))

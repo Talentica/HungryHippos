@@ -3,7 +3,6 @@
  */
 package com.talentica.spark.job.executor;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,50 +28,52 @@ import scala.Tuple2;
  */
 public class SumJobExecutor {
 
-    public static JavaRDD<Tuple2<String, Long>> process(HHRDD hipposRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
-                                                        Broadcast<Job> jobBroadcast) {
+  public static JavaRDD<Tuple2<String, Double>> process(HHRDD hipposRDD,
+      Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast, Broadcast<Job> jobBroadcast) {
 
-        JavaPairRDD<String, Integer> javaRDD =
-                hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
-                    @Override
-                    public Tuple2<String, Integer> call(byte[] bytes) throws Exception {
-                        HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
-                        reader.wrap(bytes);
-                        String key = "";
-                        for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-                            key = key + ((MutableCharArrayString) reader
-                                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
-                        }
-                        key = key + "|id=" + jobBroadcast.value().getJobId();
-                        Integer value = (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-                        return new Tuple2<String, Integer>(key, value);
-                    }
-                });
-        JavaRDD<Tuple2<String, Long>> resultRDD = javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Long>>() {
-
-            @Override
-            public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Integer>> t) throws Exception {
-
-                List<Tuple2<String, Long>> sumList = new ArrayList<>();
-                Map<String, Long> map = new HashMap<>();
-                while (t.hasNext()) {
-                    Tuple2<String, Integer> tuple2 = t.next();
-                    Long storedValue = map.get(tuple2._1);
-                    if (storedValue == null) {
-                        map.put(tuple2._1,tuple2._2.longValue());
-                    } else {
-                        map.put(tuple2._1, tuple2._2 + storedValue);
-                    }
-                }
-
-                for (Map.Entry<String, Long> entry : map.entrySet()) {
-                    sumList.add(new Tuple2<String, Long>(entry.getKey(), entry.getValue()));
-                }
-                return sumList.iterator();
+    JavaPairRDD<String, Double> javaRDD =
+        hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Double>() {
+          @Override
+          public Tuple2<String, Double> call(byte[] bytes) throws Exception {
+            HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
+            reader.wrap(bytes);
+            String key = "";
+            for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+              key = key + ((MutableCharArrayString) reader
+                  .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
             }
+            key = key + "|id=" + jobBroadcast.value().getJobId();
+            Double value = (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
+            return new Tuple2<String, Double>(key, value);
+          }
+        });
+    JavaRDD<Tuple2<String, Double>> resultRDD = javaRDD.mapPartitions(
+        new FlatMapFunction<Iterator<Tuple2<String, Double>>, Tuple2<String, Double>>() {
+
+          @Override
+          public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t)
+              throws Exception {
+
+            List<Tuple2<String, Double>> sumList = new ArrayList<>();
+            Map<String, Double> map = new HashMap<>();
+            while (t.hasNext()) {
+              Tuple2<String, Double> tuple2 = t.next();
+              Double storedValue = map.get(tuple2._1);
+              if (storedValue == null) {
+                map.put(tuple2._1, tuple2._2.doubleValue());
+              } else {
+                map.put(tuple2._1, tuple2._2 + storedValue);
+              }
+            }
+
+            for (Map.Entry<String, Double> entry : map.entrySet()) {
+              sumList.add(new Tuple2<String, Double>(entry.getKey(), entry.getValue()));
+            }
+            return sumList.iterator();
+          }
         }, true);
 
-       return resultRDD;
-    }
+    return resultRDD;
+  }
 
 }

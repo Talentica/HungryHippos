@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.rdd;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,31 +7,24 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
-import org.apache.spark.TaskContext;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.rdd.RDD;
 
-import scala.collection.Iterator;
-import scala.collection.Seq;
 import scala.collection.mutable.ArrayBuffer;
-import scala.reflect.ClassManifestFactory$;
+import scala.collection.mutable.Seq;
 import scala.reflect.ClassTag;
 
 /**
  * @author pooshans
  */
-public class HHRDD extends RDD<byte[]> implements Serializable {
+public abstract class HHRDD<T> extends RDD<T> implements Serializable {
   private static final long serialVersionUID = 4074885953480955556L;
-  private static final ClassTag<byte[]> HHRD_READER__TAG =
-      ClassManifestFactory$.MODULE$.fromClass(byte[].class);
   private int id;
-  private Partition[] partitions;
+  protected Partition[] partitions;
 
   public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
-      boolean requiresShuffle) {
-    super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
+      boolean requiresShuffle, ClassTag<T> classTag) {
+    super(sc.sc(), new ArrayBuffer<Dependency<?>>(), classTag);
     this.id = sc.sc().newRddId();
     String[] keyOrder = hhrddInfo.getKeyOrder();
     int[] shardingIndexes = hhrddInfo.getShardingIndexes();
@@ -80,21 +72,8 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
 
   }
 
-  public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle) {
-    this(sc, hhrddInfo, ArrayUtils.toObject(hhrddInfo.getShardingIndexes()), requiresShuffle);
-  }
-
-  @Override
-  public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
-    HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
-    HHRDDIterator iterator = null;
-    try {
-      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return iterator;
+  public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle,ClassTag<T> classTag) {
+    this(sc, hhrddInfo, ArrayUtils.toObject(hhrddInfo.getShardingIndexes()), requiresShuffle,classTag);
   }
 
   @Override
@@ -102,6 +81,7 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     return this.partitions;
   }
 
+  
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
     List<String> nodes = new ArrayList<>();
@@ -111,5 +91,34 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     }
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
+  
+
+  /*@Override
+  public <T> Iterator<T> compute(Partition partition, TaskContext taskContext) {
+    HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
+    HHRDDIterator iterator = null;
+    try {
+      iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
+          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return (Iterator<T>) iterator;
+  }
+
+  @Override
+  public Partition[] getPartitions() {
+    return this.partitions;
+  }*/
+
+  /*@Override
+  public Seq<String> getPreferredLocations(Partition partition) {
+    List<String> nodes = new ArrayList<>();
+    nodes.addAll(((HHRDDPartition) partition).getPreferredHosts());
+    if (nodes == null || nodes.isEmpty()) {
+      return null;
+    }
+    return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
+  }*/
 
 }

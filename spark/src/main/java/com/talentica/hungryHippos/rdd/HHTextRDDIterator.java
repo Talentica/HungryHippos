@@ -79,7 +79,7 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
       boolean isReady = bufferedReader.ready();
       if (!isReady) {
         closeStream();
-        iterateOnFiles();
+        readyFileProcess();
       }
       return isReady;
     } catch (IOException e) {
@@ -99,7 +99,7 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
   }
 
   @Override
-  protected void iterateOnFiles() throws IOException {
+  protected void readyFileProcess() throws IOException {
     if (fileIterator.hasNext()) {
       Tuple2<String, int[]> tuple2 = fileIterator.next();
       currentFile = tuple2._1;
@@ -112,7 +112,7 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
   protected void closeStream() throws IOException {
     if (bufferedReader != null) {
       bufferedReader.close();
-      if (remoteFiles.contains(currentFile)) {
+      if (trackRemoteFiles.contains(currentFile)) {
         new File(currentFilePath).delete();
       }
     }

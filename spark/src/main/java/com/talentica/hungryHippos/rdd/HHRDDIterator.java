@@ -27,7 +27,7 @@ import scala.collection.AbstractIterator;
  */
 public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   private static Logger logger = LoggerFactory.getLogger(HHRDDIterator.class);
-  protected Set<String> remoteFiles;
+  protected Set<String> trackRemoteFiles;
   protected String currentFile;
   protected String currentFilePath;
   protected String filePath;
@@ -51,7 +51,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   }
 
 
-  protected abstract void iterateOnFiles() throws IOException;
+  protected abstract void readyFileProcess() throws IOException;
 
   protected abstract boolean downloadFile(String filePath, String ip, int port);
 
@@ -60,7 +60,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
   private void downloadRemoteFilesIfNotExists(String filePath, List<Tuple2<String, int[]>> files,
       Map<Integer, SerializedNode> nodeInfo) throws IOException {
     this.filePath = filePath + File.separator;
-    remoteFiles = new HashSet<>();
+    trackRemoteFiles = new HashSet<>();
     for (Tuple2<String, int[]> tuple2 : files) {
       File file = new File(filePath + File.separator + tuple2._1);
       if (!file.exists()) {
@@ -77,11 +77,19 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
             }
           }
         }
-        remoteFiles.add(tuple2._1);
+        trackRemoteFiles.add(tuple2._1);
       }
 
     }
     fileIterator = files.iterator();
-    iterateOnFiles();
+    readyFileProcess();
+  }
+
+  protected boolean hasNextFile() {
+    return fileIterator.hasNext();
+  }
+
+  protected Tuple2<String, int[]> nextFile() {
+    return fileIterator.next();
   }
 }

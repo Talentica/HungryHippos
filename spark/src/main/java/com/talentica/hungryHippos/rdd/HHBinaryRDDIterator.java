@@ -38,9 +38,9 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
   }
 
   @Override
-  protected void iterateOnFiles() throws IOException {
-    if (fileIterator.hasNext()) {
-      Tuple2<String, int[]> tuple2 = fileIterator.next();
+  protected void readyFileProcess() throws IOException {
+    if (hasNextFile()) {
+      Tuple2<String, int[]> tuple2 = nextFile();
       currentFile = tuple2._1;
       currentFilePath = this.filePath + currentFile;
       dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
@@ -93,7 +93,7 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
     try {
       if (currentDataFileSize <= 0) {
         closeStream();
-        iterateOnFiles();
+        readyFileProcess();
       }
     } catch (IOException exception) {
       throw new RuntimeException(exception);
@@ -117,10 +117,11 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
   protected void closeStream() throws IOException {
     if (dataInputStream != null) {
       dataInputStream.close();
-      if (remoteFiles.contains(currentFile)) {
+      if (trackRemoteFiles.contains(currentFile)) {
         new File(currentFilePath).delete();
       }
     }
   }
+
 
 }

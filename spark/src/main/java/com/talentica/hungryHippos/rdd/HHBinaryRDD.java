@@ -41,9 +41,9 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
   @Override
   public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
-    HHRDDBinaryIterator iterator = null;
+    HHBinaryRDDIterator iterator = null;
     try {
-      iterator = new HHRDDBinaryIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
+      iterator = new HHBinaryRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
           hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
     } catch (IOException e) {
       e.printStackTrace();

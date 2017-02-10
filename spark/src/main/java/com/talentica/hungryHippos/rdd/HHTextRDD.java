@@ -38,9 +38,9 @@ public class HHTextRDD extends HHRDD<String> implements Serializable {
   @Override
   public Iterator<String> compute(Partition partition, TaskContext taskContext) {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
-    HHRDDTextIterator iterator = null;
+    HHTextRDDIterator iterator = null;
     try {
-      iterator = new HHRDDTextIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getFiles(),
+      iterator = new HHTextRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getFiles(),
           hhRDDPartion.getNodIdToIp());
     } catch (IOException e) {
       e.printStackTrace();

@@ -24,13 +24,13 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class HHRDDBinaryIterator extends HHRDDIterator<byte[]> implements Serializable {
+public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serializable {
 
   private static final long serialVersionUID = 6639856882717975103L;
   private BufferedInputStream dataInputStream;
   private long currentDataFileSize;
 
-  public HHRDDBinaryIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
+  public HHBinaryRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
       Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     super(filePath, rowSize, files, nodIdToIp);
   }

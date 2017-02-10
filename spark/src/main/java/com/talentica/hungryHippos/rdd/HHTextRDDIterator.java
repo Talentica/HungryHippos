@@ -24,12 +24,12 @@ import scala.Tuple2;
  * @author pooshans
  *
  */
-public class HHRDDTextIterator extends HHRDDIterator<String> implements Serializable {
+public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializable {
 
   private static final long serialVersionUID = 3316311904434033364L;
   private BufferedReader bufferedReader;
 
-  public HHRDDTextIterator(String filePath, List<Tuple2<String, int[]>> files,
+  public HHTextRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
       Map<Integer, SerializedNode> nodIdToIp) throws IOException {
     super(filePath, files, nodIdToIp);
   }

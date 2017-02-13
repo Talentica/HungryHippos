@@ -11,7 +11,7 @@ import java.util.Map;
  * @author pooshans
  *
  */
-public class HHRDDTextRowReader<T> implements Serializable, HHRowReader<String> {
+public class HHTextRowReader<T> implements Serializable, HHRowReader<String> {
 
   private static final long serialVersionUID = 6893222902757419858L;
 
@@ -21,7 +21,7 @@ public class HHRDDTextRowReader<T> implements Serializable, HHRowReader<String> 
 
   private final static char DELIMITER = ',';
 
-  public HHRDDTextRowReader() {
+  public HHTextRowReader() {
     cache = new HashMap<Integer, String>();
   }
 

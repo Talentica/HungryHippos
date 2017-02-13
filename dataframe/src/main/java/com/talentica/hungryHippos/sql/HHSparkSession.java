@@ -14,8 +14,10 @@ import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHRDDBuilder;
+import com.talentica.hungryHippos.rdd.HHBinaryRDD;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
+import com.talentica.hungryHippos.rdd.HHTextRDD;
 
 /**
  * @author pooshans
@@ -30,7 +32,11 @@ public class HHSparkSession<T> extends SparkSession {
 
   public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
     super(sc);
-    this.hhJavaRDDBuilder = HHDataframeFactory.createHHJavaRDD(hhRdd, hhrddInfo, this);
+    if (hhRdd instanceof HHBinaryRDD) {
+      this.hhJavaRDDBuilder = HHDataframeFactory.createHHBinaryJavaRDD(hhRdd, hhrddInfo, this);
+    } else if (hhRdd instanceof HHTextRDD) {
+      this.hhJavaRDDBuilder = HHDataframeFactory.createHHTextJavaRDD(hhRdd, this);
+    }
   }
 
   @Override

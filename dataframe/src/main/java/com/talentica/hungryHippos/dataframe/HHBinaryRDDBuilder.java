@@ -24,7 +24,7 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
-import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 import com.talentica.hungryHippos.sql.HHStructField;
 
@@ -39,17 +39,17 @@ import com.talentica.hungryHippos.sql.HHStructField;
  */
 public class HHBinaryRDDBuilder<T> extends HHRDDBuilder<byte[]> implements Serializable {
   private static final long serialVersionUID = -2899308802854212675L;
-  protected HHRDDBinaryRowReader hhRDDReader;
+  protected HHBinaryRowReader hhRDDReader;
 
   public HHBinaryRDDBuilder(HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
     super(hhSparkSession);
-    hhRDDReader = new HHRDDBinaryRowReader(hhrddInfo.getFieldDataDesc());
+    hhRDDReader = new HHBinaryRowReader(hhrddInfo.getFieldDataDesc());
   }
 
   public HHBinaryRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo,
       HHSparkSession hhSparkSession) {
     super(hhRdd, hhSparkSession);
-    hhRDDReader = new HHRDDBinaryRowReader(hhrddInfo.getFieldDataDesc());
+    hhRDDReader = new HHBinaryRowReader(hhrddInfo.getFieldDataDesc());
   }
 
 

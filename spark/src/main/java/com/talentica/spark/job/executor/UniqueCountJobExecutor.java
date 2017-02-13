@@ -21,7 +21,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 
 import scala.Tuple2;
 
@@ -38,7 +38,7 @@ public class UniqueCountJobExecutor {
 
           @Override
           public Tuple2<String, Integer> call(byte[] buf) throws Exception {
-            HHRDDBinaryRowReader readerVar = new HHRDDBinaryRowReader(descriptionBroadcast.getValue());
+            HHBinaryRowReader readerVar = new HHBinaryRowReader(descriptionBroadcast.getValue());
             readerVar.wrap(buf);
             String key = "";
             for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {

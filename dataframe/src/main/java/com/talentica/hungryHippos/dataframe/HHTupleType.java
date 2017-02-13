@@ -14,8 +14,8 @@ import java.util.List;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
-import com.talentica.hungryHippos.rdd.reader.HHRDDTextRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHTextRowReader;
 import com.talentica.hungryHippos.rdd.reader.HHRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 import com.talentica.hungryHippos.sql.HHStructField;
@@ -51,8 +51,8 @@ public abstract class HHTupleType<T> implements Cloneable,Serializable {
       InstantiationException {
     this.hhRowReader = hhRowReader;
     this.hhSparkSession = hhSparkSession;
-    if (hhRowReader instanceof HHRDDBinaryRowReader) {
-      HHRDDBinaryRowReader reader = (HHRDDBinaryRowReader) hhRowReader;
+    if (hhRowReader instanceof HHBinaryRowReader) {
+      HHBinaryRowReader reader = (HHBinaryRowReader) hhRowReader;
       this.dataDescription = reader.getFieldDataDescription();
       for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
         DataLocator locator = dataDescription.locateField(col);
@@ -88,7 +88,7 @@ public abstract class HHTupleType<T> implements Cloneable,Serializable {
   protected void defaultTypeValidation() throws NoSuchFieldException, SecurityException,
       InstantiationException, IllegalAccessException {
     tuple = createTuple();
-    if (isDataTypeValidated)
+    if (isDataTypeValidated || !isBinaryRowReader)
       return;
     Field[] fields = getOrderedDeclaredFields(tuple.getClass());
     Iterator<HHStructField> colItr = hhSparkSession.getHHStructType().iterator();
@@ -157,13 +157,13 @@ public abstract class HHTupleType<T> implements Cloneable,Serializable {
     Class<?> clazz = tuple.getClass();
     Field[] fields = getOrderedDeclaredFields(clazz);
     Iterator<HHStructField> fieldInfoItr = hhSparkSession.getHHStructType().iterator();
-    HHRDDBinaryRowReader<byte[]> binaryRowReader = null;
-    HHRDDTextRowReader<String> textRowReader = null;
+    HHBinaryRowReader<byte[]> binaryRowReader = null;
+    HHTextRowReader<String> textRowReader = null;
 
     if (isBinaryRowReader) {
-      binaryRowReader = (HHRDDBinaryRowReader<byte[]>) hhRowReader;
+      binaryRowReader = (HHBinaryRowReader<byte[]>) hhRowReader;
     } else {
-      textRowReader = (HHRDDTextRowReader<String>) hhRowReader;
+      textRowReader = (HHTextRowReader<String>) hhRowReader;
     }
 
 

@@ -20,7 +20,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 
 import scala.Tuple2;
 
@@ -41,7 +41,7 @@ public class SumExecutor<T> implements Serializable {
           public Tuple2<String, Double> call(T type) throws Exception {
             if (type instanceof byte[]) {
               byte[] bytes = (byte[]) type;
-              HHRDDBinaryRowReader reader = new HHRDDBinaryRowReader(descriptionBroadcast.getValue());
+              HHBinaryRowReader reader = new HHBinaryRowReader(descriptionBroadcast.getValue());
               reader.wrap(bytes);
               String key = "";
               for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {

@@ -6,7 +6,6 @@ package com.talentica.hungryHippos.sql;
 import java.io.Serializable;
 
 import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.StructField;
 
 
 /**
@@ -29,11 +28,11 @@ public class HHStructField implements Serializable {
     this.partOfSqlStmt = partOfSqlStmt;
   }
 
-  public HHStructField(String name, int index, boolean partOfSqlStmt, DataType dataType) {
+  public HHStructField(String name, int index, boolean partOfSqlStmt, DataType dataTypes) {
     this.name = name;
     this.index = index;
     this.partOfSqlStmt = partOfSqlStmt;
-    this.dataType = dataType;
+    this.dataType = dataTypes;
   }
 
   public String getName() {

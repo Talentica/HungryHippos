@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 
 import scala.Tuple2;
 
@@ -77,7 +77,7 @@ public class MedianJob {
 
       @Override
       public Tuple2<String, Double> call(byte[] buf) throws Exception {
-        HHRDDBinaryRowReader readerVar = new HHRDDBinaryRowReader(dataDes.getValue());
+        HHBinaryRowReader readerVar = new HHBinaryRowReader(dataDes.getValue());
         String key = "";
         for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
           key = key + ((MutableCharArrayString) readerVar.wrap(buf)

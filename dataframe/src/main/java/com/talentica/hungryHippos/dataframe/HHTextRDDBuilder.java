@@ -21,7 +21,7 @@ import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.reader.HHRDDTextRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHTextRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 import com.talentica.hungryHippos.sql.HHStructField;
 
@@ -33,16 +33,16 @@ import com.talentica.hungryHippos.sql.HHStructField;
 public class HHTextRDDBuilder<T> extends HHRDDBuilder<String> implements Serializable {
 
   private static final long serialVersionUID = -2899308802854212675L;
-  protected HHRDDTextRowReader<String> hhRDDReader;
+  protected HHTextRowReader<String> hhRDDReader;
 
   public HHTextRDDBuilder(HHSparkSession<String> hhSparkSession) {
     super(hhSparkSession);
-    hhRDDReader = new HHRDDTextRowReader<String>();
+    hhRDDReader = new HHTextRowReader<String>();
   }
 
   public HHTextRDDBuilder(HHRDD<String> hhRdd, HHSparkSession hhSparkSession) {
     super(hhRdd, hhSparkSession);
-    hhRDDReader = new HHRDDTextRowReader();
+    hhRDDReader = new HHTextRowReader();
   }
 
 

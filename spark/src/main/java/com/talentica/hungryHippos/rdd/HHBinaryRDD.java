@@ -5,8 +5,6 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.spark.Partition;
@@ -14,7 +12,6 @@ import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.JavaSparkContext;
 
 import scala.collection.Iterator;
-import scala.collection.mutable.Seq;
 import scala.reflect.ClassManifestFactory$;
 import scala.reflect.ClassTag;
 
@@ -50,21 +47,4 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
     }
     return iterator;
   }
-
-  @Override
-  public Partition[] getPartitions() {
-    return this.partitions;
-  }
-
-  @Override
-  public Seq<String> getPreferredLocations(Partition partition) {
-    List<String> nodes = new ArrayList<>();
-    nodes.addAll(((HHRDDPartition) partition).getPreferredHosts());
-    if (nodes == null || nodes.isEmpty()) {
-      return null;
-    }
-    return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
-  }
-
-
 }

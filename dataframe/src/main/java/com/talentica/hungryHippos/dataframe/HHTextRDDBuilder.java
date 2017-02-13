@@ -35,12 +35,12 @@ public class HHTextRDDBuilder<T> extends HHRDDBuilder<String> implements Seriali
   private static final long serialVersionUID = -2899308802854212675L;
   protected HHTextRowReader<String> hhRDDReader;
 
-  public HHTextRDDBuilder(HHSparkSession<String> hhSparkSession) {
+  public HHTextRDDBuilder(HHSparkSession hhSparkSession) {
     super(hhSparkSession);
-    hhRDDReader = new HHTextRowReader<String>();
+    hhRDDReader = new HHTextRowReader();
   }
 
-  public HHTextRDDBuilder(HHRDD<String> hhRdd, HHSparkSession hhSparkSession) {
+  public HHTextRDDBuilder(HHRDD hhRdd, HHSparkSession hhSparkSession) {
     super(hhRdd, hhSparkSession);
     hhRDDReader = new HHTextRowReader();
   }

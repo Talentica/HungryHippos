@@ -30,12 +30,12 @@ public class HHSparkSession<T> extends SparkSession {
   private HHRDDBuilder<T> hhJavaRDDBuilder;
   private HHStructType hhStructType;
 
-  public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
+  public HHSparkSession(SparkContext sc, HHRDD<T> hhRdd, HHRDDInfo hhrddInfo) {
     super(sc);
     if (hhRdd instanceof HHBinaryRDD) {
-      this.hhJavaRDDBuilder = HHDataframeFactory.createHHBinaryJavaRDD(hhRdd, hhrddInfo, this);
+      this.hhJavaRDDBuilder = (HHRDDBuilder<T>) HHDataframeFactory.createHHBinaryJavaRDD(hhRdd, hhrddInfo, this);
     } else if (hhRdd instanceof HHTextRDD) {
-      this.hhJavaRDDBuilder = HHDataframeFactory.createHHTextJavaRDD(hhRdd, this);
+      this.hhJavaRDDBuilder = (HHRDDBuilder<T>) HHDataframeFactory.createHHTextJavaRDD(hhRdd, this);
     }
   }
 
@@ -54,7 +54,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public Dataset<Row> mapToDataset(Class beanClazz)
+  public Dataset<Row> mapToDataset(Class<?> beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapToJavaRDD(beanClazz);
     Dataset<Row> dataset =
@@ -106,7 +106,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public Dataset<Row> mapPartitionToDataset(Class beanClazz)
+  public Dataset<Row> mapPartitionToDataset(Class<?> beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapPartitionToJavaRDD(beanClazz);
     Dataset<Row> dataset =

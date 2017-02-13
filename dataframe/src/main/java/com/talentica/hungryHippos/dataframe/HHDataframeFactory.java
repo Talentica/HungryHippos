@@ -17,22 +17,22 @@ import com.talentica.hungryHippos.sql.HHSparkSession;
 public class HHDataframeFactory {
 
   public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(HHRDD<T> hhRdd, HHRDDInfo hhrddInfo,
-      HHSparkSession hhSparkSession) {
-    return new HHBinaryRDDBuilder(hhRdd, hhrddInfo, hhSparkSession);
+      HHSparkSession<T> hhSparkSession) {
+    return new HHBinaryRDDBuilder<T>(hhRdd, hhrddInfo, hhSparkSession);
   }
 
   public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(HHRDDInfo hhrddInfo,
-      HHSparkSession hhSparkSession) {
-    return new HHBinaryRDDBuilder(hhrddInfo, hhSparkSession);
+      HHSparkSession<T> hhSparkSession) {
+    return new HHBinaryRDDBuilder<T>(hhrddInfo, hhSparkSession);
   }
 
   public static <T> HHTextRDDBuilder<T> createHHTextJavaRDD(HHRDD<T> hhRdd,
-      HHSparkSession hhSparkSession) {
-    return new HHTextRDDBuilder(hhRdd, hhSparkSession);
+      HHSparkSession<T> hhSparkSession) {
+    return new HHTextRDDBuilder<T>(hhRdd, hhSparkSession);
   }
 
-  public static <T> HHTextRDDBuilder<T> createHHTextJavaRDD(HHSparkSession hhSparkSession) {
-    return new HHTextRDDBuilder(hhSparkSession);
+  public static <T> HHTextRDDBuilder<T> createHHTextJavaRDD(HHSparkSession<T> hhSparkSession) {
+    return new HHTextRDDBuilder<T>(hhSparkSession);
   }
 
 }

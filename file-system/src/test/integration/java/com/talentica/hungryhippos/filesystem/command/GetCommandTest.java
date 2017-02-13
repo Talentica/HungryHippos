@@ -1,20 +1,12 @@
 package com.talentica.hungryhippos.filesystem.command;
 
-import static org.junit.Assert.*;
-
-import java.io.FileNotFoundException;
-
-import javax.xml.bind.JAXBException;
-
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.talentica.hungryhippos.filesystem.Exception.HungryHipposFileSystemException;
-import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
 
 @Ignore

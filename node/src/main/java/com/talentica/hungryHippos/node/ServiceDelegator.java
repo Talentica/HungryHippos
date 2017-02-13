@@ -1,20 +1,17 @@
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.node.service.DataAppenderService;
-import com.talentica.hungryHippos.node.service.DataDistributorService;
-import com.talentica.hungryHippos.node.service.MetaDataUpdaterService;
-import com.talentica.hungryHippos.node.service.SCPAccessService;
+import com.talentica.hungryHippos.node.service.*;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ServiceDeligator implements Runnable {
+public class ServiceDelegator implements Runnable {
 
   private Socket socket;
 
-  public ServiceDeligator(Socket socket) throws IOException {
+  public ServiceDelegator(Socket socket) throws IOException {
     this.socket = socket;
   }
 
@@ -25,7 +22,7 @@ public class ServiceDeligator implements Runnable {
       int serviceId = dis.readInt();
       switch (serviceId) {
         case HungryHippoServicesConstants.DATA_DISTRIBUTOR:
-          DataDistributorStarter.dataDistributorService.execute(new DataDistributorService(socket));
+          DataDistributorStarter.dataDistributorService.execute(new PublishAccessService(socket));
           break;
         case HungryHippoServicesConstants.FILE_PROVIDER:
           DataDistributorStarter.fileProviderService.execute(new FileProviderService(socket));
@@ -33,11 +30,16 @@ public class ServiceDeligator implements Runnable {
         case HungryHippoServicesConstants.DATA_APPENDER:
           DataDistributorStarter.dataAppenderServices.execute(new DataAppenderService(socket));
           break;
-        case HungryHippoServicesConstants.SCP_ACCESS:
-          DataDistributorStarter.scpAccessServices.execute(new SCPAccessService(socket));
-          break;
         case HungryHippoServicesConstants.METADATA_UPDATER:
-          DataDistributorStarter.metadataUpdaterServices.execute(new MetaDataUpdaterService(socket));
+          DataDistributorStarter.metadataUpdaterServices
+              .execute(new MetaDataUpdaterService(socket));
+          break;
+        case HungryHippoServicesConstants.METADATA_SYNCHRONIZER:
+          DataDistributorStarter.metadataSynchronizerServices
+              .execute(new MetaDataSynchronizerService(socket));
+          break;
+        case HungryHippoServicesConstants.ACCEPT_FILE:
+          DataDistributorStarter.fileService.execute(new AcceptFileService(socket));
           break;
         default:
           socket.close();

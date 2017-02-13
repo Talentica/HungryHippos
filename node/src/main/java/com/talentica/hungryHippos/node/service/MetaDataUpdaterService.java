@@ -1,5 +1,7 @@
 package com.talentica.hungryHippos.node.service;
 
+import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,22 +28,24 @@ public class MetaDataUpdaterService implements Runnable {
     @Override
     public void run() {
         logger.info("Updating metadata from {}", this.socket.getInetAddress());
+        String hhFilePath = null;
         try {
+            hhFilePath = dataInputStream.readUTF();
             String metadataFilePath = dataInputStream.readUTF();
             long metadatatFileSize = dataInputStream.readLong();
             File metadataFile = new File(metadataFilePath);
-            if(!metadataFile.getParentFile().exists()){
+            if (!metadataFile.getParentFile().exists()) {
                 metadataFile.getParentFile().mkdirs();
             }
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(metadataFile,false),bufferSize*10);
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(metadataFile, false));
             int len;
             long remainingDataSize = metadatatFileSize;
-            while(remainingDataSize>0){
-                len=dataInputStream.read(buffer);
-                bos.write(buffer,0,len);
-                remainingDataSize-=len;
+            while (remainingDataSize > 0) {
+                len = dataInputStream.read(buffer);
+                bos.write(buffer, 0, len);
+                remainingDataSize -= len;
             }
             bos.flush();
             bos.close();
@@ -50,14 +54,16 @@ public class MetaDataUpdaterService implements Runnable {
             logger.info("Metadata update completed from {}", this.socket.getInetAddress());
         } catch (IOException e) {
             e.printStackTrace();
-            if(dataInputStream!=null){
-                try {
-                    this.dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
-                    this.dataOutputStream.flush();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+            try {
+                this.dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
+                this.dataOutputStream.flush();
+                if (hhFilePath != null) {
+                    NewDataHandler.updateFailure(hhFilePath, e.getMessage());
                 }
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
+
 
         } finally {
             try {

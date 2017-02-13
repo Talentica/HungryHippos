@@ -20,15 +20,12 @@ public class Chunk {
     this.start = start;
     this.end = end;
     this.idealSizeOfChunk = idealSizeOfChunk;
-
   }
 
 
   public String getParentFilePath() {
     return parentFilePath;
   }
-
-
 
   public String getFileName() {
     return name;
@@ -73,8 +70,6 @@ public class Chunk {
   private void setDetails(String name) {
     this.parentFileName = name;
     this.name = name + "-" + this.id;
-
-
   }
 
   @Override

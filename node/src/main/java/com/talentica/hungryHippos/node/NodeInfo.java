@@ -27,7 +27,7 @@ public enum NodeInfo {
   NodeInfo() {
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<Node> nodeList = config.getNode();
-    Enumeration e;
+    Enumeration<NetworkInterface> e;
     boolean configPresent = false;
     try {
       e = NetworkInterface.getNetworkInterfaces();
@@ -35,8 +35,8 @@ public enum NodeInfo {
       throw new AssertionError(e1);
     }
     searchIp: while (e.hasMoreElements()) {
-      NetworkInterface n = (NetworkInterface) e.nextElement();
-      Enumeration ee = n.getInetAddresses();
+      NetworkInterface n = e.nextElement();
+      Enumeration<InetAddress>  ee = n.getInetAddresses();
       while (ee.hasMoreElements()) {
         InetAddress inetAddress = (InetAddress) ee.nextElement();
         for (Node node : nodeList) {

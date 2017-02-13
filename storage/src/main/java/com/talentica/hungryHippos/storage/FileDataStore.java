@@ -1,18 +1,25 @@
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
-import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.utility.MemoryStatus;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -32,7 +39,6 @@ public class FileDataStore implements DataStore {
     private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
     private String uniqueFileName;
     private String dataFilePrefix;
-    private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
 
     private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
             new HashMap<>();
@@ -78,9 +84,7 @@ public class FileDataStore implements DataStore {
     }
 
     private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
-        System.gc();
-        long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
-        long usableMemory = availablePrimaryMemory - sparedMemory;
+        long usableMemory = MemoryStatus.getUsableMemory();
         long memoryRequiredForBufferedStream = fileNames.size() * 1024;
         if (usableMemory > memoryRequiredForBufferedStream) {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
@@ -94,7 +98,6 @@ public class FileDataStore implements DataStore {
             }
         }
     }
-
 
     public FileDataStore(int numDimensions, DataDescription dataDescription,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,

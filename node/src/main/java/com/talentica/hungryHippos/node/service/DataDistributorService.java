@@ -1,11 +1,5 @@
 package com.talentica.hungryHippos.node.service;
 
-import com.talentica.hungryHippos.coordination.server.ServerUtils;
-import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import org.apache.commons.io.FileUtils;
-
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -18,12 +12,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.node.DataDistributorStarter;
+import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import com.talentica.hungryHippos.utility.MemoryStatus;
+
 /**
  * Created by rajkishoreh on 24/11/16.
  */
 public class DataDistributorService implements Runnable {
 
-
+  private static final Logger logger = LoggerFactory.getLogger(DataDistributorService.class);
   private DataInputStream dataInputStream;
   private DataOutputStream dataOutputStream;
   private Socket socket;
@@ -43,7 +46,13 @@ public class DataDistributorService implements Runnable {
       hhFilePath = dataInputStream.readUTF();
       srcDataPath = dataInputStream.readUTF();
 
-      byte[] buffer = new byte[socket.getReceiveBufferSize()];
+      int idealBufSize = socket.getReceiveBufferSize();
+      byte[] buffer;
+      if (MemoryStatus.getUsableMemory() > idealBufSize) {
+        buffer = new byte[socket.getReceiveBufferSize()];
+      } else {
+        buffer = new byte[2048];
+      }
 
       int read = 0;
       File file = new File(srcDataPath);
@@ -54,28 +63,29 @@ public class DataDistributorService implements Runnable {
 
       long size = dataInputStream.readLong();
 
-      try (OutputStream bos =
-          new BufferedOutputStream(new FileOutputStream(new File(srcDataPath)))) {
+      OutputStream bos = new BufferedOutputStream(new FileOutputStream(srcDataPath));
 
-        while (size != 0) {
-          read = dataInputStream.read(buffer);
-          bos.write(buffer, 0, read);
-          size -= read;
-        }
-        bos.flush();
+      while (size != 0) {
+        read = dataInputStream.read(buffer);
+        bos.write(buffer, 0, read);
+        size -= read;
       }
-
+      bos.flush();
+      bos.close();
+      buffer = null;
+      bos = null;
+      System.gc();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
-      System.out.println("finished reading");
+      dataOutputStream.flush();
       if (!NewDataHandler.checkIfFailed(hhFilePath)) {
-
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
+
     } catch (Exception e) {
       if (hhFilePath != null) {
-        NewDataHandler.updateFailure(hhFilePath, NodeInfo.INSTANCE.getIp() + " : " + e.toString());
+        NewDataHandler.updateFailure(hhFilePath, e.toString());
       }
       try {
         dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
@@ -85,7 +95,7 @@ public class DataDistributorService implements Runnable {
       }
       e.printStackTrace();
     } finally {
-
+      DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
       if (srcDataPath != null) {
         try {
           FileUtils.deleteDirectory((new File(srcDataPath)).getParentFile());
@@ -101,3 +111,4 @@ public class DataDistributorService implements Runnable {
     }
   }
 }
+

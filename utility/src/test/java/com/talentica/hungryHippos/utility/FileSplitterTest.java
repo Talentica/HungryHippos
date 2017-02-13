@@ -43,20 +43,26 @@ public class FileSplitterTest {
     files.add(new File("/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata-9.txt"));
     files.add(new File("/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/sampledata-10.txt"));
 
-    FileSplitter fileSplitter = new FileSplitter(filepath, numberOfChunks);
+    FileSplitter fileSplitter = new FileSplitter(filepath,1024*1024);
     List<Chunk> chunks = fileSplitter.start();
 
-
+    byte[] buffer = new byte[8192];
     for (Chunk chunk : chunks) {
       System.out.println(chunk.toString());
+      FileOutputStream fos = new FileOutputStream(Files
+          .createFile(
+              Paths.get("/home/sudarshans/RD/HH_NEW1/HungryHippos/utility/" + chunk.getFileName()))
+          .toFile());
+      int readBytes = 0;
+      while ((readBytes = chunk.getHHFStream().read(buffer)) != -1) {
+        fos.write(buffer, 0, readBytes);
+      }
+
+      fos.flush();
+      fos.close();
 
     }
 
-    // List<File> chunkFiles = createFileFromChunk(chunks);
-    // assertTrue(checkTwoFiles(files, chunkFiles));
-
-    // assertTrue(verifyChunkContent(files, chunks));
-    // assertTrue(verifyHHFStream(files, chunks));
   }
 
   private boolean checkTwoFiles(List<File> files, List<File> chunkFiles) throws IOException {

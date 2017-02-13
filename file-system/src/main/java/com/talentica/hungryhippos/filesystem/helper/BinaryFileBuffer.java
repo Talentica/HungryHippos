@@ -6,7 +6,6 @@ package com.talentica.hungryhippos.filesystem.helper;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.BindException;
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;

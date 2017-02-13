@@ -28,7 +28,7 @@ import com.talentica.hungryHippos.sql.HHStructField;
  * @since 25/01/2017
  *
  */
-public abstract class HHTupleType<T> implements Cloneable,Serializable {
+public abstract class HHTupleType<T> implements Cloneable, Serializable {
   private static final long serialVersionUID = -8461246214626349933L;
   protected List<DataType> dataType = new ArrayList<DataType>();
   private FieldTypeArrayDataDescription dataDescription;
@@ -46,13 +46,13 @@ public abstract class HHTupleType<T> implements Cloneable,Serializable {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public HHTupleType(HHRowReader hhRowReader, HHSparkSession hhSparkSession)
+  public HHTupleType(HHRowReader<?> hhRowReader, HHSparkSession<?> hhSparkSession)
       throws NoSuchFieldException, SecurityException, IllegalAccessException,
       InstantiationException {
     this.hhRowReader = hhRowReader;
     this.hhSparkSession = hhSparkSession;
     if (hhRowReader instanceof HHBinaryRowReader) {
-      HHBinaryRowReader reader = (HHBinaryRowReader) hhRowReader;
+      HHBinaryRowReader<?> reader = (HHBinaryRowReader<?>) hhRowReader;
       this.dataDescription = reader.getFieldDataDescription();
       for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
         DataLocator locator = dataDescription.locateField(col);
@@ -165,8 +165,6 @@ public abstract class HHTupleType<T> implements Cloneable,Serializable {
     } else {
       textRowReader = (HHTextRowReader<String>) hhRowReader;
     }
-
-
     while (fieldInfoItr.hasNext()) {
       HHStructField columnInfo = fieldInfoItr.next();
       if (!columnInfo.isPartOfSqlStmt())

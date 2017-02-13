@@ -36,7 +36,7 @@ import scala.Tuple2;
 public class SumJobTextFile implements Serializable {
 
   private static final long serialVersionUID = -1338262815432741922L;
-  private static Logger LOGGER = LoggerFactory.getLogger(SumJobBinaryFile.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(SumJobTextFile.class);
   private static JavaSparkContext context;
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException,

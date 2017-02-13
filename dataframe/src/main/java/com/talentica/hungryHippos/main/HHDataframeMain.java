@@ -37,10 +37,13 @@ public class HHDataframeMain implements Serializable {
   private JavaSparkContext context;
   private HHRDDInfo hhrddInfo;
   private HHBinaryRDD hhDefaultRDD;
-  private HHSparkSession hhSparkSession;
+  private HHSparkSession<byte[]> hhSparkSession;
+
+
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException,
       ClassNotFoundException, InstantiationException, IllegalAccessException {
+
     if (args.length < 5)
       throw new IllegalArgumentException("Invalid arguments");
     HHDataframeMain main = new HHDataframeMain();
@@ -56,7 +59,7 @@ public class HHDataframeMain implements Serializable {
     SparkSession sparkSession =
         SparkSession.builder().master(main.masterIp).appName(main.appName).getOrCreate();
     main.hhSparkSession =
-        new HHSparkSession(sparkSession.sparkContext(), main.hhDefaultRDD, main.hhrddInfo);
+        new HHSparkSession<byte[]>(sparkSession.sparkContext(), main.hhDefaultRDD, main.hhrddInfo);
     HHStructType hhStructType = new HHStructType();
     hhStructType.add(new HHStructField("col3", 2, true)).add(new HHStructField("col4", 3, true))
         .add(new HHStructField("col2", 1, true)).add(new HHStructField("col1", 0, true));

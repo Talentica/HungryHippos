@@ -16,14 +16,14 @@ import com.talentica.hungryHippos.sql.HHSparkSession;
  */
 public class HHDataframeFactory {
 
-  public static HHJavaRDDBuilder createHHJavaRDD(HHRDD hhRdd, HHRDDInfo hhrddInfo,
+  public static <T> HHBinaryRDDBuilder<T> createHHJavaRDD(HHRDD<T> hhRdd, HHRDDInfo hhrddInfo,
       HHSparkSession hhSparkSession) {
-    return new HHJavaRDDBuilder(hhRdd, hhrddInfo, hhSparkSession);
+    return new HHBinaryRDDBuilder(hhRdd, hhrddInfo, hhSparkSession);
   }
 
-  public static HHJavaRDDBuilder createHHJavaRDD(HHRDDInfo hhrddInfo,
+  public static <T> HHBinaryRDDBuilder<T> createHHJavaRDD(HHRDDInfo hhrddInfo,
       HHSparkSession hhSparkSession) {
-    return new HHJavaRDDBuilder(hhrddInfo, hhSparkSession);
+    return new HHBinaryRDDBuilder(hhrddInfo, hhSparkSession);
   }
 
 }

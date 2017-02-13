@@ -42,8 +42,8 @@ public class HHDataframeTest implements Serializable {
   private HHRDDInfo hhrddInfo;
   private HHBinaryRDD hhDefaultRDD;
   private HHBinaryRDD hhJobRDD;
-  private HHSparkSession hhSparkSession;
-  private HHSparkSession hhJobSparkSession;
+  private HHSparkSession<byte[]> hhSparkSession;
+  private HHSparkSession<byte[]> hhJobSparkSession;
 
   @Before
   public void setUp() throws FileNotFoundException, JAXBException, UnsupportedDataTypeException,
@@ -60,8 +60,10 @@ public class HHDataframeTest implements Serializable {
     hhJobRDD = new HHBinaryRDD(context, hhrddInfo, new Integer[] {0}, false);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhSparkSession = new HHSparkSession(sparkSession.sparkContext(), hhDefaultRDD, hhrddInfo);
-    hhJobSparkSession = new HHSparkSession(sparkSession.sparkContext(), hhJobRDD, hhrddInfo);
+    hhSparkSession =
+        new HHSparkSession<byte[]>(sparkSession.sparkContext(), hhDefaultRDD, hhrddInfo);
+    hhJobSparkSession =
+        new HHSparkSession<byte[]>(sparkSession.sparkContext(), hhJobRDD, hhrddInfo);
   }
 
   @Test

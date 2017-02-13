@@ -5,6 +5,9 @@ package com.talentica.hungryHippos.sql;
 
 import java.io.Serializable;
 
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.StructField;
+
 
 /**
  * It is the column of the schema and wrapped with the {@code HHStructType} to represent schema
@@ -18,11 +21,19 @@ public class HHStructField implements Serializable {
   private String name;
   private int index;
   private boolean partOfSqlStmt;
+  private DataType dataType;
 
   public HHStructField(String name, int index, boolean partOfSqlStmt) {
     this.name = name;
     this.index = index;
     this.partOfSqlStmt = partOfSqlStmt;
+  }
+
+  public HHStructField(String name, int index, boolean partOfSqlStmt, DataType dataType) {
+    this.name = name;
+    this.index = index;
+    this.partOfSqlStmt = partOfSqlStmt;
+    this.dataType = dataType;
   }
 
   public String getName() {
@@ -47,6 +58,14 @@ public class HHStructField implements Serializable {
 
   public void setPartOfSqlStmt(boolean partOfSqlStmt) {
     this.partOfSqlStmt = partOfSqlStmt;
+  }
+
+  public DataType getDataType() {
+    return dataType;
+  }
+
+  public void setDataType(DataType dataType) {
+    this.dataType = dataType;
   }
 
   @Override

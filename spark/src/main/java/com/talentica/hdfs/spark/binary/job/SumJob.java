@@ -17,7 +17,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
 
 import scala.Tuple2;
 
@@ -107,7 +107,7 @@ public class SumJob {
 
       @Override
       public Tuple2<String, Double> call(byte[] buf) throws Exception {
-        HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
+        HHRDDBinaryRowReader readerVar = new HHRDDBinaryRowReader(dataDes.getValue());
         readerVar.wrap(buf);
         String key = "";
         for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {

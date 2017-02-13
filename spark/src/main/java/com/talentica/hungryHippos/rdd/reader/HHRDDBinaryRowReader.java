@@ -13,7 +13,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  * @author debasishc
  * @since 1/9/15.
  */
-public class HHRDDRowReader implements Serializable {
+public class HHRDDBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
 
   private static final long serialVersionUID = -5800537222182360030L;
   private FieldTypeArrayDataDescription dataDescription;
@@ -28,7 +28,8 @@ public class HHRDDRowReader implements Serializable {
    * @param b
    * @return instance of the current object
    */
-  public HHRDDRowReader wrap(byte[] b) {
+  @Override
+  public  HHRDDBinaryRowReader<byte[]> wrap(byte[] b) {
     this.b = b;
     if (source == null) {
       allocatedSize = this.b.length;
@@ -40,7 +41,7 @@ public class HHRDDRowReader implements Serializable {
       }
     }
     source.clear();
-    return this;
+    return (HHRDDBinaryRowReader<byte[]>) this;
   }
 
   public ByteBuffer getByteBuffer() {
@@ -52,7 +53,7 @@ public class HHRDDRowReader implements Serializable {
    * 
    * @param dataDescription
    */
-  public HHRDDRowReader(FieldTypeArrayDataDescription dataDescription) {
+  public HHRDDBinaryRowReader(FieldTypeArrayDataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
 
@@ -67,6 +68,7 @@ public class HHRDDRowReader implements Serializable {
    * @param source
    * @return Object.
    */
+  @Override
   public Object readAtColumn(int index) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {

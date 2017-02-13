@@ -3,6 +3,7 @@
  */
 package com.talentica.hungryHippos.dataframe;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +14,9 @@ import java.util.List;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHRDDBinaryRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHRDDTextRowReader;
+import com.talentica.hungryHippos.rdd.reader.HHRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 import com.talentica.hungryHippos.sql.HHStructField;
 
@@ -25,13 +28,14 @@ import com.talentica.hungryHippos.sql.HHStructField;
  * @since 25/01/2017
  *
  */
-public abstract class HHTupleType<T> implements Cloneable {
-
+public abstract class HHTupleType<T> implements Cloneable,Serializable {
+  private static final long serialVersionUID = -8461246214626349933L;
   protected List<DataType> dataType = new ArrayList<DataType>();
   private FieldTypeArrayDataDescription dataDescription;
-  private HHRDDRowReader hhrddRowReader;
-  private HHSparkSession hhSparkSession;
-  protected T tuple;
+  private HHRowReader<?> hhRowReader;
+  private HHSparkSession<?> hhSparkSession;
+  protected Object tuple;
+  private boolean isBinaryRowReader = false;
 
   /**
    * Constructor of the HHTupleType
@@ -42,15 +46,19 @@ public abstract class HHTupleType<T> implements Cloneable {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public HHTupleType(HHRDDRowReader hhrddRowReader, HHSparkSession hhSparkSession)
+  public HHTupleType(HHRowReader hhRowReader, HHSparkSession hhSparkSession)
       throws NoSuchFieldException, SecurityException, IllegalAccessException,
       InstantiationException {
-    this.hhrddRowReader = hhrddRowReader;
+    this.hhRowReader = hhRowReader;
     this.hhSparkSession = hhSparkSession;
-    this.dataDescription = hhrddRowReader.getFieldDataDescription();
-    for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
-      DataLocator locator = dataDescription.locateField(col);
-      dataType.add(locator.getDataType());
+    if (hhRowReader instanceof HHRDDBinaryRowReader) {
+      HHRDDBinaryRowReader reader = (HHRDDBinaryRowReader) hhRowReader;
+      this.dataDescription = reader.getFieldDataDescription();
+      for (int col = 0; col < dataDescription.getNumberOfDataFields(); col++) {
+        DataLocator locator = dataDescription.locateField(col);
+        dataType.add(locator.getDataType());
+      }
+      isBinaryRowReader = true;
     }
     defaultTypeValidation();
     prepareTuple();
@@ -60,11 +68,11 @@ public abstract class HHTupleType<T> implements Cloneable {
     return super.clone();
   }
 
-  public T getTuple() throws InstantiationException, IllegalAccessException {
+  public Object getTuple() throws InstantiationException, IllegalAccessException {
     return this.tuple;
   }
 
-  public abstract T createTuple() throws InstantiationException, IllegalAccessException;
+  public abstract Object createTuple() throws InstantiationException, IllegalAccessException;
 
   private static boolean isDataTypeValidated = false;
 
@@ -84,9 +92,10 @@ public abstract class HHTupleType<T> implements Cloneable {
       return;
     Field[] fields = getOrderedDeclaredFields(tuple.getClass());
     Iterator<HHStructField> colItr = hhSparkSession.getHHStructType().iterator();
-    while(colItr.hasNext()) {
+    while (colItr.hasNext()) {
       HHStructField col = colItr.next();
-      if(!col.isPartOfSqlStmt()) continue;
+      if (!col.isPartOfSqlStmt())
+        continue;
       DataLocator locator = dataDescription.locateField(col.getIndex());
       Field column = fields[col.getIndex()];
       switch (locator.getDataType()) {
@@ -148,46 +157,62 @@ public abstract class HHTupleType<T> implements Cloneable {
     Class<?> clazz = tuple.getClass();
     Field[] fields = getOrderedDeclaredFields(clazz);
     Iterator<HHStructField> fieldInfoItr = hhSparkSession.getHHStructType().iterator();
+    HHRDDBinaryRowReader<byte[]> binaryRowReader = null;
+    HHRDDTextRowReader<String> textRowReader = null;
+
+    if (isBinaryRowReader) {
+      binaryRowReader = (HHRDDBinaryRowReader<byte[]>) hhRowReader;
+    } else {
+      textRowReader = (HHRDDTextRowReader<String>) hhRowReader;
+    }
+
+
     while (fieldInfoItr.hasNext()) {
       HHStructField columnInfo = fieldInfoItr.next();
-      if(!columnInfo.isPartOfSqlStmt()) continue;
-      DataLocator locator =
-          hhrddRowReader.getFieldDataDescription().locateField(columnInfo.getIndex());
+      if (!columnInfo.isPartOfSqlStmt())
+        continue;
+      DataLocator locator;
       Field column = fields[columnInfo.getIndex()];
       column.setAccessible(true);
-      switch (locator.getDataType()) {
-        case BYTE:
-          column.set(tuple, Byte.valueOf(hhrddRowReader.getByteBuffer().get(locator.getOffset())));
-          break;
-        case CHAR:
-          column.set(tuple,
-              Character.valueOf(hhrddRowReader.getByteBuffer().getChar(locator.getOffset())));
-          break;
-        case SHORT:
-          column.set(tuple,
-              Short.valueOf(hhrddRowReader.getByteBuffer().getShort(locator.getOffset())));
-          break;
-        case INT:
-          column.set(tuple,
-              Integer.valueOf(hhrddRowReader.getByteBuffer().getInt(locator.getOffset())));
-          break;
-        case LONG:
-          column.set(tuple,
-              Long.valueOf(hhrddRowReader.getByteBuffer().getLong(locator.getOffset())));
-          break;
-        case FLOAT:
-          column.set(tuple,
-              Float.valueOf(hhrddRowReader.getByteBuffer().getFloat(locator.getOffset())));
-          break;
-        case DOUBLE:
-          column.set(tuple,
-              Double.valueOf(hhrddRowReader.getByteBuffer().getDouble(locator.getOffset())));
-          break;
-        case STRING:
-          column.set(tuple, hhrddRowReader.readValueString(columnInfo.getIndex()).toString());
-          break;
-        default:
-          throw new RuntimeException("Invalid data type");
+      if (isBinaryRowReader) {
+        locator = binaryRowReader.getFieldDataDescription().locateField(columnInfo.getIndex());
+        switch (locator.getDataType()) {
+          case BYTE:
+            column.set(tuple,
+                Byte.valueOf(binaryRowReader.getByteBuffer().get(locator.getOffset())));
+            break;
+          case CHAR:
+            column.set(tuple,
+                Character.valueOf(binaryRowReader.getByteBuffer().getChar(locator.getOffset())));
+            break;
+          case SHORT:
+            column.set(tuple,
+                Short.valueOf(binaryRowReader.getByteBuffer().getShort(locator.getOffset())));
+            break;
+          case INT:
+            column.set(tuple,
+                Integer.valueOf(binaryRowReader.getByteBuffer().getInt(locator.getOffset())));
+            break;
+          case LONG:
+            column.set(tuple,
+                Long.valueOf(binaryRowReader.getByteBuffer().getLong(locator.getOffset())));
+            break;
+          case FLOAT:
+            column.set(tuple,
+                Float.valueOf(binaryRowReader.getByteBuffer().getFloat(locator.getOffset())));
+            break;
+          case DOUBLE:
+            column.set(tuple,
+                Double.valueOf(binaryRowReader.getByteBuffer().getDouble(locator.getOffset())));
+            break;
+          case STRING:
+            column.set(tuple, binaryRowReader.readValueString(columnInfo.getIndex()).toString());
+            break;
+          default:
+            throw new RuntimeException("Invalid data type");
+        }
+      } else {
+        column.set(tuple, textRowReader.readAtColumn(columnInfo.getIndex()));
       }
     }
 

@@ -13,17 +13,19 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
-import com.talentica.hungryHippos.dataframe.HHJavaRDDBuilder;
+import com.talentica.hungryHippos.dataframe.HHRDDBuilder;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 
 /**
  * @author pooshans
+ * @param <T>
+ * @param <T>
  *
  */
-public class HHSparkSession extends SparkSession {
+public class HHSparkSession<T> extends SparkSession {
   private static final long serialVersionUID = -7510199519029156054L;
-  private HHJavaRDDBuilder hhJavaRDDBuilder;
+  private HHRDDBuilder<T> hhJavaRDDBuilder;
   private HHStructType hhStructType;
 
   public HHSparkSession(SparkContext sc, HHRDD hhRdd, HHRDDInfo hhrddInfo) {
@@ -46,9 +48,9 @@ public class HHSparkSession extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public <T> Dataset<Row> mapToDataset(Class<T> beanClazz)
+  public Dataset<Row> mapToDataset(Class beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JavaRDD<T> rddDataframe = hhJavaRDDBuilder.mapToJavaRDD(beanClazz);
+    JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapToJavaRDD(beanClazz);
     Dataset<Row> dataset =
         sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
     return dataset;
@@ -98,9 +100,9 @@ public class HHSparkSession extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public <T> Dataset<Row> mapPartitionToDataset(Class<T> beanClazz)
+  public Dataset<Row> mapPartitionToDataset(Class beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JavaRDD<T> rddDataframe = hhJavaRDDBuilder.mapPartitionToJavaRDD(beanClazz);
+    JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapPartitionToJavaRDD(beanClazz);
     Dataset<Row> dataset =
         sqlContext().createDataFrame(rddDataframe, Class.forName(beanClazz.getName()));
     return dataset;

@@ -32,26 +32,32 @@ public class SumExecutor<T> implements Serializable {
 
   private static final long serialVersionUID = 2938355892415268963L;
 
-  public <T> JavaRDD<Tuple2<String, Double>> process(HHRDD<T> hipposRDD,
+  public <T> JavaRDD<Tuple2<String, Integer>> process(HHRDD<T> hipposRDD,
       Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast, Broadcast<Job> jobBroadcast) {
 
-    JavaPairRDD<String, Double> javaRDD =
-        hipposRDD.toJavaRDD().mapToPair(new PairFunction<T, String, Double>() {
+    JavaPairRDD<String, Integer> javaRDD =
+        hipposRDD.toJavaRDD().mapToPair(new PairFunction<T, String, Integer>() {
           @Override
-          public Tuple2<String, Double> call(T type) throws Exception {
+          public Tuple2<String, Integer> call(T type) throws Exception {
             if (type instanceof byte[]) {
               byte[] bytes = (byte[]) type;
               HHBinaryRowReader reader = new HHBinaryRowReader(descriptionBroadcast.getValue());
               reader.wrap(bytes);
               String key = "";
               for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-                key = key + ((MutableCharArrayString) reader
-                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
+                Object obj = reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
+                if (obj instanceof MutableCharArrayString) {
+                  key = key + ((MutableCharArrayString) obj).toString();
+                } else if (obj instanceof Integer) {
+                  key = key + ((Integer) obj).toString();
+                } else if (obj instanceof Double) {
+                  key = key + ((Double) obj).toString();
+                }
               }
               key = key + "|id=" + jobBroadcast.value().getJobId();
-              Double value =
-                  (Double) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-              return new Tuple2<String, Double>(key, value);
+              Integer value =
+                  (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
+              return new Tuple2<String, Integer>(key, value);
             } else if (type instanceof String) {
               String line = (String) type;
               String[] token = line.split(",");
@@ -60,35 +66,35 @@ public class SumExecutor<T> implements Serializable {
                 key = key + token[index];
               }
               key = key + "|id=" + jobBroadcast.value().getJobId();
-              Double value = Double.valueOf(token[jobBroadcast.value().getCalculationIndex()]);
-              return new Tuple2<String, Double>(key, value);
+              Integer value = Integer.valueOf(token[jobBroadcast.value().getCalculationIndex()]);
+              return new Tuple2<String, Integer>(key, value);
             } else {
               throw new RuntimeException(
                   "Invalid type paramter exeception. Only supported type is byte[] and String");
             }
           }
         });
-    JavaRDD<Tuple2<String, Double>> resultRDD = javaRDD.mapPartitions(
-        new FlatMapFunction<Iterator<Tuple2<String, Double>>, Tuple2<String, Double>>() {
+    JavaRDD<Tuple2<String, Integer>> resultRDD = javaRDD.mapPartitions(
+        new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Integer>>() {
 
           @Override
-          public Iterator<Tuple2<String, Double>> call(Iterator<Tuple2<String, Double>> t)
+          public Iterator<Tuple2<String, Integer>> call(Iterator<Tuple2<String, Integer>> t)
               throws Exception {
 
-            List<Tuple2<String, Double>> sumList = new ArrayList<>();
-            Map<String, Double> map = new HashMap<>();
+            List<Tuple2<String, Integer>> sumList = new ArrayList<>();
+            Map<String, Integer> map = new HashMap<>();
             while (t.hasNext()) {
-              Tuple2<String, Double> tuple2 = t.next();
-              Double storedValue = map.get(tuple2._1);
+              Tuple2<String, Integer> tuple2 = t.next();
+              Integer storedValue = map.get(tuple2._1);
               if (storedValue == null) {
-                map.put(tuple2._1, tuple2._2.doubleValue());
+                map.put(tuple2._1, tuple2._2.intValue());
               } else {
                 map.put(tuple2._1, tuple2._2 + storedValue);
               }
             }
 
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-              sumList.add(new Tuple2<String, Double>(entry.getKey(), entry.getValue()));
+            for (Map.Entry<String, Integer> entry : map.entrySet()) {
+              sumList.add(new Tuple2<String, Integer>(entry.getKey(), entry.getValue()));
             }
             return sumList.iterator();
           }

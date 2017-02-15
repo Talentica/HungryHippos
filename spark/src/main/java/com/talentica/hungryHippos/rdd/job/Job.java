@@ -52,11 +52,9 @@ public class Job implements Serializable {
   @Override
   public String toString() {
     return "Job [dimensions=" + Arrays.toString(dimensions) + ", calculationIndex="
-        + calculationIndex + ", jobId=" + jobId + ", getDimensions()="
-        + Arrays.toString(getDimensions()) + ", getCalculationIndex()=" + getCalculationIndex()
-        + ", getJobId()=" + getJobId() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode()
-        + ", toString()=" + super.toString() + "]";
+        + calculationIndex + ", jobId=" + jobId + "\n]";
   }
+
 
 
 

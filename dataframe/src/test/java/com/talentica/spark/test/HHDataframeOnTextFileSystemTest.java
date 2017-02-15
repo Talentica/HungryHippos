@@ -61,10 +61,8 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
     hhJobRDD = new HHTextRDD(context, hhrddInfo, new Integer[] {0}, false);
     SparkSession sparkSession =
         SparkSession.builder().master(masterIp).appName(appName).getOrCreate();
-    hhSparkSession =
-        new HHSparkSession<String>(sparkSession.sparkContext(), hhDefaultRDD, hhrddInfo);
-    hhJobSparkSession =
-        new HHSparkSession<String>(sparkSession.sparkContext(), hhJobRDD, hhrddInfo);
+    hhSparkSession = new HHSparkSession<String>(sparkSession.sparkContext(), hhrddInfo);
+    hhJobSparkSession = new HHSparkSession<String>(sparkSession.sparkContext(), hhrddInfo);
   }
 
   @Test
@@ -76,7 +74,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("col2", 1, true, DataTypes.StringType))
         .add(new HHStructField("col1", 0, true, DataTypes.StringType));
     hhJobSparkSession.addHHStructType(hhStructType);
-    Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhJobSparkSession.mapRDDToDataset(hhJobRDD, TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql("SELECT sum(col4) as sum FROM TableView GROUP BY col1");
     rs.show(false);
@@ -91,7 +89,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("col2", 1, true, DataTypes.StringType))
         .add(new HHStructField("col3", 2, true, DataTypes.StringType));
     hhSparkSession.addHHStructType(hhStructType);
-    Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhSparkSession.mapRDDToDataset(hhDefaultRDD, TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT col1,col2,col3 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -107,7 +105,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("col2", 1, true, DataTypes.StringType))
         .add(new HHStructField("col3", 2, true, DataTypes.StringType));
     hhJobSparkSession.addHHStructType(hhStructType);
-    Dataset<Row> dataset = hhJobSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhJobSparkSession.mapRDDToDataset(hhJobRDD, TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT col1,col2,col3 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -124,7 +122,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("col3", 2, true, DataTypes.StringType))
         .add(new HHStructField("col5", 4, true, DataTypes.IntegerType));
     hhSparkSession.addHHStructType(hhStructType);
-    Dataset<Row> dataset = hhSparkSession.mapToDataset(TupleBean.class);
+    Dataset<Row> dataset = hhSparkSession.mapRDDToDataset(hhDefaultRDD, TupleBean.class);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT col1,col2,col5 FROM TableView WHERE col1 LIKE 'a' and col2 LIKE 'b' and col3 LIKE 'a' ");
@@ -143,7 +141,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("Column4", 3, false, DataTypes.IntegerType));
 
     hhJobSparkSession.addHHStructType(hhStructType);
-    Dataset<Row> dataset = hhJobSparkSession.mapToDataset();
+    Dataset<Row> dataset = hhJobSparkSession.mapRddToDataset(hhJobRDD);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhJobSparkSession.sql(
         "SELECT Column1, Column2,Column3 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
@@ -166,7 +164,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("Column3", 2, true, DataTypes.StringType));
     hhSparkSession.addHHStructType(hhStructType);
 
-    Dataset<Row> dataset = hhSparkSession.mapToDataset();
+    Dataset<Row> dataset = hhSparkSession.mapRddToDataset(hhDefaultRDD);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT Column1 FROM TableView WHERE Column1 LIKE 'a' and Column2 LIKE 'b' and Column3 LIKE 'a' ");
@@ -185,7 +183,7 @@ public class HHDataframeOnTextFileSystemTest implements Serializable {
         .add(new HHStructField("Column4", 3, true, DataTypes.StringType));
     hhSparkSession.addHHStructType(hhStructType);
 
-    Dataset<Row> dataset = hhSparkSession.mapToDataset();
+    Dataset<Row> dataset = hhSparkSession.mapRddToDataset(hhDefaultRDD);
     dataset.createOrReplaceTempView("TableView");
     Dataset<Row> rs = hhSparkSession.sql(
         "SELECT  Column4 FROM TableView WHERE key1 LIKE 'a' and key2 LIKE 'b' and key3 LIKE 'a' ");

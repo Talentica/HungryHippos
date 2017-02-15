@@ -40,8 +40,8 @@ public class JobMatrix implements Serializable{
 
   @Override
   public String toString() {
-    return "JobConf [jobs=" + jobs + ", getJobs()=" + getJobs() + ", getClass()=" + getClass()
-        + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+    return "JobMatrix [jobs=" + jobs + "]";
   }
+
 
 }

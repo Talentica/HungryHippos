@@ -21,8 +21,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.client.domain.DataLocator;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
@@ -41,15 +41,15 @@ public class HHBinaryRDDBuilder<T> extends HHRDDBuilder<byte[]> implements Seria
   private static final long serialVersionUID = -2899308802854212675L;
   protected HHBinaryRowReader hhRDDReader;
 
-  public HHBinaryRDDBuilder(HHRDDInfo hhrddInfo, HHSparkSession hhSparkSession) {
+  public HHBinaryRDDBuilder(FieldTypeArrayDataDescription description, HHSparkSession hhSparkSession) {
     super(hhSparkSession);
-    hhRDDReader = new HHBinaryRowReader(hhrddInfo.getFieldDataDesc());
+    hhRDDReader = new HHBinaryRowReader(description);
   }
 
-  public HHBinaryRDDBuilder(HHRDD hhRdd, HHRDDInfo hhrddInfo,
+  public HHBinaryRDDBuilder(JavaRDD javaRdd, FieldTypeArrayDataDescription description,
       HHSparkSession hhSparkSession) {
-    super(hhRdd, hhSparkSession);
-    hhRDDReader = new HHBinaryRowReader(hhrddInfo.getFieldDataDesc());
+    super(javaRdd, hhSparkSession);
+    hhRDDReader = new HHBinaryRowReader(description);
   }
 
 

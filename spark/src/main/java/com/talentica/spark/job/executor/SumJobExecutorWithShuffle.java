@@ -1,18 +1,18 @@
 package com.talentica.spark.job.executor;
 
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
-import scala.Tuple2;
 
-import java.nio.ByteBuffer;
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.rdd.HHRDD;
+import com.talentica.hungryHippos.rdd.job.Job;
+import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
+
+import scala.Tuple2;
 
 /**
  * Created by rajkishoreh on 9/1/17.

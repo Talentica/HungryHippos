@@ -3,8 +3,9 @@
  */
 package com.talentica.hungryHippos.dataframe;
 
-import com.talentica.hungryHippos.rdd.HHRDD;
-import com.talentica.hungryHippos.rdd.HHRDDInfo;
+import org.apache.spark.api.java.JavaRDD;
+
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 
 /**
@@ -16,17 +17,17 @@ import com.talentica.hungryHippos.sql.HHSparkSession;
  */
 public class HHDataframeFactory {
 
-  public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(HHRDD<T> hhRdd, HHRDDInfo hhrddInfo,
+  public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(JavaRDD<T> javaRdd, FieldTypeArrayDataDescription description,
       HHSparkSession<T> hhSparkSession) {
-    return new HHBinaryRDDBuilder<T>(hhRdd, hhrddInfo, hhSparkSession);
+    return new HHBinaryRDDBuilder<T>(javaRdd, description, hhSparkSession);
   }
 
-  public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(HHRDDInfo hhrddInfo,
+  public static <T> HHBinaryRDDBuilder<T> createHHBinaryJavaRDD(FieldTypeArrayDataDescription description,
       HHSparkSession<T> hhSparkSession) {
-    return new HHBinaryRDDBuilder<T>(hhrddInfo, hhSparkSession);
+    return new HHBinaryRDDBuilder<T>(description, hhSparkSession);
   }
 
-  public static <T> HHTextRDDBuilder<T> createHHTextJavaRDD(HHRDD<T> hhRdd,
+  public static <T> HHTextRDDBuilder<T> createHHTextJavaRDD(JavaRDD<T> hhRdd,
       HHSparkSession<T> hhSparkSession) {
     return new HHTextRDDBuilder<T>(hhRdd, hhSparkSession);
   }

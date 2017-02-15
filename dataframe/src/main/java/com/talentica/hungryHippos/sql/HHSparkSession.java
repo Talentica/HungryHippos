@@ -7,15 +7,16 @@ import javax.activation.UnsupportedDataTypeException;
 
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
+import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.dataframe.HHDataframeFactory;
 import com.talentica.hungryHippos.dataframe.HHRDDBuilder;
 import com.talentica.hungryHippos.rdd.HHBinaryRDD;
-import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.HHRDDInfo;
 import com.talentica.hungryHippos.rdd.HHTextRDD;
 
@@ -28,11 +29,11 @@ import com.talentica.hungryHippos.rdd.HHTextRDD;
 public class HHSparkSession<T> extends SparkSession {
   private static final long serialVersionUID = -7510199519029156054L;
   private HHStructType hhStructType;
-  private HHRDDInfo hhrddInfo;
+  private FieldTypeArrayDataDescription description;
 
-  public HHSparkSession(SparkContext sc, HHRDDInfo hhrddInfo) {
+  public HHSparkSession(SparkContext sc, FieldTypeArrayDataDescription description) {
     super(sc);
-    this.hhrddInfo = hhrddInfo;
+    this.description = description;
   }
 
   @Override
@@ -50,7 +51,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public Dataset<Row> mapRDDToDataset(HHRDD<T> hhRdd, Class<?> beanClazz)
+  public Dataset<Row> mapRDDToDataset(RDD<T> hhRdd, Class<?> beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapToJavaRDD(beanClazz);
@@ -70,7 +71,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapRddToDataset(HHRDD<T> hhRdd)
+  public Dataset<Row> mapRDDToDataset(RDD<T> hhRdd)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     StructType schema = hhJavaRDDBuilder.getOrCreateSchema();
@@ -88,7 +89,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapRDDToDataset(HHRDD<T> hhRdd, StructType schema)
+  public Dataset<Row> mapRDDToDataset(RDD<T> hhRdd, StructType schema)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     JavaRDD<Row> rowRDD = hhJavaRDDBuilder.mapToJavaRDD();
@@ -106,7 +107,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws IllegalAccessException
    * @throws InstantiationException
    */
-  public Dataset<Row> mapPartitionRDDToDataset(HHRDD<T> hhRdd, Class<?> beanClazz)
+  public Dataset<Row> mapPartitionRDDToDataset(RDD<T> hhRdd, Class<?> beanClazz)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     JavaRDD<Object> rddDataframe = hhJavaRDDBuilder.mapPartitionToJavaRDD(beanClazz);
@@ -125,7 +126,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapPartitionRDDToDataset(HHRDD<T> hhRdd)
+  public Dataset<Row> mapPartitionRDDToDataset(RDD<T> hhRdd)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     StructType schema = hhJavaRDDBuilder.getOrCreateSchema();
@@ -142,7 +143,7 @@ public class HHSparkSession<T> extends SparkSession {
    * @throws ClassNotFoundException
    * @throws UnsupportedDataTypeException
    */
-  public Dataset<Row> mapPartitionRDDToDataset(HHRDD<T> hhRdd, StructType schema)
+  public Dataset<Row> mapPartitionRDDToDataset(RDD<T> hhRdd, StructType schema)
       throws ClassNotFoundException, UnsupportedDataTypeException {
     HHRDDBuilder<T> hhJavaRDDBuilder = getRDD(hhRdd);
     JavaRDD<Row> rowRDD = hhJavaRDDBuilder.mapPartitionToJavaRDD();
@@ -168,13 +169,16 @@ public class HHSparkSession<T> extends SparkSession {
     hhStructType.toggleColumnStatus(columnsName);
   }
 
-  private HHRDDBuilder<T> getRDD(HHRDD<T> hhRdd) {
+  private HHRDDBuilder<T> getRDD(RDD<T> hhRdd) {
     if (hhRdd instanceof HHBinaryRDD) {
-      return (HHRDDBuilder<T>) HHDataframeFactory.createHHBinaryJavaRDD(hhRdd, hhrddInfo, this);
+      return (HHRDDBuilder<T>) HHDataframeFactory.createHHBinaryJavaRDD(hhRdd.toJavaRDD(),
+          description, this);
     } else if (hhRdd instanceof HHTextRDD) {
-      return (HHRDDBuilder<T>) HHDataframeFactory.createHHTextJavaRDD(hhRdd, this);
+      return (HHRDDBuilder<T>) HHDataframeFactory.createHHTextJavaRDD(hhRdd.toJavaRDD(), this);
+    } else {
+      return (HHRDDBuilder<T>) HHDataframeFactory.createHHBinaryJavaRDD(hhRdd.toJavaRDD(),
+          description, this);
     }
-    return null;
   }
 
 }

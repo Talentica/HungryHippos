@@ -11,7 +11,6 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.StructType;
 
-import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 
 /**
@@ -27,8 +26,8 @@ public abstract class HHRDDBuilder<T> implements Serializable {
     this.hhSparkSession = hhSparkSession;
   }
 
-  public HHRDDBuilder(HHRDD<T> hhRdd, HHSparkSession<T> hhSparkSession) {
-    this.javaRdd = hhRdd.toJavaRDD();
+  public HHRDDBuilder(JavaRDD<T> javaRdd, HHSparkSession<T> hhSparkSession) {
+    this.javaRdd = javaRdd;
     this.hhSparkSession = hhSparkSession;
   }
 

@@ -20,7 +20,6 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.reader.HHTextRowReader;
 import com.talentica.hungryHippos.sql.HHSparkSession;
 import com.talentica.hungryHippos.sql.HHStructField;
@@ -40,7 +39,7 @@ public class HHTextRDDBuilder<T> extends HHRDDBuilder<String> implements Seriali
     hhRDDReader = new HHTextRowReader();
   }
 
-  public HHTextRDDBuilder(HHRDD hhRdd, HHSparkSession hhSparkSession) {
+  public HHTextRDDBuilder(JavaRDD hhRdd, HHSparkSession hhSparkSession) {
     super(hhRdd, hhSparkSession);
     hhRDDReader = new HHTextRowReader();
   }

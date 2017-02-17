@@ -1,16 +1,25 @@
 package com.talentica.hungryHippos.rdd;
 
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
+
+import org.apache.spark.Partition;
+
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import org.apache.spark.Partition;
-import scala.Tuple2;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.*;
+import scala.Tuple2;
 
 /**
  * Created by rajkishoreh on 30/12/16.
@@ -34,9 +43,9 @@ public class HHRDDInfo implements Serializable {
 
   public HHRDDInfo(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      Map<String, Long> fileNameToSizeWholeMap, String[] keyOrder, Map<Integer, SerializedNode> nodeInfo,
-      int[] shardingIndexes, FieldTypeArrayDataDescription fieldDataDesc,
-      String directoryLocation) {
+      Map<String, Long> fileNameToSizeWholeMap, String[] keyOrder,
+      Map<Integer, SerializedNode> nodeInfo, int[] shardingIndexes,
+      FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
     this.bucketCombinationToNodeNumberMap = bucketCombinationToNodeNumberMap;
     this.bucketToNodeNumberMap = bucketToNodeNumberMap;
     this.keyOrder = keyOrder;
@@ -149,7 +158,7 @@ public class HHRDDInfo implements Serializable {
             .entrySet()) {
           nodeBuckets.offer(nodeBucketEntry.getValue());
         }
-        int maxNoOfPreferredNodes = 3;// No of Preferred Nodes
+        int maxNoOfPreferredNodes = getShardingIndexes().length;// No of Preferred Nodes
         int remNoOfPreferredNodes = maxNoOfPreferredNodes;
         NodeBucket nodeBucket;
         List<String> preferredIpList = new ArrayList<>();
@@ -177,34 +186,6 @@ public class HHRDDInfo implements Serializable {
 
     return partitions;
   }
-
-  /*
-   * public Partition[] getPartitions(int id, List<Integer> jobShardingDimensions, int
-   * jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey, String primaryDimensionKey) {
-   * int noOfShardingDimensions = keyOrder.length; int noOfPartitions = 1; int[]
-   * jobShardingDimensionsArray = new int[jobShardingDimensions.size()]; int i = 0; for (String
-   * shardingDimensionKey : jobShardingDimensionsKey) { int bucketSize =
-   * bucketToNodeNumberMap.get(shardingDimensionKey).size(); noOfPartitions = noOfPartitions *
-   * bucketSize; jobShardingDimensionsArray[i] = jobShardingDimensions.get(i);
-   * System.out.print(jobShardingDimensionsArray[i]); i++;
-   * 
-   * }
-   * 
-   * System.out.println("");
-   * 
-   * int[][] combinationArray = new int[noOfPartitions][]; populateCombination(combinationArray,
-   * null, 0, jobShardingDimensionsArray, 0);
-   * 
-   * Partition[] partitions = new HHRDDPartition[noOfPartitions]; for (int index = 0; index <
-   * noOfPartitions; index++) { List<Tuple2<String, int[]>> files = new ArrayList<>();
-   * listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray,
-   * combinationArray[index]); System.out.println(); int preferredNodeId =
-   * bucketToNodeNumberMap.get(primaryDimensionKey).get(new
-   * Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId(); List<String>
-   * preferredHosts = new ArrayList<>(); preferredHosts.add(nodIdToIp.get(preferredNodeId));
-   * partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-   * this.fieldDataDesc, preferredHosts, files, nodIdToIp); } return partitions; }
-   */
 
   public Partition[] getOptimizedPartitions(int id, int noOfExecutors,
       List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
@@ -259,6 +240,15 @@ public class HHRDDInfo implements Serializable {
         }
         List<Tuple2<String, int[]>> files = partitionBucket1.getFiles();
         if (!files.isEmpty()) {
+          System.out.println("Preferred Ips : " + preferredIpList.toString());
+          Iterator<Tuple2<String, int[]>> itr = files.iterator();
+          while (itr.hasNext()) {
+            Tuple2<String, int[]> tuple = itr.next();
+            /*
+             * System.out .println(" Files  :: " + tuple._1 + " And node Ip : " +
+             * Arrays.toString(tuple._2));
+             */
+          }
           Partition partition =
               new HHRDDPartition(id, partitionIdx, new File(this.directoryLocation).getPath(),
                   this.fieldDataDesc, preferredIpList, files, nodeInfo);

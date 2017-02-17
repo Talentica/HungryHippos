@@ -43,7 +43,7 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
     try {
       File file = new File(filePath);
       int bufferSIze = 2048;
-      socket = new Socket(ip, port);
+      socket = new Socket(ip, 8789);
       InputStreamReader isr = new InputStreamReader(socket.getInputStream());
       BufferedReader br = new BufferedReader(isr);
       DataOutputStream dos = new DataOutputStream(socket.getOutputStream());

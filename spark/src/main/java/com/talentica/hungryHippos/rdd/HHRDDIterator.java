@@ -5,6 +5,7 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -61,19 +62,31 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
       Map<Integer, SerializedNode> nodeInfo) throws IOException {
     this.filePath = filePath + File.separator;
     trackRemoteFiles = new HashSet<>();
+    int selectIndexForHost = 0;
     for (Tuple2<String, int[]> tuple2 : files) {
       File file = new File(filePath + File.separator + tuple2._1);
       if (!file.exists()) {
         logger.info("Downloading file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
         boolean isFileDownloaded = false;
         while (!isFileDownloaded) {
-          for (int id : tuple2._2) {
-            String ip = nodeInfo.get(id).getIp();
-            int port = nodeInfo.get(id).getPort();
+          for (int id = 0; id < tuple2._2.length; id++) {
+            if (selectIndexForHost != id) {
+              continue;
+            }
+            int index = tuple2._2[id];
+            String ip = nodeInfo.get(index).getIp();
+            int port = nodeInfo.get(index).getPort();
             isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
             logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
             if (isFileDownloaded) {
               break;
+            } else {
+              if (selectIndexForHost < tuple2._2.length - 1) {
+                selectIndexForHost++;
+              } else {
+                throw new RuntimeException("File :: " + file + " is not available on any hosts :: "
+                    + Arrays.toString(tuple2._2));
+              }
             }
           }
         }

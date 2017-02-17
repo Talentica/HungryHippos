@@ -12,7 +12,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +56,10 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
     try {
       File file = new File(filePath);
       int bufferSIze = 2048;
-      socket = new Socket(ip, port);
+      SocketAddress socketAddress = new InetSocketAddress(ip, 8789);
+      socket = new Socket();
+      socket.connect(socketAddress, 1000);
+      //socket = new Socket(ip, 8789); // need to remove hard coded port number
       DataInputStream dis = new DataInputStream(socket.getInputStream());
       DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
       dos.writeInt(HungryHippoServicesConstants.FILE_PROVIDER);

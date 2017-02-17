@@ -38,7 +38,6 @@ public class SumJobBinaryFile implements Serializable {
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException,
       ClassNotFoundException, InstantiationException, IllegalAccessException {
-    System.out.println(getSumJobMatrix().toString());
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];
@@ -52,6 +51,7 @@ public class SumJobBinaryFile implements Serializable {
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
         context.broadcast(hhrddInfo.getFieldDataDesc());
     for (Job job : getSumJobMatrix().getJobs()) {
+      if(job.getJobId() < 10){
       String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddInfo.getShardingIndexes());
       HHBinaryRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
@@ -59,7 +59,7 @@ public class SumJobBinaryFile implements Serializable {
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       Broadcast<Job> jobBroadcast = context.broadcast(job);
-      JavaRDD<Tuple2<String, Integer>> resultRDD =
+      JavaRDD<Tuple2<String, Long>> resultRDD =
           new SumExecutor<byte[]>().process(hipposRDD, descriptionBroadcast, jobBroadcast);
       String outputDistributedPath =
           outputDirectory + File.separator + jobBroadcast.value().getJobId();
@@ -67,6 +67,7 @@ public class SumJobBinaryFile implements Serializable {
       String outputActualPath = HHRDDHelper.getActualPath(outputDistributedPath);
       HHRDDFileUtils.saveAsText(resultRDD, outputActualPath);
       LOGGER.info("Output files are in directory {}", outputActualPath);
+      }
     }
     context.stop();
   }

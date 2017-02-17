@@ -61,7 +61,7 @@ public class SumJobTextFile implements Serializable {
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       Broadcast<Job> jobBroadcast = context.broadcast(job);
-      JavaRDD<Tuple2<String, Integer>> resultRDD =
+      JavaRDD<Tuple2<String, Long>> resultRDD =
           new SumExecutor<String>().process(hipposRDD, descriptionBroadcast, jobBroadcast);
       String outputDistributedPath =
           outputDirectory + File.separator + jobBroadcast.value().getJobId();

@@ -13,6 +13,8 @@ import java.util.Map;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 
@@ -32,10 +34,33 @@ public class SumExecutor<T> implements Serializable {
 
   private static final long serialVersionUID = 2938355892415268963L;
 
-  public <T> JavaRDD<Tuple2<String, Integer>> process(HHRDD<T> hipposRDD,
+  public <T> JavaRDD<Tuple2<String, Long>> process(HHRDD<T> hipposRDD,
       Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast, Broadcast<Job> jobBroadcast) {
 
-    JavaPairRDD<String, Integer> javaRDD =
+    Function<Integer, Long> createCombiner = new Function<Integer, Long>() {
+      @Override
+      public Long call(Integer v1) throws Exception {
+        return Long.valueOf(v1.intValue());
+      }
+    };
+
+    Function2<Long, Integer, Long> mergeValue = new Function2<Long, Integer, Long>() {
+      @Override
+      public Long call(Long v1, Integer v2) throws Exception {
+        Long sum = v1 + v2;
+        return sum;
+      }
+
+    };
+
+    Function2<Long, Long, Long> mergeCombiners = new Function2<Long, Long, Long>() {
+      @Override
+      public Long call(Long v1, Long v2) throws Exception {
+        return v1 + v2;
+      }
+    };
+
+    JavaPairRDD<String, Long> javaRDD =
         hipposRDD.toJavaRDD().mapToPair(new PairFunction<T, String, Integer>() {
           @Override
           public Tuple2<String, Integer> call(T type) throws Exception {
@@ -73,28 +98,36 @@ public class SumExecutor<T> implements Serializable {
                   "Invalid type paramter exeception. Only supported type is byte[] and String");
             }
           }
-        });
-    JavaRDD<Tuple2<String, Integer>> resultRDD = javaRDD.mapPartitions(
-        new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Integer>>() {
+        }).combineByKey(createCombiner, mergeValue, mergeCombiners)
+            .reduceByKey(new Function2<Long, Long, Long>() {
+              private static final long serialVersionUID = 5677451009262753978L;
+
+              @Override
+              public Long call(Long v1, Long v2) throws Exception {
+                return v1 + v2;
+              }
+            });;
+    JavaRDD<Tuple2<String, Long>> resultRDD = javaRDD
+        .mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Long>>, Tuple2<String, Long>>() {
 
           @Override
-          public Iterator<Tuple2<String, Integer>> call(Iterator<Tuple2<String, Integer>> t)
+          public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Long>> t)
               throws Exception {
 
-            List<Tuple2<String, Integer>> sumList = new ArrayList<>();
-            Map<String, Integer> map = new HashMap<>();
+            List<Tuple2<String, Long>> sumList = new ArrayList<>();
+            Map<String, Long> map = new HashMap<>();
             while (t.hasNext()) {
-              Tuple2<String, Integer> tuple2 = t.next();
-              Integer storedValue = map.get(tuple2._1);
+              Tuple2<String, Long> tuple2 = t.next();
+              Long storedValue = map.get(tuple2._1);
               if (storedValue == null) {
-                map.put(tuple2._1, tuple2._2.intValue());
+                map.put(tuple2._1, tuple2._2.longValue());
               } else {
                 map.put(tuple2._1, tuple2._2 + storedValue);
               }
             }
 
-            for (Map.Entry<String, Integer> entry : map.entrySet()) {
-              sumList.add(new Tuple2<String, Integer>(entry.getKey(), entry.getValue()));
+            for (Map.Entry<String, Long> entry : map.entrySet()) {
+              sumList.add(new Tuple2<String, Long>(entry.getKey(), entry.getValue()));
             }
             return sumList.iterator();
           }

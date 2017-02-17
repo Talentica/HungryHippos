@@ -37,6 +37,8 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
 
   @Override
   public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
+    
+    
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHBinaryRDDIterator iterator = null;
     try {

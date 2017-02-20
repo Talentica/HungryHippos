@@ -74,6 +74,7 @@ public class ShardingFileUploader implements Runnable {
       dos.writeInt(HungryHippoServicesConstants.ACCEPT_FILE);
       dos.writeUTF(destinationPath);
       dos.writeLong(size);
+      dos.writeInt(HungryHippoServicesConstants.SHARDING_TABLE);
 
       byte[] buffer = new byte[idealSizeOfBuffer];
       int read = 0;

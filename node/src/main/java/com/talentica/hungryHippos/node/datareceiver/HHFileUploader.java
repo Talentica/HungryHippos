@@ -26,16 +26,11 @@ public enum HHFileUploader {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(HHFileUploader.class);
 
-    public static final String SCRIPT_FOR_TAR_FILE_LIST = "tar-file-list.sh";
-
-    private String hungryHippoBinDir;
-
     private List<Node> nodes;
 
     private ExecutorService fileUploadService;
 
     HHFileUploader() {
-        this.hungryHippoBinDir = System.getProperty("hh.bin.dir");
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
         this.fileUploadService = Executors.newFixedThreadPool(nodes.size());
     }

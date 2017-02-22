@@ -1,5 +1,17 @@
 package com.talentica.hungryHippos.rdd.utility;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
@@ -13,13 +25,6 @@ import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-
-import javax.xml.bind.JAXBException;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class HHRDDHelper {
 
@@ -35,7 +40,7 @@ public class HHRDDHelper {
   }
 
   public static String getActualPath(String path) {
-    return FileSystemContext.getRootDirectory() + path;
+    return FileSystemContext.getRootDirectory() + File.separator + path;
   }
 
   public static Map<String, Long> readMetaData(String metadataLocation) {
@@ -58,6 +63,7 @@ public class HHRDDHelper {
 
   public static HHRDDInfo getHhrddInfo(String distributedPath)
       throws JAXBException, FileNotFoundException {
+    String dataDirectoryLocation = FileSystemContext.getRootDirectory() + distributedPath;
     String shardingFolderPath = FileSystemContext.getRootDirectory() + distributedPath
         + File.separator + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
     String directoryLocation = FileSystemContext.getRootDirectory() + distributedPath
@@ -86,7 +92,7 @@ public class HHRDDHelper {
             .readFromFileBucketCombinationToNodeNumber(bucketCombinationToNodeNumbersMapFilePath),
         ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFilePath),
         fileNameToSizeWholeMap, context.getShardingDimensions(), nodIdToIp, shardingIndexes,
-        dataDescription, directoryLocation);
+        dataDescription, directoryLocation, dataDirectoryLocation);
     return hhrddInfo;
 
   }

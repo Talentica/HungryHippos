@@ -35,8 +35,8 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
   private long currentDataFileSize;
 
   public HHBinaryRDDIterator(String filePath, int rowSize, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodeInfo) throws IOException {
-    super(filePath, rowSize, files, nodeInfo);
+      Map<Integer, SerializedNode> nodeInfo, String dataDirectory) throws IOException {
+    super(filePath, rowSize, files, nodeInfo,dataDirectory);
   }
 
   @Override
@@ -56,7 +56,7 @@ public class HHBinaryRDDIterator extends HHRDDIterator<byte[]> implements Serial
     try {
       File file = new File(filePath);
       int bufferSIze = 2048;
-      SocketAddress socketAddress = new InetSocketAddress(ip, 8789);
+      SocketAddress socketAddress = new InetSocketAddress(ip, port);
       socket = new Socket();
       socket.connect(socketAddress, 1000);
       //socket = new Socket(ip, 8789); // need to remove hard coded port number

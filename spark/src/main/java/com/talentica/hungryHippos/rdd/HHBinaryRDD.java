@@ -25,10 +25,12 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
   private static final long serialVersionUID = -7855737619208668440L;
   private static final ClassTag<byte[]> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(byte[].class);
+  private HHRDDInfo hhrddInfo;
 
   public HHBinaryRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle) {
     super(sc, hhrddInfo, jobDimensions, requiresShuffle, HHRD_READER__TAG);
+    this.hhrddInfo = hhrddInfo;
   }
 
   public HHBinaryRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle) {
@@ -37,13 +39,11 @@ public class HHBinaryRDD extends HHRDD<byte[]> implements Serializable {
 
   @Override
   public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
-    
-    
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHBinaryRDDIterator iterator = null;
     try {
       iterator = new HHBinaryRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodeInfo());
+          hhRDDPartion.getFiles(), hhRDDPartion.getNodeInfo(), hhrddInfo.getAbsoluteDataFilePath());
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -39,13 +39,15 @@ public class HHRDDInfo implements Serializable {
   private FieldTypeArrayDataDescription fieldDataDesc;
   private String directoryLocation;
   private long hhFileSize;
+  private String dataDirectoryLocation;
 
 
   public HHRDDInfo(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       Map<String, Long> fileNameToSizeWholeMap, String[] keyOrder,
       Map<Integer, SerializedNode> nodeInfo, int[] shardingIndexes,
-      FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
+      FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation,
+      String dataDirectoryLocation) {
     this.bucketCombinationToNodeNumberMap = bucketCombinationToNodeNumberMap;
     this.bucketToNodeNumberMap = bucketToNodeNumberMap;
     this.keyOrder = keyOrder;
@@ -59,6 +61,7 @@ public class HHRDDInfo implements Serializable {
     this.fieldDataDesc = fieldDataDesc;
     this.directoryLocation = directoryLocation;
     this.hhFileSize = 0;
+    this.dataDirectoryLocation = dataDirectoryLocation;
     initializeKeyToBucketToFileList();
     calculateBucketToFileMap("", 0);
   }
@@ -81,6 +84,10 @@ public class HHRDDInfo implements Serializable {
 
   public FieldTypeArrayDataDescription getFieldDataDesc() {
     return fieldDataDesc;
+  }
+
+  public String getAbsoluteDataFilePath() {
+    return dataDirectoryLocation;
   }
 
   public Partition[] getPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,

@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.spark.Partition;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+
 import scala.Tuple2;
 
 /**

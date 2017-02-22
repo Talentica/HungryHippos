@@ -32,8 +32,8 @@ public class HHTextRDDIterator extends HHRDDIterator<String> implements Serializ
   private BufferedReader bufferedReader;
 
   public HHTextRDDIterator(String filePath, List<Tuple2<String, int[]>> files,
-      Map<Integer, SerializedNode> nodeInfo) throws IOException {
-    super(filePath, files, nodeInfo);
+      Map<Integer, SerializedNode> nodeInfo,String dataDirectory) throws IOException {
+    super(filePath, files, nodeInfo,dataDirectory);
   }
 
 

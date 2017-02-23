@@ -39,36 +39,35 @@ public class BinaryFileReader {
     }
     context = new ShardingApplicationContext(args[0]);
     String dataFileName = args[1];
-    for (int i = 0; i < 20; i++) {
-      FileInputStream fileInputStream =
-          new FileInputStream(new File(dataFileName + i));
-      DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-      File readableDataFile = new File(dataFileName+ i + "_read");
-      FileWriter fileWriter = new FileWriter(readableDataFile);
-      try {
-        DynamicMarshal dynamicMarshal = getDynamicMarshal();
-        int noOfBytesInOneDataSet = dataDescription.getSize();
-        while (dataInputStream.available() > 0) {
-          byte[] bytes = new byte[noOfBytesInOneDataSet];
-          dataInputStream.readFully(bytes);
-          ByteBuffer buffer = ByteBuffer.wrap(bytes);
-          for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
-            Object readableData = dynamicMarshal.readValue(index, buffer);
-            if (index != 0) {
-              fileWriter.write(",");
-            }
-            fileWriter.write(readableData.toString());
+
+    FileInputStream fileInputStream = new FileInputStream(new File(dataFileName));
+    DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+    File readableDataFile = new File(dataFileName + "_read");
+    FileWriter fileWriter = new FileWriter(readableDataFile);
+    try {
+      DynamicMarshal dynamicMarshal = getDynamicMarshal();
+      int noOfBytesInOneDataSet = dataDescription.getSize();
+      while (dataInputStream.available() > 0) {
+        byte[] bytes = new byte[noOfBytesInOneDataSet];
+        dataInputStream.readFully(bytes);
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
+          Object readableData = dynamicMarshal.readValue(index, buffer);
+          if (index != 0) {
+            fileWriter.write(",");
           }
-          fileWriter.write("\n");
+          fileWriter.write(readableData.toString());
         }
-      } finally {
-        fileWriter.flush();
-        fileWriter.close();
-        fileInputStream.close();
+        fileWriter.write("\n");
       }
-      LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
+    } finally {
+      fileWriter.flush();
+      fileWriter.close();
+      fileInputStream.close();
     }
+    LOGGER.info("Output readable data file is written to: " + readableDataFile.getAbsolutePath());
   }
+
 
   private static DynamicMarshal getDynamicMarshal() throws ClassNotFoundException,
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {

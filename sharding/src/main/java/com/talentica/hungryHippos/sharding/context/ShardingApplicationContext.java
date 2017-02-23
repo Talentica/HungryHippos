@@ -2,7 +2,11 @@ package com.talentica.hungryHippos.sharding.context;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
@@ -38,6 +42,8 @@ public class ShardingApplicationContext {
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
   public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
+  private String[] keyColumnNames;
+
 
   /**
    * creates an instance of ShardinApplicationContext.
@@ -53,6 +59,8 @@ public class ShardingApplicationContext {
           JaxbUtil.unmarshalFromFile(getShardingClientConfigFilePath(), ShardingClientConfig.class);
       shardingServerConfig =
           JaxbUtil.unmarshalFromFile(getShardingServerConfigFilePath(), ShardingServerConfig.class);
+
+      getColumnsConfiguration();
     } catch (FileNotFoundException | JAXBException e) {
       LOGGER.error(e.toString());
       throw new RuntimeException(e);
@@ -196,7 +204,7 @@ public class ShardingApplicationContext {
   public String[] getColumnsConfiguration() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
-    String[] keyColumnNames = new String[columns.size()];
+    keyColumnNames = new String[columns.size()];
     for (int index = 0; index < columns.size(); index++) {
       keyColumnNames[index] = columns.get(index).getName();
     }
@@ -221,13 +229,30 @@ public class ShardingApplicationContext {
   public int[] getShardingIndexes() {
     String[] shardingKeys = getShardingDimensions();
     int[] shardingKeyIndexes = new int[shardingKeys.length];
-    String keysNamingPrefix = getKeysPrefix();
-    int keysNamingPrefixLength = keysNamingPrefix.length();
+
     for (int i = 0; i < shardingKeys.length; i++) {
-      shardingKeyIndexes[i] =
-          Integer.parseInt(shardingKeys[i].substring(keysNamingPrefixLength)) - 1;
+      shardingKeyIndexes[i] = assignShardingIndexByName(shardingKeys[i]);
     }
     return shardingKeyIndexes;
+  }
+
+  public int assignShardingIndexByName(String name) {
+
+    int index = 0;
+    if (keyColumnNames == null) {
+      getColumnsConfiguration();
+    }
+
+    for (; index < keyColumnNames.length;) {
+      if (keyColumnNames[index].equals(name)) {
+
+        break;
+      }
+      index++;
+    }
+
+    return index;
+
   }
 
   /**

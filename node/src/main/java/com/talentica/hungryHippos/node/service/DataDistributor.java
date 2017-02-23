@@ -106,7 +106,6 @@ public class DataDistributor {
       FileWriter fileWriter = new FileWriter(BAD_RECORDS_FILE);
       fileWriter.openFile();
 
-      String keyZero = keyOrder[0];
       int[] buckets = new int[keyOrder.length];
       int maxBucketSize =
           Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
@@ -129,7 +128,7 @@ public class DataDistributor {
 
         for (int i = 0; i < keyOrder.length; i++) {
           key = keyOrder[i];
-          keyIndex = Integer.parseInt(key.substring(3)) - 1;
+          keyIndex = context.assignShardingIndexByName(key);
           bucket = bucketsCalculator.getBucketNumberForValue(key, parts[keyIndex]);
           buckets[i] = bucket.getId();
         }

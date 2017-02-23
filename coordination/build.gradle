@@ -29,8 +29,8 @@ jar {
 dependencies {
 	compile project (":utility")
 	compile project (':configuration-schema')
-    compile project (':data-synchronizer')
-	compile "org.slf4j:slf4j-api:$slf4jVersion"
+	compile group: 'org.apache.curator', name: 'curator-recipes', version: '2.11.0'
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
 	compile "org.apache.zookeeper:zookeeper:3.4.6"
 	compile group: 'org.apache.commons', name: 'commons-compress', version: '1.2'
 	

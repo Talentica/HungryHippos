@@ -95,7 +95,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
             continue;
           }
 
-          int maxRetry = 20;
+          int maxRetry = 5;
           while (!isFileDownloaded && (maxRetry--) > 0) {
             isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
           }
@@ -104,7 +104,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
             break;
           } else {
             logger.info(" Node {} is dead", ip);
-            if (blacklistIPFile.exists()) {
+            if (!blacklistIPFile.exists()) {
               blacklistIPFile.createNewFile();
             }
           }

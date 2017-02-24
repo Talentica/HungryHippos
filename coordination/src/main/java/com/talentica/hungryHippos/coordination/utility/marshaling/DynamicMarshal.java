@@ -42,10 +42,6 @@ public class DynamicMarshal implements Serializable {
   public Object readValue(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
-      case BYTE:
-        return source.get(locator.getOffset());
-      case CHAR:
-        return source.getChar(locator.getOffset());
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
@@ -96,12 +92,6 @@ public class DynamicMarshal implements Serializable {
   public void writeValue(int index, final Object object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
-      case BYTE:
-        dest.put(locator.getOffset(), Byte.parseByte(object.toString()));
-        break;
-      case CHAR:
-        dest.putChar(locator.getOffset(), (Character) object);
-        break;
       case SHORT:
         dest.putShort(locator.getOffset(), Short.parseShort(object.toString()));
         break;
@@ -118,7 +108,7 @@ public class DynamicMarshal implements Serializable {
         dest.putDouble(locator.getOffset(), Double.parseDouble(object.toString()));
         break;
       case STRING:
-        byte[] content = object.toString().getBytes();
+        byte[] content = ((MutableCharArrayString)object).getValue().getBytes();
         int offset = locator.getOffset();
         int size = locator.getSize();
         int j = 0;

@@ -2,11 +2,8 @@ package com.talentica.hungryHippos.sharding.context;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
@@ -42,7 +39,7 @@ public class ShardingApplicationContext {
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
   public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
-  private String[] keyColumnNames;
+  private HashMap<String,Integer> keyColumnNames;
 
 
   /**
@@ -201,12 +198,12 @@ public class ShardingApplicationContext {
    * 
    * @return
    */
-  public String[] getColumnsConfiguration() {
+  public HashMap<String,Integer> getColumnsConfiguration() {
     ShardingClientConfig shardingClientConfig = getShardingClientConfig();
     List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
-    keyColumnNames = new String[columns.size()];
+    keyColumnNames = new HashMap<>();
     for (int index = 0; index < columns.size(); index++) {
-      keyColumnNames[index] = columns.get(index).getName();
+      keyColumnNames.put(columns.get(index).getName(),index);
     }
     return keyColumnNames;
   }
@@ -237,22 +234,10 @@ public class ShardingApplicationContext {
   }
 
   public int assignShardingIndexByName(String name) {
-
-    int index = 0;
     if (keyColumnNames == null) {
       getColumnsConfiguration();
     }
-
-    for (; index < keyColumnNames.length;) {
-      if (keyColumnNames[index].equals(name)) {
-
-        break;
-      }
-      index++;
-    }
-
-    return index;
-
+    return keyColumnNames.get(name);
   }
 
   /**

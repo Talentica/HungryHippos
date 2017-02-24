@@ -3,41 +3,28 @@
  */
 package com.talentica.hungryHippos.master;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.eclipse.jetty.util.ArrayQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
-import com.talentica.hungryHippos.utility.Chunk;
-import com.talentica.hungryHippos.utility.FileSplitter;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
-import com.talentica.hungryHippos.utility.HHFStream;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import com.talentica.hungryHippos.utility.StopWatch;
+import com.talentica.hungryHippos.utility.*;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
+import org.eclipse.jetty.util.ArrayQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
@@ -110,7 +97,7 @@ public class DataPublisherStarter {
         int threadNo = i % noOfParallelThreads;
         listOfNodesAssignedToThread.get(threadNo).add(nodes.get(i));
       }
-      if (nodes.size() < noOfParallelThreads) {
+      if(nodes.size() < noOfParallelThreads){
         for (int i = nodes.size(); i < noOfParallelThreads; i++) {
           listOfNodesAssignedToThread.get(i).addAll(nodes);
         }
@@ -134,7 +121,7 @@ public class DataPublisherStarter {
 
       boolean success = true;
       for (int i = 0; i < noOfParallelThreads; i++) {
-        if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
+        if(!listOfNodesAssignedToThread.get(i).isEmpty()) {
           success = success && chunkUpload[i].isSuccess();
         }
       }
@@ -247,11 +234,15 @@ public class DataPublisherStarter {
       throws IOException, InterruptedException {
 
     boolean successfulUpload = false;
+    Node peekNode = nodes.peek();
     while (!successfulUpload) {
       Node node = nodes.poll();
       successfulUpload =
           requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
       while (!nodes.offer(node));
+      if(peekNode==nodes.peek()){
+        Thread.sleep(10000);
+      }
     }
 
   }
@@ -277,7 +268,13 @@ public class DataPublisherStarter {
     dos.flush();
 
 
-    boolean dataDistributorAvailable = dis.readBoolean();
+    boolean dataDistributorAvailable ;
+    try{
+      dataDistributorAvailable = dis.readBoolean();
+    }catch (EOFException e){
+      e.printStackTrace();
+      dataDistributorAvailable = false;
+    }
     LOGGER.info("[{}] DataDistributor Available in {} : {}", Thread.currentThread().getName(),
         node.getIp(), dataDistributorAvailable);
     if (dataDistributorAvailable) {

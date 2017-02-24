@@ -4,8 +4,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
@@ -35,15 +37,15 @@ public class DataDistributorStarter {
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     ServerSocket serverSocket = new ServerSocket(NodeInfo.INSTANCE.getPort());
-    ExecutorService serviceDelegator = Executors.newFixedThreadPool(10);
+    ExecutorService serviceDelegator = Executors.newCachedThreadPool();
     noOfDataDistributors = 4;
-    dataDistributorService = Executors.newFixedThreadPool(noOfDataDistributors);
-    fileProviderService = Executors.newFixedThreadPool(10);
+    dataDistributorService = Executors.newCachedThreadPool();
+    fileProviderService = Executors.newCachedThreadPool();
     dataAppenderServices = Executors.newFixedThreadPool(1);
     publishAccessServices = Executors.newFixedThreadPool(1);
-    metadataUpdaterServices = Executors.newFixedThreadPool(1);
-    metadataSynchronizerServices = Executors.newFixedThreadPool(1);
-    fileService = Executors.newFixedThreadPool(1);
+    metadataUpdaterServices = Executors.newCachedThreadPool();
+    metadataSynchronizerServices = Executors.newCachedThreadPool();
+    fileService = Executors.newCachedThreadPool();
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
     while (true) {
       Socket socket = serverSocket.accept();

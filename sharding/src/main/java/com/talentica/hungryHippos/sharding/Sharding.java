@@ -168,12 +168,7 @@ public class Sharding {
 
   private void setKeysToIndexes() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    String[] keys = context.getColumnsConfiguration();
-    int index = 0;
-    for (String key : keys) {
-      keyToIndexMap.put(key, index);
-      index++;
-    }
+    keyToIndexMap = context.getColumnsConfiguration();
   }
 
   /**

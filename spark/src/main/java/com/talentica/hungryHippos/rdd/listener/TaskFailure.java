@@ -22,7 +22,6 @@ public class TaskFailure implements TaskFailureListener {
 
   @Override
   public void onTaskFailure(TaskContext taskContext, Throwable arg1) {
-    
   }
 
 }

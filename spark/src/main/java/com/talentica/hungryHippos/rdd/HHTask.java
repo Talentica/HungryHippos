@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import org.apache.spark.TaskContext;
 import org.apache.spark.executor.TaskMetrics;
+import org.apache.spark.scheduler.ShuffleMapTask;
 import org.apache.spark.scheduler.Task;
 
 /**

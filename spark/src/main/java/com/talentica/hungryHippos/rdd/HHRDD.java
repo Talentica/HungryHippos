@@ -7,9 +7,11 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
+import org.apache.spark.Partitioner;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
+import scala.Option;
 import scala.collection.mutable.ArrayBuffer;
 import scala.collection.mutable.Seq;
 import scala.reflect.ClassTag;
@@ -85,7 +87,7 @@ public abstract class HHRDD<T> extends RDD<T> implements Serializable {
   public Partition[] getPartitions() {
     return this.partitions;
   }
-
+  
 
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {

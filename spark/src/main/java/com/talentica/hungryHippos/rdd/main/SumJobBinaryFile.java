@@ -51,7 +51,7 @@ public class SumJobBinaryFile implements Serializable {
     Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast =
         context.broadcast(hhrddInfo.getFieldDataDesc());
     for (Job job : getSumJobMatrix().getJobs()) {
-      if(job.getJobId() < 10){
+      //if(job.getJobId() < 4){
       String keyOfHHRDD = HHRDDHelper.generateKeyForHHRDD(job, hhrddInfo.getShardingIndexes());
       HHBinaryRDD hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
@@ -67,7 +67,7 @@ public class SumJobBinaryFile implements Serializable {
       String outputActualPath = HHRDDHelper.getActualPath(outputDistributedPath);
       HHRDDFileUtils.saveAsText(resultRDD, outputActualPath);
       LOGGER.info("Output files are in directory {}", outputActualPath);
-      }
+      //}
     }
     context.stop();
   }

@@ -29,22 +29,35 @@ public class PublishAccessService implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Lock access provided to {}", this.socket.getInetAddress());
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        logger.info("Publish access request from {}", this.socket.getInetAddress());
+        boolean countDecremented = false;
         try {
             int count = DataDistributorStarter.noOfAvailableDataDistributors.decrementAndGet();
+            countDecremented = true;
             if(count<0){
                 DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
+                countDecremented = false;
                 this.dataOutputStream.writeBoolean(false);
                 this.dataOutputStream.flush();
+                logger.info("Slot unavailable: Denied Publish access to {}", this.socket.getInetAddress());
+                this.socket.close();
             }else{
                 this.dataOutputStream.writeBoolean(true);
                 this.dataOutputStream.flush();
                 DataDistributorStarter.dataDistributorService.execute(new DataDistributorService(socket));
+                countDecremented = false;
             }
-            logger.info("Lock released from {}", this.socket.getInetAddress());
         } catch (IOException e) {
             e.printStackTrace();
-
+            if(countDecremented){
+                DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
+            }
+            try {
+                this.socket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 }

@@ -16,6 +16,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+
 public class AcceptFileService implements Runnable {
 
   private static Logger logger = LoggerFactory.getLogger(AcceptFileService.class);
@@ -35,6 +39,7 @@ public class AcceptFileService implements Runnable {
       dos = new DataOutputStream(this.socket.getOutputStream());
       String destinationPath = dis.readUTF();
       long size = dis.readLong();
+      int fileType = dis.readInt();
       logger.debug("file size to accept is {}", size);
       int idealBufSize = 8192;
       byte[] buffer = new byte[idealBufSize];
@@ -58,6 +63,11 @@ public class AcceptFileService implements Runnable {
       logger.debug("accepted all the data send");
       dos.writeBoolean(true);
       dos.flush();
+      if(fileType == HungryHippoServicesConstants.SHARDING_TABLE){
+        String shardingTableFolderPath = destinationPath.substring(0, destinationPath.lastIndexOf(File.separatorChar))
+            + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
+        NewDataHandler.updateFilesIfRequired(shardingTableFolderPath);
+      }
     } catch (IOException e) {
       logger.error(e.getMessage());
       try {
@@ -78,8 +88,6 @@ public class AcceptFileService implements Runnable {
         }
       }
     }
-
-
   }
 
 }

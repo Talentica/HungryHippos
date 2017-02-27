@@ -30,14 +30,11 @@ public class DataGenerator {
 
   public static String[] key2ValueSet = generateAllCombinations(1, allChars).toArray(new String[0]);
 
-  public static String[] key3ValueSet =
-      generateAllCombinations(2, allChars).toArray(new String[0]);
+  public static String[] key3ValueSet = generateAllCombinations(2, allChars).toArray(new String[0]);
 
-  public static String[] key4ValueSet =
-      generateAllCombinations(2, allChars).toArray(new String[0]);
+  public static String[] key4ValueSet = generateAllCombinations(2, allChars).toArray(new String[0]);
 
-  public static String[] key5ValueSet =
-      generateAllCombinations(2, allChars).toArray(new String[0]);
+  public static String[] key5ValueSet = generateAllCombinations(2, allChars).toArray(new String[0]);
 
   /*
    * public static String[] key6ValueSet = generateAllCombinations(3, allNumbers).toArray(new
@@ -90,8 +87,8 @@ public class DataGenerator {
       // int i6 = (int) (key6ValueSet.length * skewRandom());
 
       String key1 = key1ValueSet[i1];
-      String key2 = key2ValueSet[i2];
-      int key3 = ran.nextInt(30) + 10;
+      int key2 = ran.nextInt(50) + 10;
+      int key3 = ran.nextInt(60) + 10;
       String key4 = key4ValueSet[i4];
       int key5 = ran.nextInt(899) + 100;
       int key6 = ran.nextInt(89999) + 10000;

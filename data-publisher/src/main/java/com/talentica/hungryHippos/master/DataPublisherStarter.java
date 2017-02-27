@@ -3,7 +3,6 @@
  */
 package com.talentica.hungryHippos.master;
 
-import com.talentica.hungryHippos.coordination.DataSyncCoordinator;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
@@ -19,10 +18,7 @@ import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -72,7 +68,6 @@ public class DataPublisherStarter {
       curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       FileSystemUtils.validatePath(destinationPath, true);
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
-      checkFilesInSync(shardingZipRemotePath);
       List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
       File srcFile = new File(sourcePath);
       updateZookeeperNodes(destinationPath);
@@ -239,11 +234,15 @@ public class DataPublisherStarter {
       throws IOException, InterruptedException {
 
     boolean successfulUpload = false;
+    Node peekNode = nodes.peek();
     while (!successfulUpload) {
       Node node = nodes.poll();
       successfulUpload =
           requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
       while (!nodes.offer(node));
+      if(peekNode==nodes.peek()){
+        Thread.sleep(10000);
+      }
     }
 
   }
@@ -269,7 +268,13 @@ public class DataPublisherStarter {
     dos.flush();
 
 
-    boolean dataDistributorAvailable = dis.readBoolean();
+    boolean dataDistributorAvailable ;
+    try{
+      dataDistributorAvailable = dis.readBoolean();
+    }catch (EOFException e){
+      e.printStackTrace();
+      dataDistributorAvailable = false;
+    }
     LOGGER.info("[{}] DataDistributor Available in {} : {}", Thread.currentThread().getName(),
         node.getIp(), dataDistributorAvailable);
     if (dataDistributorAvailable) {
@@ -365,12 +370,5 @@ public class DataPublisherStarter {
     return shardingZipRemotePath;
   }
 
-  public static void checkFilesInSync(String shardingZipRemotePath) throws Exception {
-    boolean shardingFileInSync = DataSyncCoordinator.checkSyncUpStatus(shardingZipRemotePath);
-    if (!shardingFileInSync) {
-      LOGGER.error("Sharding file {} not in sync", shardingZipRemotePath);
-      throw new RuntimeException("Sharding file not in sync");
-    }
-    LOGGER.info("Sharding file {} in sync", shardingZipRemotePath);
-  }
+
 }

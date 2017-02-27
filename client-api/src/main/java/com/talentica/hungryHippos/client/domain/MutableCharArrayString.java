@@ -95,6 +95,14 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return String.copyValueOf(Arrays.copyOf(array, stringLength));
   }
 
+  public String getValue() {
+    if(stringLength==array.length){
+      return String.copyValueOf(Arrays.copyOf(array, stringLength));
+    }
+    array[stringLength]=0;
+    return String.copyValueOf(Arrays.copyOf(array, stringLength+1));
+  }
+
   @Override
   public void reset() {
     stringLength = 0;

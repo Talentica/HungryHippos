@@ -1,22 +1,16 @@
 package com.talentica.hungryHippos.sharding.util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.xml.bind.JAXBException;
-
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import com.talentica.torrent.util.Environment;
 
 /**
  * Utility class to copy generated sharding tables on nodes/local file system.
@@ -26,8 +20,6 @@ import com.talentica.torrent.util.Environment;
  */
 public class ShardingTableCopier {
 
-  public static final String FILES_DOWNLOAD_SUCCESS_NODE_PATH =
-      Environment.getPropertyValue("files.download.success.node.path");
 
   public static final String SHARDING_ZIP_FILE_NAME = "sharding-table";
 
@@ -41,9 +33,6 @@ public class ShardingTableCopier {
   }
 
 
-  public static final String FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH =
-      Environment.getPropertyValue("files.erred.while.download.node.path");
-
   /**
    * Copies sharding table files from
    * 
@@ -56,8 +45,8 @@ public class ShardingTableCopier {
       String distributedFilePath = shardingClientConfig.getInput().getDistributedFilePath();
       String zipFilePath = TarAndGzip.folder(new File(sourceDirectoryContainingShardingFiles),
           processIgnores, SHARDING_ZIP_FILE_NAME);
-      String destinationDirectory =
-          fileSystemBaseDirectory + distributedFilePath + File.separatorChar  + SHARDING_ZIP_FILE_NAME + ".tar.gz";
+      String destinationDirectory = fileSystemBaseDirectory + distributedFilePath
+          + File.separatorChar + SHARDING_ZIP_FILE_NAME + ".tar.gz";
 
 
       int optimumNumberOfThreads = Runtime.getRuntime().availableProcessors();
@@ -74,47 +63,17 @@ public class ShardingTableCopier {
       while (!executorService.isTerminated()) {
 
       }
-      boolean success = true;
- 
-      for (int i = 0; i < shardingFileUploader.length; i++) {
-        success = success && shardingFileUploader[i].isSuccess();
-        String host = shardingFileUploader[i].getNode().getIp();
-        if (success) {
-          String fileDownloadSuccessNodePath =
-              FILES_DOWNLOAD_SUCCESS_NODE_PATH + destinationDirectory + "/" + host;
 
-          updateCoordinationServer(fileDownloadSuccessNodePath);
+    } catch (IOException e) {
 
-        } else {
-          String fileDownloadFailedNodePath =
-              FILES_ERRED_WHILE_DOWNLOAD_NODE_PATH + destinationDirectory + "/" + host;
-          updateCoordinationServer(fileDownloadFailedNodePath);
-        }
-      }
-      if (!success) {
-        throw new RuntimeException("File Publish failed");
-      }
-
-    } catch (JAXBException | IOException | HungryHippoException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    // Sync the details;
+
 
   }
 
-  private void updateCoordinationServer(String path)
-      throws FileNotFoundException, JAXBException, IOException, HungryHippoException {
 
-    HungryHippoCurator curator = HungryHippoCurator.getInstance();
-    try {
-      curator.createPersistentNode(path);
-    } catch (HungryHippoException exception) {
-      throw new RuntimeException(exception);
-    }
-  }
 
 }
 
 
-;

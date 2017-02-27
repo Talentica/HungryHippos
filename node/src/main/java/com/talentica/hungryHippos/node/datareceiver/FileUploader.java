@@ -2,6 +2,7 @@ package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ public class FileUploader implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(FileUploader.class);
   private CountDownLatch countDownLatch;
-  private String srcFolderPath, destinationPath, remoteTargetFolder, commonCommandArg;
+  private String srcFolderPath, destinationPath;
   private int idx;
   private Map<Integer, DataInputStream> dataInputStreamMap;
   private Map<Integer, Socket> socketMap;
@@ -32,14 +33,11 @@ public class FileUploader implements Runnable {
 
 
   public FileUploader(CountDownLatch countDownLatch, String srcFolderPath, String destinationPath,
-      String remoteTargetFolder, String commonCommandArg, int idx,
-      Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node,
+      int idx,Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node,
       Set<String> fileNames, String hhFilePath) {
     this.countDownLatch = countDownLatch;
     this.srcFolderPath = srcFolderPath;
     this.destinationPath = destinationPath;
-    this.remoteTargetFolder = remoteTargetFolder;
-    this.commonCommandArg = commonCommandArg;
     this.idx = idx;
     this.dataInputStreamMap = dataInputStreamMap;
     this.socketMap = socketMap;
@@ -54,32 +52,21 @@ public class FileUploader implements Runnable {
     String tarFileName = UUID.randomUUID().toString() + ".tar";
     File srcFile = new File(srcFolderPath + File.separator + tarFileName);
     try {
-      String line;
       String fileNamesArg = StringUtils.join(fileNames, " ");
       logger.info("[{}] File Upload started for {} to {}", Thread.currentThread().getName(),
           srcFolderPath, node.getIp());
-      int processStatus = -1;
       int noOfRemainingAttempts = 25;
-      while (noOfRemainingAttempts > 0 && (processStatus < 0 || !srcFile.exists())) {
-        Process tarProcess =
-            Runtime.getRuntime().exec(commonCommandArg + " " + tarFileName + " " + fileNamesArg);
-        processStatus = tarProcess.waitFor();
-
-        if (processStatus != 0) {
-          BufferedReader br =
-              new BufferedReader(new InputStreamReader(tarProcess.getErrorStream()));
-          while ((line = br.readLine()) != null) {
-            logger.error(line);
-          }
-          br.close();
-          logger.error("[{}] Retrying File tar for {} after 5 seconds",
-              Thread.currentThread().getName(), srcFolderPath);
+      while(noOfRemainingAttempts > 0 && !srcFile.exists()){
+        try{
+          TarAndUntar.createTar(srcFolderPath, fileNames, srcFolderPath + File.separator + tarFileName);
+          break;
+        }catch(IOException e){
           noOfRemainingAttempts--;
-          Thread.sleep(5000);
+          logger.error("[{}] Retrying File tar for {}",
+              Thread.currentThread().getName(), srcFolderPath);
         }
-
       }
-      if (processStatus < 0 || !srcFile.exists()) {
+      if(noOfRemainingAttempts == 0 || !srcFile.exists()){
         logger.error("[{}] Files failed for tar : {}", Thread.currentThread().getName(),
             fileNamesArg);
         success = false;

@@ -49,8 +49,11 @@ public class Sharding {
   private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
   private ShardingApplicationContext context;
+
   private BucketsCalculator bucketsCalculator;
   private String[] keys;
+
+
 
   /**
    * creates a new instance of Sharding.
@@ -131,6 +134,7 @@ public class Sharding {
     data.reset();
     String[] keys = context.getShardingDimensions();
     // Map<key1,Map<value1,count>>
+  
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -164,12 +168,7 @@ public class Sharding {
 
   private void setKeysToIndexes() throws ClassNotFoundException, FileNotFoundException,
       KeeperException, InterruptedException, IOException, JAXBException {
-    String[] keys = context.getColumnsConfiguration();
-    int index = 0;
-    for (String key : keys) {
-      keyToIndexMap.put(key, index);
-      index++;
-    }
+    keyToIndexMap = context.getColumnsConfiguration();
   }
 
   /**
@@ -191,6 +190,7 @@ public class Sharding {
     logger.info("Populating frequency map from data started");
     setKeysToIndexes();
     String[] keys = context.getShardingDimensions();
+   
     int lineNo = 0;
     FileWriter fileWriter =
         new FileWriter(context.getShardingClientConfig().getBadRecordsFileOut() + "_sharding.err");

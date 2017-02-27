@@ -31,7 +31,7 @@ public enum MetaDataSynchronizer {
 
     MetaDataSynchronizer() {
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        this.metadataUploaderService = Executors.newFixedThreadPool(nodes.size());
+        this.metadataUploaderService = Executors.newCachedThreadPool();
         this.lockMap = new ConcurrentHashMap<>();
     }
 

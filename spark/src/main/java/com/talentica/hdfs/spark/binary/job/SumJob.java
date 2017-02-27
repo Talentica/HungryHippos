@@ -14,13 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
 
 import scala.Tuple2;
-
 public class SumJob {
 
   private static JavaSparkContext context;
@@ -56,16 +54,15 @@ public class SumJob {
   private static JobMatrix getSumJobMatrix() {
     JobMatrix sumJobMatrix = new JobMatrix();
     int count = 0;
-
     for (int i = 0; i < 3; i++) {
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 7, count++));
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 4, count++));
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 5, count++));
       for (int j = i + 1; j < 4; j++) {
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 7, count++));
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 4, count++));
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 5, count++));
         for (int k = j + 1; k < 4; k++) {
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 7, count++));
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 4, count++));
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 5, count++));
         }
       }
     }
@@ -74,57 +71,65 @@ public class SumJob {
 
   public static void startJob(JavaRDD<byte[]> rdd, Broadcast<FieldTypeArrayDataDescription> dataDes,
       Broadcast<Job> broadcastJob, String outputDir) {
-    Function<Double, Double> createCombiner = new Function<Double, Double>() {
-      private static final long serialVersionUID = 6547151567329751479L;
-
+    Function<Integer, Long> createCombiner = new Function<Integer, Long>() {
       @Override
-      public Double call(Double v1) throws Exception {
-        return v1;
+      public Long call(Integer v1) throws Exception {
+        return Long.valueOf(v1.intValue());
       }
     };
 
-    Function2<Double, Double, Double> mergeValue = new Function2<Double, Double, Double>() {
-      private static final long serialVersionUID = 8342701311730308998L;
-
+    Function2<Long, Integer, Long> mergeValue = new Function2<Long, Integer, Long>() {
       @Override
-      public Double call(Double v1, Double v2) throws Exception {
-        return v1 + v2;
+      public Long call(Long v1, Integer v2) throws Exception {
+        Long sum = v1 + v2;
+        return sum;
       }
 
     };
 
-    Function2<Double, Double, Double> mergeCombiners = new Function2<Double, Double, Double>() {
-      private static final long serialVersionUID = -5698647671298354646L;
-
+    Function2<Long, Long, Long> mergeCombiners = new Function2<Long, Long, Long>() {
       @Override
-      public Double call(Double v1, Double v2) throws Exception {
+      public Long call(Long v1, Long v2) throws Exception {
         return v1 + v2;
       }
     };
 
-    JavaPairRDD<String, Double> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Double>() {
+
+    JavaPairRDD<String, Long> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Integer>() {
       private static final long serialVersionUID = -4057434571069903937L;
 
       @Override
-      public Tuple2<String, Double> call(byte[] buf) throws Exception {
-        HHBinaryRowReader readerVar = new HHBinaryRowReader(dataDes.getValue());
-        readerVar.wrap(buf);
-        String key = "";
-        for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-          key = key + ((MutableCharArrayString) readerVar
-              .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
+      public Tuple2<String, Integer> call(byte[] buf) {
+        try {
+          HHBinaryRowReader readerVar = new HHBinaryRowReader(dataDes.getValue());
+          ByteBuffer buffer = ByteBuffer.wrap(buf);
+          //readerVar.wrap(buf);
+          readerVar.setByteBuffer(buffer);
+          String key = "";
+          for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
+            key = key
+                + (readerVar.readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
+          }
+          key = key + "|id=" + broadcastJob.value().getJobId();
+          Integer value =
+              (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
+          return new Tuple2<String, Integer>(key, value);
+        } catch (Exception ex) {
+          ex.printStackTrace();
         }
-        key = key + "|id=" + broadcastJob.value().getJobId();
-        Double value = (Double) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-        return new Tuple2<String, Double>(key, value);
+        return null;
       }
     }).combineByKey(createCombiner, mergeValue, mergeCombiners)
-        .reduceByKey(new Function2<Double, Double, Double>() {
+        .reduceByKey(new Function2<Long, Long, Long>() {
           private static final long serialVersionUID = 5677451009262753978L;
-
           @Override
-          public Double call(Double v1, Double v2) throws Exception {
+          public Long call(Long v1, Long v2) {
+            try{
             return v1 + v2;
+            }catch(Exception ex){
+              ex.printStackTrace();
+            }
+            return null;
           }
         });
     pairRDD.saveAsTextFile(outputDir + broadcastJob.value().getJobId());

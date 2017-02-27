@@ -47,6 +47,10 @@ public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
   public ByteBuffer getByteBuffer() {
     return this.source;
   }
+  
+  public void setByteBuffer(ByteBuffer source) {
+    this.source = source;
+  }
 
   /**
    * creates a new instance of DynamicMarshal using the {@value dataDescription}

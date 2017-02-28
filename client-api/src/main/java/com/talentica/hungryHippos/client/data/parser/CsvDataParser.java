@@ -310,7 +310,7 @@ public class CsvDataParser extends LineByLineDataParser {
         break;
       case INT:
         size = 10;
-        buffer[i] = new MutableInteger(size);
+        buffer[i] = new MutableInteger();
         break;
       case LONG:
         size = 19;

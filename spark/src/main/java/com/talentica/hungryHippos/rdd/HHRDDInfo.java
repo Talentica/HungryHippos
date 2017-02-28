@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.spark.Partition;
 
+import com.google.common.io.Files;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
@@ -40,6 +41,7 @@ public class HHRDDInfo implements Serializable {
   private String directoryLocation;
   private long hhFileSize;
   private String dataDirectoryLocation;
+  private static File tmpDirectory = null;
 
 
   public HHRDDInfo(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap,
@@ -88,6 +90,13 @@ public class HHRDDInfo implements Serializable {
 
   public String getAbsoluteDataFilePath() {
     return dataDirectoryLocation;
+  }
+
+  public static File getTemporaryDirectory() {
+    if (tmpDirectory == null) {
+      tmpDirectory = Files.createTempDir();
+    }
+    return tmpDirectory;
   }
 
   public Partition[] getPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,

@@ -15,8 +15,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Files;
-
 import scala.Tuple2;
 import scala.collection.AbstractIterator;
 
@@ -74,13 +72,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
 
   private void downloadRemoteFilesIfNotExists(String filePath,
       final List<Tuple2<String, int[]>> files, Map<Integer, SerializedNode> nodeInfo,
-      File tempDirectory) throws IOException {
-   // String tmpFileDirectoryLocation = dataDirectory + File.separator + "_tmp";
-    File tmpDir = Files.createTempDir();
-    //File tmpDir = new File(tempDir.getAbsolutePath());
-    if (!tmpDir.exists()) {
-      tmpDir.mkdir();
-    }
+      final File tmpDir) throws IOException {
     this.filePath = filePath + File.separator;
     trackRemoteFiles = new HashSet<>();
 
@@ -93,7 +85,7 @@ public abstract class HHRDDIterator<T> extends AbstractIterator<T> {
           int index = tuple2._2[hostIndex];
           String ip = nodeInfo.get(index).getIp();
           int port = nodeInfo.get(index).getPort();
-          
+
           File blacklistIPFile = new File(tmpDir.getAbsolutePath() + File.separator + ip);
           if (blacklistIPFile.exists()) {
             continue;

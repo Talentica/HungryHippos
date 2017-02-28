@@ -1,6 +1,9 @@
 package com.talentica.hungryHippos.client.domain;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
@@ -13,23 +16,31 @@ public class MutableIntegerTest {
   private MutableInteger integerL1;
 
   private MutableInteger integerL2;
+
   @Before
   public void setUp() throws Exception {
+
     FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
     dataDescription.addFieldType(DataType.DOUBLE, 1);
-    integerL1 = new MutableInteger(8);
+    integerL1 = new MutableInteger();
+    integerL1.addValue(1000);
+    assertEquals(integerL1.toInt(), 1000);
+    integerL1.addValue(2000);
+    assertEquals(integerL1.toInt(), 2000);
+    
     integerL1.addByte((byte) 1);
     integerL1.addByte((byte) '.');
     integerL1.addByte((byte) 0);
     integerL1.addByte((byte) 3);
     integerL1.addByte((byte) 4);
     integerL1.addByte((byte) 5);
-    integerL2 = new MutableInteger(6);
+    integerL2 = new MutableInteger();
     integerL2.addByte((byte) 1);
     integerL2.addByte((byte) '.');
     integerL2.addByte((byte) 0);
     integerL2.addByte((byte) 3);
     integerL2.addByte((byte) 4);
+    integerL2.addByte((byte) 5);
     integerL2.addByte((byte) 5);
   }
 
@@ -50,7 +61,7 @@ public class MutableIntegerTest {
 
   @Test
   public void testMutableInteger() {
-    MutableInteger localInteger = new MutableInteger(6);
+    MutableInteger localInteger = new MutableInteger();
     localInteger.addByte((byte) 1);
     localInteger.addByte((byte) '.');
     localInteger.addByte((byte) 0);
@@ -69,29 +80,29 @@ public class MutableIntegerTest {
 
   @Test
   public void testByteAt() {
-    byte digit =  integerL1.byteAt(0);
+    byte digit = integerL1.byteAt(0);
     assertEquals(digit, 1);
   }
 
   @Test
   public void testGetUnderlyingArray() {
-   byte[] byteArray = integerL1.getUnderlyingArray();
-   assertNotNull(byteArray);
+    byte[] byteArray = integerL1.getUnderlyingArray();
+    assertNotNull(byteArray);
   }
 
   @Test
   public void testToString() {
     String s = integerL1.toString();
-   System.out.println(s); 
-   assertNotNull(s);
+    System.out.println(s);
+    assertNotNull(s);
   }
 
   @Test
   public void testAddByte() {
     int sizeBeforeAdding = integerL1.getLength();
-    MutableInteger localInteger = integerL1.addByte((byte)'9');
+    MutableInteger localInteger = integerL1.addByte((byte) '9');
     int sizeAfterAddingByte = localInteger.getLength();
-    assertEquals(sizeBeforeAdding+1, sizeAfterAddingByte);
+    assertEquals(sizeBeforeAdding + 1, sizeAfterAddingByte);
   }
 
   @Test
@@ -116,7 +127,7 @@ public class MutableIntegerTest {
   @Test
   public void testCompareTo() {
     int a = integerL1.compareTo(integerL2);
-    assertEquals(0,a);
+    assertEquals(0, a);
   }
 
 }

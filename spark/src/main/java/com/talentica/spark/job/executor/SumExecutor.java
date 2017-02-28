@@ -70,14 +70,15 @@ public class SumExecutor<T> implements Serializable {
               reader.wrap(bytes);
               String key = "";
               for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-                Object obj = reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
+                key = key + reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
+                /*Object obj = reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
                 if (obj instanceof MutableCharArrayString) {
                   key = key + ((MutableCharArrayString) obj).toString();
                 } else if (obj instanceof Integer) {
                   key = key + ((Integer) obj).toString();
                 } else if (obj instanceof Double) {
                   key = key + ((Double) obj).toString();
-                }
+                }*/
               }
               key = key + "|id=" + jobBroadcast.value().getJobId();
               Integer value =

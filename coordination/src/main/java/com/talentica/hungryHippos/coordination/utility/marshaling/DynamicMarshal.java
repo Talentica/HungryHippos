@@ -7,6 +7,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
  * {@code DynamicMarshal} is used by the system to decode the encrypted file.
@@ -22,6 +23,7 @@ public class DynamicMarshal implements Serializable {
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
+  private MutableInteger mutableInteger;
 
   /**
    * creates a new instance of DynamicMarshal using the {@value dataDescription}
@@ -30,6 +32,7 @@ public class DynamicMarshal implements Serializable {
    */
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
+    this.mutableInteger = new MutableInteger();
   }
 
   /**
@@ -45,7 +48,7 @@ public class DynamicMarshal implements Serializable {
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
-        return source.getInt(locator.getOffset());
+        return readIntValue(index, source);
       case LONG:
         return source.getLong(locator.getOffset());
       case FLOAT:
@@ -82,6 +85,19 @@ public class DynamicMarshal implements Serializable {
     return charArrayString;
   }
 
+  public MutableInteger readIntValue(int index, ByteBuffer source) {
+    DataLocator locator = dataDescription.locateField(index);
+    int offset = locator.getOffset();
+    int size = locator.getSize();
+    for (int i = offset; i < offset + size; i++) {
+      byte ch = source.get(i);
+      mutableInteger.addByte(ch);
+    }
+    mutableInteger.reset();
+    return mutableInteger;
+  }
+
+
   /**
    * writes the {@value Object} to an {@value index} location in the {@value dest} Buffer.
    * 
@@ -96,7 +112,14 @@ public class DynamicMarshal implements Serializable {
         dest.putShort(locator.getOffset(), Short.parseShort(object.toString()));
         break;
       case INT:
-        dest.putInt(locator.getOffset(), Integer.parseInt(object.toString()));
+        byte[] intContent = mutableInteger.addValue(Integer.parseInt(object.toString()));
+        int intOffset = locator.getOffset();
+        int intSize = locator.getSize();
+        int k = 0;
+        int l = intOffset;
+        for (; l < intOffset + intSize && k < intContent.length; l++, k++) {
+          dest.put(l, intContent[k]);
+        }
         break;
       case LONG:
         dest.putLong(locator.getOffset(), Long.parseLong(object.toString()));
@@ -108,13 +131,13 @@ public class DynamicMarshal implements Serializable {
         dest.putDouble(locator.getOffset(), Double.parseDouble(object.toString()));
         break;
       case STRING:
-        byte[] content = ((MutableCharArrayString)object).getValue().getBytes();
-        int offset = locator.getOffset();
-        int size = locator.getSize();
+        byte[] strContent = ((MutableCharArrayString) object).getValue().getBytes();
+        int strOffset = locator.getOffset();
+        int strSize = locator.getSize();
         int j = 0;
-        int i = offset;
-        for (; i < offset + size && j < content.length; i++, j++) {
-          dest.put(i, content[j]);
+        int i = strOffset;
+        for (; i < strOffset + strSize && j < strContent.length; i++, j++) {
+          dest.put(i, strContent[j]);
         }
     }
   }

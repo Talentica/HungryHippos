@@ -25,12 +25,10 @@ public class HHTextRDD extends HHRDD<String> implements Serializable {
   private static final ClassTag<String> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(String.class);
   private static final long serialVersionUID = 4074885953480955556L;
-  private HHRDDInfo hhrddInfo;
 
   public HHTextRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle) {
     super(sc, hhrddInfo, jobDimensions, requiresShuffle, HHRD_READER__TAG);
-    this.hhrddInfo = hhrddInfo;
   }
 
   public HHTextRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, boolean requiresShuffle) {
@@ -43,7 +41,7 @@ public class HHTextRDD extends HHRDD<String> implements Serializable {
     HHTextRDDIterator iterator = null;
     try {
       iterator = new HHTextRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getFiles(),
-          hhRDDPartion.getNodeInfo(),hhrddInfo.getAbsoluteDataFilePath());
+          hhRDDPartion.getNodeInfo(),tmpDirectory);
     } catch (IOException e) {
       e.printStackTrace();
     }

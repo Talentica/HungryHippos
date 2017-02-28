@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.rdd;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,8 @@ import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
+
+import com.google.common.io.Files;
 
 import scala.collection.mutable.ArrayBuffer;
 import scala.collection.mutable.Seq;
@@ -24,11 +27,13 @@ public abstract class HHRDD<T> extends RDD<T> implements Serializable {
   private static final long serialVersionUID = 4074885953480955556L;
   private int id;
   protected Partition[] partitions;
+  protected File tmpDirectory;
 
   public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle, ClassTag<T> classTag) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), classTag);
     this.id = sc.sc().newRddId();
+    this.tmpDirectory = Files.createTempDir();
     String[] keyOrder = hhrddInfo.getKeyOrder();
     int[] shardingIndexes = hhrddInfo.getShardingIndexes();
     List<Integer> jobShardingDimensions = new ArrayList<>();

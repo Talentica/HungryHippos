@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.UUID;
 
+import com.talentica.hungryHippos.node.DataDistributorStarter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +122,7 @@ public class DataAppenderService implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            DataDistributorStarter.cacheClearServices.execute(new CacheClearService());
         }
 
     }

@@ -16,7 +16,7 @@ sourceSets {
 jar {
 	archiveName='data-publisher-'+version+'.jar'
     from {
-        (configurations.runtime).collect {
+        configurations.runtime.filter( {! (it.name =~ /sharding.*\.jar/ )}).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }

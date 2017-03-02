@@ -14,7 +14,6 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
-import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +89,7 @@ public class DataPublisherStarter {
 
 
       for (int i = 0; i < noOfParallelThreads; i++) {
-        listOfNodesAssignedToThread.put(i, new ArrayQueue<>(nodes.size()));
+        listOfNodesAssignedToThread.put(i, new ArrayBlockingQueue<Node>(nodes.size()));
       }
 
       for (int i = 0; i < nodes.size(); i++) {

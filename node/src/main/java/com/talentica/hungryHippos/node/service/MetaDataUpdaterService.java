@@ -1,7 +1,6 @@
 package com.talentica.hungryHippos.node.service;
 
-import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
+import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class MetaDataUpdaterService implements Runnable {
                 this.dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 this.dataOutputStream.flush();
                 if (hhFilePath != null) {
-                    NewDataHandler.updateFailure(hhFilePath, e.getMessage());
+                    HHFileStatusCoordinator.updateFailure(hhFilePath, e.getMessage());
                 }
             } catch (IOException e1) {
                 e1.printStackTrace();

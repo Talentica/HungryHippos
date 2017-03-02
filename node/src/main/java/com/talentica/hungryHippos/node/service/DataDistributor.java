@@ -64,7 +64,7 @@ public class DataDistributor {
         DataPublisherApplicationContext.getDataPublisherConfig().getNoOfAttemptsToConnectToNode());
     String BAD_RECORDS_FILE = srcDataPath + "_distributor.err";
     String shardingTablePath = getShardingTableLocation(hhFilePath);
-    //NewDataHandler.updateFilesIfRequired(shardingTablePath);
+    //HHFileStatusCoordinator.updateFilesIfRequired(shardingTablePath);
     ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     dataDescription.setKeyOrder(context.getShardingDimensions());

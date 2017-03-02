@@ -1,8 +1,8 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import com.talentica.hungryHippos.node.datareceiver.MetaDataSynchronizer;
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -48,7 +48,7 @@ public class MetaDataSynchronizerService implements Runnable{
             dataOutputStream.flush();
         } catch (IOException | InterruptedException e) {
             if (hhFilePath != null) {
-                NewDataHandler.updateFailure(hhFilePath, e.toString());
+                HHFileStatusCoordinator.updateFailure(hhFilePath, e.toString());
             }
             try {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);

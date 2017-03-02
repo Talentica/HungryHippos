@@ -1,18 +1,12 @@
 package com.talentica.hungryhippos.filesystem.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
-
-import com.google.common.base.Strings;
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
+
+import java.io.*;
+import java.util.List;
 
 /**
  * {@code FileSystemUtils} has utility methods for handling fileSystem related operations.
@@ -112,7 +106,7 @@ public class FileSystemUtils {
    */
   public static void validatePath(String path, boolean isFile) {
     String validPattern = "^[0-9A-Za-z./-]*";
-    if (Strings.isNullOrEmpty(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
+    if (path==null||"".equals(path) || !path.startsWith(FileSystemConstants.ZK_PATH_SEPARATOR)
         || path.contains("..") || path.contains("//") || path.contains("./") || path.contains("/.")
         || !path.matches(validPattern)) {
       throw new RuntimeException("Invalid path :" + path);

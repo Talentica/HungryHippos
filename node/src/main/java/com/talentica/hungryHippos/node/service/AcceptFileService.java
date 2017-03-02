@@ -1,24 +1,18 @@
 package com.talentica.hungryHippos.node.service;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import com.talentica.hungryHippos.utility.scp.TarAndGzip;
+import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
-import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import java.io.*;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class AcceptFileService implements Runnable {
 
@@ -66,7 +60,7 @@ public class AcceptFileService implements Runnable {
       if(fileType == HungryHippoServicesConstants.SHARDING_TABLE){
         String shardingTableFolderPath = destinationPath.substring(0, destinationPath.lastIndexOf(File.separatorChar))
             + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
-        NewDataHandler.updateFilesIfRequired(shardingTableFolderPath);
+        updateFilesIfRequired(shardingTableFolderPath);
       }
     } catch (IOException e) {
       logger.error(e.getMessage());
@@ -87,6 +81,26 @@ public class AcceptFileService implements Runnable {
           logger.error(e.getMessage());
         }
       }
+    }
+  }
+
+  /**
+   * Updates the sharding files if required
+   *
+   * @param shardingTableFolderPath
+   * @throws IOException
+   */
+  public static void updateFilesIfRequired(String shardingTableFolderPath) throws IOException {
+    String shardingTableZipPath = shardingTableFolderPath + ".tar.gz";
+    File shardingTableFolder = new File(shardingTableFolderPath);
+    File shardingTableZip = new File(shardingTableZipPath);
+    if (shardingTableFolder.exists()) {
+      if (shardingTableFolder.lastModified() < shardingTableZip.lastModified()) {
+        FileSystemUtils.deleteFilesRecursively(shardingTableFolder);
+        TarAndGzip.untarTGzFile(shardingTableZipPath);
+      }
+    } else {
+      TarAndGzip.untarTGzFile(shardingTableZipPath);
     }
   }
 

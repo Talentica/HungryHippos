@@ -1,25 +1,16 @@
 package com.talentica.hungryHippos.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.utility.MemoryStatus;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.utility.MemoryStatus;
-import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by debasishc on 31/8/15.
@@ -29,42 +20,29 @@ public class FileDataStore implements DataStore {
      *
      */
     private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
-    private final int numFiles;
     private Map<String, OutputStream> fileNameToOutputStreamMap;
     private OutputStream[] outputStreams;
-    private DataDescription dataDescription;
     private String hungryHippoFilePath;
     private int nodeId;
-    private ShardingApplicationContext context;
-    private static final boolean APPEND_TO_DATA_FILES = FileSystemContext.isAppendToDataFile();
-    private String uniqueFileName;
     private String dataFilePrefix;
 
-    private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
-            new HashMap<>();
-
-    public String DATA_FILE_BASE_NAME = FileSystemContext.getDataFilePrefix();
-
-    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions, DataDescription dataDescription,
-
-                         String hungryHippoFilePath, String nodeId, ShardingApplicationContext context,
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
+                         String hungryHippoFilePath, String nodeId,
                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
-        this(fileNames, maxBucketSize, numDimensions, dataDescription, hungryHippoFilePath, nodeId, false, context, fileName);
+        this(fileNames, maxBucketSize, numDimensions,  hungryHippoFilePath, nodeId, false,  fileName);
     }
 
-    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions, DataDescription dataDescription,
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
                          String hungryHippoFilePath, String nodeId, boolean readOnly,
-                         ShardingApplicationContext context, String fileName) throws IOException {
-        this.context = context;
-        this.numFiles = 1 << numDimensions;
-        this.dataDescription = dataDescription;
+                          String fileName) throws IOException {
+
         fileNameToOutputStreamMap = new HashMap<>();
         this.nodeId = Integer.parseInt(nodeId);
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
-        this.uniqueFileName = fileName;
+
         int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
         this.outputStreams = new OutputStream[maxFiles];
         if (!readOnly) {
@@ -88,22 +66,15 @@ public class FileDataStore implements DataStore {
         long memoryRequiredForBufferedStream = fileNames.size() * 1024;
         if (usableMemory > memoryRequiredForBufferedStream) {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES), 1024);
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue()), 1024);
                 fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
             }
         } else {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new FileOutputStream(dataFilePrefix + entry.getValue(), APPEND_TO_DATA_FILES);
+                outputStreams[entry.getKey()] = new FileOutputStream(dataFilePrefix + entry.getValue());
                 fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
             }
         }
-    }
-
-    public FileDataStore(int numDimensions, DataDescription dataDescription,
-                         String hungryHippoFilePath, String nodeId, boolean readOnly,
-                         ShardingApplicationContext context) throws IOException {
-        this(null, 0, numDimensions, dataDescription, hungryHippoFilePath, nodeId, readOnly, context,
-                "<fileName>");
     }
 
     @Override
@@ -124,21 +95,6 @@ public class FileDataStore implements DataStore {
         } catch (IOException e) {
             logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
         }
-    }
-
-
-    @Override
-    public StoreAccess getStoreAccess(int keyId) throws ClassNotFoundException, KeeperException,
-            InterruptedException, IOException, JAXBException {
-        int shardingIndexSequence = context.getShardingIndexSequence(keyId);
-        FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
-        if (storeAccess == null) {
-            storeAccess = new FileStoreAccess(hungryHippoFilePath, DATA_FILE_BASE_NAME,
-                    shardingIndexSequence, numFiles, dataDescription);
-            primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
-        }
-        storeAccess.reset();
-        return storeAccess;
     }
 
     @Override

@@ -11,12 +11,12 @@ import java.net.Socket;
 import java.util.UUID;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
+import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -104,7 +104,7 @@ public class DataAppenderService implements Runnable {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
                 if(hhFilePath!=null){
-                    NewDataHandler.updateFailure(hhFilePath, e.getMessage());
+                    HHFileStatusCoordinator.updateFailure(hhFilePath, e.getMessage());
                 }
             } catch (IOException e1) {
                 e1.printStackTrace();

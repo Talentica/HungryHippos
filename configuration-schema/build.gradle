@@ -41,14 +41,6 @@ jaxb {
 	}
 }
 
-
-
-jar {
-	archiveName='configuration-schema-'+version+'.jar'
-}
-
-
-
 compileJava{
 	dependsOn xjc
 }

@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerUtils {
 
-  public static final String PRIFIX_SERVER_NAME = "server";
-  public static final String DOT = ".";
   public static final String COLON = ":";
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerUtils.class.getName());
 
@@ -28,12 +26,11 @@ public class ServerUtils {
    * @param server
    * @param numberOfAttempts
    * @return {@link Socket}
-   * @throws UnknownHostException
    * @throws IOException
    * @throws InterruptedException
    */
   public static Socket connectToServer(String server, int numberOfAttempts)
-      throws UnknownHostException, IOException, InterruptedException {
+      throws IOException, InterruptedException {
     int tryCount = 0;
     while (true) {
       try {

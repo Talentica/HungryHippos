@@ -15,23 +15,12 @@ ext {
   slf4jVersion = '1.7.10'
 }
 
-jar {
-	archiveName='coordination-'+version+'.jar'
-    from {
-        (configurations.runtime).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    manifest {
-        attributes("Main-Class": "com.talentica.hungryHippos.coordination.CoordinationStarter" )
-    }
-}
 dependencies {
 	compile project (":utility")
 	compile project (':configuration-schema')
 	compile group: 'org.apache.curator', name: 'curator-recipes', version: '2.11.0'
     compile "org.slf4j:slf4j-api:$slf4jVersion"
 	compile "org.apache.zookeeper:zookeeper:3.4.6"
-	compile group: 'org.apache.commons', name: 'commons-compress', version: '1.2'
+    testCompile group: 'org.apache.commons', name: 'commons-compress', version: '1.2'
 	
 }

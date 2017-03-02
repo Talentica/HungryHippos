@@ -11,9 +11,6 @@ sourceSets {
      }
   }
 
-jar{
-	archiveName='client-api-'+version+'.jar'
-}
 
 dependencies {	
     testCompile 'junit:junit:4.12'

@@ -12,12 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
-import com.talentica.hungryHippos.node.datareceiver.NewDataHandler;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryHippos.utility.MemoryStatus;
 
@@ -77,7 +77,7 @@ public class DataDistributorService implements Runnable {
       System.gc();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
-      if (!NewDataHandler.checkIfFailed(hhFilePath)) {
+      if (!HHFileStatusCoordinator.checkIfFailed(hhFilePath)) {
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
@@ -85,7 +85,7 @@ public class DataDistributorService implements Runnable {
 
     } catch (Exception e) {
       if (hhFilePath != null) {
-        NewDataHandler.updateFailure(hhFilePath, e.toString());
+        HHFileStatusCoordinator.updateFailure(hhFilePath, e.toString());
       }
       try {
         dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);

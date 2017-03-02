@@ -47,7 +47,7 @@ public class HHFileMapper {
         addFileNameToList(fileNames, 0, "", 0, null);
         this.uniqueFolderName = UUID.randomUUID().toString();
         dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
-                dataDescription, hhFilePath, NodeInfo.INSTANCE.getId(), context, uniqueFolderName);
+                 hhFilePath, NodeInfo.INSTANCE.getId(),  uniqueFolderName);
     }
 
     private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {

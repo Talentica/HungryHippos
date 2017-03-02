@@ -1,16 +1,14 @@
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
+import com.talentica.hungryhippos.config.client.ClientConfig;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
-import com.talentica.hungryhippos.config.client.ClientConfig;
 
 /**
  * Created by rajkishoreh on 23/11/16.
@@ -23,6 +21,7 @@ public class DataDistributorStarter {
   public static ExecutorService publishAccessServices;
   public static ExecutorService metadataUpdaterServices;
   public static ExecutorService metadataSynchronizerServices;
+  public static ExecutorService cacheClearServices;
   public static ExecutorService fileService;
   public static AtomicInteger noOfAvailableDataDistributors;
   public static int noOfDataDistributors;
@@ -46,6 +45,7 @@ public class DataDistributorStarter {
     metadataUpdaterServices = Executors.newCachedThreadPool();
     metadataSynchronizerServices = Executors.newCachedThreadPool();
     fileService = Executors.newCachedThreadPool();
+    cacheClearServices = Executors.newCachedThreadPool();
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
     while (true) {
       Socket socket = serverSocket.accept();

@@ -32,10 +32,6 @@ public enum FileJoiner {
     }
 
     public void join(String srcFolderPath, String destFolderPath, String lockString) throws IOException, InterruptedException {
-        join(srcFolderPath, destFolderPath, lockString, null, null);
-    }
-
-    public void join(String srcFolderPath, String destFolderPath, String lockString, String metadataFilePath, String hhFilePath) throws IOException, InterruptedException {
         LOGGER.info("Moving data from {} to {}", srcFolderPath, destFolderPath);
 
         AtomicInteger lock = getLock(lockString);

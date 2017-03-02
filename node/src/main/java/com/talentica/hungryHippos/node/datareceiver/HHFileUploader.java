@@ -36,15 +36,21 @@ public enum HHFileUploader {
     }
 
     public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath) throws IOException, InterruptedException {
-        LOGGER.info("Inside uploadFile for {} from {}", destinationPath, srcFolderPath);
-        LOGGER.info("Sending Replica Data To Nodes for {}", destinationPath);
+        LOGGER.info("Sending Replica Data To Nodes for {} from {}", destinationPath, srcFolderPath);
         int idx = 0;
         Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
         Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
         List<FileUploader> fileUploaders = new ArrayList<>();
 
+        uploadFilesToCorrespondingNodes(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders);
+        checkFilesUploadStatus(srcFolderPath, dataInputStreamMap, socketMap, fileUploaders);
+
+        LOGGER.info("Completed Sending Replica Data To Nodes for {} from ", destinationPath, srcFolderPath);
+    }
+
+    private void uploadFilesToCorrespondingNodes(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<FileUploader> fileUploaders) throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(this.nodes.size());
-        for (com.talentica.hungryhippos.config.cluster.Node node : this.nodes) {
+        for (Node node : this.nodes) {
             int nodeId = node.getIdentifier();
             Set<String> fileNames = nodeToFileMap.get(nodeId);
             if (fileNames != null && !fileNames.isEmpty()) {
@@ -57,14 +63,29 @@ public enum HHFileUploader {
             }
         }
         countDownLatch.await();
+    }
+
+    private void checkFilesUploadStatus(String srcFolderPath, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<FileUploader> fileUploaders) throws IOException {
         boolean success = true;
+        success = checkFileUploadersStatuses(srcFolderPath, fileUploaders, success);
+
+        success = checkFilesUploadRequestStatuses(srcFolderPath, dataInputStreamMap, socketMap, success);
+        if (!success) {
+            throw new RuntimeException("File Upload Failed for " + srcFolderPath);
+        }
+    }
+
+    private boolean checkFileUploadersStatuses(String srcFolderPath, List<FileUploader> fileUploaders, boolean success) {
         for(FileUploader fileUploader:fileUploaders){
             success = success&&fileUploader.isSuccess();
         }
         if (!success) {
             throw new RuntimeException("File Upload Failed for " + srcFolderPath);
         }
+        return success;
+    }
 
+    private boolean checkFilesUploadRequestStatuses(String srcFolderPath, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, boolean success) throws IOException {
         for (Map.Entry<Integer, Socket> entry : socketMap.entrySet()) {
             LOGGER.info("Waiting for status from {} for {}", entry.getValue().getInetAddress(), srcFolderPath);
             String status = dataInputStreamMap.get(entry.getKey()).readUTF();
@@ -73,13 +94,10 @@ public enum HHFileUploader {
             if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
                 success = false;
             }
-            
         }
-        if (!success) {
-            throw new RuntimeException("File Upload Failed for " + srcFolderPath);
-        }
-
-        LOGGER.info("Completed Sending Replica Data To Nodes for {} from ", destinationPath, srcFolderPath);
+        return success;
     }
+
+
 
 }

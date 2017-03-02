@@ -27,19 +27,7 @@ public class CacheClearService implements Runnable {
                 Process clearCacheProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir") + File.separator + CLEAR_UNIX_CACHE + " " + MIN_FREE_RAM);
                 int clearCacheProcessStatus = clearCacheProcess.waitFor();
                 if (clearCacheProcessStatus != 0) {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(clearCacheProcess.getErrorStream()));
-                    String line = null;
-                    StringBuilder sb = new StringBuilder();
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line);
-                    }
-                    br.close();
-                    br = new BufferedReader(new InputStreamReader(clearCacheProcess.getInputStream()));
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line);
-                    }
-                    br.close();
-                    logger.error("[{}] Error while clearing cache for {}:  {}", Thread.currentThread().getName(), sb.toString());
+                    printReasonForAbnormalStatus(clearCacheProcess);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -48,5 +36,21 @@ public class CacheClearService implements Runnable {
             logger.info("[{}] Clearing unix cache already in progress", Thread.currentThread().getName());
         }
         clearSignal.incrementAndGet();
+    }
+
+    private void printReasonForAbnormalStatus(Process clearCacheProcess) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(clearCacheProcess.getErrorStream()));
+        String line = null;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        br.close();
+        br = new BufferedReader(new InputStreamReader(clearCacheProcess.getInputStream()));
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        br.close();
+        logger.error("[{}] Error while clearing cache for {}:  {}", Thread.currentThread().getName(), sb.toString());
     }
 }

@@ -6,6 +6,7 @@ import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHRDDRowReader;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -18,8 +19,8 @@ import java.nio.ByteBuffer;
  * Created by rajkishoreh on 9/1/17.
  */
 public class SumJobExecutorWithShuffle {
-    public static JavaPairRDD<String, Long> process(HHRDD hipposRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
-                                                        Broadcast<Job> jobBroadcast) {
+    public static JavaPairRDD<String, Long> process(JavaRDD<byte[]> javaRDD, Broadcast<FieldTypeArrayDataDescription> descriptionBroadcast,
+                                                    Broadcast<Job> jobBroadcast) {
 
             Function<Integer,Long> createCombiner = new Function<Integer,Long>(){
                 @Override
@@ -44,7 +45,7 @@ public class SumJobExecutorWithShuffle {
                 }
             };
 
-            JavaPairRDD<String, Long> pairRDD = hipposRDD.toJavaRDD().mapToPair(new PairFunction<byte[], String, Integer>() {
+            JavaPairRDD<String, Long> pairRDD = javaRDD.mapToPair(new PairFunction<byte[], String, Integer>() {
                 private static final long serialVersionUID = -4057434571069903937L;
 
                 @Override
@@ -54,7 +55,7 @@ public class SumJobExecutorWithShuffle {
                     readerVar.setByteBuffer(byteBuffer);
                     String key = "";
                     for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-                        key = key + ((MutableCharArrayString) readerVar
+                        key = key + (readerVar
                                 .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
                     }
                     key = key + "|id=" + jobBroadcast.value().getJobId();

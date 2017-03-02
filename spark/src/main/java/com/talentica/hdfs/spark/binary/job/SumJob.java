@@ -2,6 +2,8 @@ package com.talentica.hdfs.spark.binary.job;
 
 import java.nio.ByteBuffer;
 
+import com.talentica.hungryHippos.rdd.main.SumJobWithShuffle;
+import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -41,7 +43,9 @@ public class SumJob {
         context.broadcast(dataDescriptionConfig.getDataDescription());
     for (Job job : getSumJobMatrix().getJobs()) {
       Broadcast<Job> broadcastJob = context.broadcast(job);
-      startJob(rdd, dataDes, broadcastJob, outputDir);
+        JavaPairRDD<String, Long> pairRDD = SumJobExecutorWithShuffle.process(rdd, dataDes, broadcastJob);
+        pairRDD.saveAsTextFile(outputDir + broadcastJob.value().getJobId());
+        LOGGER.info("Output files are in directory {}", outputDir + broadcastJob.value().getJobId());
     }
     context.stop();
   }
@@ -72,64 +76,4 @@ public class SumJob {
     return sumJobMatrix;
   }
 
-  public static void startJob(JavaRDD<byte[]> rdd, Broadcast<FieldTypeArrayDataDescription> dataDes,
-      Broadcast<Job> broadcastJob, String outputDir) {
-    Function<Double, Double> createCombiner = new Function<Double, Double>() {
-      private static final long serialVersionUID = 6547151567329751479L;
-      @Override
-      public Double call(Double v1) throws Exception {
-        return v1;
-      }
-    };
-
-    Function2<Double, Double, Double> mergeValue =
-        new Function2<Double, Double, Double>() {
-          private static final long serialVersionUID = 8342701311730308998L;
-          @Override
-          public Double call(Double v1, Double v2) throws Exception {
-            return v1 + v2;
-          }
-
-        };
-
-    Function2<Double, Double, Double> mergeCombiners =
-        new Function2<Double, Double, Double>() {
-          private static final long serialVersionUID = -5698647671298354646L;
-          @Override
-          public Double call(Double v1, Double v2) throws Exception {
-            return v1 + v2;
-          }
-        };
-
-    JavaPairRDD<String, Double> pairRDD =
-        rdd.mapToPair(new PairFunction<byte[], String, Double>() {
-          private static final long serialVersionUID = -4057434571069903937L;
-
-          @Override
-          public Tuple2<String, Double> call(byte[] buf) throws Exception {
-            HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-            readerVar.setByteBuffer(byteBuffer);
-            String key = "";
-            for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-              key = key + ((MutableCharArrayString) readerVar
-                  .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
-            }
-            key = key + "|id=" + broadcastJob.value().getJobId();
-            Double value =
-                (Double) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-            return new Tuple2<String, Double>(key, value);
-          }
-        }).combineByKey(createCombiner, mergeValue, mergeCombiners)
-            .reduceByKey(new Function2<Double, Double, Double>() {
-              private static final long serialVersionUID = 5677451009262753978L;
-
-              @Override
-              public Double call(Double v1, Double v2) throws Exception {
-                return v1 + v2;
-              }
-            });
-    pairRDD.saveAsTextFile(outputDir + broadcastJob.value().getJobId());
-    LOGGER.info("Output files are in directory {}", outputDir + broadcastJob.value().getJobId());
-  }
 }

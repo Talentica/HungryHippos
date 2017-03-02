@@ -50,7 +50,7 @@ public class SumJobWithShuffle {
         hipposRDD = new HHRDD(context, hhrddInfo,job.getDimensions(),true);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
-      JavaPairRDD<String, Long> resultRDD=  SumJobExecutorWithShuffle.process(hipposRDD,descriptionBroadcast,jobBroadcast);
+      JavaPairRDD<String, Long> resultRDD=  SumJobExecutorWithShuffle.process(hipposRDD.toJavaRDD(),descriptionBroadcast,jobBroadcast);
       String outputDistributedPath = outputDirectory + File.separator + job.getJobId();
 
       String outputActualPath =  HHRDDHelper.getActualPath(outputDistributedPath);

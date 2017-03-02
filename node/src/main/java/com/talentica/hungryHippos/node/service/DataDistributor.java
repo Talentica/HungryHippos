@@ -146,7 +146,6 @@ public class DataDistributor {
       fileWriter.close();
     }
 
-    System.gc();
   }
 
   /**

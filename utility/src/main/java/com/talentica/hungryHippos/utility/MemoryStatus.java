@@ -67,7 +67,6 @@ public class MemoryStatus {
   }
 
   public synchronized static long getUsableMemory() {
-    System.gc();
     long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
     return availablePrimaryMemory - sparedMemory;
   }

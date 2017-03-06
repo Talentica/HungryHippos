@@ -16,5 +16,8 @@ public class MutableDoubleTest {
     assertNotNull(localInteger);
     assertEquals(8, localInteger.getLength());
     assertEquals(112.34523543435, localInteger.toDouble(), DELTA);
+    localInteger.addValue(11232.3245623543435);
+    assertEquals(8, localInteger.getLength());
+    assertEquals(11232.3245623543435, localInteger.toDouble(), DELTA);
   }
 }

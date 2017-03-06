@@ -15,6 +15,9 @@ public class MutableIntegerTest {
     assertNotNull(localInteger);
     assertEquals(4, localInteger.getLength());
     assertEquals(112, localInteger.toInt());
+    localInteger.addValue(1134342);
+    assertEquals(4, localInteger.getLength());
+    assertEquals(1134342, localInteger.toInt());
   }
 
 }

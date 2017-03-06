@@ -52,8 +52,7 @@ public class MutableDouble implements DataTypes {
   }
 
   @Override
-  public void reset() {
-  }
+  public void reset() {}
 
   @Override
   public MutableDouble clone() {
@@ -133,8 +132,10 @@ public class MutableDouble implements DataTypes {
   }
 
   public byte[] addValue(double data) {
-    byte[] byt = toByte(data);
-    System.arraycopy(byt, 0, array, 0, this.length);
+    Long lng = Double.doubleToLongBits(data);
+    for (int i = 0; i < 8; i++) {
+      array[i] = (byte) ((lng >> ((7 - i) * 8)) & 0xff);
+    }
     return array;
   }
 
@@ -145,7 +146,7 @@ public class MutableDouble implements DataTypes {
   }
 
 
-  public MutableDouble addByte(byte b,int index) {
+  public MutableDouble addByte(byte b, int index) {
     array[index++] = b;
     return this;
   }

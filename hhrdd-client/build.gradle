@@ -6,5 +6,7 @@ repositories {
 }
 
 dependencies {
-
+	compile project(":client-api")
+	compile project (':sharding')
+	compileOnly 'org.apache.spark:spark-core_2.11:2.0.2'
 }

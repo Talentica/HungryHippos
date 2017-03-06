@@ -7,4 +7,7 @@ repositories {
 
 dependencies {
  	compile project (':hhrdd-client')
+ 	compile('com.clearspring.analytics:stream:2.7.0')
+ 	compileOnly 'org.apache.spark:spark-core_2.11:2.0.2'
+ 	compileOnly 'org.apache.spark:spark-sql_2.11:2.0.2'
 }

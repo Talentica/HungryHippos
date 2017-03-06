@@ -4,19 +4,9 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
-def generatedJava = 'src/main/generated'
-sourceSets {
-    main {
-        java {
-            srcDirs += generatedJava
-        }
-    }
-}
 
 dependencies {
-     compile project (':hhrdd-client')
-     compile project (':sharding')
-     compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.2'
-     compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.0.2'
-     compile('com.clearspring.analytics:stream:2.7.0')
+	compile project(":client-api")
+	compile project (':sharding')
+	compileOnly 'org.apache.spark:spark-core_2.11:2.0.2'
 }

@@ -1,3 +1,0 @@
-INSERT INTO `hungryhippos_tester`.`role` (`role_id`, `role`) VALUES (2, 'ADMIN');
-INSERT INTO `hungryhippos_tester`.`user` (`first_name`, `last_name`, `email_address`, `password`) VALUES ('admin', 'admin', 'admin@hungryhippos.com', 'admin');
-INSERT INTO `hungryhippos_tester`.`user_role` (`role_id`, `user_id`) VALUES (2, (select user_id from `hungryhippos_tester`.`user` where email_address='admin@hungryhippos.com'));

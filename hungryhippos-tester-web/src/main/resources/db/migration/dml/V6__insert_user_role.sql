@@ -1,1 +1,0 @@
-INSERT INTO `hungryhippos_tester`.`role` (`role_id`, `role`) VALUES ('1', 'USER');

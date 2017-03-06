@@ -9,6 +9,7 @@ include 'coordination'
 include 'client-api'
 include 'configuration-schema'
 include 'file-system'
-include 'hhrdd-client'
 include 'hhrdd'
+include 'benchmarking'
 include 'examples'
+

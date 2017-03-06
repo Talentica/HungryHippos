@@ -7,6 +7,7 @@ import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
 import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
@@ -23,7 +24,8 @@ public class DynamicMarshal implements Serializable {
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
-  private MutableInteger mutableInteger;
+  private static MutableInteger mutableInteger = new MutableInteger();
+  private static MutableDouble mutableDouble = new MutableDouble();
 
   /**
    * creates a new instance of DynamicMarshal using the {@value dataDescription}
@@ -32,7 +34,6 @@ public class DynamicMarshal implements Serializable {
    */
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
-    this.mutableInteger = new MutableInteger();
   }
 
   /**
@@ -54,7 +55,7 @@ public class DynamicMarshal implements Serializable {
       case FLOAT:
         return source.getFloat(locator.getOffset());
       case DOUBLE:
-        return source.getDouble(locator.getOffset());
+        return readDoubleValue(index, source);
       case STRING:
         return readValueString(index, source);
     }
@@ -86,6 +87,7 @@ public class DynamicMarshal implements Serializable {
   }
 
   public MutableInteger readIntValue(int index, ByteBuffer source) {
+    mutableInteger.reset();
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
     int size = locator.getSize();
@@ -93,7 +95,6 @@ public class DynamicMarshal implements Serializable {
       byte ch = source.get(i);
       mutableInteger.addByte(ch);
     }
-    mutableInteger.reset();
     return mutableInteger;
   }
 
@@ -112,14 +113,7 @@ public class DynamicMarshal implements Serializable {
         dest.putShort(locator.getOffset(), Short.parseShort(object.toString()));
         break;
       case INT:
-        byte[] intContent = mutableInteger.addValue(Integer.parseInt(object.toString()));
-        int intOffset = locator.getOffset();
-        int intSize = locator.getSize();
-        int k = 0;
-        int l = intOffset;
-        for (; l < intOffset + intSize && k < intContent.length; l++, k++) {
-          dest.put(l, intContent[k]);
-        }
+        writeInt(object, dest, locator);
         break;
       case LONG:
         dest.putLong(locator.getOffset(), Long.parseLong(object.toString()));
@@ -128,7 +122,7 @@ public class DynamicMarshal implements Serializable {
         dest.putFloat(locator.getOffset(), Float.parseFloat(object.toString()));
         break;
       case DOUBLE:
-        dest.putDouble(locator.getOffset(), Double.parseDouble(object.toString()));
+        writeDouble(object, dest, locator);
         break;
       case STRING:
         byte[] strContent = ((MutableCharArrayString) object).getValue().getBytes();
@@ -139,6 +133,28 @@ public class DynamicMarshal implements Serializable {
         for (; i < strOffset + strSize && j < strContent.length; i++, j++) {
           dest.put(i, strContent[j]);
         }
+    }
+  }
+
+  private void writeDouble(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] doubleContent = mutableDouble.addValue(Integer.parseInt(object.toString()));
+    int doubleOffset = locator.getOffset();
+    int doubleSize = locator.getSize();
+    int p = 0;
+    int q = doubleOffset;
+    for (; q < doubleOffset + doubleSize && p < doubleContent.length; q++, p++) {
+      dest.put(q, doubleContent[p]);
+    }
+  }
+
+  private void writeInt(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] intContent = mutableInteger.addValue(Integer.parseInt(object.toString()));
+    int intOffset = locator.getOffset();
+    int intSize = locator.getSize();
+    int k = 0;
+    int l = intOffset;
+    for (; l < intOffset + intSize && k < intContent.length; l++, k++) {
+      dest.put(l, intContent[k]);
     }
   }
 
@@ -177,13 +193,24 @@ public class DynamicMarshal implements Serializable {
   public void writeValueDouble(int index, double object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
-
       case DOUBLE:
         dest.putDouble(locator.getOffset(), object);
         break;
       default:
         throw new IllegalArgumentException("Invalid data format");
     }
+  }
+
+  public MutableDouble readDoubleValue(int index, ByteBuffer dest) {
+    mutableDouble.reset();
+    DataLocator locator = dataDescription.locateField(index);
+    int offset = locator.getOffset();
+    int size = locator.getSize();
+    for (int i = offset; i < offset + size; i++) {
+      byte ch = dest.get(i);
+      mutableDouble.addByte(ch);
+    }
+    return mutableDouble;
   }
 
 }

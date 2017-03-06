@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
  * {@code DynamicMarshal} is used by the system to decode the encrypted file.
@@ -13,13 +15,15 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  * @author debasishc
  * @since 1/9/15.
  */
-public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
+public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
 
   private static final long serialVersionUID = -5800537222182360030L;
   private FieldTypeArrayDataDescription dataDescription;
   private ByteBuffer source = null;
   private int allocatedSize = 0;
   private byte[] b;
+  private static MutableInteger mutableInteger = new MutableInteger();
+  private static MutableDouble mutableDouble = new MutableDouble();
 
   /**
    * It wraps over the byte[] and create the new HeapByteBuffer if an only if byte[] array has
@@ -29,7 +33,7 @@ public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
    * @return instance of the current object
    */
   @Override
-  public  HHBinaryRowReader<byte[]> wrap(byte[] b) {
+  public HHBinaryRowReader<byte[]> wrap(byte[] b) {
     this.b = b;
     if (source == null) {
       allocatedSize = this.b.length;
@@ -47,7 +51,7 @@ public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
   public ByteBuffer getByteBuffer() {
     return this.source;
   }
-  
+
   public void setByteBuffer(ByteBuffer source) {
     this.source = source;
   }
@@ -83,13 +87,13 @@ public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
-        return source.getInt(locator.getOffset());
+        return readIntValue(index).toInt();
       case LONG:
         return source.getLong(locator.getOffset());
       case FLOAT:
         return source.getFloat(locator.getOffset());
       case DOUBLE:
-        return source.getDouble(locator.getOffset());
+        return readDoubleValue(index).toDouble();
       case STRING:
         return readValueString(index);
     }
@@ -117,6 +121,30 @@ public class HHBinaryRowReader<T> implements Serializable,HHRowReader<byte[]> {
       charArrayString.addByte(ch);
     }
     return charArrayString;
+  }
+
+  public MutableInteger readIntValue(int index) {
+    DataLocator locator = dataDescription.locateField(index);
+    int offset = locator.getOffset();
+    int size = locator.getSize();
+    int pos = 0;
+    for (int i = offset; i < offset + size; i++) {
+      byte ch = source.get(i);
+      mutableInteger.addByte(ch, pos++);
+    }
+    return mutableInteger;
+  }
+
+  public MutableDouble readDoubleValue(int index) {
+    DataLocator locator = dataDescription.locateField(index);
+    int offset = locator.getOffset();
+    int size = locator.getSize();
+    int pos = 0;
+    for (int i = offset; i < offset + size; i++) {
+      byte ch = source.get(i);
+      mutableDouble.addByte(ch, pos++);
+    }
+    return mutableDouble;
   }
 
 }

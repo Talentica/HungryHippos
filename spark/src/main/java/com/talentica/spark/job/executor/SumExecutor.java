@@ -19,7 +19,6 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.rdd.HHRDD;
 import com.talentica.hungryHippos.rdd.job.Job;
 import com.talentica.hungryHippos.rdd.reader.HHBinaryRowReader;
@@ -71,14 +70,6 @@ public class SumExecutor<T> implements Serializable {
               String key = "";
               for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
                 key = key + reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
-                /*Object obj = reader.readAtColumn(jobBroadcast.value().getDimensions()[index]);
-                if (obj instanceof MutableCharArrayString) {
-                  key = key + ((MutableCharArrayString) obj).toString();
-                } else if (obj instanceof Integer) {
-                  key = key + ((Integer) obj).toString();
-                } else if (obj instanceof Double) {
-                  key = key + ((Double) obj).toString();
-                }*/
               }
               key = key + "|id=" + jobBroadcast.value().getJobId();
               Integer value =

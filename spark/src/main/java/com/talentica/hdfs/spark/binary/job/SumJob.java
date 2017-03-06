@@ -103,7 +103,6 @@ public class SumJob {
         try {
           HHBinaryRowReader readerVar = new HHBinaryRowReader(dataDes.getValue());
           ByteBuffer buffer = ByteBuffer.wrap(buf);
-          //readerVar.wrap(buf);
           readerVar.setByteBuffer(buffer);
           String key = "";
           for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {

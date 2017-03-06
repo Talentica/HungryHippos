@@ -18,14 +18,14 @@ public class MutableDoubleTest {
   public void setUp() throws Exception {
     FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
     dataDescription.addFieldType(DataType.DOUBLE, 1);
-    doubleL1 = new MutableDouble(8);
+    doubleL1 = new MutableDouble();
     doubleL1.addByte((byte) 1);
     doubleL1.addByte((byte) '.');
     doubleL1.addByte((byte) 0);
     doubleL1.addByte((byte) 3);
     doubleL1.addByte((byte) 4);
     doubleL1.addByte((byte) 5);
-    doubleL2 = new MutableDouble(6);
+    doubleL2 = new MutableDouble();
     doubleL2.addByte((byte) 1);
     doubleL2.addByte((byte) '.');
     doubleL2.addByte((byte) 0);
@@ -50,7 +50,7 @@ public class MutableDoubleTest {
 
   @Test
   public void testMutableDouble() {
-    MutableDouble localDouble = new MutableDouble(6);
+    MutableDouble localDouble = new MutableDouble();
     localDouble.addByte((byte) 1);
     localDouble.addByte((byte) '.');
     localDouble.addByte((byte) 0);

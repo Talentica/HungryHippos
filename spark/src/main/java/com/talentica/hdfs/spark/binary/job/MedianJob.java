@@ -72,6 +72,7 @@ public class MedianJob {
 
   public static void startJob(JavaRDD<byte[]> rdd, Broadcast<FieldTypeArrayDataDescription> dataDes,
       Broadcast<Job> broadcastJob, String outputDir) {
+    
     JavaPairRDD<String, Double> pairRDD = rdd.mapToPair(new PairFunction<byte[], String, Double>() {
       private static final long serialVersionUID = -4057434571069903937L;
 

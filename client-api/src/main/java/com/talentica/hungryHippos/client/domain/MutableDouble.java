@@ -14,22 +14,19 @@ public class MutableDouble implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
-  private int stringLength;
+  private int length = Double.BYTES;
 
   /**
-   * creates a new MutableDouble with specified length. The length specified is the limit of the
-   * underlying array.
+   * creates a new MutableDouble.
    * 
-   * @param length is the size of backing array.
    */
-  public MutableDouble(int length) {
+  public MutableDouble() {
     array = new byte[length];
-    stringLength = 0;
   }
 
   @Override
   public int getLength() {
-    return stringLength;
+    return length;
   }
 
   @Override
@@ -51,26 +48,18 @@ public class MutableDouble implements DataTypes {
 
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
-  }
-
-  @Override
-  public MutableDouble addByte(byte ch) {
-    array[stringLength] = ch;
-    stringLength++;
-    return this;
+    return new String(Arrays.copyOf(array, length));
   }
 
   @Override
   public void reset() {
-    stringLength = 0;
   }
 
   @Override
   public MutableDouble clone() {
-    MutableDouble newArray = new MutableDouble(stringLength);
-    copyCharacters(0, stringLength, newArray);
-    newArray.stringLength = stringLength;
+    MutableDouble newArray = new MutableDouble();
+    copyCharacters(0, length, newArray);
+    newArray.length = length;
     return newArray;
   }
 
@@ -78,12 +67,12 @@ public class MutableDouble implements DataTypes {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || !(o instanceof MutableDouble)) {
+    if (o == null || !(o instanceof MutableInteger)) {
       return false;
     }
     MutableDouble that = (MutableDouble) o;
-    if (stringLength == that.stringLength) {
-      for (int i = 0; i < stringLength; i++) {
+    if (length == that.length) {
+      for (int i = 0; i < length; i++) {
         if (array[i] != that.array[i]) {
           return false;
         }
@@ -98,7 +87,7 @@ public class MutableDouble implements DataTypes {
     int h = 0;
     int off = 0;
     byte val[] = array;
-    int len = stringLength;
+    int len = length;
     for (int i = 0; i < len; i++) {
       h = 31 * h + val[off++];
     }
@@ -113,7 +102,7 @@ public class MutableDouble implements DataTypes {
    * @throws InvalidRowException if the value can't be converted to MutableDouble.
    */
   public static MutableDouble from(String value) throws InvalidRowException {
-    MutableDouble mutableDoubleByteArray = new MutableDouble(value.length());
+    MutableDouble mutableDoubleByteArray = new MutableDouble();
     for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
       mutableDoubleByteArray.addByte(character);
     }
@@ -131,10 +120,10 @@ public class MutableDouble implements DataTypes {
     if (equals(dataType)) {
       return 0;
     }
-    if (stringLength != otherMutableDoubleByteArray.stringLength) {
-      return Integer.valueOf(stringLength).compareTo(otherMutableDoubleByteArray.stringLength);
+    if (length != otherMutableDoubleByteArray.length) {
+      return Integer.valueOf(length).compareTo(otherMutableDoubleByteArray.length);
     }
-    for (int i = 0; i < stringLength; i++) {
+    for (int i = 0; i < length; i++) {
       if (array[i] == otherMutableDoubleByteArray.array[i]) {
         continue;
       }
@@ -143,4 +132,41 @@ public class MutableDouble implements DataTypes {
     return 0;
   }
 
+  public byte[] addValue(double data) {
+    byte[] byt = toByte(data);
+    System.arraycopy(byt, 0, array, 0, this.length);
+    return array;
+  }
+
+  public double toDouble() {
+    if (array == null || array.length != 8)
+      return 0x0;
+    return Double.longBitsToDouble(toLong(array));
+  }
+
+
+  public MutableDouble addByte(byte b,int index) {
+    array[index++] = b;
+    return this;
+  }
+
+
+  public byte[] toByte(double data) {
+    return toByte(Double.doubleToRawLongBits(data));
+  }
+
+  public long toLong(byte[] data) {
+    if (data == null || data.length != 8)
+      return 0x0;
+    return (long) ((long) (0xff & data[0]) << 56 | (long) (0xff & data[1]) << 48
+        | (long) (0xff & data[2]) << 40 | (long) (0xff & data[3]) << 32
+        | (long) (0xff & data[4]) << 24 | (long) (0xff & data[5]) << 16
+        | (long) (0xff & data[6]) << 8 | (long) (0xff & data[7]) << 0);
+  }
+
+  @Override
+  public MutableDouble addByte(byte ch) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

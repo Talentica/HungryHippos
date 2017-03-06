@@ -13,12 +13,11 @@ import java.util.Arrays;
 public class MutableInteger implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
-  private byte[] array;
-  private int length = Integer.BYTES;
+  private static byte[] array;
+  private static int length = Integer.BYTES;
 
   /**
-   * creates a new MutableInteger with specified length. The length specified is the limit of the
-   * underlying array.
+   * creates a new MutableInteger.
    * 
    * @param length
    */
@@ -56,7 +55,6 @@ public class MutableInteger implements DataTypes {
 
   @Override
   public void reset() {
-    index = 0;
   }
 
   @Override
@@ -144,8 +142,6 @@ public class MutableInteger implements DataTypes {
     return array;
   }
 
-
-
   public int toInt() {
     if (array == null || array.length != 4)
       return 0x0;
@@ -153,12 +149,15 @@ public class MutableInteger implements DataTypes {
         | (0xff & array[3]) << 0);
   }
 
-  int index = 0;
-
-  @Override
-  public MutableInteger addByte(byte b) {
+  public MutableInteger addByte(byte b, int index) {
     array[index++] = b;
     return this;
+  }
+
+  @Override
+  public MutableInteger addByte(byte ch) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

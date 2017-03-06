@@ -301,7 +301,7 @@ public class CsvDataParser extends LineByLineDataParser {
     // 308
       case DOUBLE:
         size = 30;
-        buffer[i] = new MutableDouble(size);
+        buffer[i] = new MutableDouble();
         break;
       // 38
       case FLOAT:

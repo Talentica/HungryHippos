@@ -6,7 +6,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
-apply plugin: 'spring-boot'
+//apply plugin: 'spring-boot'
 
 jar {
 	baseName='hungryhippos-tester-web'

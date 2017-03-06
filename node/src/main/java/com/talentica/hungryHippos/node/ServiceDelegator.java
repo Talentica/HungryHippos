@@ -41,6 +41,10 @@ public class ServiceDelegator implements Runnable {
         case HungryHippoServicesConstants.ACCEPT_FILE:
           DataDistributorStarter.fileService.execute(new AcceptFileService(socket));
           break;
+        case HungryHippoServicesConstants.ZOOKEEPER_LISTENER:
+          DataDistributorStarter.fileTruncatorService.execute(new FileTruncateService(socket));
+          break;
+
         default:
           socket.close();
       }

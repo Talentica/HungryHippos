@@ -3,28 +3,44 @@
  */
 package com.talentica.hungryHippos.master;
 
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.eclipse.jetty.util.ArrayQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
-import com.talentica.hungryHippos.utility.*;
+import com.talentica.hungryHippos.utility.Chunk;
+import com.talentica.hungryHippos.utility.FileSplitter;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.utility.HHFStream;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import com.talentica.hungryHippos.utility.StopWatch;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
-import org.eclipse.jetty.util.ArrayQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
@@ -41,6 +57,9 @@ public class DataPublisherStarter {
   private static String pathForFailureNode;
   private static String pathForClientUploadsInParallelNode;
   private static String pathForClientUploadNode;
+  private static String dataPublishStarted;
+  private static String restoration;
+  private static String failureLogs;
   static Map<Integer, Queue<Node>> listOfNodesAssignedToThread = new HashMap<>();
   static Queue<Chunk> queue;
 
@@ -66,17 +85,50 @@ public class DataPublisherStarter {
       String connectString = clientConfig.getCoordinationServers().getServers();
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
       curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+      destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
+          .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+      pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
+      pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
+      pathForClientUploadsInParallelNode = destinationPathNode
+          + HungryHippoCurator.ZK_PATH_SEPERATOR + FileSystemConstants.CLIENT_UPLOADS_IN_PARALLEL;
+      dataPublishStarted = pathForClientUploadsInParallelNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+          + FileSystemConstants.DATA_PUBLISH_STARTED;
+      restoration = pathForClientUploadsInParallelNode + HungryHippoCurator.ZK_PATH_SEPERATOR
+          + FileSystemConstants.RESTORATION_DETAILS;
+      curator.deletePersistentNodeIfExits(dataPublishStarted);
+
+      if (curator.checkExists(restoration)) {
+        LOGGER.info("restoration file exits");
+        List<String> restorationNodes = curator.getChildren(restoration);
+        if (restorationNodes != null && !restorationNodes.isEmpty()) {
+
+          for (String restorationNode : restorationNodes) {
+            String numberOfFiles = curator.getZnodeData(restorationNode);
+            LOGGER.info(
+                "restoration in progress on node {} need to restore {} files will take sometime",
+                restorationNode, numberOfFiles);
+          }
+          System.exit(1);
+        } else {
+          LOGGER.info("restoration is completed on all node");
+          curator.deletePersistentNodeIfExits(restoration);
+          if (curator.checkExists(pathForClientUploadsInParallelNode)) {
+            curator.deletePersistentNodeRecursiveIfExits(pathForClientUploadsInParallelNode);
+          }
+        }
+
+      }
+
       FileSystemUtils.validatePath(destinationPath, true);
       String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
       File srcFile = new File(sourcePath);
-      updateZookeeperNodes(destinationPath);
+      updateZookeeperNodes();
       String remotePath = FileSystemContext.getRootDirectory() + destinationPath + File.separator;
       long startTime = System.currentTimeMillis();
       Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
       Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
       List<Chunk> chunks = null;
-
 
       FileSplitter fileSplitter = new FileSplitter(sourcePath, sizeOfChunk);
 
@@ -97,7 +149,7 @@ public class DataPublisherStarter {
         int threadNo = i % noOfParallelThreads;
         listOfNodesAssignedToThread.get(threadNo).add(nodes.get(i));
       }
-      if(nodes.size() < noOfParallelThreads){
+      if (nodes.size() < noOfParallelThreads) {
         for (int i = nodes.size(); i < noOfParallelThreads; i++) {
           listOfNodesAssignedToThread.get(i).addAll(nodes);
         }
@@ -105,6 +157,8 @@ public class DataPublisherStarter {
 
       queue = new ArrayBlockingQueue<>(chunks.size());
       queue.addAll(chunks);
+
+      sendSignal(destinationPath, nodes);
 
       for (int i = 0; i < noOfParallelThreads; i++) {
         if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
@@ -121,7 +175,7 @@ public class DataPublisherStarter {
 
       boolean success = true;
       for (int i = 0; i < noOfParallelThreads; i++) {
-        if(!listOfNodesAssignedToThread.get(i).isEmpty()) {
+        if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
           success = success && chunkUpload[i].isSuccess();
         }
       }
@@ -141,6 +195,7 @@ public class DataPublisherStarter {
         socketMap.get(i).close();
       }
       if (!success) {
+        curator.deletePersistentNodeIfExits(dataPublishStarted);
         throw new RuntimeException("File Publish Failed for " + destinationPath);
       }
       updateMetaData(destinationPath, nodes);
@@ -155,6 +210,7 @@ public class DataPublisherStarter {
       updateFilePublishFailure();
     }
   }
+
 
   private static int getNoOfParallelThreads(int noOfChunks, File srcFile) {
     long diskUsableSpace = srcFile.getUsableSpace();
@@ -177,16 +233,12 @@ public class DataPublisherStarter {
 
 
 
-  private static void updateZookeeperNodes(String destinationPath) throws HungryHippoException {
-    destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
-    pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
-    pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
-    pathForClientUploadsInParallelNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
-        + FileSystemConstants.CLIENT_UPLOADS_IN_PARALLEL;
+  private static void updateZookeeperNodes() throws HungryHippoException {
+
     curator.deletePersistentNodeIfExits(pathForSuccessNode);
     curator.deletePersistentNodeIfExits(pathForFailureNode);
     curator.createPersistentNodeIfNotPresent(pathForClientUploadsInParallelNode);
+    curator.createEphemeralNode(dataPublishStarted);
     int clientId =
         createClientNode(pathForClientUploadsInParallelNode + HungryHippoCurator.ZK_PATH_SEPERATOR);
     pathForClientUploadNode =
@@ -216,6 +268,26 @@ public class DataPublisherStarter {
     }
   }
 
+
+  public static void sendSignal(String hhFilePath, List<Node> nodes)
+      throws IOException, InterruptedException {
+    for (int i = 0; i < nodes.size(); i++) {
+      sendSignalToTruncate(hhFilePath, nodes.get(i));
+    }
+  }
+
+
+
+  public static void sendSignalToTruncate(String hhFilePath, Node node)
+      throws UnknownHostException, IOException, InterruptedException {
+    Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 10);
+    DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+    dos.writeInt(HungryHippoServicesConstants.ZOOKEEPER_LISTENER);
+    dos.writeUTF(hhFilePath);
+
+  }
+
+
   public static void updateNodeMetaData(String hhFilePath, Node node)
       throws IOException, InterruptedException {
     Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 10);
@@ -240,7 +312,7 @@ public class DataPublisherStarter {
       successfulUpload =
           requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
       while (!nodes.offer(node));
-      if(peekNode==nodes.peek()){
+      if (peekNode == nodes.peek()) {
         Thread.sleep(10000);
       }
     }
@@ -268,10 +340,10 @@ public class DataPublisherStarter {
     dos.flush();
 
 
-    boolean dataDistributorAvailable ;
-    try{
+    boolean dataDistributorAvailable;
+    try {
       dataDistributorAvailable = dis.readBoolean();
-    }catch (EOFException e){
+    } catch (EOFException e) {
       e.printStackTrace();
       dataDistributorAvailable = false;
     }
@@ -325,6 +397,7 @@ public class DataPublisherStarter {
   }
 
 
+
   /**
    * Updates file pubising failed
    *
@@ -334,15 +407,19 @@ public class DataPublisherStarter {
     try {
       curator.deletePersistentNodeIfExits(pathForSuccessNode);
       curator.createPersistentNodeIfNotPresent(pathForFailureNode);
+      curator.deletePersistentNodeIfExits(dataPublishStarted);
       curator.deletePersistentNodeIfExits(pathForClientUploadNode);
     } catch (HungryHippoException e) {
       LOGGER.error(e.getMessage());
     }
   }
 
+
+
   public static void updateSuccessFul() throws HungryHippoException {
     if (!checkIfFailed()) {
       curator.deletePersistentNodeIfExits(pathForClientUploadNode);
+      curator.deletePersistentNodeIfExits(dataPublishStarted);
       List<String> children = curator.getChildren(pathForClientUploadsInParallelNode);
       if (children == null || children.isEmpty()) {
         curator.deletePersistentNodeIfExits(pathForClientUploadsInParallelNode);

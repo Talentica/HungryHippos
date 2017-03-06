@@ -11,7 +11,9 @@ public interface HungryHippoServicesConstants {
   int METADATA_SYNCHRONIZER = 5;
   int ACCEPT_FILE = 6;
   int SHARDING_TABLE = 7;
-  
+  int ZOOKEEPER_LISTENER = 8;
+
+
   String SUCCESS = "SUCCESS";
   String FAILURE = "FAILURE";
 

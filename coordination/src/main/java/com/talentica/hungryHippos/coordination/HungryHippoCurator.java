@@ -126,6 +126,10 @@ public class HungryHippoCurator {
 
   }
 
+  public CuratorFramework getCurator() {
+    return curatorFramework;
+  }
+
   private void connectToZookeeper(String connectString) {
     if (this.curatorFramework == null) {
       int baseSleepTime = 10000;
@@ -607,6 +611,31 @@ public class HungryHippoCurator {
       throw new HungryHippoException(e.getMessage());
     }
     return stat != null ? true : false;
+  }
+
+  public boolean checkExistsAsync(String path, Watcher watcher, StringCallback cb)
+      throws HungryHippoException {
+    Stat stat = null;
+
+    try {
+      stat = curatorFramework.checkExists().usingWatcher(watcher).inBackground(cb).forPath("");
+    } catch (Exception e) {
+      throw new HungryHippoException(e.getMessage());
+    }
+    return stat != null ? true : false;
+
+  }
+
+  public boolean checkExistsAsync(String path, Watcher watcher) throws HungryHippoException {
+    Stat stat = null;
+
+    try {
+      stat = curatorFramework.checkExists().usingWatcher(watcher).forPath(path);
+    } catch (Exception e) {
+      throw new HungryHippoException(e.getMessage());
+    }
+    return stat != null ? true : false;
+
   }
 
   /**

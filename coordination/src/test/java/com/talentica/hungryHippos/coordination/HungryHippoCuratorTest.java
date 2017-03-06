@@ -34,7 +34,6 @@ public class HungryHippoCuratorTest {
   }
 
 
-
   @Test
   public void testCreateZnode_2Arg() {
     String path = "/test";
@@ -97,11 +96,12 @@ public class HungryHippoCuratorTest {
   }
 
   @Test
-  public void testCreateEphemeralNode() {
-    String path = "/temp";
+  public void testCreateEphemeralNode() throws InterruptedException {
+    String path = "/temp2";
     String loc = null;
     try {
       loc = hhc.createEphemeralNode(path);
+      Thread.sleep(10000);
     } catch (HungryHippoException e) {
       assertTrue(false);// exception should not occur;
     }

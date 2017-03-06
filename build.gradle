@@ -6,8 +6,7 @@ allprojects {
 	apply plugin: 'java'
 	group = 'com.talentica.hungry-hippos'
 	version = '0.7.0'
-
-
+	
 	repositories {
 		mavenCentral()
 		jcenter()

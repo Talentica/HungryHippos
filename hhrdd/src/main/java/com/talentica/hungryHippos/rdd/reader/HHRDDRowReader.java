@@ -3,8 +3,8 @@ package com.talentica.hungryHippos.rdd.reader;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
-import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
@@ -17,7 +17,7 @@ public class HHRDDRowReader implements Serializable {
 
   private static final long serialVersionUID = -5800537222182360030L;
 
-  private FieldTypeArrayDataDescription dataDescription;
+  private DataDescription dataDescription;
 
   private ByteBuffer source = null;
 
@@ -34,11 +34,11 @@ public class HHRDDRowReader implements Serializable {
    * 
    * @param dataDescription
    */
-  public HHRDDRowReader(FieldTypeArrayDataDescription dataDescription) {
+  public HHRDDRowReader(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
 
-  public FieldTypeArrayDataDescription getFieldDataDescription() {
+  public DataDescription getFieldDataDescription() {
     return this.dataDescription;
   }
 

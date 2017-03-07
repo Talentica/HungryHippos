@@ -6,7 +6,7 @@ repositories {
 }
 
 dependencies {
- 	compile project (':hhrdd-client')
+ 	compile project (':hhrdd')
 // 	compile fileTree(dir: '../client-api/build/libs', include: '*.jar')
  //	compile fileTree(dir: '../hhrdd/build/libs', include: '*.jar')
     compile project(":hhrdd")

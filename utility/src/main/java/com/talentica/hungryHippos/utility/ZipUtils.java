@@ -140,12 +140,16 @@ public class ZipUtils {
    */
   private static void generateFileList(File dir, List<File> fileList) {
     File[] files = dir.listFiles();
-    for (File file : files) {
-      fileList.add(file);
-      if (file.isDirectory()) {
-        generateFileList(file, fileList);
-      }
+    if(files!=null) {
+      for (File file : files) {
+        fileList.add(file);
+        if (file.isDirectory()) {
+          generateFileList(file, fileList);
+        }
 
+      }
+    }else{
+      throw new RuntimeException(dir.getAbsolutePath()+" not a valid path");
     }
   }
 

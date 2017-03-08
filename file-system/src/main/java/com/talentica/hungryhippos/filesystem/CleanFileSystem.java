@@ -38,7 +38,7 @@ public class CleanFileSystem {
    * @throws JAXBException
    * @throws FileNotFoundException
    */
-  public void DeleteFilesWhichAreNotPartOFZK(String path)
+  public void deleteFilesWhichAreNotPartOFZK(String path)
       throws FileNotFoundException, JAXBException {
     HungryHipposFileSystem hhfs = HungryHipposFileSystem.getInstance();
     List<String> filesLoc = getAllFilesInaFolder(path);

@@ -23,22 +23,19 @@ public class FileDataStore implements DataStore {
     private Map<String, OutputStream> fileNameToOutputStreamMap;
     private OutputStream[] outputStreams;
     private String hungryHippoFilePath;
-    private int nodeId;
     private String dataFilePrefix;
 
     public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
-                         String hungryHippoFilePath, String nodeId,
-                         String fileName) throws IOException, InterruptedException, ClassNotFoundException,
+                         String hungryHippoFilePath,                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
-        this(fileNames, maxBucketSize, numDimensions,  hungryHippoFilePath, nodeId, false,  fileName);
+        this(fileNames, maxBucketSize, numDimensions, hungryHippoFilePath, false, fileName);
     }
 
     public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
-                         String hungryHippoFilePath, String nodeId, boolean readOnly,
-                          String fileName) throws IOException {
+                         String hungryHippoFilePath, boolean readOnly,
+                         String fileName) throws IOException {
 
         fileNameToOutputStreamMap = new HashMap<>();
-        this.nodeId = Integer.parseInt(nodeId);
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
@@ -56,7 +53,7 @@ public class FileDataStore implements DataStore {
                 }
             }
             dataFilePrefix = dataFilePrefix + "/";
-            allocateResources(fileNames,this.outputStreams,this.dataFilePrefix,this.fileNameToOutputStreamMap);
+            allocateResources(fileNames, this.outputStreams, this.dataFilePrefix, this.fileNameToOutputStreamMap);
 
         }
     }
@@ -100,29 +97,19 @@ public class FileDataStore implements DataStore {
     @Override
     public void sync() {
 
-        long totalSizeOnNode = 0L;
-        try {
-            for (String name : fileNameToOutputStreamMap.keySet()) {
+        for (Map.Entry<String, OutputStream> nameStreamEntry : fileNameToOutputStreamMap.entrySet()) {
+            try {
+                nameStreamEntry.getValue().flush();
+            } catch (IOException e) {
+                logger.error("Error occurred while flushing " + nameStreamEntry.getKey() + " output stream. {}", e);
+            } finally {
                 try {
-                    fileNameToOutputStreamMap.get(name).flush();
-                    String filePath = new String(dataFilePrefix + name);
-                    File file = new File(filePath);
-                    totalSizeOnNode += file.length();
+                    if (nameStreamEntry.getValue() != null)
+                        nameStreamEntry.getValue().close();
                 } catch (IOException e) {
-                    logger.error("Error occurred while flushing " + name + " outputstream.", e);
-                } finally {
-                    try {
-                        if (fileNameToOutputStreamMap.get(name) != null)
-                            fileNameToOutputStreamMap.get(name).close();
-
-                    } catch (IOException e) {
-                        logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
-                    }
+                    logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
                 }
             }
-            HungryHipposFileSystem.getInstance().updateFSBlockMetaData(hungryHippoFilePath, nodeId, totalSizeOnNode);
-        } catch (Exception e) {
-            logger.error(e.toString());
         }
     }
 

@@ -17,9 +17,8 @@ import java.util.*;
  * @author pooshans
  *
  */
-public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializable {
+public class HHRDDIterator extends AbstractIterator<byte[]> {
 
-  private static final long serialVersionUID = 6639856882717975103L;
   private static Logger logger = LoggerFactory.getLogger(HHRDDIterator.class);
   // private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
@@ -79,7 +78,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> implements Serializa
     Socket socket = null;
     try {
       File file = new File(filePath);
-      int port = 8789;
+      int port = 2324;
       int bufferSIze = 2048;
       socket = new Socket(ip, port);
       DataInputStream dis = new DataInputStream(socket.getInputStream());

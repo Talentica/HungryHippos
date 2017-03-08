@@ -43,16 +43,20 @@ class HHRDDHelper {
     public static Map<String,Long> readMetaData(String metadataLocation){
         Map<String,Long> fileNameToSizeWholeMap = new HashMap<>();
         File metadataFolder = new File(metadataLocation);
-        for(File file:metadataFolder.listFiles()){
-            try {
-                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
-                Map<String,Long> fileNametoSizeMap = (Map<String, Long>) objectInputStream.readObject();
-                fileNameToSizeWholeMap.putAll(fileNametoSizeMap);
-                objectInputStream.close();
+        if(metadataFolder.listFiles()!=null) {
+            for (File file : metadataFolder.listFiles()) {
+                try {
+                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
+                    Map<String, Long> fileNametoSizeMap = (Map<String, Long>) objectInputStream.readObject();
+                    fileNameToSizeWholeMap.putAll(fileNametoSizeMap);
+                    objectInputStream.close();
 
-            } catch (IOException |ClassNotFoundException e) {
-                e.printStackTrace();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
+        }else{
+            throw new RuntimeException(metadataLocation+" not a valid path");
         }
         System.out.println("No of Files : "+fileNameToSizeWholeMap.size());
         return fileNameToSizeWholeMap;

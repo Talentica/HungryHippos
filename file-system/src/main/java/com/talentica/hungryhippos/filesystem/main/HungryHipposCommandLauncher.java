@@ -31,7 +31,7 @@ import com.talentica.hungryhippos.filesystem.command.GetCommand;
 import com.talentica.hungryhippos.filesystem.command.HeadCommand;
 import com.talentica.hungryhippos.filesystem.command.LSCommand;
 import com.talentica.hungryhippos.filesystem.command.RMCommand;
-import com.talentica.hungryhippos.filesystem.helper.SignalHandler;
+import com.talentica.hungryhippos.filesystem.helper.SignalHandlerImpl;
 
 /**
  * {@code HungryHipposCommandLauncher } creates the hhfs console and also calls other classes to
@@ -190,7 +190,7 @@ public class HungryHipposCommandLauncher implements Observer {
   }
 
   private void handleSignal() {
-    final SignalHandler sh = new SignalHandler();
+    final SignalHandlerImpl sh = new SignalHandlerImpl();
     sh.addObserver(this);
     sh.handleSignal("TERM", Thread.currentThread());
     sh.handleSignal("INT", Thread.currentThread());

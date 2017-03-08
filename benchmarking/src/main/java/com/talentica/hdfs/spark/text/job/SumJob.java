@@ -72,14 +72,13 @@ public class SumJob {
       @Override
       public Tuple2<String, Double> call(String t) throws Exception {
         String[] line = t.split(",");
-        String key = "";
+        StringBuilder key = new StringBuilder();
         for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-          key =
-              key + line[broadcastJob.value().getDimensions()[index]];          
+          key.append(line[broadcastJob.value().getDimensions()[index]]);
         }
-        key = key + "|id=" +  broadcastJob.value().getJobId();
+        key.append("|id=").append(broadcastJob.value().getJobId());
         Double value = new Double(line[broadcastJob.value().getCalculationIndex()]);
-        return new Tuple2<String, Double>(key,value);
+        return new Tuple2<String, Double>(key.toString(),value);
       }}).combineByKey(createCombiner, mergeValue, mergeCombiners).reduceByKey(new Function2<Double, Double, Double>() { 
         private static final long serialVersionUID = 1684560043956707683L;
         @Override

@@ -44,58 +44,60 @@ public class DataAppenderService implements Runnable {
         String hhFilePath = null;
         try {
             hhFilePath = dataInputStream.readUTF();
-            srcFolderPath = FileSystemContext.getRootDirectory()+hhFilePath+File.separator+ UUID.randomUUID().toString();
+            srcFolderPath = FileSystemContext.getRootDirectory() + hhFilePath + File.separator + UUID.randomUUID().toString();
             srcFolder = new File(srcFolderPath);
             srcFolder.mkdirs();
             String srcTarFileName = dataInputStream.readUTF();
-            String srcTarFilePath = srcFolderPath+File.separator+srcTarFileName;
+            String srcTarFilePath = srcFolderPath + File.separator + srcTarFileName;
             File srcTarFile = new File(srcTarFilePath);
             srcTarFile.deleteOnExit();
             String destFolderPath = dataInputStream.readUTF();
             long fileSize = dataInputStream.readLong();
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcTarFile),10*bufferSize);
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcTarFile), 10 * bufferSize);
             int len;
-            while(fileSize>0){
-                len=dataInputStream.read(buffer);
-                bos.write(buffer,0,len);
-                fileSize = fileSize-len;
+            while (fileSize > 0) {
+                len = dataInputStream.read(buffer);
+                bos.write(buffer, 0, len);
+                fileSize = fileSize - len;
             }
             bos.flush();
             bos.close();
             int noOfRemainingAttempts = 25;
-            while(noOfRemainingAttempts > 0){
-              try{
-                TarAndUntar.untar(srcTarFilePath, srcFolderPath);
-                break;
-              }catch(IOException e){
-                File[] files = srcFolder.listFiles(new FileFilter() {
-                  @Override
-                  public boolean accept(File pathname) {
-                      if(pathname.getAbsolutePath().contains(srcTarFileName)){
-                          return false;
-                      }
-                      return true;
-                  }
-                });
-                for (int i = 0; i < files.length; i++) {
-                    files[i].delete();
+            while (noOfRemainingAttempts > 0) {
+                try {
+                    TarAndUntar.untar(srcTarFilePath, srcFolderPath);
+                    break;
+                } catch (IOException e) {
+                    File[] files = srcFolder.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File pathname) {
+                            if (pathname.getAbsolutePath().contains(srcTarFileName)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    });
+                    if (files != null) {
+                        for (int i = 0; i < files.length; i++) {
+                            files[i].delete();
+                        }
+                    }
+                    noOfRemainingAttempts--;
+                    logger.error("[{}] Retrying File untar for {}", Thread.currentThread().getName(), srcFolderPath);
                 }
-                noOfRemainingAttempts--;
-                logger.error("[{}] Retrying File untar for {}", Thread.currentThread().getName(), srcFolderPath);
-              }
             }
             srcTarFile.delete();
-            if(noOfRemainingAttempts == 0){
-              dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
-              logger.info("[{}] unable to untar {} , File exists status {}",Thread.currentThread().getName(),srcTarFilePath);
-            }else{
-              logger.info("[{}] joining {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
-              String lockString = destFolderPath;
-              FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, lockString);
-              dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
-              logger.info("[{}] Successfully joined {} into {}",Thread.currentThread().getName(),srcFolderPath,destFolderPath);
+            if (noOfRemainingAttempts == 0) {
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
+                logger.info("[{}] unable to untar {} , File exists status {}", Thread.currentThread().getName(), srcTarFilePath);
+            } else {
+                logger.info("[{}] joining {} into {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
+                String lockString = destFolderPath;
+                FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, lockString);
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+                logger.info("[{}] Successfully joined {} into {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
             }
             dataOutputStream.flush();
 
@@ -103,7 +105,7 @@ public class DataAppenderService implements Runnable {
             try {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
-                if(hhFilePath!=null){
+                if (hhFilePath != null) {
                     HHFileStatusCoordinator.updateFailure(hhFilePath, e.getMessage());
                 }
             } catch (IOException e1) {
@@ -114,7 +116,7 @@ public class DataAppenderService implements Runnable {
             try {
                 if (srcFolder != null) {
                     if (srcFolder.exists()) {
-                        logger.info("[{}] Deleting {} ",Thread.currentThread().getName(),srcFolderPath);
+                        logger.info("[{}] Deleting {} ", Thread.currentThread().getName(), srcFolderPath);
                         FileUtils.deleteDirectory(srcFolder);
                     }
                 }

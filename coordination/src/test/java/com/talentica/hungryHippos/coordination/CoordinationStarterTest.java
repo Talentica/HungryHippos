@@ -217,7 +217,7 @@ public class CoordinationStarterTest {
         }
 
       }
-
+      br.close();
       if (processStatus != 0) {
         throw new RuntimeException("Operation " + builder.command() + " failed");
       }

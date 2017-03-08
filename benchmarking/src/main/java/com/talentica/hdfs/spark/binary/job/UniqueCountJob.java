@@ -70,14 +70,14 @@ public class UniqueCountJob {
         HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
         readerVar.setByteBuffer(byteBuffer);
-        String key = "";
+        StringBuilder key = new StringBuilder();
         for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-          key = key + ((MutableCharArrayString) readerVar
-              .readAtColumn(broadcastJob.value().getDimensions()[index])).toString();
+          key.append(( readerVar
+                  .readAtColumn(broadcastJob.value().getDimensions()[index])).toString());
         }
-        key = key + "|id=" + broadcastJob.value().getJobId();
+        key.append("|id=").append(broadcastJob.value().getJobId());
         Integer value = (Integer) readerVar.readAtColumn(broadcastJob.value().getCalculationIndex());
-        return new Tuple2<>(key, value);
+        return new Tuple2<>(key.toString(), value);
       }
     });
     JavaPairRDD<String, Iterable<Integer>> pairRDDGroupedByKey = pairRDD.groupByKey();

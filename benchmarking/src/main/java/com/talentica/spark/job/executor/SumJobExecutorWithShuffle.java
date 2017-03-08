@@ -49,24 +49,22 @@ public class SumJobExecutorWithShuffle {
         javaRDD.mapToPair(new PairFunction<byte[], String, Integer>() {
           private static final long serialVersionUID = -4057434571069903937L;
 
-          @Override
-          public Tuple2<String, Integer> call(byte[] buf) throws Exception {
-            HHRDDRowReader readerVar = new HHRDDRowReader(descriptionBroadcast.getValue());
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-            readerVar.setByteBuffer(byteBuffer);
-            String key = "";
-            for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-              key = key + (readerVar.readAtColumn(jobBroadcast.value().getDimensions()[index]))
-                  .toString();
-            }
-            key = key + "|id=" + jobBroadcast.value().getJobId();
-            Integer value =
-                (Integer) readerVar.readAtColumn(jobBroadcast.value().getCalculationIndex());
-            return new Tuple2<>(key, value);
-          }
-        }).combineByKey(createCombiner, mergeValue, mergeCombiners)
-            .reduceByKey(new Function2<Long, Long, Long>() {
-              private static final long serialVersionUID = 5677451009262753978L;
+                @Override
+                public Tuple2<String, Integer> call(byte[] buf) throws Exception {
+                    HHRDDRowReader readerVar = new HHRDDRowReader(descriptionBroadcast.getValue());
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+                    readerVar.setByteBuffer(byteBuffer);
+                    StringBuilder key = new StringBuilder();
+                    for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+                        key.append(( readerVar
+                                .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString());
+                    }
+                    key.append("|id=").append(jobBroadcast.value().getJobId());
+                    Integer value = (Integer) readerVar.readAtColumn(jobBroadcast.value().getCalculationIndex());
+                    return new Tuple2<String, Integer>(key.toString(), value);
+                }
+            }).combineByKey(createCombiner, mergeValue, mergeCombiners).reduceByKey(new Function2<Long, Long, Long>() {
+                private static final long serialVersionUID = 5677451009262753978L;
 
               @Override
               public Long call(Long v1, Long v2) throws Exception {

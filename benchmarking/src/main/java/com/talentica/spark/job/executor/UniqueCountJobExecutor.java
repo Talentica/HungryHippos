@@ -35,24 +35,22 @@ public class UniqueCountJobExecutor {
         hipposRDD.mapToPair(new PairFunction<byte[], String, Integer>() {
           private static final long serialVersionUID = -1533590342050196085L;
 
-          @Override
-          public Tuple2<String, Integer> call(byte[] buf) throws Exception {
-            HHRDDRowReader readerVar = new HHRDDRowReader(descriptionBroadcast.getValue());
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-            readerVar.setByteBuffer(byteBuffer);
-            String key = "";
-            for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-              key = key + ((MutableCharArrayString) readerVar
-                  .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
-            }
-            key = key + "|id=" + jobBroadcast.value().getJobId();
-            Integer value = Integer.valueOf(
-                readerVar.readAtColumn(jobBroadcast.value().getCalculationIndex()).toString());
-            return new Tuple2<>(key, value);
-          }
-        });
-    JavaRDD<Tuple2<String, Long>> resultRDD = javaRDD.mapPartitions(
-        new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Long>>() {
+                    @Override
+                    public Tuple2<String, Integer> call(byte[] buf) throws Exception {
+                        HHRDDRowReader readerVar = new HHRDDRowReader(descriptionBroadcast.getValue());
+                        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+                        readerVar.setByteBuffer(byteBuffer);
+                        StringBuilder key = new StringBuilder();
+                        for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+                            key.append(( readerVar
+                                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString());
+                        }
+                        key.append("|id=").append(jobBroadcast.value().getJobId());
+                        Integer value = Integer.valueOf(readerVar.readAtColumn(jobBroadcast.value().getCalculationIndex()).toString());
+                        return new Tuple2<String, Integer>(key.toString(), value);
+                    }
+                });
+        JavaRDD<Tuple2<String, Long>> resultRDD = javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Long>>() {
 
           @Override
           public Iterator<Tuple2<String, Long>> call(Iterator<Tuple2<String, Integer>> t)

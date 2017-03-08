@@ -74,6 +74,7 @@ public class DataDistributorService implements Runnable {
       bos.close();
       buffer = null;
       bos = null;
+      System.gc();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
       if (!HHFileStatusCoordinator.checkIfFailed(hhFilePath)) {

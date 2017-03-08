@@ -41,8 +41,12 @@ public class ClassLoaderUtil {
     private static URL[] getChildFileURLs(File jobLibrary) throws MalformedURLException {
         File[] jarFiles = jobLibrary.listFiles();
         URL[] jarURLs = new URL[jarFiles.length];
-        for (int i = 0; i < jarFiles.length; i++) {
-            jarURLs[i] = new URL("jar:file://" + jarFiles[i].getPath()+"!/");
+        if(jarFiles!=null) {
+            for (int i = 0; i < jarFiles.length; i++) {
+                jarURLs[i] = new URL("jar:file://" + jarFiles[i].getPath() + "!/");
+            }
+        }else{
+            throw new RuntimeException(jobLibrary.getAbsolutePath()+" not a valid path");
         }
         return jarURLs;
     }

@@ -46,7 +46,7 @@ public class JavaProcessBuilder {
         sb.append(line).append("\n");
       }
       System.out.println(sb.toString());
-
+      br.close();
     } catch (IOException | InterruptedException e1) {
       e1.printStackTrace();
       throw new RuntimeException(e1);

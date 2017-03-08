@@ -145,7 +145,7 @@ public class DataDistributor {
       hhFileMapper.sync();
       fileWriter.close();
     }
-
+    System.gc();
   }
 
   /**

@@ -48,13 +48,10 @@ public final class BucketsCalculator {
     this(context);
     this.keyToValueToBucketMap = keyToValueToBucketMap;
     if (keyToValueToBucketMap != null) {
-      for (String key : keyToValueToBucketMap.keySet()) {
+      for (Map.Entry<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyValueEntry : keyToValueToBucketMap.entrySet()) {
         List<Bucket<KeyValueFrequency>> totalBuckets = new ArrayList<>();
-        Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(key);
-        for (Object keyValue : valueToBucketMap.keySet()) {
-          totalBuckets.add(valueToBucketMap.get(keyValue));
-        }
-        keyToBucketNumbersCollectionMap.put(key, new ArrayList<>(new HashSet<>(totalBuckets)));
+          totalBuckets.addAll(keyValueEntry.getValue().values());
+        keyToBucketNumbersCollectionMap.put(keyValueEntry.getKey(), new ArrayList<>(new HashSet<>(totalBuckets)));
       }
     }
   }

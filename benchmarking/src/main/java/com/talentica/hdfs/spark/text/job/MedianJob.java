@@ -51,14 +51,13 @@ public class MedianJob {
 			@Override
 			public Tuple2<String, Double> call(String t) throws Exception {
 				String[] line = t.split(",");
-				String key = "";
+				StringBuilder key = new StringBuilder();
 				for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {
-					key =
-							key + line[broadcastJob.value().getDimensions()[index]];
+					key.append(line[broadcastJob.value().getDimensions()[index]]);
 				}
-				key = key + "|id=" +  broadcastJob.value().getJobId();
+				key.append("|id=").append(broadcastJob.value().getJobId());
 				Double value = new Double(line[broadcastJob.value().getCalculationIndex()]);
-				return new Tuple2<String, Double>(key,value);
+				return new Tuple2<String, Double>(key.toString(),value);
 			}});
 		JavaPairRDD<String, Iterable<Double>> pairRDDGroupedByKey = pairRDD.groupByKey();
 		JavaPairRDD<String, Double> result = pairRDDGroupedByKey
@@ -70,7 +69,7 @@ public class MedianJob {
 					  DescriptiveStatisticsNumber<Double> medianCalculator = new DescriptiveStatisticsNumber<Double>();
 						Iterator<Double> itr = t._2.iterator();
 						while (itr.hasNext()) {
-							medianCalculator.add(itr.next().doubleValue());
+							medianCalculator.add(itr.next());
 						}
 						Double median = (double)medianCalculator.percentile(50);
 						return new Tuple2<String, Double>(t._1, median);

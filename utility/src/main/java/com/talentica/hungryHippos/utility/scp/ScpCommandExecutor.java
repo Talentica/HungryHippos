@@ -54,14 +54,14 @@ public class ScpCommandExecutor {
         sb.append(line).append("\n");
       }
       System.out.println(sb.toString());
-
+      br.close();
       br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       sb = new StringBuilder();
       while ((line = br.readLine()) != null) {
         sb.append(line).append("\n");
         System.out.println(line);
       }
-
+      br.close();
       if (processStatus != 0) {
         throw new RuntimeException("Operation " + builder.command() + " failed");
       }

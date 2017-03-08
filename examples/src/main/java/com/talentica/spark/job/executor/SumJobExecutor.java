@@ -39,14 +39,14 @@ public class SumJobExecutor {
                         HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
                         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
                         reader.setByteBuffer(byteBuffer);
-                        String key = "";
+                        StringBuilder key = new StringBuilder();
                         for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-                            key = key + ((MutableCharArrayString) reader
-                                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
+                            key.append(( reader
+                                    .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString());
                         }
-                        key = key + "|id=" + jobBroadcast.value().getJobId();
+                        key.append("|id=").append(jobBroadcast.value().getJobId());
                         Integer value = (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-                        return new Tuple2<>(key, value);
+                        return new Tuple2<>(key.toString(), value);
                     }
                 });
         JavaRDD<Tuple2<String, Long>> resultRDD = javaRDD.mapPartitions(new FlatMapFunction<Iterator<Tuple2<String, Integer>>, Tuple2<String, Long>>() {

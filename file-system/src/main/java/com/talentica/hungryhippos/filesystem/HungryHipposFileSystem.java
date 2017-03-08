@@ -353,9 +353,6 @@ public class HungryHipposFileSystem {
     while (!isDataReady) {
       isDataReady = curator.checkExists(dataReadyNode);
     }
-    if (!isDataReady) {
-      throw new RuntimeException(hungryHippoFilePath + " file is not ready");
-    }
   }
 
   public long size(String path) {

@@ -14,11 +14,9 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
  * @author debasishc
  * @since 1/9/15.
  */
-public class DynamicMarshal implements Serializable {
+public class DynamicMarshal {
 
-  private static final long serialVersionUID = -5800537222182360030L;
-
-  private transient final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
+  private final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;

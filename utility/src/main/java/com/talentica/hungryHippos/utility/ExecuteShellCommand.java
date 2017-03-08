@@ -55,7 +55,7 @@ public class ExecuteShellCommand {
           System.out.println(line);
         }
       }
-
+      input.close();
       BufferedReader errorStream = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
       line = "";
 
@@ -66,7 +66,7 @@ public class ExecuteShellCommand {
           System.out.println(line);
         }
       }
-
+      errorStream.close();
     } catch (Exception e) {
       LOGGER.info("Execption {}", e);
     }

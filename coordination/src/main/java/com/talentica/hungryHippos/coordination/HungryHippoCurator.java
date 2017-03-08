@@ -71,11 +71,11 @@ public class HungryHippoCurator {
 
 
   private static String NODE_NAME_PRIFIX = "_node";
-  public static String ZK_PATH_SEPERATOR = "/";
+  public static final String ZK_PATH_SEPERATOR = "/";
 
 
-  private HungryHippoCurator() {
-
+  private HungryHippoCurator(String connectString) {
+    connectToZookeeper(connectString);
   }
 
   /**
@@ -88,8 +88,7 @@ public class HungryHippoCurator {
     if (hungryHippoCurator == null) {
       synchronized (HungryHippoCurator.class) {
         if (hungryHippoCurator == null) {
-          hungryHippoCurator = new HungryHippoCurator();
-          hungryHippoCurator.connectToZookeeper(connectString);
+          hungryHippoCurator = new HungryHippoCurator(connectString);
         }
       }
 
@@ -108,8 +107,7 @@ public class HungryHippoCurator {
     if (hungryHippoCurator == null) {
       synchronized (HungryHippoCurator.class) {
         if (hungryHippoCurator == null) {
-          hungryHippoCurator = new HungryHippoCurator();
-          hungryHippoCurator.connectToZookeeper(connectString);
+          hungryHippoCurator = new HungryHippoCurator(connectString);
         }
       }
 
@@ -180,7 +178,7 @@ public class HungryHippoCurator {
 
       if (data == null) {
         location = createPersistentNode(path);
-      } else if (data != null && data instanceof String) {
+      } else if (data instanceof String) {
         location =
             curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT)
                 .withACL(Ids.OPEN_ACL_UNSAFE).forPath(path, ((String) data).getBytes());
@@ -286,7 +284,7 @@ public class HungryHippoCurator {
     try {
       if (data == null) {
         location = createEphemeralNode(path);
-      } else if (data != null && data instanceof String) {
+      } else if (data instanceof String) {
         location =
             curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
                 .withACL(Ids.OPEN_ACL_UNSAFE).forPath(path, ((String) data).getBytes());
@@ -340,7 +338,7 @@ public class HungryHippoCurator {
     try {
       if (data == null) {
         location = createEphemeralNodeSeq(path);
-      } else if (data != null && data instanceof String) {
+      } else if (data instanceof String) {
         location = curatorFramework.create().creatingParentsIfNeeded().withProtection()
             .withMode(CreateMode.EPHEMERAL).withACL(Ids.OPEN_ACL_UNSAFE)
             .forPath(path, ((String) data).getBytes());
@@ -391,7 +389,7 @@ public class HungryHippoCurator {
     try {
       if (data == null) {
         location = createEphemeralNodeSeq(path);
-      } else if (data != null && data instanceof String) {
+      } else if (data instanceof String) {
         location = curatorFramework.create().creatingParentsIfNeeded().withProtection()
             .withMode(CreateMode.PERSISTENT_SEQUENTIAL).withACL(Ids.OPEN_ACL_UNSAFE)
             .forPath(path, ((String) data).getBytes());

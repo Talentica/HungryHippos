@@ -357,8 +357,8 @@ public class Sharding {
     for (String key : keys) {
       List<KeyValueFrequency> frequencies = new ArrayList<>();
       HashMap<DataTypes, Long> keyValueToFrequencyMap = keyValueFrequencyMap.get(key);
-      for (DataTypes keyValue : keyValueToFrequencyMap.keySet()) {
-        frequencies.add(new KeyValueFrequency(keyValue, keyValueToFrequencyMap.get(keyValue)));
+      for (Map.Entry<DataTypes, Long> keyValueEntry : keyValueToFrequencyMap.entrySet()) {
+        frequencies.add(new KeyValueFrequency(keyValueEntry.getKey(), keyValueEntry.getValue()));
       }
       Collections.sort(frequencies);
       keyToListOfKeyValueFrequency.put(key, frequencies);
@@ -369,9 +369,9 @@ public class Sharding {
   private long getSizeOfOneBucket(HashMap<DataTypes, Long> frequencyPerValue, int noOfBuckets) {
     long sizeOfOneBucket = 0;
     long totalofAllKeyValueFrequencies = 0;
-    for (DataTypes mutableCharArrayString : frequencyPerValue.keySet()) {
+    for (Map.Entry<DataTypes, Long>  mutableCharArrayStringEntry : frequencyPerValue.entrySet()) {
       totalofAllKeyValueFrequencies =
-          totalofAllKeyValueFrequencies + frequencyPerValue.get(mutableCharArrayString);
+          totalofAllKeyValueFrequencies + mutableCharArrayStringEntry.getValue();
       sizeOfOneBucket = totalofAllKeyValueFrequencies / (noOfBuckets);
     }
     return sizeOfOneBucket;

@@ -66,7 +66,6 @@ public class DataPublisherStarter {
       int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
       curator = HungryHippoCurator.getInstance(connectString, sessionTimeOut);
       FileSystemUtils.validatePath(destinationPath, true);
-      String shardingZipRemotePath = getShardingZipRemotePath(destinationPath);
       List<Node> nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
       File srcFile = new File(sourcePath);
       updateZookeeperNodes(destinationPath);
@@ -199,11 +198,7 @@ public class DataPublisherStarter {
         curator.createPersistentNode(path + i);
         return i;
       } catch (HungryHippoException e) {
-        if (e instanceof HungryHippoException) {
           i++;
-        } else {
-          throw new RuntimeException(e);
-        }
       }
     }
   }

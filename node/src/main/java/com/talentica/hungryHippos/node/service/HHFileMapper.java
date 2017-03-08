@@ -47,7 +47,7 @@ public class HHFileMapper {
         addFileNameToList(fileNames, 0, "", 0, null);
         this.uniqueFolderName = UUID.randomUUID().toString();
         dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
-                 hhFilePath, NodeInfo.INSTANCE.getId(),  uniqueFolderName);
+                 hhFilePath, uniqueFolderName);
     }
 
     private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
@@ -63,13 +63,13 @@ public class HHFileMapper {
                 keyBucket.put(key, bucketNodeEntry.getKey());
                 int bucketId = bucketNodeEntry.getKey().getId();
                 int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, new String(fileName + "_" + bucketId), dimension + 1, keyBucket);
+                addFileNameToList(fileNames, newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
             } else {
                 keyBucket = new HashMap<>();
                 keyBucket.put(key, bucketNodeEntry.getKey());
                 int bucketId = bucketNodeEntry.getKey().getId();
                 int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, new String(bucketId + fileName), dimension + 1, keyBucket);
+                addFileNameToList(fileNames, newIndex, bucketId + fileName, dimension + 1, keyBucket);
             }
 
         }

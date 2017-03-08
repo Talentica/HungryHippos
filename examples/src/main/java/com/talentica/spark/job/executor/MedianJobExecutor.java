@@ -36,15 +36,15 @@ public class MedianJobExecutor {
             HHRDDRowReader reader = new HHRDDRowReader(descriptionBroadcast.getValue());
             ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
             reader.setByteBuffer(byteBuffer);
-            String key = "";
-            for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
-              key = key + ((MutableCharArrayString) reader
-                  .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString();
-            }
-            key = key + "|id=" + jobBroadcast.value().getJobId();
+              StringBuilder key = new StringBuilder();
+              for (int index = 0; index < jobBroadcast.value().getDimensions().length; index++) {
+                  key.append(( reader
+                          .readAtColumn(jobBroadcast.value().getDimensions()[index])).toString());
+              }
+              key.append("|id=").append(jobBroadcast.value().getJobId());
             Integer value =
                 (Integer) reader.readAtColumn(jobBroadcast.value().getCalculationIndex());
-            return new Tuple2<>(key, value);
+            return new Tuple2<String, Integer>(key.toString(), value);
           }
         });
 
@@ -60,7 +60,7 @@ public class MedianJobExecutor {
               Tuple2<String, Integer> tuple2 = t.next();
               DescriptiveStatisticsNumber<Integer> medianCalculator = map.get(tuple2._1);
               if (medianCalculator == null) {
-                medianCalculator = new DescriptiveStatisticsNumber<>();
+                medianCalculator = new DescriptiveStatisticsNumber<Integer>();
                 map.put(tuple2._1, medianCalculator);
               }
               medianCalculator.add(tuple2._2);
@@ -68,7 +68,7 @@ public class MedianJobExecutor {
 
             for (Entry<String, DescriptiveStatisticsNumber<Integer>> entry : map.entrySet()) {
               Double median = (double) entry.getValue().percentile(50);
-              medianList.add(new Tuple2<>(entry.getKey(), median));
+              medianList.add(new Tuple2<String, Double>(entry.getKey(), median));
             }
             return medianList.iterator();
           }

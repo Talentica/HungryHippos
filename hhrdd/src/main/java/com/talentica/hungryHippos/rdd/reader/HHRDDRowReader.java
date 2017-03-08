@@ -13,9 +13,7 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  * @author debasishc
  * @since 1/9/15.
  */
-public class HHRDDRowReader implements Serializable {
-
-  private static final long serialVersionUID = -5800537222182360030L;
+public class HHRDDRowReader {
 
   private DataDescription dataDescription;
 

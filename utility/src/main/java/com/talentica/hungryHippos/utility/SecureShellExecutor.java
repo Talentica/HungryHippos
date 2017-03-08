@@ -94,6 +94,7 @@ public final class SecureShellExecutor {
 		while ((line = reader.readLine()) != null) {
 			output.add(line);
 		}
+		reader.close();
 		int exitStatus = channelExec.getExitStatus();
 		if (exitStatus != 0) {
 			LOGGER.warn("Command:{} executed but with exist status of {}", new Object[] { command, exitStatus });

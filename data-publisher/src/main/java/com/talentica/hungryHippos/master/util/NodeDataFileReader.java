@@ -54,32 +54,36 @@ public class NodeDataFileReader {
       String dataFilesFolder =
           args[0] + File.separatorChar + FileSystemContext.getDataFilePrefix() + i;
       File[] files = new File(dataFilesFolder).listFiles();
-      for (File encodedFile : files) {
-        FileInputStream fileInputStream = new FileInputStream(encodedFile);
-        DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-        File readableDataFile = new File(encodedFile.getAbsolutePath() + "_read");
-        FileWriter fileWriter = new FileWriter(readableDataFile);
-        try {
-          DynamicMarshal dynamicMarshal = getDynamicMarshal();
-          int noOfBytesInOneDataSet = dataDescription.getSize();
-          while (dataInputStream.available() > 0) {
-            byte[] bytes = new byte[noOfBytesInOneDataSet];
-            dataInputStream.readFully(bytes);
-            ByteBuffer buffer = ByteBuffer.wrap(bytes);
-            for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
-              Object readableData = dynamicMarshal.readValue(index, buffer);
-              if (index != 0) {
-                fileWriter.write(",");
+      if(files!=null) {
+        for (File encodedFile : files) {
+          FileInputStream fileInputStream = new FileInputStream(encodedFile);
+          DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+          File readableDataFile = new File(encodedFile.getAbsolutePath() + "_read");
+          FileWriter fileWriter = new FileWriter(readableDataFile);
+          try {
+            DynamicMarshal dynamicMarshal = getDynamicMarshal();
+            int noOfBytesInOneDataSet = dataDescription.getSize();
+            while (dataInputStream.available() > 0) {
+              byte[] bytes = new byte[noOfBytesInOneDataSet];
+              dataInputStream.readFully(bytes);
+              ByteBuffer buffer = ByteBuffer.wrap(bytes);
+              for (int index = 0; index < dataDescription.getNumberOfDataFields(); index++) {
+                Object readableData = dynamicMarshal.readValue(index, buffer);
+                if (index != 0) {
+                  fileWriter.write(",");
+                }
+                fileWriter.write(readableData.toString());
               }
-              fileWriter.write(readableData.toString());
+              fileWriter.write("\n");
             }
-            fileWriter.write("\n");
+          } finally {
+            fileWriter.flush();
+            fileWriter.close();
+            fileInputStream.close();
           }
-        } finally {
-          fileWriter.flush();
-          fileWriter.close();
-          fileInputStream.close();
         }
+      }else{
+        throw new RuntimeException(dataFilesFolder+" not a valid path");
       }
       LOGGER.info("Output readable data file is written in: " + dataFilesFolder);
     }

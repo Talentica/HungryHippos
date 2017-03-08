@@ -11,7 +11,7 @@ repositories {
 jar {
 	archiveName='node-'+version+'.jar'
     from {
-        configurations.runtime.filter( {! (it.name =~ /sharding.*\.jar/ )}).collect {
+        configurations.runtime.collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }

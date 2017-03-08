@@ -54,7 +54,7 @@ public class CleanFileSystemMain {
 
     CleanFileSystem cleanFileSystem = new CleanFileSystem(new NodeFileSystem(rootDir));
 
-    cleanFileSystem.DeleteFilesWhichAreNotPartOFZK(File.separatorChar + ROOT_DIR);
+    cleanFileSystem.deleteFilesWhichAreNotPartOFZK(File.separatorChar + ROOT_DIR);
   }
 
   private static void validateArgs(String[] args) {

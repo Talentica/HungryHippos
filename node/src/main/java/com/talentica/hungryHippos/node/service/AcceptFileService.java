@@ -65,9 +65,13 @@ public class AcceptFileService implements Runnable {
     } catch (IOException e) {
       logger.error(e.getMessage());
       try {
-        FileUtils.deleteDirectory(parentDir.toFile());
-        dos.writeBoolean(false);
-        dos.flush();
+        if(parentDir!=null) {
+          FileUtils.deleteDirectory(parentDir.toFile());
+        }
+        if(dos!=null) {
+          dos.writeBoolean(false);
+          dos.flush();
+        }
 
       } catch (IOException e1) {
         logger.error(e1.getMessage());

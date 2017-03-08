@@ -11,6 +11,6 @@ dependencies {
  //	compile fileTree(dir: '../hhrdd/build/libs', include: '*.jar')
     compile project(":hhrdd")
  	compile('com.clearspring.analytics:stream:2.7.0')
- 	compileOnly 'org.apache.spark:spark-core_2.11:2.0.2'
- 	compileOnly 'org.apache.spark:spark-sql_2.11:2.0.2'
+ 	compile 'org.apache.spark:spark-core_2.11:2.0.2'
+ 	compile 'org.apache.spark:spark-sql_2.11:2.0.2'
 }

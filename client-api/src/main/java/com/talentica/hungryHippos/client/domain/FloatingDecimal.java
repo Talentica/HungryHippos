@@ -8,7 +8,7 @@ import sun.misc.DoubleConsts;
 import sun.misc.FloatConsts;
 import sun.misc.FpUtils;
 
-public class MutableFloatingDecimal {
+public class FloatingDecimal {
   boolean isExceptional;
   boolean isNegative;
   int decExponent;
@@ -20,7 +20,7 @@ public class MutableFloatingDecimal {
   boolean fromHex = false;
   int roundDir = 0;
 
-  private MutableFloatingDecimal(boolean negSign, int decExponent, char[] digits, int n,
+  private FloatingDecimal(boolean negSign, int decExponent, char[] digits, int n,
       boolean e) {
     isNegative = negSign;
     isExceptional = e;
@@ -278,7 +278,7 @@ public class MutableFloatingDecimal {
     digits[i] = (char) (q + 1);
   }
 
-  public MutableFloatingDecimal(double d) {
+  public FloatingDecimal(double d) {
     long dBits = Double.doubleToLongBits(d);
     long fractBits;
     int binExp;
@@ -325,7 +325,7 @@ public class MutableFloatingDecimal {
     dtoa(binExp, fractBits, nSignificantBits);
   }
 
-  public MutableFloatingDecimal(float f) {
+  public FloatingDecimal(float f) {
     int fBits = Float.floatToIntBits(f);
     int fractBits;
     int binExp;
@@ -682,7 +682,7 @@ public class MutableFloatingDecimal {
       assert false;
   }
 
-  public static MutableFloatingDecimal readStringValue(StringBuilder in)
+  public static FloatingDecimal readStringValue(StringBuilder in)
       throws NumberFormatException {
     boolean isNegative = false;
     boolean signSeen = false;
@@ -724,8 +724,8 @@ public class MutableFloatingDecimal {
         }
 
         if ((j == targetChars.length) && (i == l)) {
-          return (potentialNaN ? new MutableFloatingDecimal(Double.NaN)
-              : new MutableFloatingDecimal(
+          return (potentialNaN ? new FloatingDecimal(Double.NaN)
+              : new FloatingDecimal(
                   isNegative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY));
         } else {
           break parseNumber;
@@ -848,7 +848,7 @@ public class MutableFloatingDecimal {
         break parseNumber;
       }
 
-      return new MutableFloatingDecimal(isNegative, decExp, digits, nDigits, false);
+      return new FloatingDecimal(isNegative, decExp, digits, nDigits, false);
     } catch (StringIndexOutOfBoundsException e) {
     }
     throw new NumberFormatException("For input string: \"" + in + "\"");
@@ -1104,7 +1104,7 @@ public class MutableFloatingDecimal {
       // 1 234 56 7 8 9
       "([-+])?0[xX](((\\p{XDigit}+)\\.?)|((\\p{XDigit}*)\\.(\\p{XDigit}+)))[pP]([-+])?(\\p{Digit}+)[fFdD]?");
 
-  static MutableFloatingDecimal parseHexString(StringBuilder s) {
+  static FloatingDecimal parseHexString(StringBuilder s) {
     Matcher m = hexFloatPattern.matcher(s);
     boolean validInput = m.matches();
 
@@ -1144,7 +1144,7 @@ public class MutableFloatingDecimal {
         }
 
         if (signifLength == 0) {
-          return new MutableFloatingDecimal(sign * 0.0);
+          return new FloatingDecimal(sign * 0.0);
         }
       }
 
@@ -1154,7 +1154,7 @@ public class MutableFloatingDecimal {
       try {
         unsignedRawExponent = Integer.parseInt(m.group(9));
       } catch (NumberFormatException e) {
-        return new MutableFloatingDecimal(
+        return new FloatingDecimal(
             sign * (positiveExponent ? Double.POSITIVE_INFINITY : 0.0));
       }
 
@@ -1234,7 +1234,7 @@ public class MutableFloatingDecimal {
       }
 
       if (exponent > DoubleConsts.MAX_EXPONENT) {
-        return new MutableFloatingDecimal(sign * Double.POSITIVE_INFINITY);
+        return new FloatingDecimal(sign * Double.POSITIVE_INFINITY);
       } else {
         if (exponent <= DoubleConsts.MAX_EXPONENT && exponent >= DoubleConsts.MIN_EXPONENT) {
 
@@ -1245,7 +1245,7 @@ public class MutableFloatingDecimal {
         } else {
 
           if (exponent < (DoubleConsts.MIN_SUB_EXPONENT - 1)) {
-            return new MutableFloatingDecimal(sign * 0.0);
+            return new FloatingDecimal(sign * 0.0);
           } else {
             sticky = sticky || round;
             round = false;
@@ -1271,7 +1271,7 @@ public class MutableFloatingDecimal {
           significand++;
         }
 
-        MutableFloatingDecimal fd = new MutableFloatingDecimal(
+        FloatingDecimal fd = new FloatingDecimal(
             FpUtils.rawCopySign(Double.longBitsToDouble(significand), sign));
         if ((exponent >= FloatConsts.MIN_SUB_EXPONENT - 1)
             && (exponent <= FloatConsts.MAX_EXPONENT)) {

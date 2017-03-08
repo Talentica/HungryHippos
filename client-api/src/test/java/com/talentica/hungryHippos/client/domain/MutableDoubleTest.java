@@ -17,9 +17,9 @@ public class MutableDoubleTest {
     assertNotNull(mutableDouble);
     assertEquals(8, mutableDouble.getLength());
     assertEquals(112.34523543435, mutableDouble.toDouble(), DELTA);
-    mutableDouble.addValue(new StringBuilder("11232.3245623543435"));
+    mutableDouble.addValue(new StringBuilder("-11232.3245623543435"));
     assertEquals(8, mutableDouble.getLength());
-    assertEquals(11232.3245623543435, mutableDouble.toDouble(), DELTA);
+    assertEquals(-11232.3245623543435, mutableDouble.toDouble(), DELTA);
     
   }
 }

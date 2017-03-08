@@ -145,7 +145,7 @@ public class MutableDouble implements DataTypes {
   }
   
   public double parseDouble(StringBuilder value){
-    return MutableFloatingDecimal.readStringValue(value).doubleValue();
+    return FloatingDecimal.readStringValue(value).doubleValue();
   }
 
 }

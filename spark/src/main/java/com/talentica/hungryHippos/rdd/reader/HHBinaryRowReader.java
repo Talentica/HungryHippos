@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.domain.MutableDouble;
-import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
  * {@code DynamicMarshal} is used by the system to decode the encrypted file.
@@ -22,8 +20,6 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
   private ByteBuffer source = null;
   private int allocatedSize = 0;
   private byte[] b;
-  private MutableInteger mutableInteger = new MutableInteger();
-  private MutableDouble mutableDouble = new MutableDouble();
 
   /**
    * It wraps over the byte[] and create the new HeapByteBuffer if an only if byte[] array has
@@ -93,7 +89,7 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
       case FLOAT:
         return source.getFloat(locator.getOffset());
       case DOUBLE:
-        return readDoubleValue(index).toDouble();
+        return source.getDouble(locator.getOffset());
       case STRING:
         return readValueString(index);
     }
@@ -123,27 +119,5 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
     return charArrayString;
   }
 
-  public MutableInteger readIntValue(int index) {
-    DataLocator locator = dataDescription.locateField(index);
-    int offset = locator.getOffset();
-    int size = locator.getSize();
-    mutableInteger.reset();
-    for (int i = offset; i < offset + size; i++) {
-      byte ch = source.get(i);
-      mutableInteger.addByte(ch);
-    }
-    return mutableInteger;
-  }
-
-  public MutableDouble readDoubleValue(int index) {
-    DataLocator locator = dataDescription.locateField(index);
-    int offset = locator.getOffset();
-    int size = locator.getSize();
-    for (int i = offset; i < offset + size; i++) {
-      byte ch = source.get(i);
-      mutableDouble.addByte(ch);
-    }
-    return mutableDouble;
-  }
 
 }

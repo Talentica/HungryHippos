@@ -143,7 +143,6 @@ public class FileReaderTest {
         break;
       }
       Assert.assertEquals(1, data[0].getLength());
-      Assert.assertEquals(2, data[1].getLength());
       numberOfLines++;
     }
     Assert.assertEquals(5, numberOfLines);

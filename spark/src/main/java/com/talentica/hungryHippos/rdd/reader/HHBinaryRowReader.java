@@ -22,8 +22,8 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
   private ByteBuffer source = null;
   private int allocatedSize = 0;
   private byte[] b;
-  private static MutableInteger mutableInteger = new MutableInteger();
-  private static MutableDouble mutableDouble = new MutableDouble();
+  private MutableInteger mutableInteger = new MutableInteger();
+  private MutableDouble mutableDouble = new MutableDouble();
 
   /**
    * It wraps over the byte[] and create the new HeapByteBuffer if an only if byte[] array has
@@ -87,7 +87,7 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
-        return readIntValue(index).toInt();
+        return source.getInt(locator.getOffset());
       case LONG:
         return source.getLong(locator.getOffset());
       case FLOAT:
@@ -127,10 +127,10 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
     int size = locator.getSize();
-    int pos = 0;
+    mutableInteger.reset();
     for (int i = offset; i < offset + size; i++) {
       byte ch = source.get(i);
-      mutableInteger.addByte(ch, pos++);
+      mutableInteger.addByte(ch);
     }
     return mutableInteger;
   }
@@ -139,10 +139,9 @@ public class HHBinaryRowReader<T> implements Serializable, HHRowReader<byte[]> {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
     int size = locator.getSize();
-    int pos = 0;
     for (int i = offset; i < offset + size; i++) {
       byte ch = source.get(i);
-      mutableDouble.addByte(ch, pos++);
+      mutableDouble.addByte(ch);
     }
     return mutableDouble;
   }

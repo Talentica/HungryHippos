@@ -51,5 +51,6 @@ public interface DataTypes extends Comparable<DataTypes>, Cloneable, Serializabl
    * @return a clone of this instance.
    */
   DataTypes clone();
+  
 
 }

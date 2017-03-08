@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.client.domain;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -40,25 +39,20 @@ public class MutableDouble implements DataTypes {
   }
 
 
-  private void copyCharacters(int start, int end, MutableDouble newArray) {
-    for (int i = start, j = 0; i < end; i++, j++) {
-      newArray.array[j] = array[i];
-    }
-  }
-
   @Override
   public String toString() {
     return new String(Arrays.copyOf(array, length));
   }
 
   @Override
-  public void reset() {}
+  public void reset() {
+    index = 0;
+  }
 
   @Override
   public MutableDouble clone() {
     MutableDouble newArray = new MutableDouble();
-    copyCharacters(0, length, newArray);
-    newArray.length = length;
+    System.arraycopy(array, 0, newArray.array, 0, length);
     return newArray;
   }
 
@@ -70,42 +64,21 @@ public class MutableDouble implements DataTypes {
       return false;
     }
     MutableDouble that = (MutableDouble) o;
-    if (length == that.length) {
       for (int i = 0; i < length; i++) {
         if (array[i] != that.array[i]) {
           return false;
         }
       }
       return true;
-    }
-    return false;
   }
 
   @Override
   public int hashCode() {
     int h = 0;
-    int off = 0;
-    byte val[] = array;
-    int len = length;
-    for (int i = 0; i < len; i++) {
-      h = 31 * h + val[off++];
+    for (int i = 0; i < length; i++) {
+      h = 31 * h + array[i];
     }
     return h;
-  }
-
-  /**
-   * create a new MutableDouble from the value provided.
-   * 
-   * @param value from which you want to create a MutableDouble.R
-   * @return a new MutableDouble created using the value provided.
-   * @throws InvalidRowException if the value can't be converted to MutableDouble.
-   */
-  public static MutableDouble from(String value) throws InvalidRowException {
-    MutableDouble mutableDoubleByteArray = new MutableDouble();
-    for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableDoubleByteArray.addByte(character);
-    }
-    return mutableDoubleByteArray;
   }
 
   @Override
@@ -131,8 +104,8 @@ public class MutableDouble implements DataTypes {
     return 0;
   }
 
-  public byte[] addValue(double data) {
-    Long lng = Double.doubleToLongBits(data);
+  public byte[] addValue(StringBuilder value) {
+    Long lng = Double.doubleToLongBits(parseDouble(value));
     for (int i = 0; i < 8; i++) {
       array[i] = (byte) ((lng >> ((7 - i) * 8)) & 0xff);
     }
@@ -140,9 +113,10 @@ public class MutableDouble implements DataTypes {
   }
 
   public double toDouble() {
-    if (array == null || array.length != 8)
+    if (array == null || array.length != Double.BYTES) {
       return 0x0;
-    return Double.longBitsToDouble(toLong(array));
+    }
+    return Double.longBitsToDouble(toLong());
   }
 
 
@@ -152,22 +126,26 @@ public class MutableDouble implements DataTypes {
   }
 
 
-  public byte[] toByte(double data) {
-    return toByte(Double.doubleToRawLongBits(data));
+  public long toLong() {
+    if (array == null || array.length != Double.BYTES) {
+      return 0x0;
+    }
+    return (long) ((long) (0xff & array[0]) << 56 | (long) (0xff & array[1]) << 48
+        | (long) (0xff & array[2]) << 40 | (long) (0xff & array[3]) << 32
+        | (long) (0xff & array[4]) << 24 | (long) (0xff & array[5]) << 16
+        | (long) (0xff & array[6]) << 8 | (long) (0xff & array[7]) << 0);
   }
 
-  public long toLong(byte[] data) {
-    if (data == null || data.length != 8)
-      return 0x0;
-    return (long) ((long) (0xff & data[0]) << 56 | (long) (0xff & data[1]) << 48
-        | (long) (0xff & data[2]) << 40 | (long) (0xff & data[3]) << 32
-        | (long) (0xff & data[4]) << 24 | (long) (0xff & data[5]) << 16
-        | (long) (0xff & data[6]) << 8 | (long) (0xff & data[7]) << 0);
-  }
+  private int index = 0;
 
   @Override
   public MutableDouble addByte(byte ch) {
-    // TODO Auto-generated method stub
-    return null;
+    array[index++] = ch;
+    return this;
   }
+  
+  public double parseDouble(StringBuilder value){
+    return MutableFloatingDecimal.readStringValue(value).doubleValue();
+  }
+
 }

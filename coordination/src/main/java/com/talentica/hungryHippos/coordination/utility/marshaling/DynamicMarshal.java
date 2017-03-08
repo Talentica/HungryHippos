@@ -24,7 +24,6 @@ public class DynamicMarshal implements Serializable {
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
-  private MutableInteger mutableInteger;
 
 
   /**
@@ -34,7 +33,6 @@ public class DynamicMarshal implements Serializable {
    */
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
-    this.mutableInteger = new MutableInteger();
   }
 
   /**
@@ -61,18 +59,6 @@ public class DynamicMarshal implements Serializable {
         return readValueString(index, source);
     }
     return null;
-  }
-
-  public MutableInteger readIntValue(int index, ByteBuffer source) {
-    DataLocator locator = dataDescription.locateField(index);
-    int offset = locator.getOffset();
-    int size = locator.getSize();
-    mutableInteger.reset();
-    for (int i = offset; i < offset + size; i++) {
-      byte ch = source.get(i);
-      mutableInteger.addByte(ch);
-    }
-    return mutableInteger;
   }
 
   /**

@@ -119,14 +119,13 @@ public class MutableInteger implements DataTypes {
     int index = 0;
     boolean negativeVal = false;
     if(data != null && data.length() > 0){
-      char c = data.charAt(index);
-      if(c == '-'){
+      if(data.charAt(index) == '-'){
         negativeVal = true;
         index = 1;
       }
     }
     for (; index < data.length(); index++) {
-      value = Character.digit(data.charAt(index), 10) + 10 * value;
+      value = Character.getNumericValue(data.charAt(index)) + 10 * value;
     }
     if(negativeVal) {
       return value * -1;

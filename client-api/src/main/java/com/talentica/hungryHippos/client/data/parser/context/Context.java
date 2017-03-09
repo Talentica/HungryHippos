@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.client.data.parser.context;
 
 import com.talentica.hungryHippos.client.domain.DataTypes;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.domain.MutableDouble;
-import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 
 /**
@@ -28,13 +25,13 @@ public class Context {
   /**
    * Latest token being built. It is reusable placeholder for token.
    */
-  private StringBuilder mTokenBuffer = new StringBuilder();
+  private StringBuilder tokenBuffer = new StringBuilder();
 
   /**
    * It is reusable placeholder which keep track of trailing spaces and tabs until they can be
    * discarded or appended to the token as necessary.
    */
-  private StringBuilder mSpaceTrailBuffer = new StringBuilder();
+  private StringBuilder spaceTrailBuffer = new StringBuilder();
 
   /**
    * Append the a letter to the latest token being built.
@@ -42,29 +39,18 @@ public class Context {
    * @param letter to append.
    */
   public void pushTokenChar(final char letter) {
-    mTokenBuffer.append(letter);
+    tokenBuffer.append(letter);
   }
 
   public void pushToken() {
-    if (buffer[fieldIndex] instanceof MutableInteger) {
-      MutableInteger mutableInteger = (MutableInteger) buffer[fieldIndex];
-      mutableInteger.reset();
-      mutableInteger.addValue(mTokenBuffer);
-    } else if (buffer[fieldIndex] instanceof MutableDouble) {
-      MutableDouble mutableDouble = (MutableDouble) buffer[fieldIndex];
-      mutableDouble.reset();
-      mutableDouble.addValue(mTokenBuffer);
-    } else if (buffer[fieldIndex] instanceof MutableCharArrayString) {
-      for (int index = 0; index < mTokenBuffer.length(); index++) {
-        buffer[fieldIndex].addByte((byte) mTokenBuffer.charAt(index));
-      }
-    }
+    buffer[fieldIndex].reset();
+    buffer[fieldIndex].addValue(tokenBuffer);
     clearTokenBuffer();
     fieldIndex++;
   }
 
   public void clearTokenBuffer() {
-    mTokenBuffer.setLength(0);
+    tokenBuffer.setLength(0);
   }
 
   /**
@@ -73,14 +59,14 @@ public class Context {
    * @param space or tab to push to the trailing space buffer.
    */
   public void pushSpace(final char space) {
-    mSpaceTrailBuffer.append(space);
+    spaceTrailBuffer.append(space);
   }
 
   /**
    * The trailing space buffer ought to be pushed to the token.
    */
   public void pushSpaceTrail() {
-    mTokenBuffer.append(mSpaceTrailBuffer.toString());
+    tokenBuffer.append(spaceTrailBuffer.toString());
     clearSpaceTrail();
   }
 
@@ -88,7 +74,7 @@ public class Context {
    * Discard the trailing space buffer by clearing it.
    */
   public void clearSpaceTrail() {
-    mSpaceTrailBuffer.setLength(0);
+    spaceTrailBuffer.setLength(0);
   }
 
   /**
@@ -97,7 +83,7 @@ public class Context {
    * @return token being built.
    */
   public StringBuilder getTokenBuffer() {
-    return mTokenBuffer;
+    return tokenBuffer;
   }
 
   public DataTypes[] getParsedRow() {

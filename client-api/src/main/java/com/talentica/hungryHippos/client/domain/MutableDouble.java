@@ -104,12 +104,13 @@ public class MutableDouble implements DataTypes {
     return 0;
   }
 
-  public byte[] addValue(StringBuilder value) {
+  @Override
+  public MutableDouble addValue(StringBuilder value) {
     Long lng = Double.doubleToLongBits(parseDouble(value));
     for (int i = 0; i < 8; i++) {
       array[i] = (byte) ((lng >> ((7 - i) * 8)) & 0xff);
     }
-    return array;
+    return this;
   }
 
   public double toDouble() {

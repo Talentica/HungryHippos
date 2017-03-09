@@ -52,5 +52,12 @@ public interface DataTypes extends Comparable<DataTypes>, Cloneable, Serializabl
    */
   DataTypes clone();
   
+  
+  /**
+   * To store the value into corresponding byte array.
+   * @param token
+   * @return DataTypes
+   */
+  DataTypes addValue(StringBuilder value);
 
 }

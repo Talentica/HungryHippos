@@ -106,6 +106,15 @@ public class MutableInteger implements DataTypes {
   }
 
   public MutableInteger addValue(StringBuilder data) {
+    int value = getIntValue(data);
+    array[0] = (byte) ((value >> 24) & 0xff);
+    array[1] = (byte) ((value >> 16) & 0xff);
+    array[2] = (byte) ((value >> 8) & 0xff);
+    array[3] = (byte) ((value >> 0) & 0xff);
+    return this;
+  }
+
+  private int getIntValue(StringBuilder data) {
     int value = 0;
     int index = 0;
     boolean negativeVal = false;
@@ -120,13 +129,9 @@ public class MutableInteger implements DataTypes {
       value = Character.digit(data.charAt(index), 10) + 10 * value;
     }
     if(negativeVal) {
-      value = value * -1;
+      return value * -1;
     }
-    array[0] = (byte) ((value >> 24) & 0xff);
-    array[1] = (byte) ((value >> 16) & 0xff);
-    array[2] = (byte) ((value >> 8) & 0xff);
-    array[3] = (byte) ((value >> 0) & 0xff);
-    return this;
+    return value;
   }
 
 

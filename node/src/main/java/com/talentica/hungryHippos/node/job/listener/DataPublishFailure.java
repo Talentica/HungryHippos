@@ -143,7 +143,7 @@ public class DataPublishFailure {
     String metadataFilePath = FileSystemContext.getRootDirectory() + baseFolderPath + File.separator
         + FileSystemConstants.META_DATA_FOLDER_NAME + File.separator + NodeInfo.INSTANCE.getId();
     logger.info("current nodes file details are present in this file {}", metadataFilePath);
-    String dataFolderPath = FileSystemContext.getRootDirectory() + baseFolderPath
+    String dataFolderPath = FileSystemContext.getRootDirectory() + File.separator + baseFolderPath
         + File.separator + FileSystemContext.getDataFilePrefix();
     File dataFolder = new File(dataFolderPath);
     logger.info("dataFolder Path is {}", dataFolderPath);

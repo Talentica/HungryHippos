@@ -144,5 +144,11 @@ public class MutableFloat implements DataTypes {
     return 0;
   }
 
+  @Override
+  public DataTypes addValue(StringBuilder token) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

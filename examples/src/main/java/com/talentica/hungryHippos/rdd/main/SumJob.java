@@ -47,7 +47,7 @@ public class SumJob extends AbstractJob {
       String keyOfHHRDD = generateKeyForHHRDD(job, context.getShardingIndexes(hhFilePath));
       JavaRDD<byte[]> hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = context.binaryRecords(job, hhFilePath);
+        hipposRDD = context.binaryRecords(job, hhFilePath,false);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       Broadcast<Job> jobBroadcast = context.broadcast(job);

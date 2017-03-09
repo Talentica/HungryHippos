@@ -47,7 +47,7 @@ public class SumJobWithShuffle extends AbstractJob {
       String keyOfHHRDD = generateKeyForHHRDD(job, context.getShardingIndexes(hhFilePath));
       JavaRDD<byte[]> hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = context.binaryRecords(job, hhFilePath);
+        hipposRDD = context.binaryRecords(job, hhFilePath,true);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       JavaPairRDD<String, Long> resultRDD =

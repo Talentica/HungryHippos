@@ -24,10 +24,10 @@ public class HHSparkContext extends JavaSparkContext {
     HHRDDHelper.initialize(clientConfigurationFilePath);
   }
 
-  public JavaRDD<byte[]> binaryRecords(Job job, String hhFilePath)
+  public JavaRDD<byte[]> binaryRecords(Job job, String hhFilePath, boolean requiresShuffle)
       throws FileNotFoundException, JAXBException {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
-    return new HHRDD(this, hhrddInfo, job.getDimensions(), true).toJavaRDD();
+    return new HHRDD(this, hhrddInfo, job.getDimensions(), requiresShuffle).toJavaRDD();
   }
 
   private HHRDDInfo getHHRDDInfo(String hhFilePath)

@@ -14,7 +14,6 @@ public class Context {
   public static final char[] WINDOWS_LINE_SEPARATOR_CHARS = {13, 10};
 
   private DataTypes[] buffer;
-  private byte[] array = new byte[Integer.BYTES];
 
   public Context(DataTypes[] buffer) {
     this.buffer = buffer;
@@ -95,13 +94,6 @@ public class Context {
       s.reset();
     }
     fieldIndex = 0;
-  }
-
-  public void intToByteArray(int data) {
-    array[0] = (byte) ((data >> 24) & 0xff);
-    array[1] = (byte) ((data >> 16) & 0xff);
-    array[2] = (byte) ((data >> 8) & 0xff);
-    array[3] = (byte) ((data >> 0) & 0xff);
   }
 
 }

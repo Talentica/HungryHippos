@@ -197,5 +197,14 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     stringLength++;
     return this;
   }
+  
+  @Override
+  public DataTypes addValue(StringBuilder token) {
+    for (int index = 0; index < token.length(); index++) {
+      array[stringLength] = (char) token.charAt(index);
+      stringLength++;
+    }
+    return this;
+  }
 
 }

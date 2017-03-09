@@ -6,6 +6,7 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 /**
  * A Context represents a partially parsed CSV file in memory. It can build tokens by pushing
  * characters. It can build rows by pushing tokens. It can build a list of rows by pushing rows.
+ * 
  * @author pooshans
  */
 public class Context {
@@ -21,15 +22,15 @@ public class Context {
   private int fieldIndex = 0;
 
   /**
-   * Latest token being built.
+   * Latest token being built. It is reusable placeholder for token.
    */
-  private String mTokenBuffer = "";
+  private StringBuilder tokenBuffer = new StringBuilder();
 
   /**
-   * Keep track of trailing spaces and tabs until they can be discarded or appended to the token as
-   * necessary.
+   * It is reusable placeholder which keep track of trailing spaces and tabs until they can be
+   * discarded or appended to the token as necessary.
    */
-  private String mSpaceTrailBuffer = "";
+  private StringBuilder spaceTrailBuffer = new StringBuilder();
 
   /**
    * Append the a letter to the latest token being built.
@@ -37,19 +38,18 @@ public class Context {
    * @param letter to append.
    */
   public void pushTokenChar(final char letter) {
-    mTokenBuffer += letter;
+    tokenBuffer.append(letter);
   }
 
   public void pushToken() {
-    for (char tokenChar : mTokenBuffer.toCharArray()) {
-      buffer[fieldIndex].addByte((byte)tokenChar);
-    }
+    buffer[fieldIndex].reset();
+    buffer[fieldIndex].addValue(tokenBuffer);
     clearTokenBuffer();
     fieldIndex++;
   }
 
   public void clearTokenBuffer() {
-    mTokenBuffer = "";
+    tokenBuffer.setLength(0);
   }
 
   /**
@@ -58,14 +58,14 @@ public class Context {
    * @param space or tab to push to the trailing space buffer.
    */
   public void pushSpace(final char space) {
-    mSpaceTrailBuffer += space;
+    spaceTrailBuffer.append(space);
   }
 
   /**
    * The trailing space buffer ought to be pushed to the token.
    */
   public void pushSpaceTrail() {
-    mTokenBuffer += mSpaceTrailBuffer;
+    tokenBuffer.append(spaceTrailBuffer.toString());
     clearSpaceTrail();
   }
 
@@ -73,7 +73,7 @@ public class Context {
    * Discard the trailing space buffer by clearing it.
    */
   public void clearSpaceTrail() {
-    mSpaceTrailBuffer = "";
+    spaceTrailBuffer.setLength(0);
   }
 
   /**
@@ -81,8 +81,8 @@ public class Context {
    *
    * @return token being built.
    */
-  public String getTokenBuffer() {
-    return mTokenBuffer;
+  public StringBuilder getTokenBuffer() {
+    return tokenBuffer;
   }
 
   public DataTypes[] getParsedRow() {

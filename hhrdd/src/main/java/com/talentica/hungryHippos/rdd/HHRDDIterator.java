@@ -3,29 +3,17 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-
 import scala.Tuple2;
 import scala.collection.AbstractIterator;
+
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.util.*;
 
 /**
  * @author pooshans
@@ -49,18 +37,19 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
     for(Tuple2<String,int[]> tuple2: files){
+      File file = new File(this.filePath+tuple2._1);
+      if (!file.exists()) {
       logger.info("Downloading file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
       boolean isFileDownloaded = false;
       for (int hostIndex = 0; hostIndex < tuple2._2.length; hostIndex++) {
         int index = tuple2._2[hostIndex];
         String ip = nodeInfo.get(index).getIp();
-        int port = nodeInfo.get(index).getPort();
 
-        File blacklistIPFile = new File(tmpDir + File.separator + ip);
+        File blacklistIPFile = new File(tmpDir.getAbsolutePath() + File.separator + ip);
         if (blacklistIPFile.exists()) {
           continue;
         }
-
+        int port = nodeInfo.get(index).getPort();
         int maxRetry = 5;
         while (!isFileDownloaded && (maxRetry--) > 0) {
           isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
@@ -84,7 +73,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
         throw new RuntimeException(
             "Application cannot run as nodes :: " + Arrays.toString(ip) + " are not listening");
       }
-      remoteFiles.add(tuple2._1);}
+      remoteFiles.add(tuple2._1);
+      }
+    }
     fileIterator = files.iterator();
     iterateOnFiles();
 
@@ -111,7 +102,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     try {
       File file = new File(filePath);
       int bufferSIze = 2048;
-      socket = new Socket(ip, port);
+      SocketAddress socketAddress = new InetSocketAddress(ip, port);
+      socket = new Socket();
+      socket.connect(socketAddress, 10000);
       DataInputStream dis = new DataInputStream(socket.getInputStream());
       DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
       dos.writeInt(HungryHippoServicesConstants.FILE_PROVIDER);

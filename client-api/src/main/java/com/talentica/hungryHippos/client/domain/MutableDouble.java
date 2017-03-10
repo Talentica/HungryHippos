@@ -105,7 +105,7 @@ public class MutableDouble implements DataTypes {
   }
 
   @Override
-  public MutableDouble addValue(StringBuilder value) {
+  public MutableDouble addValue(String value) {
     Long lng = Double.doubleToLongBits(parseDouble(value));
     for (int i = 0; i < 8; i++) {
       array[i] = (byte) ((lng >> ((7 - i) * 8)) & 0xff);
@@ -145,7 +145,7 @@ public class MutableDouble implements DataTypes {
     return this;
   }
   
-  public double parseDouble(StringBuilder value){
+  public double parseDouble(String value){
     return FloatingDecimal.readStringValue(value).doubleValue();
   }
 

@@ -57,6 +57,6 @@ public interface DataTypes extends Comparable<DataTypes>, Cloneable, Serializabl
    * @param token
    * @return DataTypes
    */
-  DataTypes addValue(StringBuilder value);
+  DataTypes addValue(String value);
 
 }

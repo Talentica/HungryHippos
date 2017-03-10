@@ -3,15 +3,29 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+
 import scala.Tuple2;
 import scala.collection.AbstractIterator;
-
-import java.io.*;
-import java.net.Socket;
-import java.util.*;
 
 /**
  * @author pooshans
@@ -31,28 +45,46 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
   private Set<String> remoteFiles;
   private String filePath;
   private Iterator<Tuple2<String,int[]>> fileIterator;
-  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, String> nodIdToIp) throws IOException {
+  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, SerializedNode> nodeInfo,File tmpDir) throws IOException {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
     for(Tuple2<String,int[]> tuple2: files){
-      File file = new File(filePath+File.separator+tuple2._1);
-      if (!file.exists()) {
-        logger.info("Downloading file {}/{} from nodes {} ",filePath,tuple2._1,tuple2._2);
-        boolean isFileDownloaded = false;
-        while (!isFileDownloaded) {
-          for (int id : tuple2._2) {
-            String ip= nodIdToIp.get(id);
-            isFileDownloaded = downloadFile(this.filePath+tuple2._1, ip);
-            logger.info("File downloaded success status {} from ip {}",isFileDownloaded,ip);
-            if (isFileDownloaded) {
-              break;
-            }
+      logger.info("Downloading file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
+      boolean isFileDownloaded = false;
+      for (int hostIndex = 0; hostIndex < tuple2._2.length; hostIndex++) {
+        int index = tuple2._2[hostIndex];
+        String ip = nodeInfo.get(index).getIp();
+        int port = nodeInfo.get(index).getPort();
+
+        File blacklistIPFile = new File(tmpDir + File.separator + ip);
+        if (blacklistIPFile.exists()) {
+          continue;
+        }
+
+        int maxRetry = 5;
+        while (!isFileDownloaded && (maxRetry--) > 0) {
+          isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
+        }
+        if (isFileDownloaded) {
+          logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
+          break;
+        } else {
+          logger.info(" Node {} is dead", ip);
+          if (!blacklistIPFile.exists()) {
+            blacklistIPFile.createNewFile();
           }
         }
-        remoteFiles.add(tuple2._1);
-    }
-
-    }
+      }
+      if (!isFileDownloaded) {
+        File[] tempIpfiles = tmpDir.listFiles();
+        String[] ip = new String[tempIpfiles.length];
+        for (int index = 0; index < ip.length; index++) {
+          ip[index] = tempIpfiles[index].getName();
+        }
+        throw new RuntimeException(
+            "Application cannot run as nodes :: " + Arrays.toString(ip) + " are not listening");
+      }
+      remoteFiles.add(tuple2._1);}
     fileIterator = files.iterator();
     iterateOnFiles();
 
@@ -74,11 +106,10 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     }
   }
 
-  private boolean downloadFile(String filePath, String ip) {
+  private boolean downloadFile(String filePath, String ip,int port) {
     Socket socket = null;
     try {
       File file = new File(filePath);
-      int port = 2324;
       int bufferSIze = 2048;
       socket = new Socket(ip, port);
       DataInputStream dis = new DataInputStream(socket.getInputStream());

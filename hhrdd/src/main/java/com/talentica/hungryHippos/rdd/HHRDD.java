@@ -1,6 +1,6 @@
 package com.talentica.hungryHippos.rdd;
 
-import java.io.IOException;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,8 @@ import org.apache.spark.Partition;
 import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
+
+import com.google.common.io.Files;
 
 import scala.collection.Iterator;
 import scala.collection.Seq;
@@ -27,6 +29,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
   private int id;
   private Partition[] partitions;
   private HHRDDInfo hhrddInfo;
+  private static File tempDir = Files.createTempDir();
 
   public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle) {
@@ -88,8 +91,8 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     HHRDDIterator iterator = null;
     try {
       iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp());
-    } catch (IOException e) {
+          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp(),tempDir);
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return iterator;

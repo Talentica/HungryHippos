@@ -13,7 +13,7 @@ public class MutableLong implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
-  private int stringLength;
+  private int stringLength = Long.BYTES;
 
   /**
    * creates a new MutableLong with specified length. The length specified is the limit
@@ -23,7 +23,6 @@ public class MutableLong implements DataTypes {
    */
   public MutableLong(int length) {
     array = new byte[length];
-    stringLength = 0;
   }
   
   @Override
@@ -143,7 +142,7 @@ public class MutableLong implements DataTypes {
   }
 
   @Override
-  public DataTypes addValue(StringBuilder value) {
+  public DataTypes addValue(String value) {
     // TODO Auto-generated method stub
     return null;
   }

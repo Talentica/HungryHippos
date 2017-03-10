@@ -11,12 +11,12 @@ public class MutableDoubleTest {
   @Test
   public void testMutableDouble() {
     MutableDouble mutableDouble = new MutableDouble();
-    System.out.println(mutableDouble.parseDouble(new StringBuilder("112.34523543435")));
-    mutableDouble.addValue(new StringBuilder("112.34523543435"));
+    System.out.println(mutableDouble.parseDouble("112.34523543435"));
+    mutableDouble.addValue("112.34523543435");
     assertNotNull(mutableDouble);
     assertEquals(8, mutableDouble.getLength());
     assertEquals(112.34523543435, mutableDouble.toDouble(), DELTA);
-    mutableDouble.addValue(new StringBuilder("-11232.3245623543435"));
+    mutableDouble.addValue("-11232.3245623543435");
     assertEquals(8, mutableDouble.getLength());
     assertEquals(-11232.3245623543435, mutableDouble.toDouble(), DELTA);
     

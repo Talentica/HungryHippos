@@ -105,7 +105,7 @@ public class MutableInteger implements DataTypes {
     return 0;
   }
 
-  public MutableInteger addValue(StringBuilder data) {
+  public MutableInteger addValue(String data) {
     int value = getIntValue(data);
     array[0] = (byte) ((value >> 24) & 0xff);
     array[1] = (byte) ((value >> 16) & 0xff);
@@ -114,7 +114,7 @@ public class MutableInteger implements DataTypes {
     return this;
   }
 
-  private int getIntValue(StringBuilder data) {
+  private int getIntValue(String data) {
     int value = 0;
     int index = 0;
     boolean negativeVal = false;

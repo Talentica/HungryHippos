@@ -6,7 +6,6 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 /**
  * A Context represents a partially parsed CSV file in memory. It can build tokens by pushing
  * characters. It can build rows by pushing tokens. It can build a list of rows by pushing rows.
- * 
  * @author pooshans
  */
 public class Context {
@@ -22,15 +21,15 @@ public class Context {
   private int fieldIndex = 0;
 
   /**
-   * Latest token being built. It is reusable placeholder for token.
+   * Latest token being built.
    */
-  private StringBuilder tokenBuffer = new StringBuilder();
+  private String tokenBuffer = "";
 
   /**
-   * It is reusable placeholder which keep track of trailing spaces and tabs until they can be
-   * discarded or appended to the token as necessary.
+   * Keep track of trailing spaces and tabs until they can be discarded or appended to the token as
+   * necessary.
    */
-  private StringBuilder spaceTrailBuffer = new StringBuilder();
+  private String spaceTrailBuffer = "";
 
   /**
    * Append the a letter to the latest token being built.
@@ -38,7 +37,7 @@ public class Context {
    * @param letter to append.
    */
   public void pushTokenChar(final char letter) {
-    tokenBuffer.append(letter);
+    tokenBuffer += letter;
   }
 
   public void pushToken() {
@@ -49,7 +48,7 @@ public class Context {
   }
 
   public void clearTokenBuffer() {
-    tokenBuffer.setLength(0);
+    tokenBuffer = "";
   }
 
   /**
@@ -58,14 +57,14 @@ public class Context {
    * @param space or tab to push to the trailing space buffer.
    */
   public void pushSpace(final char space) {
-    spaceTrailBuffer.append(space);
+    spaceTrailBuffer += space;
   }
 
   /**
    * The trailing space buffer ought to be pushed to the token.
    */
   public void pushSpaceTrail() {
-    tokenBuffer.append(spaceTrailBuffer.toString());
+    tokenBuffer += spaceTrailBuffer;
     clearSpaceTrail();
   }
 
@@ -73,7 +72,7 @@ public class Context {
    * Discard the trailing space buffer by clearing it.
    */
   public void clearSpaceTrail() {
-    spaceTrailBuffer.setLength(0);
+    spaceTrailBuffer = "";
   }
 
   /**
@@ -81,7 +80,7 @@ public class Context {
    *
    * @return token being built.
    */
-  public StringBuilder getTokenBuffer() {
+  public String getTokenBuffer() {
     return tokenBuffer;
   }
 

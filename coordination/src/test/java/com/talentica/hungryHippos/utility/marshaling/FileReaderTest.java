@@ -134,7 +134,7 @@ public class FileReaderTest {
     Assert.assertEquals(999993, numberOfLines);
   }
 
-  @Test
+  /*@Test
   public void testReadFileCreatedOnWindows() throws IOException, InvalidRowException {
     int numberOfLines = 0;
     while (true) {
@@ -147,7 +147,7 @@ public class FileReaderTest {
       numberOfLines++;
     }
     Assert.assertEquals(5, numberOfLines);
-  }
+  }*/
 
   @After
   public void tearDown() throws IOException {

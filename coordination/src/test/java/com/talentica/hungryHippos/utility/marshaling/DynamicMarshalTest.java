@@ -16,6 +16,7 @@ import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 
@@ -76,8 +77,8 @@ public class DynamicMarshalTest {
       MutableCharArrayString key4 = (MutableCharArrayString) parts[3];
       MutableCharArrayString key5 = (MutableCharArrayString) parts[4];
       MutableCharArrayString key6 = (MutableCharArrayString) parts[5];
-      double key7 = Double.parseDouble(parts[6].toString());
-      double key8 = Double.parseDouble(parts[7].toString());
+      MutableDouble key7 = (MutableDouble)parts[6];
+      MutableDouble key8 = (MutableDouble)parts[7];
       MutableCharArrayString key9 = (MutableCharArrayString) parts[8];
 
       keylist.add(key1.clone());
@@ -86,8 +87,8 @@ public class DynamicMarshalTest {
       keylist.add(key4.clone());
       keylist.add(key5.clone());
       keylist.add(key6.clone());
-      keylist.add(key7);
-      keylist.add(key8);
+      keylist.add(key7.toDouble());
+      keylist.add(key8.toDouble());
       keylist.add(key9.clone());
 
 
@@ -104,8 +105,13 @@ public class DynamicMarshalTest {
 
       for (int i = 0; i < 9; i++) {
         Object valueAtPosition = dynamicmarshal.readValue(i, bytebuffer);
-        Assert.assertNotNull(valueAtPosition);
-        Assert.assertEquals(keylist.get(i), valueAtPosition);
+        if(valueAtPosition instanceof MutableDouble){
+          Assert.assertNotNull(valueAtPosition);
+          Assert.assertEquals(keylist.get(i), ((MutableDouble) valueAtPosition).toDouble());
+          }else{
+            Assert.assertNotNull(valueAtPosition);
+            Assert.assertEquals(keylist.get(i), valueAtPosition);
+          }
       }
       noOfLines++;
     }
@@ -135,8 +141,8 @@ public class DynamicMarshalTest {
       MutableCharArrayString key4 = (MutableCharArrayString) parts[3];
       MutableCharArrayString key5 = (MutableCharArrayString) parts[4];
       MutableCharArrayString key6 = (MutableCharArrayString) parts[5];
-      double key7 = Double.parseDouble(parts[6].toString());
-      double key8 = Double.parseDouble(parts[7].toString());
+      MutableDouble key7 = ((MutableDouble)parts[6]);
+      MutableDouble key8 = ((MutableDouble)parts[7]);
       MutableCharArrayString key9 = (MutableCharArrayString) parts[8];
 
       keylist.add(key1.clone());
@@ -145,8 +151,8 @@ public class DynamicMarshalTest {
       keylist.add(key4.clone());
       keylist.add(key5.clone());
       keylist.add(key6.clone());
-      keylist.add(key7);
-      keylist.add(key8);
+      keylist.add(key7.toDouble());
+      keylist.add(key8.toDouble());
       keylist.add(key9.clone());
 
 
@@ -163,8 +169,13 @@ public class DynamicMarshalTest {
      
       for (int i = 0; i < 9; i++) {
         Object valueAtPosition = dynamicmarshal.readValue(i, bytebuffer);
+        if(valueAtPosition instanceof MutableDouble){
         Assert.assertNotNull(valueAtPosition);
-        Assert.assertEquals(keylist.get(i), valueAtPosition);
+        Assert.assertEquals(keylist.get(i), ((MutableDouble) valueAtPosition).toDouble());
+        }else{
+          Assert.assertNotNull(valueAtPosition);
+          Assert.assertEquals(keylist.get(i), valueAtPosition);
+        }
       }
       noOfLines++;
     }

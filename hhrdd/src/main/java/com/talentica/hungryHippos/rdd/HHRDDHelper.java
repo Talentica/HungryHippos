@@ -81,9 +81,9 @@ class HHRDDHelper {
         String bucketCombinationToNodeNumbersMapFilePath = shardingFolderPath + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
         String bucketToNodeNumberMapFilePath =
                 shardingFolderPath + File.separatorChar + bucketToNodeNumberMapFile;
-        Map<Integer,String> nodIdToIp = new HashMap<>();
-        for (SerializedNode serializedNode : nodes){
-            nodIdToIp.put(serializedNode.getId(),serializedNode.getIp());
+        Map<Integer, SerializedNode> nodIdToIp = new HashMap<>();
+        for (SerializedNode serializedNode : nodes) {
+          nodIdToIp.put(serializedNode.getId(), serializedNode);
         }
         Map<String,Long> fileNameToSizeWholeMap = readMetaData(metadataLocation);
         HHRDDInfoImpl hhrddInfo = new HHRDDInfoImpl(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationToNodeNumbersMapFilePath),
@@ -96,7 +96,7 @@ class HHRDDHelper {
     public static List<SerializedNode> getNodes(List<com.talentica.hungryhippos.config.cluster.Node> nodes) {
         List<SerializedNode> serializedNodes = new ArrayList<>();
         for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
-            serializedNodes.add(new SerializedNode(node.getIdentifier(), node.getIp()));
+            serializedNodes.add(new SerializedNode(node.getIdentifier(), node.getIp(),Integer.valueOf(node.getPort())));
         }
         return serializedNodes;
     }

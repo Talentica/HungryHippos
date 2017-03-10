@@ -12,13 +12,12 @@ public class MutableIntegerTest {
 
   @Test
   public void testMutableInteger() {
-    StringBuilder token = new StringBuilder("-112");
+    String token =  "-112";
     localInteger.addValue(token);
     assertNotNull(localInteger);
     assertEquals(4, localInteger.getLength());
     assertEquals(-112, localInteger.toInt());
-    token.setLength(0);
-    token.append("1134342");
+    token = "1134342";
     localInteger.addValue(token);
     assertEquals(4, localInteger.getLength());
     assertEquals(1134342, localInteger.toInt());
@@ -26,12 +25,11 @@ public class MutableIntegerTest {
   
   @Test
   public void testMutableItegerClone(){
-    StringBuilder token = new StringBuilder("112");
+    String token = "112";
     localInteger.addValue(token);
     
     MutableInteger mutableInteger = localInteger.clone();
-    token.setLength(0);
-    token.append("113");
+    token  = "113";
     mutableInteger.addValue(token);
     
     assertEquals(112, localInteger.toInt());

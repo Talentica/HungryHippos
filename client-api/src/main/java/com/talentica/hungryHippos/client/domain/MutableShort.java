@@ -142,7 +142,7 @@ public class MutableShort implements DataTypes {
   }
 
   @Override
-  public DataTypes addValue(StringBuilder value) {
+  public DataTypes addValue(String value) {
     // TODO Auto-generated method stub
     return null;
   }

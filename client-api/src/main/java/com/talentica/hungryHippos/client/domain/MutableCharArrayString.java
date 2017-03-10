@@ -199,7 +199,7 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
   }
   
   @Override
-  public DataTypes addValue(StringBuilder token) {
+  public DataTypes addValue(String token) {
     for (int index = 0; index < token.length(); index++) {
       array[stringLength] = (char) token.charAt(index);
       stringLength++;

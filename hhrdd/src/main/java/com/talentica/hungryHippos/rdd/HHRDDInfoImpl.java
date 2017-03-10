@@ -31,7 +31,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     private String[] keyOrder;
     private int noOfDimensions;
     private Map<String, int[]> fileNameToNodeIdsCache;
-    private Map<Integer, String> nodIdToIp;
+    private Map<Integer, SerializedNode>nodIdToIp;
     private Map<String, Long> fileNameToSizeWholeMap;
     private Map<String, Tuple2<String, int[]>> fileToNodeId;
     private Map<String, Map<Integer, List<String>>> keyToBucketToFileList;
@@ -43,7 +43,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
 
     public HHRDDInfoImpl(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
                      Map<String, Long> fileNameToSizeWholeMap,
-                     String[] keyOrder, Map<Integer, String> nodIdToIp, int[] shardingIndexes, FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
+                     String[] keyOrder, Map<Integer, SerializedNode> nodIdToIp, int[] shardingIndexes, FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
         this.bucketCombinationToNodeNumberMap = bucketCombinationToNodeNumberMap;
         this.bucketToNodeNumberMap = bucketToNodeNumberMap;
         this.keyOrder = keyOrder;
@@ -155,7 +155,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
             System.out.println();
             int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey).get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
             List<String> preferredHosts = new ArrayList<>();
-            preferredHosts.add(nodIdToIp.get(preferredNodeId));
+            preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
             partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
                     this.fieldDataDesc, preferredHosts, files, nodIdToIp);
         }
@@ -224,7 +224,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         NodeBucket nodeBucket;
         List<String> preferredIpList = new ArrayList<>();
         while ((nodeBucket = nodeBuckets.poll()) != null && remNoOfPreferredNodes > 0) {
-            preferredIpList.add(nodIdToIp.get(nodeBucket.getId()));
+            preferredIpList.add(nodIdToIp.get(nodeBucket.getId()).getIp());
             remNoOfPreferredNodes--;
         }
         List<Tuple2<String, int[]>> files = partitionBucket1.getFiles();
@@ -307,7 +307,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
             List<Tuple2<String, int[]>> files = new ArrayList<>();
             int preferredNodeId = fileEntry.getValue()._2[jobShardingDimensions.get(jobPrimaryDimensionIdx)];
             List<String> preferredHosts = new ArrayList<>();
-            preferredHosts.add(nodIdToIp.get(preferredNodeId));
+            preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
             partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
                     this.fieldDataDesc, preferredHosts, files, nodIdToIp);
             index++;

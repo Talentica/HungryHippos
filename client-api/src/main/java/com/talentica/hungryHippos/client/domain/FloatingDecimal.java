@@ -681,7 +681,7 @@ public class FloatingDecimal {
       assert false;
   }
 
-  public static FloatingDecimal readStringValue(StringBuilder in)
+  public static FloatingDecimal readStringValue(String in)
       throws NumberFormatException {
     boolean isNegative = false;
     boolean signSeen = false;
@@ -1103,7 +1103,7 @@ public class FloatingDecimal {
       // 1 234 56 7 8 9
       "([-+])?0[xX](((\\p{XDigit}+)\\.?)|((\\p{XDigit}*)\\.(\\p{XDigit}+)))[pP]([-+])?(\\p{Digit}+)[fFdD]?");
 
-  static FloatingDecimal parseHexString(StringBuilder s) {
+  static FloatingDecimal parseHexString(String s) {
     Matcher m = hexFloatPattern.matcher(s);
     boolean validInput = m.matches();
 

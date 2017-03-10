@@ -18,7 +18,7 @@ import scala.Tuple2;
 public class HHRDDPartition implements Partition {
 
   private static final long serialVersionUID = -8600257810541979113L;
-  private final Map<Integer, String> nodIdToIp;
+  private final Map<Integer, SerializedNode> nodIdToIp;
   private int index;
   private String filePath;
   private FieldTypeArrayDataDescription dataDescription;
@@ -27,7 +27,7 @@ public class HHRDDPartition implements Partition {
   private List<String> preferredHosts;
 
   public HHRDDPartition(int rddId , int index, String filePath,
-                        FieldTypeArrayDataDescription dataDescription, List<String> preferredHosts, List<Tuple2<String,int[]>> files, Map<Integer,String> nodIdToIp) {
+                        FieldTypeArrayDataDescription dataDescription, List<String> preferredHosts, List<Tuple2<String,int[]>> files, Map<Integer,SerializedNode> nodIdToIp) {
     this.index = index;
     this.filePath = filePath;
     this.dataDescription = dataDescription;
@@ -76,7 +76,7 @@ public class HHRDDPartition implements Partition {
     return files;
   }
 
-  public Map<Integer, String> getNodIdToIp() {
+  public Map<Integer, SerializedNode> getNodIdToIp() {
     return nodIdToIp;
   }
 }

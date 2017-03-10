@@ -38,6 +38,7 @@ Installation of Prerequisite software
 2. for other distribution please follow the instructions provided by respectice software companies.
 
 Build the project:
+
 1. gradle clean build
 2. jar file of each module will be created in respective modules/build/lib.
 3. cp node/build/lib/node-*.jar hhspark_automation/distr_original/lib

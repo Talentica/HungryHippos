@@ -944,45 +944,11 @@ public class HungryHippoCurator {
     return (zkTransient == null) ? false : zkTransient.value();
   }
 
-  /**
-   * buildNodePath
-   * 
-   * @param nodeId
-   * @return
-   */
-  public String buildNodePath(int nodeId) {
-    return CoordinationConfigUtil.getZkCoordinationConfigCache().getZookeeperDefaultConfig()
-        .getHostPath() + ZK_PATH_SEPERATOR + ("_node" + nodeId);
-  }
-
   public void initializeZookeeperDefaultConfig(ZookeeperDefaultConfig zookeeperDefaultConfig) {
     pathMap.put(PathEnum.NAMESPACE.name(), zookeeperDefaultConfig.getNamespacePath());
-    pathMap.put(PathEnum.BASEPATH.name(), zookeeperDefaultConfig.getHostPath());
-    pathMap.put(PathEnum.ALERTPATH.name(), zookeeperDefaultConfig.getAlertPath());
     pathMap.put(PathEnum.CONFIGPATH.name(),
         CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path"));
     pathMap.put(PathEnum.FILESYSTEM.name(), zookeeperDefaultConfig.getFilesystemPath());
-    pathMap.put(PathEnum.SHARDING_TABLE.name(), zookeeperDefaultConfig.getShardingTablePath());
-    pathMap.put(PathEnum.JOB_CONFIG.name(), zookeeperDefaultConfig.getJobConfigPath());
-    pathMap.put(PathEnum.JOB_STATUS.name(), zookeeperDefaultConfig.getJobStatusPath());
-    pathMap.put(PathEnum.COMPLETED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.COMPLETED_JOBS.getPathName());
-    pathMap.put(PathEnum.FAILED_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.FAILED_JOBS.getPathName());
-    pathMap.put(PathEnum.STARTED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.STARTED_JOB_ENTITY.getPathName());
-    pathMap.put(PathEnum.COMPLETED_JOB_ENTITY.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.COMPLETED_JOB_ENTITY.getPathName());
-    pathMap.put(PathEnum.PENDING_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.PENDING_JOBS.getPathName());
-    pathMap.put(PathEnum.IN_PROGRESS_JOBS.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.IN_PROGRESS_JOBS.getPathName());
-    pathMap.put(PathEnum.COMPLETED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.COMPLETED_JOB_NODES.getPathName());
-    pathMap.put(PathEnum.FAILED_JOB_NODES.name(), zookeeperDefaultConfig.getJobStatusPath()
-        + ZK_PATH_SEPERATOR + PathEnum.FAILED_JOB_NODES.getPathName());
-    pathMap.put(PathEnum.FILEID_HHFS_MAP.name(), zookeeperDefaultConfig.getFileidHhfsMapPath());
-
     zkConfiguration = new ZookeeperConfiguration(pathMap);
 
   }

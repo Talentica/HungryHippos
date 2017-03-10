@@ -18,9 +18,8 @@ import com.talentica.hungryhippos.filesystem.main.HungryHipposFileSystemMain;
 
 /**
  * {@code RMCommand} used for removing files associated with the system from Zookeeper as well as
- * node.
- * options allowed are
- * "-r" => delete all the subfolders and files of a dir. including the dir.
+ * node. options allowed are "-r" => delete all the subfolders and files of a dir. including the
+ * dir.
  * 
  * @author sudarshans
  *
@@ -88,7 +87,7 @@ public class RMCommand {
     List<String> argumentsTobePassed = new ArrayList<>();
     argumentsTobePassed.add("/bin/sh");
     argumentsTobePassed.add(SCRIPT_LOC);
-    argumentsTobePassed.add(new HungryHipposCommandLauncher().getUserName());
+    argumentsTobePassed.add("");
     String[] scriptArgs = null;
     argumentsTobePassed.add(operation);
     argumentsTobePassed.add(fname);

@@ -2,8 +2,8 @@ package com.talentica.hungryHippos.sharding.context;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -206,16 +206,6 @@ public class ShardingApplicationContext {
       keyColumnNames.put(columns.get(index).getName(),index);
     }
     return keyColumnNames;
-  }
-
-  /**
-   * retrieves key prefixes.
-   * 
-   * @return
-   */
-  public String getKeysPrefix() {
-    ShardingServerConfig shardingServerConfig = getShardingServerConfig();
-    return shardingServerConfig.getKeyPrefix();
   }
 
   /**

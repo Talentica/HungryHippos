@@ -2,7 +2,6 @@ package com.talentica.hungryhippos.filesystem.main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +31,7 @@ import com.talentica.hungryhippos.filesystem.client.DataRetrieverClient;
  */
 public class HungryHipposFileSystemMain {
 
-  private static String userName = null;
+
 
 
   private static final String SCRIPT_LOC =
@@ -81,7 +80,7 @@ public class HungryHipposFileSystemMain {
   public static void main(String[] args) throws FileNotFoundException, JAXBException {
     String clientXmlFile = args[0];
     ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientXmlFile, ClientConfig.class);
-    userName = clientConfig.getOutput().getNodeSshUsername();
+  
     String connectString = clientConfig.getCoordinationServers().getServers();
     int sessionTimeOut = Integer.parseInt(clientConfig.getSessionTimout());
     HungryHippoCurator.getInstance(connectString, sessionTimeOut);
@@ -241,7 +240,7 @@ public class HungryHipposFileSystemMain {
     ArrayList<String> argumentsTobePassed = new ArrayList<>();
     argumentsTobePassed.add("/bin/sh");
     argumentsTobePassed.add(SCRIPT_LOC);
-    argumentsTobePassed.add(userName);
+    argumentsTobePassed.add(args[3]);
     String[] scriptArgs = null;
     argumentsTobePassed.add(fileSystemRoot);
     argumentsTobePassed.add(operation);

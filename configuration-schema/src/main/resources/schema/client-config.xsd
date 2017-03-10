@@ -10,7 +10,6 @@
 				<element type="tns:coordination-servers" name="coordination-servers"
 					nillable="false" />
 				<element name="session-timout" type="string" default="86400000" />
-				<element type="tns:output" name="output" />
 			</sequence>
 		</complexType>
 	</element>
@@ -19,13 +18,6 @@
 		<sequence>
 			<element type="string" name="servers" maxOccurs="1"
 				minOccurs="1" />
-		</sequence>
-	</complexType>
-	
-	<complexType name="output">
-		<sequence>
-			<element type="string" name="node-ssh-username" />
-			<element type="string" name="node-ssh-private-key-file-path" />
 		</sequence>
 	</complexType>
 </schema>

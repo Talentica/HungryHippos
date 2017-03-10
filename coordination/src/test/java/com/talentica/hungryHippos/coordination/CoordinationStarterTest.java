@@ -45,7 +45,6 @@ import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
 public class CoordinationStarterTest {
 
   private static final String USER_HOME = System.getProperty("user.home");
-  private static final String ZOOKEEPER = "zookeeper";
   private static String ZOOKEEPER_PATH = null;
   private String[] args = new String[6];
   private String clientConfigXml = "config/client-config.xml";
@@ -329,20 +328,9 @@ public class CoordinationStarterTest {
     ZookeeperDefaultConfig zkDefaultConfigFromZK = coordinationConfig.getZookeeperDefaultConfig();
 
     // verify
-    assertEquals(zkDefaultConfig.getAlertPath(), zkDefaultConfigFromZK.getAlertPath());
     assertEquals(zkDefaultConfig.getCleanup(), zkDefaultConfigFromZK.getCleanup());
-    assertEquals(zkDefaultConfig.getFileidHhfsMapPath(),
-        zkDefaultConfigFromZK.getFileidHhfsMapPath());
     assertEquals(zkDefaultConfig.getFilesystemPath(), zkDefaultConfigFromZK.getFilesystemPath());
-    assertEquals(zkDefaultConfig.getHostPath(), zkDefaultConfigFromZK.getHostPath());
-    assertEquals(zkDefaultConfig.getJobConfigPath(), zkDefaultConfigFromZK.getJobConfigPath());
-    assertEquals(zkDefaultConfig.getJobStatusPath(), zkDefaultConfigFromZK.getJobStatusPath());
     assertEquals(zkDefaultConfig.getNamespacePath(), zkDefaultConfigFromZK.getNamespacePath());
-    assertEquals(zkDefaultConfig.getRetry(), zkDefaultConfigFromZK.getRetry());
-    assertEquals(zkDefaultConfig.getShardingTablePath(),
-        zkDefaultConfigFromZK.getShardingTablePath());
-    assertEquals(zkDefaultConfig.getTickTime(), zkDefaultConfigFromZK.getTickTime());
-
     // verify clusterConfig details -> args[2]
     ClusterConfig clusterConfig = JaxbUtil.unmarshalFromFile(args[2], ClusterConfig.class);
 
@@ -367,10 +355,6 @@ public class CoordinationStarterTest {
 
     assertEquals(dataPublisherConfig.getNoOfAttemptsToConnectToNode(),
         dataPublisherConfigFromZK.getNoOfAttemptsToConnectToNode());
-    assertEquals(dataPublisherConfig.getNoOfBytesInEachMemoryArray(),
-        dataPublisherConfigFromZK.getNoOfBytesInEachMemoryArray());
-    assertEquals(dataPublisherConfig.getNoOfDataReceiverThreads(),
-        dataPublisherConfigFromZK.getNoOfDataReceiverThreads());
     assertEquals(dataPublisherConfig.getServersConnectRetryIntervalInMs(),
         dataPublisherConfigFromZK.getServersConnectRetryIntervalInMs());
 

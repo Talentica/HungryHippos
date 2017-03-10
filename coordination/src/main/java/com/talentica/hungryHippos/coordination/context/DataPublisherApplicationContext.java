@@ -64,28 +64,4 @@ public class DataPublisherApplicationContext {
     return datapublisherConfig.getServersConnectRetryIntervalInMs();
   }
 
-  /**
-   * retrieves number of data receiver threads to run.
-   * 
-   * @return an int.
-   */
-  public static int getNoOfDataReceiverThreads() {
-    if (datapublisherConfig == null) {
-      datapublisherConfig = getDataPublisherConfig();
-    }
-    return datapublisherConfig.getNoOfDataReceiverThreads();
-  }
-
-  /**
-   * retrieves the number of bytes in each memory array.
-   * 
-   * @return an int.
-   */
-  public static int getNoOfBytesInEachMemoryArray() {
-    if (datapublisherConfig == null) {
-
-      datapublisherConfig = getDataPublisherConfig();
-    }
-    return datapublisherConfig.getNoOfBytesInEachMemoryArray();
-  }
 }

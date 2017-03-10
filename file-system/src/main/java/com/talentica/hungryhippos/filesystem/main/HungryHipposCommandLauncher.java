@@ -22,7 +22,6 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
-import com.talentica.hungryhippos.config.client.Output;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.cluster.Node;
 import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
@@ -47,8 +46,6 @@ public class HungryHipposCommandLauncher implements Observer {
   private static HungryHipposFileSystem hhfs = null;
   protected static final Map<String, String> commandMap = new HashMap<String, String>();
   protected final List<?> HHFScommand = new ArrayList<String>();
-  private String userName = null;
-  private String key = null;
   private String connectString = null;
   private int sessionTimeOut;
   private List<Node> nodesInCluster = null;
@@ -142,25 +139,25 @@ public class HungryHipposCommandLauncher implements Observer {
     CommandLineParser parser = new DefaultParser();
     switch (str[0]) {
       case "ls":
-        LSCommand.execute(parser, str);
+        //LSCommand.execute(parser, str);
         break;
       case "rm":
-        RMCommand.execute(parser, str);
+       // RMCommand.execute(parser, str);
         break;
       case "get":
-        GetCommand.execute(parser, str);
+       // GetCommand.execute(parser, str);
         break;
       case "cat":
-        CatCommand.execute(parser, str);
+       // CatCommand.execute(parser, str);
         break;
       case "head":
-        HeadCommand.execute(parser, str);
+       // HeadCommand.execute(parser, str);
         break;
       case "exit":
-        System.exit(1);
+       // System.exit(1);
 
       default:
-        System.out.println("Not yet implemented");
+       // System.out.println("Not yet implemented");
     }
   }
 
@@ -176,9 +173,7 @@ public class HungryHipposCommandLauncher implements Observer {
     } catch (FileNotFoundException | JAXBException e) {
       throw new RuntimeException(e.getMessage());
     }
-    Output output = clientConfig.getOutput();
-    userName = output.getNodeSshUsername();
-    key = output.getNodeSshPrivateKeyFilePath();
+   
     connectString = clientConfig.getCoordinationServers().getServers();
     sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
 
@@ -198,10 +193,6 @@ public class HungryHipposCommandLauncher implements Observer {
 
   public List<Node> getNodesInCluster() {
     return Collections.unmodifiableList(nodesInCluster);
-  }
-
-  public String getUserName() {
-    return userName;
   }
 
   public static List<String> getCommands() {

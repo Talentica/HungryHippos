@@ -17,7 +17,6 @@ import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.config.datapublisher.DatapublisherConfig;
 import com.talentica.hungryhippos.config.filesystem.FileSystemConfig;
-import com.talentica.hungryhippos.config.jobrunner.JobRunnerConfig;
 
 /**
  * Starts coordination server and updates configuration about cluster environment.
@@ -34,7 +33,6 @@ public class CoordinationStarter {
   private static String clusterConfigFilePath;
   private static String datapublisherConfigFilePath;
   private static String fileSystemConfigFilePath;
-  private static String jobRunnerConfigFilePath;
 
   private static ClusterConfig clusterConfig;
   private static CoordinationConfig coordinationConfig;
@@ -77,9 +75,9 @@ public class CoordinationStarter {
   }
 
   private static void validateArguments(String[] args) {
-    if (args == null || args.length < 6) {
+    if (args == null || args.length < 5) {
       LOGGER.error(
-          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} or 5th argument {file system configuration} or 6th argument {jobrunner configuration}file/files arguments.");
+          "Either missing 1st argument {client configuration} or 2nd argument {coordination configuration} or 3rd argument {cluster configuration} or 4th argument {datapubliser configuration} or 5th argument {file system configuration} file/files arguments.");
       System.exit(1);
     }
   }
@@ -90,7 +88,6 @@ public class CoordinationStarter {
     clusterConfigFilePath = args[2];
     datapublisherConfigFilePath = args[3];
     fileSystemConfigFilePath = args[4];
-    jobRunnerConfigFilePath = args[5];
   }
 
   private static void validateFileSystem(String fileSystemConfigFilePath)
@@ -161,10 +158,6 @@ public class CoordinationStarter {
     CoordinationConfigUtil.uploadConfigurationOnZk(
         rootPath + File.separatorChar + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION,
         JaxbUtil.unmarshalFromFile(fileSystemConfigFilePath, FileSystemConfig.class));
-
-    CoordinationConfigUtil.uploadConfigurationOnZk(
-        rootPath + File.separatorChar + CoordinationConfigUtil.JOB_RUNNER_CONFIGURATION,
-        JaxbUtil.unmarshalFromFile(jobRunnerConfigFilePath, JobRunnerConfig.class));
   }
 
 

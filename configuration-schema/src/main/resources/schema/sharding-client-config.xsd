@@ -9,7 +9,6 @@
 				<element type="string" name="sharding-dimensions" />
 				<element type="int" name="maximum-size-of-single-block-data" />
 				<element type="string" name="bad-records-file-out" />
-				<element type="boolean" name="data-file-sorting"  default="false"/>
 			</sequence>
 		</complexType>
 	</element>
@@ -29,7 +28,6 @@
 	<complexType name="data-parser-config">
 		<sequence>
 			<element type="string" name="class-name" />
-			<element type="string" name="jar-file-path" minOccurs="0" />
 		</sequence>
 	</complexType>
 

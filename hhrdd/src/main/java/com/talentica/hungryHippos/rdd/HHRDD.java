@@ -45,19 +45,20 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     int jobPrimaryDimensionIdx = 0;
     int maxBucketSize = 0;
     int jobDimensionIdx = 0;
-
-    for (int i = 0; i < shardingIndexes.length; i++) {
-      for (int j = 0; j < jobDimensions.length; j++) {
-        if (shardingIndexes[i] == jobDimensions[j]) {
-          int bucketSize = hhrddInfo.getBucketToNodeNumberMap().get(keyOrder[i]).size();
-          String dimensionKey = keyOrder[i];
-          jobShardingDimensions.add(shardingIndexes[i]);
-          jobShardingDimensionsKey.add(keyOrder[i]);
-          if (bucketSize > maxBucketSize) {
-            primaryDimensionKey = dimensionKey;
-            jobPrimaryDimensionIdx = jobDimensionIdx;
+    if(jobDimensions!=null && jobDimensions.length>0) {
+      for (int i = 0; i < shardingIndexes.length; i++) {
+        for (int j = 0; j < jobDimensions.length; j++) {
+          if (shardingIndexes[i] == jobDimensions[j]) {
+            int bucketSize = hhrddInfo.getBucketToNodeNumberMap().get(keyOrder[i]).size();
+            String dimensionKey = keyOrder[i];
+            jobShardingDimensions.add(shardingIndexes[i]);
+            jobShardingDimensionsKey.add(keyOrder[i]);
+            if (bucketSize > maxBucketSize) {
+              primaryDimensionKey = dimensionKey;
+              jobPrimaryDimensionIdx = jobDimensionIdx;
+            }
+            jobDimensionIdx++;
           }
-          jobDimensionIdx++;
         }
       }
     }

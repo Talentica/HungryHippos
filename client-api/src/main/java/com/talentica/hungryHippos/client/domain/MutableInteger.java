@@ -1,6 +1,5 @@
 package com.talentica.hungryHippos.client.domain;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -14,22 +13,20 @@ public class MutableInteger implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
-  private int stringLength;
+  private int length = Integer.BYTES;
 
   /**
-   * creates a new MutableInteger with specified length. The length specified is the limit of the
-   * underlying array.
+   * creates a new MutableInteger.
    * 
    * @param length
    */
-  public MutableInteger(int length) {
+  public MutableInteger() {
     array = new byte[length];
-    stringLength = 0;
   }
 
   @Override
   public int getLength() {
-    return stringLength;
+    return length;
   }
 
   @Override
@@ -42,35 +39,21 @@ public class MutableInteger implements DataTypes {
     return array;
   }
 
-
-  private void copyCharacters(int start, int end, MutableInteger newArray) {
-    for (int i = start, j = 0; i < end; i++, j++) {
-      newArray.array[j] = array[i];
-    }
-  }
-
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
+    return new String(Arrays.copyOf(array, length));
   }
 
-  @Override
-  public MutableInteger addByte(byte ch) {
-    array[stringLength] = ch;
-    stringLength++;
-    return this;
-  }
 
   @Override
   public void reset() {
-    stringLength = 0;
+    index = 0;
   }
 
   @Override
   public MutableInteger clone() {
-    MutableInteger newArray = new MutableInteger(stringLength);
-    copyCharacters(0, stringLength, newArray);
-    newArray.stringLength = stringLength;
+    MutableInteger newArray = new MutableInteger();
+    System.arraycopy(array, 0, newArray.array, 0, length);
     return newArray;
   }
 
@@ -82,42 +65,21 @@ public class MutableInteger implements DataTypes {
       return false;
     }
     MutableInteger that = (MutableInteger) o;
-    if (stringLength == that.stringLength) {
-      for (int i = 0; i < stringLength; i++) {
-        if (array[i] != that.array[i]) {
-          return false;
-        }
+    for (int i = 0; i < length; i++) {
+      if (array[i] != that.array[i]) {
+        return false;
       }
-      return true;
     }
-    return false;
+    return true;
   }
 
   @Override
   public int hashCode() {
     int h = 0;
-    int off = 0;
-    byte val[] = array;
-    int len = stringLength;
-    for (int i = 0; i < len; i++) {
-      h = 31 * h + val[off++];
+    for (int i = 0; i < length; i++) {
+      h = 31 * h + array[i];
     }
     return h;
-  }
-
-  /**
-   * create a new MutableDouble from the value provided.
-   * 
-   * @param value
-   * @return
-   * @throws InvalidRowException
-   */
-  public static MutableInteger from(String value) throws InvalidRowException {
-    MutableInteger mutableInteger = new MutableInteger(value.length());
-    for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableInteger.addByte(character);
-    }
-    return mutableInteger;
   }
 
   @Override
@@ -131,10 +93,10 @@ public class MutableInteger implements DataTypes {
     if (equals(otherMutableIntegerByteArray)) {
       return 0;
     }
-    if (stringLength != otherMutableIntegerByteArray.stringLength) {
-      return Integer.valueOf(stringLength).compareTo(otherMutableIntegerByteArray.stringLength);
+    if (length != otherMutableIntegerByteArray.length) {
+      return Integer.valueOf(length).compareTo(otherMutableIntegerByteArray.length);
     }
-    for (int i = 0; i < stringLength; i++) {
+    for (int i = 0; i < length; i++) {
       if (array[i] == otherMutableIntegerByteArray.array[i]) {
         continue;
       }
@@ -143,5 +105,49 @@ public class MutableInteger implements DataTypes {
     return 0;
   }
 
+  public MutableInteger addValue(StringBuilder data) {
+    int value = getIntValue(data);
+    array[0] = (byte) ((value >> 24) & 0xff);
+    array[1] = (byte) ((value >> 16) & 0xff);
+    array[2] = (byte) ((value >> 8) & 0xff);
+    array[3] = (byte) ((value >> 0) & 0xff);
+    return this;
+  }
+
+  private int getIntValue(StringBuilder data) {
+    int value = 0;
+    int index = 0;
+    boolean negativeVal = false;
+    if(data != null && data.length() > 0){
+      if(data.charAt(index) == '-'){
+        negativeVal = true;
+        index = 1;
+      }
+    }
+    for (; index < data.length(); index++) {
+      value = Character.getNumericValue(data.charAt(index)) + 10 * value;
+    }
+    if(negativeVal) {
+      return value * -1;
+    }
+    return value;
+  }
+
+
+
+  public int toInt() {
+    if (array == null || array.length != 4)
+      return 0x0;
+    return (int) ((0xff & array[0]) << 24 | (0xff & array[1]) << 16 | (0xff & array[2]) << 8
+        | (0xff & array[3]) << 0);
+  }
+
+  private int index = 0;
+
+  @Override
+  public DataTypes addByte(byte ch) {
+    array[index++] = ch;
+    return this;
+  }
 
 }

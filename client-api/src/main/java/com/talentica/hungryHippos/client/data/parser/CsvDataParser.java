@@ -77,7 +77,7 @@ public class CsvDataParser extends LineByLineDataParser {
       invalidRow.setBadRow(data);
       throw invalidRow;
     }
-    if (!pContext.getTokenBuffer().isEmpty()) {
+    if (pContext.getTokenBuffer().length() != 0) {
       pContext.pushToken();
     }
     return pContext.getParsedRow();
@@ -298,25 +298,20 @@ public class CsvDataParser extends LineByLineDataParser {
    */
   private void createBuffer(DataType type, int i, int size) {
     switch (type) {
-    // 308
       case DOUBLE:
-        size = 30;
-        buffer[i] = new MutableDouble(size);
+        buffer[i] = new MutableDouble();
         break;
-      // 38
       case FLOAT:
         size = 25;
         buffer[i] = new MutableFloat(size);
         break;
       case INT:
-        size = 10;
-        buffer[i] = new MutableInteger(size);
+        buffer[i] = new MutableInteger();
         break;
       case LONG:
         size = 19;
         buffer[i] = new MutableLong(size);
         break;
-      // default String
       default:
         buffer[i] = new MutableCharArrayString(size);
         break;

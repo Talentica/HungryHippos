@@ -1,12 +1,13 @@
 package com.talentica.hungryHippos.coordination.utility.marshaling;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
  * {@code DynamicMarshal} is used by the system to decode the encrypted file.
@@ -94,7 +95,7 @@ public class DynamicMarshal {
         dest.putShort(locator.getOffset(), Short.parseShort(object.toString()));
         break;
       case INT:
-        dest.putInt(locator.getOffset(), Integer.parseInt(object.toString()));
+        writeIntValue(object,dest,locator);
         break;
       case LONG:
         dest.putLong(locator.getOffset(), Long.parseLong(object.toString()));
@@ -103,7 +104,7 @@ public class DynamicMarshal {
         dest.putFloat(locator.getOffset(), Float.parseFloat(object.toString()));
         break;
       case DOUBLE:
-        dest.putDouble(locator.getOffset(), Double.parseDouble(object.toString()));
+        writeDoubleValue(object,dest,locator);
         break;
       case STRING:
         byte[] content = ((MutableCharArrayString)object).getValue().getBytes();
@@ -142,6 +143,17 @@ public class DynamicMarshal {
     }
   }
 
+  private void writeIntValue(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] intContent = ((MutableInteger) object).getUnderlyingArray();
+    int intOffset = locator.getOffset();
+    int intSize = locator.getSize();
+    int k = 0;
+    int l = intOffset;
+    for (; l < intOffset + intSize && k < intContent.length; l++, k++) {
+      dest.put(l, intContent[k]);
+    }
+  }
+
   /**
    * writes the double {@value input} to an {@value index} location in the {@value dest} Buffer.
    * 
@@ -149,15 +161,14 @@ public class DynamicMarshal {
    * @param object
    * @param dest
    */
-  public void writeValueDouble(int index, double object, ByteBuffer dest) {
-    DataLocator locator = dataDescription.locateField(index);
-    switch (locator.getDataType()) {
-
-      case DOUBLE:
-        dest.putDouble(locator.getOffset(), object);
-        break;
-      default:
-        throw new IllegalArgumentException("Invalid data format");
+  public void writeDoubleValue(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] doubleContent = ((MutableDouble) object).getUnderlyingArray();
+    int doubleOffset = locator.getOffset();
+    int doubleSize = locator.getSize();
+    int k = 0;
+    int l = doubleOffset;
+    for (; l < doubleOffset + doubleSize && k < doubleContent.length; l++, k++) {
+      dest.put(l, doubleContent[k]);
     }
   }
 

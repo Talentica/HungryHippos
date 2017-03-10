@@ -91,15 +91,15 @@ public class DynamicMarshalTest {
       keylist.add(key9.clone());
 
 
-      dynamicmarshal.writeValueString(0, key1, bytebuffer);
-      dynamicmarshal.writeValueString(1, key2, bytebuffer);
-      dynamicmarshal.writeValueString(2, key3, bytebuffer);
-      dynamicmarshal.writeValueString(3, key4, bytebuffer);
-      dynamicmarshal.writeValueString(4, key5, bytebuffer);
-      dynamicmarshal.writeValueString(5, key6, bytebuffer);
-      dynamicmarshal.writeValueDouble(6, key7, bytebuffer);
-      dynamicmarshal.writeValueDouble(7, key8, bytebuffer);
-      dynamicmarshal.writeValueString(8, key9, bytebuffer);
+      dynamicmarshal.writeValue(0, key1, bytebuffer);
+      dynamicmarshal.writeValue(1, key2, bytebuffer);
+      dynamicmarshal.writeValue(2, key3, bytebuffer);
+      dynamicmarshal.writeValue(3, key4, bytebuffer);
+      dynamicmarshal.writeValue(4, key5, bytebuffer);
+      dynamicmarshal.writeValue(5, key6, bytebuffer);
+      dynamicmarshal.writeValue(6,key7, bytebuffer);
+      dynamicmarshal.writeValue(7, key8, bytebuffer);
+      dynamicmarshal.writeValue(8, key9, bytebuffer);
 
 
       for (int i = 0; i < 9; i++) {
@@ -150,15 +150,15 @@ public class DynamicMarshalTest {
       keylist.add(key9.clone());
 
 
-      dynamicmarshal.writeValueString(0, key1, bytebuffer);
-      dynamicmarshal.writeValueString(1, key2, bytebuffer);
-      dynamicmarshal.writeValueString(2, key3, bytebuffer);
-      dynamicmarshal.writeValueString(3, key4, bytebuffer);
-      dynamicmarshal.writeValueString(4, key5, bytebuffer);
-      dynamicmarshal.writeValueString(5, key6, bytebuffer);
-      dynamicmarshal.writeValueDouble(6, key7, bytebuffer);
-      dynamicmarshal.writeValueDouble(7, key8, bytebuffer);
-      dynamicmarshal.writeValueString(8, key9, bytebuffer);
+      dynamicmarshal.writeValue(0, key1, bytebuffer);
+      dynamicmarshal.writeValue(1, key2, bytebuffer);
+      dynamicmarshal.writeValue(2, key3, bytebuffer);
+      dynamicmarshal.writeValue(3, key4, bytebuffer);
+      dynamicmarshal.writeValue(4, key5, bytebuffer);
+      dynamicmarshal.writeValue(5, key6, bytebuffer);
+      dynamicmarshal.writeValue(6, key7, bytebuffer);
+      dynamicmarshal.writeValue(7, key8, bytebuffer);
+      dynamicmarshal.writeValue(8, key9, bytebuffer);
 
      
       for (int i = 0; i < 9; i++) {
@@ -208,15 +208,15 @@ public class DynamicMarshalTest {
       keylist.add(key9.clone());
 
 
-      dynamicmarshal.writeValueString(0, key1, bytebuffer);
-      dynamicmarshal.writeValueString(1, key2, bytebuffer);
-      dynamicmarshal.writeValueString(2, key3, bytebuffer);
-      dynamicmarshal.writeValueString(3, key4, bytebuffer);
-      dynamicmarshal.writeValueString(4, key5, bytebuffer);
-      dynamicmarshal.writeValueString(5, key6, bytebuffer);
-      dynamicmarshal.writeValueDouble(6, key7, bytebuffer);
-      dynamicmarshal.writeValueDouble(7, key8, bytebuffer);
-      dynamicmarshal.writeValueString(8, key9, bytebuffer);
+      dynamicmarshal.writeValue(0, key1, bytebuffer);
+      dynamicmarshal.writeValue(1, key2, bytebuffer);
+      dynamicmarshal.writeValue(2, key3, bytebuffer);
+      dynamicmarshal.writeValue(3, key4, bytebuffer);
+      dynamicmarshal.writeValue(4, key5, bytebuffer);
+      dynamicmarshal.writeValue(5, key6, bytebuffer);
+      dynamicmarshal.writeValue(6, key7, bytebuffer);
+      dynamicmarshal.writeValue(7, key8, bytebuffer);
+      dynamicmarshal.writeValue(8, key9, bytebuffer);
 
 
       for (int i = 0; i < 9; i++) {

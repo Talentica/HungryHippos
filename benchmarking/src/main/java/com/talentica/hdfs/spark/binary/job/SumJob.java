@@ -1,5 +1,9 @@
 package com.talentica.hdfs.spark.binary.job;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.rdd.main.job.Job;
+import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
+import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -7,11 +11,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 
 public class SumJob {
 

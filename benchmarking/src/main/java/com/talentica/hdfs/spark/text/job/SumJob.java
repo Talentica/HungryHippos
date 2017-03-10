@@ -1,5 +1,7 @@
 package com.talentica.hdfs.spark.text.job;
 
+import com.talentica.hungryHippos.rdd.main.job.Job;
+import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -10,10 +12,6 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-
 import scala.Tuple2;
 
 public class SumJob {

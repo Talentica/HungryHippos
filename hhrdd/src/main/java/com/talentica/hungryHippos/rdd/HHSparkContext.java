@@ -1,18 +1,15 @@
 package com.talentica.hungryHippos.rdd;
 
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.client.domain.DataDescription;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.rdd.job.Job;
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HHSparkContext extends JavaSparkContext {
 
@@ -24,10 +21,10 @@ public class HHSparkContext extends JavaSparkContext {
     HHRDDHelper.initialize(clientConfigurationFilePath);
   }
 
-  public JavaRDD<byte[]> binaryRecords(Job job, String hhFilePath, boolean requiresShuffle)
+  public JavaRDD<byte[]> binaryRecords(Integer[] jobDimensions, String hhFilePath, boolean requiresShuffle)
       throws FileNotFoundException, JAXBException {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
-    return new HHRDD(this, hhrddInfo, job.getDimensions(), requiresShuffle).toJavaRDD();
+    return new HHRDD(this, hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
   }
 
   private HHRDDInfo getHHRDDInfo(String hhFilePath)

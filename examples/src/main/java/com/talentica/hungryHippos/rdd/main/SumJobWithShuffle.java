@@ -3,25 +3,23 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.rdd.HHSparkContext;
+import com.talentica.hungryHippos.rdd.main.job.Job;
+import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
+import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
+import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.rdd.HHSparkContext;
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
-import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SumJobWithShuffle extends AbstractJob {
 
@@ -47,7 +45,7 @@ public class SumJobWithShuffle extends AbstractJob {
       String keyOfHHRDD = generateKeyForHHRDD(job, context.getShardingIndexes(hhFilePath));
       JavaRDD<byte[]> hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = context.binaryRecords(job, hhFilePath,true);
+        hipposRDD = context.binaryRecords(job.getDimensions(), hhFilePath,true);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       JavaPairRDD<String, Long> resultRDD =

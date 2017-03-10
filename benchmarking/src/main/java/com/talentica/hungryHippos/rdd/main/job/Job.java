@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.talentica.hungryHippos.rdd.job;
+package com.talentica.hungryHippos.rdd.main.job;
 
 import java.io.Serializable;
 import java.util.Arrays;

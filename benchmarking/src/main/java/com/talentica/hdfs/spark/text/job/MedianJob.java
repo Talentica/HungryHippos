@@ -1,9 +1,9 @@
 package com.talentica.hdfs.spark.text.job;
 
-import java.util.Iterator;
-
+import com.talentica.hungryHippos.rdd.main.job.Job;
+import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
+import com.talentica.hungryhippos.ds.DescriptiveStatisticsNumber;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -11,12 +11,9 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.rdd.job.Job;
-import com.talentica.hungryHippos.rdd.job.JobMatrix;
-import com.talentica.hungryhippos.ds.DescriptiveStatisticsNumber;
-
 import scala.Tuple2;
+
+import java.util.Iterator;
 
 public class MedianJob {
 

@@ -1,11 +1,10 @@
 package com.talentica.hungryHippos.rdd.main;
 
-import java.io.Serializable;
-
+import com.talentica.hungryHippos.rdd.HHSparkContext;
+import com.talentica.hungryHippos.rdd.main.job.Job;
 import org.apache.spark.SparkConf;
 
-import com.talentica.hungryHippos.rdd.HHSparkContext;
-import com.talentica.hungryHippos.rdd.job.Job;
+import java.io.Serializable;
 
 class AbstractJob implements Serializable {
 

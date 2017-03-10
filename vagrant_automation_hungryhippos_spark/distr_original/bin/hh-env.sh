@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set_env(){
-HUNGRYHIPPOS_HOME="/home/hhuser/distr";
-HUNGRYHIPPOS_CONFIG_DIR="$HUNGRYHIPPOS_HOME/config"
-HUNGRYHIPPOS_LOG_DIR="$HUNGRYHIPPOS_HOME/logs"
-}

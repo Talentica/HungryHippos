@@ -66,11 +66,8 @@ add_spark_ip_port_on_spark_env()
                         attach_storage $TOKEN $STORAGE_NAME $i
 
 			sleep 15
-
-                        ssh root@$i "mount -o discard,defaults /dev/disk/by-id/scsi-0DO_Volume_volume-nyc1-03 /mnt/spark_history_server; echo /dev/disk/by-id/scsi-0DO_Volume_volume-nyc1-03 /mnt/spark_history_server ext4 defaults,nofail,discard 0 0 | sudo tee -a /etc/fstab"
- 		        sleep 1
-                 
-                        ssh root@$i "chown hhuser:hungryhippos /mnt/spark_history_server -R"
+                
+                       
                 else
                         ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
                         ssh hhuser@$i "echo "SPARK_WORKER_PORT="9090 >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"

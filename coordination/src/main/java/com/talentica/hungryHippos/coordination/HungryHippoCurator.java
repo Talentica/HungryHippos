@@ -63,14 +63,8 @@ public class HungryHippoCurator {
   private Map<String, String> pathMap = new HashMap<String, String>();
   private ZookeeperConfiguration zkConfiguration;
 
-  private List<Server> servers = new ArrayList<>();
-  private Map<String, Server> serverNameMap = new HashMap<>();
-
-
   private static String ZK_ROOT_NODE = "/rootnode";
 
-
-  private static String NODE_NAME_PRIFIX = "_node";
   public static final String ZK_PATH_SEPERATOR = "/";
 
 
@@ -960,75 +954,6 @@ public class HungryHippoCurator {
 
   }
 
-  /**
-   * To get monitored server
-   * 
-   * @return
-   * @throws HungryHippoException
-   */
-  public List<String> getMonitoredServers() throws HungryHippoException {
-    List<String> serverList =
-        hungryHippoCurator.getChildren(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()));
-    Collections.sort(serverList);
-    return serverList;
-  }
-
-  /**
-   * Build path for Alert
-   * 
-   * @param server
-   * @return String
-   */
-  protected String buildAlertPathForServer(Server server) {
-    return buildAlertPathForServer(server.getServerAddress().getHostname());
-  }
-
-  /**
-   * @param serverHostname
-   * @return string
-   */
-  protected String buildAlertPathForServer(String serverHostname) {
-    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + ZK_PATH_SEPERATOR
-        + serverHostname;
-  }
-
-  /**
-   * 
-   * @param nodeName
-   * @return String whichc creates alertPath to the node.
-   */
-  public String buildAlertPathByName(String nodeName) {
-    return zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()) + ZK_PATH_SEPERATOR
-        + nodeName;
-  }
-
-  /**
-   * Create the servers map which all need to be run on nodes
-   * 
-   */
-  private void createServersMap() {
-    List<String> checkUnique = new ArrayList<String>();
-    List<Node> nodes;
-    nodes = CoordinationConfigUtil.getLocalClusterConfig().getNode();
-
-    for (int index = 0; index < nodes.size(); index++) {
-      Node node = nodes.get(index);
-      if (!checkUnique.contains(node.getIp())) {
-        Server server = new Server();
-        server.setServerAddress(new ServerAddress(NODE_NAME_PRIFIX + index, node.getIp()));
-        server.setData(new Date().getTime());
-        server.setServerType("simpleserver");
-        server.setCurrentDateTime(getCurrentTimeStamp());
-        server.setDescription("A simple server to test monitoring");
-        server.setId(index);
-        this.servers.add(server);
-        checkUnique.add(node.getIp());
-        serverNameMap.put(server.getServerAddress().getHostname(), server);
-
-      }
-
-    }
-  }
 
   /**
    * Get current timestamp in format yyyy-MM-dd_HH:mm:ss
@@ -1054,8 +979,6 @@ public class HungryHippoCurator {
 
     cleanUp(nameSpacePath);
     cleanUp(configPath);
-    cleanUp("/torrent"); // TODO need to remove hardcoded value.
-
     defaultNodesOnStart();
   }
 
@@ -1073,44 +996,13 @@ public class HungryHippoCurator {
    * @throws HungryHippoException
    */
   public void defaultNodesOnStart() throws HungryHippoException {
-    createServersMap();
     // TODO populate from map using loop.
     hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.NAMESPACE.name()));
     hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.ALERTPATH.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.BASEPATH.name()));
-    hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()));
     hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.SHARDING_TABLE.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_CONFIG.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.JOB_STATUS.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOBS.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOBS.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.STARTED_JOB_ENTITY.name()));
-    hungryHippoCurator.createPersistentNode(
-        zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_ENTITY.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.PENDING_JOBS.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.IN_PROGRESS_JOBS.name()));
-    hungryHippoCurator.createPersistentNode(
-        zkConfiguration.getPathMap().get(PathEnum.COMPLETED_JOB_NODES.name()));
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FAILED_JOB_NODES.name()));
-
-    hungryHippoCurator
-        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILEID_HHFS_MAP.name()));
-
   }
 
 

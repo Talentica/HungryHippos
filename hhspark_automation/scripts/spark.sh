@@ -67,7 +67,7 @@ add_spark_ip_port_on_spark_env()
 
 			sleep 15
                 
-                        ssh root@$i "chown hhuser:hungryhippos /mnt/spark_history_server -R"
+                       
                 else
                         ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
                         ssh hhuser@$i "echo "SPARK_WORKER_PORT="9090 >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"

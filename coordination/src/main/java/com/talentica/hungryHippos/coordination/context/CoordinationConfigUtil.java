@@ -17,7 +17,6 @@ import com.talentica.hungryHippos.coordination.property.Property;
 import com.talentica.hungryHippos.coordination.utility.CoordinationProperty;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * {@code CoordinationConfigUtil} is used for uploading and downloading configuration file.
@@ -30,7 +29,6 @@ public class CoordinationConfigUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(CoordinationConfigUtil.class);
   private static Property<CoordinationProperty> property;
   private static String localClusterConfigFilePath;
-  private static CoordinationConfig config;
   private static ClusterConfig clusterConfig;
   public static final String COORDINATION_CONFIGURATION = "coordination-configuration";
   public static final String CLUSTER_CONFIGURATION = "cluster-configuration";
@@ -74,30 +72,6 @@ public class CoordinationConfigUtil {
   }
 
   /**
-   * used for retrieving the Coorination Configuration.
-   * 
-   * @return an instance of CoordinationConfig.
-   */
-  public static CoordinationConfig getZkCoordinationConfigCache() {
-    if (config != null) {
-      return config;
-    }
-    String configurationFile =
-        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
-            + CoordinationConfigUtil.COORDINATION_CONFIGURATION;
-    try {
-      if (curator == null) {
-        curator = HungryHippoCurator.getInstance();
-      }
-      config = (CoordinationConfig) curator.readObject(configurationFile);
-    } catch (HungryHippoException e) {
-      LOGGER.error(e.getMessage());
-    }
-
-    return config;
-  }
-
-  /**
    * sets the {@value localClusterConfigFilePath}.
    * 
    * @param localClusterConfigFilePath
@@ -132,8 +106,7 @@ public class CoordinationConfigUtil {
       return clusterConfig;
     }
 
-    String configurationFile =
-        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+    String configurationFile = getConfigPath()
             + ZK_PATH_SEPERATOR + CoordinationConfigUtil.CLUSTER_CONFIGURATION;
     try {
       if (curator == null) {
@@ -146,6 +119,22 @@ public class CoordinationConfigUtil {
 
     return clusterConfig;
 
+  }
+  
+  public static String getFileSystemPath(){
+    return getProperty().getValueByKey("zookeeper.filesystem.path");
+  }
+  
+  public static String getConfigPath(){
+    return getProperty().getValueByKey("zookeeper.config.path");
+  }
+  
+  public static String getNamespace(){
+    return getProperty().getValueByKey("zookeeper.namespace");
+  }
+  
+  public static String getHostsPath(){
+    return getProperty().getValueByKey("zookeeper.hosts.path");
   }
 
 }

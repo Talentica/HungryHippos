@@ -117,8 +117,7 @@ public class DataRetrievalThread extends Thread {
   private void handleShardedFileDownload(String hungryHippoFilePath, int dimensionOperand,
       int nodeId, long offset, byte[] inputBuffer) throws IOException {
     int len;
-    String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    String fsRootNode = CoordinationConfigUtil.getFileSystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     HungryHippoCurator curator = HungryHippoCurator.getInstance();

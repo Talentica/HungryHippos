@@ -44,7 +44,7 @@ public class CleanFileSystemMain {
     clientConfig = args[0];
     ClientConfig config = JaxbUtil.unmarshalFromFile(clientConfig, ClientConfig.class);
     String fileSystemConfigFile =
-        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path") + "/"
+        CoordinationConfigUtil.getConfigPath() + "/"
             + CoordinationConfigUtil.FILE_SYSTEM_CONFIGURATION;
     String connectString = config.getCoordinationServers().getServers();
     int sessionTimeOut = Integer.parseInt(config.getSessionTimout());

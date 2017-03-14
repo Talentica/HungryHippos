@@ -26,7 +26,7 @@ public class DataPublisherApplicationContext {
   public static DatapublisherConfig getDataPublisherConfig() {
     if (datapublisherConfig == null) {
       String configurationFile =
-          CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path")
+          CoordinationConfigUtil.getConfigPath()
               + HungryHippoCurator.ZK_PATH_SEPERATOR
               + CoordinationConfigUtil.DATA_PUBLISHER_CONFIGURATION;
       try {

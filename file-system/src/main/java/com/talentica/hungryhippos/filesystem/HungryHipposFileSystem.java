@@ -15,7 +15,6 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
 /**
@@ -43,9 +42,8 @@ public class HungryHipposFileSystem {
       throw new IllegalStateException("Instance Already created");
     }
     curator = HungryHippoCurator.getInstance();
-    CoordinationConfig coordinationConfig = CoordinationConfigUtil.getZkCoordinationConfigCache();
     HUNGRYHIPPOS_FS_ROOT_ZOOKEEPER =
-        coordinationConfig.getZookeeperDefaultConfig().getFilesystemPath();
+        CoordinationConfigUtil.getFileSystemPath();
     HUNGRYHIPPOS_FS_NODE = FileSystemContext.getRootDirectory();
 
   }
@@ -336,8 +334,7 @@ public class HungryHipposFileSystem {
     if (null == hungryHippoFilePath || hungryHippoFilePath.isEmpty()) {
       throw new RuntimeException("Path is null or empty");
     }
-    String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    String fsRootNode = CoordinationConfigUtil.getFileSystemPath();
     String hungryHippoFilePathNode = fsRootNode + hungryHippoFilePath;
     boolean nodeExists = curator.checkExists(hungryHippoFilePathNode);
     if (!nodeExists) {

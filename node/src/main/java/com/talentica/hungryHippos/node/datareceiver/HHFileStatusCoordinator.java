@@ -14,8 +14,7 @@ public class HHFileStatusCoordinator {
 
     public static void updateFailure(String hhFilePath, String cause) {
         HungryHippoCurator curator = HungryHippoCurator.getInstance();
-        String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
+        String destinationPathNode = CoordinationConfigUtil.getFileSystemPath() + hhFilePath;
         String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
                 + FileSystemConstants.PUBLISH_FAILED;
         try {
@@ -30,8 +29,7 @@ public class HHFileStatusCoordinator {
 
     public static boolean checkIfFailed(String hhFilePath) throws HungryHippoException {
         HungryHippoCurator curator = HungryHippoCurator.getInstance();
-        String destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-                .getZookeeperDefaultConfig().getFilesystemPath() + hhFilePath;
+        String destinationPathNode = CoordinationConfigUtil.getFileSystemPath() + hhFilePath;
         String pathForFailureNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR
                 + FileSystemConstants.PUBLISH_FAILED;
         return  curator.checkExists(pathForFailureNode);

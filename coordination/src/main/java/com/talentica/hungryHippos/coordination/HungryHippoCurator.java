@@ -38,14 +38,10 @@ import org.slf4j.LoggerFactory;
 import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.coordination.domain.LeafBean;
-import com.talentica.hungryHippos.coordination.domain.Server;
-import com.talentica.hungryHippos.coordination.domain.ServerAddress;
 import com.talentica.hungryHippos.coordination.domain.ZookeeperConfiguration;
 import com.talentica.hungryHippos.coordination.exception.HungryHippoException;
 import com.talentica.hungryHippos.coordination.utility.ZkNodeName;
 import com.talentica.hungryHippos.utility.PathEnum;
-import com.talentica.hungryhippos.config.cluster.Node;
-import com.talentica.hungryhippos.config.coordination.ZookeeperDefaultConfig;
 
 /**
  * {@code HungryHippoCurator} used for all the operations related to zookeeper.
@@ -938,11 +934,15 @@ public class HungryHippoCurator {
     return (zkTransient == null) ? false : zkTransient.value();
   }
 
-  public void initializeZookeeperDefaultConfig(ZookeeperDefaultConfig zookeeperDefaultConfig) {
-    pathMap.put(PathEnum.NAMESPACE.name(), zookeeperDefaultConfig.getNamespacePath());
+  public void initializeZookeeperDefaultConfig() {
+    pathMap.put(PathEnum.NAMESPACE.name(), 
+        CoordinationConfigUtil.getNamespace());
     pathMap.put(PathEnum.CONFIGPATH.name(),
-        CoordinationConfigUtil.getProperty().getValueByKey("zookeeper.config_path"));
-    pathMap.put(PathEnum.FILESYSTEM.name(), zookeeperDefaultConfig.getFilesystemPath());
+        CoordinationConfigUtil.getConfigPath());
+    pathMap.put(PathEnum.FILESYSTEM.name(), 
+        CoordinationConfigUtil.getFileSystemPath());
+    pathMap.put(PathEnum.HOSTS.name(), 
+        CoordinationConfigUtil.getHostsPath());
     zkConfiguration = new ZookeeperConfiguration(pathMap);
 
   }
@@ -975,10 +975,8 @@ public class HungryHippoCurator {
    */
   public void startup() throws HungryHippoException {
     String nameSpacePath = pathMap.get(PathEnum.NAMESPACE.name());
-    String configPath = pathMap.get(PathEnum.CONFIGPATH.name());
 
     cleanUp(nameSpacePath);
-    cleanUp(configPath);
     defaultNodesOnStart();
   }
 
@@ -1003,6 +1001,8 @@ public class HungryHippoCurator {
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.CONFIGPATH.name()));
     hungryHippoCurator
         .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.FILESYSTEM.name()));
+    hungryHippoCurator
+        .createPersistentNode(zkConfiguration.getPathMap().get(PathEnum.HOSTS.name()));
   }
 
 

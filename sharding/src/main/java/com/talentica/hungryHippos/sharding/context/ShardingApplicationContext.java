@@ -256,8 +256,7 @@ public class ShardingApplicationContext {
    * @return
    */
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {
-    String fileSystemBasePath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    String fileSystemBasePath = CoordinationConfigUtil.getFileSystemPath();
     return fileSystemBasePath + distributedFilePath;
   }
 

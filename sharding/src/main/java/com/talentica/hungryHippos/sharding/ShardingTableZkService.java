@@ -141,8 +141,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<BucketCombination, Set<Node>> readBucketCombinationToNodeNumbersMap(
       String shardingTablePath) {
-    String bucketCombinationPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
+    String bucketCombinationPath = CoordinationConfigUtil.getFileSystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.BUCKET_COMBINATION.getName();
     try {
@@ -161,8 +160,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<String, Map<Bucket<KeyValueFrequency>, Node>> readBucketToNodeNumberMap(
       String shardingTablePath) {
-    String keyToBucketNumberPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
+    String keyToBucketNumberPath = CoordinationConfigUtil.getFileSystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_BUCKET_NUMBER.getName();
     try {
@@ -181,8 +179,7 @@ public class ShardingTableZkService {
   @SuppressWarnings("unchecked")
   public Map<String, Map<Object, Bucket<KeyValueFrequency>>> readKeyToValueToBucketMap(
       String shardingTablePath) {
-    String KeyToValueToBucketPath = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + shardingTablePath + File.separatorChar
+    String KeyToValueToBucketPath = CoordinationConfigUtil.getFileSystemPath() + shardingTablePath + File.separatorChar
         + ZkNodeName.SHARDING_TABLE.getName() + File.separatorChar
         + ZkNodeName.KEY_TO_VALUE_TO_BUCKET.getName();
     try {

@@ -12,7 +12,7 @@ package com.talentica.hungryHippos.utility;
  */
 public enum PathEnum {
   NAMESPACE("NAMESPACE"), CONFIGPATH("CONFIGPATH"), FILESYSTEM(
-      "FILESYSTEM");
+      "FILESYSTEM"), HOSTS("HOSTS");
 
   private String pathName;
 

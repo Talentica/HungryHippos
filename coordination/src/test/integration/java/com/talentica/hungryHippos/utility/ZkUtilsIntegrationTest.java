@@ -14,8 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
-import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
-import com.talentica.hungryhippos.config.coordination.CoordinationConfig;
 
 /**
  * @author pooshans
@@ -66,7 +64,7 @@ public class ZkUtilsIntegrationTest {
 
   @Test
   public void testClientConfigZk() {
-    CoordinationConfig configSave = CoordinationConfigUtil.getZkCoordinationConfigCache();
+    
     // ZkUtils.saveObjectZkNode("/rootnode/configuration2/A/B", configSave);
     // CoordinationConfig configRet =
     // (CoordinationConfig) ZkUtils.readObjectZkNode("/rootnode/configuration2/A/B");

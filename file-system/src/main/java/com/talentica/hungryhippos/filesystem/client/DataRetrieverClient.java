@@ -73,8 +73,7 @@ public class DataRetrieverClient {
   public static void getHungryHippoData(String hungryHippoFilePath, String outputDirName,
       int dimension) throws Exception {
     List<String> tmpDestFileNames = new ArrayList<>();
-    String fsRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    String fsRootNode = CoordinationConfigUtil.getFileSystemPath();
     String fileNodeZKDFSPath = fsRootNode + hungryHippoFilePath
         + FileSystemConstants.ZK_PATH_SEPARATOR + FileSystemConstants.DFS_NODE;
     HungryHippoCurator curator = HungryHippoCurator.getInstance();

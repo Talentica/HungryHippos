@@ -176,8 +176,7 @@ public class DataPublisherStarter {
 
 
   private static void updateZookeeperNodes(String destinationPath) throws HungryHippoException {
-    destinationPathNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath() + destinationPath;
+    destinationPathNode = CoordinationConfigUtil.getFileSystemPath() + destinationPath;
     pathForSuccessNode = destinationPathNode + "/" + FileSystemConstants.DATA_READY;
     pathForFailureNode = destinationPathNode + "/" + FileSystemConstants.PUBLISH_FAILED;
     pathForClientUploadsInParallelNode = destinationPathNode + HungryHippoCurator.ZK_PATH_SEPERATOR

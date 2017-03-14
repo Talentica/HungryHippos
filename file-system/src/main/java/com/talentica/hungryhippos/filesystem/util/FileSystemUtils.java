@@ -131,8 +131,7 @@ public class FileSystemUtils {
    */
   private static void checkSubPaths(String path) {
     String[] strings = path.split(FileSystemConstants.ZK_PATH_SEPARATOR);
-    String fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    String fileSystemRootNode = CoordinationConfigUtil.getFileSystemPath();
     String relativeNodePath = "";
     HungryHippoCurator curator = HungryHippoCurator.getInstance();
     for (int i = 1; i < strings.length - 1; i++) {

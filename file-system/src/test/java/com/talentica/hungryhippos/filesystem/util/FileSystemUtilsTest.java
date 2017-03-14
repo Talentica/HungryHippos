@@ -31,8 +31,7 @@ public class FileSystemUtilsTest {
   public void setup() throws FileNotFoundException, JAXBException {
     curator = curator.getInstance("localhost:2181");
 
-    fileSystemRootNode = CoordinationConfigUtil.getZkCoordinationConfigCache()
-        .getZookeeperDefaultConfig().getFilesystemPath();
+    fileSystemRootNode = CoordinationConfigUtil.getFileSystemPath();
   }
 
   @Test

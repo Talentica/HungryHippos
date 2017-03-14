@@ -1,6 +1,7 @@
 package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
+import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 
@@ -34,7 +35,7 @@ public class DataDistributorStarter {
     clientConfig = JaxbUtil.unmarshalFromFile(args[0], ClientConfig.class);
     String connectString = clientConfig.getCoordinationServers().getServers();
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
-    HungryHippoCurator.getInstance(connectString, sessionTimeOut);
+    HungryHippoCurator hungryHippoCurator= HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     ServerSocket serverSocket = new ServerSocket(NodeInfo.INSTANCE.getPort());
     ExecutorService serviceDelegator = Executors.newCachedThreadPool();
     noOfDataDistributors = 4;
@@ -47,6 +48,8 @@ public class DataDistributorStarter {
     fileService = Executors.newCachedThreadPool();
     cacheClearServices = Executors.newCachedThreadPool();
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
+    hungryHippoCurator.createEphemeralNode(CoordinationConfigUtil.getHostsPath()
+        + HungryHippoCurator.ZK_PATH_SEPERATOR + NodeInfo.INSTANCE.getIp());
     while (true) {
       Socket socket = serverSocket.accept();
       serviceDelegator.execute(new ServiceDelegator(socket));

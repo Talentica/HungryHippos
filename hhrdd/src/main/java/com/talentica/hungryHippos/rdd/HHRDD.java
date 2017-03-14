@@ -11,8 +11,6 @@ import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
-import com.google.common.io.Files;
-
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.collection.mutable.ArrayBuffer;
@@ -29,7 +27,8 @@ class HHRDD extends RDD<byte[]> implements Serializable {
   private int id;
   private Partition[] partitions;
   private HHRDDInfo hhrddInfo;
-  private static File tempDir = Files.createTempDir();
+  private static int TEMP_DIR_ATTEMPTS = 10000;
+  private static File tempDir = createTempDir();
 
   public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle) {
@@ -111,5 +110,20 @@ class HHRDD extends RDD<byte[]> implements Serializable {
       return null;
     }
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
+  }
+
+  public static File createTempDir() {
+    File baseDir = new File(System.getProperty("java.io.tmpdir"));
+    String baseName = System.currentTimeMillis() + "-";
+
+    for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
+      File tempDir = new File(baseDir, baseName + counter);
+      if (tempDir.mkdir()) {
+        return tempDir;
+      }
+    }
+    throw new IllegalStateException("Failed to create directory within "
+            + TEMP_DIR_ATTEMPTS + " attempts (tried "
+            + baseName + "0 to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')');
   }
 }

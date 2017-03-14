@@ -30,9 +30,13 @@ Prerequisite
 Installation of Prerequisite software
 
 1. you can install all prerequsite software by running ./install.sh  or  individual scripts. (supported on ubuntu)
+
    1.1 cd basic_install_scripts
+   
    1.2 ./install.sh 
+   
    1.2.1 install_*.sh to install respective software.
+   
    NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
       override you Ruby and Java to latest version.
 2. for other distribution please follow the instructions provided by respectice software companies.

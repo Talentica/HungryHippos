@@ -18,6 +18,7 @@ import scala.Tuple2;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +31,8 @@ public class UniqueCountJob extends AbstractJob {
   private static final long serialVersionUID = -7856558981966923544L;
   private static Logger LOGGER = LoggerFactory.getLogger(UniqueCountJob.class);
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException,
-      ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws IOException, JAXBException,
+          ClassNotFoundException, InstantiationException, IllegalAccessException {
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];

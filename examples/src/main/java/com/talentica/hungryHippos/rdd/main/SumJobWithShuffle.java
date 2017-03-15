@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +27,8 @@ public class SumJobWithShuffle extends AbstractJob {
   private static final long serialVersionUID = -7684390486447522841L;
   private static Logger LOGGER = LoggerFactory.getLogger(SumJobWithShuffle.class);
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException,
-      ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws IOException, JAXBException,
+          ClassNotFoundException, InstantiationException, IllegalAccessException {
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];

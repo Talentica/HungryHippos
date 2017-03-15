@@ -18,6 +18,7 @@ import scala.Tuple2;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +28,8 @@ public class SumJob extends AbstractJob {
 
   private static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException,
-      ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws IOException, JAXBException,
+          ClassNotFoundException, InstantiationException, IllegalAccessException {
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];
@@ -65,14 +66,14 @@ public class SumJob extends AbstractJob {
     JobMatrix sumJobMatrix = new JobMatrix();
     int count = 0;
     for (int i = 0; i < 3; i++) {
+      sumJobMatrix.addJob(new Job(new Integer[] {i}, 4, count++));
       sumJobMatrix.addJob(new Job(new Integer[] {i}, 5, count++));
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 6, count++));
       for (int j = i + 1; j < 4; j++) {
+        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 4, count++));
         sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 5, count++));
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
         for (int k = j + 1; k < 4; k++) {
+          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 4, count++));
           sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 5, count++));
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
         }
       }
     }

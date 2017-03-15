@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
@@ -23,7 +25,7 @@ public class UniqueCountJob {
   private static JavaSparkContext context;
   protected static Logger LOGGER = LoggerFactory.getLogger(UniqueCountJob.class);
   
-  public static void main(String[] args){
+  public static void main(String[] args) throws JAXBException, FileNotFoundException {
     String masterIp = args[0];
     String appName = args[1];
     String inputFile = args[2];

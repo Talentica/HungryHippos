@@ -8,27 +8,69 @@ import org.apache.spark.broadcast.Broadcast;
 
 import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@code HHSparkContext} extends {@link JavaSparkContext} and provides additional support to
+ * interact with HungryHippo file system
+ *
+ */
 public class HHSparkContext extends JavaSparkContext {
 
   private Map<String, HHRDDInfo> hhrddInfoCache = new HashMap<>();
 
+  /**
+   * Creates and returns an instance of {@link HHSparkContext} and connects to the zookeeper
+   * @param config
+   *        a org.apache.spark.SparkConf object specifying Spark parameters
+   * @param clientConfigurationFilePath
+   *        a path to the client-config.xml for connecting to the zookeeper.
+   * @throws FileNotFoundException when client-config configuration file is not found
+   * @throws JAXBException when the client-config configuration is not properly set
+   * for the HungryHippo file
+     */
   public HHSparkContext(SparkConf config, String clientConfigurationFilePath)
       throws FileNotFoundException, JAXBException {
     super(config);
     HHRDDHelper.initialize(clientConfigurationFilePath);
   }
 
+  /**
+   * Returns a {@link JavaRDD} of byte array from HungryHippo file system
+   * @param jobDimensions
+   *        - An Integer array of indexes of the columns on which group by will be performed.
+   *        Default dimension will be the first column.
+   * @param hhFilePath
+   *        - Path to the HungryHippo file
+   * @param requiresShuffle
+   *        - A value true will create optimal partitions of nearly 128MB each.
+   *        A value false will create optimal partitions according to the job dimensions.
+   * @return JavaRDD<byte[]> instance
+   *
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+     */
   public JavaRDD<byte[]> binaryRecords(Integer[] jobDimensions, String hhFilePath, boolean requiresShuffle)
-      throws FileNotFoundException, JAXBException {
+          throws JAXBException, IOException {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
     return new HHRDD(this, hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
   }
 
+  /**
+   * Returns an instance of {@link HHRDDInfo} type
+   * @param hhFilePath
+   *        Path to the HungryHippo file
+   * @return HHRDDInfo instance
+   *
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+   */
   private HHRDDInfo getHHRDDInfo(String hhFilePath)
-          throws JAXBException, FileNotFoundException {
+          throws JAXBException, IOException {
     HHRDDInfo hhrddInfo = hhrddInfoCache.get(hhFilePath);
     if (hhrddInfo == null) {
       hhrddInfo = HHRDDHelper.getHhrddInfo(hhFilePath);
@@ -37,16 +79,39 @@ public class HHSparkContext extends JavaSparkContext {
     return hhrddInfo;
   }
 
+  /**
+   * Returns an instance of broadcast {@link DataDescription}
+   * @param hhFilePath
+   *        Path to the HungryHippo file
+   * @return Broadcast<DataDescription> instance
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+     */
   public Broadcast<DataDescription> broadcastFieldDataDescription(String hhFilePath)
-          throws JAXBException, FileNotFoundException {
+          throws JAXBException, IOException {
     return broadcast(getHHRDDInfo(hhFilePath).getFieldDataDesc());
   }
 
+  /**
+   * Returns array of column indexes on which sharding has been performed
+   * @param hhFilePath
+   *      Path to the HungryHippo file
+   * @return
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+     */
   public int[] getShardingIndexes(String hhFilePath)
-          throws JAXBException, FileNotFoundException {
+          throws JAXBException, IOException {
     return getHHRDDInfo(hhFilePath).getShardingIndexes();
   }
 
+  /**
+   * Returns an absolute path inside HungryHippo file system for the path
+   * @param path
+   *      Path to the HungryHippo file
+   * @return absolute path
+     */
   public String getActualPath(String path) {
     return HHRDDHelper.getActualPath(path);
   }

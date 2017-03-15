@@ -15,6 +15,7 @@ import scala.Tuple2;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +27,8 @@ public class MedianJob extends AbstractJob {
   private static final long serialVersionUID = -4628702469270049457L;
   private static Logger LOGGER = LoggerFactory.getLogger(MedianJob.class);
 
-  public static void main(String[] args) throws FileNotFoundException, JAXBException,
-      ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public static void main(String[] args) throws IOException, JAXBException,
+          ClassNotFoundException, InstantiationException, IllegalAccessException {
     validateProgramArgument(args);
     String masterIp = args[0];
     String appName = args[1];

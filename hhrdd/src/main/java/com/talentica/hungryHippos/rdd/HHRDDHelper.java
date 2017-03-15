@@ -40,19 +40,28 @@ class HHRDDHelper {
         return FileSystemContext.getRootDirectory()+ path;
     }
 
-    public static Map<String,Long> readMetaData(String metadataLocation){
+    public static Map<String,Long> readMetaData(String metadataLocation) throws IOException {
         Map<String,Long> fileNameToSizeWholeMap = new HashMap<>();
         File metadataFolder = new File(metadataLocation);
         if(metadataFolder.listFiles()!=null) {
             for (File file : metadataFolder.listFiles()) {
+                ObjectInputStream objectInputStream =null;
                 try {
-                    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
+                    objectInputStream = new ObjectInputStream(new FileInputStream(file));
                     Map<String, Long> fileNametoSizeMap = (Map<String, Long>) objectInputStream.readObject();
                     fileNameToSizeWholeMap.putAll(fileNametoSizeMap);
-                    objectInputStream.close();
 
-                } catch (IOException | ClassNotFoundException e) {
+
+                } catch (ClassNotFoundException e) {
                     e.printStackTrace();
+                    throw new RuntimeException("Corrupted Metadata : "+e);
+                } finally {
+                    if(objectInputStream!=null)
+                        try {
+                            objectInputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                 }
             }
         }else{
@@ -63,7 +72,7 @@ class HHRDDHelper {
     }
 
   public static HHRDDInfo getHhrddInfo(String distributedPath)
-      throws JAXBException, FileNotFoundException {
+          throws JAXBException, IOException {
         String shardingFolderPath = FileSystemContext.getRootDirectory() + distributedPath
                 + File.separator + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
         String directoryLocation = FileSystemContext.getRootDirectory() + distributedPath

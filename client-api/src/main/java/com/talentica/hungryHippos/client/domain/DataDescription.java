@@ -1,8 +1,7 @@
 package com.talentica.hungryHippos.client.domain;
 
 /**
- * This interface need to be implemented for the description of the data or
- * records of the data set provided.
+ * The interface for the description of the data
  * 
  * @author debasishc.
  * @version 0.5.0

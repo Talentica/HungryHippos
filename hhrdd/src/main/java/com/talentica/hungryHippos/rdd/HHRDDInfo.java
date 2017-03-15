@@ -11,6 +11,9 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
+/**
+ * The interface for interacting with {@link HHRDD} metadata information
+ */
 public interface HHRDDInfo extends Serializable {
 
   int[] getShardingIndexes();

@@ -7,10 +7,10 @@ import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 
 /**
- * {@code DynamicMarshal} is used by the system to decode the encrypted file.
+ * {@code HHRDDRowReader} is used to convert data from binary form to Object form.
  * 
- * @author debasishc
- * @since 1/9/15.
+ * @author sudarshans
+ *
  */
 public class HHRDDRowReader {
 
@@ -18,6 +18,11 @@ public class HHRDDRowReader {
 
   private ByteBuffer source = null;
 
+  /**
+   * Sets the buffer for the object
+   * @param source
+   *        A byte buffer object
+     */
   public void setByteBuffer(ByteBuffer source) {
     this.source = source;
   }
@@ -27,9 +32,10 @@ public class HHRDDRowReader {
   }
 
   /**
-   * creates a new instance of DynamicMarshal using the {@value dataDescription}
+   * Creates a new instance of {@link HHRDDRowReader}
    * 
    * @param dataDescription
+   *        The {@link DataDescription} object for reading a particular type of record
    */
   public HHRDDRowReader(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
@@ -40,11 +46,13 @@ public class HHRDDRowReader {
   }
 
   /**
-   * used to read a value from the provided {@value index} and {@value source}.
+   * Reads value from its buffer.
    * 
    * @param index
-   * @param source
+   *        The index of the column
    * @return Object.
+   *        An instance of either a Byte or a Character or an Integer or a Long or
+   *        a Float or a Double or a String depending on the {@link DataDescription}
    */
   public Object readAtColumn(int index) {
     DataLocator locator = dataDescription.locateField(index);
@@ -70,14 +78,12 @@ public class HHRDDRowReader {
   }
 
   /**
-   * reads MutableCharArrayString value from the given {@value index} from ByteBuffer
-   * {@value source}
+   * Reads MutableCharArrayString value from {@link ByteBuffer}
    * 
    * @param index
-   * @param source
    * @return {@link MutableCharArrayString}
    */
-  public MutableCharArrayString readValueString(int index) {
+  private MutableCharArrayString readValueString(int index) {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
     int size = locator.getSize();

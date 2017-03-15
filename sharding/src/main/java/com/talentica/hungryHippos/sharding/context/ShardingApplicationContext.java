@@ -47,7 +47,7 @@ public class ShardingApplicationContext {
    * 
    * @param shardingFolderPath
    */
-  public ShardingApplicationContext(String shardingFolderPath) {
+  public ShardingApplicationContext(String shardingFolderPath) throws JAXBException, FileNotFoundException {
     LOGGER.info("shardingFolderPath : " + shardingFolderPath);
     this.shardingFolderPath = shardingFolderPath;
     checkShardingFolderNull();
@@ -60,7 +60,7 @@ public class ShardingApplicationContext {
       getColumnsConfiguration();
     } catch (FileNotFoundException | JAXBException e) {
       LOGGER.error(e.toString());
-      throw new RuntimeException(e);
+      throw e;
     }
   }
 

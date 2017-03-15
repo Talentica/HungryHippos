@@ -12,12 +12,15 @@ import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
+
 public class SumJob {
 
   private static JavaSparkContext context;
   protected static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws JAXBException, FileNotFoundException {
     String masterIp = args[0];
     String appName = args[1];
     String inputFile = args[2];

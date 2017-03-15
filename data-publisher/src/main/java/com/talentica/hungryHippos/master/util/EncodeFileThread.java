@@ -1,12 +1,6 @@
 package com.talentica.hungryHippos.master.util;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
@@ -20,6 +14,8 @@ import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+
+import javax.xml.bind.JAXBException;
 
 public class EncodeFileThread implements Runnable{
 
@@ -42,11 +38,11 @@ public class EncodeFileThread implements Runnable{
   }
   @Override
   public void run() {
-    setContext(shardingFolderPath);
+
     String splitFileName = splitFilePath + "_" + currentChunk + "_txt";
     File file = new File(splitFileName);
     try{
-      
+      setContext(shardingFolderPath);
       Process process  = Runtime.getRuntime().exec(commonCommandArgs + " " + currentChunk + " " + splitFileName);
       file.deleteOnExit();
       int processStatus = process.waitFor();
@@ -109,7 +105,7 @@ public class EncodeFileThread implements Runnable{
     }
   }
   
-  private ShardingApplicationContext setContext(String shardingFolderPath){
+  private ShardingApplicationContext setContext(String shardingFolderPath) throws JAXBException, FileNotFoundException {
     context = new ShardingApplicationContext(shardingFolderPath);
     return context;
   }

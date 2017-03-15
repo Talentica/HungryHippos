@@ -1,5 +1,6 @@
 package com.talentica.hungryHippos.master.util;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,12 +15,14 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 
+import javax.xml.bind.JAXBException;
+
 public class EncodedFileIO {
 
   private static ShardingApplicationContext context;
   private static OutputStream outputFile;
   
-  public static void main(String[] args){
+  public static void main(String[] args) throws JAXBException, FileNotFoundException {
     String shardingFolderPath = args[0];
     String inputFileName = args[1];
     String outputFileName = args[2];
@@ -73,7 +76,7 @@ public class EncodedFileIO {
     
   }
   
-  private static ShardingApplicationContext setContext(String shardingFolderPath){
+  private static ShardingApplicationContext setContext(String shardingFolderPath) throws JAXBException, FileNotFoundException {
     context = new ShardingApplicationContext(shardingFolderPath);
     return context;
   }

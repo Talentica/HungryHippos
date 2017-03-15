@@ -12,9 +12,10 @@
    
    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean
    
-   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. for more details refer [SSH KEY](.#ssh_key-generation)
+   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings.  refer [SSH KEY Generation](.#ssh_key-generation)
+   
    2.5 TOKEN=---------------------------------- //token id by which you can access digital ocean api. #for more details refer    
-      **Token Generation
+      [Token Generation](.#token-generation)
    
    2.6 IMAGE=ubuntu-14-04-x64  // operating system to be used
    

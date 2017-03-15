@@ -12,7 +12,7 @@
    
    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean
    
-   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. for more details refer [CONTRIBUTE](.#4---ssh_key-generation)
+   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. for more details refer [SSH KEY](.#ssh_key-generation)
    2.5 TOKEN=---------------------------------- //token id by which you can access digital ocean api. #for more details refer    
       **Token Generation
    
@@ -26,7 +26,7 @@
 
 3. execute ./vagrant_init_caller.sh
 
-### 4 - SSH_KEY Generation
+### SSH_KEY Generation
 
 1. ssh-keygen -t rsa ; after executing this command it will type something like below
 
@@ -70,5 +70,4 @@
 ### Destroy Server (Digital ocean nodes created)
   
   1. to destroy the server nodes execute ./destroy-node.sh
-  
-  ### 4 - CONTRIBUTE
+

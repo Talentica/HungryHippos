@@ -4,9 +4,10 @@
 
 2. vagrant.properties has following variables with default values
 
-   2.1 NODENUM = 5 //number of nodes to spawned  here 5 nodes will be spawned
+   2.1 NODENUM = 1 //number of nodes to spawned  here 1 node will be spawned
    
-   2.2 ZOOKEEPERNUM = 3 //number of nodes on which zookeeper has to be installed ; i.e; 3 nodes will install zookeeper
+   2.2 ZOOKEEPERNUM = 1 //number of nodes on which zookeeper has to be installed ; i.e; 1 node will install zookeeper;
+                        //ZOOKEEPERNUM <= NODENUM
    
    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean
    

@@ -14,15 +14,12 @@ zookeeper_ips=($(awk -F ':' '{print $1}' ip_file_zookeeper.txt))
 
 create_zookeeperip_string zookeeper_ips[@]
 
-tmp=0
 
+start_process(){
+tmp=0
 for ip in "${ips[@]}"
 do
-        scp -r ../distr hhuser@$ip:/home/hhuser/
-        ssh root@$ip "chown root /home/hhuser/distr/bin/clear_unix_cache"
-        ssh root@$ip "chmod 7755 /home/hhuser/distr/bin/clear_unix_cache"
 
-	ssh hhuser@$ip pkill -f "talentica"
         if [ $tmp -eq 0 ]
         then
                 run_script_on_random_node $zookeeperip_string $ip
@@ -34,4 +31,17 @@ do
 
 done
 
+}
+
+copy_folder(){
+
+for ip in "${ips[@]}"
+do
+        scp -r ../distr hhuser@$ip:/home/hhuser/
+        ssh root@$ip "chown root /home/hhuser/distr/bin/clear_unix_cache"
+        ssh root@$ip "chmod 7755 /home/hhuser/distr/bin/clear_unix_cache"
+
+done
+
+}
 

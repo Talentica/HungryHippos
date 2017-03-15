@@ -59,6 +59,9 @@ echo ${ips[@]}
 zookeeper_ips=($(awk -F ':' '{print $1}' ip_file_zookeeper.txt))
 echo ${zookeeper_ips[@]}
 
+#copy server_scripts to distr_original/bin folder
+mkdir ../distr_original/bin
+cp  server_scripts/* ../distr_original/bin
 mkdir -p ../distr
 
 #Copy original distr/* to distr/

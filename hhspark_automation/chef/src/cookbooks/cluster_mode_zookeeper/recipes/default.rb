@@ -27,7 +27,8 @@ bash 'writing_server_id' do
   user 'hhuser'
   cwd '/var/lib/zookeeper'
   code <<-EOH
-  hostname | tr -d 'a-zA-Z/-' >> myid
+  IFS='-' read -a id <<<  hostname 
+  echo ${id[${#id[@]}-1]}  >> myid
   EOH
 end
 

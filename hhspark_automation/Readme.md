@@ -1,4 +1,5 @@
-#Setting Initial Properties.
+# INSTALLATION
+### Setting Initial Properties.
 
 1. go to the scripts folder and create vagrant.properties file.  cd scripts; cp vagrant.properties.template vagant.properties
 
@@ -11,8 +12,7 @@
    
    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean
    
-   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. for more details refer **SSH_KEY Generation
-
+   2.4 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. for more details refer [CONTRIBUTE](.#4---ssh_key-generation)
    2.5 TOKEN=---------------------------------- //token id by which you can access digital ocean api. #for more details refer    
       **Token Generation
    
@@ -26,7 +26,7 @@
 
 3. execute ./vagrant_init_caller.sh
 
-#SSH_KEY Generation
+### 4 - SSH_KEY Generation
 
 1. ssh-keygen -t rsa ; after executing this command it will type something like below
 
@@ -55,7 +55,7 @@
    
    2.6 the provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
 
-#Token Generation
+### Token Generation
   
   1. login to  https://cloud.digitalocean.com
   
@@ -67,6 +67,8 @@
   
   5. copy the token, as it will not be shown again. 
   
-#Destroy Server (Digital ocean nodes created)
+### Destroy Server (Digital ocean nodes created)
   
   1. to destroy the server nodes execute ./destroy-node.sh
+  
+  ### 4 - CONTRIBUTE

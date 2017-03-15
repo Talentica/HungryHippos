@@ -37,7 +37,7 @@
   
    �NOTE:- after pressing enter it will prompt something like below
    Enter passphrase (empty for no passphrase):
-   you can type some passphrase or ignore the passphrase by hitting enter again.
+   ignore the passphrase by hitting enter again.
 
 
 

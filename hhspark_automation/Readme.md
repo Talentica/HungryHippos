@@ -42,19 +42,31 @@
 
 
 2. After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
+   
    2.1 login to  https://cloud.digitalocean.com
+   
    2.2 go to settings and select security. 
+   
    2.3 a new page will be open which has SSH keys as heading
+   
    2.4 click on "add ssh key"
+   
    2.5 copy the contents of id_rsa.pub to the content box, and give it a name.
+   
    2.6 the provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
 
 #Token Generation
-   1. login to  https://cloud.digitalocean.com
-   2. click on API
-   3. click on Generate New Token 
-   4. provide token name and click on Generate Token
-   5. copy the token, as it will not be shown again. 
+  
+  1. login to  https://cloud.digitalocean.com
+  
+  2. click on API
+  
+  3. click on Generate New Token 
+  
+  4. provide token name and click on Generate Token
+  
+  5. copy the token, as it will not be shown again. 
   
 #Destroy Server (Digital ocean nodes created)
+  
   1. to destroy the server nodes execute ./destroy-node.sh

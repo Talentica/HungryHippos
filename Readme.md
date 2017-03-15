@@ -24,7 +24,7 @@ Prerequisite
 10) client Side O/S :- Linux distributions
    	   
          RAM       :- 2GB     
-         HARD DISK :- 1GB 
+         HARD DISK :- minimum 2GB free for installation
    
 
 Installation of Prerequisite software

@@ -37,11 +37,32 @@ copy_folder(){
 
 for ip in "${ips[@]}"
 do
-        scp -r ../distr hhuser@$ip:/home/hhuser/
+        scp -r ../distr root@$ip:/home/hhuser/
+        ssh root@$ip "chown hhuser:hungryhippos /home/hhuser/ -R"
         ssh root@$ip "chown root /home/hhuser/distr/bin/clear_unix_cache"
         ssh root@$ip "chmod 7755 /home/hhuser/distr/bin/clear_unix_cache"
 
 done
 
 }
+
+echo 1. to start process on all nodes
+echo 2. to copy distr folders on all nodes
+read val
+
+if [ $val == 1 ];
+then
+ echo request to start process sent to all nodes
+ start_process
+ echo started process on all nodes
+
+elif [ $val == 2 ];
+then 
+ echo request to copy folders sent
+ copy_folder
+ echo transfered distr folder
+fi  
+
+
+
 

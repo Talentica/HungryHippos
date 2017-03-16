@@ -61,8 +61,8 @@ class Vagrant_functions
 
 
   def  self.spawner(config,private_key_path,token,image,region,ram,ssh_key_name)
-                config.ssh.private_key_path = private_key_path
-                config.vm.provider :digital_ocean do |provider|
+               config.ssh.private_key_path = private_key_path
+               config.vm.provider :digital_ocean do |provider|
                         #  provider.client_id = "YOUR CLIENT ID"
                         #  provider.api_key = "639d421b041fed3566bc3da896d31347befdad49f8c9add911eee5a554865294"
                 provider.token = token
@@ -70,7 +70,7 @@ class Vagrant_functions
                 provider.region = region
                 provider.size = ram
 		provider.ssh_key_name= ssh_key_name
-                end
+              end
   end 
 
 

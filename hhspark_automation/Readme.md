@@ -24,8 +24,13 @@
    2.8 RAM=8GB // the ram of the node , here 8GB ram is allocated for each node
    
    2.9 SSH_KEY_NAME=<vagrant_SSH_KEY_NAME> // is the name of the ssh key that will be added in digital ocean as part of 2.4.
+ 3. cp spark.properties.template spark.properties. //default port number to use, override the values to use that specific port number
+ 
+    3.1 SPARK_WORKER_PORT=9090 
+    
+    3.2 SPARK_MASTER_PORT=9091
 
-3. execute ./vagrant_init_caller.sh
+ 4. execute ./vagrant_init_caller.sh
 
 ### SSH_KEY Generation
 

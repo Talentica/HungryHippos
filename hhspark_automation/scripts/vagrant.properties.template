@@ -8,4 +8,3 @@ IMAGE=ubuntu-14-04-x64
 REGION=nyc1
 RAM=1GB
 SSH_KEY_NAME=vagrant
-STORAGE_NAME=volume-nyc1-03

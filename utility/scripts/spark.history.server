@@ -1,0 +1,5 @@
+STORAGE_NAME=volume-nyc1-03
+SPARK_EVENT_LOG_ENABLED=true
+SPARK_EVENT_LOG_DIR=file:///mnt/spark_history_server/spark-events/
+SPARK_EVENT_LOG_COMPRESS=true
+SPARK_HISTORY_FS_LOG_DIR=file:///mnt/spark_history_server/spark-events/

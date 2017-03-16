@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source attach-storage.sh
 source assign-spark-variables.sh
 download_spark()
 {
@@ -63,7 +62,7 @@ add_spark_ip_port_on_spark_env()
                         ssh hhuser@$i "echo spark.eventLog.compress  $SPARK_EVENT_LOG_COMPRESS >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
                         ssh hhuser@$i "echo spark.history.fs.logDirectory  $SPARK_HISTORY_FS_LOG_DIR >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
 
-                        attach_storage $TOKEN $STORAGE_NAME $i
+                        echo  $i > ../../utility/ip.txt
 
 			sleep 15
                 

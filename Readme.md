@@ -2,7 +2,7 @@
 This readme contains prerequisite and basic installation details.
 
 
-Prerequisite
+### Prerequisite
 
 1) minimum jdk 1.8 :- http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
@@ -27,7 +27,7 @@ Prerequisite
          HARD DISK :- minimum 2GB free for installation
    
 
-Installation of Prerequisite software
+### Installation of Prerequisite software
 
 1. you can install all prerequsite software by running ./install.sh  or  individual scripts. (supported on ubuntu)
 
@@ -41,18 +41,20 @@ Installation of Prerequisite software
       override you Ruby and Java to latest version.
 2. for other distribution please follow the instructions provided by respectice software companies.
 
-Build the project:
+### Build the project:
 
 1. gradle clean build
 2. jar file of each module will be created in respective modules/build/libs.
 3. cp node/build/libs/node-*.jar hhspark_automation/distr_original/lib
 
-Setting up the project.
+### Setting up the project.
 
 1.  cd hhspark_automation ; #go to hhspark automation.
-2.  please refer hhspark_automation/readme for further steps
+2.  please refer hhspark_automation/readme for further steps.
 
-After execution of the script.
+    https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/hhspark_automation/Readme.md
+
+### After execution of the script.
 
 1. spark will be downloaded on all servers.
 2. java will be installed on all servers.

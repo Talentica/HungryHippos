@@ -102,28 +102,37 @@ Therefore, simply follow the below steps :
 	2. Build the module.
 	3. Create the jar. Let's say it is "examples-<varsion>.jar".
 	4. Transfer above created jar along with dependency jars such as "sharding-<varsion>.jar" and
-	   <br />"hhrdd-<varsion>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
+	   
+	   "hhrdd-<varsion>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
 	5. Run the following command in spark installation directory of master node:
 				
-	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master spark://<master-ip>:<port>                     <br /><client-job-jar> spark://<master-ip>:<port> <application-name> <relative-distributed-path>
-	    <br /><client-config-xml-path> <output-directory> <optional-args>	.
+	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master spark://<master-ip>:<port>                     
+	   <client-job-jar> spark://<master-ip>:<port> <application-name> <relative-distributed-path>
+	    
+	    <client-config-xml-path> <output-directory> <optional-args>	.
 						 
 	 Description about above arguments provided -
 					 
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
-	  2. dependency-jars : all dependency jars with comma separated such as /home/hhuser/distr/lib_client/sharding-                  <varsion>.jar,/home/hhuser/distr/lib_client/hhrdd-<varsion>.jar.
+	  2. dependency-jars : all dependency jars with comma separated such as /home/hhuser/distr/lib_client/sharding-                  
+	                      <varsion>.jar,/home/hhuser/distr/lib_client/hhrdd-<varsion>.jar.
 	  3. master-ip : spark master ip.
 	  4. port : configured spark master port number.
 	  5. application-name : application name for current submission programe.
 	  6. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
-	                                 <br />having field name "distributed-file-path". 
+	                                 
+					 having field name "distributed-file-path". 
 	  7. client-config-xml-path : client-config.xml file path.
 	  8. output-file-name : output directory name wherein the results are stored inside job id subfolder.
 	  9. optional-args : This arguments are optional which is to redirect the logs and also to run the application
-	                     <br />in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
+	                     
+			     in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
 						 
 	Example :
-	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob --jars /home/hhuser/distr/lib_client/sharding-         <br />0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091                           <br />/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input                         <br />/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
+	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob --jars /home/hhuser/distr/lib_client/sharding-         
+	0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091                                 
+	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input                               
+	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
  
 
 

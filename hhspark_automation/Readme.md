@@ -31,7 +31,7 @@
     
     3.2 SPARK_MASTER_PORT=9091
 
- 4. execute ./vagrant_init_caller.sh
+ 4. execute ./vagrant-init-caller.sh
 
 ### SSH_KEY Generation
 

@@ -93,7 +93,6 @@ update_limits_conf(){
 
 add_ssh_key(){
 	eval `ssh-agent -s`
-	ssh-add ./../hhuser_id_rsa
 	ssh-add $PRIVATE_KEY_PATH
 }
 

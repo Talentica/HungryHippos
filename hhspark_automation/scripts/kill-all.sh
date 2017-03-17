@@ -1,8 +1,9 @@
 #!/bin/bash
 
+source assign-global-variables.sh
 #add ssh key to local machine to access nodes
 eval `ssh-agent -s`
-ssh-add ../hhuser_id_rsa
+ssh-add $PRIVATE_KEY_PATH
 
 #retrieve all Ips 
 ips=($(awk -F ':' '{print $1}' ip_file.txt))

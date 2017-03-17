@@ -2,7 +2,7 @@
 This readme contains prerequisite and basic installation details.
 
 
-### Prerequisite
+## Prerequisite
 
 1) minimum jdk 1.8 :- http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
@@ -28,7 +28,7 @@ This readme contains prerequisite and basic installation details.
          HARD DISK :- minimum 2GB free for installation
    
 
-### Installation of Prerequisite software
+## Installation of Prerequisite software
 
 1. you can install all prerequsite software by running ./install.sh  or  individual scripts. (supported on ubuntu)
 
@@ -42,20 +42,20 @@ This readme contains prerequisite and basic installation details.
       override you Ruby and Java to latest version.
 2. for other distribution please follow the instructions provided by respectice software companies.
 
-### Build the project:
+## Build the project:
 
 1. gradle clean build
 2. jar file of each module will be created in respective modules/build/libs.
 3. cp node/build/libs/node-*.jar hhspark_automation/distr_original/lib
 
-### Setting up the project.
+## Setting up the project.
 
 1.  cd hhspark_automation ; #go to hhspark automation.
 2.  please refer hhspark_automation/readme for further steps.
 
     https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/hhspark_automation/Readme.md
 
-### After execution of the script.
+## After execution of the script.
 
 1. spark will be downloaded on all servers.
 2. java will be installed on all servers.
@@ -69,17 +69,17 @@ This readme contains prerequisite and basic installation details.
           ideal No.of cores per machine: 4
 
 
-### Data publish.
+## Data publish.
 Data publish module allows the user to publish large data set across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
 
 Data publish jar will be availaible in installation package of the Hungry Hippos.
 Execute the following command to get start with data publish.
 
-# Command :
+### Command :
     java -cp data-publisher-<varsion>.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-directory-path> <optional-args>
-# Command arguments descriptions :    
+### Command arguments descriptions :    
                
     1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
     
@@ -97,19 +97,19 @@ Execute the following command to get start with data publish.
     6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in
        background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
-# Example  : 
+### Example  : 
         java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
 	conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
             
             
 
-### Job submission.
+## Job submission.
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
 
 Therefore, simply follow the below steps : 
-# Steps :
+### Steps :
 	1. Write the job.
 	
 	2. Build the module.
@@ -120,12 +120,12 @@ Therefore, simply follow the below steps :
 	   "hhrdd-<varsion>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
-# Command :
+### Command :
 	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master 
 	   spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name>
 	   <relative-distributed-path> <client-config-xml-path> <output-directory> <optional-args>	.
 						 
-# Command arguments descriptions :
+### Command arguments descriptions :
 					 
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  
@@ -147,7 +147,7 @@ Therefore, simply follow the below steps :
 	  
 	  9. optional-args : This arguments are optional which is to redirect the logs and also to run the application
 	     in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
-# Example :						 
+### Example :						 
 	
 	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob --jars /home/hhuser/distr/lib_client/sharding-         
 	0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091                                 

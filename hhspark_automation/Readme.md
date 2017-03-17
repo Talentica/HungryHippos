@@ -1,7 +1,7 @@
 # INSTALLATION
 ### Setting Initial Properties.
 
-1. go to the scripts folder and create vagrant.properties file.  cd scripts; cp vagrant.properties.template vagant.properties
+1. go to the scripts folder and create vagrant.properties file.  cd scripts; cp vagrant.properties.template vagrant.properties
 
 2. vagrant.properties has following variables with default values
 
@@ -25,7 +25,7 @@
    
    2.9 SSH_KEY_NAME=<vagrant_SSH_KEY_NAME> // is the name of the ssh key that will be added in digital ocean as part of 2.4.
    
- 3. cp spark.properties.template spark.properties. //default port number to use, override the values to use that specific port number
+ 3. cp spark.properties.template spark.properties  . //default port number to use, override the values to use that specific port number
  
     3.1 SPARK_WORKER_PORT=9090 
     

@@ -40,7 +40,6 @@ Vagrant.configure("2") do |config|
 	 config.vm.box = "digital_ocean"
 	 Vagrant_functions.spawner(config,private_key_path,token,image,region,ram,ssh_key_name)
 
-	 
 
   elsif provider == "virtual_box"
 	

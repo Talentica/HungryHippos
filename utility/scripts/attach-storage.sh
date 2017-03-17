@@ -1,15 +1,17 @@
 #!/bin/bash
 
+source assign-spark-server-variables.sh
+
 attach_storage() {
-token=$1
+token=$TOKEN
 echo "region of the node is set nyc1, as digital ocean supports mounted capability on nyc1"
 region="nyc1"
 #name=volume-nyc1-03
-name=$2
+name=$STORAGE_NAME
 
 echo name = $name
 #droplet_ip="67.205.180.236"
-droplet_ip=$3
+droplet_ip=$(echo ip.txt)
 echo droplet_ip $droplet_ip
 
 curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $token" "https://api.digitalocean.com/v2/volumes?name=$name&region=$region" >> result.txt
@@ -31,6 +33,11 @@ if [ -z $assigned_id ]; then
 else
  echo block storage is already assigned to the $assigned_id
 fi
+
+ ssh hhuser@$droplet_ip "echo spark.eventLog.enabled   $SPARK_EVENT_LOG_ENABLED >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
+ ssh hhuser@$droplet_ip "echo spark.eventLog.dir       $SPARK_EVENT_LOG_DIR  >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
+ ssh hhuser@$droplet_ip "echo spark.eventLog.compress  $SPARK_EVENT_LOG_COMPRESS >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
+ ssh hhuser@$droplet_ip "echo spark.history.fs.logDirectory  $SPARK_HISTORY_FS_LOG_DIR >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
 
 rm -rf result.txt
 }

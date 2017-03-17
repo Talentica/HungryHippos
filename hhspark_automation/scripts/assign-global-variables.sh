@@ -12,7 +12,6 @@ export IMAGE
 export REGION
 export RAM
 export SSH_KEY_NAME
-export STORAGE_NAME
 
 file="./vagrant.properties"
 
@@ -36,5 +35,4 @@ RAM=$(get_vagrant_values_associated_with_key $file RAM)
 #echo $RAM
 SSH_KEY_NAME=$(get_vagrant_values_associated_with_key $file SSH_KEY_NAME)
 #echo $SSH_KEY_NAME
-STORAGE_NAME=$(get_vagrant_values_associated_with_key $file STORAGE_NAME)
 

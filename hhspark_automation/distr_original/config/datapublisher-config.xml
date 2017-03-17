@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:datapublisher-config
-	xmlns:tns="http://www.talentica.com/hungryhippos/config/datapublisher"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/datapublisher datapublisher-config.xsd ">
-	<tns:no-of-attempts-to-connect-to-node>50</tns:no-of-attempts-to-connect-to-node>
-	<tns:servers-connect-retry-interval-in-ms>2000</tns:servers-connect-retry-interval-in-ms>
-	<tns:no-of-data-receiver-threads>9</tns:no-of-data-receiver-threads>
-	<tns:no-of-bytes-in-each-memory-array>200000</tns:no-of-bytes-in-each-memory-array>
+<tns:datapublisher-config xmlns:tns="http://www.talentica.com/hungryhippos/config/datapublisher" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/datapublisher datapublisher-config.xsd ">
+  <tns:no-of-attempts-to-connect-to-node>10</tns:no-of-attempts-to-connect-to-node>
+  <tns:servers-connect-retry-interval-in-ms>2000</tns:servers-connect-retry-interval-in-ms>
 </tns:datapublisher-config>

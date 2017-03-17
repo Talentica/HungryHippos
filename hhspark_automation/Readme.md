@@ -77,5 +77,5 @@
   
 ### Destroy Server (Digital ocean nodes created)
   
-  1. to destroy the server nodes execute ./destroy-node.sh
+  1. to destroy the server nodes execute ./destroy-vagrant.sh
 

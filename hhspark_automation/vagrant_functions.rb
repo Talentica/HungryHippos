@@ -22,11 +22,11 @@ class Vagrant_functions
                                        chef.cookbooks_path = ["#{curr_dir}/chef/src/cookbooks"]
                                        chef.add_recipe 'create_group_user'
                                       #creates directory and changes ownership
-                                       chef.add_recipe 'hadoop_ssh_keygen_trans_mastertoslaves'
+                                       chef.add_recipe 'hh_ssh_keygen_trans_mastertoslaves'
                                        #copies hhuser id_rsa.pub
-				       chef.add_recipe 'hadoop_ssh_keygen_master'
+				       chef.add_recipe 'hh_ssh_keygen_master'
                                        #copies authorized keys.txt
-                                       chef.add_recipe 'hadoop_ssh_keycopy_slave'
+                                       chef.add_recipe 'hh_ssh_keycopy_slave'
 					chef.add_recipe 'HH_java'
 					if i <=no_of_zookeeper
                                               

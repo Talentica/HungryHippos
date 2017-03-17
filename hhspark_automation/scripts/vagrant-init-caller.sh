@@ -26,6 +26,14 @@ remove_known_hosts
 #add ssh key to local machine to access nodes
 add_ssh_key #(utility.sh)
 
+#copying ssh public key and private key to /chef directory
+
+ssh_key_path=$PRIVATE_KEY_PATH
+ssh_key_dir=${ssh_key_path%/*}'/'
+cat $PRIVATE_KEY_PATH > ../chef/src/cookbooks/hh_ssh_keygen_master/templates/default/id_rsa
+cat $ssh_key_dir'id_rsa.pub' > ../chef/src/cookbooks/hh_ssh_keygen_master/templates/default/id_rsa.pub
+cat $ssh_key_dir'id_rsa.pub' > ../chef/src/cookbooks/hh_ssh_keycopy_slave/templates/default/authorized_keys.txt
+
 #download zookeeper to chef cookbook download_zookeeper (zookeeper.sh)
 zookeeper_file_loc="../chef/src/cookbooks/download_zookeeper/files/default/zookeeper-3.5.1-alpha.tar.gz"
 flag=$(check_file_exists $zookeeper_file_loc)

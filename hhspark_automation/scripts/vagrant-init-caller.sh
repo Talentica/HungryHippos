@@ -75,6 +75,7 @@ mkdir -p ../distr
 
 #Copy original distr/* to distr/
 cp -r ../distr_original/* ../distr/
+mkdir -p ../distr/logs
 
 #create a string in format of zookeperIP:2181,zookeperIP1:2181
 create_zookeeperip_string ${zookeeper_ips[@]}

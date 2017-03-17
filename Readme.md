@@ -78,7 +78,7 @@ Execute the following command to get start with data publish.
 
 ### Command :
     java -cp data-publisher-<version>.jar <main-class> <client-config.xml> <input-data>
-    <relative-distributed-directory-path> <optional-args>
+    <relative-distributed-path> <optional-args>
 ### Command arguments descriptions :    
                
     1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".

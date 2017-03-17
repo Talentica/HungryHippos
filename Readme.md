@@ -82,13 +82,13 @@ Data publish jar will be availaible in installation package of the Hungry Hippos
               
     1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
     2. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
-    3. client-config.xml: provide the client-config.xml file path which is available in Hungry Hippos installation package.                           <br />i.e conf/client-config.xml
-    4. input-data : provide path of input data set with file name. Currently we support text and csv files only which need                       <br />be comma seperated.
-    5. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml" having field 					<br />name "distributed-file-path".
-    6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in 			       <br />background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
+    3. client-config.xml: provide the client-config.xml file path which is available in Hungry Hippos installation package.                           <br/>i.e conf/client-config.xml
+    4. input-data : provide path of input data set with file name. Currently we support text and csv files only which need                       <br/>be comma seperated.
+    5. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml" having field 					<br/>name "distributed-file-path".
+    6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in 			       <br/>background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
             Example  : 
-            java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter conf/client-config.xml 		<br />~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
+            java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter conf/client-config.xml 		<br/>~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
             
             
 

@@ -77,7 +77,7 @@ Data publish jar will be availaible in installation package of the Hungry Hippos
 Execute the following command to get start with data publish.
 
 ### Command :
-    java -cp data-publisher-<varsion>.jar <main-class> <client-config.xml> <input-data>
+    java -cp data-publisher-<version>.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-directory-path> <optional-args>
 ### Command arguments descriptions :    
                
@@ -114,10 +114,10 @@ Therefore, simply follow the below steps :
 	
 	2. Build the module.
 	
-	3. Create the jar. Let's say it is "examples-<varsion>.jar".
+	3. Create the jar. Let's say it is "examples-<version>.jar".
 	
-	4. Transfer above created jar along with dependency jars such as "sharding-<varsion>.jar" and
-	   "hhrdd-<varsion>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
+	4. Transfer above created jar along with dependency jars such as "sharding-<version>.jar" and
+	   "hhrdd-<version>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
 ### Command :
@@ -130,7 +130,7 @@ Therefore, simply follow the below steps :
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  
 	  2. dependency-jars : all dependency jars with comma separated such as 
-	  /home/hhuser/distr/lib_client/sharding-<varsion>.jar,/home/hhuser/distr/lib_client/hhrdd-<varsion>.jar.
+	  /home/hhuser/distr/lib_client/sharding-<version>.jar,/home/hhuser/distr/lib_client/hhrdd-<version>.jar.
 	  
 	  3. master-ip : spark master ip.
 	  

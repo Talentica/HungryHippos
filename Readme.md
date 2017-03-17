@@ -19,6 +19,7 @@ This readme contains prerequisite and basic installation details.
 7) git :- git need to be installed in the machine so that you can clone the project.
 
 8) gradle :- gradle need to be installed in the machine so that you build the project.
+            
              apt-get install gradle .
 
 10) client Side O/S :- Linux distributions

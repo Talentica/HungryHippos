@@ -79,20 +79,17 @@ Execute the following command to get start with data publish.
     java -cp data-publisher-<varsion>.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-directory-path> <optional-args>
             
-    #Description about above arguments provided -
+    Description about above arguments provided -
               
     1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
     2. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     3. client-config.xml: provide the client-config.xml file path which is available in 
-                          
 			  Hungry Hippos installation package.i.e conf/client-config.xml
     4. input-data : provide path of input data set with file name. Currently we support text and csv files
-                    
 		    only which need be comma seperated.
-    5. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml" 
-                                   
+    5. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
 				   having field name "distributed-file-path".
-    6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in 			       
+    6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in
                        background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
             Example  : 
@@ -119,7 +116,7 @@ Therefore, simply follow the below steps :
 	   <client-job-jar> spark://<master-ip>:<port> <application-name> <relative-distributed-path>
 	   <client-config-xml-path> <output-directory> <optional-args>	.
 						 
-	 #Description about above arguments provided -
+	 Description about above arguments provided -
 					 
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  2. dependency-jars : all dependency jars with comma separated such as /home/hhuser/distr/lib_client/sharding-                  

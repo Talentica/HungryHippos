@@ -34,9 +34,9 @@ This readme contains prerequisite and basic installation details.
 
    1.1 cd basic_install_scripts
    
-   1.2 ./install.sh 
+   1.2 ./install-all.sh 
    
-   1.2.1 install_*.sh to install respective software.
+   1.2.1 install-*.sh to install respective software.
    
    NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
       override you Ruby and Java to latest version.

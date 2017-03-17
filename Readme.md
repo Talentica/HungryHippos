@@ -79,7 +79,7 @@ Execute the following command to get start with data publish.
     java -cp data-publisher-<varsion>.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-directory-path> <optional-args>
             
-    Description about above arguments provided -
+    #Description about above arguments provided -
               
     1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
     2. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
@@ -96,14 +96,13 @@ Execute the following command to get start with data publish.
                        background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
             Example  : 
-            java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter 
-	    
+            java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
 	    conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
             
             
 
 ### Job submission.
-As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.           																		
+As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
 Therefore, simply follow the below steps : 
@@ -116,12 +115,11 @@ Therefore, simply follow the below steps :
 	   "hhrdd-<varsion>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
 	5. Run the following command in spark installation directory of master node:
 				
-	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master spark://<master-ip>:<port>                     
+	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master spark://<master-ip>:<port>
 	   <client-job-jar> spark://<master-ip>:<port> <application-name> <relative-distributed-path>
-	    
-	    <client-config-xml-path> <output-directory> <optional-args>	.
+	   <client-config-xml-path> <output-directory> <optional-args>	.
 						 
-	 Description about above arguments provided -
+	 #Description about above arguments provided -
 					 
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  2. dependency-jars : all dependency jars with comma separated such as /home/hhuser/distr/lib_client/sharding-                  

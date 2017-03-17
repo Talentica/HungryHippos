@@ -3,24 +3,26 @@
  */
 package com.talentica.hungryHippos.rdd.main;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.broadcast.Broadcast;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.rdd.HHSparkContext;
 import com.talentica.hungryHippos.rdd.main.job.Job;
 import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
 import com.talentica.spark.job.executor.SumJobExecutor;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.broadcast.Broadcast;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import scala.Tuple2;
 
 public class SumJob extends AbstractJob {
 

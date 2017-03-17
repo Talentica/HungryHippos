@@ -68,6 +68,62 @@ This readme contains prerequisite and basic installation details.
           HARD DISK: Depends on Data size of the file to be distributed.
           ideal No.of cores per machine: 4
 
+
+### Data publish.
+Data publish module allows the user to publish large data set across the cluster of machines from client machine.
+This distributed data become eligible to get executed during job execution.
+
+Data publish jar will be availaible in installation package of the Hungry Hippos. Execute the following command to get start with data publish.
+
+		
+			java -cp data-publisher-<ver>.jar <main-class> <client-config.xml> <input-data> <relative-distributed-directory-path> <optional-args>
+            
+            Description about above arguments provided -
+              
+            1. ver                                								: 	data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
+            2. main-class                  								: 	com.talentica.hungryHippos.master.DataPublisherStarter
+            3. client-config.xml      								: 	provide the client-config.xml file path which is available in Hungry Hippos installation package. i.e conf/client-config.xml
+            4. input-data                  								: 	provide path of input data set with file name. Currently we support text and csv files only which need be comma seperated.
+            5. relative-distributed-path                    : 	This path should be exactly same as provided in "sharding-client-config.xml" having field name "distributed-file-path".
+            6. optional-args                                          :  This arguments are optional which is to redirect the logs and also to run the application in background. 
+            																		    i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
+            
+            Example  : 
+            java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
+            
+            
+
+### Job submission.
+As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.           																		
+To execute the jobs, client should write the jobs and submit it with spark submit command. 
+Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
+Therefore, simply follow the below steps : 
+ 
+				1. Write the job.
+				2. Build the module.
+				3. Create the jar. Let's say it is "examples-<var>.jar".
+				4. Transfer above created jar along with dependency jars such as "sharding-<var>.jar" and "hhrdd-<var>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
+				5. Run the following command in spark installation directory of master node:
+				
+						./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name> <relative-distributed-path>
+						 <client-config-xml-path> <output-directory> <optional-args>	.
+						 
+						 Description about above arguments provided -
+						 
+						 1. job-main-class 							:	 main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
+						 2. dependency-jars 						: 	 all dependency jars with comma separated  such as /home/hhuser/distr/lib_client/sharding-<var>.jar , /home/hhuser/distr/lib_client/hhrdd-<var>.jar.
+						 3. master-ip					    			:    spark master ip.
+						 4. port 												:    configured spark master port number.
+						 5. application-name  					:    application name for current submission programe.
+						 6. relative-distributed-path 		:    This path should be exactly same as provided in "sharding-client-config.xml" having field name "distributed-file-path". 
+						 7. client-config-xml-path 			:    client-config.xml file path.
+						 8. output-file-name 						:    output directory name wherein the results are stored inside job id subfolder.
+						 9. optional-args 							:    This arguments are optional which is to redirect the logs and also to run the application in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
+						 
+				 Example :
+				 ./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob --jars /home/hhuser/distr/lib_client/sharding-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar 
+				 --master spark://67.205.172.104:9091 /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input /home/hhuser/distr/config/client-config.xml
+				  output >../logs/spark.out 2>../logs/spark.err &
  
 
 

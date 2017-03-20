@@ -252,7 +252,7 @@ Look at the below "client-config.xml" file :
 	
        <tns:node-ssh-username>hhuser</tns:node-ssh-username>
        Here username should be hhuser or any other configured username during installation
-       so that nodes get reachable.
+       so that nodes get reachable from client machine.
        
        
 

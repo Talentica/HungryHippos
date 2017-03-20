@@ -221,11 +221,39 @@ A sample sharding-server-config.xml file looks like below :
       <tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
       <tns:maximum-no-of-shard-buckets-size>20000</tns:maximum-no-of-shard-buckets-size>
     </tns:sharding-server-config>
-
+	
 ### Explaination : 
 
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
+    
+    
+### Note : Also configure client-config.xml.
+
+client-config.xml is required at both the stages of execution of programe namely "Sharding" and "Data publish". Therefore, it is right time to update the "client-config.xml" file.
+Look at the below "client-config.xml" file :
+
+     <tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client" 			                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"                                                                       xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
+ 	<tns:coordination-servers>
+	<tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
+	</tns:coordination-servers>
+	<tns:session-timout>86400000</tns:session-timout>
+	<tns:output>
+		<tns:node-ssh-username>hhuser</tns:node-ssh-username>
+		<tns:node-ssh-private-key-file-path>~/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
+	</tns:output>
+     </tns:client-config>
+
+### Explanation :
+      
+       <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
+      
+        IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
+	PORT : Conneting port of zookeeper.
+	
+	<tns:node-ssh-username>hhuser</tns:node-ssh-username>
+	 Here username should be hhuser or any other configured username during installation
+	 so that nodes get reachable.
 
 ## Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 

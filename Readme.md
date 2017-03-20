@@ -75,7 +75,7 @@ Sharding is the initial step in the enitre ecosystem of the Hungy Hippos applica
 ### 1. sharding-client-config.xml
 
 Assuming your input file contains lines with just two fields like below.
-The fields are created using "," as delimiter.
+The fields are created using comma i.e "," as delimiter.
 
     samsung,78904566
     apple,865478

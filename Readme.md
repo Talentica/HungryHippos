@@ -69,7 +69,7 @@
 
 ## Hungry Hippos Version : 0.7.0v
 
-## Sharding
+## Sharding Module :
 Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module. There are two configurations files for sharding which are explained below : 
 
 ### 1. sharding-client-config.xml
@@ -153,7 +153,7 @@ A sample sharding-server-config.xml file looks like below :
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
 
-## Data publish.
+## Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
 
@@ -186,7 +186,7 @@ Execute the following command to get start with data publish.
             
             
 
-## Job submission.
+## Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".

@@ -194,6 +194,8 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 Therefore, simply follow the below steps : 
 ### Steps :
 	1. Write the job.
+	https://github.com/Talentica/HungryHippos/blob/modularization-code-                                    
+	cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java
 	
 	2. Build the module.
 	
@@ -239,6 +241,7 @@ Therefore, simply follow the below steps :
 	/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
+	
  
 
 

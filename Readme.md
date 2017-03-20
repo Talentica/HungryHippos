@@ -249,38 +249,26 @@ Execute the following command to get start with data publish.
        
     4. relative-distributed-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".
-       
-    5. optional-args : This arguments are optional which is to redirect the logs and also to run the 
-       application in background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
-            
-### Example  : 
-     java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-     conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
-     logs/datapub.out 2> logs/datapub.err &
-            
-            
-
-## Job Execution Module :
-As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
-To execute the jobs, client should write the jobs and submit it with spark submit command. 
-Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
+Moreover, you can find the examples as to how to write the jobs in module "examples" with package [com.talentica.hungryHippos.rdd.main](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)  namely [SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java) , [MedianJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/MedianJob.java) and [UniqueCountJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/UniqueCountJob.java).
 
 Therefore, simply follow the below steps : 
 ### Steps :
 	1. Write the job.
 	
+[Examples as how to write jobs](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
+	
 	2. Build the module.
 	
 	3. Create the jar. Let's say it is "examples-0.7.0.jar".
 	
-	4. Transfer above created jar along with dependency jars such as "sharding-<version>.jar" and
+	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as "sharding-<version>.jar" and
 	   "hhrdd-<version>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
 ### Command :
 	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master 
 	   spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name>
-	   <relative-distributed-path> <client-config-xml-path> <output-directory> <optional-args>	.
+	   <relative-distributed-path> <client-config-xml> <output-directory> <optional-args>	.
 						 
 ### Command line arguments descriptions :
 					 
@@ -299,9 +287,9 @@ Therefore, simply follow the below steps :
 	  6. relative-distributed-path : This path should be exactly same as provided in
 	     "sharding-client-config.xml" having field name "distributed-file-path". 
 	     
-	  7. client-config-xml-path : client-config.xml file path.
+	  7. client-config-xml : client-config.xml file.
 	  
-	  8. output-file-name : output directory name wherein the results are stored inside job id
+	  8. output-directory : output directory name wherein the results are stored inside job id
 	     subfolder.
 	  
 	  9. optional-args : This arguments are optional which is to redirect the logs and also to run
@@ -314,11 +302,7 @@ Therefore, simply follow the below steps :
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
 	
- ### How to write the job :
  
- Please click on below link to know as how to write the jobs:
- 
-https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main
 
 
 

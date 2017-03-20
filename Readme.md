@@ -1,5 +1,5 @@
 
-This readme contains prerequisite and basic installation details.
+This readme contains prerequisite and basic installation guilelines along with end to end job executions .
 
 
 ## Prerequisite

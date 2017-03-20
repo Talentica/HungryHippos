@@ -271,11 +271,7 @@ Look at the below "client-config.xml" file :
  	<tns:coordination-servers>
 	<tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
 	</tns:coordination-servers>
-	<tns:session-timout>86400000</tns:session-timout>
-	<tns:output>
-		<tns:node-ssh-username>hhuser</tns:node-ssh-username>
-		<tns:node-ssh-private-key-file-path>~/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
-	</tns:output>
+	<tns:session-timout>86400000</tns:session-timout>	
      </tns:client-config>
 
 ### Explanation :

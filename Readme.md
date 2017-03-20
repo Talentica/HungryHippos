@@ -280,7 +280,7 @@ Therefore, simply follow the below steps :
 ### Command :
 	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master 
 	   spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name>
-	   <relative-distributed-path> <client-config-xml-path> <output-directory> <optional-args>	.
+	   <relative-distributed-path> <client-config-xml> <output-directory> <optional-args>	.
 						 
 ### Command line arguments descriptions :
 					 
@@ -299,9 +299,9 @@ Therefore, simply follow the below steps :
 	  6. relative-distributed-path : This path should be exactly same as provided in
 	     "sharding-client-config.xml" having field name "distributed-file-path". 
 	     
-	  7. client-config-xml-path : client-config.xml file path.
+	  7. client-config-xml : client-config.xml file.
 	  
-	  8. output-file-name : output directory name wherein the results are stored inside job id
+	  8. output-directory : output directory name wherein the results are stored inside job id
 	     subfolder.
 	  
 	  9. optional-args : This arguments are optional which is to redirect the logs and also to run

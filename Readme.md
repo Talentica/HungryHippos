@@ -52,33 +52,63 @@
 1.  
 
 ### Setting Initial Properties.
+ **Setting Initial Properties**
 
-1.  cd hhspark_automation/scripts // go to the scripts folder and 
-2.  cp vagrant.properties.template vagrant.properties // create vagrant.properties file from vagrant.properties.template
+1.  go to the scripts folder.
 
-    vagrant.properties has following variables with default values
+    *cd hhspark_automation/scripts*
+    
+2.  create vagrant.properties file from vagrant.properties.template
 
-    2.1 NODENUM = 1 //number of nodes to spawned here 1 node will be spawned
+    *cp vagrant.properties.template vagrant.properties*
 
-    2.2 ZOOKEEPERNUM = 1 //number of nodes on which zookeeper has to be installed ; i.e; 1 node will install zookeeper;      	
-       //ZOOKEEPERNUM <= NODENUM
+    **vagrant.properties** has following variables with default values
 
-    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean  
+    2.1 NODENUM = 1 
+    
+       *number of nodes to spawned here 1 node will be spawned*
 
-    2.4 TOKEN=---------------------------------- //token id by which you can access digital ocean api. #for more details refer
-    Token Generation
+    2.2 ZOOKEEPERNUM = 1 
+    
+       *number of nodes on which zookeeper has to be installed* ; 	
+       **ZOOKEEPERNUM <= NODENUM**
 
-    2.5 IMAGE=ubuntu-14-04-x64 // operating system to be used
+    2.3 PROVIDER = digital_ocean ;
+    
+       *default value , currently script supports only digital ocean*
 
-    2.60 REGION=nyc1 // Node spawn location nyc1 -> NewYork Region 1.
 
-    2.7 RAM=8GB // the ram of the node , here 8GB ram is allocated for each node
+    2.4 TOKEN=---------------------------------- 
+    
+    *token id by which you can access digital ocean api. #for more details refer
+    Token Generation*
 
-    2.8 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. refer SSH KEY Generation
+    2.5 IMAGE=ubuntu-14-04-x64
+    
+       *operating system to be used*
+
+    2.6 REGION=nyc1 
+    
+       _Node spawn location **nyc1 -> NewYork Region 1**_
+
+    2.7 RAM=8GB 
+    
+       *The ram of the node , here 8GB ram is allocated for each node*
+
+    2.8 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; 
+    
+    *ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. refer SSH KEY Generation*
       
-    2.9 SSH_KEY_NAME=<vagrant_SSH_KEY_NAME> // is the name of the ssh key that will be added in digital ocean as part of 2.8.
+    2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
+    
+    *is the name of the ssh key that will be added in digital ocean as part of 2.8.*
 
-3. cp spark.properties.template spark.properties . //default port number to use, override the values to use that specific port number
+3. create spark.properties file from spark.properties.template.
+  
+   *cp spark.properties.template spark.properties*
+    
+    spark.properties contains details regarding the port number to used for spark master and spark worker. override those values 
+    if you want to use some other port number.
 
     3.1 SPARK_WORKER_PORT=9090
 
@@ -88,7 +118,9 @@
 
 ## SSH_KEY Generation
 
-    ssh-keygen -t rsa ; after executing this command it will type something like below
+   *ssh-keygen -t rsa*
+    
+    after executing this command it will type something like below
 
     Generating public/private rsa key pair.
        Enter file in which to save the key (/home/"$user"/.ssh/id_rsa): 
@@ -97,7 +129,7 @@
 
     �NOTE:- after pressing enter it will prompt something like below Enter passphrase (empty for no passphrase): ignore the passphrase by hitting enter again.
 
-        After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
+ After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
 
         2.1 login to https://cloud.digitalocean.com
 
@@ -114,19 +146,22 @@
 
 ## Token Generation
 
-    login to https://cloud.digitalocean.com
+   1. login to https://cloud.digitalocean.com
 
-    click on API
+   2. click on API
 
-    click on Generate New Token
+   3. click on Generate New Token
 
-    provide token name and click on Generate Token
+   4. provide token name and click on Generate Token
 
-    copy the token, as it will not be shown again.
+   5. copy the token, as it will not be shown again.
 
 ## Destroy Server (Digital ocean nodes created)
 
-    to destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
+    To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
+    
+    *./destroy-vagrant.sh*
+
 
 ## After execution of the script.
 
@@ -221,11 +256,40 @@ A sample sharding-server-config.xml file looks like below :
       <tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
       <tns:maximum-no-of-shard-buckets-size>20000</tns:maximum-no-of-shard-buckets-size>
     </tns:sharding-server-config>
-
+	
 ### Explaination : 
 
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
+    
+    
+### Note : Also configure client-config.xml.
+
+client-config.xml is required at both the stages of execution of programe namely "Sharding" and "Data publish". Therefore, it is right time to update the "client-config.xml" file.
+Look at the below "client-config.xml" file :
+
+     <tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client" 			                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"                                                                       xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
+ 	<tns:coordination-servers>
+	<tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
+	</tns:coordination-servers>
+	<tns:session-timout>86400000</tns:session-timout>
+	<tns:output>
+		<tns:node-ssh-username>hhuser</tns:node-ssh-username>
+		<tns:node-ssh-private-key-file-path>~/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
+	</tns:output>
+     </tns:client-config>
+
+### Explanation :
+      
+       <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
+       IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
+       PORT : Conneting port of zookeeper.
+	
+       <tns:node-ssh-username>hhuser</tns:node-ssh-username>
+       Here username should be hhuser or any other configured username during installation
+       so that nodes get reachable from client machine.
+       
+       
 
 ## Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 
@@ -235,30 +299,21 @@ Data publish jar will be availaible in installation package of the Hungry Hippos
 Execute the following command to get start with data publish.
 
 ### Command :
-    java -cp data-publisher-0.7.0.jar <main-class> <client-config-xml> <input-data>
+    java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-path> <optional-args>
 ### Command line arguments descriptions :    
             
     1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     
-    2. client-config-xml: provide the "client-config.xml" file path which is available in 
-       Hungry Hippos installation package.i.e "conf/client-config.xml"
+    2. client-config.xml: provide the client-config.xml file path which is available in 
+       Hungry Hippos installation package.i.e conf/client-config.xml
        
     3. input-data : provide path of input data set with file name. Currently we support text
        and csv files only in which fields need be comma seperated.
        
     4. relative-distributed-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".
-       
-    5. optional-args : This arguments are optional which is to redirect the logs and also to run the 
-       application in background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
-            
-### Example  : 
-     java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-     conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
-     logs/datapub.out 2> logs/datapub.err &
-            
-            
+
 
 ## Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
@@ -275,8 +330,9 @@ Therefore, simply follow the below steps :
 	
 	3. Create the jar. Let's say it is "examples-0.7.0.jar".
 	
-	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as "sharding-<version>.jar" and
-	   "hhrdd-<version>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
+	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
+	   "sharding-<version>.jar" and "hhrdd-<version>.jar" to spark "master" node  in
+	   directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
 ### Command :
@@ -318,3 +374,6 @@ Therefore, simply follow the below steps :
 	
  
 
+
+
+ 

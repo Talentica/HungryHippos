@@ -235,14 +235,14 @@ Data publish jar will be availaible in installation package of the Hungry Hippos
 Execute the following command to get start with data publish.
 
 ### Command :
-    java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
+    java -cp data-publisher-0.7.0.jar <main-class> <client-config-xml> <input-data>
     <relative-distributed-path> <optional-args>
 ### Command line arguments descriptions :    
             
     1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     
-    2. client-config.xml: provide the client-config.xml file path which is available in 
-       Hungry Hippos installation package.i.e conf/client-config.xml
+    2. client-config-xml: provide the "client-config.xml" file path which is available in 
+       Hungry Hippos installation package.i.e "conf/client-config.xml"
        
     3. input-data : provide path of input data set with file name. Currently we support text
        and csv files only in which fields need be comma seperated.
@@ -316,6 +316,6 @@ Therefore, simply follow the below steps :
 	
  ### How to write the job :
  
- Please click on below link to know as how to write the jobs:
+ Please click on below link for examples of jobs:
  
 https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main

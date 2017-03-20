@@ -279,10 +279,6 @@ Look at the below "client-config.xml" file :
        <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
        IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
        PORT : Connecting port of zookeeper.
-	
-       <tns:node-ssh-username>hhuser</tns:node-ssh-username>
-       Here username should be hhuser or any other configured username during installation
-       so that nodes get reachable from client machine.
        
        
 

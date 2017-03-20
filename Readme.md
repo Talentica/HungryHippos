@@ -268,7 +268,7 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 Therefore, simply follow the below steps : 
 ### Steps :
 	1. Write the job.
-	https://github.com/Talentica/HungryHippos/blob/hh_pooshan_modulerization/Readme.md#how-to-write-the-job-
+https://github.com/Talentica/HungryHippos/blob/hh_pooshan_modulerization/Readme.md#how-to-write-the-job-
 	
 	2. Build the module.
 	

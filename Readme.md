@@ -70,11 +70,7 @@
 ## Hungry Hippos Version : 0.7.0v
 
 ## Sharding
-Before publishing data to HungryHippos, You have to run the sharding module.
-Sharding module uses a sample file and creates sharding table. This Sharding table is 
-used while publishing data. There are some configuration related details user have to provide 
-before running Sharding module. There are 2 configuration files related to sharding which 
-are explained below : 
+Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module. There are two configurations files for sharding which are explained below : 
 
 ### 1. sharding-client-config.xml
 

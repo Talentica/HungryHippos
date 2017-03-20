@@ -88,7 +88,7 @@ Execute the following command to get start with data publish.
        Hungry Hippos installation package.i.e conf/client-config.xml
        
     3. input-data : provide path of input data set with file name. Currently we support text
-       and csv files only which fields need be in comma seperated.
+       and csv files only in which fields need be comma seperated.
        
     4. relative-distributed-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".

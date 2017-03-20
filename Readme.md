@@ -196,8 +196,8 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
     <tns:sharding-client-config>
       <tns:input>
-        <tns:sample-file-path>/home/sohanc/D_drive/dataSet/testDataForPublish.txt</tns:sample-file-path>
-        <tns:distributed-file-path>/sohan/dir/input</tns:distributed-file-path>
+        <tns:sample-file-path>/home/hhuser/D_drive/dataSet/testDataForPublish.txt</tns:sample-file-path>
+        <tns:distributed-file-path>/hhuser/dir/input</tns:distributed-file-path>
         <tns:data-description>
           <tns:column>
             <tns:name>Mobile</tns:name>
@@ -216,7 +216,7 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
       </tns:input>
       <tns:sharding-dimensions>key1</tns:sharding-dimensions>
       <tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
-      <tns:bad-records-file-out>/home/sohanc/bad_rec</tns:bad-records-file-out>
+      <tns:bad-records-file-out>/home/hhuser/bad_rec</tns:bad-records-file-out>
     </tns:sharding-client-config>
 
 ### Explaination : 

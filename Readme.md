@@ -247,13 +247,14 @@ Look at the below "client-config.xml" file :
 ### Explanation :
       
        <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
-      
-        IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
-	PORT : Conneting port of zookeeper.
+       IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
+       PORT : Conneting port of zookeeper.
 	
-	<tns:node-ssh-username>hhuser</tns:node-ssh-username>
-	 Here username should be hhuser or any other configured username during installation
-	 so that nodes get reachable.
+       <tns:node-ssh-username>hhuser</tns:node-ssh-username>
+       Here username should be hhuser or any other configured username during installation
+       so that nodes get reachable.
+       
+       
 
 ## Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 

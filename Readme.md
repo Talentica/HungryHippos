@@ -81,9 +81,9 @@ are explained below :
 Assuming your input file contains lines with just two fields like below.
 The fields are created using "," as delimiter.
 
-    samsung,78904566<br/>
-    apple,865478<br/>
-    nokia,732<br/>
+    samsung,78904566
+    apple,865478
+    nokia,732
 
 Mobile is the column name given to field1 . i.e; samsung | apple | nokia<br/>
 Number is the column name given to field2 . i.e; 7890566 | 865478 ..

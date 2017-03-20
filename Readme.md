@@ -87,18 +87,19 @@ Execute the following command to get start with data publish.
     2. client-config.xml: provide the client-config.xml file path which is available in 
        Hungry Hippos installation package.i.e conf/client-config.xml
        
-    3. input-data : provide path of input data set with file name. Currently we support text and csv files
-       only which need be comma seperated.
+    3. input-data : provide path of input data set with file name. Currently we support text
+       and csv files only which need be comma seperated.
        
-    4. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
-       having field name "distributed-file-path".
+    4. relative-distributed-path : This path should be exactly same as provided 
+       in "sharding-client-config.xml" having field name "distributed-file-path".
        
     5. optional-args : This arguments are optional which is to redirect the logs and also to run the 
        application in background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
 ### Example  : 
         java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-	conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &
+	conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
+	logs/datapub.out 2> logs/datapub.err &
             
             
 
@@ -126,7 +127,8 @@ Therefore, simply follow the below steps :
 						 
 ### Command arguments descriptions :
 					 
-	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
+	  1. job-main-class : main class of client written jobs.
+	     i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  
 	  2. dependency-jars : all dependency jars with comma separated such as 
 	  /home/hhuser/distr/lib_client/sharding-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
@@ -137,19 +139,24 @@ Therefore, simply follow the below steps :
 	  
 	  5. application-name : application name for current submission programe.
 	  
-	  6. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
-	     having field name "distributed-file-path". 
+	  6. relative-distributed-path : This path should be exactly same as provided in
+	     "sharding-client-config.xml" having field name "distributed-file-path". 
 	     
 	  7. client-config-xml-path : client-config.xml file path.
 	  
-	  8. output-file-name : output directory name wherein the results are stored inside job id subfolder.
+	  8. output-file-name : output directory name wherein the results are stored inside job id
+	     subfolder.
 	  
-	  9. optional-args : This arguments are optional which is to redirect the logs and also to run the application
-	     in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
+	  9. optional-args : This arguments are optional which is to redirect the logs and also to run
+	     the application in background. i.e ">../logs/spark.out 2>../logs/spark.err &"
 ### Example :						 
 	
-	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob --jars /home/hhuser/distr/lib_client/sharding-         
-	0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091                                 
+	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob
+	 
+	 --jars /home/hhuser/distr/lib_client/sharding-0.7.0.jar,
+	 
+	 /home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091
+	 
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input                               
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
  

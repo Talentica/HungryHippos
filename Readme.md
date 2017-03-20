@@ -152,13 +152,9 @@ Therefore, simply follow the below steps :
 ### Example :						 
 	
 	./bin/spark-submit --class com.talentica.hungryHippos.rdd.main.SumJob
-	
 	--jars /home/hhuser/distr/lib_client/sharding-0.7.0.jar,
-	
 	/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091
-	
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input
-	
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
  
 

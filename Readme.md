@@ -242,7 +242,7 @@ Therefore, simply follow the below steps :
 	
  ### How to write the job :
  
- Please click on below link as how to write the jobs:
+ Please click on below link to know as how to write the jobs:
  
 https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main
 

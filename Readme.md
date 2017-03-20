@@ -93,8 +93,8 @@ Execute the following command to get start with data publish.
     4. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
        having field name "distributed-file-path".
        
-    5. optional-args : This arguments are optional which is to redirect the logs and also to run the application in
-       background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
+    5. optional-args : This arguments are optional which is to redirect the logs and also to run the 
+       application in background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
 ### Example  : 
         java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter

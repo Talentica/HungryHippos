@@ -194,8 +194,8 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 Therefore, simply follow the below steps : 
 ### Steps :
 	1. Write the job.
-	https://github.com/Talentica/HungryHippos/blob/modularization-code-                                    
-	cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java
+	
+	https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java
 	
 	2. Build the module.
 	

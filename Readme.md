@@ -48,11 +48,7 @@
 3. cp node/build/libs/node-*.jar hhspark_automation/distr_original/lib
 
 ## Setting up the project.
-
-1.  
-
-### Setting Initial Properties.
- **Setting Initial Properties**
+**Setting Initial Properties**
 
 1.  go to the scripts folder.
 
@@ -95,7 +91,7 @@
     
        *The ram of the node , here 8GB ram is allocated for each node*
 
-    2.8 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; 
+    2.8 PRIVATE_KEY_PATH=/root/.ssh/id_rsa ; 
     
     *ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. refer SSH KEY Generation*
       
@@ -109,12 +105,11 @@
     
     spark.properties contains details regarding the port number to used for spark master and spark worker. override those values 
     if you want to use some other port number.
+    
+		3.1 SPARK_WORKER_PORT=9090
+		3.2 SPARK_MASTER_PORT=9091
 
-    3.1 SPARK_WORKER_PORT=9090
-
-    3.2 SPARK_MASTER_PORT=9091
-
-    execute ./vagrant-init-caller.sh
+4. execute ./vagrant-init-caller.sh
 
 ## SSH_KEY Generation
 
@@ -131,36 +126,36 @@
 
  After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
 
-        2.1 login to https://cloud.digitalocean.com
+       	 * login to https://cloud.digitalocean.com
 
-        2.2 go to settings and select security.
+       	 * go to settings and select security.
 
-        2.3 a new page will be open which has SSH keys as heading
+      	 * a new page will be open which has SSH keys as heading
 
-        2.4 click on "add ssh key"
+      	 * click on "add ssh key"
+	
+    	 * copy the contents of id_rsa.pub to the content box, and give it a name.
 
-        2.5 copy the contents of id_rsa.pub to the content box, and give it a name.
-
-        2.6 the provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
+         * The provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
         If you are not doing it manually you will run into an issue https://github.com/devopsgroup-io/vagrant-digitalocean/issues/178 , it seems multiple node tries to add new ssh key name at same time with out checking whether previous nodes already added it or not.
 
 ## Token Generation
 
-   1. login to https://cloud.digitalocean.com
+  	 * login to https://cloud.digitalocean.com
 
-   2. click on API
+  	 * click on API
 
-   3. click on Generate New Token
+  	 * click on Generate New Token
 
-   4. provide token name and click on Generate Token
+  	 * provide token name and click on Generate Token
 
-   5. copy the token, as it will not be shown again.
+  	 * copy the token, as it will not be shown again.
 
 ## Destroy Server (Digital ocean nodes created)
 
-    To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
+   * To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
     
-    *./destroy-vagrant.sh*
+    	 *./destroy-vagrant.sh*
 
 
 ## After execution of the script.

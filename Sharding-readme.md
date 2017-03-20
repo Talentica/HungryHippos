@@ -1,22 +1,23 @@
+## Sharding
 Before publishing data to HungryHippos, You have to run the sharding module.
 Sharding module uses a sample file and creates sharding table. This Sharding table is 
 used while publishing data. There are some configuration related details user have to provide 
 before running Sharding module. There are 2 configuration files related to sharding which 
 are explained below : 
 
-1) sharding-client-config.xml
+### 1. sharding-client-config.xml
 
 Assuming your input file contains lines with just two fields like below.
 The fields are created using "," as delimiter.
 
-samsung,78904566<br/>
-apple,865478<br/>
-nokia,732<br/>
+    samsung,78904566<br/>
+    apple,865478<br/>
+    nokia,732<br/>
 
 Mobile is the column name given to field1 . i.e; samsung | apple | nokia<br/>
 Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
-A sample sharding-client-config.xml file looks like below :
+### A sample sharding-client-config.xml file looks like below :
 
     <tns:sharding-client-config>
       <tns:input>
@@ -43,7 +44,7 @@ A sample sharding-client-config.xml file looks like below :
       <tns:bad-records-file-out>/home/sohanc/bad_rec</tns:bad-records-file-out>
     </tns:sharding-client-config>
 
-Explaination : 
+### Explaination : 
 
     <tns:sharding-client-config>
       <tns:input>
@@ -67,7 +68,7 @@ Explaination :
     </tns:sharding-client-config>
 
 
-2) sharding-server-config.xml
+### 2. sharding-server-config.xml
 
 A sample sharding-server-config.xml file looks like below :
 
@@ -80,7 +81,7 @@ A sample sharding-server-config.xml file looks like below :
       <tns:maximum-no-of-shard-buckets-size>20000</tns:maximum-no-of-shard-buckets-size>
     </tns:sharding-server-config>
 
-Explaination : 
+### Explaination : 
 
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>

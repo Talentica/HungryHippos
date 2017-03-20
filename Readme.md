@@ -322,8 +322,9 @@ Therefore, simply follow the below steps :
 [Examples as how to write jobs](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
 	
 	2. Build the module.
+	   gradle clean build
 	
-	3. Create the jar. Let's say it is "examples-0.7.0.jar".
+	3. Now above command will create the jar. Let's say it is "examples-0.7.0.jar".
 	
 	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
 	   "sharding-0.7.0.jar" and "hhrdd-0.7.0.jar" to spark "master" node  in

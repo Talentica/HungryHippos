@@ -128,7 +128,7 @@ Therefore, simply follow the below steps :
 ### Command line arguments descriptions :
 					 
 	  1. job-main-class : main class of client written jobs.
-	     i.e [com.talentica.hungryHippos.rdd.main.SumJob]                                                 (https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java)
+	     i.e [com.talentica.hungryHippos.rdd.main.SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java)
 	  
 	  2. dependency-jars : all dependency jars with comma separated such as 
 	  /home/hhuser/distr/lib_client/sharding-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.

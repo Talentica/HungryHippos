@@ -68,6 +68,7 @@ This readme contains prerequisite and basic installation details.
           HARD DISK: Depends on Data size of the file to be distributed.
           ideal No.of cores per machine: 4
 
+## Hungry Hippos Version : 0.7.0
 
 ## Data publish.
 Data publish module allows the user to publish large data set across the cluster of machines 
@@ -77,24 +78,22 @@ Data publish jar will be availaible in installation package of the Hungry Hippos
 Execute the following command to get start with data publish.
 
 ### Command :
-    java -cp data-publisher-<version>.jar <main-class> <client-config.xml> <input-data>
+    java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-path> <optional-args>
 ### Command arguments descriptions :    
-               
-    1. varsion : data publish jar version. i.e data-publisher-0.7.0.jar. Here ver means version which is "0.7.0".
+            
+    1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     
-    2. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
-    
-    3. client-config.xml: provide the client-config.xml file path which is available in 
+    2. client-config.xml: provide the client-config.xml file path which is available in 
        Hungry Hippos installation package.i.e conf/client-config.xml
        
-    4. input-data : provide path of input data set with file name. Currently we support text and csv files
+    3. input-data : provide path of input data set with file name. Currently we support text and csv files
        only which need be comma seperated.
        
-    5. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
+    4. relative-distributed-path : This path should be exactly same as provided in "sharding-client-config.xml"
        having field name "distributed-file-path".
        
-    6. optional-args : This arguments are optional which is to redirect the logs and also to run the application in
+    5. optional-args : This arguments are optional which is to redirect the logs and also to run the application in
        background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
 ### Example  : 
@@ -114,7 +113,7 @@ Therefore, simply follow the below steps :
 	
 	2. Build the module.
 	
-	3. Create the jar. Let's say it is "examples-<version>.jar".
+	3. Create the jar. Let's say it is "examples-0.7.0.jar".
 	
 	4. Transfer above created jar along with dependency jars such as "sharding-<version>.jar" and
 	   "hhrdd-<version>.jar" to spark "master" node  in directory "/home/hhuser/distr/lib_client".
@@ -130,7 +129,7 @@ Therefore, simply follow the below steps :
 	  1. job-main-class : main class of client written jobs. i.e com.talentica.hungryHippos.rdd.main.SumJob
 	  
 	  2. dependency-jars : all dependency jars with comma separated such as 
-	  /home/hhuser/distr/lib_client/sharding-<version>.jar,/home/hhuser/distr/lib_client/hhrdd-<version>.jar.
+	  /home/hhuser/distr/lib_client/sharding-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 	  
 	  3. master-ip : spark master ip.
 	  

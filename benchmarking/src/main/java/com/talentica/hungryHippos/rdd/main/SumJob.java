@@ -8,24 +8,24 @@ import com.talentica.hungryHippos.rdd.HHSparkContext;
 import com.talentica.hungryHippos.rdd.main.job.Job;
 import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
-import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
-import org.apache.spark.api.java.JavaPairRDD;
+import com.talentica.spark.job.executor.SumJobExecutor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SumJobWithShuffle extends AbstractJob {
+public class SumJob extends AbstractJob {
 
-  private static final long serialVersionUID = -7684390486447522841L;
-  private static Logger LOGGER = LoggerFactory.getLogger(SumJobWithShuffle.class);
+  private static final long serialVersionUID = 8326979063332184463L;
+
+  private static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
 
   public static void main(String[] args) throws IOException, JAXBException,
           ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -35,29 +35,30 @@ public class SumJobWithShuffle extends AbstractJob {
     String hhFilePath = args[2];
     String clientConfigPath = args[3];
     String outputDirectory = args[4];
-    SumJobWithShuffle sumJobWithShuffle = new SumJobWithShuffle();
-    HHSparkContext context =
-        sumJobWithShuffle.initializeSparkContext(masterIp, appName, clientConfigPath);
+    SumJob sumJob = new SumJob();
+    HHSparkContext context = sumJob.initializeSparkContext(masterIp, appName, clientConfigPath);
     Map<String, JavaRDD<byte[]>> cacheRDD = new HashMap<>();
     Broadcast<DataDescription> descriptionBroadcast =
         context.broadcastFieldDataDescription(hhFilePath);
     for (Job job : getSumJobMatrix().getJobs()) {
-      Broadcast<Job> jobBroadcast = context.broadcast(job);
       String keyOfHHRDD = generateKeyForHHRDD(job, context.getShardingIndexes(hhFilePath));
       JavaRDD<byte[]> hipposRDD = cacheRDD.get(keyOfHHRDD);
       if (hipposRDD == null) {
-        hipposRDD = context.binaryRecords(job.getDimensions(), hhFilePath,true);
+        hipposRDD = context.binaryRecords(job.getDimensions(), hhFilePath,false);
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
-      JavaPairRDD<String, Long> resultRDD =
-          SumJobExecutorWithShuffle.process(hipposRDD, descriptionBroadcast, jobBroadcast);
-      String outputDistributedPath = outputDirectory + File.separator + job.getJobId();
+      Broadcast<Job> jobBroadcast = context.broadcast(job);
+      JavaRDD<Tuple2<String, Long>> resultRDD =
+          SumJobExecutor.process(hipposRDD, descriptionBroadcast, jobBroadcast);
+      String outputDistributedPath =
+          outputDirectory + File.separator + jobBroadcast.value().getJobId();
       String outputActualPath = context.getActualPath(outputDistributedPath);
       HHRDDFileUtils.saveAsText(resultRDD, outputActualPath);
       LOGGER.info("Output files are in directory {}", outputActualPath);
     }
     context.stop();
   }
+
 
   private static JobMatrix getSumJobMatrix()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -77,7 +78,6 @@ public class SumJobWithShuffle extends AbstractJob {
     }
     return sumJobMatrix;
   }
-
 
   private static void validateProgramArgument(String args[]) {
     if (args.length < 5) {

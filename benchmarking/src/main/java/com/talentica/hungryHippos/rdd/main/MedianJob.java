@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.talentica.hungryHippos.rdd.main;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
@@ -8,7 +5,7 @@ import com.talentica.hungryHippos.rdd.HHSparkContext;
 import com.talentica.hungryHippos.rdd.main.job.Job;
 import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
 import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
-import com.talentica.spark.job.executor.SumJobExecutor;
+import com.talentica.spark.job.executor.MedianJobExecutor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
@@ -17,16 +14,17 @@ import scala.Tuple2;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SumJob extends AbstractJob {
+/**
+ * Created by rajkishoreh on 16/12/16.
+ */
+public class MedianJob extends AbstractJob {
 
-  private static final long serialVersionUID = 8326979063332184463L;
-
-  private static Logger LOGGER = LoggerFactory.getLogger(SumJob.class);
+  private static final long serialVersionUID = -4628702469270049457L;
+  private static Logger LOGGER = LoggerFactory.getLogger(MedianJob.class);
 
   public static void main(String[] args) throws IOException, JAXBException,
           ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -36,8 +34,8 @@ public class SumJob extends AbstractJob {
     String hhFilePath = args[2];
     String clientConfigPath = args[3];
     String outputDirectory = args[4];
-    SumJob sumJob = new SumJob();
-    HHSparkContext context = sumJob.initializeSparkContext(masterIp, appName, clientConfigPath);
+    MedianJob medianJob = new MedianJob();
+    HHSparkContext context = medianJob.initializeSparkContext(masterIp, appName, clientConfigPath);
     Map<String, JavaRDD<byte[]>> cacheRDD = new HashMap<>();
     Broadcast<DataDescription> descriptionBroadcast =
         context.broadcastFieldDataDescription(hhFilePath);
@@ -49,8 +47,8 @@ public class SumJob extends AbstractJob {
         cacheRDD.put(keyOfHHRDD, hipposRDD);
       }
       Broadcast<Job> jobBroadcast = context.broadcast(job);
-      JavaRDD<Tuple2<String, Long>> resultRDD =
-          SumJobExecutor.process(hipposRDD, descriptionBroadcast, jobBroadcast);
+      JavaRDD<Tuple2<String, Double>> resultRDD =
+          MedianJobExecutor.process(hipposRDD, descriptionBroadcast, jobBroadcast);
       String outputDistributedPath =
           outputDirectory + File.separator + jobBroadcast.value().getJobId();
       String outputActualPath = context.getActualPath(outputDistributedPath);
@@ -58,26 +56,6 @@ public class SumJob extends AbstractJob {
       LOGGER.info("Output files are in directory {}", outputActualPath);
     }
     context.stop();
-  }
-
-
-  private static JobMatrix getSumJobMatrix()
-      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-    JobMatrix sumJobMatrix = new JobMatrix();
-    int count = 0;
-    for (int i = 0; i < 3; i++) {
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 4, count++));
-      sumJobMatrix.addJob(new Job(new Integer[] {i}, 5, count++));
-      for (int j = i + 1; j < 4; j++) {
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 4, count++));
-        sumJobMatrix.addJob(new Job(new Integer[] {i, j}, 5, count++));
-        for (int k = j + 1; k < 4; k++) {
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 4, count++));
-          sumJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 5, count++));
-        }
-      }
-    }
-    return sumJobMatrix;
   }
 
   private static void validateProgramArgument(String args[]) {
@@ -88,5 +66,22 @@ public class SumJob extends AbstractJob {
           "Parameter argumes should be {spark://{master}:7077} {test-app} {/distr/data} {{client-path}/client-config.xml} {output}");
       System.exit(1);
     }
+  }
+
+  private static JobMatrix getSumJobMatrix()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    JobMatrix medianJobMatrix = new JobMatrix();
+    int count = 0;
+    for (int i = 0; i < 3; i++) {
+      for (int j = i + 1; j < 4; j++) {
+        medianJobMatrix.addJob(new Job(new Integer[] {i, j}, 5, count++));
+        medianJobMatrix.addJob(new Job(new Integer[] {i, j}, 6, count++));
+        for (int k = j + 1; k < 4; k++) {
+          medianJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 5, count++));
+          medianJobMatrix.addJob(new Job(new Integer[] {i, j, k}, 6, count++));
+        }
+      }
+    }
+    return medianJobMatrix;
   }
 }

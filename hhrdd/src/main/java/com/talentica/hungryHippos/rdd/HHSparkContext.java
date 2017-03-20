@@ -45,7 +45,7 @@ public class HHSparkContext extends JavaSparkContext {
    * @param hhFilePath
    *        - Path to the HungryHippo file
    * @param requiresShuffle
-   *        - A value true will create optimal partitions of nearly 128MB each.
+   *        - A value true will create optimal partitions of nearly 128MB each if possible.
    *        A value false will create optimal partitions according to the job dimensions.
    * @return JavaRDD<byte[]> instance
    *

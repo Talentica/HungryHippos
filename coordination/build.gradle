@@ -19,7 +19,7 @@ dependencies {
 	compile project (":utility")
 	compile project (':configuration-schema')
 	compile group: 'org.apache.curator', name: 'curator-recipes', version: '2.11.0'
-    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile 'org.slf4j:slf4j-api:1.7.10'
 	compile "org.apache.zookeeper:zookeeper:3.4.6"
     testCompile group: 'org.apache.commons', name: 'commons-compress', version: '1.2'
 	

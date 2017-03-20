@@ -7,10 +7,8 @@ repositories {
 
 dependencies {
  	compile project (':hhrdd')
-// 	compile fileTree(dir: '../client-api/build/libs', include: '*.jar')
- //	compile fileTree(dir: '../hhrdd/build/libs', include: '*.jar')
-    compile project(":hhrdd")
- 	compile('com.clearspring.analytics:stream:2.7.0')
- 	compile 'org.apache.spark:spark-core_2.11:2.0.2'
- 	compile 'org.apache.spark:spark-sql_2.11:2.0.2'
+	//compile 'org.apache.spark:spark-core_2.11:2.0.2'
+ 	//compile fileTree(dir: '../client-api/build/libs', include: '*.jar')
+ 	//compile fileTree(dir: '../hhrdd/build/libs', include: '*.jar')
+
 }

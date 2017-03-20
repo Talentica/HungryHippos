@@ -29,13 +29,29 @@
 
 ## Installation of Prerequisite software
 
-1. you can install all prerequsite software by running ./install.sh  or  individual scripts. (supported on ubuntu)
+1. you can install all prerequsite software by running ./install-all.sh  or  individual scripts. (supported on ubuntu)
 
-   1.1 cd basic_install_scripts
+   1.1 cd HungryHippos/basic_install_scripts
    
    1.2 ./install-all.sh 
+   			*to install all softwares*
    
-   1.2.1 install-*.sh to install respective software.
+     	install-*.sh to install respective software.
+	
+        install-bc.sh -> to install bc , --mathlib
+	
+	install-chef.sh -> to install chef-solo
+	
+        install-java.sh -> to install java 1.8
+	
+	install-jq.sh ->   to install jq , json parser
+	
+	install-ruby.sh -> to install ruby , latest version
+	
+	install-vagrant.sh -> to install vagrant
+	
+	install-virtual-box.sh -> to install virtual Box
+
    
    NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
       override you Ruby and Java to latest version.

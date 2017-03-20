@@ -195,8 +195,6 @@ Therefore, simply follow the below steps :
 ### Steps :
 	1. Write the job.
 	
-	https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java
-	
 	2. Build the module.
 	
 	3. Create the jar. Let's say it is "examples-0.7.0.jar".

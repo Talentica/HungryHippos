@@ -97,9 +97,9 @@ Execute the following command to get start with data publish.
        application in background.i.e " >  logs/data-publish.out 2> logs/data-publish.err &"
             
 ### Example  : 
-        java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-	conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
-	logs/datapub.out 2> logs/datapub.err &
+     java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
+     conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
+     logs/datapub.out 2> logs/datapub.err &
             
             
 

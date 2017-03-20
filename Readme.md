@@ -263,7 +263,7 @@ Execute the following command to get start with data publish.
 ## Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
-Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
+Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely [SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java) , [MedianJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/MedianJob.java) and [UniqueCountJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/UniqueCountJob.java).
 
 Therefore, simply follow the below steps : 
 ### Steps :

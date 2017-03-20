@@ -326,7 +326,7 @@ Therefore, simply follow the below steps :
 	3. Create the jar. Let's say it is "examples-0.7.0.jar".
 	
 	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
-	   "sharding-<version>.jar" and "hhrdd-<version>.jar" to spark "master" node  in
+	   "sharding-0.7.0.jar" and "hhrdd-0.7.0.jar" to spark "master" node  in
 	   directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:

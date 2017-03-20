@@ -68,7 +68,7 @@ This readme contains prerequisite and basic installation details.
           HARD DISK: Depends on Data size of the file to be distributed.
           ideal No.of cores per machine: 4
 
-## Hungry Hippos Version : 0.7.0
+## Hungry Hippos Version : 0.7.0v
 
 ## Data publish.
 Data publish module allows the user to publish large data set across the cluster of machines 

@@ -1,5 +1,4 @@
-
-## This readme contains prerequisite and basic installation guilelines along with end to end job executions .
+## This readme contains prerequisite and basic installation guilelines along with end to end execution of Hingry Hippos application.
 
 
 ## Prerequisite
@@ -50,10 +49,84 @@
 
 ## Setting up the project.
 
-1.  cd hhspark_automation ; #go to hhspark automation.
-2.  please refer hhspark_automation/readme for further steps.
+1.  
 
-    https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/hhspark_automation/Readme.md
+### Setting Initial Properties.
+
+1.  cd hhspark_automation/scripts // go to the scripts folder and 
+2.  cp vagrant.properties.template vagrant.properties // create vagrant.properties file from vagrant.properties.template
+
+    vagrant.properties has following variables with default values
+
+    2.1 NODENUM = 1 //number of nodes to spawned here 1 node will be spawned
+
+    2.2 ZOOKEEPERNUM = 1 //number of nodes on which zookeeper has to be installed ; i.e; 1 node will install zookeeper;      	
+       //ZOOKEEPERNUM <= NODENUM
+
+    2.3 PROVIDER = digital_ocean ; //default value , currently script supports only digital ocean  
+
+    2.4 TOKEN=---------------------------------- //token id by which you can access digital ocean api. #for more details refer
+    Token Generation
+
+    2.5 IMAGE=ubuntu-14-04-x64 // operating system to be used
+
+    2.60 REGION=nyc1 // Node spawn location nyc1 -> NewYork Region 1.
+
+    2.7 RAM=8GB // the ram of the node , here 8GB ram is allocated for each node
+
+    2.8 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; //ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. refer SSH KEY Generation
+      
+    2.9 SSH_KEY_NAME=<vagrant_SSH_KEY_NAME> // is the name of the ssh key that will be added in digital ocean as part of 2.8.
+
+3. cp spark.properties.template spark.properties . //default port number to use, override the values to use that specific port number
+
+    3.1 SPARK_WORKER_PORT=9090
+
+    3.2 SPARK_MASTER_PORT=9091
+
+    execute ./vagrant-init-caller.sh
+
+## SSH_KEY Generation
+
+    ssh-keygen -t rsa ; after executing this command it will type something like below
+
+    Generating public/private rsa key pair.
+       Enter file in which to save the key (/home/"$user"/.ssh/id_rsa): 
+
+    if you press enter with out changing the file location, 2 files will be created id_rsa and id_rsa.pub.
+
+    �NOTE:- after pressing enter it will prompt something like below Enter passphrase (empty for no passphrase): ignore the passphrase by hitting enter again.
+
+        After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
+
+        2.1 login to https://cloud.digitalocean.com
+
+        2.2 go to settings and select security.
+
+        2.3 a new page will be open which has SSH keys as heading
+
+        2.4 click on "add ssh key"
+
+        2.5 copy the contents of id_rsa.pub to the content box, and give it a name.
+
+        2.6 the provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
+        If you are not doing it manually you will run into an issue https://github.com/devopsgroup-io/vagrant-digitalocean/issues/178 , it seems multiple node tries to add new ssh key name at same time with out checking whether previous nodes already added it or not.
+
+## Token Generation
+
+    login to https://cloud.digitalocean.com
+
+    click on API
+
+    click on Generate New Token
+
+    provide token name and click on Generate Token
+
+    copy the token, as it will not be shown again.
+
+## Destroy Server (Digital ocean nodes created)
+
+    to destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
 
 ## After execution of the script.
 
@@ -70,21 +143,17 @@
 
 ## Hungry Hippos Version : 0.7.0v
 
-## Sharding
-Before publishing data to HungryHippos, You have to run the sharding module.
-Sharding module uses a sample file and creates sharding table. This Sharding table is 
-used while publishing data. There are some configuration related details user have to provide 
-before running Sharding module. There are 2 configuration files related to sharding which 
-are explained below : 
+## Sharding Module :
+Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module. There are two configurations files for sharding which are explained below : 
 
 ### 1. sharding-client-config.xml
 
 Assuming your input file contains lines with just two fields like below.
-The fields are created using "," as delimiter.
+The fields are created using comma i.e "," as delimiter.
 
-    samsung,78904566<br/>
-    apple,865478<br/>
-    nokia,732<br/>
+    samsung,78904566
+    apple,865478
+    nokia,732
 
 Mobile is the column name given to field1 . i.e; samsung | apple | nokia<br/>
 Number is the column name given to field2 . i.e; 7890566 | 865478 ..
@@ -158,7 +227,7 @@ A sample sharding-server-config.xml file looks like below :
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
 
-## Data publish.
+## Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
 
@@ -191,7 +260,7 @@ Execute the following command to get start with data publish.
             
             
 
-## Job submission.
+## Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package "com.talentica.hungryHippos.rdd.main"  namely "SumJob" , "MedianJob" and "UniqueCountJob".
@@ -244,6 +313,9 @@ Therefore, simply follow the below steps :
 	/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar --master spark://67.205.172.104:9091
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
+	
+ ### How to write the job :
  
-
-
+ Please click on below link to know as how to write the jobs:
+ 
+https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main

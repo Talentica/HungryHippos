@@ -269,7 +269,7 @@ Therefore, simply follow the below steps :
 ### Steps :
 	1. Write the job.
 	
-[Click here](https://github.com/Talentica/HungryHippos/blob/hh_pooshan_modulerization/Readme.md#how-to-write-the-job-)
+[Examples as how to write jobs](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
 	
 	2. Build the module.
 	
@@ -316,8 +316,5 @@ Therefore, simply follow the below steps :
 	/home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.172.104:9091 hh-sum /dir/input
 	/home/hhuser/distr/config/client-config.xml output >../logs/spark.out 2>../logs/spark.err &
 	
- ### How to write the job :
  
- Please click on below link for examples of jobs:
- 
-https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main
+

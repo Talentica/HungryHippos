@@ -178,7 +178,7 @@
 
 ## Hungry Hippos Version : 0.7.0v
 
-## Sharding Module :
+# Sharding Module :
 Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module. There are two configurations files for sharding which are explained below : 
 
 ### 1. sharding-client-config.xml
@@ -291,7 +291,7 @@ Look at the below "client-config.xml" file :
        
        
 
-## Data publish Module :
+# Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
 
@@ -315,7 +315,7 @@ Execute the following command to get start with data publish.
        in "sharding-client-config.xml" having field name "distributed-file-path".
 
 
-## Job Execution Module :
+# Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package [com.talentica.hungryHippos.rdd.main](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)  namely [SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java) , [MedianJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/MedianJob.java) and [UniqueCountJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/UniqueCountJob.java).

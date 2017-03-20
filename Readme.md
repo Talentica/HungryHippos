@@ -80,7 +80,7 @@ Execute the following command to get start with data publish.
 ### Command :
     java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
     <relative-distributed-path> <optional-args>
-### Command arguments descriptions :    
+### Command line arguments descriptions :    
             
     1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     
@@ -125,7 +125,7 @@ Therefore, simply follow the below steps :
 	   spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name>
 	   <relative-distributed-path> <client-config-xml-path> <output-directory> <optional-args>	.
 						 
-### Command arguments descriptions :
+### Command line arguments descriptions :
 					 
 	  1. job-main-class : main class of client written jobs.
 	     i.e com.talentica.hungryHippos.rdd.main.SumJob

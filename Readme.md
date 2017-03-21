@@ -99,7 +99,7 @@
     
    			token id by which you can access digital ocean api. #for more details refer
    	 	
-	[Token Generation](.#token-generation)
+	[Token Generation](Readme.md#token-generation)
 		
 		2.5 IMAGE=ubuntu-14-04-x64
     
@@ -116,7 +116,7 @@
    		2.8 PRIVATE_KEY_PATH=/root/.ssh/id_rsa 
     
   	  ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean 
-	             security settings. refer [SSH KEY Generation](.#ssh_key-generation)
+	             security settings. refer [SSH KEY Generation](Readme.md#ssh_key-generation)
 	  
 	  	2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
     

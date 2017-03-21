@@ -375,7 +375,7 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 ### Command line arguments descriptions :
 					 
 	  1. job-main-class : main class of client written jobs.
-	     i.e com.talentica.hungryHippos.rdd.main.SumJob
+	     i.e com.talentica.hungryhippos.examples.SumJob
 	  
 	  2. dependency-jars : all dependency jars with comma separated such as 
 	  local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.

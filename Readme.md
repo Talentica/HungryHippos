@@ -1,4 +1,4 @@
-## This readme contains prerequisite and basic installation guilelines along with end to end execution of Hingry Hippos application.
+## This readme contains prerequisite and basic installation guilelines along with end to end execution of HungryHippos application.
 
 
 ## Prerequisite

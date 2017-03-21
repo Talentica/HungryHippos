@@ -304,7 +304,7 @@ from client machine.This distributed data become eligible to get executed during
 Execute the following command to get start with data publish from project parent folder.
 
 ### Command :
-    java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
+    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
     <distributed-file-path> <optional-args>
 ### Command line arguments descriptions :    
             
@@ -323,7 +323,7 @@ Execute the following command to get start with data publish from project parent
        128 which represent 128 mb of chunk size. 
 
 ### Example  : 
-     java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
+     java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
      conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
      logs/datapub.out 2> logs/datapub.err &
             

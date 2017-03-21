@@ -338,7 +338,7 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 ### Steps :
 	1. Write the job.
 	
-[Examples as how to write jobs](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
+[Examples](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
 	
 	2. Build the module.
 	   gradle clean build

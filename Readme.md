@@ -27,30 +27,33 @@
          HARD DISK :- minimum 2GB free for installation
    
 
-## Installation of Prerequisite software
+## Installation of Prerequisite software On ubuntu
 
-1. you can install all prerequsite software by running ./install-all.sh  or  individual scripts. (supported on ubuntu)
+**you can install all prerequsite software by running ./install.sh  or  individual scripts inside the basic install scripts**
 
-   1.1 cd HungryHippos/basic_install_scripts
+   1. go to basic_install_scripts
    
-   1.2 ./install-all.sh 
-   			*to install all softwares*
+          cd Hungryhippos/basic_install_scripts
    
-     	install-*.sh to install respective software.
+   1.1 Run install-all.sh to install all the prerequisite software 
+      
+      	./install-all.sh 
+   
+   1.2.1 to install softwares individual run respective install-*.sh.
+   
+       install-bc.sh -> to install bc , --mathlib
 	
-        install-bc.sh -> to install bc , --mathlib
+       install-chef.sh -> to install chef-solo
 	
-	install-chef.sh -> to install chef-solo
+       install-java.sh -> to install java 1.8
 	
-        install-java.sh -> to install java 1.8
+       install-jq.sh ->   to install jq , json parser
 	
-	install-jq.sh ->   to install jq , json parser
+       install-ruby.sh -> to install ruby , latest version
 	
-	install-ruby.sh -> to install ruby , latest version
+       install-vagrant.sh -> to install vagrant
 	
-	install-vagrant.sh -> to install vagrant
-	
-	install-virtual-box.sh -> to install virtual Box
+       install-virtual-box.sh -> to install virtual Box
 
    
    NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
@@ -67,7 +70,7 @@
 
 **Setting Initial Properties**
 
-1.  go to the scripts folder.
+1.  go to the scripts folder inside the hhspark_automation.
     
     	cd hhspark_automation/scripts
     
@@ -95,7 +98,8 @@
    		 2.4 TOKEN=---------------------------------- 
     
    			token id by which you can access digital ocean api. #for more details refer
-   	 	Token Generation
+   	 	
+	[Token Generation](.#token-generation)
 		
 		2.5 IMAGE=ubuntu-14-04-x64
     
@@ -112,7 +116,7 @@
    		2.8 PRIVATE_KEY_PATH=/root/.ssh/id_rsa 
     
   	  ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean 
-	             security settings. refer SSH KEY Generation
+	             security settings. refer [SSH KEY Generation](.#ssh_key-generation)
 	  
 	  	2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
     
@@ -130,7 +134,7 @@
 
 4. execute ./vagrant-init-caller.sh inside the scripts folder
  
-  		./vagrant-init-caller.sh
+  	 ./vagrant-init-caller.sh
 
 ## SSH_KEY Generation
 
@@ -176,7 +180,7 @@
 
    * To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
     
-    	 ./destroy-vagrant.sh
+   	  ./destroy-vagrant.sh
 
 ## After execution of the script.
 

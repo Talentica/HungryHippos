@@ -245,7 +245,8 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
     <tns:sharding-client-config>
       <tns:input>
         <tns:sample-file-path> provide sample file path. </tns:sample-file-path>
-        <tns:distributed-file-path> distributed path of input file where HungryHippos will store the file. </tns:distributed-file-path>
+        <tns:distributed-file-path> location where actual input file will be stored in cluster machine.
+	</tns:distributed-file-path>
         <tns:data-description> Describe all the columns in a record
           <tns:column> 
             <tns:name> name of the column </tns:name>

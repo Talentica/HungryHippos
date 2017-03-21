@@ -304,7 +304,8 @@ A sample sharding-server-config.xml file looks like below :
 	2. client-config.xml: provide the client-config.xml file path which is available in 
 	
 	hhspark_automation/distr/config/client-config.xml
-	3. sharding-conf-path : parent folder path of sharding configuration files. i.e. hhspark_automation/distr/config
+	3. sharding-conf-path : parent folder path of sharding configuration files.
+	i.e. hhspark_automation/distr/config
 
 ### Example :
 	java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter  hhspark_automation/distr/config/client-config.xml hhspark_automation/distr/config

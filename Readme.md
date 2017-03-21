@@ -198,7 +198,16 @@
 ## Hungry Hippos Version : 0.7.0v
 
 # Sharding Module :
-Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module. There are two configurations files for sharding which are explained below : 
+Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module.  
+
+There are two configuration template files for sharding which are explained below :
+
+### Configure sharding xml files :
+
+Creating sharding-client-config.xml and sharding-server-config.xml file from template files.
+
+		(1) cp hhspark_automation/distr/config/sharding-client-config.xml.template hhspark_automation/distr/config/sharding-client-config.xml
+		(2) cp hhspark_automation/distr/config/sharding-server-config.xml.template hhspark_automation/distr/config/sharding-server-config.xml
 
 ### 1. sharding-client-config.xml
 
@@ -212,6 +221,8 @@ The fields are created using comma i.e "," as delimiter.
 Mobile is the column name given to field1 . i.e; samsung | apple | nokia<br/>
 Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
+
+		
 ### A sample sharding-client-config.xml file looks like below :
 
     <tns:sharding-client-config>
@@ -281,18 +292,11 @@ A sample sharding-server-config.xml file looks like below :
 
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
-    
+
 
 ### Sharding-module Execution
 
-1) Creating sharding-client-config.xml and sharding-server-config.xml file from template files.
-
-		cp hhspark_automation/distr/config/sharding-client-config.xml.template hhspark_automation/distr/config/sharding-client-config.xml
-		cp hhspark_automation/distr/config/sharding-server-config.xml.template hhspark_automation/distr/config/sharding-server-config.xml
-
-2) Update Sharding configuration files as required.
-
-3) Command to execute Sharding module :
+### Command :
 
 		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <sharding-main-class> <client-config.xml> <sharding-conf-path>
 

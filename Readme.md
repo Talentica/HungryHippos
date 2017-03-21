@@ -29,13 +29,29 @@
 
 ## Installation of Prerequisite software
 
-1. you can install all prerequsite software by running ./install.sh  or  individual scripts. (supported on ubuntu)
+1. you can install all prerequsite software by running ./install-all.sh  or  individual scripts. (supported on ubuntu)
 
-   1.1 cd basic_install_scripts
+   1.1 cd HungryHippos/basic_install_scripts
    
    1.2 ./install-all.sh 
+   			*to install all softwares*
    
-   1.2.1 install-*.sh to install respective software.
+     	install-*.sh to install respective software.
+	
+        install-bc.sh -> to install bc , --mathlib
+	
+	install-chef.sh -> to install chef-solo
+	
+        install-java.sh -> to install java 1.8
+	
+	install-jq.sh ->   to install jq , json parser
+	
+	install-ruby.sh -> to install ruby , latest version
+	
+	install-vagrant.sh -> to install vagrant
+	
+	install-virtual-box.sh -> to install virtual Box
+
    
    NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
       override you Ruby and Java to latest version.
@@ -49,76 +65,76 @@
 
 ## Setting up the project.
 
-1.  
-
-### Setting Initial Properties.
- **Setting Initial Properties**
+**Setting Initial Properties**
 
 1.  go to the scripts folder.
-
-    *cd hhspark_automation/scripts*
+    
+    	cd hhspark_automation/scripts
     
 2.  create vagrant.properties file from vagrant.properties.template
 
-    *cp vagrant.properties.template vagrant.properties*
+    	cp vagrant.properties.template vagrant.properties
 
     **vagrant.properties** has following variables with default values
 
-    2.1 NODENUM = 1 
+   		2.1 NODENUM = 1 
     
-       *number of nodes to spawned here 1 node will be spawned*
+      	 number of nodes to spawned here 1 node will be spawned
 
-    2.2 ZOOKEEPERNUM = 1 
+    	2.2 ZOOKEEPERNUM = 1 
     
-       *number of nodes on which zookeeper has to be installed* ; 	
-       **ZOOKEEPERNUM <= NODENUM**
+      	 	number of nodes on which zookeeper has to be installed 	
+	 
+      	 	ZOOKEEPERNUM <= NODENUM
 
-    2.3 PROVIDER = digital_ocean ;
+	    2.3 PROVIDER = digital_ocean 
     
-       *default value , currently script supports only digital ocean*
+     	  	default value , currently script supports only digital ocean
 
 
-    2.4 TOKEN=---------------------------------- 
+   		 2.4 TOKEN=---------------------------------- 
     
-    *token id by which you can access digital ocean api. #for more details refer
-    Token Generation*
+   			token id by which you can access digital ocean api. #for more details refer
+   	 	Token Generation
+		
+		2.5 IMAGE=ubuntu-14-04-x64
+    
+    		  operating system to be used
 
-    2.5 IMAGE=ubuntu-14-04-x64
+   		2.6 REGION=nyc1 
     
-       *operating system to be used*
+   	  	  Node spawn location **nyc1 -> NewYork Region 1
 
-    2.6 REGION=nyc1 
+   	 	2.7 RAM=8GB 
     
-       _Node spawn location **nyc1 -> NewYork Region 1**_
+    	  	 The ram of the node , here 8GB ram is allocated for each node
 
-    2.7 RAM=8GB 
+   		2.8 PRIVATE_KEY_PATH=/root/.ssh/id_rsa 
     
-       *The ram of the node , here 8GB ram is allocated for each node*
-
-    2.8 PRIVATE_KEY_PATH = /root/.ssh/id_rsa ; 
+  	  ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean 
+	             security settings. refer SSH KEY Generation
+	  
+	  	2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
     
-    *ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean security settings. refer SSH KEY Generation*
-      
-    2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
-    
-    *is the name of the ssh key that will be added in digital ocean as part of 2.8.*
+  	  is the name of the ssh key that will be added in digital ocean as part of 2.8.
 
 3. create spark.properties file from spark.properties.template.
   
-   *cp spark.properties.template spark.properties*
+       cp spark.properties.template spark.properties
     
     spark.properties contains details regarding the port number to used for spark master and spark worker. override those values 
     if you want to use some other port number.
+    
+		3.1 SPARK_WORKER_PORT=9090
+		3.2 SPARK_MASTER_PORT=9091
 
-    3.1 SPARK_WORKER_PORT=9090
-
-    3.2 SPARK_MASTER_PORT=9091
-
-    execute ./vagrant-init-caller.sh
+4. execute ./vagrant-init-caller.sh inside the scripts folder
+ 
+  		./vagrant-init-caller.sh
 
 ## SSH_KEY Generation
 
-   *ssh-keygen -t rsa*
+*ssh-keygen -t rsa*
     
     after executing this command it will type something like below
 
@@ -131,37 +147,36 @@
 
  After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
 
-        2.1 login to https://cloud.digitalocean.com
+    * login to https://cloud.digitalocean.com
 
-        2.2 go to settings and select security.
+    * go to settings and select security.
 
-        2.3 a new page will be open which has SSH keys as heading
+    * a new page will be open which has SSH keys as heading
 
-        2.4 click on "add ssh key"
+    * click on "add ssh key"
+	
+    * copy the contents of id_rsa.pub to the content box, and give it a name.
 
-        2.5 copy the contents of id_rsa.pub to the content box, and give it a name.
-
-        2.6 the provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
+    * The provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
         If you are not doing it manually you will run into an issue https://github.com/devopsgroup-io/vagrant-digitalocean/issues/178 , it seems multiple node tries to add new ssh key name at same time with out checking whether previous nodes already added it or not.
 
 ## Token Generation
 
-   1. login to https://cloud.digitalocean.com
+   * login to https://cloud.digitalocean.com
 
-   2. click on API
+   * click on API
 
-   3. click on Generate New Token
+   * click on Generate New Token
+   
+   * provide token name and click on Generate Token
 
-   4. provide token name and click on Generate Token
-
-   5. copy the token, as it will not be shown again.
+   * copy the token, as it will not be shown again.
 
 ## Destroy Server (Digital ocean nodes created)
 
-    To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
+   * To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
     
-    *./destroy-vagrant.sh*
-
+    	 ./destroy-vagrant.sh
 
 ## After execution of the script.
 
@@ -197,8 +212,8 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
     <tns:sharding-client-config>
       <tns:input>
-        <tns:sample-file-path>/home/sohanc/D_drive/dataSet/testDataForPublish.txt</tns:sample-file-path>
-        <tns:distributed-file-path>/sohan/dir/input</tns:distributed-file-path>
+        <tns:sample-file-path>/home/hhuser/D_drive/dataSet/testDataForPublish.txt</tns:sample-file-path>
+        <tns:distributed-file-path>/hhuser/dir/input</tns:distributed-file-path>
         <tns:data-description>
           <tns:column>
             <tns:name>Mobile</tns:name>
@@ -217,7 +232,7 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
       </tns:input>
       <tns:sharding-dimensions>key1</tns:sharding-dimensions>
       <tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
-      <tns:bad-records-file-out>/home/sohanc/bad_rec</tns:bad-records-file-out>
+      <tns:bad-records-file-out>/home/hhuser/bad_rec</tns:bad-records-file-out>
     </tns:sharding-client-config>
 
 ### Explaination : 
@@ -272,22 +287,14 @@ Look at the below "client-config.xml" file :
  	<tns:coordination-servers>
 	<tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
 	</tns:coordination-servers>
-	<tns:session-timout>86400000</tns:session-timout>
-	<tns:output>
-		<tns:node-ssh-username>hhuser</tns:node-ssh-username>
-		<tns:node-ssh-private-key-file-path>~/.ssh/id_dsa</tns:node-ssh-private-key-file-path>
-	</tns:output>
+	<tns:session-timout>86400000</tns:session-timout>	
      </tns:client-config>
 
 ### Explanation :
       
        <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
        IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
-       PORT : Conneting port of zookeeper.
-	
-       <tns:node-ssh-username>hhuser</tns:node-ssh-username>
-       Here username should be hhuser or any other configured username during installation
-       so that nodes get reachable from client machine.
+       PORT : Connecting port of zookeeper.
        
        
 
@@ -313,28 +320,41 @@ Execute the following command to get start with data publish.
        
     4. relative-distributed-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".
+    
+    5. optional-args : This arguments are optional which is to redirect the logs and also to run
+       the application in background. i.e ">../logs/datapub.out 2>../logs/datapub.err &"
 
+### Example  : 
+     java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
+     conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
+     logs/datapub.out 2> logs/datapub.err &
+            
+ 
 
 # Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package [com.talentica.hungryHippos.rdd.main](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)  namely [SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java) , [MedianJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/MedianJob.java) and [UniqueCountJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/UniqueCountJob.java).
 
-Therefore, simply follow the below steps : 
+
 ### Steps :
 	1. Write the job.
 	
 [Examples as how to write jobs](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)
 	
 	2. Build the module.
+	   gradle clean build
 	
-	3. Create the jar. Let's say it is "examples-0.7.0.jar".
+	3. Now above command will create the jar. Let's say it is "examples-0.7.0.jar".
 	
 	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
 	   "sharding-0.7.0.jar" and "hhrdd-0.7.0.jar" to spark "master" node  in
 	   directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
+
+### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
+
 ### Command :
 	   ./bin/spark-submit --class <job-main-class> --jars <dependency-jars>	 --master 
 	   spark://<master-ip>:<port> <client-job-jar> spark://<master-ip>:<port> <application-name>

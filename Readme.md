@@ -283,26 +283,31 @@ A sample sharding-server-config.xml file looks like below :
     <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
     <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
     
-    
-### Note : Also configure client-config.xml.
 
-client-config.xml is required at both the stages of execution of programe namely "Sharding" and "Data publish". Therefore, it is right time to update the "client-config.xml" file.
-Look at the below "client-config.xml" file :
+### Sharding-module Execution
 
-     <tns:client-config xmlns:tns="http://www.talentica.com/hungryhippos/config/client" 			                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"                                                                       xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/client client-config.xsd ">
- 	<tns:coordination-servers>
-	<tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
-	</tns:coordination-servers>
-	<tns:session-timout>86400000</tns:session-timout>	
-     </tns:client-config>
+1) Creating sharding-client-config.xml and sharding-server-config.xml file from template files.
 
-### Explanation :
-      
-       <tns:servers>[IP]:[PORT],[IP]:[PORT]</tns:servers>
-       IP   : It is connecting zookeeper IP string with comma i.e "," separated.	       
-       PORT : Connecting port of zookeeper.
-       
-       
+		cp hhspark_automation/distr/config/sharding-client-config.xml.template hhspark_automation/distr/config/sharding-client-config.xml
+		cp hhspark_automation/distr/config/sharding-server-config.xml.template hhspark_automation/distr/config/sharding-server-config.xml
+
+2) Update Sharding configuration files as required.
+
+3) Command to execute Sharding module :
+
+		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <sharding-main-class> <client-config.xml> <sharding-conf-path>
+
+### Command line arguments descriptions : 
+
+	1. sharding-main-class : com.talentica.hungryHippos.sharding.main.ShardingStarter
+	
+	2. client-config.xml: provide the client-config.xml file path which is available in 
+	
+	hhspark_automation/distr/config/client-config.xml
+	3. sharding-conf-path : parent folder path of sharding configuration files. i.e. hhspark_automation/distr/config
+
+### Example :
+	java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter  hhspark_automation/distr/config/client-config.xml hhspark_automation/distr/config
 
 # Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 

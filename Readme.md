@@ -383,16 +383,19 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 	  
 	  3. master-ip : spark master ip.
 	  
-	  4. port : configured spark master port number.
+	  4. client-job-jar : It is examples-0.7.0.jar which is available in directory location
+	  /home/hhuser/distr/lib_client.
 	  
-	  5. application-name : application name for current submission programe.
+	  5. port : configured spark master port number.
 	  
-	  6. distributed-file-path : This path should be exactly same as provided in
+	  6. application-name : application name for current submission programe.
+	  
+	  7. distributed-file-path : This path should be exactly same as provided in
 	     "sharding-client-config.xml" having field name "distributed-file-path". 
 	     
-	  7. client-config-xml : client-config.xml file.
+	  8. client-config-xml : client-config.xml file.
 	  
-	  8. output-directory : output directory name wherein the results are stored inside job id
+	  9. output-directory : output directory name wherein the results are stored inside job id
 	     subfolder.
 	  
 	  

@@ -320,6 +320,9 @@ Execute the following command to get start with data publish.
        
     4. relative-distributed-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".
+    
+    5. optional-args : This arguments are optional which is to redirect the logs and also to run
+       the application in background. i.e ">../logs/datapub.out 2>../logs/datapub.err &"
 
 ### Example  : 
      java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
@@ -333,7 +336,7 @@ As soon as data publish is completed, cluster machines are ready to accept the c
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
 Moreover, you can find the examples as to how to write the jobs in module "examples" with package [com.talentica.hungryHippos.rdd.main](https://github.com/Talentica/HungryHippos/tree/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main)  namely [SumJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/SumJob.java) , [MedianJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/MedianJob.java) and [UniqueCountJob](https://github.com/Talentica/HungryHippos/blob/modularization-code-cleanup/examples/src/main/java/com/talentica/hungryHippos/rdd/main/UniqueCountJob.java).
 
-User can follow the below command to run the above job or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
+###User can follow the below command to run the above job or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
 
 ### Steps :
 	1. Write the job.

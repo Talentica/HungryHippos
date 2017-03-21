@@ -301,9 +301,7 @@ Look at the below "client-config.xml" file :
 # Data publish Module :
 Data publish module allows the user to publish large data set across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
-
-Data publish jar will be availaible in installation package of the Hungry Hippos.
-Execute the following command to get start with data publish.
+Execute the following command to get start with data publish from project parent folder.
 
 ### Command :
     java -cp data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>

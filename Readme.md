@@ -323,7 +323,7 @@ Execute the following command to get start with data publish from project parent
     1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
     
     2. client-config.xml: provide the client-config.xml file path which is available in 
-       Hungry Hippos installation package.i.e conf/client-config.xml
+       hhspark_automation/distr/config/client-config.xml
        
     3. input-data : provide path of input data set with file name. Currently we support text
        and csv files only in which fields need be comma seperated.
@@ -336,7 +336,7 @@ Execute the following command to get start with data publish from project parent
 
 ### Example  : 
      java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-     conf/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
+     hhspark_automation/distr/config/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
      logs/datapub.out 2> logs/datapub.err &
             
  

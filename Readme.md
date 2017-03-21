@@ -321,7 +321,7 @@ Execute the following command to get start with data publish.
     4. distributed-file-path : This path should be exactly same as provided 
        in "sharding-client-config.xml" having field name "distributed-file-path".
     
-    5. optional-args : This optional argument is the size of the chunk. 
+    5. optional-args : This optional argument is the size of the chunk such as 128 which represent 128 mb of chunk size. 
 
 ### Example  : 
      java -cp data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter

@@ -48,7 +48,6 @@ add_spark_ip_port_on_spark_env()
                 if [ $j -eq 1  ]
                 then
                         SPARK_MASTER_HOST=$i
-                        ssh root@$i "mkdir -p /mnt/spark_history_server"
                         ssh hhuser@$i "echo "SPARK_MASTER_HOST="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
 
                         ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
@@ -57,10 +56,6 @@ add_spark_ip_port_on_spark_env()
 
                         ssh hhuser@$i "echo "SPARK_MASTER_PORT="$SPARK_MASTER_PORT >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
 
-                        ssh hhuser@$i "echo spark.eventLog.enabled   $SPARK_EVENT_LOG_ENABLED >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
-                        ssh hhuser@$i "echo spark.eventLog.dir       $SPARK_EVENT_LOG_DIR  >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
-                        ssh hhuser@$i "echo spark.eventLog.compress  $SPARK_EVENT_LOG_COMPRESS >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
-                        ssh hhuser@$i "echo spark.history.fs.logDirectory  $SPARK_HISTORY_FS_LOG_DIR >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-defaults.conf"
 
                         echo  $i > ../../utility/ip.txt
 

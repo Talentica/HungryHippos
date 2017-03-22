@@ -403,7 +403,7 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 	  
 ### Example :						 
 	
-    ./spark-submit --class com.talentica.hungryhippos.examples.SumJob --master spark://67.205.156.149:9091
+    ./bin/spark-submit --class com.talentica.hungryhippos.examples.SumJob --master spark://67.205.156.149:9091
     --jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar
     /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.156.149:9091 SumJobType /dir/input
     /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &

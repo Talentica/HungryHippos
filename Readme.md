@@ -298,6 +298,7 @@ A sample sharding-server-config.xml file looks like below :
 ### Sharding-module Execution
 
 ### Command :
+Execute the following command from project parent folder.
 
 		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <sharding-main-class> <client-config.xml> <sharding-conf-path>
 
@@ -320,8 +321,11 @@ from client machine.This distributed data become eligible to get executed during
 Execute the following command to get start with data publish from project parent folder.
 
 ### Command :
+Execute the following command from project parent folder.
+
     java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
     <distributed-file-path> <optional-args>
+    
 ### Command line arguments descriptions :    
             
     1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
@@ -359,10 +363,12 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 	2. Build the module.
 	   gradle clean build
 	
-	3. Now above command will create the jar. Let's say it is "examples-0.7.0.jar".
+	3. Now above command will create the jar. Let's say jar created is "examples-0.7.0.jar" in examples
+	   module in location examples/build/libs.
 	
 	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
-	   "hhrdd-0.7.0.jar" to spark "master" node in directory "/home/hhuser/distr/lib_client".
+	   "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node
+	   in directory "/home/hhuser/distr/lib_client".
 	   
 	5. Run the following command in spark installation directory of master node:
 

@@ -6,6 +6,8 @@ repositories {
     mavenCentral()
 }
 
+apply plugin: "maven"
+group = "hungryhippos"
 
 dependencies {	
     testCompile 'junit:junit:4.12'

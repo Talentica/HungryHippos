@@ -5,6 +5,10 @@ repositories {
     mavenCentral()
 }
 
+apply plugin: "maven"
+group = "hungryhippos"
+
+
 dependencies {
 	compile project(":client-api")
 	compile project (':sharding')

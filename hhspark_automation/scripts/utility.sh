@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export base_path
+
 file_processing_to_get_ip()
 {
         #Sort file  as we want HadoopMaster to come at first line
@@ -115,3 +117,8 @@ add_nodes_to_known_hosts(){
   done
 }
 
+get_hh_base_folder(){
+
+base_path=($(grep -oP '(?<=root-directory>)[^<]+' "../distr_original/config/filesystem-config.xml"))
+
+}

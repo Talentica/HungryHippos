@@ -1,73 +1,54 @@
 #!/bin/bash
+
+# This script is used for downloading output files from the cluster
+# it asks for two input values  one is the relative path of output folder which was created by job
+# the second one is where to save the result.
+
+source assign-global-variables.sh
+source utility.sh
+
+#getting hungryhippos file system base folder path.
+get_hh_base_folder
+
+#echo $base_path
 export distrOutputPath
 export downloadLoc
-export jobDir
-export dir
 export outputFolderName
-export job_id
 
-jobDir="job_id"
 echo "Enter distributed OutputPath"
 read distrPath
-distrOutputPath=$distrPath
-echo $distrOutPut
+distrOutputPath=$base_path/$distrPath
+echo $distrOutputPath
 echo "Enter the download location"
 read loc
 downloadLoc=$loc
-echo "Enter no.of jobs"
-read jobId
-job_id=$jobId
 
 echo "starting ssh-agent"
-eval `ssh-agent -s`
+add_ssh_key
 echo "started ssh-agent"
-echo "adding hhuser identity"
-ssh-add hhuser_id_rsa
-echo "added hhuser identity"
 
 
 IFS='/' read -a folderName <<< "$distrOutputPath"
 
 outputFolderName=${folderName[${#folderName[@]}-1]}
-echo $outputFolderName
-dir=${distrOutputPath%/${outputFolderName}}
-echo "dir=$dir"
+#echo $outputFolderName
 ips=($(awk  '{print $1}' ip.txt))
-
-
-j=0
 
 for i in "${ips[@]}"
 do
-        echo "getting result from $i"
-     
-     #   if [ $j -eq 1 ]           
-     #   then
-     #		ssh -o StrictHostKeyChecking=no hhuser@$i "ls $dir | grep -i $outputFolderName | wc -l" >> output_dirs.txt
-     #           job_id=($(awk '{print $1}' output_dirs.txt ))
-     #           echo $job_id
-     #   fi
-       
-        k=0
-        while [ $k -lt $job_id ]
-        do
-               mkdir -p $downloadLoc/$jobDir/$k	
-               echo "downloading output file for job_id $k"
-              ssh -o StrictHostKeyChecking=no  hhuser@$i "cd $distrOutputPath/$k  && find -type f -maxdepth 5 -size +0 -not -path '*/\.*' -exec cat {} +" >> $downloadLoc/$jobDir/$k/result-$i.txt
+               mkdir -p $downloadLoc/${outputFolderName}	
+               echo "downloading output file from $i"
+              ssh -o StrictHostKeyChecking=no  hhuser@$i "cd $distrOutputPath  && find -type f -maxdepth 5 -size +0 -not -path '*/\.*' -exec cat {} +" >> $downloadLoc/${outputFolderName}/result-$i.txt
               
-              file_size_kb=`du -k "$downloadLoc/$jobDir/$k/result-$i.txt" | cut -f1`
+              file_size_kb=`du -k "$downloadLoc/${outputFolderName}/result-$i.txt" | cut -f1`
               if [ $file_size_kb -eq 0 ]
               then  
- 	                rm -f $downloadLoc/$jobDir/$k/result-$i.txt
+ 	                rm -f $downloadLoc/${outputFolderName}/result-$i.txt
               fi
 
-              echo "finished downloading output file for job_id $k from $i"
-              k=`expr $k + 1`
-        done
+              echo "finished downloading output file  from $i"
 
-        echo "finished downloading all $job_id output file from $i"
   
-        j=`expr $j + 1`
  
 done
 

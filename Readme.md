@@ -407,7 +407,23 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
     --jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar
     /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.156.149:9091 SumJobType /dir/input
     /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &
-	
+    
+### Download Output
+
+   To download the output file from the cluster after running job successfully
+   
+   1. go to hhspark_automation/scripts 
+       
+          cd hhspark_automation/scripts
+	  
+   2. run ./download.sh, on the screen it will ask for 
+     
+          ./download.sh
+     
+    Enter distributed OutputPath -> output path from where result has to be downloaded
+	 
+    Enter the download location -> where to save the downloaded output file
+    
  
 
 

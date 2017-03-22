@@ -129,8 +129,8 @@
     spark.properties contains details regarding the port number to used for spark master and spark worker. override those values 
     if you want to use some other port number.
     
-		3.1 SPARK_WORKER_PORT=9090
-		3.2 SPARK_MASTER_PORT=9091
+		 SPARK_WORKER_PORT=9090
+		 SPARK_MASTER_PORT=9091
 
 4. execute ./vagrant-init-caller.sh inside the scripts folder
  
@@ -404,5 +404,18 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
     /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &
 	
 
+### Download Output
 
- 
+   To download the output file from the cluster after running job successfully
+   
+   1. go to hhspark_automation/scripts 
+       
+          cd hhspark_automation/scripts
+	  
+   2. run ./download.sh, on the screen it will ask for 
+     
+          ./download.sh
+     
+         Enter distributed OutputPath -> output path from where result has to be downloaded
+	 Enter the download location -> where to save the downloaded output file
+    

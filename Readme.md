@@ -1,6 +1,12 @@
 ## This readme contains prerequisite and basic installation guilelines along with end to end execution of HungryHippos application.
 
 
+# Purpose
+
+This document describes how to install, configure and run HungryHippos clusters.
+
+This document also covers how to run jobs and get their results.
+
 ## Prerequisite
 
 1) Minimum jdk 1.8 :- http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -46,7 +52,7 @@
    
    1.1 Run install-all.sh to install all the prerequisite software 
       
-      	./install-all.sh 
+       ./install-all.sh 
    
    1.2 To install softwares individually, run respective install-*.sh.
    
@@ -78,13 +84,13 @@
        
              ./install-virtual-box.sh 
    
-   NOTE :- If you have some of these softwares already installed, it is better to install the needed softwares individually. Else it will override the softwares to the latest version.
+   NOTE :- If you have some of these softwares already installed, it is better to install rest of the softwares individually. Otherwise they will be overriden.
    
- For other linux distributions, please follow the instructions provided by respectice software companies.
+ For other linux distributions, please follow the instructions provided by respectice software distributors.
 
 ## HungryHippos Cluster setup:
 
-**STEP 1.** Build the project to create the jars.
+**STEP 1.** Build the project to create and install the jars.
 
     gradle clean build install
 
@@ -107,14 +113,14 @@
     | Name | Default Value | Description|
     | --- | --- | --- |
     | NODENUM | 1 | Number of nodes to spawned here 1 node will be spawned |
-    | ZOOKEEPERNUM | 1 | Number of nodes on which zookeeper has to be installed,  **ZOOKEEPERNUM <= NODENUM** |
+    | ZOOKEEPERNUM | 1 | Number of nodes on which zookeeper has to be installed,  **ZOOKEEPERNUM should be greater than 0 and ideally should be equal to maximum number of replicas** |
     | PROVIDER | digital_ocean | Nodes are created on digital_ocean. No other cloud services supported currently |
     | TOKEN | ----------- | Token id by which you can access digital ocean api. #for more details refer [Token Generation](Readme.md#token-generation) |
     | IMAGE | ubuntu-14-04-x64 | Operating system to be used, check https://cloud.digitalocean.com/ |
     | REGION | nyc1  |  Node spawn location **nyc1 -> NewYork Region 1**, for further details check https://cloud.digitalocean.com/ |
     | RAM | 8GB  |  The RAM for each node , here 8GB RAM is allocated for each node |
     | PRIVATE_KEY_PATH | /root/.ssh/id_rsa | Private sshkey path of the public key that is added in the digital ocean, if its not there please create one and add the public key of it to digital ocean , security settings. refer [SSH KEY Generation](Readme.md#ssh_key-generation) |
-    | SSH_KEY_NAME | vagrant_SSH_KEY_NAME | The name of the public ssh key that is added in digital ocean |
+    | SSH_KEY_NAME | vagrant | The name of the public ssh key that is added in digital ocean |
 
 3. Create spark.properties file from spark.properties.template.
   
@@ -280,7 +286,7 @@ A sample sharding-server-config.xml file looks like below :
 ### Command :
 Execute the following command from project parent folder.
 
-		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter <client-config.xml> <sharding-conf-path>
+    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter <client-config.xml> <sharding-conf-path>
 
 ### Command line arguments descriptions : 
 	
@@ -289,7 +295,7 @@ Execute the following command from project parent folder.
 2. sharding-conf-path : parent folder path of sharding configuration files. i.e. hhspark_automation/distr/config
 
 ### Example :
-	java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter  hhspark_automation/distr/config/client-config.xml hhspark_automation/distr/config
+    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter  hhspark_automation/distr/config/client-config.xml hhspark_automation/distr/config
 
 # Data publish :
 Data publish allows the user to publish data across the cluster of machines 
@@ -298,8 +304,7 @@ Execute the following command to start data publish from project's parent folder
 
 ### Command :
 
-    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter <client-config.xml> <input-data>
-    <distributed-file-path> <optional-args>
+    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter <client-config.xml> <input-data> <distributed-file-path> <optional-args>
     
 ### Command line arguments descriptions :    
 
@@ -309,12 +314,8 @@ Execute the following command to start data publish from project's parent folder
 4. optional-args : This optional argument is the size of the chunk such as 128 which represent 128 mb of chunk size. 
 
 ### Example  : 
-     java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
-     hhspark_automation/distr/config/client-config.xml ~/dataGenerator/sampledata.txt /dir/input >
-     logs/datapub.out 2> logs/datapub.err &
-            
+     java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter hhspark_automation/distr/config/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &         
  
-
 # Job Execution Module :
 As soon as data publish is completed, cluster machines are ready to accept the command to execute the jobs.
 To execute the jobs, client should write the jobs and submit it with spark submit command. 
@@ -344,8 +345,8 @@ compile 'hungryhippos:hhrdd:0.7.0'
 4. Transfer above created jar(say, test.jar) along with dependency jars such as "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node in directory "/home/hhuser/distr/lib_client.
  Run the following commands in project parent folder:
  
-	 scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
-	 scp <path to test.jar>  hhuser@<master-ip>:/home/hhuser/distr/lib_client
+     scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
+     scp <path to test.jar>  hhuser@<master-ip>:/home/hhuser/distr/lib_client
 	   
 5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7) on spark master node:
 
@@ -353,8 +354,7 @@ compile 'hungryhippos:hhrdd:0.7.0'
 **Note 1** User has to provide path to client-config path in the driver program. User has to ensure that the path to the client-config path is valid.
 **Note 2** User has to mention dependency-jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 ### Command :
-	   ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port>
-	   --jars <dependency-jars> <application-jar> [application-arguments]
+    ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port> --jars <dependency-jars> <application-jar> [application-arguments]
 						 
 ### Command line arguments descriptions :
 				 
@@ -364,15 +364,11 @@ compile 'hungryhippos:hhrdd:0.7.0'
 4. dependency-jars : all dependency jars with comma separated such as 
   local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.	  
 5. application-jar : The jar where the hungryhippos job is implemented.
- 6.application-arguments : Arguments passed to the main method of your main class, if any
- 
-	  
+6. application-arguments : Arguments passed to the main method of your main class, if any
+ 	  
 ### Example :						 
 	
-    ./bin/spark-submit --class com.talentica.hungryhippos.examples.SumJob --master spark://67.205.156.149:9091
-    --jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar
-    /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.156.149:9091 SumJobType /dir/input
-    /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &
+    ./bin/spark-submit --class com.talentica.hungryhippos.examples.SumJob --master spark://67.205.156.149:9091 --jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.156.149:9091 SumJobType /dir/input /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &
     
    **com.talentica.hungryhippos.examples.SumJob** is the class where addition Job is defined.
    it takes 4 argument first is the *spark-master ip with port* , *application name* ,*client-config* and */dir/outputSumJob*

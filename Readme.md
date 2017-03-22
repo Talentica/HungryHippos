@@ -374,7 +374,8 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 	   (1) scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
 	   (2) scp examples/build/libs/examples-0.7.0.jar  hhuser@<master-ip>:/home/hhuser/distr/lib_client
 	   
-	5. Run the following command in spark installation directory of master node:
+	5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7)
+	   on spark master node:
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
 

@@ -24,5 +24,5 @@
   </tns:input>
   <tns:sharding-dimensions>key1</tns:sharding-dimensions>
   <tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
-  <tns:bad-records-file-out>/root/bad_rec</tns:bad-records-file-out>
+  <tns:bad-records-file-out>/home/hhuser/bad_rec</tns:bad-records-file-out>
 </tns:sharding-client-config>

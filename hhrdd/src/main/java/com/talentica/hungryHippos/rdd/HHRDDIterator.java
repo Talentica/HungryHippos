@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.talentica.hungryHippos.rdd;
 
@@ -33,9 +33,20 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
   private Set<String> remoteFiles;
   private String filePath;
   private Iterator<Tuple2<String,int[]>> fileIterator;
+  private Set<String> blackListedIps;
+
   public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, SerializedNode> nodeInfo,File tmpDir) throws IOException {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
+    blackListedIps = new HashSet<>();
+      if(tmpDir.exists()){
+        File[] tempIpfiles = tmpDir.listFiles();
+        String[] ip = new String[tempIpfiles.length];
+        for (int index = 0; index < ip.length; index++) {
+          blackListedIps.add(tempIpfiles[index].getName());
+        }
+      }
+
     for(Tuple2<String,int[]> tuple2: files){
       File file = new File(this.filePath+tuple2._1);
       if (!file.exists()) {
@@ -44,11 +55,14 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       for (int hostIndex = 0; hostIndex < tuple2._2.length; hostIndex++) {
         int index = tuple2._2[hostIndex];
         String ip = nodeInfo.get(index).getIp();
-
-        File blacklistIPFile = new File(tmpDir.getAbsolutePath() + File.separator + ip);
-        if (blacklistIPFile.exists()) {
-          continue;
-        }
+          if (blackListedIps.contains(ip)) {
+              if(blackListedIps.size()==tuple2._2.length) {
+                deleteAllDownloadedFiles();
+                throw new RuntimeException(
+                        "Application cannot run as nodes :: " + blackListedIps + " are not listening");
+              }
+              continue;
+          }
         int port = nodeInfo.get(index).getPort();
         int maxRetry = 5;
         while (!isFileDownloaded && (maxRetry--) > 0) {
@@ -59,19 +73,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
           break;
         } else {
           logger.info(" Node {} is dead", ip);
-          if (!blacklistIPFile.exists()) {
-            blacklistIPFile.createNewFile();
-          }
+          createAndAddBlackListIPFile(tmpDir, ip);
         }
-      }
-      if (!isFileDownloaded) {
-        File[] tempIpfiles = tmpDir.listFiles();
-        String[] ip = new String[tempIpfiles.length];
-        for (int index = 0; index < ip.length; index++) {
-          ip[index] = tempIpfiles[index].getName();
-        }
-        throw new RuntimeException(
-            "Application cannot run as nodes :: " + Arrays.toString(ip) + " are not listening");
       }
       remoteFiles.add(tuple2._1);
       }
@@ -85,6 +88,14 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     // this.byteBuffer = ByteBuffer.wrap(byteBufferBytes);
     this.recordLength = rowSize;
     // this.hhRDDRowReader.setByteBuffer(byteBuffer);
+  }
+
+  private void createAndAddBlackListIPFile(File tmpDir, String ip) throws IOException {
+    File blacklistIPFile = new File(tmpDir.getAbsolutePath() + File.separator + ip);
+    if (!blacklistIPFile.exists()) {
+      blacklistIPFile.createNewFile();
+    }
+    blackListedIps.add(ip);
   }
 
   private void iterateOnFiles() throws IOException {
@@ -171,5 +182,12 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       }
     }
   }
+
+    private void deleteAllDownloadedFiles(){
+        for(String remoteFileName:remoteFiles){
+            File remoteFile = new File(filePath+remoteFileName);
+            remoteFile.delete();
+        }
+    }
 
 }

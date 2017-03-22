@@ -345,9 +345,12 @@ compile 'hungryhippos:hhrdd:0.7.0'
 4. Transfer above created jar(say, test.jar) along with dependency jars such as "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node in directory "/home/hhuser/distr/lib_client.
  Run the following commands in project parent folder:
  
+ ```
      scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
+     
      scp <path to test.jar>  hhuser@<master-ip>:/home/hhuser/distr/lib_client
-	   
+```
+
 5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7) on spark master node:
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.

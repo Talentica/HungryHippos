@@ -369,6 +369,11 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 	   "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node
 	   in directory "/home/hhuser/distr/lib_client
 	   
+	   Run the following commands in project parent folder:
+	   
+	   (1) scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
+	   (2) scp examples/build/libs/examples-0.7.0.jar  hhuser@<master-ip>:/home/hhuser/distr/lib_client
+	   
 	5. Run the following command in spark installation directory of master node:
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.

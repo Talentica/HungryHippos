@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:sharding-client-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-client-config.xsd ">
+  <tns:input>
+    <tns:sample-file-path>/home/hhuser/D_drive/dataSet/testDataForPublish.txt</tns:sample-file-path>
+    <tns:distributed-file-path>/hhuser/dir/input</tns:distributed-file-path>
+    <tns:data-description>
+      <tns:column>
+        <tns:name>Mobile</tns:name>
+        <tns:data-type>STRING</tns:data-type>
+        <tns:size>2</tns:size>
+      </tns:column>
+      <tns:column>
+        <tns:name>Number</tns:name>
+        <tns:data-type>INT</tns:data-type>
+        <tns:size>0</tns:size>
+      </tns:column>
+    </tns:data-description>
+    <tns:data-parser-config>
+      <tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
+    </tns:data-parser-config>
+  </tns:input>
+  <tns:sharding-dimensions>key1</tns:sharding-dimensions>
+  <tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
+  <tns:bad-records-file-out>/root/bad_rec</tns:bad-records-file-out>
+</tns:sharding-client-config>

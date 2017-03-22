@@ -375,33 +375,24 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 
 ### Command :
 	   ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port>
-	   --jars <dependency-jars> <client-job-jar> spark://<master-ip>:<port>
-	   <application-name> <distributed-file-path> <client-config-xml> <output-directory>
+	   --jars <dependency-jars> <application-jar> [application-arguments]
 						 
 ### Command line arguments descriptions :
 					 
 	  1. job-main-class : main class of client written jobs.
-	     i.e com.talentica.hungryhippos.examples.SumJob
+	     i.e com.talentica.hungryhippos.examples.SumJob 
 	  
-	  2. dependency-jars : all dependency jars with comma separated such as 
+	  2. master-ip : spark master ip.
+	  
+	  3. port : configured spark master port number.
+	  
+	  4. dependency-jars : all dependency jars with comma separated such as 
 	  local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 	  
-	  3. master-ip : spark master ip.
+	  5. application-jar : It is examples-0.7.0.jar which is available in directory location
+	  /home/hhuser/distr/lib_client. 
 	  
-	  4. client-job-jar : It is examples-0.7.0.jar which is available in directory location
-	  /home/hhuser/distr/lib_client.
-	  
-	  5. port : configured spark master port number.
-	  
-	  6. application-name : application name for current submission programe.
-	  
-	  7. distributed-file-path : This path should be exactly same as provided in
-	     "sharding-client-config.xml" having field name "distributed-file-path". 
-	     
-	  8. client-config-xml : client-config.xml file.
-	  
-	  9. output-directory : output directory name wherein the results are stored inside job id
-	     subfolder.
+	  6.application-arguments : Arguments passed to the main method of your main class, if any
 	  
 	  
 ### Example :						 

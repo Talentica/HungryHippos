@@ -3,9 +3,9 @@
 
 ## Prerequisite
 
-1) minimum jdk 1.8 :- http://www.oracle.com/technetwork/java/javase/downloads/index.html
+1) Minimum jdk 1.8 :- http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-2) minimum Ruby 1.9 :- http://rubyinstaller.org/
+2) Minimum Ruby 1.9 :- http://rubyinstaller.org/
 
 3) Chef-solo        :-  curl -L https://www.opscode.com/chef/install.sh | bash #installs latest version of chef 
 
@@ -19,19 +19,28 @@
 
 8) gradle :- gradle need to be installed in the machine so that you build the project.
             
-             apt-get install gradle .
+       apt-get install gradle .
 
-10) client Side O/S :- Linux distributions
-   	   
-         RAM       :- 2GB     
-         HARD DISK :- minimum 2GB free for installation
+10) Preferred Client Configuration
+
+        O/S : Ubuntu 14.04
+        RAM: 8 GB
+        HARD DISK: Depends on the size of the file to be distributed.
+        No.of cores per machine: 4
+
+11) Preferred Server Configuration
+
+        O/S : Ubuntu 14.04
+        RAM: 8 GB
+        HARD DISK: Depends on the size of the file to be distributed.
+        No.of cores per machine: 4
    
 
-## Installation of Prerequisite software On ubuntu
+## Installation of Prerequisite softwares on Client 
 
-**you can install all prerequsite software by running ./install.sh  or  individual scripts inside the basic install scripts**
+**You can install all prerequsite softwares by running ./install-all.sh  or  individual scripts inside the basic_install_scripts folder**
 
-   1. go to basic_install_scripts
+   1. Go to basic_install_scripts
    
           cd HungryHippos/basic_install_scripts
    
@@ -39,180 +48,152 @@
       
       	./install-all.sh 
    
-   1.2.1 to install softwares individual run respective install-*.sh.
+   1.2 To install softwares individually, run respective install-*.sh.
    
-       install-bc.sh -> to install bc , --mathlib
-	
-       install-chef.sh -> to install chef-solo
-	
-       install-java.sh -> to install java 1.8
-	
-       install-jq.sh ->   to install jq , json parser
-	
-       install-ruby.sh -> to install ruby , latest version
-	
-       install-vagrant.sh -> to install vagrant
-	
-       install-virtual-box.sh -> to install virtual Box
-
+   * To install bc , --mathlib
    
-   NOTE :- If you have Java or Ruby already installed it will be better you install the software individually. Else it will   
-      override you Ruby and Java to latest version.
-2. for other distribution please follow the instructions provided by respectice software companies.
+         ./install-bc.sh  
+	 
+   * To install chef
+   
+         ./install-chef.sh
+	
+    * To install oracle-jdk 
+  
+          ./install-java.sh
+	
+     * To install jq , used for json parsing
+     
+           ./install-jq.sh
+	   
+      * To install ruby 
+	
+            ./install-ruby.sh
 
-## Build the project:
+       * To install vagrant
+       
+             ./install-vagrant.sh
+	     
+       * To install virtual Box
+       
+             ./install-virtual-box.sh 
+   
+   NOTE :- If you have some of these softwares already installed, it is better to install the needed softwares individually. Else it will override the softwares to the latest version.
+   
+ For other linux distributions, please follow the instructions provided by respectice software companies.
 
-1. gradle clean build
-2. jar file of each module will be created in respective modules/build/libs.
-3. cp node/build/libs/node-*.jar hhspark_automation/distr_original/lib
+## HungryHippos Cluster setup:
 
-## Setting up the project.
+**STEP 1.** Build the project to create the jars.
 
-**Setting Initial Properties**
+    gradle clean build install
 
-1.  go to the scripts folder inside the hhspark_automation.
+**STEP 2.** Copy node-\*.jar to the  hhspark_automation/distr_original/lib folder
+ 
+    cp node/build/libs/node-*.jar hhspark_automation/distr_original/lib
+
+**STEP 3.** Setting Cluster Properties
+
+1.  Go to the scripts folder inside the hhspark_automation.
     
-    	cd hhspark_automation/scripts
+        cd hhspark_automation/scripts
     
-2.  create vagrant.properties file from vagrant.properties.template
+2.  Create vagrant.properties file from vagrant.properties.template
 
     	cp vagrant.properties.template vagrant.properties
 
     **vagrant.properties** has following variables with default values
-
-   		2.1 NODENUM = 1 
     
-      	 number of nodes to spawned here 1 node will be spawned
+    | Name | Default Value | Description|
+    | --- | --- | --- |
+    | NODENUM | 1 | Number of nodes to spawned here 1 node will be spawned |
+    | ZOOKEEPERNUM | 1 | Number of nodes on which zookeeper has to be installed,  **ZOOKEEPERNUM <= NODENUM** |
+    | PROVIDER | digital_ocean | Nodes are created on digital_ocean. No other cloud services supported currently |
+    | TOKEN | ----------- | Token id by which you can access digital ocean api. #for more details refer [Token Generation](Readme.md#token-generation) |
+    | IMAGE | ubuntu-14-04-x64 | Operating system to be used, check https://cloud.digitalocean.com/ |
+    | REGION | nyc1  |  Node spawn location **nyc1 -> NewYork Region 1**, for further details check https://cloud.digitalocean.com/ |
+    | RAM | 8GB  |  The RAM for each node , here 8GB RAM is allocated for each node |
+    | PRIVATE_KEY_PATH | /root/.ssh/id_rsa | Private sshkey path of the public key that is added in the digital ocean, if its not there please create one and add the public key of it to digital ocean , security settings. refer [SSH KEY Generation](Readme.md#ssh_key-generation) |
+    | SSH_KEY_NAME | vagrant_SSH_KEY_NAME | The name of the public ssh key that is added in digital ocean |
 
-    	2.2 ZOOKEEPERNUM = 1 
-    
-      	 	number of nodes on which zookeeper has to be installed 	
-	 
-      	 	ZOOKEEPERNUM <= NODENUM
-
-	    2.3 PROVIDER = digital_ocean 
-    
-     	  	default value , currently script supports only digital ocean
-
-
-   		 2.4 TOKEN=---------------------------------- 
-    
-   			token id by which you can access digital ocean api. #for more details refer
-   	 	
-	[Token Generation](Readme.md#token-generation)
-		
-		2.5 IMAGE=ubuntu-14-04-x64
-    
-    		  operating system to be used
-
-   		2.6 REGION=nyc1 
-    
-   	  	  Node spawn location **nyc1 -> NewYork Region 1
-
-   	 	2.7 RAM=8GB 
-    
-    	  	 The ram of the node , here 8GB ram is allocated for each node
-
-   		2.8 PRIVATE_KEY_PATH=/root/.ssh/id_rsa 
-    
-  	  ssh key path that is added in the digital ocean, if its not there please create one and add it to digital ocean 
-	             security settings. refer [SSH KEY Generation](Readme.md#ssh_key-generation)
-	  
-	  	2.9 SSH_KEY_NAME=vagrant_SSH_KEY_NAME
-    
-  	  is the name of the ssh key that will be added in digital ocean as part of 2.8.
-
-3. create spark.properties file from spark.properties.template.
+3. Create spark.properties file from spark.properties.template.
   
        cp spark.properties.template spark.properties
     
-    spark.properties contains details regarding the port number to used for spark master and spark worker. override those values 
-    if you want to use some other port number.
+   spark.properties contains details regarding the port number to used for spark master and spark worker. Override those values 
+    if you want to configure some other port number.
     
-		3.1 SPARK_WORKER_PORT=9090
-		3.2 SPARK_MASTER_PORT=9091
+    | Name | Default Value | Description|
+    | --- | --- | --- |
+    | SPARK_WORKER_PORT | 9090 | Spark Worker's port number |
+    | SPARK_MASTER_PORT | 9091 | Spark Master's port number |
 
-4. execute ./vagrant-init-caller.sh inside the scripts folder
+**STEP 4.** Execute ./vagrant-init-caller.sh inside the scripts folder. It will spawn the hungryhippos cluster with required softwares.
  
-  	 ./vagrant-init-caller.sh
+       ./vagrant-init-caller.sh
+       
+After execution of the script.
+1. Spark-2.0.2-bin-hadoop2.7, Oracle JDK (1.8 Version) , Chef-solo (stable,12.17.44) will be downloaded and installed on all servers.
+	
+ 2. Zookeeper (3.5.1 alpa) will be installed on the specified number of nodes. It will configure to be standalone or as cluster depending on the number of nodes.
 
 ## SSH_KEY Generation
 
-*ssh-keygen -t rsa*
-    
-    after executing this command it will type something like below
+Generate rsa key using below command. It will generate a private key file and a public key file.
 
-    Generating public/private rsa key pair.
-       Enter file in which to save the key (/home/"$user"/.ssh/id_rsa): 
+**NOTE** :- Please don't input passphrase.
 
-    if you press enter with out changing the file location, 2 files will be created id_rsa and id_rsa.pub.
+    ssh-keygen -t rsa 
+  
+ After creating the SSH_KEY( say id_rsa), its necessary to add the public key (id_rsa.pub) contents to digital ocean.
 
-    �NOTE:- after pressing enter it will prompt something like below Enter passphrase (empty for no passphrase): ignore the passphrase by hitting enter again.
+  * Login to https://cloud.digitalocean.com
 
- After creating the SSH_KEY, lets say id_rsa its necessary to add the public key id_rsa.pub contents to digital ocean.
-
-    * login to https://cloud.digitalocean.com
-
-    * go to settings and select security.
-
-    * a new page will be open which has SSH keys as heading
-
-    * click on "add ssh key"
+  * Go to settings and select security. security page will open
+  
+  * Click on "Add SSH Key"
 	
-    * copy the contents of id_rsa.pub to the content box, and give it a name.
+  * Copy the content of the public key that was generated by "ssh-keygen -t rsa" command to the content box, and give it a name.
 
-    * The provided name should be provided to the SSH_KEY_NAME. (Setting properties,2.9)
-        If you are not doing it manually you will run into an issue https://github.com/devopsgroup-io/vagrant-digitalocean/issues/178 , it seems multiple node tries to add new ssh key name at same time with out checking whether previous nodes already added it or not.
+  * This name should be used to set the SSH_KEY_NAME in the vagrant.properties.
 
 ## Token Generation
 
-   * login to https://cloud.digitalocean.com
+   * Login to https://cloud.digitalocean.com
 
-   * click on API
+   * Click on API Tab
 
-   * click on Generate New Token
+   * Click on Generate New Token
    
-   * provide token name and click on Generate Token
+   * Provide token name and click on Generate Token
 
-   * copy the token, as it will not be shown again.
+   * Copy the token value, as it will not be shown again.
 
 ## Destroy Server (Digital ocean nodes created)
 
-   * To destroy the server nodes execute ./destroy-vagrant.sh present inside the scripts folder.
+* To destroy the server nodes execute ./destroy-vagrant.sh that is present inside the scripts folder.
     
-   	  ./destroy-vagrant.sh
+      ./destroy-vagrant.sh
 
-## After execution of the script.
 
-1. spark will be downloaded on all servers.
-2. java will be installed on all servers.
-3. chef-solo will be installed on all servers
-4. zokeeper will be installed on the specified number of nodes , can be standalone or as cluster depending on the number of nodes.
+## HungryHippos Version : 0.7.0v
 
-8. Server side O/S : Ubuntu 14.04
+# Sharding :
+Sharding is the initial step in the enitre ecosystem of the HungryHippos application. User will have to perform sharding prior to data publish. To perform sharding, a sample file (that represents the near distribution of the actual data file) is required which finally creates "sharding table". Data publish requires this "sharding table" during execution. 
 
-          ideal RAM: 8 GB
-          HARD DISK: Depends on Data size of the file to be distributed.
-          ideal No.of cores per machine: 4
-
-## Hungry Hippos Version : 0.7.0v
-
-# Sharding Module :
-Sharding is the initial step in the enitre ecosystem of the Hungy Hippos application.User will have to run the sharding module prior to data publish. Execution of sharding module requires a "sample" file which finally creates "sharding table". Data publish requires this "sharding table" during execution. User is required to provide configuration related details before runnning the Sharding module.  
-
-There are two configuration template files for sharding which are explained below :
+**NOTE:** User has to configure sharding configurations before performing the Sharding. 
 
 ### Configure sharding xml files :
 
 Creating sharding-client-config.xml and sharding-server-config.xml file from template files.
 
-		(1) cp hhspark_automation/distr/config/sharding-client-config.xml.template hhspark_automation/distr/config/sharding-client-config.xml
-		(2) cp hhspark_automation/distr/config/sharding-server-config.xml.template hhspark_automation/distr/config/sharding-server-config.xml
+	cp hhspark_automation/distr/config/sharding-client-config.xml.template hhspark_automation/distr/config/sharding-client-config.xml
+	cp hhspark_automation/distr/config/sharding-server-config.xml.template hhspark_automation/distr/config/sharding-server-config.xml
 
 ### 1. sharding-client-config.xml
 
 Assuming your input file contains lines with just two fields like below.
-The fields are created using comma i.e "," as delimiter.
+The fields are separrated using comma i.e "," as delimiter.
 
     samsung,78904566
     apple,865478
@@ -285,7 +266,7 @@ A sample sharding-server-config.xml file looks like below :
       xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-server-config.xsd ">
 
       <tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
-      <tns:maximum-no-of-shard-buckets-size>20000</tns:maximum-no-of-shard-buckets-size>
+      <tns:maximum-no-of-shard-buckets-size>20</tns:maximum-no-of-shard-buckets-size>
     </tns:sharding-server-config>
 	
 ### Explaination : 
@@ -299,47 +280,33 @@ A sample sharding-server-config.xml file looks like below :
 ### Command :
 Execute the following command from project parent folder.
 
-		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <sharding-main-class> <client-config.xml> <sharding-conf-path>
+		java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter <client-config.xml> <sharding-conf-path>
 
 ### Command line arguments descriptions : 
+	
+1. client-config.xml: provide the client-config.xml file path which is available in hhspark_automation/distr/config/client-config.xml
 
-	1. sharding-main-class : com.talentica.hungryHippos.sharding.main.ShardingStarter
-	
-	2. client-config.xml: provide the client-config.xml file path which is available in 
-	hhspark_automation/distr/config/client-config.xml
-	
-	3. sharding-conf-path : parent folder path of sharding configuration files.
-	i.e. hhspark_automation/distr/config
+2. sharding-conf-path : parent folder path of sharding configuration files. i.e. hhspark_automation/distr/config
 
 ### Example :
 	java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.sharding.main.ShardingStarter  hhspark_automation/distr/config/client-config.xml hhspark_automation/distr/config
 
-# Data publish Module :
-Data publish module allows the user to publish large data set across the cluster of machines 
+# Data publish :
+Data publish allows the user to publish data across the cluster of machines 
 from client machine.This distributed data become eligible to get executed during job execution.
-Execute the following command to get start with data publish from project parent folder.
+Execute the following command to start data publish from project's parent folder.
 
 ### Command :
-Execute the following command from project parent folder.
 
-    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar <main-class> <client-config.xml> <input-data>
+    java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter <client-config.xml> <input-data>
     <distributed-file-path> <optional-args>
     
 ### Command line arguments descriptions :    
-            
-    1. main-class : com.talentica.hungryHippos.master.DataPublisherStarter
-    
-    2. client-config.xml: provide the client-config.xml file path which is available in 
-       hhspark_automation/distr/config/client-config.xml
-       
-    3. input-data : provide path of input data set with file name. Currently we support text
-       and csv files only in which fields need be comma seperated.
-       
-    4. distributed-file-path : This path should be exactly same as provided 
-       in "sharding-client-config.xml" having field name "distributed-file-path".
-    
-    5. optional-args : This optional argument is the size of the chunk such as 
-       128 which represent 128 mb of chunk size. 
+
+1. client-config.xml: provide the client-config.xml file path which is available in hhspark_automation/distr/config/client-config.xml
+2. input-data : provide path of input data set with file name. Currently we support text and csv files only in which fields need be comma seperated.
+3. distributed-file-path : This path should be exactly same as provided in "sharding-client-config.xml" having field name "distributed-file-path".
+4. optional-args : This optional argument is the size of the chunk such as 128 which represent 128 mb of chunk size. 
 
 ### Example  : 
      java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter
@@ -355,51 +322,50 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
 
 
 ### Steps :
-	1. Write the job.
+
+1. In the build.gradle of your project add mavenLocal and mavenCentral in gradle repository and add the dependency for hungryhippos client api and hhrdd.
+
+```
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies{
+compile 'hungrihippos:client-api:0.7.0'
+compile 'hungryhippos:hhrdd:0.7.0'
+}
+```
+
+2. Write the job using HungryHippos custom spark implementation. Refer [Examples](https://github.com/Talentica/HungryHippos/tree/modularization-2/examples/src/main/java/com/talentica/hungryhippos/examples) to have an overview.
+
+3. Build your job jar.
 	
-[Examples](https://github.com/Talentica/HungryHippos/tree/modularization-2/examples/src/main/java/com/talentica/hungryhippos/examples)
-	
-	2. Build the module.
-	   gradle clean build
-	
-	3. Now above command will create the jar. Let's say jar created is "examples-0.7.0.jar" in examples
-	   module in location examples/build/libs.
-	
-	4. Transfer above created jar(examples-0.7.0.jar) along with dependency jars such as
-	   "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node
-	   in directory "/home/hhuser/distr/lib_client
+4. Transfer above created jar(say, test.jar) along with dependency jars such as "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node in directory "/home/hhuser/distr/lib_client.
+ Run the following commands in project parent folder:
+ 
+	 scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
+	 scp <path to test.jar>  hhuser@<master-ip>:/home/hhuser/distr/lib_client
 	   
-	   Run the following commands in project parent folder:
-	   
-	   (1) scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
-	   (2) scp examples/build/libs/examples-0.7.0.jar  hhuser@<master-ip>:/home/hhuser/distr/lib_client
-	   
-	5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7)
-	   on spark master node:
+5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7) on spark master node:
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
-
+**Note 1** User has to provide path to client-config path in the driver program. User has to ensure that the path to the client-config path is valid.
+**Note 2** User has to mention dependency-jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 ### Command :
 	   ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port>
 	   --jars <dependency-jars> <application-jar> [application-arguments]
 						 
 ### Command line arguments descriptions :
-					 
-	  1. job-main-class : main class of client written jobs.
-	     i.e com.talentica.hungryhippos.examples.SumJob 
-	  
-	  2. master-ip : spark master ip.
-	  
-	  3. port : configured spark master port number.
-	  
-	  4. dependency-jars : all dependency jars with comma separated such as 
-	  local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
-	  
-	  5. application-jar : It is examples-0.7.0.jar which is available in directory location
-	  /home/hhuser/distr/lib_client. 
-	  
-	  6.application-arguments : Arguments passed to the main method of your main class, if any
-	  
+				 
+1. job-main-class : main class of client written jobs. e.g com.talentica.hungryhippos.examples.SumJob 
+2. master-ip : spark master ip.
+3. port : configured spark master port number.  
+4. dependency-jars : all dependency jars with comma separated such as 
+  local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.	  
+5. application-jar : The jar where the hungryhippos job is implemented.
+ 6.application-arguments : Arguments passed to the main method of your main class, if any
+ 
 	  
 ### Example :						 
 	
@@ -408,6 +374,10 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
     /home/hhuser/distr/lib_client/examples-0.7.0.jar spark://67.205.156.149:9091 SumJobType /dir/input
     /home/hhuser/distr/config/client-config.xml /dir/outputSumJob >logs/SumJob.out 2>logs/SumJob.err &
     
+   **com.talentica.hungryhippos.examples.SumJob** is the class where addition Job is defined.
+   it takes 4 argument first is the *spark-master ip with port* , *application name* ,*client-config* and */dir/outputSumJob*
+   location to save the output file in the cluster*.
+   
 ### Download Output
 
    To download the output file from the cluster after running job successfully
@@ -416,11 +386,11 @@ Moreover, you can find the examples as to how to write the jobs in module "examp
        
           cd hhspark_automation/scripts
 	  
-   2. run ./download.sh, on the screen it will ask for 
+   2. run ./hh-download.sh, on the screen it will ask for 
      
-          ./download.sh
+          ./hh-download.sh
      
-    Enter distributed OutputPath -> output path from where result has to be downloaded
+    Enter distributed Output Path -> output path from where result has to be downloaded
 	 
     Enter the download location -> where to save the downloaded output file
     

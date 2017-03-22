@@ -33,7 +33,7 @@
 
    1. go to basic_install_scripts
    
-          cd Hungryhippos/basic_install_scripts
+          cd HungryHippos/basic_install_scripts
    
    1.1 Run install-all.sh to install all the prerequisite software 
       

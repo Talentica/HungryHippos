@@ -90,9 +90,9 @@ This document also covers how to run jobs and get their results.
 
 ## HungryHippos Cluster setup:
 
-**STEP 1.** Build the project to create and install the jars.
+**STEP 1.** Build the project to create and publish the jars to local maven repository.
 
-    gradle clean build install
+    gradle clean build publishToMavenLocal
 
 **STEP 2.** Copy node-\*.jar to the  hhspark_automation/distr_original/lib folder
  

@@ -32,8 +32,7 @@ IFS='/' read -a folderName <<< "$distrOutputPath"
 
 outputFolderName=${folderName[${#folderName[@]}-1]}
 #echo $outputFolderName
-ips=($(awk  '{print $1}' ip.txt))
-
+ips=($(awk -F ':' '{print $1}' ip_file.txt))
 for i in "${ips[@]}"
 do
                mkdir -p $downloadLoc/${outputFolderName}	

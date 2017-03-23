@@ -32,7 +32,8 @@ outputFolderName=${folderName[${#folderName[@]}-1]}
 echo $outputFolderName
 dir=${distrOutputPath%/${outputFolderName}}
 echo "dir=$dir"
-ips=($(awk  '{print $1}' ip.txt))
+
+ips=($(awk -F ':' '{print $1}' ip_file.txt))
 
 
 j=0

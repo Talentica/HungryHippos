@@ -343,7 +343,7 @@ dependencies{
 3. Build your job jar.
 	
 4. Transfer above created jar(say, test.jar) along with dependency jars such as "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node in directory "/home/hhuser/distr/lib_client.
- Run the following commands in project parent folder:
+ For this, run the following commands in project parent folder:
  
  ```
      scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client

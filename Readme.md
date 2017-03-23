@@ -208,7 +208,10 @@ The fields are separrated using comma i.e "," as delimiter.
 Mobile is the column name given to field1 . i.e; samsung | apple | nokia<br/>
 Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
+### Purpose : 
 
+The purpose of this file is to provide the data description of input file, dimensions on which sharding needs to be done and
+the distributed path of input file in HungryHippo file system.
 		
 ### A sample sharding-client-config.xml file looks like below :
 
@@ -239,30 +242,26 @@ Number is the column name given to field2 . i.e; 7890566 | 865478 ..
 
 ### Explaination : 
 
-    <tns:sharding-client-config>
-      <tns:input>
-        <tns:sample-file-path> provide sample file path. </tns:sample-file-path>
-        <tns:distributed-file-path> location where actual input file will be stored in cluster machine.
-	</tns:distributed-file-path>
-        <tns:data-description> Describe all the columns in a record
-          <tns:column> 
-            <tns:name> name of the column </tns:name>
-            <tns:data-type>Data-type of column</tns:data-type>
-            <tns:size> max number of characters for String and 0 for other datatypes</tns:size>
-          </tns:column>
-          Repeat this column element for all columns description.
-        </tns:data-description>
-        <tns:data-parser-config> By default HungryHippos CsvDataParser provided.
-          <tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
-        </tns:data-parser-config>
-      </tns:input>
-      <tns:sharding-dimensions>comma separeted column names which user has identified as dimensions.</tns:sharding-dimensions>
-      <tns:maximum-size-of-single-block-data> Max size of a single record </tns:maximum-size-of-single-block-data>
-      <tns:bad-records-file-out>file path for storing records which does not fulfil the data-description given above.</tns:bad-records-file-out>
-    </tns:sharding-client-config>
-
+  | Name | Value | Description | 
+  | ----- | --- | -------- |
+  | tns:sample-file-path | `<sample-file-path>` | Path of the sample file on which sharding needs to be done |
+  | tns:distributed-file-path | `<distributed-path>` | Path on HungryHippo filesystem where input file will be stored |
+  | tns:data-description | - | Colume elements inside it will hold the description of columns in record |
+  | tns:column | - | will hold the column description in record |
+  | tns:name | key1 | Name of the column |
+  | tns:data-type | BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, CHAR, STRING | data-type of the column. Can contain one of the values
+  given here.|
+  | tns:size | 0 | size of data-type. max number of characters for String and 0 for other datatypes|
+  | tns:data-parser-config | - | By default HungryHippos CsvDataParser provided|
+  | tns:class-name | com.talentica.hungryHippos.client.data.parser.CsvDataParser | HungryHippo provides it's own data parser |
+  | tns:sharding-dimensions | key1,key2 | comma separeted column names which user has identified as dimensions |
+  | tns:maximum-size-of-single-block-data | 80 | Max size of a single record in text format |
+  | tns:bad-records-file-out | `<local-file-path>` | file path for storing records which does not fulfil the data-description given above |
+  
 
 ### 2. sharding-server-config.xml
+
+The purpose of this file is to provide the number of buckets the sharding module should create for given input data file.
 
 A sample sharding-server-config.xml file looks like below :
 
@@ -277,9 +276,10 @@ A sample sharding-server-config.xml file looks like below :
 	
 ### Explaination : 
 
-    <tns:maximum-shard-file-size-in-bytes> Maximum Size of the sharding table files generated.</tns:maximum-shard-file-size-in-bytes>
-    <tns:maximum-no-of-shard-buckets-size> Maximum number of buckets user wants to create.</tns:maximum-no-of-shard-buckets-size>
-
+ | Name | Value | description | 
+ | ---- | ----- | ----------- |
+ | tns:maximum-shard-file-size-in-bytes | 200428800 | Maximum size of the sharding file in bytes |
+ | tns:maximum-no-of-shard-buckets-size | 20 | Maximum number of buckets user wants to create |
 
 ### Sharding-module Execution
 
@@ -333,8 +333,8 @@ repositories {
 }
 
 dependencies{
- compile 'com.talentica.hungry-hippos:client-api:0.7.0'
- compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
+compile 'hungrihippos:client-api:0.7.0'
+compile 'hungryhippos:hhrdd:0.7.0'
 }
 ```
 
@@ -343,7 +343,7 @@ dependencies{
 3. Build your job jar.
 	
 4. Transfer above created jar(say, test.jar) along with dependency jars such as "hhrdd-0.7.0.jar" available in location hhrdd/build/libs to spark "master" node in directory "/home/hhuser/distr/lib_client.
- For this, run the following commands in project parent folder:
+ Run the following commands in project parent folder:
  
  ```
      scp hhrdd/build/libs/hhrdd-0.7.0.jar hhuser@<master-ip>:/home/hhuser/distr/lib_client
@@ -355,7 +355,6 @@ dependencies{
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
 **Note 1** User has to provide path to client-config path in the driver program. User has to ensure that the path to the client-config path is valid.
-
 **Note 2** User has to mention dependency-jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 ### Command :
     ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port> --jars <dependency-jars> <application-jar> [application-arguments]

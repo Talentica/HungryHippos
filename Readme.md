@@ -248,13 +248,13 @@ the distributed path of input file in HungryHippo file system.
   | tns:distributed-file-path | `<distributed-path>` | Path on HungryHippo filesystem where input file will be stored |
   | tns:data-description | - | Colume elements inside it will hold the description of columns in record |
   | tns:column | - | will hold the column description in record |
-  | tns:name | key1 | Name of the column |
-  | tns:data-type | BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, CHAR, STRING | data-type of the column. Can contain one of the values
+  | tns:name | Mobile | Name of the column |
+  | tns:data-type | INT, LONG, DOUBLE, STRING | data-type of the column. Can contain one of the values
   given here.|
   | tns:size | 0 | size of data-type. max number of characters for String and 0 for other datatypes|
   | tns:data-parser-config | - | By default HungryHippos CsvDataParser provided|
-  | tns:class-name | com.talentica.hungryHippos.client.data.parser.CsvDataParser | HungryHippo provides it's own data parser |
-  | tns:sharding-dimensions | key1,key2 | comma separeted column names which user has identified as dimensions |
+  | tns:class-name | com.talentica.hungryHippos.client.data.parser.CsvDataParser | HungryHippos provides it's own data parser |
+  | tns:sharding-dimensions | Mobile,Number | comma separeted column names which user has identified as dimensions |
   | tns:maximum-size-of-single-block-data | 80 | Max size of a single record in text format |
   | tns:bad-records-file-out | `<local-file-path>` | file path for storing records which does not fulfil the data-description given above |
   
@@ -361,6 +361,8 @@ compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
     ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port> --jars <dependency-jars> <application-jar> [application-arguments]
 						 
 ### Command line arguments descriptions :
+8 GB Memory / 80 GB Disk / NYC1 - Ubuntu 14.04.5 x64
+
 				 
 1. job-main-class : main class of client written jobs. e.g com.talentica.hungryhippos.examples.SumJob 
 2. master-ip : spark master ip.
@@ -378,24 +380,16 @@ compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
    it takes 4 argument first is the *spark-master ip with port* , *application name* ,*client-config* and */dir/outputSumJob*
    location to save the output file in the cluster*.
    
-### Download Output
-
-   To download the output file from the cluster after running job successfully
+### Utility
+  
+  1. go to hhspark_automation/scripts.
    
-   1. go to hhspark_automation/scripts 
-       
           cd hhspark_automation/scripts
-	  
-   2. run ./hh-download.sh, on the screen it will ask for 
-     
-          ./hh-download.sh
-     
-    Enter distributed Output Path -> output path from where result has to be downloaded
-	 
-    Enter the download location -> where to save the downloaded output file
-    
- 
-
-
-
- 
+| Command | Functionality | 
+| ---- |----- | 
+| ./hh-download.sh | To download the output file of jobs|
+| ./kill-all.sh | To kill the data distributor process running on the cluster or To remove input directory|
+| ./transfer.sh | To start the data distributor process on the cluster or To copy the distr directory|
+| ./server-status.sh | To check the nodes where data distributor is running. Failed server details is also shown |
+| ./destroy-vagrant.sh| To destroy entire cluster | 
+   

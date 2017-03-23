@@ -333,8 +333,8 @@ repositories {
 }
 
 dependencies{
-compile 'hungrihippos:client-api:0.7.0'
-compile 'hungryhippos:hhrdd:0.7.0'
+ compile 'com.talentica.hungry-hippos:client-api:0.7.0'
+ compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
 }
 ```
 

@@ -355,6 +355,7 @@ compile 'hungryhippos:hhrdd:0.7.0'
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
 **Note 1** User has to provide path to client-config path in the driver program. User has to ensure that the path to the client-config path is valid.
+
 **Note 2** User has to mention dependency-jars local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.
 ### Command :
     ./bin/spark-submit --class <job-main-class> --master spark://<master-ip>:<port> --jars <dependency-jars> <application-jar> [application-arguments]

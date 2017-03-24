@@ -311,7 +311,7 @@ Execute the following command to start data publish from project's parent folder
 1. client-config.xml: provide the client-config.xml file path which is available in hhspark_automation/distr/config/client-config.xml
 2. input-data : provide path of input data set with file name. Currently we support text and csv files only in which fields need be comma seperated.
 3. distributed-file-path : This path should be exactly same as provided in "sharding-client-config.xml" having field name "distributed-file-path".
-4. optional-args : You can provide the optional argument for chunk size (in bytes). Otherwise 128 MB will be considered as  the chunk size. The data file is splitted into small parts called Chunks, which are published to nodes where they are processed and stored.
+4. optional-args : You can provide the optional argument for chunk size (in bytes). Otherwise 128 MB will be considered as  the chunk size. The input data file is splitted into small parts called Chunks, which are published to nodes where they are processed and stored.
 
 ### Example  : 
      java -cp data-publisher/build/libs/data-publisher-0.7.0.jar com.talentica.hungryHippos.master.DataPublisherStarter hhspark_automation/distr/config/client-config.xml ~/dataGenerator/sampledata.txt /dir/input > logs/datapub.out 2> logs/datapub.err &         

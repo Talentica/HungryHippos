@@ -142,6 +142,11 @@ After execution of the script.
 1. Spark-2.0.2-bin-hadoop2.7, Oracle JDK (1.8 Version) , Chef-solo (stable,12.17.44) will be downloaded and installed on all servers.
 	
  2. Zookeeper (3.5.1 alpa) will be installed on the specified number of nodes. It will configure to be standalone or as cluster depending on the number of nodes.
+ 
+ 3. "ip_file.txt" file is created at ~/HungryHippos/hhspark_automation/scripts location. This file contain all the ips of nodes
+ created in cluster. The first entry in this file is spark master-ip.
+ 
+ 4. User can open spark Web UI at `<master-ip>:<port>` for monitoring purpose. By default port is 8080. User can also find the port number by logging in master node and check log file created at location /home/hhuser/spark-2.0.2-bin-hadoop2.7/logs/spark-hhuser-org.apache.spark.deploy.master.Master-1-sparkTTW-1.out . In log user can see something like `INFO Utils: Successfully started service 'MasterUI' on port 8081.` So port will be 8081.
 
 ## SSH_KEY Generation
 
@@ -355,7 +360,9 @@ compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
      
      scp <path to test.jar>  hhuser@<master-ip>:/home/hhuser/distr/lib_client
 ```
-
+#### Note : 
+ User can get all cluster nodes' IP from file ~/HungryHippos/hhspark_automation/scripts/ip_file.txt.
+ First entry in ip_file.txt file represents the IP of spark master node i.e. `<master-ip>`
 5. Run the following command in spark installation directory (/home/hhuser/spark-2.0.2-bin-hadoop2.7) on spark master node:
 
 ### User can follow the below command to run the above jobs or alternatively can follow the [spark job submission](http://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit) command.
@@ -370,7 +377,7 @@ compile 'com.talentica.hungry-hippos:hhrdd:0.7.0'
 
 				 
 1. job-main-class : main class of client written jobs. e.g com.talentica.hungryhippos.examples.SumJob 
-2. master-ip : spark master ip.
+2. master-ip : spark master ip(First Entry in file ~/HungryHippos/hhspark_automation/scripts/ip_file.txt is master-ip).
 3. port : configured spark master port number.  
 4. dependency-jars : all dependency jars with comma separated such as 
   local:///home/hhuser/distr/lib/node-0.7.0.jar,/home/hhuser/distr/lib_client/hhrdd-0.7.0.jar.	  

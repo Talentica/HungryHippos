@@ -146,7 +146,7 @@ After execution of the script.
  3. "ip_file.txt" file is created at ~/HungryHippos/hhspark_automation/scripts location. This file contain all the ips of nodes
  created in cluster. The first entry in this file is spark master-ip.
  
- 4. User can open spark Web UI at `<master-ip>:<port>` for monitoring purpose. By default port is 8080. But there are chances that port 8080 will be occupied by some other service, in that case sser can find the correct port number by logging in master node and check log file created at location `/home/hhuser/spark-2.0.2-bin-hadoop2.7/logs/spark-hhuser-org.apache.spark.deploy.master.Master-1-sparkTTW-1.out` . In log file user can see something like `INFO Utils: Successfully started service 'MasterUI' on port 8081.` So port will be 8081.
+ 4. User can open spark Web UI at `<master-ip>:<port>` for monitoring purpose. By default `<port>` is 8080. But there are chances that port 8080 will be occupied by some other service, in that case user can find the correct port number by logging in master node and check log file created at location `/home/hhuser/spark-2.0.2-bin-hadoop2.7/logs/spark-hhuser-org.apache.spark.deploy.master.Master-1-sparkTTW-1.out` . In log file user can see something like `INFO Utils: Successfully started service 'MasterUI' on port 8081.` So port will be 8081.
 
 ## SSH_KEY Generation
 

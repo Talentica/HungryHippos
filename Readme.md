@@ -281,6 +281,11 @@ A sample sharding-server-config.xml file looks like below :
  | tns:maximum-shard-file-size-in-bytes | 200428800 | Maximum size of the sharding file in bytes |
  | tns:maximum-no-of-shard-buckets-size | 20 | Maximum number of buckets user wants to create |
 
+# Note : 
+A bucket represents a container for a key or a combination of keys. The Sharding module creates a number of buckets mentioned
+in property `tns:maximum-no-of-shard-buckets-size`. Each record sharding module processes will be mapped to one of these buckets
+based on the key or combination of keys.
+
 ### Sharding-module Execution
 
 ### Command :

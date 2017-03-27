@@ -190,7 +190,7 @@ Generate rsa key using below command. It will generate a private key file and a 
 ## HungryHippos Version : 0.7.0v
 
 # Sharding :
-Sharding is the initial step in the enitre ecosystem of the HungryHippos application. User will have to perform sharding prior to data publish. To perform sharding, a sample file (that represents the near distribution of the actual data file) is required which finally creates "sharding table". Data publish requires this "sharding table" during execution. 
+Sharding is the initial step in the enitre HungryHippos ecosystem. User will have to perform sharding prior to data publish. To perform sharding, a sample file (that represents the near distribution of the actual data file) is required which finally creates "sharding table". Data publish requires this "sharding table" during execution. 
 
 **NOTE:** User has to configure sharding configurations before performing the Sharding. 
 

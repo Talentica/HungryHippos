@@ -33,18 +33,42 @@ import scala.reflect.ClassManifestFactory$;
 import scala.reflect.ClassTag;
 
 /**
+ * The Class HHRDD.
+ *
  * @author pooshans
  */
 class HHRDD extends RDD<byte[]> implements Serializable {
+  
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 4074885953480955556L;
+  
+  /** The Constant HHRD_READER__TAG. */
   private static final ClassTag<byte[]> HHRD_READER__TAG =
       ClassManifestFactory$.MODULE$.fromClass(byte[].class);
+  
+  /** The id. */
   private int id;
+  
+  /** The partitions. */
   private Partition[] partitions;
+  
+  /** The hhrdd info. */
   private HHRDDInfo hhrddInfo;
+  
+  /** The temp dir attempts. */
   private static int TEMP_DIR_ATTEMPTS = 10000;
+  
+  /** The temp dir. */
   private static File tempDir = createTempDir();
 
+  /**
+   * Instantiates a new hhrdd.
+   *
+   * @param sc the sc
+   * @param hhrddInfo the hhrdd info
+   * @param jobDimensions the job dimensions
+   * @param requiresShuffle the requires shuffle
+   */
   public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
       boolean requiresShuffle) {
     super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
@@ -99,6 +123,9 @@ class HHRDD extends RDD<byte[]> implements Serializable {
 
   }
 
+  /* (non-Javadoc)
+   * @see org.apache.spark.rdd.RDD#compute(org.apache.spark.Partition, org.apache.spark.TaskContext)
+   */
   @Override
   public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
@@ -112,11 +139,17 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     return iterator;
   }
 
+  /* (non-Javadoc)
+   * @see org.apache.spark.rdd.RDD#getPartitions()
+   */
   @Override
   public Partition[] getPartitions() {
     return this.partitions;
   }
 
+  /* (non-Javadoc)
+   * @see org.apache.spark.rdd.RDD#getPreferredLocations(org.apache.spark.Partition)
+   */
   @Override
   public Seq<String> getPreferredLocations(Partition partition) {
     List<String> nodes = new ArrayList<>();
@@ -127,6 +160,11 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     return scala.collection.JavaConversions.asScalaBuffer(nodes).seq();
   }
 
+  /**
+   * Creates the temp dir.
+   *
+   * @return the file
+   */
   public static File createTempDir() {
     File baseDir = new File(System.getProperty("java.io.tmpdir"));
     String baseName = System.currentTimeMillis() + "-";

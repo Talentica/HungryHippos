@@ -27,24 +27,66 @@ import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 
 /**
- * The interface for interacting with {@link HHRDD} metadata information
+ * The interface for interacting with {@link HHRDD} metadata information.
  */
 public interface HHRDDInfo extends Serializable {
 
+  /**
+   * Gets the sharding indexes.
+   *
+   * @return the sharding indexes
+   */
   int[] getShardingIndexes();
 
+  /**
+   * Gets the key order.
+   *
+   * @return the key order
+   */
   String[] getKeyOrder();
 
+  /**
+   * Gets the optimized partitions.
+   *
+   * @param id the id
+   * @param noOfExecutors the no of executors
+   * @param jobShardingDimensions the job sharding dimensions
+   * @param jobPrimaryDimensionIdx the job primary dimension idx
+   * @param jobShardingDimensionsKey the job sharding dimensions key
+   * @param primaryDimensionKey the primary dimension key
+   * @return the optimized partitions
+   */
   Partition[] getOptimizedPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,
       int jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey,
       String primaryDimensionKey);
 
+  /**
+   * Gets the partitions.
+   *
+   * @param id the id
+   * @param noOfExecutors the no of executors
+   * @param jobShardingDimensions the job sharding dimensions
+   * @param jobPrimaryDimensionIdx the job primary dimension idx
+   * @param jobShardingDimensionsKey the job sharding dimensions key
+   * @param primaryDimensionKey the primary dimension key
+   * @return the partitions
+   */
   Partition[] getPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,
       int jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey,
       String primaryDimensionKey);
 
+  /**
+   * Gets the bucket to node number map.
+   *
+   * @return the bucket to node number map
+   */
   HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap();
 
+  /**
+   * Gets the field data desc.
+   *
+   * @return the field data desc
+   */
   FieldTypeArrayDataDescription getFieldDataDesc();
 
 }

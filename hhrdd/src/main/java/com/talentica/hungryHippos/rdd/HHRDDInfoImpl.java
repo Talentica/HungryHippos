@@ -40,22 +40,61 @@ import scala.Tuple2;
  */
 public class HHRDDInfoImpl implements HHRDDInfo {
 
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = -7374519945508249959L;
+    
+    /** The bucket combination to node number map. */
     public Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap;
+    
+    /** The bucket to node number map. */
     private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
+    
+    /** The key order. */
     private String[] keyOrder;
+    
+    /** The no of dimensions. */
     private int noOfDimensions;
+    
+    /** The file name to node ids cache. */
     private Map<String, int[]> fileNameToNodeIdsCache;
+    
+    /** The nod id to ip. */
     private Map<Integer, SerializedNode>nodIdToIp;
+    
+    /** The file name to size whole map. */
     private Map<String, Long> fileNameToSizeWholeMap;
+    
+    /** The file to node id. */
     private Map<String, Tuple2<String, int[]>> fileToNodeId;
+    
+    /** The key to bucket to file list. */
     private Map<String, Map<Integer, List<String>>> keyToBucketToFileList;
+    
+    /** The sharding indexes. */
     private int[] shardingIndexes;
+    
+    /** The field data desc. */
     private FieldTypeArrayDataDescription fieldDataDesc;
+    
+    /** The directory location. */
     private String directoryLocation;
+    
+    /** The hh file size. */
     private long hhFileSize;
 
 
+    /**
+     * Instantiates a new HHRDD info impl.
+     *
+     * @param bucketCombinationToNodeNumberMap the bucket combination to node number map
+     * @param bucketToNodeNumberMap the bucket to node number map
+     * @param fileNameToSizeWholeMap the file name to size whole map
+     * @param keyOrder the key order
+     * @param nodIdToIp the nod id to ip
+     * @param shardingIndexes the sharding indexes
+     * @param fieldDataDesc the field data desc
+     * @param directoryLocation the directory location
+     */
     public HHRDDInfoImpl(Map<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
                      Map<String, Long> fileNameToSizeWholeMap,
                      String[] keyOrder, Map<Integer, SerializedNode> nodIdToIp, int[] shardingIndexes, FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
@@ -76,30 +115,50 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         calculateBucketToFileMap("", 0);
     }
 
+    /**
+     * Gets the bucket combination to node number map.
+     *
+     * @return the bucket combination to node number map
+     */
     public Map<BucketCombination, Set<Node>> getBucketCombinationToNodeNumberMap() {
         return bucketCombinationToNodeNumberMap;
     }
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getBucketToNodeNumberMap()
+   */
   @Override
     public HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> getBucketToNodeNumberMap() {
         return bucketToNodeNumberMap;
     }
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getKeyOrder()
+   */
   @Override
     public String[] getKeyOrder() {
         return keyOrder;
     }
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getShardingIndexes()
+   */
   @Override
     public int[] getShardingIndexes() {
         return shardingIndexes;
     }
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getFieldDataDesc()
+   */
   @Override
     public FieldTypeArrayDataDescription getFieldDataDesc() {
         return fieldDataDesc;
     }
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getPartitions(int, int, java.util.List, int, java.util.List, java.lang.String)
+   */
   @Override
     public Partition[] getPartitions(int id, int noOfExecutors,
                                      List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
@@ -124,6 +183,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * Gets the no of estimated partitions.
+     *
+     * @param jobShardingDimensions the job sharding dimensions
+     * @param jobShardingDimensionsKey the job sharding dimensions key
+     * @param noOfEstimatedPartitions the no of estimated partitions
+     * @param jobShardingDimensionsArray the job sharding dimensions array
+     * @param i the i
+     * @return the no of estimated partitions
+     */
     private int getNoOfEstimatedPartitions(List<Integer> jobShardingDimensions, List<String> jobShardingDimensionsKey, int noOfEstimatedPartitions,
                                            int[] jobShardingDimensionsArray, int i) {
         for (String shardingDimensionKey : jobShardingDimensionsKey) {
@@ -137,6 +206,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return noOfEstimatedPartitions;
     }
 
+    /**
+     * Populate combination.
+     *
+     * @param combinationArray the combination array
+     * @param combination the combination
+     * @param index the index
+     * @param jobShardingDimensions the job sharding dimensions
+     * @param i the i
+     * @return the int
+     */
     private int populateCombination(int[][] combinationArray, String combination, int index, int[] jobShardingDimensions, int i) {
         if (i == jobShardingDimensions.length) {
             String[] strings = combination.split("-");
@@ -160,6 +239,18 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return index;
     }
 
+    /**
+     * Gets the partitions when estimated partitions is less.
+     *
+     * @param id the id
+     * @param jobPrimaryDimensionIdx the job primary dimension idx
+     * @param primaryDimensionKey the primary dimension key
+     * @param noOfShardingDimensions the no of sharding dimensions
+     * @param noOfEstimatedPartitions the no of estimated partitions
+     * @param jobShardingDimensionsArray the job sharding dimensions array
+     * @param combinationArray the combination array
+     * @return the partitions when estimated partitions is less
+     */
     private Partition[] getPartitionsWhenEstimatedPartitionsIsLess(int id, int jobPrimaryDimensionIdx, String primaryDimensionKey, int noOfShardingDimensions,
                                                                    int noOfEstimatedPartitions, int[] jobShardingDimensionsArray, int[][] combinationArray) {
         Partition[] partitions;
@@ -177,6 +268,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * Gets the partitions when estimated partitions is more.
+     *
+     * @param id the id
+     * @param noOfShardingDimensions the no of sharding dimensions
+     * @param noOfEstimatedPartitions the no of estimated partitions
+     * @param jobShardingDimensionsArray the job sharding dimensions array
+     * @param combinationArray the combination array
+     * @return the partitions when estimated partitions is more
+     */
     private Partition[] getPartitionsWhenEstimatedPartitionsIsMore(int id, int noOfShardingDimensions, int noOfEstimatedPartitions,
                                                                    int[] jobShardingDimensionsArray, int[][] combinationArray) {
         Partition[] partitions;
@@ -199,6 +300,17 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * Prepare partition buckets and get file count.
+     *
+     * @param noOfShardingDimensions the no of sharding dimensions
+     * @param noOfEstimatedPartitions the no of estimated partitions
+     * @param jobShardingDimensionsArray the job sharding dimensions array
+     * @param combinationArray the combination array
+     * @param idealPartitionFileSize the ideal partition file size
+     * @param partitionBuckets the partition buckets
+     * @return the int
+     */
     private int preparePartitionBucketsAndGetFileCount(int noOfShardingDimensions, int noOfEstimatedPartitions, int[] jobShardingDimensionsArray,
                                                        int[][] combinationArray, long idealPartitionFileSize, PriorityQueue<PartitionBucket> partitionBuckets) {
         PartitionBucket partitionBucket = new PartitionBucket(0);
@@ -227,6 +339,15 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return fileCount;
     }
 
+    /**
+     * Adds the partition to list and get partition idx.
+     *
+     * @param id the id
+     * @param partitionIdx the partition idx
+     * @param partitionBucketIterator the partition bucket iterator
+     * @param listOfPartitions the list of partitions
+     * @return the int
+     */
     private int addPartitionToListAndGetPartitionIdx(int id, int partitionIdx, Iterator<PartitionBucket> partitionBucketIterator,
                                                      List<Partition> listOfPartitions) {
         PartitionBucket partitionBucket1 = partitionBucketIterator.next();
@@ -253,6 +374,9 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     }
 
 
+  /* (non-Javadoc)
+   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getOptimizedPartitions(int, int, java.util.List, int, java.util.List, java.lang.String)
+   */
   @Override
     public Partition[] getOptimizedPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
                                               List<String> jobShardingDimensionsKey, String primaryDimensionKey) {
@@ -268,6 +392,13 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * Gets the optimized partitions when total combination is more.
+     *
+     * @param id the id
+     * @param primaryDimensionKey the primary dimension key
+     * @return the optimized partitions when total combination is more
+     */
     private Partition[] getOptimizedPartitionsWhenTotalCombinationIsMore(int id, String primaryDimensionKey) {
         Partition[] partitions;
         long idealPartitionFileSize = 128 * 1024 * 1024;//128MB partition size
@@ -291,6 +422,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * Prepare partitions and get file count.
+     *
+     * @param primaryDimensionKey the primary dimension key
+     * @param idealPartitionFileSize the ideal partition file size
+     * @param fileCount the file count
+     * @param fileNamesSet the file names set
+     * @param partitionBuckets the partition buckets
+     * @return the int
+     */
     private int preparePartitionsAndGetFileCount(String primaryDimensionKey, long idealPartitionFileSize, int fileCount, Set<String> fileNamesSet,
                                                  PriorityQueue<PartitionBucket> partitionBuckets) {
         PartitionBucket partitionBucket = new PartitionBucket(0);
@@ -313,6 +454,15 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return fileCount;
     }
 
+    /**
+     * Gets the optimized partitions when total combination is less.
+     *
+     * @param id the id
+     * @param jobShardingDimensions the job sharding dimensions
+     * @param jobPrimaryDimensionIdx the job primary dimension idx
+     * @param totalCombination the total combination
+     * @return the optimized partitions when total combination is less
+     */
     private Partition[] getOptimizedPartitionsWhenTotalCombinationIsLess(int id, List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
                                                                          int totalCombination) {
         Partition[] partitions;
@@ -330,6 +480,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         return partitions;
     }
 
+    /**
+     * List file.
+     *
+     * @param files the files
+     * @param fileName the file name
+     * @param dim the dim
+     * @param noOfShardingDimensions the no of sharding dimensions
+     * @param jobShardingDimensionsArray the job sharding dimensions array
+     * @param jobDimensionValues the job dimension values
+     */
     private void listFile(List<Tuple2<String, int[]>> files, String fileName, int dim, int noOfShardingDimensions, int[] jobShardingDimensionsArray,
                           int[] jobDimensionValues) {
         if (dim == noOfShardingDimensions) {
@@ -363,6 +523,12 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         }
     }
 
+    /**
+     * Gets the file location node ids.
+     *
+     * @param fileName the file name
+     * @return the file location node ids
+     */
     private int[] getFileLocationNodeIds(String fileName) {
         int[] nodeIds = fileNameToNodeIdsCache.get(fileName);
         if (nodeIds == null) {
@@ -386,6 +552,9 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     }
 
 
+    /**
+     * Initialize key to bucket to file list.
+     */
     private void initializeKeyToBucketToFileList() {
         for (int dim = 0; dim < keyOrder.length; dim++) {
             Map<Integer, List<String>> bucketToFileList = new HashMap<>();
@@ -397,6 +566,12 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         }
     }
 
+    /**
+     * Calculate bucket to file map.
+     *
+     * @param fileName the file name
+     * @param dim the dim
+     */
     private void calculateBucketToFileMap(String fileName, int dim) {
         if (dim == noOfDimensions) {
             Tuple2<String, int[]> tuple2 = new Tuple2<>(fileName, getFileLocationNodeIds(fileName));
@@ -417,22 +592,45 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         }
     }
 
+    /**
+     * The Class PartitionBucket.
+     */
     static class PartitionBucket implements Comparable<PartitionBucket> {
+        
+        /** The size. */
         long size;
+        
+        /** The files. */
         List<Tuple2<String, int[]>> files;
+        
+        /** The node bucket map. */
         Map<Integer, NodeBucket> nodeBucketMap;
 
+        /**
+         * Instantiates a new partition bucket.
+         *
+         * @param size the size
+         */
         public PartitionBucket(long size) {
             this.size = size;
             this.files = new ArrayList<>();
             this.nodeBucketMap = new HashMap<>();
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Comparable#compareTo(java.lang.Object)
+         */
         @Override
         public int compareTo(PartitionBucket o) {
             return Long.compare(size, o.size);
         }
 
+        /**
+         * Adds the file.
+         *
+         * @param file the file
+         * @param size the size
+         */
         private void addFile(Tuple2<String, int[]> file, long size) {
             files.add(file);
             int[] nodeIds = file._2;
@@ -448,41 +646,87 @@ public class HHRDDInfoImpl implements HHRDDInfo {
             this.size += size;
         }
 
+        /**
+         * Gets the files.
+         *
+         * @return the files
+         */
         public List<Tuple2<String, int[]>> getFiles() {
             return files;
         }
 
+        /**
+         * Gets the size.
+         *
+         * @return the size
+         */
         public long getSize() {
             return size;
         }
 
+        /**
+         * Gets the node bucket map.
+         *
+         * @return the node bucket map
+         */
         public Map<Integer, NodeBucket> getNodeBucketMap() {
             return nodeBucketMap;
         }
     }
 
+    /**
+     * The Class NodeBucket.
+     */
     static class NodeBucket implements Comparable<NodeBucket> {
+        
+        /** The id. */
         int id;
+        
+        /** The size. */
         long size;
 
+        /**
+         * Instantiates a new node bucket.
+         *
+         * @param id the id
+         * @param size the size
+         */
         public NodeBucket(int id, long size) {
             this.id = id;
             this.size = size;
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Comparable#compareTo(java.lang.Object)
+         */
         @Override
         public int compareTo(NodeBucket o) {
             return Long.compare(o.size, size);
         }
 
+        /**
+         * Adds the size.
+         *
+         * @param size the size
+         */
         private void addSize(long size) {
             this.size += size;
         }
 
+        /**
+         * Gets the size.
+         *
+         * @return the size
+         */
         public long getSize() {
             return size;
         }
 
+        /**
+         * Gets the id.
+         *
+         * @return the id
+         */
         public int getId() {
             return id;
         }

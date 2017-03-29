@@ -18,38 +18,83 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Tuple2;
-import scala.collection.AbstractIterator;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+
+import scala.Tuple2;
+import scala.collection.AbstractIterator;
 
 /**
- * @author pooshans
+ * The Class HHRDDIterator.
  *
+ * @author pooshans
  */
 public class HHRDDIterator extends AbstractIterator<byte[]> {
 
+  /** The logger. */
   private static Logger logger = LoggerFactory.getLogger(HHRDDIterator.class);
+  
+  /** The byte buffer bytes. */
   // private ByteBuffer byteBuffer = null;
   private byte[] byteBufferBytes;
+  
+  /** The current data file size. */
   private long currentDataFileSize;
+  
+  /** The current file. */
   private String currentFile;
+  
+  /** The current file path. */
   private String currentFilePath;
+  
+  /** The data input stream. */
   private BufferedInputStream dataInputStream;
+  
+  /** The record length. */
   // private HHRDDRowReader hhRDDRowReader;
   private int recordLength;
+  
+  /** The remote files. */
   private Set<String> remoteFiles;
+  
+  /** The file path. */
   private String filePath;
+  
+  /** The file iterator. */
   private Iterator<Tuple2<String,int[]>> fileIterator;
+  
+  /** The black listed ips. */
   private Set<String> blackListedIps;
 
+  /**
+   * Instantiates a new HHRDD iterator.
+   *
+   * @param filePath the file path
+   * @param rowSize the row size
+   * @param files the files
+   * @param nodeInfo the node info
+   * @param tmpDir the tmp dir
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, SerializedNode> nodeInfo,File tmpDir) throws IOException {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
@@ -105,6 +150,13 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     // this.hhRDDRowReader.setByteBuffer(byteBuffer);
   }
 
+  /**
+   * Creates the and add black list IP file.
+   *
+   * @param tmpDir the tmp dir
+   * @param ip the ip
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private void createAndAddBlackListIPFile(File tmpDir, String ip) throws IOException {
     File blacklistIPFile = new File(tmpDir.getAbsolutePath() + File.separator + ip);
     if (!blacklistIPFile.exists()) {
@@ -113,6 +165,11 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     blackListedIps.add(ip);
   }
 
+  /**
+   * Iterate on files.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private void iterateOnFiles() throws IOException {
     if(fileIterator.hasNext()){
       Tuple2<String,int[]> tuple2 = fileIterator.next();
@@ -123,6 +180,14 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     }
   }
 
+  /**
+   * Download file.
+   *
+   * @param filePath the file path
+   * @param ip the ip
+   * @param port the port
+   * @return true, if successful
+   */
   private boolean downloadFile(String filePath, String ip,int port) {
     Socket socket = null;
     try {
@@ -164,6 +229,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
 
   }
 
+  /* (non-Javadoc)
+   * @see scala.collection.Iterator#hasNext()
+   */
   @Override
   public boolean hasNext() {
     try {
@@ -178,6 +246,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
 
   }
 
+  /* (non-Javadoc)
+   * @see scala.collection.Iterator#next()
+   */
   @Override
   public byte[] next() {
     try {
@@ -189,6 +260,11 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     return byteBufferBytes;
   }
 
+  /**
+   * Close dats input stream.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private void closeDatsInputStream() throws IOException {
     if (dataInputStream != null) {
       dataInputStream.close();
@@ -198,6 +274,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     }
   }
 
+    /**
+     * Delete all downloaded files.
+     */
     private void deleteAllDownloadedFiles(){
         for(String remoteFileName:remoteFiles){
             File remoteFile = new File(filePath+remoteFileName);

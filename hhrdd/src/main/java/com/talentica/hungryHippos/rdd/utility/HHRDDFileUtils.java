@@ -32,20 +32,21 @@ import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
 /**
- * Utility tool to write RDD data into files partition wise
- * @author pooshans
+ * Utility tool to write RDD data into files partition wise.
  *
+ * @author pooshans
  */
 public class HHRDDFileUtils implements Serializable {
 
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 4888239993511591404L;
 
     /**
-     * Writes JavaRDD into files partition wise with a custom delimiter
-     * @param javaRDD
-     *          An instance of JavaRDD
-     * @param path
-     *          Absolute path
+     * Writes JavaRDD into files partition wise with a custom delimiter.
+     *
+     * @param <T> the generic type
+     * @param javaRDD          An instance of JavaRDD
+     * @param path          Absolute path
      */
     public static <T> void saveAsText(JavaRDD<T> javaRDD, String path) {
         javaRDD.foreachPartition(new VoidFunction<Iterator<T>>() {
@@ -68,13 +69,13 @@ public class HHRDDFileUtils implements Serializable {
     }
 
     /**
-     * Writes JavaRDD of Tuple2 data into files partition wise with a custom delimiter
-     * @param javaRDD
-     *          An instance of JavaRDD
-     * @param path
-     *          Absolute path
-     * @param delimiter
-     *          A delimiter such as comma, tab etc.
+     * Writes JavaRDD of Tuple2 data into files partition wise with a custom delimiter.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param javaRDD          An instance of JavaRDD
+     * @param path          Absolute path
+     * @param delimiter          A delimiter such as comma, tab etc.
      */
     public static <K,V> void saveAsText(JavaRDD<Tuple2<K,V>> javaRDD, String path, String delimiter) {
         javaRDD.foreachPartition(new VoidFunction<Iterator<Tuple2<K,V>>>() {
@@ -99,11 +100,12 @@ public class HHRDDFileUtils implements Serializable {
     }
 
     /**
-     * Writes JavaPairRDD data into files partition wise
-     * @param javaPairRDD
-     *          An instance of JavaPairRDD
-     * @param path
-     *          Absolute path
+     * Writes JavaPairRDD data into files partition wise.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param javaPairRDD          An instance of JavaPairRDD
+     * @param path          Absolute path
      */
 	public static <K,V> void saveAsText(JavaPairRDD<K,V> javaPairRDD, String path) {
 
@@ -128,13 +130,13 @@ public class HHRDDFileUtils implements Serializable {
 	}
 
     /**
-     * Writes JavaPairRDD data into files partition wise with a custom delimiter
-     * @param javaPairRDD
-     *          An instance of JavaPairRDD
-     * @param path
-     *          Absolute path
-     * @param delimiter
-     *          A delimiter such as comma, tab etc.
+     * Writes JavaPairRDD data into files partition wise with a custom delimiter.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param javaPairRDD          An instance of JavaPairRDD
+     * @param path          Absolute path
+     * @param delimiter          A delimiter such as comma, tab etc.
      */
     public static <K,V> void saveAsText(JavaPairRDD<K,V> javaPairRDD, String path, String delimiter) {
 

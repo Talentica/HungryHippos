@@ -24,23 +24,52 @@ import java.util.Map;
 import org.apache.spark.Partition;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
+
 import scala.Tuple2;
 
+// TODO: Auto-generated Javadoc
 /**
- * @author pooshans
+ * The Class HHRDDPartition.
  *
+ * @author pooshans
  */
 public class HHRDDPartition implements Partition {
 
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = -8600257810541979113L;
+  
+  /** The nod id to ip. */
   private final Map<Integer, SerializedNode> nodIdToIp;
+  
+  /** The index. */
   private int index;
+  
+  /** The file path. */
   private String filePath;
+  
+  /** The data description. */
   private FieldTypeArrayDataDescription dataDescription;
+  
+  /** The rdd id. */
   private int rddId;
+  
+  /** The files. */
   private List<Tuple2<String,int[]>> files;
+  
+  /** The preferred hosts. */
   private List<String> preferredHosts;
 
+  /**
+   * Instantiates a new HHRDD partition.
+   *
+   * @param rddId the rdd id
+   * @param index the index
+   * @param filePath the file path
+   * @param dataDescription the data description
+   * @param preferredHosts the preferred hosts
+   * @param files the files
+   * @param nodIdToIp the nod id to ip
+   */
   public HHRDDPartition(int rddId , int index, String filePath,
                         FieldTypeArrayDataDescription dataDescription, List<String> preferredHosts, List<Tuple2<String,int[]>> files, Map<Integer,SerializedNode> nodIdToIp) {
     this.index = index;
@@ -52,17 +81,26 @@ public class HHRDDPartition implements Partition {
     this.nodIdToIp = nodIdToIp;
   }
 
+  /* (non-Javadoc)
+   * @see org.apache.spark.Partition#index()
+   */
   @Override
   public int index() {
     return this.index;
   }
 
+  /* (non-Javadoc)
+   * @see java.lang.Object#hashCode()
+   */
   @Override
   public int hashCode() {
     return 31 * (31 + rddId) + index;
   }
 
 
+  /* (non-Javadoc)
+   * @see java.lang.Object#equals(java.lang.Object)
+   */
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof HHRDDPartition)) {
@@ -71,26 +109,56 @@ public class HHRDDPartition implements Partition {
     return ((HHRDDPartition) obj).index == index;
   }
 
+  /**
+   * Gets the file path.
+   *
+   * @return the file path
+   */
   public String getFilePath() {
     return filePath;
   }
 
+  /**
+   * Gets the row size.
+   *
+   * @return the row size
+   */
   public int getRowSize() {
     return dataDescription.getSize();
   }
 
+  /**
+   * Gets the field type array data description.
+   *
+   * @return the field type array data description
+   */
   public FieldTypeArrayDataDescription getFieldTypeArrayDataDescription() {
     return this.dataDescription;
   }
 
+  /**
+   * Gets the preferred hosts.
+   *
+   * @return the preferred hosts
+   */
   public List<String> getPreferredHosts() {
     return preferredHosts;
   }
 
+  /**
+   * Gets the files.
+   *
+   * @return the files
+   */
   public List<Tuple2<String,int[]>> getFiles() {
     return files;
   }
 
+  /**
+   * Gets the nod id to ip.
+   *
+   * @return the nod id to ip
+   */
   public Map<Integer, SerializedNode> getNodIdToIp() {
     return nodIdToIp;
   }

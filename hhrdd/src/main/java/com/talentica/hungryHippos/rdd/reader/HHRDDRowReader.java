@@ -29,33 +29,44 @@ import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
  */
 public class HHRDDRowReader {
 
+  /** The data description. */
   private DataDescription dataDescription;
 
+  /** The source. */
   private ByteBuffer source = null;
 
   /**
-   * Sets the buffer for the object
-   * @param source
-   *        A byte buffer object
-     */
+   * Sets the buffer for the object.
+   *
+   * @param source        A byte buffer object
+   */
   public void setByteBuffer(ByteBuffer source) {
     this.source = source;
   }
 
+  /**
+   * Gets the byte buffer.
+   *
+   * @return the byte buffer
+   */
   public ByteBuffer getByteBuffer() {
     return this.source;
   }
 
   /**
-   * Creates a new instance of {@link HHRDDRowReader}
-   * 
-   * @param dataDescription
-   *        The {@link DataDescription} object for reading a particular type of record
+   * Creates a new instance of {@link HHRDDRowReader}.
+   *
+   * @param dataDescription        The {@link DataDescription} object for reading a particular type of record
    */
   public HHRDDRowReader(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
 
+  /**
+   * Gets the field data description.
+   *
+   * @return the field data description
+   */
   public DataDescription getFieldDataDescription() {
     return this.dataDescription;
   }
@@ -93,9 +104,9 @@ public class HHRDDRowReader {
   }
 
   /**
-   * Reads MutableCharArrayString value from {@link ByteBuffer}
-   * 
-   * @param index
+   * Reads MutableCharArrayString value from {@link ByteBuffer}.
+   *
+   * @param index the index
    * @return {@link MutableCharArrayString}
    */
   private MutableCharArrayString readValueString(int index) {

@@ -17,16 +17,31 @@ package com.talentica.hungryHippos.rdd;
 
 import java.io.Serializable;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SerializedNode.
+ */
 public class SerializedNode implements Serializable {
 
-  /**
-   * 
-   */
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 7595006167742376795L;
+  
+  /** The id. */
   private int id;
+  
+  /** The ip. */
   private String ip;
+  
+  /** The port. */
   private int port;
 
+  /**
+   * Instantiates a new serialized node.
+   *
+   * @param id the id
+   * @param ip the ip
+   * @param port the port
+   */
   public SerializedNode(int id, String ip,int port) {
     super();
     this.id = id;
@@ -34,14 +49,29 @@ public class SerializedNode implements Serializable {
     this.port = port;
   }
 
+  /**
+   * Gets the id.
+   *
+   * @return the id
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * Gets the ip.
+   *
+   * @return the ip
+   */
   public String getIp() {
     return ip;
   }
 
+  /**
+   * Gets the port.
+   *
+   * @return the port
+   */
   public int getPort() {
     return port;
   }

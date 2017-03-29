@@ -39,22 +39,48 @@ import com.talentica.hungryhippos.config.client.ClientConfig;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
+/**
+ * The Class HHRDDHelper.
+ */
 class HHRDDHelper {
 
+    /** The Constant bucketCombinationToNodeNumbersMapFile. */
     public final static String bucketCombinationToNodeNumbersMapFile =
             "bucketCombinationToNodeNumbersMap";
+    
+    /** The Constant bucketToNodeNumberMapFile. */
     public final static String bucketToNodeNumberMapFile = "bucketToNodeNumberMap";
 
+  /**
+   * Initialize.
+   *
+   * @param clientConfigPath the client config path
+   * @throws JAXBException the JAXB exception
+   * @throws FileNotFoundException the file not found exception
+   */
   public static void initialize(String clientConfigPath) throws JAXBException, FileNotFoundException {
     ClientConfig clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, ClientConfig.class);
     String servers = clientConfig.getCoordinationServers().getServers();
     HungryHippoCurator.getInstance(servers);
   }
 
+    /**
+     * Gets the actual path.
+     *
+     * @param path the path
+     * @return the actual path
+     */
     public static String getActualPath(String path){
         return FileSystemContext.getRootDirectory()+ path;
     }
 
+    /**
+     * Read meta data.
+     *
+     * @param metadataLocation the metadata location
+     * @return the map
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static Map<String,Long> readMetaData(String metadataLocation) throws IOException {
         Map<String,Long> fileNameToSizeWholeMap = new HashMap<>();
         File metadataFolder = new File(metadataLocation);
@@ -86,6 +112,14 @@ class HHRDDHelper {
         return fileNameToSizeWholeMap;
     }
 
+  /**
+   * Gets the hhrdd info.
+   *
+   * @param distributedPath the distributed path
+   * @return the hhrdd info
+   * @throws JAXBException the JAXB exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public static HHRDDInfo getHhrddInfo(String distributedPath)
           throws JAXBException, IOException {
         String shardingFolderPath = FileSystemContext.getRootDirectory() + distributedPath
@@ -117,6 +151,12 @@ class HHRDDHelper {
 
     }
 
+    /**
+     * Gets the nodes.
+     *
+     * @param nodes the nodes
+     * @return the nodes
+     */
     public static List<SerializedNode> getNodes(List<com.talentica.hungryhippos.config.cluster.Node> nodes) {
         List<SerializedNode> serializedNodes = new ArrayList<>();
         for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {

@@ -23,7 +23,6 @@ import java.io.StringWriter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
@@ -33,20 +32,23 @@ import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The Class JaxbUtil.
+ */
 public final class JaxbUtil implements Serializable{
 
-  /**
-   * 
-   */
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = -2226830666821516872L;
+  
+  /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(JaxbUtil.class);
 
   /**
-   * Marshalling supplied object to XML document by JAXB annotations and serializing it to String
-   * 
+   * Marshalling supplied object to XML document by JAXB annotations and serializing it to String.
+   *
    * @param obj object to be marshalled
    * @return serialized XML document
-   * @throws MarshalException
+   * @throws JAXBException the JAXB exception
    */
   public static String marshalToXml(Object obj) throws JAXBException {
     JAXBContext jc = JAXBContextFactory.createContext(new Class[] {obj.getClass()}, null);
@@ -57,11 +59,10 @@ public final class JaxbUtil implements Serializable{
   }
 
   /**
-   * Marshalling supplied object to XML document by JAXB annotations and serializing it to String
-   * 
+   * Marshalling supplied object to XML document by JAXB annotations and serializing it to String.
+   *
    * @param obj object to be marshalled
    * @return serialized XML document
-   * @throws MarshalException
    */
   public static String marshalToJson(Object obj) {
     try {
@@ -77,12 +78,13 @@ public final class JaxbUtil implements Serializable{
   }
 
   /**
-   * Unmarshalling from XML document by JAXB annotations
-   * 
+   * Unmarshalling from XML document by JAXB annotations.
+   *
+   * @param <T> the generic type
    * @param xml xml document serialized as String
    * @param clazz Class to which shoud be object unmarshalled
    * @return serialized XML document
-   * @throws JAXBException
+   * @throws JAXBException the JAXB exception
    */
   @SuppressWarnings("unchecked")
   public static <T> T unmarshalFromXml(String xml, Class<T> clazz) throws JAXBException {
@@ -92,12 +94,13 @@ public final class JaxbUtil implements Serializable{
   }
 
   /**
-   * Unmarshalling from XML document by JAXB annotations
-   * 
-   * @param xml xml document serialized as String
+   * Unmarshalling from XML document by JAXB annotations.
+   *
+   * @param <T> the generic type
+   * @param json the json
    * @param clazz Class to which shoud be object unmarshalled
    * @return serialized XML document
-   * @throws JAXBException
+   * @throws JAXBException the JAXB exception
    */
   @SuppressWarnings("unchecked")
   public static <T> T unmarshalFromJson(String json, Class<T> clazz) throws JAXBException {
@@ -113,13 +116,14 @@ public final class JaxbUtil implements Serializable{
   }
 
   /**
-   * Unmarshalling from XML document by JAXB annotations
-   * 
-   * @param xml xml document serialized as String
+   * Unmarshalling from XML document by JAXB annotations.
+   *
+   * @param <T> the generic type
+   * @param filePath the file path
    * @param clazz Class to which shoud be object unmarshalled
    * @return serialized XML document
-   * @throws JAXBException
-   * @throws FileNotFoundException
+   * @throws JAXBException the JAXB exception
+   * @throws FileNotFoundException the file not found exception
    */
   @SuppressWarnings("unchecked")
   public static <T> T unmarshalFromFile(String filePath, Class<T> clazz)
@@ -134,12 +138,13 @@ public final class JaxbUtil implements Serializable{
 
   /**
    * Unmarshals object from XML or JSON configuration content.
-   * 
-   * @param content
-   * @param clazz
-   * @return
-   * @throws JAXBException
-   * @throws FileNotFoundException
+   *
+   * @param <T> the generic type
+   * @param content the content
+   * @param clazz the clazz
+   * @return the t
+   * @throws JAXBException the JAXB exception
+   * @throws FileNotFoundException the file not found exception
    */
   public static <T> T unmarshal(String content, Class<T> clazz)
       throws JAXBException, FileNotFoundException {

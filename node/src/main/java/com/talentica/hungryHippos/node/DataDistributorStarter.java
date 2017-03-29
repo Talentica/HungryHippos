@@ -39,6 +39,7 @@ public class DataDistributorStarter {
   public static ExecutorService metadataSynchronizerServices;
   public static ExecutorService cacheClearServices;
   public static ExecutorService fileService;
+  public static ExecutorService commonServicePoolCache;
   public static AtomicInteger noOfAvailableDataDistributors;
   public static int noOfDataDistributors;
   public static ClientConfig clientConfig;
@@ -52,16 +53,17 @@ public class DataDistributorStarter {
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator hungryHippoCurator= HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     ServerSocket serverSocket = new ServerSocket(NodeInfo.INSTANCE.getPort());
-    ExecutorService serviceDelegator = Executors.newCachedThreadPool();
+    commonServicePoolCache = Executors.newCachedThreadPool();
+    ExecutorService serviceDelegator = commonServicePoolCache;
     noOfDataDistributors = 4;
-    dataDistributorService = Executors.newCachedThreadPool();
-    fileProviderService = Executors.newCachedThreadPool();
+    dataDistributorService = commonServicePoolCache;
+    fileProviderService = commonServicePoolCache;
     dataAppenderServices = Executors.newFixedThreadPool(1);
     publishAccessServices = Executors.newFixedThreadPool(1);
-    metadataUpdaterServices = Executors.newCachedThreadPool();
-    metadataSynchronizerServices = Executors.newCachedThreadPool();
-    fileService = Executors.newCachedThreadPool();
-    cacheClearServices = Executors.newCachedThreadPool();
+    metadataUpdaterServices = commonServicePoolCache;
+    metadataSynchronizerServices = commonServicePoolCache;
+    fileService = commonServicePoolCache;
+    cacheClearServices = commonServicePoolCache;
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
     hungryHippoCurator.createEphemeralNode(CoordinationConfigUtil.getHostsPath()
         + HungryHippoCurator.ZK_PATH_SEPERATOR + NodeInfo.INSTANCE.getIp());

@@ -16,19 +16,22 @@
 package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -46,7 +49,7 @@ public enum MetaDataSynchronizer {
 
     MetaDataSynchronizer() {
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        this.metadataUploaderService = Executors.newCachedThreadPool();
+        this.metadataUploaderService = DataDistributorStarter.commonServicePoolCache;
         this.lockMap = new ConcurrentHashMap<>();
     }
 

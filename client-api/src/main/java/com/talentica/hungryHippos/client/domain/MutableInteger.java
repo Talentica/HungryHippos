@@ -56,7 +56,7 @@ public class MutableInteger implements DataTypes {
 
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, length));
+    return toInt() + "";
   }
 
 

@@ -54,7 +54,11 @@ public class ConfigurableDataGenerator {
     List<String> listForTheRest = generateAllCombinations(numChars - 1, sourceChars);
     for (char c : sourceChars) {
       for (String source : listForTheRest) {
-        retList.add(c + source);
+        if("0".equals(source))
+          retList.add(""+c);
+        else{
+          retList.add(source+c);
+        }
       }
     }
     return retList;

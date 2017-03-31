@@ -53,9 +53,9 @@ public class ServerUtils {
         Socket socket =
             new Socket(server.split(":")[0].trim(), Integer.valueOf(server.split(":")[1].trim()));
         return socket;
-      } catch (ConnectException cex) {
+      } catch (IOException ioe) {
         if (tryCount >= numberOfAttempts) {
-          throw cex;
+          throw ioe;
         }
         LOGGER.warn("Connection could not get established. Please start the node {}",
             server.split(":")[0].trim());

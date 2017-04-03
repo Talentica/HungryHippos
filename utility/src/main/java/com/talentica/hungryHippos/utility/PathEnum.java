@@ -1,23 +1,41 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 /**
  * 
  */
 package com.talentica.hungryHippos.utility;
 
 /**
- * This enum is used only on the start of the application.
- * Do not modify unless required on start of the application
+ * This enum is used only on the start of the application. Do not modify unless required on start of
+ * the application
+ * 
  * @author PooshanS
  *
  */
 public enum PathEnum {
- NAMESPACE("NAMESPACE"),BASEPATH("BASEPATH"),ZKIPTPATH("HOSTPATH"),ALERTPATH("ALERTPATH"),CONFIGPATH("CONFIGPATH"),FILESYSTEM("FILESYSTEM");
- 
- private String pathName;
- private PathEnum(String pathName){
-	 this.pathName = pathName;
- }
- 
- public String getPathName(){
-	 return pathName;
- }
+  NAMESPACE("NAMESPACE"), CONFIGPATH("CONFIGPATH"), FILESYSTEM(
+      "FILESYSTEM"), HOSTS("HOSTS");
+
+  private String pathName;
+
+  private PathEnum(String pathName) {
+    this.pathName = pathName;
+  }
+
+  public String getPathName() {
+    return pathName;
+  }
 }

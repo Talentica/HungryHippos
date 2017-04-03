@@ -1,0 +1,10 @@
+NODENUM=1
+ZOOKEEPERNUM=1
+PROVIDER=digital_ocean
+NAME=sparkTTW
+PRIVATE_KEY_PATH=/root/.ssh/id_rsa
+TOKEN=60af0ca714e20e0a57d************************e4
+IMAGE=ubuntu-14-04-x64
+REGION=nyc1
+RAM=1GB
+SSH_KEY_NAME=vagrant

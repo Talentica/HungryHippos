@@ -1,36 +1,61 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.coordination.utility.marshaling;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayStringCache;
+import com.talentica.hungryHippos.client.domain.MutableDouble;
+import com.talentica.hungryHippos.client.domain.MutableInteger;
 
 /**
- * Created by debasishc on 1/9/15.
+ * {@code DynamicMarshal} is used by the system to decode the encrypted file.
+ * 
+ * @author debasishc
+ * @since 1/9/15.
  */
-public class DynamicMarshal implements Serializable {
-
-  private static final long serialVersionUID = -5800537222182360030L;
+public class DynamicMarshal {
 
   private final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
       MutableCharArrayStringCache.newInstance();
 
   private DataDescription dataDescription;
 
+  /**
+   * creates a new instance of DynamicMarshal using the {@value dataDescription}
+   * 
+   * @param dataDescription
+   */
   public DynamicMarshal(DataDescription dataDescription) {
     this.dataDescription = dataDescription;
   }
 
+  /**
+   * used to read a value from the provided {@value index} and {@value source}.
+   * 
+   * @param index
+   * @param source
+   * @return Object.
+   */
   public Object readValue(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
-      case BYTE:
-        return source.get(locator.getOffset());
-      case CHAR:
-        return source.getChar(locator.getOffset());
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
@@ -47,6 +72,14 @@ public class DynamicMarshal implements Serializable {
     return null;
   }
 
+  /**
+   * reads MutableCharArrayString value from the given {@value index} from ByteBuffer
+   * {@value source}
+   * 
+   * @param index
+   * @param source
+   * @return {@link MutableCharArrayString}
+   */
   public MutableCharArrayString readValueString(int index, ByteBuffer source) {
     DataLocator locator = dataDescription.locateField(index);
     int offset = locator.getOffset();
@@ -63,20 +96,21 @@ public class DynamicMarshal implements Serializable {
     return charArrayString;
   }
 
-  public void writeValue(int index, Object object, ByteBuffer dest) {
+  /**
+   * writes the {@value Object} to an {@value index} location in the {@value dest} Buffer.
+   * 
+   * @param index
+   * @param object
+   * @param dest
+   */
+  public void writeValue(int index, final Object object, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
-      case BYTE:
-        dest.put(locator.getOffset(), Byte.parseByte(object.toString()));
-        break;
-      case CHAR:
-        dest.putChar(locator.getOffset(), (Character) object);
-        break;
       case SHORT:
         dest.putShort(locator.getOffset(), Short.parseShort(object.toString()));
         break;
       case INT:
-        dest.putInt(locator.getOffset(), Integer.parseInt(object.toString()));
+        writeIntValue(object,dest,locator);
         break;
       case LONG:
         dest.putLong(locator.getOffset(), Long.parseLong(object.toString()));
@@ -85,10 +119,10 @@ public class DynamicMarshal implements Serializable {
         dest.putFloat(locator.getOffset(), Float.parseFloat(object.toString()));
         break;
       case DOUBLE:
-        dest.putDouble(locator.getOffset(), Double.parseDouble(object.toString()));
+        writeDoubleValue(object,dest,locator);
         break;
       case STRING:
-        byte[] content = object.toString().getBytes();
+        byte[] content = ((MutableCharArrayString)object).getValue().getBytes();
         int offset = locator.getOffset();
         int size = locator.getSize();
         int j = 0;
@@ -99,6 +133,14 @@ public class DynamicMarshal implements Serializable {
     }
   }
 
+  /**
+   * writes the {@link MutableCharArrayString} {@value input} to an {@value index} location in the
+   * {@value dest} Buffer.
+   * 
+   * @param index
+   * @param input
+   * @param dest
+   */
   public void writeValueString(int index, MutableCharArrayString input, ByteBuffer dest) {
     DataLocator locator = dataDescription.locateField(index);
     switch (locator.getDataType()) {
@@ -116,15 +158,33 @@ public class DynamicMarshal implements Serializable {
     }
   }
 
-  public void writeValueDouble(int index, double object, ByteBuffer dest) {
-    DataLocator locator = dataDescription.locateField(index);
-    switch (locator.getDataType()) {
-
-      case DOUBLE:
-        dest.putDouble(locator.getOffset(), object);
-        break;
-      default:
-        throw new IllegalArgumentException("Invalid data format");
+  private void writeIntValue(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] intContent = ((MutableInteger) object).getUnderlyingArray();
+    int intOffset = locator.getOffset();
+    int intSize = locator.getSize();
+    int k = 0;
+    int l = intOffset;
+    for (; l < intOffset + intSize && k < intContent.length; l++, k++) {
+      dest.put(l, intContent[k]);
     }
   }
+
+  /**
+   * writes the double {@value input} to an {@value index} location in the {@value dest} Buffer.
+   * 
+   * @param index
+   * @param object
+   * @param dest
+   */
+  public void writeDoubleValue(final Object object, ByteBuffer dest, DataLocator locator) {
+    byte[] doubleContent = ((MutableDouble) object).getUnderlyingArray();
+    int doubleOffset = locator.getOffset();
+    int doubleSize = locator.getSize();
+    int k = 0;
+    int l = doubleOffset;
+    for (; l < doubleOffset + doubleSize && k < doubleContent.length; l++, k++) {
+      dest.put(l, doubleContent[k]);
+    }
+  }
+
 }

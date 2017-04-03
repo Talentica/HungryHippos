@@ -5,18 +5,45 @@ sourceCompatibility = 1.8
 allprojects {
 	apply plugin: 'java'
 	group = 'com.talentica.hungry-hippos'
-	version = '0.6.0 SNAPSHOT'
-
-
+	version = '0.7.0'
+	
 	repositories {
 		mavenCentral()
 		jcenter()
 	}
 
 	dependencies{
-		compile group: 'commons-io', name: 'commons-io', version: '2.5'
-		compile group:'org.eclipse.persistence',name:'org.eclipse.persistence.moxy',version:'2.5.2'
+        testCompile 'junit:junit:4.12'
+        testCompile 'org.mockito:mockito-all:1.10.+'
+        testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+        testCompile 'org.powermock:powermock-api-mockito:1.6.5'
 	}
+	
+	sourceSets {
+		test {
+		  java.srcDir 'src/test/java'
+		}
+		integration {
+		  java.srcDir 'src/test/integration/java'
+		  resources.srcDir 'src/test/resources'
+		  compileClasspath += main.output + test.output
+		  runtimeClasspath += main.output + test.output
+		}
+	  }
+	
+	jar{
+		exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+	}
+	  
+	  configurations {
+		integrationCompile.extendsFrom testCompile
+		integrationRuntime.extendsFrom testRuntime
+	  }
+	  
+	  task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
+		testClassesDir = sourceSets.integration.output.classesDir
+		classpath = sourceSets.integration.runtimeClasspath
+	  }
 
 }
 
@@ -74,7 +101,7 @@ subprojects{
 	ext.outputLibsDir="build/libs"
 	ext.outputScriptsDir="src/main/resources/bin"
 	ext.javaodcDir="build/docs/javadoc"
-	ext.configDir="src/main/resources"
+	ext.configDir="src/main/resources/distribution"
 	ext.distributionHome="../build/distribution/HungryHippos-"+project.version+"/"
 
 	ext.apiDir=distributionHome +"docs"
@@ -83,7 +110,7 @@ subprojects{
 	ext.mapredLibrariesDir=distributionHome +"mapreduce/lib"
 	ext.mapredApi=distributionHome +"mapreduce/docs"
 	ext.binDir=distributionHome +"bin"
-	ext.destConfigDir=distributionHome +"config"+"/"+project.name
+	ext.destConfigDir=distributionHome +"config"
 	
 	task makeRequiredDirs() {
 		cleanupAndMakeDirs(librariesDir)

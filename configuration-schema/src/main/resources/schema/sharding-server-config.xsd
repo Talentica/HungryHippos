@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
+	elementFormDefault="qualified">
+	<element name="sharding-server-config">
+		<complexType>
+			<sequence>
+				<element type="string" name="maximum-shard-file-size-in-bytes"></element>
+				<element type="string" name="maximum-no-of-shard-buckets-size"></element>
+			</sequence>
+		</complexType>
+	</element>
+
+</schema>

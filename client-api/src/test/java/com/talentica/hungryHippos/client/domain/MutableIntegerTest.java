@@ -1,122 +1,54 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.client.domain;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
-
 public class MutableIntegerTest {
-
-  private MutableInteger integerL1;
-
-  private MutableInteger integerL2;
-  @Before
-  public void setUp() throws Exception {
-    FieldTypeArrayDataDescription dataDescription = new FieldTypeArrayDataDescription(50);
-    dataDescription.addFieldType(DataType.DOUBLE, 1);
-    integerL1 = new MutableInteger(8);
-    integerL1.addByte((byte) 1);
-    integerL1.addByte((byte) '.');
-    integerL1.addByte((byte) 0);
-    integerL1.addByte((byte) 3);
-    integerL1.addByte((byte) 4);
-    integerL1.addByte((byte) 5);
-    integerL2 = new MutableInteger(6);
-    integerL2.addByte((byte) 1);
-    integerL2.addByte((byte) '.');
-    integerL2.addByte((byte) 0);
-    integerL2.addByte((byte) 3);
-    integerL2.addByte((byte) 4);
-    integerL2.addByte((byte) 5);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-
-    integerL1 = null;
-    integerL2 = null;
-  }
-
-
-  @Test
-  public void testHashCode() {
-    int hash1 = integerL1.hashCode();
-    int hash2 = integerL2.hashCode();
-    assertEquals(hash1, hash2);
-  }
+  
+  static MutableInteger localInteger = new MutableInteger();
+  
 
   @Test
   public void testMutableInteger() {
-    MutableInteger localInteger = new MutableInteger(6);
-    localInteger.addByte((byte) 1);
-    localInteger.addByte((byte) '.');
-    localInteger.addByte((byte) 0);
-    localInteger.addByte((byte) 3);
-    localInteger.addByte((byte) 4);
-    localInteger.addByte((byte) 5);
+    String token =  "-112";
+    localInteger.addValue(token);
     assertNotNull(localInteger);
-    assertEquals(6, localInteger.getLength());
+    assertEquals(4, localInteger.getLength());
+    assertEquals(-112, localInteger.toInt());
+    token = "1134342";
+    localInteger.addValue(token);
+    assertEquals(4, localInteger.getLength());
+    assertEquals(1134342, localInteger.toInt());
   }
-
+  
   @Test
-  public void testGetLength() {
-    assertEquals(6, integerL1.getLength());
-    assertEquals(6, integerL2.getLength());
-  }
-
-  @Test
-  public void testByteAt() {
-    byte digit =  integerL1.byteAt(0);
-    assertEquals(digit, 1);
-  }
-
-  @Test
-  public void testGetUnderlyingArray() {
-   byte[] byteArray = integerL1.getUnderlyingArray();
-   assertNotNull(byteArray);
-  }
-
-  @Test
-  public void testToString() {
-    String s = integerL1.toString();
-   System.out.println(s); 
-   assertNotNull(s);
-  }
-
-  @Test
-  public void testAddByte() {
-    int sizeBeforeAdding = integerL1.getLength();
-    MutableInteger localInteger = integerL1.addByte((byte)'9');
-    int sizeAfterAddingByte = localInteger.getLength();
-    assertEquals(sizeBeforeAdding+1, sizeAfterAddingByte);
-  }
-
-  @Test
-  public void testReset() {
-    int length = integerL1.getLength();
-    integerL1.reset();
-    int length1 = integerL1.getLength();
-    assertNotEquals(length, length1);
-  }
-
-  @Test
-  public void testClone() {
-    MutableInteger localInteger = integerL1.clone();
-    assertNotNull(localInteger);
-  }
-
-  @Test
-  public void testEqualsObject() {
-    assertTrue(integerL1.equals(integerL2));
-  }
-
-  @Test
-  public void testCompareTo() {
-    int a = integerL1.compareTo(integerL2);
-    assertEquals(0,a);
+  public void testMutableItegerClone(){
+    String token = "112";
+    localInteger.addValue(token);
+    
+    MutableInteger mutableInteger = localInteger.clone();
+    token  = "113";
+    mutableInteger.addValue(token);
+    
+    assertEquals(112, localInteger.toInt());
+    assertEquals(113, mutableInteger.toInt());
   }
 
 }

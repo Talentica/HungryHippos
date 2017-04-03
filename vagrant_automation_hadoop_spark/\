@@ -1,0 +1,31 @@
+#!/bin/bash 
+
+#Copy original file to tmp file to perform file operatiob
+cp ip_file.txt ip_file_tmp.txt
+
+#replace tab with colon in tmp file
+sed -i 's/	/:/g' ip_file_tmp.txt
+
+#retrieve all Ips 
+ips=($(awk -F ':' '{print $1}' ip_file_tmp.txt))
+
+#flag
+j=0
+
+
+for i in "${ips[@]}"
+do
+echo $i
+
+j=`expr $j + 1`
+
+
+chmod 777 ip_file.txt
+
+ssh -o StrictHostKeyChecking=no root@$i
+
+#copy ip file to every node
+cat ip_file.txt | ssh root@$i "cat >> /etc/hosts"
+#scp ip_file.txt  root@$i:/etc/ip_file.txt
+#vagrant ssh hadoop-$j -c '/etc/ip_file.txt >> /etc/hosts'
+done

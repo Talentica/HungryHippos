@@ -1,2 +1,0 @@
-192.241.248.197
-/root/hungryhippos/job/output/

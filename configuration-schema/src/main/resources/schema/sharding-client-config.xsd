@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
+	elementFormDefault="qualified">
+	<element name="sharding-client-config">
+		<complexType>
+			<sequence>
+				<element type="tns:input" name="input" />
+				<element type="string" name="sharding-dimensions" />
+				<element type="int" name="maximum-size-of-single-block-data" />
+				<element type="string" name="bad-records-file-out" />
+			</sequence>
+		</complexType>
+	</element>
+
+	
+
+	<complexType name="input">
+		<sequence>
+			<element type="string" name="sample-file-path" />
+			<element type="string" name="distributed-file-path" />
+			<element type="tns:data-description" minOccurs="0"
+				name="data-description" />
+			<element type="tns:data-parser-config" name="data-parser-config" />
+		</sequence>
+	</complexType>
+
+	<complexType name="data-parser-config">
+		<sequence>
+			<element type="string" name="class-name" />
+		</sequence>
+	</complexType>
+
+	<complexType name="data-description">
+		<sequence>
+			<element type="tns:column" name="column" maxOccurs="unbounded"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="column">
+		<sequence>
+			<element name="name" type="string" />
+			<element name="description" minOccurs="0" type="string" />
+			<element name="data-type">
+				<simpleType>
+					<restriction base="string">
+						<enumeration value="STRING"></enumeration>
+						<enumeration value="INT"></enumeration>
+						<enumeration value="FLOAT"></enumeration>
+						<enumeration value="DOUBLE"></enumeration>
+						<enumeration value="LONG"></enumeration>
+					</restriction>
+				</simpleType>
+			</element>
+			<element name="size" minOccurs="0" type="int" default="0" />
+		</sequence>
+	</complexType>
+
+</schema>

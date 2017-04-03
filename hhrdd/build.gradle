@@ -1,0 +1,31 @@
+apply plugin: 'java'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: "maven-publish"
+
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+
+			artifact sourceJar {
+				classifier "sources"
+			}
+		}
+	}
+}
+
+
+dependencies {
+	compile project(":client-api")
+	compile project (':sharding')
+	compile 'org.apache.spark:spark-core_2.11:2.0.2'
+}

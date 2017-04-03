@@ -1,9 +1,25 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.client.domain;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
+ * {@code MutableInteger} is used for memory optimization. Because of this class system will be
+ * making less objects for Integer.
  * 
  * @author sudarshans
  *
@@ -12,16 +28,20 @@ public class MutableInteger implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
-  private int stringLength;
+  private int length = Integer.BYTES;
 
-  public MutableInteger(int length) {
+  /**
+   * creates a new MutableInteger.
+   * 
+   * @param length
+   */
+  public MutableInteger() {
     array = new byte[length];
-    stringLength = 0;
   }
 
   @Override
   public int getLength() {
-    return stringLength;
+    return length;
   }
 
   @Override
@@ -29,37 +49,26 @@ public class MutableInteger implements DataTypes {
     return array[index];
   }
 
+  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
 
-
-  private void copyCharacters(int start, int end, MutableInteger newArray) {
-    for (int i = start, j = 0; i < end; i++, j++) {
-      newArray.array[j] = array[i];
-    }
-  }
-
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
+    return toInt() + "";
   }
 
-  public MutableInteger addByte(byte ch) {
-    array[stringLength] = ch;
-    stringLength++;
-    return this;
-  }
 
+  @Override
   public void reset() {
-    stringLength = 0;
+    index = 0;
   }
 
   @Override
   public MutableInteger clone() {
-    MutableInteger newArray = new MutableInteger(stringLength);
-    copyCharacters(0, stringLength, newArray);
-    newArray.stringLength = stringLength;
+    MutableInteger newArray = new MutableInteger();
+    System.arraycopy(array, 0, newArray.array, 0, length);
     return newArray;
   }
 
@@ -71,52 +80,38 @@ public class MutableInteger implements DataTypes {
       return false;
     }
     MutableInteger that = (MutableInteger) o;
-    if (stringLength == that.stringLength) {
-      for (int i = 0; i < stringLength; i++) {
-        if (array[i] != that.array[i]) {
-          return false;
-        }
+    for (int i = 0; i < length; i++) {
+      if (array[i] != that.array[i]) {
+        return false;
       }
-      return true;
     }
-    return false;
+    return true;
   }
 
   @Override
   public int hashCode() {
     int h = 0;
-    int off = 0;
-    byte val[] = array;
-    int len = stringLength;
-    for (int i = 0; i < len; i++) {
-      h = 31 * h + val[off++];
+    for (int i = 0; i < length; i++) {
+      h = 31 * h + array[i];
     }
     return h;
-  }
-
-  public static MutableInteger from(String value) throws InvalidRowException {
-    MutableInteger mutableLongByteArray = new MutableInteger(value.length());
-    for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableLongByteArray.addByte(character);
-    }
-    return mutableLongByteArray;
   }
 
   @Override
   public int compareTo(DataTypes dataType) {
     MutableInteger otherMutableIntegerByteArray = null;
-    if(dataType instanceof MutableInteger){
-      otherMutableIntegerByteArray = (MutableInteger)dataType;
-    }else {
+    if (dataType instanceof MutableInteger) {
+      otherMutableIntegerByteArray = (MutableInteger) dataType;
+    } else {
       return -1;
     }
     if (equals(otherMutableIntegerByteArray)) {
       return 0;
     }
-    if (stringLength != otherMutableIntegerByteArray.stringLength) {
-      return Integer.valueOf(stringLength).compareTo(otherMutableIntegerByteArray.stringLength);
+    if (length != otherMutableIntegerByteArray.length) {
+      return Integer.valueOf(length).compareTo(otherMutableIntegerByteArray.length);
     }
-    for (int i = 0; i < stringLength; i++) {
+    for (int i = 0; i < length; i++) {
       if (array[i] == otherMutableIntegerByteArray.array[i]) {
         continue;
       }
@@ -125,5 +120,49 @@ public class MutableInteger implements DataTypes {
     return 0;
   }
 
+  public MutableInteger addValue(String data) {
+    int value = getIntValue(data);
+    array[0] = (byte) ((value >> 24) & 0xff);
+    array[1] = (byte) ((value >> 16) & 0xff);
+    array[2] = (byte) ((value >> 8) & 0xff);
+    array[3] = (byte) ((value >> 0) & 0xff);
+    return this;
+  }
+
+  private int getIntValue(String data) {
+    int value = 0;
+    int index = 0;
+    boolean negativeVal = false;
+    if(data != null && data.length() > 0){
+      if(data.charAt(index) == '-'){
+        negativeVal = true;
+        index = 1;
+      }
+    }
+    for (; index < data.length(); index++) {
+      value = Character.getNumericValue(data.charAt(index)) + 10 * value;
+    }
+    if(negativeVal) {
+      return value * -1;
+    }
+    return value;
+  }
+
+
+
+  public int toInt() {
+    if (array == null || array.length != 4)
+      return 0x0;
+    return (int) ((0xff & array[0]) << 24 | (0xff & array[1]) << 16 | (0xff & array[2]) << 8
+        | (0xff & array[3]) << 0);
+  }
+
+  private int index = 0;
+
+  @Override
+  public DataTypes addByte(byte ch) {
+    array[index++] = ch;
+    return this;
+  }
 
 }

@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.test.unique;
 
 import java.util.HashSet;
@@ -9,27 +24,28 @@ import com.talentica.hungryHippos.test.sum.SumWork;
 /**
  * Created by debasishc on 5/10/15.
  */
-public class UniqueCountWork extends SumWork{
+public class UniqueCountWork extends SumWork {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	HashSet<CharSequence> uniqueValues = new HashSet<>();
-    public UniqueCountWork(int[] dimensions, int primaryDimension, int valueIndex) {
-        super(dimensions,primaryDimension,valueIndex);
-    }
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  HashSet<CharSequence> uniqueValues = new HashSet<>();
+  private int  jobId;
+  public UniqueCountWork(int[] dimensions, int valueIndex,int jobId) {
+    super(dimensions, valueIndex,jobId);
+  }
 
 
-    @Override
-    public void processRow(ExecutionContext executionContext) {
-        MutableCharArrayString v =  executionContext.getString(valueIndex);
-        uniqueValues.add(v.clone());
+  @Override
+  public void processRow(ExecutionContext executionContext) {
+    MutableCharArrayString v = executionContext.getString(valueIndex);
+    uniqueValues.add(v.clone());
 
-    }
+  }
 
-    @Override
-    public void calculate(ExecutionContext executionContext) {
-		executionContext.saveValue(valueIndex, " : " + uniqueValues.size(), "Unique ");
-    }
+  @Override
+  public void calculate(ExecutionContext executionContext) {
+    executionContext.saveValue(valueIndex, " : " + uniqueValues.size(), "Unique ");
+  }
 }

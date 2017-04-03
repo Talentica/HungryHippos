@@ -1,117 +1,137 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.storage;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.talentica.hungryHippos.utility.MemoryStatus;
+import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.coordination.context.CoordinationApplicationContext;
-import com.talentica.hungryHippos.storage.context.StorageApplicationContext;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by debasishc on 31/8/15.
  */
-public class FileDataStore implements DataStore, Serializable {
-  /**
-	 * 
-	 */
-  private static final long serialVersionUID = -7726551156576482829L;
-  private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
-  private final int numFiles;
-  private OutputStream[] os;
-  private DataDescription dataDescription;
-
-  private static final boolean APPEND_TO_DATA_FILES = Boolean
-      .valueOf(CoordinationApplicationContext.getProperty().getValueByKey(
-          "datareceiver.append.to.data.files"));
-
-  private transient Map<Integer, FileStoreAccess> primaryDimensionToStoreAccessCache =
-      new HashMap<>();
-
-  public static final String DATA_FILE_BASE_NAME = "data_";
-
-  // public static final String FOLDER_NAME = "data";
-
-  public FileDataStore(int numDimensions, DataDescription dataDescription) throws IOException {
-    this(numDimensions, dataDescription, false);
-  }
-
-  public FileDataStore(int numDimensions, DataDescription dataDescription, boolean readOnly)
-      throws IOException {
-    this.numFiles = 1 << numDimensions;
-    this.dataDescription = dataDescription;
-    os = new OutputStream[numFiles];
-    // check data folder exists , if its not present this logic will create a folder named data.
-    /*
-     * String dirloc = new File(PathUtil.CURRENT_DIRECTORY).getCanonicalPath() + File.separator +
-     * FOLDER_NAME;
+public class FileDataStore implements DataStore {
+    /**
+     *
      */
-    String dirloc = StorageApplicationContext.dataFilePath;
-    File file = new File(dirloc);
-    if (!file.exists()) {
-      boolean flag = file.mkdir();
-      if (flag) {
-        logger.info("created data folder");
-      } else {
-        logger.info("Not able to create dataFolder");
-      }
-    }
-    if (!readOnly) {
-      for (int i = 0; i < numFiles; i++) {
-        os[i] =
-            new BufferedOutputStream(new FileOutputStream(dirloc + DATA_FILE_BASE_NAME + i,
-                APPEND_TO_DATA_FILES));
-      }
-    }
-  }
+    private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
+    private Map<String, OutputStream> fileNameToOutputStreamMap;
+    private OutputStream[] outputStreams;
+    private String hungryHippoFilePath;
+    private String dataFilePrefix;
 
-  @Override
-  public void storeRow(int storeId, ByteBuffer row, byte[] raw) {
-    try {
-      os[storeId].write(raw);
-    } catch (IOException e) {
-      logger.error("Error occurred while writing data received to datastore.", e);
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
+                         String hungryHippoFilePath,                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
+            KeeperException, JAXBException {
+        this(fileNames, maxBucketSize, numDimensions, hungryHippoFilePath, false, fileName);
     }
-  }
 
-  @Override
-  public StoreAccess getStoreAccess(int keyId) {
-    int shardingIndexSequence = CoordinationApplicationContext.getShardingIndexSequence(keyId);
-    FileStoreAccess storeAccess = primaryDimensionToStoreAccessCache.get(shardingIndexSequence);
-    if (storeAccess == null) {
-      storeAccess =
-          new FileStoreAccess(DATA_FILE_BASE_NAME, shardingIndexSequence, numFiles, dataDescription);
-      primaryDimensionToStoreAccessCache.put(keyId, storeAccess);
-    }
-    storeAccess.clear();
-    return storeAccess;
-  }
+    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
+                         String hungryHippoFilePath, boolean readOnly,
+                         String fileName) throws IOException {
 
-  @Override
-  public void sync() {
-    for (int i = 0; i < numFiles; i++) {
-      try {
-        os[i].flush();
-      } catch (IOException e) {
-        logger.error("Error occurred while flushing " + i + "th outputstream.", e);
-      } finally {
-        try {
-          if (os[i] != null)
-            os[i].close();
-        } catch (IOException e) {
-          logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+        fileNameToOutputStreamMap = new HashMap<>();
+        this.hungryHippoFilePath = hungryHippoFilePath;
+        this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
+                + File.separator + fileName;
+
+        int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
+        this.outputStreams = new OutputStream[maxFiles];
+        if (!readOnly) {
+            File file = new File(dataFilePrefix);
+            if (!file.exists()) {
+                boolean flag = file.mkdirs();
+                if (flag) {
+                    logger.info("created data folder");
+                } else {
+                    logger.info("Not able to create dataFolder");
+                }
+            }
+            dataFilePrefix = dataFilePrefix + "/";
+            allocateResources(fileNames, this.outputStreams, this.dataFilePrefix, this.fileNameToOutputStreamMap);
+
         }
-      }
     }
-  }
+
+    private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
+        long usableMemory = MemoryStatus.getUsableMemory();
+        long memoryRequiredForBufferedStream = fileNames.size() * 1024;
+        if (usableMemory > memoryRequiredForBufferedStream) {
+            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue()), 1024);
+                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
+            }
+        } else {
+            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                outputStreams[entry.getKey()] = new FileOutputStream(dataFilePrefix + entry.getValue());
+                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
+            }
+        }
+    }
+
+    @Override
+    public void storeRow(String name, byte[] raw) {
+        try {
+            fileNameToOutputStreamMap.get(name).write(raw);
+        } catch (NullPointerException e) {
+            logger.error(name + " not present");
+        } catch (IOException e) {
+            logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
+        }
+    }
+
+    @Override
+    public void storeRow(int index, byte[] raw) {
+        try {
+            outputStreams[index].write(raw);
+        } catch (IOException e) {
+            logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
+        }
+    }
+
+    @Override
+    public void sync() {
+
+        for (Map.Entry<String, OutputStream> nameStreamEntry : fileNameToOutputStreamMap.entrySet()) {
+            try {
+                nameStreamEntry.getValue().flush();
+            } catch (IOException e) {
+                logger.error("Error occurred while flushing " + nameStreamEntry.getKey() + " output stream. {}", e);
+            } finally {
+                try {
+                    if (nameStreamEntry.getValue() != null)
+                        nameStreamEntry.getValue().close();
+                } catch (IOException e) {
+                    logger.warn("\n\tUnable to close the connection; exception :: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @Override
+    public String getHungryHippoFilePath() {
+        return hungryHippoFilePath;
+    }
+
 
 }

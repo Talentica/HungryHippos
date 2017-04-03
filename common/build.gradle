@@ -12,12 +12,12 @@ sourceSets {
   }
 
 jar{
-	version=null
+	archiveName='common-'+version+'.jar'
 }
 
 dependencies {	
 	compile project (':client-api')
-	compile project (':utility')
 	compile project (':storage')
+	compile project (':file-system')
 }
 

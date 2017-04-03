@@ -41,14 +41,6 @@ jaxb {
 	}
 }
 
-
-
-jar {
-	version=null
-}
-
-
-
 compileJava{
 	dependsOn xjc
 }

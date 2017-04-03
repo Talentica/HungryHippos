@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2017 Talentica Software Pvt. Ltd.
+   
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+   
+        http://www.apache.org/licenses/LICENSE-2.0
+   
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
+
+<tns:file-system-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/filesystem"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/filesystem filesystem-config.xsd ">
+	<tns:root-directory>/home/sudarshans/hh/filesystem</tns:root-directory>
+	<tns:data-file-prefix>data_</tns:data-file-prefix>
+	<tns:append-to-data-file>false</tns:append-to-data-file>
+	<tns:server-port>9898</tns:server-port>
+	<tns:query-retry-interval>2500</tns:query-retry-interval>
+	<tns:max-query-attempts>10</tns:max-query-attempts>
+	<tns:file-stream-buffer-size>2048</tns:file-stream-buffer-size>
+	<tns:max-client-requests>25</tns:max-client-requests>
+</tns:file-system-config>

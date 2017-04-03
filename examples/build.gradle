@@ -1,0 +1,14 @@
+apply plugin: 'java'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+ 	compile project (':hhrdd')
+	//compile 'org.apache.spark:spark-core_2.11:2.0.2'
+ 	//compile fileTree(dir: '../client-api/build/libs', include: '*.jar')
+ 	//compile fileTree(dir: '../hhrdd/build/libs', include: '*.jar')
+
+}

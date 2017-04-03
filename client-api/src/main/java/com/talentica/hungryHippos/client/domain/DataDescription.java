@@ -1,8 +1,22 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.client.domain;
 
 /**
- * This interface need to be implemented for the description of the data or
- * records of the data set provided.
+ * The interface for the description of the data
  * 
  * @author debasishc.
  * @version 0.5.0
@@ -44,7 +58,7 @@ public interface DataDescription {
 	 * Returns maximum size of data in number of bytes which can be present in
 	 * single processing block e.g. single line in csv file.
 	 * 
-	 * @return
+	 * @return returns an int value representing the single block size.
 	 */
 	public int getMaximumSizeOfSingleBlockOfData();
 

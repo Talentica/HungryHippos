@@ -1,39 +1,35 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 /**
  * 
  */
 package com.talentica.hungryHippos.coordination.utility;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.talentica.hungryHippos.coordination.property.Property;
 
 
 /**
+ * {@code CoordinationProperty} class is used to read Coordination property file.
+ * 
  * @author pooshans
  *
  */
 public class CoordinationProperty extends Property<CoordinationProperty> {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(CoordinationProperty.class.getName());
-
   public CoordinationProperty(String propFileName) {
     super(propFileName);
   }
-
-  public CoordinationProperty() {
-
-  }
-  
-  public final String[] getDataTypeConfiguration() {
-    return getValueByKey("column.datatype-size").toString().split(",");
-  }
-
-  public final int getMaximumSizeOfSingleDataBlock() {
-    return Integer.parseInt(getValueByKey("maximum.size.of.single.block.data"));
-  }
-
-
-
 }

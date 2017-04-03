@@ -1,19 +1,56 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.client.domain;
 
 import java.util.Arrays;
 
+import com.talentica.hungryHippos.coordination.annotations.ZkTransient;
+
 /**
- * Created by debasishc on 29/9/15. updated by Sudarshan
+ * 
+ * {@code MutableCharArrayString} is used for memory optimization. Because of this class system will
+ * be making less objects.
+ * 
+ * @author debasishc
+ * @since 29/9/15.
  */
 public class MutableCharArrayString implements CharSequence, DataTypes {
 
+  @ZkTransient
   private static final MutableCharArrayStringCache MUTABLE_CHAR_ARRAY_STRING_CACHE =
       MutableCharArrayStringCache.newInstance();
 
+  @ZkTransient
   private static final long serialVersionUID = -6085804645372631875L;
   private char[] array;
   private int stringLength;
 
+  /**
+   * creates a new MutableCharArrayString.
+   */
+  public MutableCharArrayString() {
+
+  }
+
+  /**
+   * creates a new MutableCharArrayString with specified length. The length specified is the limit
+   * of the underlying array.
+   * 
+   * @param length is the size of underlying array that will be created.
+   */
   public MutableCharArrayString(int length) {
     array = new char[length];
     stringLength = 0;
@@ -34,6 +71,9 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return (char) array[index];
   }
 
+  /**
+   * return a byte[]
+   */
   public byte[] getUnderlyingArray() {
     byte[] byteArray = new byte[stringLength];
     for (int i = 0; i < stringLength; i++) {
@@ -42,6 +82,10 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return byteArray;
   }
 
+  /**
+   * 
+   * @return a char[].
+   */
   public char[] getUnderlyingCharArray() {
     return array;
   }
@@ -63,20 +107,35 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
 
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
+    return String.copyValueOf(Arrays.copyOf(array, stringLength));
   }
 
+  public String getValue() {
+    if(stringLength==array.length){
+      return String.copyValueOf(Arrays.copyOf(array, stringLength));
+    }
+    array[stringLength]=0;
+    return String.copyValueOf(Arrays.copyOf(array, stringLength+1));
+  }
 
-
+  @Override
   public void reset() {
     stringLength = 0;
   }
 
   @Override
   public MutableCharArrayString clone() {
-    MutableCharArrayString newArray = new MutableCharArrayString(stringLength);
+    String stringValue = this.toString();
+    MutableCharArrayString newArray =
+        MUTABLE_CHAR_ARRAY_STRING_CACHE.getMutableStringFromCacheOfSize(stringValue);
+    if (newArray != null) {
+      return newArray;
+    }
+
+    newArray = new MutableCharArrayString(stringLength);
     copyCharacters(0, stringLength, newArray);
     newArray.stringLength = stringLength;
+    MUTABLE_CHAR_ARRAY_STRING_CACHE.add(stringValue, newArray);
     return newArray;
   }
 
@@ -110,13 +169,6 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     }
     return h;
   }
-
-  /*
-   * public static MutableCharArrayString from(String value) throws InvalidRowException {
-   * MutableCharArrayString mutableCharArrayString = new MutableCharArrayString(value.length()); for
-   * (char character : value.toCharArray()) { mutableCharArrayString.addCharacter(character); }
-   * return mutableCharArrayString; }
-   */
 
   @Override
   public int compareTo(DataTypes dataType) {
@@ -158,6 +210,15 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
   public DataTypes addCharacter(char ch) {
     array[stringLength] = ch;
     stringLength++;
+    return this;
+  }
+  
+  @Override
+  public DataTypes addValue(String token) {
+    for (int index = 0; index < token.length(); index++) {
+      array[stringLength] = (char) token.charAt(index);
+      stringLength++;
+    }
     return this;
   }
 

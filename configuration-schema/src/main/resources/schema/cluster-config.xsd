@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.talentica.com/hungryhippos/config/cluster"
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/cluster"
+	elementFormDefault="qualified">
+	<element name="cluster-config">
+		<complexType>
+			<sequence>
+				<element type="tns:node" name="node" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="node">
+		<sequence>
+			<element type="int" name="identifier" />
+			<element type="string" name="name" />
+			<element type="string" name="ip" />
+			<element type="string" name="port" />
+		</sequence>
+	</complexType>
+
+</schema>

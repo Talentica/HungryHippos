@@ -33,7 +33,7 @@ import com.talentica.hungryHippos.utility.MapUtils;
 public class ShardingTablePrinter {
 
   public static void main(String[] args) throws FileNotFoundException, JAXBException {
-
+   args[0] = "/home/pooshans/hhuser/table";
     validateArguments(args);
     String shardingTablePath = args[0];
     ShardingApplicationContext context = new ShardingApplicationContext(shardingTablePath);
@@ -46,15 +46,15 @@ public class ShardingTablePrinter {
                     shardingTablePath + File.separatorChar + "keyToValueToBucketMap",
                     dataTypeMap)));
     System.out.println();
-    System.out.println("###### Bucket combination to node numbers map ######");
-    System.out.println("\t" + "BucketCombination" + "\t\t\t" + "Node"
-        + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(
-            shardingTablePath + File.separatorChar + "bucketCombinationToNodeNumbersMap")));
-    System.out.println();
     System.out.println("###### Bucket to node numbers map ######");
     System.out.println("\t" + "Bucket" + "\t\t\t" + "Node"
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketToNodeNumber(
             shardingTablePath + File.separatorChar + "bucketToNodeNumberMap")));
+   /* System.out.println("###### Bucket combination to node numbers map ######");
+    System.out.println("\t" + "BucketCombination" + "\t\t\t" + "Node"
+        + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(
+            shardingTablePath + File.separatorChar + "bucketCombinationToNodeNumbersMap")));*/
+    System.out.println();
   }
 
   private static void validateArguments(String[] args) {

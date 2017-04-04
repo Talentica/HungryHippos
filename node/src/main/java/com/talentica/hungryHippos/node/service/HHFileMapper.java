@@ -15,26 +15,31 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.zookeeper.KeeperException;
+
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
 import com.talentica.hungryHippos.node.datareceiver.HHFileUploader;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingUtil;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.commons.io.FileUtils;
-import org.apache.zookeeper.KeeperException;
-
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Created by rajkishoreh on 6/2/17.
@@ -43,17 +48,15 @@ public class HHFileMapper {
 
     private String[] keyOrder;
     private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
-    private Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
     private int maxBucketSize;
     private Map<Integer, Set<String>> nodeToFileMap;
     private DataStore dataStore;
     private String hhFilePath;
     private String uniqueFolderName;
-
+    private Set<Integer> nodesId;
     public HHFileMapper(String hhFilePath, ShardingApplicationContext context, DataDescription dataDescription
-            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, Map<BucketCombination, Set<Node>> bucketCombinationNodeMap, String[] keyOrder) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder,Set<Integer> nodesId) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
-        this.bucketCombinationNodeMap = bucketCombinationNodeMap;
         this.bucketToNodeNumberMap = bucketToNodeNumberMap;
         maxBucketSize = Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
         Map<Integer, String> fileNames = new HashMap<>();
@@ -63,6 +66,7 @@ public class HHFileMapper {
         this.uniqueFolderName = UUID.randomUUID().toString();
         dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
                  hhFilePath, uniqueFolderName);
+        this.nodesId = nodesId;
     }
 
     private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
@@ -92,11 +96,10 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Node> nodes = bucketCombinationNodeMap.get(bucketCombination);
-        Iterator<Node> nodeIterator = nodes.iterator();
+        Set<Integer> nodesId = ShardingUtil.getNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        Iterator<Integer> nodeIterator = nodesId.iterator();
         while (nodeIterator.hasNext()) {
-            Node node = nodeIterator.next();
-            int nodeId = node.getNodeId();
+            int nodeId = nodeIterator.next();
             Set<String> fileNameSet = nodeToFileMap.get(nodeId);
             if (fileNameSet == null) {
                 fileNameSet = new HashSet<>();
@@ -106,7 +109,10 @@ public class HHFileMapper {
         }
         fileNames.put(index, fileName);
     }
+    
+    
 
+    
     public void storeRow(int index, byte[] raw) {
         dataStore.storeRow(index,raw);
     }
@@ -120,4 +126,5 @@ public class HHFileMapper {
         HHFileUploader.INSTANCE.uploadFile(srcFolderPath, destFolderPath, nodeToFileMap, hhFilePath);
         FileUtils.deleteDirectory(new File(srcFolderPath));
     }
+    
 }

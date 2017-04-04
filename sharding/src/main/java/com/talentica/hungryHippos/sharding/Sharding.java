@@ -127,9 +127,9 @@ public class Sharding {
    */
   public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
       String shardingServerConfigFilePath) throws IOException {
-    ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(
+    /*ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(
         ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile,
-        bucketCombinationToNodeNumbersMap, directoryPath);
+        bucketCombinationToNodeNumbersMap, directoryPath);*/
     ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(
         ShardingApplicationContext.bucketToNodeNumberMapFile, bucketToNodeNumberMap, directoryPath);
     ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(
@@ -440,12 +440,12 @@ public class Sharding {
     if (logger.isDebugEnabled()) {
       logger.debug("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
     }
-    List<String> keyNameList = new ArrayList<>();
+   /* List<String> keyNameList = new ArrayList<>();
     keyNameList.addAll(keysToListOfBucketsMap.keySet());
     logger.info("Generating table started");
     makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()),
         keyNameList);
-    logger.info("Generating table finished");
+    logger.info("Generating table finished");*/
   }
 
   private void makeShardingTable(BucketCombination source, List<String> keyNames)

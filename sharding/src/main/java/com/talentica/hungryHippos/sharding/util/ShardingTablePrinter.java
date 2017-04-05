@@ -50,10 +50,6 @@ public class ShardingTablePrinter {
     System.out.println("\t" + "Bucket" + "\t\t\t" + "Node"
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketToNodeNumber(
             shardingTablePath + File.separatorChar + "bucketToNodeNumberMap")));
-   /* System.out.println("###### Bucket combination to node numbers map ######");
-    System.out.println("\t" + "BucketCombination" + "\t\t\t" + "Node"
-        + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(
-            shardingTablePath + File.separatorChar + "bucketCombinationToNodeNumbersMap")));*/
     System.out.println();
   }
 

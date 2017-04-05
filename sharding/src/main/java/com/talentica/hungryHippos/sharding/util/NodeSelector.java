@@ -57,8 +57,8 @@ public class NodeSelector implements Serializable {
     if (nodeIds == null) {
       nodeIds();
     }
-    Set<Integer> nodes = new LinkedHashSet<Integer>();
-    int numberOfIntersectionStorage = getIntersectionPointsBybucketCombinationNodeMap(
+    LinkedHashSet<Integer> nodes = new LinkedHashSet<Integer>();
+    int numberOfIntersectionStorage = getNumberOfIntersectionPointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
     selectOtherNodeForIntersectionPoints(nodes, numberOfIntersectionStorage);
     //if (LOGGER.isDebugEnabled()) {
@@ -67,10 +67,10 @@ public class NodeSelector implements Serializable {
     return nodes;
   }
 
-  private static int getIntersectionPointsBybucketCombinationNodeMap(
+  private static int getNumberOfIntersectionPointsByBucketCombinationNode(
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      String[] keyOrder, Set<Integer> nodes) {
+      String[] keyOrder, LinkedHashSet<Integer> nodes) {
     int numberOfIntersectionStorage = 0;
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
@@ -84,7 +84,7 @@ public class NodeSelector implements Serializable {
     return numberOfIntersectionStorage;
   }
 
-  private static void selectOtherNodeForIntersectionPoints(Set<Integer> nodes,
+  private static void selectOtherNodeForIntersectionPoints(LinkedHashSet<Integer> nodes,
       int numberOfIntersectionStorage) {
     if (numberOfIntersectionStorage > 0) {
       Iterator<Integer> itr = nodeIds.iterator();

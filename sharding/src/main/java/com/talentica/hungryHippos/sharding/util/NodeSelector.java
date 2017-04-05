@@ -61,9 +61,9 @@ public class NodeSelector implements Serializable {
     int numberOfIntersectionStorage = getNumberOfIntersectionPointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
     selectOtherNodeForIntersectionPoints(nodes, numberOfIntersectionStorage);
-    //if (LOGGER.isDebugEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
       LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
-    //}
+    }
     return nodes;
   }
 

@@ -33,15 +33,24 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
 /**
- * @author pooshans
+ * The Class NodeSelector.
  *
+ * @author pooshans
  */
 public class NodeSelector implements Serializable {
 
+  /** The Constant serialVersionUID. */
   private static final long serialVersionUID = -6600132099728561553L;
+  
+  /** The node ids. */
   private static Set<Integer> nodeIds = null;
+  
+  /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
 
+  /**
+   * Node ids.
+   */
   private static void nodeIds() {
     nodeIds = new TreeSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
@@ -51,6 +60,14 @@ public class NodeSelector implements Serializable {
     }
   }
 
+  /**
+   * Select nodes id.
+   *
+   * @param bucketCombination the bucket combination
+   * @param bucketToNodeNumberMap the bucket to node number map
+   * @param keyOrder the key order
+   * @return the sets the
+   */
   public static Set<Integer> selectNodesId(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
@@ -60,13 +77,22 @@ public class NodeSelector implements Serializable {
     LinkedHashSet<Integer> nodes = new LinkedHashSet<Integer>();
     int numberOfIntersectionStorage = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
-    putDifferentNodeForIntersectionStoragePoints(nodes, numberOfIntersectionStorage);
+    preferDifferentNodeForIntersectionStoragePoints(nodes, numberOfIntersectionStorage);
     if (LOGGER.isDebugEnabled()) {
       LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
     }
     return nodes;
   }
 
+  /**
+   * Gets the number of intersection storage points by bucket combination node.
+   *
+   * @param bucketCombination the bucket combination
+   * @param bucketToNodeNumberMap the bucket to node number map
+   * @param keyOrder the key order
+   * @param nodes the nodes
+   * @return the number of intersection storage points by bucket combination node
+   */
   private static int getNumberOfIntersectionStoragePointsByBucketCombinationNode(
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
@@ -84,7 +110,13 @@ public class NodeSelector implements Serializable {
     return numberOfIntersectionStorage;
   }
 
-  private static void putDifferentNodeForIntersectionStoragePoints(LinkedHashSet<Integer> nodes,
+  /**
+   * Prefer different node for intersection storage points.
+   *
+   * @param nodes the nodes
+   * @param numberOfIntersectionStorage the number of intersection storage
+   */
+  private static void preferDifferentNodeForIntersectionStoragePoints(LinkedHashSet<Integer> nodes,
       int numberOfIntersectionStorage) {
     if (numberOfIntersectionStorage > 0) {
       Iterator<Integer> itr = nodeIds.iterator();

@@ -1,23 +1,22 @@
 /*******************************************************************************
  * Copyright 2017 Talentica Software Pvt. Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  *******************************************************************************/
 package com.talentica.hungryHippos.sharding.util;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +41,7 @@ public class NodeSelector implements Serializable {
   private static final long serialVersionUID = -6600132099728561553L;
   private static Set<Integer> nodeIds = null;
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
-  
+
   private static void nodeIds() {
     nodeIds = new TreeSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
@@ -58,15 +57,18 @@ public class NodeSelector implements Serializable {
     if (nodeIds == null) {
       nodeIds();
     }
-    Set<Integer> nodes = new TreeSet<Integer>();
-    int numberOfIntersectionStorage = getIntersectionPointsBybucketCombinationNodeMap(bucketCombination,
-        bucketToNodeNumberMap, keyOrder, nodes);
+    Set<Integer> nodes = new LinkedHashSet<Integer>();
+    int numberOfIntersectionStorage = getIntersectionPointsBybucketCombinationNodeMap(
+        bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
     selectOtherNodeForIntersectionPoints(nodes, numberOfIntersectionStorage);
-    LOGGER.info("BucketCombination {} and Nodes {}",bucketCombination,nodes);
+    //if (LOGGER.isDebugEnabled()) {
+      LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
+    //}
     return nodes;
   }
 
-  private static int getIntersectionPointsBybucketCombinationNodeMap(BucketCombination bucketCombination,
+  private static int getIntersectionPointsBybucketCombinationNodeMap(
+      BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder, Set<Integer> nodes) {
     int numberOfIntersectionStorage = 0;

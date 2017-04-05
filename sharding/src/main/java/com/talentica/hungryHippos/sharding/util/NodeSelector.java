@@ -58,16 +58,16 @@ public class NodeSelector implements Serializable {
       nodeIds();
     }
     LinkedHashSet<Integer> nodes = new LinkedHashSet<Integer>();
-    int numberOfIntersectionStorage = getNumberOfIntersectionPointsByBucketCombinationNode(
+    int numberOfIntersectionStorage = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
-    selectOtherNodeForIntersectionPoints(nodes, numberOfIntersectionStorage);
+    putDifferentNodeForIntersectionStoragePoints(nodes, numberOfIntersectionStorage);
     if (LOGGER.isDebugEnabled()) {
       LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
     }
     return nodes;
   }
 
-  private static int getNumberOfIntersectionPointsByBucketCombinationNode(
+  private static int getNumberOfIntersectionStoragePointsByBucketCombinationNode(
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder, LinkedHashSet<Integer> nodes) {
@@ -84,7 +84,7 @@ public class NodeSelector implements Serializable {
     return numberOfIntersectionStorage;
   }
 
-  private static void selectOtherNodeForIntersectionPoints(LinkedHashSet<Integer> nodes,
+  private static void putDifferentNodeForIntersectionStoragePoints(LinkedHashSet<Integer> nodes,
       int numberOfIntersectionStorage) {
     if (numberOfIntersectionStorage > 0) {
       Iterator<Integer> itr = nodeIds.iterator();

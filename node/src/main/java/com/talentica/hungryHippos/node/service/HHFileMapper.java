@@ -36,7 +36,7 @@ import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.sharding.util.ShardingUtil;
+import com.talentica.hungryHippos.sharding.util.NodeSelector;
 import com.talentica.hungryHippos.storage.DataStore;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -53,9 +53,8 @@ public class HHFileMapper {
     private DataStore dataStore;
     private String hhFilePath;
     private String uniqueFolderName;
-    private Set<Integer> nodesId;
     public HHFileMapper(String hhFilePath, ShardingApplicationContext context, DataDescription dataDescription
-            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder,Set<Integer> nodesId) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
         this.bucketToNodeNumberMap = bucketToNodeNumberMap;
         maxBucketSize = Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
@@ -66,7 +65,6 @@ public class HHFileMapper {
         this.uniqueFolderName = UUID.randomUUID().toString();
         dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
                  hhFilePath, uniqueFolderName);
-        this.nodesId = nodesId;
     }
 
     private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
@@ -96,7 +94,7 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Integer> nodesId = ShardingUtil.getNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        Set<Integer> nodesId = NodeSelector.selectNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
         Iterator<Integer> nodeIterator = nodesId.iterator();
         while (nodeIterator.hasNext()) {
             int nodeId = nodeIterator.next();

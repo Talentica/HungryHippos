@@ -86,31 +86,6 @@ public class ShardingFileUtil {
     }
   }
 
- /* public static void dumpBucketCombinationToNodeNumberFileOnDisk(String fileName,
-      HashMap<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap, String folderPath)
-      throws IOException {
-    new File(folderPath).mkdirs();
-    String filePath = (folderPath.endsWith(String.valueOf("/")) ? folderPath + fileName
-        : folderPath + "/" + fileName);
-    File file = new File(filePath);
-    FileOutputStream output = null;
-    ObjectOutputStream oos = null;
-    try {
-      output = new FileOutputStream(file);
-      oos = new ObjectOutputStream(output);
-      oos.writeObject(bucketCombinationToNodeNumberMap);
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        closeOutputStream(output, oos);
-      } catch (IOException e) {
-        e.printStackTrace();
-        throw e;
-      }
-    }
-  }*/
-
   private static void closeOutputStream(FileOutputStream output, ObjectOutputStream oos)
       throws IOException {
     if (oos != null) {
@@ -184,30 +159,6 @@ public class ShardingFileUtil {
   }
 
 
- /* @SuppressWarnings("unchecked")
-  public static HashMap<BucketCombination, Set<Node>> readFromFileBucketCombinationToNodeNumber(
-      String filePath) {
-    LOGGER.info(" sharding filePath : " + filePath);
-    File file = new File(filePath);
-    FileInputStream fis = null;
-    ObjectInputStream ois = null;
-    HashMap<BucketCombination, Set<Node>> bucketCombinationToNodeNumberMap = null;
-    try {
-      fis = new FileInputStream(file);
-      ois = new ObjectInputStream(fis);
-      bucketCombinationToNodeNumberMap = (HashMap<BucketCombination, Set<Node>>) ois.readObject();
-    } catch (IOException | ClassNotFoundException e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        closeInputStream(fis, ois);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-    return bucketCombinationToNodeNumberMap;
-  }*/
-
   public static Map<String, String> getDataTypeMap(ShardingApplicationContext context) {
     Map<String, String> dataTypeMap = new HashMap<>();
     List<Column> columns =
@@ -217,21 +168,5 @@ public class ShardingFileUtil {
     }
     return dataTypeMap;
   }
-
-  public static Object parseDataType(String value, String type) {
-    switch (type) {
-      case ("INT"):
-        return Integer.valueOf(value);
-      case ("FLOAT"):
-        return Float.valueOf(value);
-      case ("DOUBLE"):
-        return Double.valueOf(value);
-      case ("LONG"):
-        return Long.valueOf(value);
-      default:
-        return value;
-    }
-  }
-
 
 }

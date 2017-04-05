@@ -30,7 +30,7 @@ import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.util.ShardingUtil;
+import com.talentica.hungryHippos.sharding.util.NodeSelector;
 
 import scala.Tuple2;
 
@@ -579,11 +579,10 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         keyValueCombination.put(keyOrder[i], new Bucket<>(Integer.parseInt(buckets[i])));
       }
       BucketCombination bucketCombination = new BucketCombination(keyValueCombination);
-      // Set<Node> nodes = bucketCombinationToNodeNumberMap.get(bucketCombination);
-      Set<Integer> nodesId =
-          ShardingUtil.getNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
+      Set<Integer> ids =
+          NodeSelector.selectNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
       int i = 0;
-      for (int nodeId : nodesId) {
+      for (int nodeId : ids) {
         nodeIds[i] = nodeId;
         i++;
       }

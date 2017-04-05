@@ -18,7 +18,12 @@ package com.talentica.hungryHippos.sharding;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 import javax.xml.bind.JAXBException;
 
@@ -60,7 +65,6 @@ public class Sharding {
   // e.g. Map<KeyCombination({key1,value1},{key2,value2},{key3,value3}),count>
   private HashMap<BucketCombination, Long> bucketCombinationFrequencyMap = new HashMap<>();
   private HashMap<Node, List<BucketCombination>> nodeToKeyMap = new HashMap<>();
-  private HashMap<BucketCombination, Set<Node>> bucketCombinationToNodeNumbersMap = new HashMap<>();
   private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap =
       new HashMap<>();
   private ShardingApplicationContext context;
@@ -108,8 +112,6 @@ public class Sharding {
       shardAllKeys();
       if (logger.isDebugEnabled()) {
         logger.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(keyToValueToBucketMap));
-        logger.debug("bucketCombinationToNodeNumbersMap: "
-            + MapUtils.getFormattedString(bucketCombinationToNodeNumbersMap));
       }
 
     } catch (IOException | NodeOverflowException e) {
@@ -127,9 +129,6 @@ public class Sharding {
    */
   public void dumpShardingTableFiles(String directoryPath, String shardingClientConfigFilePath,
       String shardingServerConfigFilePath) throws IOException {
-    /*ShardingFileUtil.dumpBucketCombinationToNodeNumberFileOnDisk(
-        ShardingApplicationContext.bucketCombinationToNodeNumbersMapFile,
-        bucketCombinationToNodeNumbersMap, directoryPath);*/
     ShardingFileUtil.dumpBucketToNodeNumberFileOnDisk(
         ShardingApplicationContext.bucketToNodeNumberMapFile, bucketToNodeNumberMap, directoryPath);
     ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(
@@ -439,64 +438,6 @@ public class Sharding {
     }
     if (logger.isDebugEnabled()) {
       logger.debug("bucketToNodeNumberMap:" + MapUtils.getFormattedString(bucketToNodeNumberMap));
-    }
-   /* List<String> keyNameList = new ArrayList<>();
-    keyNameList.addAll(keysToListOfBucketsMap.keySet());
-    logger.info("Generating table started");
-    makeShardingTable(new BucketCombination(new HashMap<String, Bucket<KeyValueFrequency>>()),
-        keyNameList);
-    logger.info("Generating table finished");*/
-  }
-
-  private void makeShardingTable(BucketCombination source, List<String> keyNames)
-      throws NodeOverflowException {
-    String keyName;
-    if (keyNames.size() >= 1) {
-      keyName = keyNames.get(0);
-    } else {
-      keyName = null;
-    }
-    if (keyName == null) {
-      // exit case
-      // lets check which nodes it goes.
-      Set<Node> nodesForBucketCombination = new LinkedHashSet<>();
-      for (int i = 0; i < keys.length; i++) {
-        Node n =
-            bucketToNodeNumberMap.get(keys[i]).get(source.getBucketsCombination().get(keys[i]));
-        if (n != null) {
-          nodesForBucketCombination.add(n);
-        }
-      }
-      int numberOfIntersectionStorage =
-          source.getBucketsCombination().size() - nodesForBucketCombination.size();
-      Set<Node> nodesToPutBack = new HashSet<>();
-      while (numberOfIntersectionStorage > 0) {
-        Node mostEmptyNode = fillupQueue.poll();
-        if (!nodesForBucketCombination.contains(mostEmptyNode)) {
-          nodesForBucketCombination.add(mostEmptyNode);
-          Long value = bucketCombinationFrequencyMap.get(source);
-          if (value == null) {
-            value = 0l;
-          }
-          mostEmptyNode.fillUpBy(value);
-          numberOfIntersectionStorage--;
-        }
-        nodesToPutBack.add(mostEmptyNode);
-      }
-      nodesToPutBack.forEach(n -> fillupQueue.offer(n));
-      bucketCombinationToNodeNumbersMap.put(source, nodesForBucketCombination);
-    } else {
-      List<String> restOfKeyNames = new LinkedList<>();
-      restOfKeyNames.addAll(keyNames);
-      restOfKeyNames.remove(keyName);
-      List<Bucket<KeyValueFrequency>> buckets = keysToListOfBucketsMap.get(keyName);
-      for (Bucket<KeyValueFrequency> bucket : buckets) {
-        HashMap<String, Bucket<KeyValueFrequency>> nextSourceMap = new HashMap<>();
-        nextSourceMap.putAll(source.getBucketsCombination());
-        BucketCombination nextSource = new BucketCombination(nextSourceMap);
-        nextSource.getBucketsCombination().put(keyName, bucket);
-        makeShardingTable(nextSource, restOfKeyNames);
-      }
     }
   }
 

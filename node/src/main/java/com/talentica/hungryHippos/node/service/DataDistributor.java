@@ -20,8 +20,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +37,6 @@ import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.Bucket;
-import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.BucketsCalculator;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
@@ -58,7 +55,6 @@ public class DataDistributor {
 
   private static int NO_OF_ATTEMPTS_TO_CONNECT_TO_NODE;
   private static HungryHippoCurator curator = HungryHippoCurator.getInstance();
-  private static Set<Integer> nodesId = new TreeSet();
 
   private static Map<Integer, String> loadServers() throws Exception {
 
@@ -69,7 +65,6 @@ public class DataDistributor {
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       String server = node.getIp() + ServerUtils.COLON + node.getPort();
       servers.put(node.getIdentifier(), server);
-      nodesId.add(node.getIdentifier());
     }
     LOGGER.info("There are {} servers", servers.size());
     return servers;
@@ -114,7 +109,7 @@ public class DataDistributor {
 
     if (srcFile.exists()) {
       HHFileMapper hhFileMapper = new HHFileMapper(hhFilePath, context, dataDescription,
-          keyToBucketToNodetMap, keyOrder,nodesId);
+          keyToBucketToNodetMap, keyOrder);
       Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
           srcDataPath, dataParser);
       int lineNo = 0;

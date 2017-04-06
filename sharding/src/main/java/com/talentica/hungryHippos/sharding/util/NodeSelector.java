@@ -101,7 +101,7 @@ public class NodeSelector implements Serializable {
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder, List<Integer> nodes) {
-    List<Integer> indexToInsertPrefferedNodeId = new ArrayList<>();
+    List<Integer> indexForPrefferedNodeId = new ArrayList<>();
     int index = 0;
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
@@ -109,11 +109,11 @@ public class NodeSelector implements Serializable {
       if (!nodes.contains(node.getNodeId())) {
         nodes.add(node.getNodeId());
       } else {
-        indexToInsertPrefferedNodeId.add(index);
+        indexForPrefferedNodeId.add(index);
       }
       index++;
     }
-    return indexToInsertPrefferedNodeId;
+    return indexForPrefferedNodeId;
   }
 
   /**

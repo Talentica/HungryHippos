@@ -14,6 +14,7 @@
 package com.talentica.hungryHippos.sharding.util;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -60,28 +61,31 @@ public class NodeSelector implements Serializable {
     }
   }
 
+ 
   /**
-   * Select nodes id.
+   * Select node ids.
    *
    * @param bucketCombination the bucket combination
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
    * @return the sets the
    */
-  public static Set<Integer> selectNodesId(BucketCombination bucketCombination,
+  public static Set<Integer> selectNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
     if (nodeIds == null) {
       nodeIds();
     }
-    LinkedHashSet<Integer> nodes = new LinkedHashSet<Integer>();
-    int numberOfIntersectionStorage = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
+    LinkedHashSet<Integer> nodeIds = new LinkedHashSet<Integer>();
+    List<Integer> nodes = new ArrayList<Integer>();
+    List<Integer> indexToInsertPrefferedNodeId = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
-    preferDifferentNodeForIntersectionStoragePoints(nodes, numberOfIntersectionStorage);
+    preferDifferentNodeForIntersectionStoragePoints(nodes, indexToInsertPrefferedNodeId);
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
+      LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodes);
     }
-    return nodes;
+    nodes.forEach(id -> nodeIds.add(id));
+    return nodeIds;
   }
 
   /**
@@ -93,44 +97,47 @@ public class NodeSelector implements Serializable {
    * @param nodes the nodes
    * @return the number of intersection storage points by bucket combination node
    */
-  private static int getNumberOfIntersectionStoragePointsByBucketCombinationNode(
+  private static List<Integer> getNumberOfIntersectionStoragePointsByBucketCombinationNode(
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      String[] keyOrder, LinkedHashSet<Integer> nodes) {
-    int numberOfIntersectionStorage = 0;
+      String[] keyOrder, List<Integer> nodes) {
+    List<Integer> indexToInsertPrefferedNodeId = new ArrayList<>();
+    int index = 0;
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
       Node node = bucketNodeMap.get(bucketCombination.getBucketsCombination().get(key));
       if (!nodes.contains(node.getNodeId())) {
         nodes.add(node.getNodeId());
       } else {
-        numberOfIntersectionStorage++;
+        indexToInsertPrefferedNodeId.add(index);
       }
+      index++;
     }
-    return numberOfIntersectionStorage;
+    return indexToInsertPrefferedNodeId;
   }
 
   /**
    * Prefer different node for intersection storage points.
    *
    * @param nodes the nodes
-   * @param numberOfIntersectionStorage the number of intersection storage
+   * @param indexToInsertPrefferedNodeId the index to insert preffered node id
    */
-  private static void preferDifferentNodeForIntersectionStoragePoints(LinkedHashSet<Integer> nodes,
-      int numberOfIntersectionStorage) {
-    if (numberOfIntersectionStorage > 0) {
+  private static void preferDifferentNodeForIntersectionStoragePoints(List<Integer> nodes,
+      List<Integer> indexToInsertPrefferedNodeId) {
+    if (indexToInsertPrefferedNodeId.size() > 0) {
       Iterator<Integer> itr = nodeIds.iterator();
+      int index = 0;
       while (itr.hasNext()) {
         int nodeId = itr.next();
         if (!nodes.contains(nodeId)) {
-          nodes.add(nodeId);
-          numberOfIntersectionStorage--;
+          nodes.add(indexToInsertPrefferedNodeId.get(index),nodeId);
         } else {
           continue;
         }
-        if (numberOfIntersectionStorage == 0) {
+        if (index == indexToInsertPrefferedNodeId.size() -1) {
           break;
         }
+        index++;
       }
     }
   }

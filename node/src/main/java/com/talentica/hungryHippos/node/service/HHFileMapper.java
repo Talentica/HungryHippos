@@ -94,7 +94,7 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Integer> nodesId = NodeSelector.selectNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        Set<Integer> nodesId = NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
         Iterator<Integer> nodeIterator = nodesId.iterator();
         while (nodeIterator.hasNext()) {
             int nodeId = nodeIterator.next();

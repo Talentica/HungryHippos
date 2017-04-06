@@ -580,7 +580,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       }
       BucketCombination bucketCombination = new BucketCombination(keyValueCombination);
       Set<Integer> ids =
-          NodeSelector.selectNodesId(bucketCombination, bucketToNodeNumberMap, keyOrder);
+          NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
       int i = 0;
       for (int nodeId : ids) {
         nodeIds[i] = nodeId;

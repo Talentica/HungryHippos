@@ -579,7 +579,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
         keyValueCombination.put(keyOrder[i], new Bucket<>(Integer.parseInt(buckets[i])));
       }
       BucketCombination bucketCombination = new BucketCombination(keyValueCombination);
-      List<Integer> ids =
+      Set<Integer> ids =
           NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
       int i = 0;
       for (int nodeId : ids) {

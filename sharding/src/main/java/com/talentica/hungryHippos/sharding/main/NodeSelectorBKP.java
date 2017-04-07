@@ -11,9 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  *******************************************************************************/
-package com.talentica.hungryHippos.sharding.util;
+package com.talentica.hungryHippos.sharding.main;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,10 +42,10 @@ public class NodeSelector implements Serializable {
 
   /** The Constant serialVersionUID. */
   private static final long serialVersionUID = -6600132099728561553L;
-
+  
   /** The node ids. */
   private static Set<Integer> totalNodeIds = null;
-
+  
   /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
 
@@ -59,8 +61,8 @@ public class NodeSelector implements Serializable {
     }
   }
 
-  private static Set<Integer> nodeIds = new TreeSet<Integer>();
-
+  private static List<Integer> nodeIds = new ArrayList<Integer>();
+  private static List<Integer> mapIndexesForPreferableNodeIds = new ArrayList<>();
   /**
    * Select node ids.
    *
@@ -69,14 +71,17 @@ public class NodeSelector implements Serializable {
    * @param keyOrder the key order
    * @return the list
    */
-  public static Set<Integer> selectNodeIds(BucketCombination bucketCombination,
+  public static List<Integer> selectNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
     if (totalNodeIds == null) {
       nodeIds();
     }
     nodeIds.clear();
-    preferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+    mapIndexesForPreferableNodeIds.clear();
+    selectAndMapIndexForNode(
+        bucketCombination, bucketToNodeNumberMap, keyOrder);
+    insertPreferredNodeAtMappedIndexForIntersectionStorage();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
     }
@@ -92,34 +97,47 @@ public class NodeSelector implements Serializable {
    * @param nodes the nodes
    * @param mapIndexesForPreferableNodeIds the map indexes for preferable node ids
    */
-  private static void preferredNodeIds(BucketCombination bucketCombination,
+  private static void selectAndMapIndexForNode(
+      BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
-    Iterator<Integer> itr = totalNodeIds.iterator();
+    int index = 0;
+    
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
       Node node = bucketNodeMap.get(bucketCombination.getBucketsCombination().get(key));
       if (!nodeIds.contains(node.getNodeId())) {
         nodeIds.add(node.getNodeId());
       } else {
-        searchAndInsertOtherNodes(itr);
+        mapIndexesForPreferableNodeIds.add(index);
       }
-    }
-    while(nodeIds.size() < keyOrder.length){
-      searchAndInsertOtherNodes(itr);
+      index++;
     }
   }
 
-  private static void searchAndInsertOtherNodes(Iterator<Integer> itr) {
-    while (itr.hasNext()) {
-      int nodeId = itr.next();
-      if (nodeIds.contains(nodeId)) {
-        continue;
-      }else{
-      nodeIds.add(nodeId);
-      break;
+  
+  /**
+   * Insert preferred node at mapped index for intersection storage.
+   *
+   * @param nodes the nodes
+   * @param mappIndexesForPreferableNodeIds the mapp indexes for preferable node ids
+   */
+  private static void insertPreferredNodeAtMappedIndexForIntersectionStorage() {
+    if (mapIndexesForPreferableNodeIds.size() > 0) {
+      Iterator<Integer> itr = totalNodeIds.iterator();
+      int index = 0;
+      while (itr.hasNext()) {
+        int nodeId = itr.next();
+        if (!nodeIds.contains(nodeId)) {
+          nodeIds.add(mapIndexesForPreferableNodeIds.get(index),nodeId);
+        } else {
+          continue;
+        }
+        if (index == mapIndexesForPreferableNodeIds.size() -1) {
+          break;
+        }
+        index++;
       }
     }
   }
-
 }

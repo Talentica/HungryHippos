@@ -85,7 +85,6 @@ public class DataDistributor {
     DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
     String keyToValueToBucketPath = context.getKeytovaluetobucketMapFilePath();
     String keyToBucketToNodePath = context.getBuckettoNodeNumberMapFilePath();
-    String bucketCombinationPath = context.getBucketCombinationtoNodeNumbersMapFilePath();
     Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
 
     String[] keyOrder = context.getShardingDimensions();

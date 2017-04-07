@@ -16,10 +16,11 @@ package com.talentica.hungryHippos.sharding.util;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,8 @@ public class NodeSelector implements Serializable {
   private static final long serialVersionUID = -6600132099728561553L;
 
   /** The node ids. */
-  private static Set<Integer> totalNodeIds = null;
+  private static LinkedList<Integer> totalNodeIds = null;
+  static int maxNodeId;
 
   /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
@@ -51,15 +53,16 @@ public class NodeSelector implements Serializable {
    * Node ids.
    */
   private static void nodeIds() {
-    totalNodeIds = new TreeSet<Integer>();
+    totalNodeIds = new LinkedList<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       totalNodeIds.add(node.getIdentifier());
     }
+    maxNodeId = totalNodeIds.getLast();
   }
 
-  private static Set<Integer> nodeIds = new TreeSet<Integer>();
+  private static Set<Integer> nodeIds = new LinkedHashSet<Integer>();
 
   /**
    * Select node ids.
@@ -102,11 +105,22 @@ public class NodeSelector implements Serializable {
       if (!nodeIds.contains(node.getNodeId())) {
         nodeIds.add(node.getNodeId());
       } else {
-        searchAndInsertOtherNodes(itr);
+        int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
+          nodeIds.add(nextNodeId);
       }
     }
-    while(nodeIds.size() < keyOrder.length){
-      searchAndInsertOtherNodes(itr);
+    if (nodeIds.size() < keyOrder.length) {
+       while(itr.hasNext()){
+         int id = itr.next();
+         if(nodeIds.contains(id)){
+           continue;
+         }else{
+           nodeIds.add(id);
+           if (nodeIds.size() == keyOrder.length) {
+             break;
+           }
+         }
+       }
     }
   }
 
@@ -115,9 +129,9 @@ public class NodeSelector implements Serializable {
       int nodeId = itr.next();
       if (nodeIds.contains(nodeId)) {
         continue;
-      }else{
-      nodeIds.add(nodeId);
-      break;
+      } else {
+        nodeIds.add(nodeId);
+        break;
       }
     }
   }

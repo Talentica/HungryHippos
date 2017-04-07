@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,47 +61,45 @@ public class NodeSelector implements Serializable {
   }
 
  
+  
   /**
    * Select node ids.
    *
    * @param bucketCombination the bucket combination
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
-   * @return the sets the
+   * @return the list
    */
-  public static Set<Integer> selectNodeIds(BucketCombination bucketCombination,
+  public static List<Integer> selectNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
     if (nodeIds == null) {
       nodeIds();
     }
-    LinkedHashSet<Integer> nodeIds = new LinkedHashSet<Integer>();
-    List<Integer> nodes = new ArrayList<Integer>();
-    List<Integer> indexToInsertPrefferedNodeId = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
-        bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
-    preferDifferentNodeForIntersectionStoragePoints(nodes, indexToInsertPrefferedNodeId);
-    LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
-    /*if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodes);
-    }*/
-    nodes.forEach(id -> nodeIds.add(id));
+    List<Integer> nodeIds = new ArrayList<Integer>();
+    List<Integer> mappIndexesForPreferableNodeIds = new ArrayList<>();
+    selectAndMapIndexForNode(
+        bucketCombination, bucketToNodeNumberMap, keyOrder, nodeIds,mappIndexesForPreferableNodeIds);
+    insertPreferredNodeAtMappedIndexForIntersectionStorage(nodeIds, mappIndexesForPreferableNodeIds);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
+    }
     return nodeIds;
   }
 
   /**
-   * Gets the number of intersection storage points by bucket combination node.
+   * Select and map index for node.
    *
    * @param bucketCombination the bucket combination
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
    * @param nodes the nodes
-   * @return the number of intersection storage points by bucket combination node
+   * @param mapIndexesForPreferableNodeIds the map indexes for preferable node ids
    */
-  private static List<Integer> getNumberOfIntersectionStoragePointsByBucketCombinationNode(
+  private static void selectAndMapIndexForNode(
       BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
-      String[] keyOrder, List<Integer> nodes) {
-    List<Integer> indexForPrefferedNodeId = new ArrayList<>();
+      String[] keyOrder, List<Integer> nodes,List<Integer> mapIndexesForPreferableNodeIds) {
     int index = 0;
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
@@ -110,32 +107,32 @@ public class NodeSelector implements Serializable {
       if (!nodes.contains(node.getNodeId())) {
         nodes.add(node.getNodeId());
       } else {
-        indexForPrefferedNodeId.add(index);
+        mapIndexesForPreferableNodeIds.add(index);
       }
       index++;
     }
-    return indexForPrefferedNodeId;
   }
 
+  
   /**
-   * Prefer different node for intersection storage points.
+   * Insert preferred node at mapped index for intersection storage.
    *
    * @param nodes the nodes
-   * @param indexToInsertPrefferedNodeId the index to insert preffered node id
+   * @param mappIndexesForPreferableNodeIds the mapp indexes for preferable node ids
    */
-  private static void preferDifferentNodeForIntersectionStoragePoints(List<Integer> nodes,
-      List<Integer> indexToInsertPrefferedNodeId) {
-    if (indexToInsertPrefferedNodeId.size() > 0) {
+  private static void insertPreferredNodeAtMappedIndexForIntersectionStorage(List<Integer> nodes,
+      List<Integer> mappIndexesForPreferableNodeIds) {
+    if (mappIndexesForPreferableNodeIds.size() > 0) {
       Iterator<Integer> itr = nodeIds.iterator();
       int index = 0;
       while (itr.hasNext()) {
         int nodeId = itr.next();
         if (!nodes.contains(nodeId)) {
-          nodes.add(indexToInsertPrefferedNodeId.get(index),nodeId);
+          nodes.add(mappIndexesForPreferableNodeIds.get(index),nodeId);
         } else {
           continue;
         }
-        if (index == indexToInsertPrefferedNodeId.size() -1) {
+        if (index == mappIndexesForPreferableNodeIds.size() -1) {
           break;
         }
         index++;

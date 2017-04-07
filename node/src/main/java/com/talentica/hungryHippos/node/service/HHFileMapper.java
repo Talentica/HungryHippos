@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -94,7 +95,7 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Integer> nodesId = NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        List<Integer> nodesId = NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
         Iterator<Integer> nodeIterator = nodesId.iterator();
         while (nodeIterator.hasNext()) {
             int nodeId = nodeIterator.next();

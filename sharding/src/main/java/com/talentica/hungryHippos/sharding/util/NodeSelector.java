@@ -81,9 +81,10 @@ public class NodeSelector implements Serializable {
     List<Integer> indexToInsertPrefferedNodeId = getNumberOfIntersectionStoragePointsByBucketCombinationNode(
         bucketCombination, bucketToNodeNumberMap, keyOrder, nodes);
     preferDifferentNodeForIntersectionStoragePoints(nodes, indexToInsertPrefferedNodeId);
-    if (LOGGER.isDebugEnabled()) {
+    LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodes);
+    /*if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodes);
-    }
+    }*/
     nodes.forEach(id -> nodeIds.add(id));
     return nodeIds;
   }

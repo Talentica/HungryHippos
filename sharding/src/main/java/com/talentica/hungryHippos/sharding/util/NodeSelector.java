@@ -17,10 +17,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class NodeSelector implements Serializable {
   private static final long serialVersionUID = -6600132099728561553L;
 
   /** The node ids. */
-  private static LinkedList<Integer> totalNodeIds = null;
+  private static TreeSet<Integer> totalNodeIds = null;
   static int maxNodeId;
 
   /** The logger. */
@@ -53,13 +53,13 @@ public class NodeSelector implements Serializable {
    * Node ids.
    */
   private static void nodeIds() {
-    totalNodeIds = new LinkedList<Integer>();
+    totalNodeIds = new TreeSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
       totalNodeIds.add(node.getIdentifier());
     }
-    maxNodeId = totalNodeIds.getLast();
+    maxNodeId = totalNodeIds.last();
   }
 
   private static Set<Integer> nodeIds = new LinkedHashSet<Integer>();

@@ -44,7 +44,9 @@ public class NodeSelector implements Serializable {
 
   /** The node ids. */
   private static TreeSet<Integer> totalNodeIds = null;
-  static int maxNodeId;
+  
+  /** The max node id. */
+  private static int maxNodeId;
 
   /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
@@ -62,6 +64,7 @@ public class NodeSelector implements Serializable {
     maxNodeId = totalNodeIds.last();
   }
 
+  /** The node ids. */
   private static Set<Integer> nodeIds = new LinkedHashSet<Integer>();
 
   /**
@@ -87,13 +90,11 @@ public class NodeSelector implements Serializable {
   }
 
   /**
-   * Select and map index for node.
+   * Select preferred node ids.
    *
    * @param bucketCombination the bucket combination
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
-   * @param nodes the nodes
-   * @param mapIndexesForPreferableNodeIds the map indexes for preferable node ids
    */
   private static void selectPreferredNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
@@ -104,28 +105,48 @@ public class NodeSelector implements Serializable {
       if (!nodeIds.contains(node.getNodeId())) {
         nodeIds.add(node.getNodeId());
       } else {
-        int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
-        while (!totalNodeIds.contains(nextNodeId)) {
-          nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
-        }
-        nodeIds.add(nextNodeId);
+        getAndSetNextNode(node);
       }
     }
-    searchAndInsertRemainingNode(keyOrder);
+    if (nodeIds.size() < keyOrder.length) {
+      searchAndInsertRemainingNode(keyOrder);
+    }
   }
 
+  /**
+   * Gets the and set next node.
+   *
+   * @param node the node
+   * @return the and set next node
+   */
+  private static void getAndSetNextNode(Node node) {
+    int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
+    int count = 0;
+    while (!totalNodeIds.contains(nextNodeId)) {
+      if(count == totalNodeIds.size()){
+        throw new RuntimeException("Invalid node ids in cluster configuration xml");
+      }
+      nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
+      count++;
+    }
+    nodeIds.add(nextNodeId);
+  }
+
+  /**
+   * Search and insert remaining node.
+   *
+   * @param keyOrder the key order
+   */
   private static void searchAndInsertRemainingNode(String[] keyOrder) {
-    if (nodeIds.size() < keyOrder.length) {
-      Iterator<Integer> iterator = totalNodeIds.iterator();
-      while (iterator.hasNext()) {
-        int id = iterator.next();
-        if (nodeIds.contains(id)) {
-          continue;
-        } else {
-          nodeIds.add(id);
-          if (nodeIds.size() == keyOrder.length) {
-            break;
-          }
+    Iterator<Integer> iterator = totalNodeIds.iterator();
+    while (iterator.hasNext()) {
+      int id = iterator.next();
+      if (nodeIds.contains(id)) {
+        continue;
+      } else {
+        nodeIds.add(id);
+        if (nodeIds.size() == keyOrder.length) {
+          break;
         }
       }
     }

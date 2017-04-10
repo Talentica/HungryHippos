@@ -125,15 +125,6 @@ public class ShardingApplicationContext {
   }
 
 
-  /**
-   * retrieves the path to bucketCombinationToNodeNumbersMap.
-   * 
-   * @return
-   */
-  public String getBucketCombinationtoNodeNumbersMapFilePath() {
-    return getShardingFolderPath() + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
-  }
-
 
   /**
    * retrieves the path for keyToValueBucket Map file.

@@ -79,7 +79,7 @@ public class NodeSelector implements Serializable {
       nodeIds();
     }
     nodeIds.clear();
-    preferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+    selectPreferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
     }
@@ -95,10 +95,9 @@ public class NodeSelector implements Serializable {
    * @param nodes the nodes
    * @param mapIndexesForPreferableNodeIds the map indexes for preferable node ids
    */
-  private static void preferredNodeIds(BucketCombination bucketCombination,
+  private static void selectPreferredNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
-    Iterator<Integer> itr = totalNodeIds.iterator();
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
       Node node = bucketNodeMap.get(bucketCombination.getBucketsCombination().get(key));
@@ -106,32 +105,28 @@ public class NodeSelector implements Serializable {
         nodeIds.add(node.getNodeId());
       } else {
         int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
-          nodeIds.add(nextNodeId);
+        while (!totalNodeIds.contains(nextNodeId)) {
+          nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
+        }
+        nodeIds.add(nextNodeId);
       }
     }
-    if (nodeIds.size() < keyOrder.length) {
-       while(itr.hasNext()){
-         int id = itr.next();
-         if(nodeIds.contains(id)){
-           continue;
-         }else{
-           nodeIds.add(id);
-           if (nodeIds.size() == keyOrder.length) {
-             break;
-           }
-         }
-       }
-    }
+    searchAndInsertRemainingNode(keyOrder);
   }
 
-  private static void searchAndInsertOtherNodes(Iterator<Integer> itr) {
-    while (itr.hasNext()) {
-      int nodeId = itr.next();
-      if (nodeIds.contains(nodeId)) {
-        continue;
-      } else {
-        nodeIds.add(nodeId);
-        break;
+  private static void searchAndInsertRemainingNode(String[] keyOrder) {
+    if (nodeIds.size() < keyOrder.length) {
+      Iterator<Integer> iterator = totalNodeIds.iterator();
+      while (iterator.hasNext()) {
+        int id = iterator.next();
+        if (nodeIds.contains(id)) {
+          continue;
+        } else {
+          nodeIds.add(id);
+          if (nodeIds.size() == keyOrder.length) {
+            break;
+          }
+        }
       }
     }
   }

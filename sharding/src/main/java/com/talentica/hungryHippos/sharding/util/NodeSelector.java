@@ -121,13 +121,12 @@ public class NodeSelector implements Serializable {
    */
   private static void getAndSetNextNode(Node node) {
     int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
-    int count = 0;
+    int count = nextNodeId;
     while (!totalNodeIds.contains(nextNodeId)) {
-      if(count == totalNodeIds.size()){
+      nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
+      if(count == nextNodeId){
         throw new RuntimeException("Invalid node ids in cluster configuration xml");
       }
-      nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
-      count++;
     }
     nodeIds.add(nextNodeId);
   }

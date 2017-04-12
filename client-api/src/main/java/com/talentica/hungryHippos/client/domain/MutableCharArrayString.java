@@ -37,6 +37,7 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
   private static final long serialVersionUID = -6085804645372631875L;
   private char[] array;
   private int stringLength;
+  private int splitIndex;
 
   /**
    * creates a new MutableCharArrayString.
@@ -153,6 +154,9 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
           return false;
         }
       }
+      if(this.splitIndex != that.splitIndex){
+        return false;
+      }
       return true;
     }
     return false;
@@ -160,7 +164,7 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
 
   @Override
   public int hashCode() {
-    int h = 0;
+    int h = splitIndex;
     int off = 0;
     char val[] = array;
     int len = stringLength;
@@ -220,6 +224,11 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
       stringLength++;
     }
     return this;
+  }
+  
+  @Override
+  public void setSplitIndex(int splitIndex){
+    this.splitIndex = splitIndex;
   }
 
 }

@@ -33,11 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.talentica.hungryHippos.client.domain.DataTypes;
+import com.talentica.hungryHippos.client.domain.DataTypesFactory;
 import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
+import com.talentica.hungryHippos.utility.Counter;
 import com.talentica.hungryHippos.utility.MapUtils;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 
@@ -54,6 +56,7 @@ public class Sharding {
   // Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
   private HashMap<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
   private HashMap<String, HashMap<DataTypes, Long>> keyValueFrequencyMap = new HashMap<>();
+  private HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = new HashMap<>();
 
   private HashMap<String, Integer> keyToIndexMap = new HashMap<>();
 
@@ -133,6 +136,8 @@ public class Sharding {
         ShardingApplicationContext.bucketToNodeNumberMapFile, bucketToNodeNumberMap, directoryPath);
     ShardingFileUtil.dumpKeyToValueToBucketFileOnDisk(
         ShardingApplicationContext.keyToValueToBucketMapFile, keyToValueToBucketMap, directoryPath);
+    ShardingFileUtil.dumpSplittedKeyValueMapFileOnDisk(
+        ShardingApplicationContext.splittedKeyValueMapFile, splittedKeyValueMap, directoryPath);
     FileUtils.writeStringToFile(
         new File(directoryPath + File.separator + "sharding-client-config.xml"),
         FileUtils.readFileToString(new File(shardingClientConfigFilePath), "UTF-8"), "UTF-8");
@@ -148,6 +153,16 @@ public class Sharding {
     data.reset();
     String[] keys = context.getShardingDimensions();
     // Map<key1,Map<value1,count>>
+    
+    HashMap<String, HashMap<DataTypes, Counter>> splitKeyValueCounter = new HashMap<>();
+    for(Map.Entry<String, HashMap<DataTypes, Long>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
+      HashMap<DataTypes, Long> valueSplitCount = keyValueSplitEntry.getValue();
+      HashMap<DataTypes, Counter> valueSplitCounter = new HashMap<>();
+      for(Map.Entry<DataTypes, Long> valueSplitCountEntry : valueSplitCount.entrySet()){
+        valueSplitCounter.put(valueSplitCountEntry.getKey(), new Counter(valueSplitCountEntry.getValue()-1));
+      }
+      splitKeyValueCounter.put(keyValueSplitEntry.getKey(), valueSplitCounter);
+    }
   
     while (true) {
       DataTypes[] parts = null;
@@ -166,6 +181,9 @@ public class Sharding {
         String key = keys[i];
         int keyIndex = keyToIndexMap.get(key);
         values[i] = parts[keyIndex].clone();
+        if(splitKeyValueCounter.get(key) != null && splitKeyValueCounter.get(key).get(values[i]) != null){
+          values[i].setSplitIndex((int)splitKeyValueCounter.get(key).get(values[i]).getNextCount());
+        }
         Bucket<KeyValueFrequency> bucket = keyToValueToBucketMap.get(key).get(values[i]);
         bucketCombinationMap.put(key, bucket);
       }
@@ -242,8 +260,56 @@ public class Sharding {
     logger.info("Populating frequency map from data finished");
 
     fileWriter.close();
+    
+    splitKey();
 
     return keyValueFrequencyMap;
+  }
+  
+  private void splitKey(){
+    HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
+            getSortedKeyToListOfKeyValueFrequenciesMap();
+    for(String key : keyToListOfKeyValueFrequency.keySet()){
+        List<KeyValueFrequency> keyValueFrequenciesList = keyToListOfKeyValueFrequency.get(key);
+        double avg = calculateAvgFrequency(key);
+        double threshold = context.getMaxSkew() * avg;
+        for(int i = 0; i < keyValueFrequenciesList.size(); i++){
+            KeyValueFrequency keyValueFrequency = keyValueFrequenciesList.get(i);
+            if(keyValueFrequency.getFrequency() <= threshold){
+                break;
+            }else{
+                long numberOfSplit = (long)Math.ceil(keyValueFrequency.getFrequency() / threshold);
+                HashMap<DataTypes,Long> valueFrequencyMap = keyValueFrequencyMap.get(key);
+                HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
+                valueFrequencyMap.remove(keyValueFrequency.getKeyValue());
+                DataTypes splittedKey = (DataTypes)keyValueFrequency.getKeyValue();
+                valueSplitMap.put(splittedKey, numberOfSplit);
+                splittedKeyValueMap.put(key, valueSplitMap);
+                long remainder = keyValueFrequency.getFrequency() % numberOfSplit;
+                long splittedFreq = keyValueFrequency.getFrequency() / numberOfSplit;
+                for(int j = 0; j < numberOfSplit; j++){
+                  DataTypes splittedKeyclone = DataTypesFactory.getNewInstance(splittedKey,j);
+                    if(remainder > 0){
+                        valueFrequencyMap.put(splittedKeyclone, splittedFreq+1);
+                        remainder--;
+                        continue;
+                    }
+                    valueFrequencyMap.put(splittedKeyclone, splittedFreq);
+                }
+            }
+        }
+    }
+  }
+  
+  private double calculateAvgFrequency(String key){
+    HashMap<DataTypes,Long> valueFrequency = keyValueFrequencyMap.get(key);
+    long sum = 0l;
+    long count = 0l;
+    for(Map.Entry<DataTypes,Long> entry : valueFrequency.entrySet()){
+        sum = sum + entry.getValue();
+        count++;
+    }
+    return ((double)sum/count);
   }
 
   private HashMap<String, List<Bucket<KeyValueFrequency>>> populateKeysToListOfBucketsMap()
@@ -363,9 +429,7 @@ public class Sharding {
    * @throws IOException
    * @throws JAXBException
    */
-  public HashMap<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap()
-      throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException,
-      IOException, JAXBException {
+  public HashMap<String, List<KeyValueFrequency>> getSortedKeyToListOfKeyValueFrequenciesMap(){
     HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency = new HashMap<>();
     String[] keys = context.getShardingDimensions();
     for (String key : keys) {

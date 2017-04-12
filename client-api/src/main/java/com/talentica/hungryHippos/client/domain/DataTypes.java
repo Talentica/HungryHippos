@@ -73,5 +73,8 @@ public interface DataTypes extends Comparable<DataTypes>, Cloneable, Serializabl
    * @return DataTypes
    */
   DataTypes addValue(String value);
+  
+  
+  void setSplitIndex(int splitIndex);
 
 }

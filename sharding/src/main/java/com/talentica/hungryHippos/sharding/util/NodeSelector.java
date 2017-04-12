@@ -51,11 +51,16 @@ public class NodeSelector implements Serializable {
   /** The logger. */
   private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
 
+
+  /** The node ids. */
+  private static Set<Integer> nodeIds;
+  
   /**
    * Node ids.
    */
   private static void nodeIds() {
     totalNodeIds = new TreeSet<Integer>();
+    nodeIds = new LinkedHashSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
     List<com.talentica.hungryhippos.config.cluster.Node> nodes = config.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node node : nodes) {
@@ -63,9 +68,6 @@ public class NodeSelector implements Serializable {
     }
     maxNodeId = totalNodeIds.last();
   }
-
-  /** The node ids. */
-  private static Set<Integer> nodeIds = new LinkedHashSet<Integer>();
 
   /**
    * Select node ids.

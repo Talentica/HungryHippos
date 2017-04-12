@@ -51,6 +51,12 @@ public class ShardingTablePrinter {
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketToNodeNumber(
             shardingTablePath + File.separatorChar + "bucketToNodeNumberMap")));
     System.out.println();
+    
+    System.out.println("###### Sharding split key map ######");
+    System.out.println("\t" + "Key" + "\t\t\t" + "Value" + "\t\t\t" + "Split Count"
+        + MapUtils.getFormattedString(ShardingFileUtil.readFromFileSplittedKeyValue(
+            shardingTablePath + File.separatorChar + "splittedKeyValueMap")));
+    System.out.println();
   }
 
   private static void validateArguments(String[] args) {

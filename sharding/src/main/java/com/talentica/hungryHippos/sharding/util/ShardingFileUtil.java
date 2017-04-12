@@ -29,6 +29,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.talentica.hungryHippos.client.domain.DataTypes;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
@@ -103,6 +104,31 @@ public class ShardingFileUtil {
       output = new FileOutputStream(file);
       oos = new ObjectOutputStream(output);
       oos.writeObject(bucketCombinationToNodeNumberMap);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        closeOutputStream(output, oos);
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw e;
+      }
+    }
+  }
+  
+  public static void dumpSplittedKeyValueMapFileOnDisk(String fileName,
+      HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap, String folderPath)
+      throws IOException {
+    new File(folderPath).mkdirs();
+    String filePath = (folderPath.endsWith(String.valueOf("/")) ? folderPath + fileName
+        : folderPath + "/" + fileName);
+    File file = new File(filePath);
+    FileOutputStream output = null;
+    ObjectOutputStream oos = null;
+    try {
+      output = new FileOutputStream(file);
+      oos = new ObjectOutputStream(output);
+      oos.writeObject(splittedKeyValueMap);
     } catch (IOException e) {
       e.printStackTrace();
     } finally {
@@ -210,6 +236,30 @@ public class ShardingFileUtil {
       }
     }
     return bucketCombinationToNodeNumberMap;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public static HashMap<String, HashMap<DataTypes, Long>> readFromFileSplittedKeyValue(
+      String filePath) {
+    LOGGER.info(" sharding filePath : " + filePath);
+    File file = new File(filePath);
+    FileInputStream fis = null;
+    ObjectInputStream ois = null;
+    HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = null;
+    try {
+      fis = new FileInputStream(file);
+      ois = new ObjectInputStream(fis);
+      splittedKeyValueMap = (HashMap<String, HashMap<DataTypes, Long>>) ois.readObject();
+    } catch (IOException | ClassNotFoundException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        closeInputStream(fis, ois);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return splittedKeyValueMap;
   }
 
   public static Map<String, String> getDataTypeMap(ShardingApplicationContext context) {

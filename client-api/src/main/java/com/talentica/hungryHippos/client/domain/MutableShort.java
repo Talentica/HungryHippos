@@ -30,6 +30,7 @@ public class MutableShort implements DataTypes {
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
+  private int splitIndex;
 
   /**
    * creates a new MutableShort with specified length. The length specified is the limit of the
@@ -103,6 +104,9 @@ public class MutableShort implements DataTypes {
           return false;
         }
       }
+      if(this.splitIndex != that.splitIndex){
+        return false;
+      }
       return true;
     }
     return false;
@@ -110,7 +114,7 @@ public class MutableShort implements DataTypes {
 
   @Override
   public int hashCode() {
-    int h = 0;
+    int h = splitIndex;
     int off = 0;
     byte val[] = array;
     int len = stringLength;
@@ -162,5 +166,9 @@ public class MutableShort implements DataTypes {
     return null;
   }
 
+  @Override
+  public void setSplitIndex(int splitIndex){
+    this.splitIndex = splitIndex;
+  }
 
 }

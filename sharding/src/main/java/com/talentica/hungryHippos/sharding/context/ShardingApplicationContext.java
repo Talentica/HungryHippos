@@ -54,6 +54,7 @@ public class ShardingApplicationContext {
   public final static String bucketCombinationToNodeNumbersMapFile =
       "bucketCombinationToNodeNumbersMap";
   public final static String keyToValueToBucketMapFile = "keyToValueToBucketMap";
+  public final static String splittedKeyValueMapFile = "splittedKeyValueMap";
   private HashMap<String,Integer> keyColumnNames;
 
 
@@ -142,6 +143,15 @@ public class ShardingApplicationContext {
    */
   public String getKeytovaluetobucketMapFilePath() {
     return getShardingFolderPath() + File.separatorChar + keyToValueToBucketMapFile;
+  }
+  
+  /**
+   * retrieves the path for splittedKeyValue Map file.
+   * 
+   * @return
+   */
+  public String getSplittedKeyValueMapFilePath() {
+    return getShardingFolderPath() + File.separatorChar + splittedKeyValueMapFile;
   }
 
 
@@ -273,6 +283,11 @@ public class ShardingApplicationContext {
   public static String getShardingConfigFilePathOnZk(String distributedFilePath) {
     String fileSystemBasePath = CoordinationConfigUtil.getFileSystemPath();
     return fileSystemBasePath + distributedFilePath;
+  }
+  
+  public double getMaxSkew(){
+    ShardingServerConfig shardingServerConfig = getShardingServerConfig();
+    return Double.valueOf(shardingServerConfig.getMaxSkew());
   }
 
 }

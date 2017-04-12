@@ -45,6 +45,7 @@ import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.Counter;
 import com.talentica.hungryhippos.config.cluster.ClusterConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 
@@ -89,6 +90,7 @@ public class DataDistributor {
     String keyToValueToBucketPath = context.getKeytovaluetobucketMapFilePath();
     String keyToBucketToNodePath = context.getBuckettoNodeNumberMapFilePath();
     String bucketCombinationPath = context.getBucketCombinationtoNodeNumbersMapFilePath();
+    String splittedKeyValuePath = context.getSplittedKeyValueMapFilePath();
     Map<String, String> dataTypeMap = ShardingFileUtil.getDataTypeMap(context);
 
     String[] keyOrder = context.getShardingDimensions();
@@ -99,6 +101,19 @@ public class DataDistributor {
         ShardingFileUtil.readFromFileBucketToNodeNumber(keyToBucketToNodePath);
     Map<BucketCombination, Set<Node>> bucketCombinationNodeMap =
         ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationPath);
+    
+    HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = 
+        ShardingFileUtil.readFromFileSplittedKeyValue(splittedKeyValuePath);
+    
+    HashMap<String, HashMap<DataTypes, Counter>> splitKeyValueCounter = new HashMap<>();
+    for(Map.Entry<String, HashMap<DataTypes, Long>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
+      HashMap<DataTypes, Long> valueSplitCount = keyValueSplitEntry.getValue();
+      HashMap<DataTypes, Counter> valueSplitCounter = new HashMap<>();
+      for(Map.Entry<DataTypes, Long> valueSplitCountEntry : valueSplitCount.entrySet()){
+        valueSplitCounter.put(valueSplitCountEntry.getKey(), new Counter(valueSplitCountEntry.getValue()-1));
+      }
+      splitKeyValueCounter.put(keyValueSplitEntry.getKey(), valueSplitCounter);
+    }
     BucketsCalculator bucketsCalculator = new BucketsCalculator(keyToValueToBucketMap, context);
 
 
@@ -144,6 +159,10 @@ public class DataDistributor {
         for (int i = 0; i < keyOrder.length; i++) {
           key = keyOrder[i];
           keyIndex = context.assignShardingIndexByName(key);
+          DataTypes value = parts[keyIndex];
+          if(splitKeyValueCounter.get(key) != null && splitKeyValueCounter.get(key).get(value) != null){
+            value.setSplitIndex((int)splitKeyValueCounter.get(key).get(value).getNextCount());
+          }
           bucket = bucketsCalculator.getBucketNumberForValue(key, parts[keyIndex]);
           buckets[i] = bucket.getId();
         }

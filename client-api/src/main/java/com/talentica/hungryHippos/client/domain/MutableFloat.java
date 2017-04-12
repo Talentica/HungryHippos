@@ -30,6 +30,7 @@ public class MutableFloat implements DataTypes {
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int stringLength;
+  private int splitIndex;
 
 
   /**
@@ -104,6 +105,9 @@ public class MutableFloat implements DataTypes {
           return false;
         }
       }
+      if(this.splitIndex != that.splitIndex){
+        return false;
+      }
       return true;
     }
     return false;
@@ -111,7 +115,7 @@ public class MutableFloat implements DataTypes {
 
   @Override
   public int hashCode() {
-    int h = 0;
+    int h = splitIndex;
     int off = 0;
     byte val[] = array;
     int len = stringLength;
@@ -164,6 +168,10 @@ public class MutableFloat implements DataTypes {
     // TODO Auto-generated method stub
     return null;
   }
-
-
+  
+  @Override
+  public void setSplitIndex(int splitIndex){
+    this.splitIndex = splitIndex;
+  }
+  
 }

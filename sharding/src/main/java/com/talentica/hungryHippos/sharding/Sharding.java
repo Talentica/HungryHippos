@@ -271,6 +271,8 @@ public class Sharding {
             getSortedKeyToListOfKeyValueFrequenciesMap();
     for(String key : keyToListOfKeyValueFrequency.keySet()){
         List<KeyValueFrequency> keyValueFrequenciesList = keyToListOfKeyValueFrequency.get(key);
+        HashMap<DataTypes,Long> valueFrequencyMap = keyValueFrequencyMap.get(key);
+        HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
         double avg = calculateAvgFrequency(key);
         double threshold = context.getMaxSkew() * avg;
         for(int i = 0; i < keyValueFrequenciesList.size(); i++){
@@ -279,12 +281,9 @@ public class Sharding {
                 break;
             }else{
                 long numberOfSplit = (long)Math.ceil(keyValueFrequency.getFrequency() / threshold);
-                HashMap<DataTypes,Long> valueFrequencyMap = keyValueFrequencyMap.get(key);
-                HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
                 valueFrequencyMap.remove(keyValueFrequency.getKeyValue());
                 DataTypes splittedKey = (DataTypes)keyValueFrequency.getKeyValue();
                 valueSplitMap.put(splittedKey, numberOfSplit);
-                splittedKeyValueMap.put(key, valueSplitMap);
                 long remainder = keyValueFrequency.getFrequency() % numberOfSplit;
                 long splittedFreq = keyValueFrequency.getFrequency() / numberOfSplit;
                 for(int j = 0; j < numberOfSplit; j++){
@@ -298,6 +297,7 @@ public class Sharding {
                 }
             }
         }
+        splittedKeyValueMap.put(key, valueSplitMap);
     }
   }
   

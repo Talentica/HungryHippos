@@ -41,19 +41,19 @@ public class ShardingTablePrinter {
     System.out.println("###### Key to value to bucket number map ######");
     System.out
         .println(
-            "\t" + "Key" + "\t" + "Value" + "\t" + "Bucket"
+           "\t"+ "Key" +  "  ||  " + "KeyValue" + "  ||  " + "Bucket"
                 + MapUtils.getFormattedString(ShardingFileUtil.readFromFileKeyToValueToBucket(
                     shardingTablePath + File.separatorChar + "keyToValueToBucketMap",
                     dataTypeMap)));
     System.out.println();
     System.out.println("###### Bucket to node numbers map ######");
-    System.out.println("\t" + "Bucket" + "\t\t\t" + "Node"
+    System.out.println("\t"+ "Key" +  "  ||  " + "Bucket" + "  ||  " + "Node"
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileBucketToNodeNumber(
             shardingTablePath + File.separatorChar + "bucketToNodeNumberMap")));
     System.out.println();
     
     System.out.println("###### Sharding split key map ######");
-    System.out.println("\t" + "Key" + "\t\t\t" + "Value" + "\t\t\t" + "Split Count"
+    System.out.println("\t"+ "Key" +  "  ||  " + "KeyValue" + "  ||  " + "Split Count"
         + MapUtils.getFormattedString(ShardingFileUtil.readFromFileSplittedKeyValue(
             shardingTablePath + File.separatorChar + "splittedKeyValueMap")));
     System.out.println();

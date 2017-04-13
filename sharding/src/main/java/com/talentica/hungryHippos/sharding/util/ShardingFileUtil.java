@@ -127,7 +127,7 @@ public class ShardingFileUtil {
   @SuppressWarnings("unchecked")
   public static HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> readFromFileKeyToValueToBucket(
       String filePath, Map<String, String> dataTypeMap) {
-    LOGGER.info(" sharding filePath : " + filePath);
+    LOGGER.debug(" sharding filePath : " + filePath);
     File file = new File(filePath);
     FileInputStream fis = null;
     ObjectInputStream ois = null;
@@ -163,7 +163,7 @@ public class ShardingFileUtil {
   @SuppressWarnings("unchecked")
   public static HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> readFromFileBucketToNodeNumber(
       String filePath) {
-    LOGGER.info(" sharding filePath : " + filePath);
+    LOGGER.debug(" sharding filePath : " + filePath);
     File file = new File(filePath);
     FileInputStream fis = null;
     ObjectInputStream ois = null;
@@ -189,7 +189,7 @@ public class ShardingFileUtil {
   @SuppressWarnings("unchecked")
   public static HashMap<String, HashMap<DataTypes, Long>> readFromFileSplittedKeyValue(
       String filePath) {
-    LOGGER.info(" sharding filePath : " + filePath);
+    LOGGER.debug(" sharding filePath : " + filePath);
     File file = new File(filePath);
     FileInputStream fis = null;
     ObjectInputStream ois = null;

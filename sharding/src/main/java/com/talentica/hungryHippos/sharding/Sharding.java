@@ -272,7 +272,6 @@ public class Sharding {
             getSortedKeyToListOfKeyValueFrequenciesMap();
     for(String key : keyToListOfKeyValueFrequency.keySet()){
         List<KeyValueFrequency> keyValueFrequenciesList = keyToListOfKeyValueFrequency.get(key);
-        HashMap<DataTypes,Long> valueFrequencyMap = keyValueFrequencyMap.get(key);
         HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
         double avg = calculateAvgFrequency(key);
         double threshold = context.getMaxSkew() * avg;
@@ -282,20 +281,8 @@ public class Sharding {
                 break;
             }else{
                 long numberOfSplit = (long)Math.ceil(keyValueFrequency.getFrequency() / threshold);
-                valueFrequencyMap.remove(keyValueFrequency.getKeyValue());
                 DataTypes splittedKey = (DataTypes)keyValueFrequency.getKeyValue();
                 valueSplitMap.put(splittedKey, numberOfSplit);
-                long remainder = keyValueFrequency.getFrequency() % numberOfSplit;
-                long splittedFreq = keyValueFrequency.getFrequency() / numberOfSplit;
-                for(int j = 0; j < numberOfSplit; j++){
-                  DataTypes splittedKeyclone = DataTypesFactory.getNewInstance(splittedKey,j);
-                    if(remainder > 0){
-                        valueFrequencyMap.put(splittedKeyclone, splittedFreq+1);
-                        remainder--;
-                        continue;
-                    }
-                    valueFrequencyMap.put(splittedKeyclone, splittedFreq);
-                }
             }
         }
         splittedKeyValueMap.put(key, valueSplitMap);
@@ -340,54 +327,81 @@ public class Sharding {
       logger.info("size of {}:{}", new Object[] {keys[i], size});
       if (!sortedKeyValueFrequencies.isEmpty()) {
         for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
-
-          long sizeOfCurrentBucket = idealAverageSizeOfOneBucket;
-          Long frequency = keyValueFrequency.getFrequency();
-          if (frequency > idealAverageSizeOfOneBucket) {
-            sizeOfCurrentBucket = frequency;
-            logger.info(
-                "Frequency of key {} value {} exceeded ideal size of bucket, so bucket size is: {}",
-                new Object[] {keys[i], keyValueFrequency.getKeyValue(), sizeOfCurrentBucket});
-          }
-          if (frequencyOfAlreadyAddedValues + frequency > idealAverageSizeOfOneBucket
-              || bucket == null || (totalNoOfBuckets - (bucketCount + 1)) >= size) {
-            boolean flag = false;
-            if ((totalNoOfBuckets - (bucketCount + 1)) < size) {
-              for (int k = 0; k < totalNoOfBuckets; k++) {
-                if (remainingCapacity[k] > frequency) {
-
-                  bucket = buckets.get(k);
-                  logger.info(
-                      "found a bucket {} which can accomodate the frequency, will not create new bucket",
-                      bucket.getId());
-                  flag = true;
-                }
-              }
+            long numberOfSplits = 1;
+            if(splittedKeyValueMap.get(keys[i]) != null 
+                    && splittedKeyValueMap.get(keys[i]).get(keyValueFrequency.getKeyValue()) != null){
+                numberOfSplits = splittedKeyValueMap.get(keys[i]).get(keyValueFrequency.getKeyValue());
             }
-
-            if (!flag) {
-              if (bucketCount < (totalNoOfBuckets - 1)) {
+            long sizeOfCurrentBucket = idealAverageSizeOfOneBucket;
+            long splittedFrequency = keyValueFrequency.getFrequency()/numberOfSplits;
+            long remainderFrequency = keyValueFrequency.getFrequency()%numberOfSplits;
+            
+            long frequency = splittedFrequency;
+            
+            if(remainderFrequency > 0){
+                frequency = splittedFrequency + 1;
+                remainderFrequency--;
+            }
+            
+            if(frequency > idealAverageSizeOfOneBucket){
+                sizeOfCurrentBucket = frequency;
+            }
+            
+            if(numberOfSplits > 1 && bucketCount < (totalNoOfBuckets - 1)){
                 bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
                 buckets.add(bucket);
                 remainingCapacity[bucket.getId()] = sizeOfCurrentBucket;
                 frequencyOfAlreadyAddedValues = 0;
-              } else {
-                logger.info(
-                    "Total Number of buckets are already created and will not create new bucket");
-                bucket = buckets.get(findTheLargestRemainingBucket(remainingCapacity));
-                logger.info(
-                    "remaining value is added to the bucket which has maximum remaning capacity:- {} ",
-                    bucket.getId());
-              }
-
             }
-
-          }
-          frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
-          remainingCapacity[bucket.getId()] = remainingCapacity[bucket.getId()] - frequency;
-          bucket.add(keyValueFrequency);
-          valueToBucketMap.put(keyValueFrequency.getKeyValue(), bucket);
-          --size;
+            
+            for(int j = 0; j < numberOfSplits; j++){
+                boolean flag = false;
+                if(bucket == null){
+                    flag = false;
+                }else if(remainingCapacity[bucket.getId()] == sizeOfCurrentBucket){
+                    flag = true;
+                }else if((totalNoOfBuckets - (bucketCount + 1)) >= size){
+                    flag = false;
+                }else if(frequencyOfAlreadyAddedValues + frequency > sizeOfCurrentBucket){
+                    for(int k = 0; k < totalNoOfBuckets; k++){
+                        if(remainingCapacity[k] >= frequency){
+                            bucket = buckets.get(k);
+                            logger.info(
+                                    "found a bucket {} which can accomodate the frequency, will not create new bucket",
+                                    bucket.getId());
+                            flag = true;
+                            break;
+                        }
+                    }
+                }else{
+                  flag = true;
+                }
+                if(!flag){
+                    if (bucketCount < (totalNoOfBuckets - 1)) {
+                        bucket = new Bucket<>(++bucketCount, sizeOfCurrentBucket);
+                        buckets.add(bucket);
+                        remainingCapacity[bucket.getId()] = sizeOfCurrentBucket;
+                        frequencyOfAlreadyAddedValues = 0;
+                    }else{
+                        logger.info(
+                                  "Total Number of buckets are already created and will not create new bucket");
+                        bucket = buckets.get(findTheLargestRemainingBucket(remainingCapacity));
+                        logger.info(
+                                  "remaining value is added to the bucket which has maximum remaning capacity:- {} ",
+                                  bucket.getId());
+                    }
+                }
+                frequencyOfAlreadyAddedValues = frequencyOfAlreadyAddedValues + frequency;
+                remainingCapacity[bucket.getId()] = remainingCapacity[bucket.getId()] - frequency;
+                bucket.add(keyValueFrequency);
+                valueToBucketMap.put(DataTypesFactory.getNewInstance((DataTypes)keyValueFrequency.getKeyValue(),j), bucket);
+                if(remainderFrequency > 0){
+                    remainderFrequency--;
+                }else{
+                    frequency = splittedFrequency;
+                }
+            }
+            size--;
         }
         this.keysToListOfBucketsMap.put(keys[i], buckets);
         logger.info("BucketCount is {} ", bucketCount + 1);

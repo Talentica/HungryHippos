@@ -267,14 +267,18 @@ public class Sharding {
     return keyValueFrequencyMap;
   }
   
-  private void splitKey(){
+  private void splitKey() throws ClassNotFoundException, FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException{
     HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
             getSortedKeyToListOfKeyValueFrequenciesMap();
+    int totalNoOfBuckets = bucketsCalculator.calculateNumberOfBucketsNeeded();
+    
     for(String key : keyToListOfKeyValueFrequency.keySet()){
         List<KeyValueFrequency> keyValueFrequenciesList = keyToListOfKeyValueFrequency.get(key);
         HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
-        double avg = calculateAvgFrequency(key);
-        double threshold = context.getMaxSkew() * avg;
+        
+        HashMap<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
+        long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
+        double threshold = context.getMaxSkew() * idealAverageSizeOfOneBucket;
         for(int i = 0; i < keyValueFrequenciesList.size(); i++){
             KeyValueFrequency keyValueFrequency = keyValueFrequenciesList.get(i);
             if(keyValueFrequency.getFrequency() <= threshold){

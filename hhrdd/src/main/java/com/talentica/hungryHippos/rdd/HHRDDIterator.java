@@ -176,7 +176,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       currentFile = tuple2._1;
       currentFilePath = this.filePath+currentFile;
       this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
-      this.currentDataFileSize = dataInputStream.available();
+      this.currentDataFileSize = new File(currentFilePath).length();
     }
   }
 

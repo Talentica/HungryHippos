@@ -43,22 +43,26 @@ public class NodeSelector implements Serializable {
   private static final long serialVersionUID = -6600132099728561553L;
 
   /** The node ids. */
-  private static TreeSet<Integer> totalNodeIds = null;
+  private  TreeSet<Integer> totalNodeIds = null;
   
   /** The max node id. */
-  private static int maxNodeId;
+  private  int maxNodeId;
 
   /** The logger. */
-  private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
+  private  Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
 
 
   /** The node ids. */
-  private static Set<Integer> nodeIds;
+  private  Set<Integer> nodeIds;
   
   /**
    * Node ids.
    */
-  private static void nodeIds() {
+  
+  public NodeSelector(){
+    nodeIds();
+  }
+  private  void nodeIds() {
     totalNodeIds = new TreeSet<Integer>();
     nodeIds = new LinkedHashSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
@@ -77,17 +81,12 @@ public class NodeSelector implements Serializable {
    * @param keyOrder the key order
    * @return the list
    */
-  public static Set<Integer> selectNodeIds(BucketCombination bucketCombination,
+  public  Set<Integer> selectNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
-    if (totalNodeIds == null) {
-      nodeIds();
-    }
     nodeIds.clear();
     selectPreferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
-    }
+      LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
     return nodeIds;
   }
 
@@ -98,7 +97,7 @@ public class NodeSelector implements Serializable {
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
    */
-  private static void selectPreferredNodeIds(BucketCombination bucketCombination,
+  private  void selectPreferredNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
     for (String key : keyOrder) {
@@ -121,7 +120,7 @@ public class NodeSelector implements Serializable {
    * @param node the node
    * @return the and set next node
    */
-  private static void getAndSetNextNode(Node node) {
+  private  void getAndSetNextNode(Node node) {
     int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
     int nodeId = nextNodeId;
     while (!totalNodeIds.contains(nextNodeId)) {
@@ -138,7 +137,7 @@ public class NodeSelector implements Serializable {
    *
    * @param keyOrder the key order
    */
-  private static void searchAndInsertRemainingNode(String[] keyOrder) {
+  private  void searchAndInsertRemainingNode(String[] keyOrder) {
     Iterator<Integer> iterator = totalNodeIds.iterator();
     while (iterator.hasNext()) {
       int id = iterator.next();

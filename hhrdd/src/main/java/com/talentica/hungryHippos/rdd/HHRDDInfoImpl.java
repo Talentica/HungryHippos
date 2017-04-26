@@ -80,6 +80,8 @@ public class HHRDDInfoImpl implements HHRDDInfo {
 
   /** The hh file size. */
   private long hhFileSize;
+  
+  private NodeSelector nodeSelector;
 
 
   /**
@@ -114,6 +116,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     this.hhFileSize = 0;
     initializeKeyToBucketToFileList();
     calculateBucketToFileMap("", 0);
+    nodeSelector = new NodeSelector();
   }
 
   /**
@@ -580,7 +583,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       }
       BucketCombination bucketCombination = new BucketCombination(keyValueCombination);
       Set<Integer> ids =
-          NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+          nodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
       int i = 0;
       for (int nodeId : ids) {
         nodeIds[i] = nodeId;

@@ -102,6 +102,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       Map<Integer, SerializedNode> nodIdToIp, int[] shardingIndexes,
       FieldTypeArrayDataDescription fieldDataDesc, String directoryLocation) {
     //this.bucketCombinationToNodeNumberMap = bucketCombinationToNodeNumberMap;
+    nodeSelector = new NodeSelector();
     this.bucketToNodeNumberMap = bucketToNodeNumberMap;
     this.keyOrder = keyOrder;
     this.nodIdToIp = nodIdToIp;
@@ -116,7 +117,6 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     this.hhFileSize = 0;
     initializeKeyToBucketToFileList();
     calculateBucketToFileMap("", 0);
-    nodeSelector = new NodeSelector();
   }
 
   /**

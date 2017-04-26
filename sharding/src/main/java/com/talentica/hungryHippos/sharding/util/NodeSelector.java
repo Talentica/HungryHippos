@@ -86,7 +86,9 @@ public class NodeSelector implements Serializable {
       String[] keyOrder) {
     nodeIds.clear();
     selectPreferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
-      LOGGER.info("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("BucketCombination {} and Nodes {}", bucketCombination, nodeIds);
+    }
     return nodeIds;
   }
 

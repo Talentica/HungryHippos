@@ -175,8 +175,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       Tuple2<String,int[]> tuple2 = fileIterator.next();
       currentFile = tuple2._1;
       currentFilePath = this.filePath+currentFile;
+      File currentFileObj = new File(currentFilePath);
       this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
-      this.currentDataFileSize = dataInputStream.available();
+      this.currentDataFileSize = currentFileObj.length();
     }
   }
 
@@ -192,7 +193,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     Socket socket = null;
     try {
       File file = new File(filePath);
-      int bufferSIze = 2048;
+      int bufferSize = 2048;
       SocketAddress socketAddress = new InetSocketAddress(ip, port);
       socket = new Socket();
       socket.connect(socketAddress, 10000);
@@ -202,9 +203,10 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       dos.writeUTF(filePath);
       dos.flush();
       long fileSize = dis.readLong();
-      byte[] buffer = new byte[bufferSIze];
+      byte[] buffer = new byte[bufferSize];
+      FileOutputStream fos = new FileOutputStream(file);
       BufferedOutputStream bos =
-          new BufferedOutputStream(new FileOutputStream(file), bufferSIze * 10);
+          new BufferedOutputStream(fos, bufferSize * 10);
       int len;
       while (fileSize > 0) {
         len = dis.read(buffer);
@@ -212,7 +214,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
         fileSize -= len;
       }
       bos.flush();
+      fos.flush();
       bos.close();
+      fos.close();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -236,7 +240,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
   public boolean hasNext() {
     try {
       if (currentDataFileSize <= 0) {
-        closeDatsInputStream();
+        closeDataInputStream();
         iterateOnFiles();
       }
     } catch (IOException exception) {
@@ -265,7 +269,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
    *
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void closeDatsInputStream() throws IOException {
+  private void closeDataInputStream() throws IOException {
     if (dataInputStream != null) {
       dataInputStream.close();
       if(remoteFiles.contains(currentFile)){

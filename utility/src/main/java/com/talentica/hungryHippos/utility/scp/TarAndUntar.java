@@ -43,9 +43,11 @@ public class TarAndUntar {
         tarOut.write(data, 0, count);
       }
       tarOut.flush();
+      out.flush();
       in.close();
     }
     tarOut.close();
+    out.close();
   }
   
   public static void untar(String tarFile,String destinationFolder) throws IOException{
@@ -64,7 +66,9 @@ public class TarAndUntar {
         dest.write(data, 0, count);
       }
       dest.flush();
+      fos.flush();
       dest.close();
+      fos.close();
     }
     tis.close();
   }

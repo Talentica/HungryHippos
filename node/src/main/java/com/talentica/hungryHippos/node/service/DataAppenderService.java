@@ -15,26 +15,19 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.service;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.UUID;
-
 import com.talentica.hungryHippos.node.DataDistributorStarter;
+import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
 import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import com.talentica.hungryHippos.utility.scp.TarAndUntar;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import com.talentica.hungryHippos.utility.scp.TarAndUntar;
-import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import java.io.*;
+import java.net.Socket;
+import java.util.UUID;
 
 /**
  * Created by rajkishoreh on 20/12/16.
@@ -70,7 +63,8 @@ public class DataAppenderService implements Runnable {
             long fileSize = dataInputStream.readLong();
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcTarFile), 10 * bufferSize);
+            FileOutputStream fos= new FileOutputStream(srcTarFile);
+            BufferedOutputStream bos = new BufferedOutputStream(fos, 10 * bufferSize);
             int len;
             while (fileSize > 0) {
                 len = dataInputStream.read(buffer);
@@ -78,7 +72,9 @@ public class DataAppenderService implements Runnable {
                 fileSize = fileSize - len;
             }
             bos.flush();
+            fos.flush();
             bos.close();
+            fos.close();
             int noOfRemainingAttempts = 25;
             while (noOfRemainingAttempts > 0) {
                 try {

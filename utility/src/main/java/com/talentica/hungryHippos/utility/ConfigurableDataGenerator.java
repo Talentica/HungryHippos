@@ -15,11 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.utility;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +75,7 @@ public class ConfigurableDataGenerator {
     }
   }
 
-  public static void main(String[] args) throws FileNotFoundException {
+  public static void main(String[] args) throws IOException {
     if (args.length < 3) {
       System.out.println("Usage java com.talentica.hungryHippos.utility.ConfigurableDataGenerator "
           + "[fileSizeInMbs] [filename] [column_desc]*");
@@ -109,8 +105,9 @@ public class ConfigurableDataGenerator {
       ColumnConfig config = new ColumnConfig(sourceChars, count);
       configs[i] = config;
     }
+    FileOutputStream fos = new FileOutputStream(new File(filename), true);
     PrintWriter out = new PrintWriter(
-        new OutputStreamWriter(new FileOutputStream(new File(filename), true)), true);
+        new OutputStreamWriter(fos), true);
     long start = System.currentTimeMillis();
     long sizeOfDataWrote = 0l;
     while (sizeOfDataWrote < filesizeInBytes) {
@@ -127,7 +124,9 @@ public class ConfigurableDataGenerator {
     }
     long end = System.currentTimeMillis();
     out.flush();
+    fos.flush();
     out.close();
+    fos.close();
     System.out.println("Time taken in ms: " + (end - start));
 
   }

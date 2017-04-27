@@ -43,16 +43,19 @@ public class TarAndGzip {
   public static String folder(File pFolder, List<String> pIgnores, String gzipFileName)
       throws IOException {
     TarOutputStream out = null;
+    FileOutputStream fos=null;
     processIgnores(pFolder.getName(), pIgnores);
     try {
       String outputFilePath = pFolder.getAbsolutePath() + "/../" + gzipFileName + ".tar.gz";
+      fos= new FileOutputStream(new File(outputFilePath));
       out = new TarOutputStream(new BufferedOutputStream(
-          new GZIPOutputStream(new FileOutputStream(new File(outputFilePath)))));
+          new GZIPOutputStream(fos)));
       out.putNextEntry(new TarEntry(pFolder, pFolder.getName()));
       writeToStream(out, pFolder, pFolder.getName(), pIgnores);
       return outputFilePath;
     } finally {
       IOUtils.closeQuietly(out);
+      IOUtils.closeQuietly(fos);
     }
   }
 
@@ -164,7 +167,9 @@ public class TarAndGzip {
       }
 
       dest.flush();
+      fos.flush();
       dest.close();
+      fos.close();
     }
   }
 }

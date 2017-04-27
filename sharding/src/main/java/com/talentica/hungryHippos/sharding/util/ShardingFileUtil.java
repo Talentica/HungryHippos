@@ -119,6 +119,7 @@ public class ShardingFileUtil {
       throws IOException {
     if (oos != null) {
       oos.flush();
+      output.flush();
       oos.close();
     }
     if (output != null) {

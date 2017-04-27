@@ -58,8 +58,9 @@ public class AcceptFileService implements Runnable {
         logger.debug("created parent folder {}", parentDir);
         Files.createDirectories(parentDir);
       }
+      FileOutputStream fos= new FileOutputStream(destinationPath);
 
-      OutputStream bos = new BufferedOutputStream(new FileOutputStream(destinationPath));
+      OutputStream bos = new BufferedOutputStream(fos);
       int read = 0;
       while (size != 0) {
         read = dis.read(buffer);
@@ -68,7 +69,9 @@ public class AcceptFileService implements Runnable {
       }
 
       bos.flush();
+      fos.flush();
       bos.close();
+      fos.close();
       logger.debug("accepted all the data send");
       dos.writeBoolean(true);
       dos.flush();

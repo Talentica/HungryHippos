@@ -94,11 +94,14 @@ public enum FileJoiner {
         long srcFileLength = srcFile.length();
         if (srcFileLength != 0) {
             BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(srcFile));
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(destFile, true));
+            FileOutputStream fileOutputStream = new FileOutputStream(destFile, true);
+            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
             IOUtils.copy(bufferedInputStream, bufferedOutputStream);
             bufferedOutputStream.flush();
+            fileOutputStream.flush();
             bufferedInputStream.close();
             bufferedOutputStream.close();
+            fileOutputStream.close();
         }
     }
 }

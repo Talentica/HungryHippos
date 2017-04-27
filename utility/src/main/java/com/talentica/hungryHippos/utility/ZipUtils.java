@@ -68,8 +68,10 @@ public class ZipUtils {
             bos.write(buffer, 0, len);
           }
           bos.flush();
+          fos.flush();
           bos.close();
           bis.close();
+          fos.close();
         } else {
           // creates blank directories if present
           newFile.mkdir();
@@ -126,6 +128,7 @@ public class ZipUtils {
             zos.write(buffer, 0, len);
           }
           zos.flush();
+          fos.flush();
           zos.closeEntry();
           bis.close();
         } else {

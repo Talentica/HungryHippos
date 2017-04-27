@@ -145,6 +145,7 @@ public class CoordinationStarterTest {
 
         final OutputStream outputFileStream = new FileOutputStream(outputFile);
         IOUtils.copy(debInputStream, outputFileStream);
+        outputFileStream.flush();
         outputFileStream.close();
       }
       untaredFiles.add(outputFile);
@@ -179,7 +180,7 @@ public class CoordinationStarterTest {
     final FileOutputStream out = new FileOutputStream(outputFile);
 
     IOUtils.copy(in, out);
-
+    out.flush();
     in.close();
     out.close();
 

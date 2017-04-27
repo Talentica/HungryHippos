@@ -35,7 +35,7 @@ public class FileDataStore implements DataStore {
      *
      */
     private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
-    private Map<String, OutputStream> fileNameToOutputStreamMap;
+    private Map<String, FileOutputStream> fileNameToOutputStreamMap;
     private OutputStream[] outputStreams;
     private String hungryHippoFilePath;
     private String dataFilePrefix;
@@ -73,18 +73,20 @@ public class FileDataStore implements DataStore {
         }
     }
 
-    private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
+    private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
         long usableMemory = MemoryStatus.getUsableMemory();
         long memoryRequiredForBufferedStream = fileNames.size() * 1024;
         if (usableMemory > memoryRequiredForBufferedStream) {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new BufferedOutputStream(new FileOutputStream(dataFilePrefix + entry.getValue()), 1024);
-                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
+                FileOutputStream fos= new FileOutputStream(dataFilePrefix + entry.getValue());
+                outputStreams[entry.getKey()] = new BufferedOutputStream(fos, 1024);
+                fileNameToOutputStreamMap.put(entry.getValue(), fos);
             }
         } else {
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                outputStreams[entry.getKey()] = new FileOutputStream(dataFilePrefix + entry.getValue());
-                fileNameToOutputStreamMap.put(entry.getValue(), outputStreams[entry.getKey()]);
+                FileOutputStream fos= new FileOutputStream(dataFilePrefix + entry.getValue());
+                outputStreams[entry.getKey()] = fos;
+                fileNameToOutputStreamMap.put(entry.getValue(), fos);
             }
         }
     }
@@ -112,7 +114,16 @@ public class FileDataStore implements DataStore {
     @Override
     public void sync() {
 
-        for (Map.Entry<String, OutputStream> nameStreamEntry : fileNameToOutputStreamMap.entrySet()) {
+        for (int i = 0; i < outputStreams.length; i++) {
+            if(outputStreams[i]!=null){
+                try {
+                    outputStreams[i].flush();
+                } catch (IOException e) {
+                    logger.error("Error occurred while flushing " + i + "th output stream. {}", e);
+                }
+            }
+        }
+        for (Map.Entry<String, FileOutputStream> nameStreamEntry : fileNameToOutputStreamMap.entrySet()) {
             try {
                 nameStreamEntry.getValue().flush();
             } catch (IOException e) {

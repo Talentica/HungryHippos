@@ -15,7 +15,6 @@ package com.talentica.hungryHippos.sharding.util;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,22 +42,26 @@ public class NodeSelector implements Serializable {
   private static final long serialVersionUID = -6600132099728561553L;
 
   /** The node ids. */
-  private static TreeSet<Integer> totalNodeIds = null;
+  private  TreeSet<Integer> totalNodeIds = null;
   
   /** The max node id. */
-  private static int maxNodeId;
+  private  int maxNodeId;
 
   /** The logger. */
-  private static Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
+  private  Logger LOGGER = LoggerFactory.getLogger(NodeSelector.class);
 
 
   /** The node ids. */
-  private static Set<Integer> nodeIds;
+  private  Set<Integer> nodeIds;
   
   /**
    * Node ids.
    */
-  private static void nodeIds() {
+  
+  public NodeSelector(){
+    nodeIds();
+  }
+  private  void nodeIds() {
     totalNodeIds = new TreeSet<Integer>();
     nodeIds = new LinkedHashSet<Integer>();
     ClusterConfig config = CoordinationConfigUtil.getZkClusterConfigCache();
@@ -77,12 +80,9 @@ public class NodeSelector implements Serializable {
    * @param keyOrder the key order
    * @return the list
    */
-  public static Set<Integer> selectNodeIds(BucketCombination bucketCombination,
+  public  Set<Integer> selectNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
-    if (totalNodeIds == null) {
-      nodeIds();
-    }
     nodeIds.clear();
     selectPreferredNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
     if (LOGGER.isDebugEnabled()) {
@@ -98,7 +98,7 @@ public class NodeSelector implements Serializable {
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param keyOrder the key order
    */
-  private static void selectPreferredNodeIds(BucketCombination bucketCombination,
+  private  void selectPreferredNodeIds(BucketCombination bucketCombination,
       HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap,
       String[] keyOrder) {
     for (String key : keyOrder) {
@@ -110,9 +110,6 @@ public class NodeSelector implements Serializable {
         getAndSetNextNode(node);
       }
     }
-    if (nodeIds.size() < keyOrder.length) {
-      searchAndInsertRemainingNode(keyOrder);
-    }
   }
 
   /**
@@ -121,36 +118,15 @@ public class NodeSelector implements Serializable {
    * @param node the node
    * @return the and set next node
    */
-  private static void getAndSetNextNode(Node node) {
+  private  void getAndSetNextNode(Node node) {
     int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
-    int nodeId = nextNodeId;
-    while (!totalNodeIds.contains(nextNodeId)) {
+    while (!totalNodeIds.contains(nextNodeId) || nodeIds.contains(nextNodeId)) {
       nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
-      if(nodeId == nextNodeId){
+      if(nextNodeId == node.getNodeId()){
         throw new RuntimeException("Invalid node ids in cluster configuration xml");
       }
     }
     nodeIds.add(nextNodeId);
-  }
-
-  /**
-   * Search and insert remaining node.
-   *
-   * @param keyOrder the key order
-   */
-  private static void searchAndInsertRemainingNode(String[] keyOrder) {
-    Iterator<Integer> iterator = totalNodeIds.iterator();
-    while (iterator.hasNext()) {
-      int id = iterator.next();
-      if (nodeIds.contains(id)) {
-        continue;
-      } else {
-        nodeIds.add(id);
-        if (nodeIds.size() == keyOrder.length) {
-          break;
-        }
-      }
-    }
   }
 
 }

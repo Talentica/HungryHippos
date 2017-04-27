@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -54,6 +53,7 @@ public class HHFileMapper {
     private DataStore dataStore;
     private String hhFilePath;
     private String uniqueFolderName;
+    private NodeSelector nodeSelector;
     public HHFileMapper(String hhFilePath, ShardingApplicationContext context, DataDescription dataDescription
             , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
@@ -62,6 +62,7 @@ public class HHFileMapper {
         Map<Integer, String> fileNames = new HashMap<>();
         nodeToFileMap = new HashMap<>();
         this.keyOrder = keyOrder;
+        nodeSelector = new NodeSelector();
         addFileNameToList(fileNames, 0, "", 0, null);
         this.uniqueFolderName = UUID.randomUUID().toString();
         dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
@@ -95,7 +96,7 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Integer> nodeIds = NodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        Set<Integer> nodeIds = nodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
         Iterator<Integer> nodeIterator = nodeIds.iterator();
         while (nodeIterator.hasNext()) {
             int nodeId = nodeIterator.next();

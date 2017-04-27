@@ -104,7 +104,6 @@ public class NodeSelector implements Serializable {
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
       Node node = bucketNodeMap.get(bucketCombination.getBucketsCombination().get(key));
-      System.out.println(node.getNodeId());
       if (!nodeIds.contains(node.getNodeId())) {
         nodeIds.add(node.getNodeId());
       } else {

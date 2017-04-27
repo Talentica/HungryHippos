@@ -89,7 +89,7 @@ public class ShardingFileUtil {
 
   
   public static void dumpSplittedKeyValueMapFileOnDisk(String fileName,
-      HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap, String folderPath)
+      HashMap<String, HashMap<DataTypes, Integer>> splittedKeyValueMap, String folderPath)
       throws IOException {
     new File(folderPath).mkdirs();
     String filePath = (folderPath.endsWith(String.valueOf("/")) ? folderPath + fileName
@@ -187,17 +187,17 @@ public class ShardingFileUtil {
 
 
   @SuppressWarnings("unchecked")
-  public static HashMap<String, HashMap<DataTypes, Long>> readFromFileSplittedKeyValue(
+  public static HashMap<String, HashMap<DataTypes, Integer>> readFromFileSplittedKeyValue(
       String filePath) {
     LOGGER.debug(" sharding filePath : " + filePath);
     File file = new File(filePath);
     FileInputStream fis = null;
     ObjectInputStream ois = null;
-    HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = null;
+    HashMap<String, HashMap<DataTypes, Integer>> splittedKeyValueMap = null;
     try {
       fis = new FileInputStream(file);
       ois = new ObjectInputStream(fis);
-      splittedKeyValueMap = (HashMap<String, HashMap<DataTypes, Long>>) ois.readObject();
+      splittedKeyValueMap = (HashMap<String, HashMap<DataTypes, Integer>>) ois.readObject();
     } catch (IOException | ClassNotFoundException e) {
       e.printStackTrace();
     } finally {

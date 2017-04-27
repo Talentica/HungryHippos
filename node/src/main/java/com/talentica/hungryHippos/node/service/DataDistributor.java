@@ -96,14 +96,14 @@ public class DataDistributor {
     HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> keyToBucketToNodetMap =
         ShardingFileUtil.readFromFileBucketToNodeNumber(keyToBucketToNodePath);
     
-    HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = 
+    HashMap<String, HashMap<DataTypes, Integer>> splittedKeyValueMap = 
         ShardingFileUtil.readFromFileSplittedKeyValue(splittedKeyValuePath);
     
     HashMap<String, HashMap<DataTypes, Counter>> splitKeyValueCounter = new HashMap<>();
-    for(Map.Entry<String, HashMap<DataTypes, Long>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
-      HashMap<DataTypes, Long> valueSplitCount = keyValueSplitEntry.getValue();
+    for(Map.Entry<String, HashMap<DataTypes, Integer>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
+      HashMap<DataTypes, Integer> valueSplitCount = keyValueSplitEntry.getValue();
       HashMap<DataTypes, Counter> valueSplitCounter = new HashMap<>();
-      for(Map.Entry<DataTypes, Long> valueSplitCountEntry : valueSplitCount.entrySet()){
+      for(Map.Entry<DataTypes, Integer> valueSplitCountEntry : valueSplitCount.entrySet()){
         valueSplitCounter.put(valueSplitCountEntry.getKey(), new Counter(valueSplitCountEntry.getValue()-1));
       }
       splitKeyValueCounter.put(keyValueSplitEntry.getKey(), valueSplitCounter);
@@ -154,10 +154,14 @@ public class DataDistributor {
           key = keyOrder[i];
           keyIndex = context.assignShardingIndexByName(key);
           DataTypes value = parts[keyIndex];
-          if(splitKeyValueCounter.get(key) != null && splitKeyValueCounter.get(key).get(value) != null){
-            value.setSplitIndex((int)splitKeyValueCounter.get(key).get(value).getNextCount());
+          Counter counter = splitKeyValueCounter.get(key).get(value);
+          if( counter != null){
+            value.setSplitIndex((int)counter.getNextCount());
+            bucket = bucketsCalculator.getBucketNumberForValue(key, value);
+            value.setSplitIndex(0);
+          }else{
+            bucket = bucketsCalculator.getBucketNumberForValue(key, value);         
           }
-          bucket = bucketsCalculator.getBucketNumberForValue(key, parts[keyIndex]);
           buckets[i] = bucket.getId();
         }
 

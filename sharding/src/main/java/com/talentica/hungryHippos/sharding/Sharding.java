@@ -56,7 +56,7 @@ public class Sharding {
   // Map<key1,{KeyValueFrequency(value1,10),KeyValueFrequency(value2,11)}>
   private HashMap<String, List<Bucket<KeyValueFrequency>>> keysToListOfBucketsMap = new HashMap<>();
   private HashMap<String, HashMap<DataTypes, Long>> keyValueFrequencyMap = new HashMap<>();
-  private HashMap<String, HashMap<DataTypes, Long>> splittedKeyValueMap = new HashMap<>();
+  private HashMap<String, HashMap<DataTypes, Integer>> splittedKeyValueMap = new HashMap<>();
 
   private HashMap<String, Integer> keyToIndexMap = new HashMap<>();
 
@@ -155,10 +155,10 @@ public class Sharding {
     // Map<key1,Map<value1,count>>
     
     HashMap<String, HashMap<DataTypes, Counter>> splitKeyValueCounter = new HashMap<>();
-    for(Map.Entry<String, HashMap<DataTypes, Long>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
-      HashMap<DataTypes, Long> valueSplitCount = keyValueSplitEntry.getValue();
+    for(Map.Entry<String, HashMap<DataTypes, Integer>> keyValueSplitEntry : splittedKeyValueMap.entrySet()){
+      HashMap<DataTypes, Integer> valueSplitCount = keyValueSplitEntry.getValue();
       HashMap<DataTypes, Counter> valueSplitCounter = new HashMap<>();
-      for(Map.Entry<DataTypes, Long> valueSplitCountEntry : valueSplitCount.entrySet()){
+      for(Map.Entry<DataTypes, Integer> valueSplitCountEntry : valueSplitCount.entrySet()){
         valueSplitCounter.put(valueSplitCountEntry.getKey(), new Counter(valueSplitCountEntry.getValue()-1));
       }
       splitKeyValueCounter.put(keyValueSplitEntry.getKey(), valueSplitCounter);
@@ -273,7 +273,7 @@ public class Sharding {
     
     for(String key : keyToListOfKeyValueFrequency.keySet()){
         List<KeyValueFrequency> keyValueFrequenciesList = keyToListOfKeyValueFrequency.get(key);
-        HashMap<DataTypes, Long> valueSplitMap = new HashMap<>();
+        HashMap<DataTypes, Integer> valueSplitMap = new HashMap<>();
         
         HashMap<DataTypes, Long> frequencyPerValue = keyValueFrequencyMap.get(key);
         long idealAverageSizeOfOneBucket = getSizeOfOneBucket(frequencyPerValue, totalNoOfBuckets);
@@ -283,8 +283,8 @@ public class Sharding {
             if(keyValueFrequency.getFrequency() <= threshold){
                 break;
             }else{
-                long numberOfSplit = (long)Math.ceil(keyValueFrequency.getFrequency() / threshold);
-                DataTypes splittedKey = (DataTypes)keyValueFrequency.getKeyValue();
+                int numberOfSplit = (int)Math.ceil(keyValueFrequency.getFrequency() / threshold);
+                DataTypes splittedKey = DataTypesFactory.getNewInstance((DataTypes)keyValueFrequency.getKeyValue(),0);
                 valueSplitMap.put(splittedKey, numberOfSplit);
             }
         }
@@ -330,7 +330,7 @@ public class Sharding {
       logger.info("size of {}:{}", new Object[] {keys[i], size});
       if (!sortedKeyValueFrequencies.isEmpty()) {
         for (KeyValueFrequency keyValueFrequency : sortedKeyValueFrequencies) {
-            long numberOfSplits = 1;
+            int numberOfSplits = 1;
             if(splittedKeyValueMap.get(keys[i]) != null 
                     && splittedKeyValueMap.get(keys[i]).get(keyValueFrequency.getKeyValue()) != null){
                 numberOfSplits = splittedKeyValueMap.get(keys[i]).get(keyValueFrequency.getKeyValue());

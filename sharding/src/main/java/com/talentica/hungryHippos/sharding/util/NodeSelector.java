@@ -15,7 +15,6 @@ package com.talentica.hungryHippos.sharding.util;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -105,14 +104,12 @@ public class NodeSelector implements Serializable {
     for (String key : keyOrder) {
       Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
       Node node = bucketNodeMap.get(bucketCombination.getBucketsCombination().get(key));
+      System.out.println(node.getNodeId());
       if (!nodeIds.contains(node.getNodeId())) {
         nodeIds.add(node.getNodeId());
       } else {
         getAndSetNextNode(node);
       }
-    }
-    if (nodeIds.size() < keyOrder.length) {
-      searchAndInsertRemainingNode(keyOrder);
     }
   }
 
@@ -124,34 +121,13 @@ public class NodeSelector implements Serializable {
    */
   private  void getAndSetNextNode(Node node) {
     int nextNodeId = (node.getNodeId() == maxNodeId) ? 0 : (node.getNodeId() + 1);
-    int nodeId = nextNodeId;
-    while (!totalNodeIds.contains(nextNodeId)) {
+    while (!totalNodeIds.contains(nextNodeId) || nodeIds.contains(nextNodeId)) {
       nextNodeId = (nextNodeId == maxNodeId) ? 0 : (nextNodeId + 1);
-      if(nodeId == nextNodeId){
+      if(nextNodeId == node.getNodeId()){
         throw new RuntimeException("Invalid node ids in cluster configuration xml");
       }
     }
     nodeIds.add(nextNodeId);
-  }
-
-  /**
-   * Search and insert remaining node.
-   *
-   * @param keyOrder the key order
-   */
-  private  void searchAndInsertRemainingNode(String[] keyOrder) {
-    Iterator<Integer> iterator = totalNodeIds.iterator();
-    while (iterator.hasNext()) {
-      int id = iterator.next();
-      if (nodeIds.contains(id)) {
-        continue;
-      } else {
-        nodeIds.add(id);
-        if (nodeIds.size() == keyOrder.length) {
-          break;
-        }
-      }
-    }
   }
 
 }

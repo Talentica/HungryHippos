@@ -111,7 +111,7 @@ public class Sharding {
     try {
       populateFrequencyFromData(input);
       populateKeysToListOfBucketsMap();
-      updateBucketToNodeNumbersMap(input);
+      //updateBucketToNodeNumbersMap(input);
       shardAllKeys();
       if (logger.isDebugEnabled()) {
         logger.debug("keyToValueToBucketMap:" + MapUtils.getFormattedString(keyToValueToBucketMap));

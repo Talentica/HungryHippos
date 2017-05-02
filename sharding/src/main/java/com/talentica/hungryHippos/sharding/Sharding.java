@@ -490,12 +490,13 @@ public class Sharding {
         currentKeys = new ArrayList<>();
         nodeToKeyMap.put(mostEmptyNode, currentKeys);
       }
-      long currentSize = sumForKeyCombinationUnion(currentKeys);
-      HashMap<String, Bucket<KeyValueFrequency>> wouldBeMap = new HashMap<>();
-      wouldBeMap.put(keyName, bucket);
-      currentKeys.add(new BucketCombination(wouldBeMap));
-      long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
-      mostEmptyNode.fillUpBy(wouldBeSize - currentSize);
+//      long currentSize = sumForKeyCombinationUnion(currentKeys);
+//      HashMap<String, Bucket<KeyValueFrequency>> wouldBeMap = new HashMap<>();
+//      wouldBeMap.put(keyName, bucket);
+//      currentKeys.add(new BucketCombination(wouldBeMap));
+//      long wouldBeSize = sumForKeyCombinationUnion(currentKeys);
+//      mostEmptyNode.fillUpBy(wouldBeSize - currentSize);
+      mostEmptyNode.fillUpBy(bucket.getSize());
       fillupQueue.offer(mostEmptyNode);
       bucketToNodeNumber.put(bucket, mostEmptyNode);
     }

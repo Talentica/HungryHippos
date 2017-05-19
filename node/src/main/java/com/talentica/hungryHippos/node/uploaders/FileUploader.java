@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.talentica.hungryHippos.node.datareceiver;
+package com.talentica.hungryHippos.node.uploaders;
 
 import com.talentica.hungryHippos.node.uploaders.AbstractFileUploader;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;

@@ -16,7 +16,7 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.node.datareceiver.HHFileUploader;
+import com.talentica.hungryHippos.node.uploaders.HHFileUploader;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;

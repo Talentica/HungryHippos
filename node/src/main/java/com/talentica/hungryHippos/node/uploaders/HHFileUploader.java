@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.talentica.hungryHippos.node.datareceiver;
+package com.talentica.hungryHippos.node.uploaders;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -25,10 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
-import com.talentica.hungryHippos.node.uploaders.AbstractFileUploader;
-import com.talentica.hungryHippos.node.uploaders.HybridFileUploader;
-import com.talentica.hungryHippos.node.uploaders.InMemoryFileUploader;
-import com.talentica.hungryHippos.node.uploaders.NodeWiseFileUploader;
 import com.talentica.hungryHippos.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

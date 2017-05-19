@@ -1,9 +1,6 @@
 package com.talentica.hungryHippos.node.uploaders;
 
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
-import com.talentica.hungryHippos.node.datareceiver.FileUploader;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,7 +10,6 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 /**

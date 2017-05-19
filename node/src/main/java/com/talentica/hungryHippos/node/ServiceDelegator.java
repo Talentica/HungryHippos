@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryHippos.node.joiners.NodeFileJoiner;
+import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
 import com.talentica.hungryHippos.node.service.*;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
@@ -42,8 +44,13 @@ public class ServiceDelegator implements Runnable {
         case HungryHippoServicesConstants.FILE_PROVIDER:
           DataDistributorStarter.fileProviderService.execute(new FileProviderService(socket));
           break;
-        case HungryHippoServicesConstants.DATA_APPENDER:
-          DataDistributorStarter.dataAppenderServices.execute(new DataAppenderService(socket));
+        case HungryHippoServicesConstants.TAR_DATA_APPENDER:
+          DataDistributorStarter.commonServicePoolCache
+                  .execute(new DataAppenderService(socket,(x,y)->new TarFileJoiner(x,y)));
+          break;
+        case HungryHippoServicesConstants.NODE_DATA_APPENDER:
+          DataDistributorStarter.commonServicePoolCache.
+                  execute(new DataAppenderService(socket,(x,y)-> new NodeFileJoiner(x,y)));
           break;
         case HungryHippoServicesConstants.METADATA_UPDATER:
           DataDistributorStarter.metadataUpdaterServices

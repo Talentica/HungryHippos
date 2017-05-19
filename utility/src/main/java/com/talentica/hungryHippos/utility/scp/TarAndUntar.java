@@ -15,12 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.utility.scp;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Set;
 
 import org.kamranzafar.jtar.TarEntry;
@@ -42,10 +37,10 @@ public class TarAndUntar {
       while ((count = in.read(data)) != -1) {
         tarOut.write(data, 0, count);
       }
-      tarOut.flush();
-      out.flush();
       in.close();
     }
+    tarOut.flush();
+    out.flush();
     tarOut.close();
     out.close();
   }
@@ -71,5 +66,45 @@ public class TarAndUntar {
       fos.close();
     }
     tis.close();
+  }
+
+
+  public static void untarAndAppend(String tarFile, String destinationFolder) throws FileNotFoundException {
+    TarInputStream tis = null;
+    try {
+      tis = new TarInputStream(new BufferedInputStream(new FileInputStream(tarFile)));
+      TarEntry entry;
+      System.out.println(new File(destinationFolder).exists());
+      if(! new File(destinationFolder).exists()){
+        new File(destinationFolder).mkdirs();
+      }
+      try {
+        while((entry = tis.getNextEntry()) != null){
+          int count;
+          byte data[] = new byte[2048];
+          FileOutputStream fos = new FileOutputStream(destinationFolder + File.separator + entry.getName(),true);
+          BufferedOutputStream dest = new BufferedOutputStream(fos);
+          while((count = tis.read(data)) != -1){
+            dest.write(data, 0, count);
+          }
+          dest.flush();
+          fos.flush();
+          dest.close();
+          fos.close();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } catch (FileNotFoundException e) {
+      throw e;
+    }finally {
+      try {
+        tis.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+
   }
 }

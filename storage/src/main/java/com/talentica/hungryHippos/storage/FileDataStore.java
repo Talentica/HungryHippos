@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2017 Talentica Software Pvt. Ltd.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
 package com.talentica.hungryHippos.storage;
 
 import com.talentica.hungryHippos.utility.MemoryStatus;
-import com.talentica.hungryhippos.filesystem.HungryHipposFileSystem;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -39,15 +38,17 @@ public class FileDataStore implements DataStore {
     private OutputStream[] outputStreams;
     private String hungryHippoFilePath;
     private String dataFilePrefix;
+    private boolean usingBufferStream;
+    private Map<Integer, String> fileNames;
 
     public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
-                         String hungryHippoFilePath,                          String fileName) throws IOException, InterruptedException, ClassNotFoundException,
+                         String hungryHippoFilePath, String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
         this(fileNames, maxBucketSize, numDimensions, hungryHippoFilePath, false, fileName);
     }
 
     public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
-                         String hungryHippoFilePath, boolean readOnly,
+                         String hungryHippoFilePath, boolean append,
                          String fileName) throws IOException {
 
         fileNameToOutputStreamMap = new HashMap<>();
@@ -57,48 +58,35 @@ public class FileDataStore implements DataStore {
 
         int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
         this.outputStreams = new OutputStream[maxFiles];
-        if (!readOnly) {
-            File file = new File(dataFilePrefix);
-            if (!file.exists()) {
-                boolean flag = file.mkdirs();
-                if (flag) {
-                    logger.info("created data folder");
-                } else {
-                    logger.info("Not able to create dataFolder");
-                }
+        File file = new File(dataFilePrefix);
+        if (!file.exists()) {
+            boolean flag = file.mkdirs();
+            if (flag) {
+                logger.info("created data folder");
+            } else {
+                logger.info("Not able to create dataFolder");
             }
-            dataFilePrefix = dataFilePrefix + "/";
-            allocateResources(fileNames, this.outputStreams, this.dataFilePrefix, this.fileNameToOutputStreamMap);
-
         }
-    }
-
-    private static synchronized void allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams, String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap) throws FileNotFoundException {
-        long usableMemory = MemoryStatus.getUsableMemory();
-        long memoryRequiredForBufferedStream = fileNames.size() * 1024;
-        if (usableMemory > memoryRequiredForBufferedStream) {
-            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                FileOutputStream fos= new FileOutputStream(dataFilePrefix + entry.getValue());
-                outputStreams[entry.getKey()] = new BufferedOutputStream(fos, 1024);
-                fileNameToOutputStreamMap.put(entry.getValue(), fos);
-            }
-        } else {
-            for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                FileOutputStream fos= new FileOutputStream(dataFilePrefix + entry.getValue());
-                outputStreams[entry.getKey()] = fos;
-                fileNameToOutputStreamMap.put(entry.getValue(), fos);
-            }
+        dataFilePrefix = dataFilePrefix + "/";
+        this.fileNames = fileNames;
+        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
+                this.dataFilePrefix, this.fileNameToOutputStreamMap, append, false, null);
+        if(usingBufferStream) {
+            logger.info("Using BufferedStreams for {}", dataFilePrefix);
         }
     }
 
     @Override
-    public void storeRow(String name, byte[] raw) {
+    public boolean storeRow(String name, byte[] raw) {
         try {
             fileNameToOutputStreamMap.get(name).write(raw);
+            return true;
         } catch (NullPointerException e) {
             logger.error(name + " not present");
+            return false;
         } catch (IOException e) {
             logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
+            return false;
         }
     }
 
@@ -111,11 +99,19 @@ public class FileDataStore implements DataStore {
         }
     }
 
+    public void storeRow(int index, byte[] raw, int off, int len) {
+        try {
+            outputStreams[index].write(raw, off, len);
+        } catch (IOException e) {
+            logger.error("Error occurred while writing data received to datastore. {} ", e.toString());
+        }
+    }
+
     @Override
     public void sync() {
 
         for (int i = 0; i < outputStreams.length; i++) {
-            if(outputStreams[i]!=null){
+            if (outputStreams[i] != null) {
                 try {
                     outputStreams[i].flush();
                 } catch (IOException e) {
@@ -144,5 +140,20 @@ public class FileDataStore implements DataStore {
         return hungryHippoFilePath;
     }
 
+    @Override
+    public void reset() {
 
+    }
+
+    public boolean isUsingBufferStream() {
+        return usingBufferStream;
+    }
+
+    public void upgradeStreams() throws FileNotFoundException {
+        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
+                this.dataFilePrefix, this.fileNameToOutputStreamMap, true, true, this);
+        if(usingBufferStream){
+            logger.info("Upgraded to BufferedStreams for {}",dataFilePrefix);
+        }
+    }
 }

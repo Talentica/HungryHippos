@@ -1,27 +1,12 @@
-/*******************************************************************************
- * Copyright 2017 Talentica Software Pvt. Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
-import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
 import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
+import com.talentica.hungryHippos.node.joiners.CallableGenerator;
+import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
+import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +15,7 @@ import java.net.Socket;
 import java.util.UUID;
 
 /**
- * Created by rajkishoreh on 20/12/16.
+ * Created by rajkishoreh on 4/5/17.
  */
 public class DataAppenderService implements Runnable {
 
@@ -38,11 +23,13 @@ public class DataAppenderService implements Runnable {
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private Socket socket;
+    private CallableGenerator callableGenerator;
 
-    public DataAppenderService(Socket socket) throws IOException {
+    public DataAppenderService(Socket socket, CallableGenerator callableGenerator) throws IOException {
         this.socket = socket;
         this.dataInputStream = new DataInputStream(socket.getInputStream());
         this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        this.callableGenerator = callableGenerator;
     }
 
     @Override
@@ -58,7 +45,6 @@ public class DataAppenderService implements Runnable {
             String srcTarFileName = dataInputStream.readUTF();
             String srcTarFilePath = srcFolderPath + File.separator + srcTarFileName;
             File srcTarFile = new File(srcTarFilePath);
-            srcTarFile.deleteOnExit();
             String destFolderPath = dataInputStream.readUTF();
             long fileSize = dataInputStream.readLong();
             int bufferSize = 2048;
@@ -75,44 +61,12 @@ public class DataAppenderService implements Runnable {
             fos.flush();
             bos.close();
             fos.close();
-            int noOfRemainingAttempts = 25;
-            while (noOfRemainingAttempts > 0) {
-                try {
-                    TarAndUntar.untar(srcTarFilePath, srcFolderPath);
-                    break;
-                } catch (IOException e) {
-                    File[] files = srcFolder.listFiles(new FileFilter() {
-                        @Override
-                        public boolean accept(File pathname) {
-                            if (pathname.getAbsolutePath().contains(srcTarFileName)) {
-                                return false;
-                            }
-                            return true;
-                        }
-                    });
-                    if (files != null) {
-                        for (int i = 0; i < files.length; i++) {
-                            files[i].delete();
-                        }
-                    }
-                    noOfRemainingAttempts--;
-                    logger.error("[{}] Retrying File untar for {}", Thread.currentThread().getName(), srcFolderPath);
-                }
-            }
-            srcTarFile.delete();
-            if (noOfRemainingAttempts == 0) {
-                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
-                logger.info("[{}] unable to untar {} , File exists status {}", Thread.currentThread().getName(), srcTarFilePath);
-            } else {
-                logger.info("[{}] joining {} into {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
-                String lockString = destFolderPath;
-                FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, lockString);
-                dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
-                logger.info("[{}] Successfully joined {} into {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
-            }
+            logger.info("[{}] marking {} for {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
+            FileJoinCaller.INSTANCE.addSrcFile(hhFilePath,srcTarFilePath, callableGenerator);
+            dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+            logger.info("[{}] Successfully marked {} for {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
             dataOutputStream.flush();
-
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             try {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
@@ -125,12 +79,6 @@ public class DataAppenderService implements Runnable {
             e.printStackTrace();
         } finally {
             try {
-                if (srcFolder != null) {
-                    if (srcFolder.exists()) {
-                        logger.info("[{}] Deleting {} ", Thread.currentThread().getName(), srcFolderPath);
-                        FileUtils.deleteDirectory(srcFolder);
-                    }
-                }
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();

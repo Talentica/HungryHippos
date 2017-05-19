@@ -18,15 +18,18 @@ package com.talentica.hungryHippos.node.datareceiver;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.talentica.hungryHippos.node.DataDistributorStarter;
+import com.talentica.hungryHippos.node.uploaders.AbstractFileUploader;
+import com.talentica.hungryHippos.node.uploaders.HybridFileUploader;
+import com.talentica.hungryHippos.node.uploaders.InMemoryFileUploader;
+import com.talentica.hungryHippos.node.uploaders.NodeWiseFileUploader;
+import com.talentica.hungryHippos.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,33 +46,59 @@ public enum HHFileUploader {
 
     private List<Node> nodes;
 
-    private ExecutorService fileUploadService;
+    private int noOfParallelThreads;
 
     HHFileUploader() {
         this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
-        this.fileUploadService = Executors.newFixedThreadPool(nodes.size());
+        noOfParallelThreads = nodes.size()/ DataDistributorStarter.noOfDataDistributors;
+        if(noOfParallelThreads<1){
+            noOfParallelThreads = 1;
+        }else if(noOfParallelThreads > DataDistributorStarter.noOfDataDistributors){
+            noOfParallelThreads = DataDistributorStarter.noOfDataDistributors;
+        }
     }
 
     public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath) throws IOException, InterruptedException {
+        uploadFile(srcFolderPath,destinationPath,nodeToFileMap,hhFilePath,null);
+    }
+
+    public void uploadFile(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, DataStore inMemoryDataStore) throws IOException, InterruptedException {
         LOGGER.info("Sending Replica Data To Nodes for {} from {}", destinationPath, srcFolderPath);
         int idx = 0;
         Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
         Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
-        List<FileUploader> fileUploaders = new ArrayList<>();
+        List<AbstractFileUploader> fileUploaders = new ArrayList<>();
 
-        uploadFilesToCorrespondingNodes(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders);
+        uploadFilesToCorrespondingNodes(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders, inMemoryDataStore);
         checkFilesUploadStatus(srcFolderPath, dataInputStreamMap, socketMap, fileUploaders);
 
         LOGGER.info("Completed Sending Replica Data To Nodes for {} from ", destinationPath, srcFolderPath);
     }
 
-    private void uploadFilesToCorrespondingNodes(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<FileUploader> fileUploaders) throws InterruptedException {
+    private void uploadFilesToCorrespondingNodes(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders, DataStore dataStore) throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(this.nodes.size());
+        ExecutorService fileUploadService = Executors.newFixedThreadPool(noOfParallelThreads);
+        if(dataStore instanceof FileDataStore){
+            uploadForFileDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders, countDownLatch, fileUploadService);
+        }else if(dataStore instanceof InMemoryDataStore){
+            uploadForInMemoryDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders,(InMemoryDataStore) dataStore, countDownLatch, fileUploadService);
+        }else if(dataStore instanceof NodeWiseDataStore){
+            uploadForNodeWiseDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders, countDownLatch, fileUploadService);
+        }else{
+            uploadForHybridDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders,(HybridDataStore) dataStore, countDownLatch, fileUploadService);
+        }
+
+        countDownLatch.await();
+        fileUploadService.shutdown();
+    }
+
+    private void uploadForHybridDataStore(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders, HybridDataStore hybridDataStore, CountDownLatch countDownLatch, ExecutorService fileUploadService) {
         for (Node node : this.nodes) {
             int nodeId = node.getIdentifier();
             Set<String> fileNames = nodeToFileMap.get(nodeId);
             if (fileNames != null && !fileNames.isEmpty()) {
-                FileUploader fileUploader  = new FileUploader(countDownLatch,srcFolderPath, destinationPath, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath);
+                String tarFilename =  UUID.randomUUID().toString() + ".tar";
+                AbstractFileUploader fileUploader  = new HybridFileUploader(countDownLatch,srcFolderPath, destinationPath, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath, hybridDataStore,tarFilename);
                 fileUploaders.add(fileUploader);
                 fileUploadService.execute(fileUploader);
                 idx++;
@@ -77,10 +106,57 @@ public enum HHFileUploader {
                 countDownLatch.countDown();
             }
         }
-        countDownLatch.await();
     }
 
-    private void checkFilesUploadStatus(String srcFolderPath, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<FileUploader> fileUploaders) throws IOException {
+    private void uploadForNodeWiseDataStore(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders, CountDownLatch countDownLatch, ExecutorService fileUploadService) {
+        for (Node node : this.nodes) {
+            int nodeId = node.getIdentifier();
+            Set<String> fileNames = nodeToFileMap.get(nodeId);
+            if (fileNames != null && !fileNames.isEmpty()) {
+                String fileName =  nodeId+"";
+                AbstractFileUploader fileUploader  = new NodeWiseFileUploader(countDownLatch,srcFolderPath, destinationPath, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath, fileName);
+                fileUploaders.add(fileUploader);
+                fileUploadService.execute(fileUploader);
+                idx++;
+            }else{
+                countDownLatch.countDown();
+            }
+        }
+    }
+
+    private void uploadForInMemoryDataStore(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders, InMemoryDataStore inMemoryDataStore, CountDownLatch countDownLatch, ExecutorService fileUploadService) {
+        for (Node node : this.nodes) {
+            int nodeId = node.getIdentifier();
+            Set<String> fileNames = nodeToFileMap.get(nodeId);
+            if (fileNames != null && !fileNames.isEmpty()) {
+                String tarFilename =  UUID.randomUUID().toString() + ".tar";
+                AbstractFileUploader fileUploader  = new InMemoryFileUploader(countDownLatch,srcFolderPath, destinationPath, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath, inMemoryDataStore,tarFilename);
+                fileUploaders.add(fileUploader);
+                fileUploadService.execute(fileUploader);
+                idx++;
+            }else{
+                countDownLatch.countDown();
+            }
+        }
+    }
+
+    private void uploadForFileDataStore(String srcFolderPath, String destinationPath, Map<Integer, Set<String>> nodeToFileMap, String hhFilePath, int idx, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders, CountDownLatch countDownLatch, ExecutorService fileUploadService) {
+        for (Node node : this.nodes) {
+            int nodeId = node.getIdentifier();
+            Set<String> fileNames = nodeToFileMap.get(nodeId);
+            if (fileNames != null && !fileNames.isEmpty()) {
+                String tarFilename =  UUID.randomUUID().toString() + ".tar";
+                AbstractFileUploader fileUploader  = new FileUploader(countDownLatch,srcFolderPath, destinationPath, idx, dataInputStreamMap, socketMap, node, fileNames, hhFilePath,tarFilename);
+                fileUploaders.add(fileUploader);
+                fileUploadService.execute(fileUploader);
+                idx++;
+            }else{
+                countDownLatch.countDown();
+            }
+        }
+    }
+
+    private void checkFilesUploadStatus(String srcFolderPath, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, List<AbstractFileUploader> fileUploaders) throws IOException {
         boolean success = true;
         success = checkFileUploadersStatuses(srcFolderPath, fileUploaders, success);
 
@@ -90,8 +166,8 @@ public enum HHFileUploader {
         }
     }
 
-    private boolean checkFileUploadersStatuses(String srcFolderPath, List<FileUploader> fileUploaders, boolean success) {
-        for(FileUploader fileUploader:fileUploaders){
+    private boolean checkFileUploadersStatuses(String srcFolderPath, List<AbstractFileUploader> fileUploaders, boolean success) {
+        for(AbstractFileUploader fileUploader:fileUploaders){
             success = success&&fileUploader.isSuccess();
         }
         if (!success) {

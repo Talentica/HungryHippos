@@ -95,6 +95,7 @@ public class DataDistributorService implements Runnable {
       if (!HHFileStatusCoordinator.checkIfFailed(hhFilePath)) {
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }
+      logger.info("Data distributed successfully for {}",srcDataPath);
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
 

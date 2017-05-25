@@ -87,7 +87,6 @@ public class HHRDDInfoImpl implements HHRDDInfo {
   /**
    * Instantiates a new HHRDD info impl.
    *
-   * @param bucketCombinationToNodeNumberMap the bucket combination to node number map
    * @param bucketToNodeNumberMap the bucket to node number map
    * @param fileNameToSizeWholeMap the file name to size whole map
    * @param keyOrder the key order
@@ -508,6 +507,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     int index = 0;
     for (Map.Entry<String, Tuple2<String, int[]>> fileEntry : fileToNodeId.entrySet()) {
       List<Tuple2<String, int[]>> files = new ArrayList<>();
+      files.add(fileEntry.getValue());
       int preferredNodeId =
           fileEntry.getValue()._2[jobShardingDimensions.get(jobPrimaryDimensionIdx)];
       List<String> preferredHosts = new ArrayList<>();

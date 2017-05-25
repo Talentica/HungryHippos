@@ -19,7 +19,7 @@ public enum ResourceAllocator {
     private static final Logger logger = LoggerFactory.getLogger(ResourceAllocator.class);
 
     public synchronized boolean allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams,
-                                                  String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap,
+                                                  String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap,Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap,
                                                   boolean append, boolean reqForUpgrade, FileDataStore fileDataStore) throws FileNotFoundException {
         boolean usingBufferStream = true;
         long usableMemory = MemoryStatus.getUsableMemory();
@@ -30,8 +30,10 @@ public enum ResourceAllocator {
             }
             for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
                 FileOutputStream fos = new FileOutputStream(dataFilePrefix + entry.getValue(), append);
-                outputStreams[entry.getKey()] = new BufferedOutputStream(fos, 1024);
+                BufferedOutputStream bos = new BufferedOutputStream(fos, 1024);
+                outputStreams[entry.getKey()] = bos;
                 fileNameToOutputStreamMap.put(entry.getValue(), fos);
+                fileNameToBufferedOutputStreamMap.put(entry.getValue(),bos);
             }
         } else {
             usingBufferStream = false;

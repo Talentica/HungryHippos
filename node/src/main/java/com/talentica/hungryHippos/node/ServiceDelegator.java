@@ -17,6 +17,7 @@ package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.node.joiners.NodeFileJoiner;
 import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
+import com.talentica.hungryHippos.node.joiners.UnTarStrategy;
 import com.talentica.hungryHippos.node.service.*;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
@@ -46,7 +47,7 @@ public class ServiceDelegator implements Runnable {
           break;
         case HungryHippoServicesConstants.TAR_DATA_APPENDER:
           DataDistributorStarter.commonServicePoolCache
-                  .execute(new DataAppenderService(socket,(x,y)->new TarFileJoiner(x,y)));
+                  .execute(new DataAppenderService(socket,(x,y)->new TarFileJoiner(x,y,UnTarStrategy.UNTAR_ON_CONTINUOUS_STREAMS)));
           break;
         case HungryHippoServicesConstants.NODE_DATA_APPENDER:
           DataDistributorStarter.commonServicePoolCache.

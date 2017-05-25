@@ -116,8 +116,7 @@ public class DataPublisherStarter {
         }
       }
 
-      queue = new ArrayBlockingQueue<>(chunks.size());
-      queue.addAll(chunks);
+      queue = new ConcurrentLinkedQueue<>(chunks);
 
       for (int i = 0; i < noOfParallelThreads; i++) {
         if (!listOfNodesAssignedToThread.get(i).isEmpty()) {

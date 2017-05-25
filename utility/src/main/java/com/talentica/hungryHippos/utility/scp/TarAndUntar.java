@@ -16,6 +16,7 @@
 package com.talentica.hungryHippos.utility.scp;
 
 import java.io.*;
+import java.util.Map;
 import java.util.Set;
 
 import org.kamranzafar.jtar.TarEntry;
@@ -91,6 +92,54 @@ public class TarAndUntar {
           fos.flush();
           dest.close();
           fos.close();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } catch (FileNotFoundException e) {
+      throw e;
+    }finally {
+      try {
+        tis.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+
+  }
+
+  public static void untarToStream(String tarFile, Map<String,? extends OutputStream> outputStreamMap) throws FileNotFoundException {
+    TarInputStream tis = null;
+    try {
+      tis = new TarInputStream(new BufferedInputStream(new FileInputStream(tarFile)));
+      TarEntry entry;
+      try {
+        while((entry = tis.getNextEntry()) != null) {
+          if (entry.getSize() > 0) {
+            int count;
+            byte data[] = new byte[2048];
+            OutputStream os = outputStreamMap.get(entry.getName());
+            if (os instanceof BufferedOutputStream) {
+              BufferedOutputStream dest = (BufferedOutputStream) os;
+              while ((count = tis.read(data)) != -1) {
+                dest.write(data, 0, count);
+              }
+              dest.flush();
+            } else if (os instanceof FileOutputStream) {
+              FileOutputStream dest = (FileOutputStream) os;
+              while ((count = tis.read(data)) != -1) {
+                dest.write(data, 0, count);
+              }
+              dest.flush();
+            } else {
+              while ((count = tis.read(data)) != -1) {
+                os.write(data, 0, count);
+              }
+              os.flush();
+            }
+
+          }
         }
       } catch (IOException e) {
         e.printStackTrace();

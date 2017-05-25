@@ -12,6 +12,8 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 
 import javax.xml.bind.JAXBException;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,5 +97,13 @@ class NodeFileMapper {
 
     public void upgradeStore() throws IOException {
         this.fileDataStore.upgradeStreams();
+    }
+
+    public Map<String, FileOutputStream> getFileNameToOutputStreamMap() {
+        return this.fileDataStore.getFileNameToOutputStreamMap();
+    }
+
+    public Map<String, BufferedOutputStream> getFileNameToBufferedOutputStreamMap() {
+        return this.fileDataStore.getFileNameToBufferedOutputStreamMap();
     }
 }

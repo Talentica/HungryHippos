@@ -15,7 +15,6 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.storage;
 
-import com.talentica.hungryHippos.utility.MemoryStatus;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -35,6 +34,7 @@ public class FileDataStore implements DataStore {
      */
     private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
     private Map<String, FileOutputStream> fileNameToOutputStreamMap;
+    private Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap;
     private OutputStream[] outputStreams;
     private String hungryHippoFilePath;
     private String dataFilePrefix;
@@ -52,6 +52,7 @@ public class FileDataStore implements DataStore {
                          String fileName) throws IOException {
 
         fileNameToOutputStreamMap = new HashMap<>();
+        fileNameToBufferedOutputStreamMap = new HashMap<>();
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
@@ -70,7 +71,7 @@ public class FileDataStore implements DataStore {
         dataFilePrefix = dataFilePrefix + "/";
         this.fileNames = fileNames;
         usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
-                this.dataFilePrefix, this.fileNameToOutputStreamMap, append, false, null);
+                this.dataFilePrefix, this.fileNameToOutputStreamMap,this.fileNameToBufferedOutputStreamMap, append, false, null);
         if(usingBufferStream) {
             logger.info("Using BufferedStreams for {}", dataFilePrefix);
         }
@@ -151,9 +152,17 @@ public class FileDataStore implements DataStore {
 
     public void upgradeStreams() throws FileNotFoundException {
         usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
-                this.dataFilePrefix, this.fileNameToOutputStreamMap, true, true, this);
+                this.dataFilePrefix, this.fileNameToOutputStreamMap, this.fileNameToBufferedOutputStreamMap,true, true, this);
         if(usingBufferStream){
             logger.info("Upgraded to BufferedStreams for {}",dataFilePrefix);
         }
+    }
+
+    public Map<String, FileOutputStream> getFileNameToOutputStreamMap() {
+        return fileNameToOutputStreamMap;
+    }
+
+    public Map<String, BufferedOutputStream> getFileNameToBufferedOutputStreamMap() {
+        return fileNameToBufferedOutputStreamMap;
     }
 }

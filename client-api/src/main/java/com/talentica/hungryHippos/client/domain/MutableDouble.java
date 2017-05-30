@@ -29,7 +29,6 @@ public class MutableDouble implements DataTypes {
   private static final long serialVersionUID = -6085804645390531875L;
   private byte[] array;
   private int length = Double.BYTES;
-  private int splitIndex;
 
   /**
    * creates a new MutableDouble.
@@ -85,15 +84,12 @@ public class MutableDouble implements DataTypes {
           return false;
         }
       }
-      if(this.splitIndex != that.splitIndex){
-        return false;
-      }
       return true;
   }
 
   @Override
   public int hashCode() {
-    int h = splitIndex;
+    int h = 0;
     for (int i = 0; i < length; i++) {
       h = 31 * h + array[i];
     }

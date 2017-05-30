@@ -16,17 +16,14 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.datareceiver.FileJoiner;
-import com.talentica.hungryHippos.node.datareceiver.HHFileUploader;
+import com.talentica.hungryHippos.node.uploaders.HHFileUploader;
 import com.talentica.hungryHippos.sharding.Bucket;
 import com.talentica.hungryHippos.sharding.BucketCombination;
 import com.talentica.hungryHippos.sharding.KeyValueFrequency;
 import com.talentica.hungryHippos.sharding.Node;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.storage.DataStore;
-import com.talentica.hungryHippos.storage.FileDataStore;
-import com.talentica.hungryHippos.utility.FileSystemConstants;
+import com.talentica.hungryHippos.sharding.util.NodeSelector;
+import com.talentica.hungryHippos.storage.*;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
@@ -43,26 +40,42 @@ public class HHFileMapper {
 
     private String[] keyOrder;
     private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
-    private Map<BucketCombination, Set<Node>> bucketCombinationNodeMap;
     private int maxBucketSize;
     private Map<Integer, Set<String>> nodeToFileMap;
+    private Map<String, int[]> fileToNodeMap;
     private DataStore dataStore;
     private String hhFilePath;
     private String uniqueFolderName;
+    private NodeSelector nodeSelector;
 
     public HHFileMapper(String hhFilePath, ShardingApplicationContext context, DataDescription dataDescription
-            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, Map<BucketCombination, Set<Node>> bucketCombinationNodeMap, String[] keyOrder) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder, StoreType storeType) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
-        this.bucketCombinationNodeMap = bucketCombinationNodeMap;
         this.bucketToNodeNumberMap = bucketToNodeNumberMap;
         maxBucketSize = Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
         Map<Integer, String> fileNames = new HashMap<>();
         nodeToFileMap = new HashMap<>();
+        fileToNodeMap = new HashMap<>();
         this.keyOrder = keyOrder;
+        nodeSelector = new NodeSelector();
         addFileNameToList(fileNames, 0, "", 0, null);
         this.uniqueFolderName = UUID.randomUUID().toString();
-        dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
-                 hhFilePath, uniqueFolderName);
+        switch (storeType){
+            case FILEDATASTORE:
+                dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
+                        hhFilePath, uniqueFolderName);
+                break;
+            case INMEMORYDATASTORE:
+                dataStore = new InMemoryDataStore(hhFilePath,dataDescription.getSize(),fileNames.size());
+                break;
+            case HYBRIDDATASTORE:
+                dataStore = new HybridDataStore(hhFilePath,dataDescription.getSize(),fileNames.size(),uniqueFolderName);
+                break;
+            case NODEWISEDATASTORE:
+                dataStore =  new NodeWiseDataStore(fileNames,fileToNodeMap, maxBucketSize, keyOrder.length,
+                        hhFilePath, uniqueFolderName,nodeSelector.noOfNodes());
+                break;
+        }
     }
 
     private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
@@ -92,11 +105,14 @@ public class HHFileMapper {
 
     private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        Set<Node> nodes = bucketCombinationNodeMap.get(bucketCombination);
-        Iterator<Node> nodeIterator = nodes.iterator();
+        int[] nodeIdsArr = new int[keyOrder.length];
+        fileToNodeMap.put(fileName,nodeIdsArr);
+        Set<Integer> nodeIds = nodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
+        Iterator<Integer> nodeIterator = nodeIds.iterator();
+        int i =0;
         while (nodeIterator.hasNext()) {
-            Node node = nodeIterator.next();
-            int nodeId = node.getNodeId();
+            int nodeId = nodeIterator.next();
+            nodeIdsArr[i++]=nodeId;
             Set<String> fileNameSet = nodeToFileMap.get(nodeId);
             if (fileNameSet == null) {
                 fileNameSet = new HashSet<>();
@@ -107,8 +123,15 @@ public class HHFileMapper {
         fileNames.put(index, fileName);
     }
 
+
+
+
     public void storeRow(int index, byte[] raw) {
         dataStore.storeRow(index,raw);
+    }
+
+    public boolean storeRow(String key, byte[] raw) throws IOException {
+        return dataStore.storeRow(key,raw);
     }
 
     public void sync() throws IOException, InterruptedException {
@@ -116,8 +139,9 @@ public class HHFileMapper {
         String baseFolderPath = FileSystemContext.getRootDirectory() + hhFilePath;
         String srcFolderPath = baseFolderPath + File.separator + uniqueFolderName;
         String destFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix();
-        //FileJoiner.INSTANCE.join(srcFolderPath, destFolderPath, destFolderPath);
-        HHFileUploader.INSTANCE.uploadFile(srcFolderPath, destFolderPath, nodeToFileMap, hhFilePath);
+        HHFileUploader.INSTANCE.uploadFile(srcFolderPath, destFolderPath, nodeToFileMap, hhFilePath,dataStore);
+        dataStore.reset();
         FileUtils.deleteDirectory(new File(srcFolderPath));
     }
+
 }

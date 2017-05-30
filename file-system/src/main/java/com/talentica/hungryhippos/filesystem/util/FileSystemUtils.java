@@ -97,9 +97,11 @@ public class FileSystemUtils {
         bos.write(buffer, 0, len);;
       }
       bos.flush();
+      fos.flush();
       bis.close();
     }
     bos.close();
+    fos.close();
   }
 
   /**

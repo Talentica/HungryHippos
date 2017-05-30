@@ -77,8 +77,8 @@ public class DataDistributorService implements Runnable {
       }
 
       long size = dataInputStream.readLong();
-
-      OutputStream bos = new BufferedOutputStream(new FileOutputStream(srcDataPath));
+      FileOutputStream fos= new FileOutputStream(srcDataPath);
+      OutputStream bos = new BufferedOutputStream(fos);
 
       while (size != 0) {
         read = dataInputStream.read(buffer);
@@ -86,15 +86,16 @@ public class DataDistributorService implements Runnable {
         size -= read;
       }
       bos.flush();
+      fos.flush();
       bos.close();
-      buffer = null;
-      bos = null;
+      fos.close();
       System.gc();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
       if (!HHFileStatusCoordinator.checkIfFailed(hhFilePath)) {
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }
+      logger.info("Data distributed successfully for {}",srcDataPath);
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
 

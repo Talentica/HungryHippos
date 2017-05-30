@@ -130,7 +130,8 @@ public class FileSplitterTest {
       byte[] buffer = new byte[4 * 1024 * 1024];
       int read = 0;
       File chunkFile = new File(chunk.getFileName() + "-cp" + ".txt");
-      try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(chunkFile))) {
+      try (FileOutputStream fileOutputStream = new FileOutputStream(chunkFile);
+           OutputStream fos = new BufferedOutputStream(fileOutputStream)) {
         while ((read = hhfStream.read(buffer)) != -1) {
           fos.write(buffer, 0, read);
         }

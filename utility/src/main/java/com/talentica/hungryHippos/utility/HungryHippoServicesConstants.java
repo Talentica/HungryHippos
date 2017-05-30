@@ -21,11 +21,12 @@ package com.talentica.hungryHippos.utility;
 public interface HungryHippoServicesConstants {
   int DATA_DISTRIBUTOR = 1;
   int FILE_PROVIDER = 2;
-  int DATA_APPENDER = 3;
-  int METADATA_UPDATER = 4;
-  int METADATA_SYNCHRONIZER = 5;
-  int ACCEPT_FILE = 6;
-  int SHARDING_TABLE = 7;
+  int NODE_DATA_APPENDER = 3;
+  int TAR_DATA_APPENDER = 4;
+  int METADATA_UPDATER = 5;
+  int METADATA_SYNCHRONIZER = 6;
+  int ACCEPT_FILE = 7;
+  int SHARDING_TABLE = 8;
   
   String SUCCESS = "SUCCESS";
   String FAILURE = "FAILURE";

@@ -15,11 +15,14 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.storage;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 /**
  * Created by debasishc on 27/8/15.
  */
 public interface DataStore {
-  void storeRow(String storeId, byte[] raw);
+  boolean storeRow(String storeId, byte[] raw) throws IOException;
 
   void storeRow(int index, byte[] raw);
 
@@ -27,4 +30,5 @@ public interface DataStore {
 
   String getHungryHippoFilePath();
 
+  void reset();
 }

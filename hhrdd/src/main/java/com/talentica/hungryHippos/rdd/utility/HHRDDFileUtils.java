@@ -57,13 +57,16 @@ public class HHRDDFileUtils implements Serializable {
                 new File(path).mkdirs();
                 String filePath = path + File.separatorChar + "part-" + partitionId;
                 File file = new File(filePath);
-                BufferedWriter out = new BufferedWriter(new FileWriter(file), 20480);
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter out = new BufferedWriter(writer, 20480);
                 while (t.hasNext()) {
                     out.write(t.next().toString());
                     out.newLine();
                 }
                 out.flush();
+                writer.flush();
                 out.close();
+                writer.close();
             }
         });
     }
@@ -86,7 +89,8 @@ public class HHRDDFileUtils implements Serializable {
                 new File(path).mkdirs();
                 String filePath = path + File.separatorChar + "part-" + partitionId;
                 File file = new File(filePath);
-                BufferedWriter out = new BufferedWriter(new FileWriter(file), 20480);
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter out = new BufferedWriter(writer, 20480);
                 Tuple2 tuple2 = null;
                 while (t.hasNext()) {
                     tuple2 = t.next();
@@ -94,7 +98,9 @@ public class HHRDDFileUtils implements Serializable {
                     out.newLine();
                 }
                 out.flush();
+                writer.flush();
                 out.close();
+                writer.close();
             }
         });
     }
@@ -116,7 +122,8 @@ public class HHRDDFileUtils implements Serializable {
 				new File(path).mkdirs();
 				String filePath = path + File.separatorChar + "part-" + partitionId;
 				File file = new File(filePath);
-				BufferedWriter out = new BufferedWriter(new FileWriter(file),20480);
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter out = new BufferedWriter(writer, 20480);
                 Tuple2 tuple2 = null;
 				while (tuple2Iterator.hasNext()) {
 					tuple2 = tuple2Iterator.next();
@@ -124,7 +131,9 @@ public class HHRDDFileUtils implements Serializable {
 					out.newLine();
 				}
 				out.flush();
+                writer.flush();
 				out.close();
+                writer.close();
 			}
 		});
 	}
@@ -147,7 +156,8 @@ public class HHRDDFileUtils implements Serializable {
                 new File(path).mkdirs();
                 String filePath = path + File.separatorChar + "part-" + partitionId;
                 File file = new File(filePath);
-                BufferedWriter out = new BufferedWriter(new FileWriter(file),20480);
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter out = new BufferedWriter(writer, 20480);
                 Tuple2 tuple2 = null;
                 while (tuple2Iterator.hasNext()) {
                     tuple2 = tuple2Iterator.next();
@@ -155,7 +165,9 @@ public class HHRDDFileUtils implements Serializable {
                     out.newLine();
                 }
                 out.flush();
+                writer.flush();
                 out.close();
+                writer.close();
             }
         });
     }

@@ -136,7 +136,7 @@ class HHRDDHelper {
         for (int i = 0; i < shardingIndexes.length; i++) {
             shardingIndexes[i]= i;
         }
-        String bucketCombinationToNodeNumbersMapFilePath = shardingFolderPath + File.separatorChar + bucketCombinationToNodeNumbersMapFile;
+        
         String bucketToNodeNumberMapFilePath =
                 shardingFolderPath + File.separatorChar + bucketToNodeNumberMapFile;
         Map<Integer, SerializedNode> nodIdToIp = new HashMap<>();
@@ -144,8 +144,7 @@ class HHRDDHelper {
           nodIdToIp.put(serializedNode.getId(), serializedNode);
         }
         Map<String,Long> fileNameToSizeWholeMap = readMetaData(metadataLocation);
-        HHRDDInfoImpl hhrddInfo = new HHRDDInfoImpl(ShardingFileUtil.readFromFileBucketCombinationToNodeNumber(bucketCombinationToNodeNumbersMapFilePath),
-                ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFilePath),fileNameToSizeWholeMap,
+        HHRDDInfoImpl hhrddInfo = new HHRDDInfoImpl(ShardingFileUtil.readFromFileBucketToNodeNumber(bucketToNodeNumberMapFilePath),fileNameToSizeWholeMap,
                 context.getShardingDimensions(),nodIdToIp, shardingIndexes,dataDescription,directoryLocation);
         return hhrddInfo;
 

@@ -32,13 +32,13 @@ import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * {@code DataPublisherStarter} responsible for call the {@code DataProvider} which publish data to
@@ -61,7 +61,7 @@ public class DataPublisherStarter {
   /**
    * Entry point of execution.
    *
-   * @param args.
+   * @param args
    */
   public static void main(String[] args) {
 
@@ -116,8 +116,7 @@ public class DataPublisherStarter {
         }
       }
 
-      queue = new ArrayBlockingQueue<>(chunks.size());
-      queue.addAll(chunks);
+      queue = new ConcurrentLinkedQueue<>(chunks);
 
       for (int i = 0; i < noOfParallelThreads; i++) {
         if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
@@ -218,14 +217,23 @@ public class DataPublisherStarter {
   }
 
   public static void updateMetaData(String hhFilePath, List<Node> nodes)
-      throws IOException, InterruptedException {
+          throws IOException, InterruptedException, ExecutionException {
+    ExecutorService metadataUpdaterService = Executors.newFixedThreadPool(nodes.size());
+    Future<Boolean>[] futures = new Future[nodes.size()];
     for (int i = 0; i < nodes.size(); i++) {
-      updateNodeMetaData(hhFilePath, nodes.get(i));
+      MetadataRequester metadataRequester = new MetadataRequester(i,nodes,hhFilePath);
+      futures[i] = metadataUpdaterService.submit(metadataRequester);
     }
+
+    for (int i = 0; i < nodes.size(); i++) {
+      futures[i].get();
+    }
+    metadataUpdaterService.shutdown();
   }
 
   public static void updateNodeMetaData(String hhFilePath, Node node)
       throws IOException, InterruptedException {
+    LOGGER.info("Updating metadata in {}",node.getIp());
     Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 10);
     DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
     DataInputStream dis = new DataInputStream(socket.getInputStream());
@@ -235,6 +243,7 @@ public class DataPublisherStarter {
     if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
       throw new RuntimeException("Metadata Synchronizer update failed for ip : " + node.getIp());
     }
+    LOGGER.info("Completed updating metadata in {}",node.getIp());
   }
 
   public static void uploadChunk(String destinationPath, Queue<Node> nodes, String remotePath,
@@ -279,8 +288,10 @@ public class DataPublisherStarter {
     boolean dataDistributorAvailable ;
     try{
       dataDistributorAvailable = dis.readBoolean();
-    }catch (EOFException e){
+    }catch (IOException e){
       e.printStackTrace();
+      LOGGER.error("[{}] DataDistributor Issue in {} : {}", Thread.currentThread().getName(),
+              node.getIp(), e.getMessage());
       dataDistributorAvailable = false;
     }
     LOGGER.info("[{}] DataDistributor Available in {} : {}", Thread.currentThread().getName(),

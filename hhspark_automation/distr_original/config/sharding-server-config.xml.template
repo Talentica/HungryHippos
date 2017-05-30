@@ -5,4 +5,5 @@
 	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-server-config.xsd ">
 	<tns:maximum-shard-file-size-in-bytes>200428800</tns:maximum-shard-file-size-in-bytes>
 	<tns:maximum-no-of-shard-buckets-size>20</tns:maximum-no-of-shard-buckets-size>
+	<tns:max-skew>3</tns:max-skew>
 </tns:sharding-server-config>

@@ -77,6 +77,7 @@ public class EncodedFileIO {
         }
         outputFile.write(buf);
       }
+      outputFile.flush();
     }catch(Exception e){
       e.printStackTrace();
     }finally{

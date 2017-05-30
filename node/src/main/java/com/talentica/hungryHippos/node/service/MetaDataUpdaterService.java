@@ -53,7 +53,8 @@ public class MetaDataUpdaterService implements Runnable {
             }
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(metadataFile, false));
+            FileOutputStream fos = new FileOutputStream(metadataFile, false);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
             int len;
             long remainingDataSize = metadatatFileSize;
             while (remainingDataSize > 0) {
@@ -62,7 +63,9 @@ public class MetaDataUpdaterService implements Runnable {
                 remainingDataSize -= len;
             }
             bos.flush();
+            fos.flush();
             bos.close();
+            fos.close();
             this.dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             this.dataOutputStream.flush();
             logger.info("Metadata update completed from {}", this.socket.getInetAddress());

@@ -15,11 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.utility;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,9 +60,9 @@ public class ConfigurableDataGenerator {
     return retList;
   }
 
-  private static double skewRandom() {
+  private static double skewRandom(double skew) {
     double start = Math.random();
-    return start * start;
+    return Math.pow(start,skew );
   }
 
   private static class ColumnConfig {
@@ -79,23 +75,25 @@ public class ConfigurableDataGenerator {
     }
   }
 
-  public static void main(String[] args) throws FileNotFoundException {
+  public static void main(String[] args) throws IOException {
     if (args.length < 3) {
       System.out.println("Usage java com.talentica.hungryHippos.utility.ConfigurableDataGenerator "
-          + "[fileSizeInMbs] [filename] [column_desc]*");
+          + "[fileSizeInMbs] [filename] [skew] [column_desc]*");
       System.out.println("column_desc := (C|N)':'[number_of_characters]");
       System.exit(0);
     }
     long fileSizeInMbs = Long.parseLong(args[0]);
 
     long filesizeInBytes = fileSizeInMbs * 1024 * 1024;
-
+    
     String filename = args[1];
+    
+    double skew = Double.parseDouble(args[2]);
 
-    ColumnConfig[] configs = new ColumnConfig[args.length - 2];
+    ColumnConfig[] configs = new ColumnConfig[args.length - 3];
 
-    for (int i = 0; i < args.length - 2; i++) {
-      String[] parts = args[i + 2].split(":");
+    for (int i = 0; i < args.length - 3; i++) {
+      String[] parts = args[i + 3].split(":");
       char[] sourceChars = null;
       switch (parts[0]) {
         case "C":
@@ -109,14 +107,15 @@ public class ConfigurableDataGenerator {
       ColumnConfig config = new ColumnConfig(sourceChars, count);
       configs[i] = config;
     }
+    FileOutputStream fos = new FileOutputStream(new File(filename), true);
     PrintWriter out = new PrintWriter(
-        new OutputStreamWriter(new FileOutputStream(new File(filename), true)), true);
+        new OutputStreamWriter(fos), true);
     long start = System.currentTimeMillis();
     long sizeOfDataWrote = 0l;
     while (sizeOfDataWrote < filesizeInBytes) {
       for (int j = 0; j < configs.length; j++) {
         sizeOfDataWrote = sizeOfDataWrote + configs[j].count;
-        int toSelct = (int) (skewRandom() * configs[j].valueSet.length);
+        int toSelct = (int) (skewRandom(skew) * configs[j].valueSet.length);
         out.print(configs[j].valueSet[toSelct]);
         if (j < configs.length - 1) {
           out.print(",");
@@ -127,7 +126,9 @@ public class ConfigurableDataGenerator {
     }
     long end = System.currentTimeMillis();
     out.flush();
+    fos.flush();
     out.close();
+    fos.close();
     System.out.println("Time taken in ms: " + (end - start));
 
   }

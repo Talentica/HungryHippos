@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2017 Talentica Software Pvt. Ltd.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package com.talentica.hungryHippos.node.service;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import com.talentica.hungryHippos.node.datareceiver.MetaDataSynchronizer;
+import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -33,7 +34,7 @@ import java.net.Socket;
 /**
  * Created by rajkishoreh on 6/2/17.
  */
-public class MetaDataSynchronizerService implements Runnable{
+public class MetaDataSynchronizerService implements Runnable {
 
     private static Logger logger = LoggerFactory.getLogger(MetaDataSynchronizerService.class);
     private DataInputStream dataInputStream;
@@ -49,19 +50,29 @@ public class MetaDataSynchronizerService implements Runnable{
 
     @Override
     public void run() {
-        String hhFilePath= null;
+
+        String hhFilePath = null;
         try {
             hhFilePath = dataInputStream.readUTF();
-            String baseFolderPath = FileSystemContext.getRootDirectory() + hhFilePath;
-            String dataFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix();
-            File dataFolder = new File(dataFolderPath);
-            String[] files = dataFolder.list();
-            String metadataFilePath = baseFolderPath + File.separator + FileSystemConstants.META_DATA_FOLDER_NAME
-                    + File.separator + NodeInfo.INSTANCE.getId();
-            MetaDataSynchronizer.INSTANCE.synchronize(dataFolderPath,files,dataFolderPath,metadataFilePath,hhFilePath);
-            dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+            logger.info("Checking publish status of {}",hhFilePath);
+            boolean status = FileJoinCaller.INSTANCE.checkStatus(hhFilePath);
+            if (status) {
+                logger.info("Publish successful for {}",hhFilePath);
+                String baseFolderPath = FileSystemContext.getRootDirectory() + hhFilePath;
+                String dataFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix();
+                String metadataFilePath = baseFolderPath + File.separator + FileSystemConstants.META_DATA_FOLDER_NAME
+                        + File.separator + NodeInfo.INSTANCE.getId();
+                File dataFolder = new File(dataFolderPath);
+                String[] files = dataFolder.list();
+                MetaDataSynchronizer.INSTANCE.synchronize(dataFolderPath, files, dataFolderPath, metadataFilePath, hhFilePath);
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+            } else {
+                logger.info("Publish failed for {}",hhFilePath);
+                HHFileStatusCoordinator.updateFailure(hhFilePath, "File Joiner failed");
+                dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
+            }
             dataOutputStream.flush();
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             if (hhFilePath != null) {
                 HHFileStatusCoordinator.updateFailure(hhFilePath, e.toString());
             }
@@ -72,8 +83,8 @@ public class MetaDataSynchronizerService implements Runnable{
                 e1.printStackTrace();
             }
             e.printStackTrace();
-        }finally {
-            if(socket!=null){
+        } finally {
+            if (socket != null) {
                 try {
                     socket.close();
                 } catch (IOException e) {

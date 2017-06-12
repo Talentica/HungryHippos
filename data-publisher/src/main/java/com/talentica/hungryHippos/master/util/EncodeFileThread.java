@@ -56,6 +56,7 @@ public class EncodeFileThread implements Runnable{
 
     String splitFileName = splitFilePath + "_" + currentChunk + "_txt";
     File file = new File(splitFileName);
+    FileOutputStream fos = null;
     try{
       setContext(shardingFolderPath);
       Process process  = Runtime.getRuntime().exec(commonCommandArgs + " " + currentChunk + " " + splitFileName);
@@ -72,7 +73,8 @@ public class EncodeFileThread implements Runnable{
           throw new RuntimeException("File encoding failed");
       }
       new File(outputFileName + currentChunk).getParentFile().mkdirs();
-      outputFile = new BufferedOutputStream(new FileOutputStream(outputFileName + currentChunk),20480000);
+      fos= new FileOutputStream(outputFileName + currentChunk);
+      outputFile = new BufferedOutputStream(fos,20480000);
       FieldTypeArrayDataDescription dataDescription =
           context.getConfiguredDataDescription();
       dataDescription.setKeyOrder(context.getShardingDimensions());
@@ -105,6 +107,7 @@ public class EncodeFileThread implements Runnable{
         outputFile.write(buf);
       }
       outputFile.flush();
+      fos.flush();
       file.delete();
       logger.info(currentChunk +" encoded successfully");
     }catch(Exception e){
@@ -113,6 +116,13 @@ public class EncodeFileThread implements Runnable{
       if(outputFile != null){
         try {
           outputFile.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      if(fos!=null){
+        try {
+          fos.close();
         } catch (IOException e) {
           e.printStackTrace();
         }

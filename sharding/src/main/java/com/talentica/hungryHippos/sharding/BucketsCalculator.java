@@ -17,11 +17,7 @@ package com.talentica.hungryHippos.sharding;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 
@@ -39,7 +35,7 @@ public final class BucketsCalculator {
 
   private static final int NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES = 4;
 
-  private HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap = null;
+  private HashMap<String, HashMap<String, List<Bucket<KeyValueFrequency>>>> keyToValueToBucketMap = null;
 
   private HashMap<String, List<Bucket<KeyValueFrequency>>> keyToBucketNumbersCollectionMap =
       new HashMap<String, List<Bucket<KeyValueFrequency>>>();
@@ -59,14 +55,16 @@ public final class BucketsCalculator {
    * @param context
    */
   public BucketsCalculator(
-      HashMap<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyToValueToBucketMap,ShardingApplicationContext context) {
+          HashMap<String, HashMap<String, List<Bucket<KeyValueFrequency>>>> keyToValueToBucketMap,ShardingApplicationContext context) {
     this(context);
     this.keyToValueToBucketMap = keyToValueToBucketMap;
     if (keyToValueToBucketMap != null) {
-      for (Map.Entry<String, HashMap<Object, Bucket<KeyValueFrequency>>> keyValueEntry : keyToValueToBucketMap.entrySet()) {
-        List<Bucket<KeyValueFrequency>> totalBuckets = new ArrayList<>();
-          totalBuckets.addAll(keyValueEntry.getValue().values());
-        keyToBucketNumbersCollectionMap.put(keyValueEntry.getKey(), new ArrayList<>(new HashSet<>(totalBuckets)));
+      for (Map.Entry<String, HashMap<String, List<Bucket<KeyValueFrequency>>>> keyValueEntry : keyToValueToBucketMap.entrySet()) {
+        Set<Bucket<KeyValueFrequency>> totalBuckets = new HashSet<>();
+          for(Map.Entry<String, List<Bucket<KeyValueFrequency>>> valueListEntry : keyValueEntry.getValue().entrySet()){
+              totalBuckets.addAll(valueListEntry.getValue());
+          }
+        keyToBucketNumbersCollectionMap.put(keyValueEntry.getKey(), new ArrayList<>(totalBuckets));
       }
     }
   }
@@ -108,12 +106,12 @@ public final class BucketsCalculator {
    * @param value
    * @return
    */
-  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key,final Object value) {
+  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key,final String value, int idx) {
     Bucket<KeyValueFrequency> bucket = null;
     if (keyToValueToBucketMap != null) {
-      Map<Object, Bucket<KeyValueFrequency>> valueToBucketMap = keyToValueToBucketMap.get(key);
+      Map<String, List<Bucket<KeyValueFrequency>>> valueToBucketMap = keyToValueToBucketMap.get(key);
       if (valueToBucketMap != null) {
-        Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value);
+        Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value).get(idx);
         if (valueBucket != null) {
           bucket = valueBucket;
         } else {

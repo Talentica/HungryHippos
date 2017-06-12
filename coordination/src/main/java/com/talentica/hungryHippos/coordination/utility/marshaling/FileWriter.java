@@ -91,6 +91,7 @@ public class FileWriter {
         fileOutputWriter.write(data);
         fileOutputWriter.write("\n");
         fileOutputWriter.flush();
+        fileOutputStream.flush();
       } catch (IOException e) {
         LOGGER.error("unable to write in the file due to  {}", e.getMessage());
       }
@@ -104,6 +105,7 @@ public class FileWriter {
     if (fileOutputWriter != null)
       try {
         fileOutputWriter.close();
+        fileOutputStream.close();
       } catch (IOException e) {
         LOGGER.error("Unable to close the file");
       }

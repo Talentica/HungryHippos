@@ -101,10 +101,13 @@ public enum MetaDataSynchronizer {
             fileNameToSizeMap.put(fileNames[i], file.length());
         }
         LOGGER.info("Writing metadata for {}", dataFolderPath);
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metadataFilePath, false));
+        FileOutputStream fos = new FileOutputStream(metadataFilePath, false);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(fileNameToSizeMap);
         oos.flush();
+        fos.flush();
         oos.close();
+        fos.close();
         LOGGER.info("Completed writing metadata for {}", dataFolderPath);
     }
 

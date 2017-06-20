@@ -15,29 +15,27 @@
 # limitations under the License.
 #*******************************************************************************
 
+source assign-global-variables.sh
 source vagrant_init_functions.sh
 
-no_of_nodes=$1
-provider=$2
+no_of_nodes=$NODENUM
+provider=$PROVIDER
 
 #add ssh key to local machine to access nodes
 eval `ssh-agent -s`
-ssh-add hduser_id_rsa
+ssh-add $PRIVATE_KEY_PATH
 
 #flag
 j=0
 export MASTER_IP
 
+echo "HadoopMaster" > chef/src/cookbooks/hadoop_conf_files_setup/templates/default/slaves-template.erb
+
 #updating slave file in chef/ templete as per no of nodes
-for (( node_tmp=1; node_tmp <$no_of_nodes; ++node_tmp ))
+for (( node_tmp=1; node_tmp < $no_of_nodes; ++node_tmp ))
 do
 
-if [ "$node_tmp" -eq 1 ]
-then
-echo "HadoopSlave1" > chef/src/cookbooks/hadoop_conf_files_setup/templates/default/slaves-template.erb
-else
 echo "HadoopSlave$node_tmp" >> chef/src/cookbooks/hadoop_conf_files_setup/templates/default/slaves-template.erb
-fi
 
 done
 
@@ -46,6 +44,12 @@ download_spark
 
 #download hadoop-2.7.2
 download_hadoop
+
+cat $PRIVATE_KEY_PATH > chef/src/cookbooks/hadoop_ssh_keygen_master/templates/default/id_rsa
+cat $PUBLIC_KEY_PATH > chef/src/cookbooks/hadoop_ssh_keygen_master/templates/default/id_rsa.pub
+cat $PUBLIC_KEY_PATH > chef/src/cookbooks/hadoop_ssh_keygen_master/templates/default/authorized_keys.txt
+cat $PUBLIC_KEY_PATH > chef/src/cookbooks/hadoop_ssh_keycopy_slave/templates/default/authorized_keys.txt
+
 
 start_vagrantfile $no_of_nodes $provider
 
@@ -56,6 +60,13 @@ ips=($(awk -F ':' '{print $1}' ip_file_tmp.txt))
 
 echo "${ips[@]}"
 
+MASTER_IP=$(awk -F ':' '/HadoopMaster/{print $1}' ip_file_tmp.txt)
+
+ssh -o StrictHostKeyChecking=no root@$MASTER_IP "sed --in-place '/HadoopMaster/d' /etc/hosts"
+#Copying pub key of chef-solo/this machine to master nodes hduser's authorised key.
+#Here autorised key of master nodes are same as chef-solo server
+ssh root@$MASTER_IP "cat /root/.ssh/authorized_keys >> /home/hduser/.ssh/authorized_keys"
+sleep 1
 
 #to copy all Ips to /etc/hosts of every node
 copy_ips_to_remote_host ips[@]
@@ -79,7 +90,9 @@ scp chef/src/cookbooks/hadoop_master_conf_setup/files/default/pg20417.txt  root@
 
 format_namenode
 
-adding_slave_nodes_to_knownhost_master ips[@]
+hostnames=($(awk -F ':' '{print $2}' ip_file_tmp.txt))
+
+adding_slave_nodes_to_knownhost_master hostnames[@]
 
 start_dfs
 
@@ -98,5 +111,9 @@ start_yarn
 #compare_result
 
 copy_ips_to_slaves ips[@]
+
+ip_entries=($(awk '{print}' ip_file_tmp.txt))
+
+add_hostname_to_spark_conf ip_entries[@]
 
 start_spark_all ips[@]

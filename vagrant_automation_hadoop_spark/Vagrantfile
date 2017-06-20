@@ -19,14 +19,20 @@ Vagrant.configure("2") do |config|
 
  #	no_of_nodes=3
 	no_of_nodes=ENV['NODENUM'].to_i
-       	provider=ENV['PROVIDER'].to_s
+      provider=ENV['PROVIDER'].to_s
+      private_key_path=ENV['PRIVATE_KEY_PATH'].to_s
+      token=ENV['TOKEN'].to_s
+      image=ENV['IMAGE'].to_s
+      region=ENV['REGION'].to_s
+      ram=ENV['RAM'].to_s
+      ssh_key_name=ENV['SSH_KEY_NAME'].to_s
 	ip_file = File.open("ip_file.txt", 'w')
 
 	
 if provider == "digital_ocean"
   	
 	 config.vm.box = "digital_ocean"
-	 Vagrant_functions.spawner(config)
+	 Vagrant_functions.spawner(config,private_key_path,token,image,region,ram,ssh_key_name)
 
 	 
 

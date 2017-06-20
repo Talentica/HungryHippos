@@ -1,5 +1,5 @@
 # -- HADOOP ENVIRONMENT VARIABLES START -- #
-export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_65
+export JAVA_HOME=/usr/lib/jvm/default-java
 export HADOOP_HOME=/usr/local/hadoop
 export PATH=$PATH:$HADOOP_HOME/bin
 export PATH=$PATH:$HADOOP_HOME/sbin

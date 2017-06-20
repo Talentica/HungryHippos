@@ -3,8 +3,13 @@ class Vagrant_functions
 	def self.configuration(config,no_of_nodes,ip_file,provider)
 		 (1..no_of_nodes).each do |i|
 		
-               		 config.vm.define "sparkOnHadoop-#{i}" do |node|
-                        	node_name="sparkOnHadoop-#{i}"
+                        if i == 1
+                                nodename = "HadoopMaster"
+                        else
+                                nodename = "HadoopSlave#{(i-1)}"
+                        end
+                         config.vm.define "#{nodename}" do |node|
+                                node_name="#{nodename}"
 
 				 if provider == "digital_ocean"
                                   node.vm.box = "digital_ocean"                               
@@ -18,6 +23,9 @@ class Vagrant_functions
                 	        #puts curr_dir
 
                        		node.vm.provision :chef_solo do |chef|
+                            chef.channel = "stable"
+                            chef.version = "12.17.44"
+
                                 # Paths to your cookbooks (on the host)
                                 	chef.cookbooks_path = ["#{curr_dir}/chef/src/cookbooks"]
                                 # Add chef recipes
@@ -39,11 +47,7 @@ class Vagrant_functions
 	                                ipAddr = `vagrant ssh #{node_name} -c 'ifconfig | grep -oP "inet addr:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | grep -oP "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | tail -n 2 | head -n 1'`
         	                        sleep 5
                 	                ipAddr=ipAddr.strip
-                        	        if i == 1
-                                	        ip_file.puts "#{ipAddr}\tHadoopMaster"
-	                                else
-        	                                 ip_file.puts "#{ipAddr}\tHadoopSlave#{(i-1)}"
-                	                end
+                	                ip_file.puts "#{ipAddr}\t#{node_name}"
                         	end
 
 	               	 end
@@ -52,18 +56,16 @@ class Vagrant_functions
 	end
 
 
-	def  self.spawner(config)
-		config.ssh.private_key_path = "~/.ssh/id_rsa"
-	        config.vm.provider :digital_ocean do |provider|
-                	#  provider.client_id = "YOUR CLIENT ID"
-	                #  provider.api_key = "639d421b041fed3566bc3da896d31347befdad49f8c9add911eee5a554865294"
-        	        provider.token = "639d421b041fed3566bc3da896d31347befdad49f8c9add911eee5a554865294"
-                	provider.image = "ubuntu-14-04-x64"
-	                provider.region = "nyc2"
-	                provider.size = "4GB"
+	def  self.spawner(config,private_key_path,token,image,region,ram,ssh_key_name)
+		config.ssh.private_key_path = private_key_path
+		    config.vm.provider :digital_ocean do |provider|
+                        provider.ssh_key_name = ssh_key_name
+                        provider.token = token
+                        provider.image = image
+                        provider.region = region
+                        provider.size = ram
         	end
-	end
-
-end
+	    end
+    end
 
 

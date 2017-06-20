@@ -17,7 +17,7 @@
 
 start_vagrantfile()
 {
-
+    echo "Calling start_vagrantfile"
 	no_of_nodes=$1
 	provider=$2
 
@@ -34,6 +34,7 @@ start_vagrantfile()
 	#Start vagrant file
 	#NODENUM=$no_of_nodes vagrant up --provider=digital_ocean
 	sleep 10
+	echo "End of start_vagrantfile"
 }
 
 
@@ -70,25 +71,34 @@ copy_ips_to_remote_host()
 	        #ssh -o StrictHostKeyChecking=no root@$i
         	ssh-keyscan $i >> ~/.ssh/known_hosts
 	        sleep 1
+	        ssh -o StrictHostKeyChecking=no root@$i "sed --in-place '/HadoopSlave/d' /etc/hosts"
 
-        	#copy ip file to every node
+	        #copy ip file to every node
 	        cat ip_file.txt | ssh root@$i "cat >> /etc/hosts"
 	        sleep 1
-	        #scp ip_file.txt  root@$i:/etc/ip_file.txt
-	        #vagrant ssh hadoop-$j -c '/etc/ip_file.txt >> /etc/hosts'
-
-	        if [ $j -eq 1  ]   
-	        then
-        	        MASTER_IP=$i
-                	#Copying pub key of chef-solo/this machine to master nodes hduser's authorised key. 
-	                #Here autorised key of master nodes are same as chef-solo server
-        	        ssh root@$i "cat /root/.ssh/authorized_keys >> /home/hduser/.ssh/authorized_keys"
-                	sleep 1 
-	        fi
 
 	done
     
 
+}
+
+add_hostname_to_spark_conf()
+{
+	ips_entries=("${!1}")
+	j=0
+	for ip_entry in "${ips_entries[@]}"
+	do
+	        echo $ip_entry
+	        ip=$(echo $ip_entry | cut -d ':' -f1)
+	        sleep 1
+	        hostname=$(echo $ip_entry | cut -d ':' -f2)
+	        sleep 1
+	        echo $hostname
+	        echo $ip
+            ssh root@$ip "echo SPARK_LOCAL_HOSTNAME=${hostname} >> /usr/local/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+	        sleep 1
+
+	done
 }
 
 get_master_ip()
@@ -117,25 +127,17 @@ get_master_ip()
 adding_slave_nodes_to_knownhost_master()
 {
 
-	ips=("${!1}")
-	#echo "${ips[@]}"
+	hostnames=("${!1}")
+	#echo "${hostnames[@]}"
 
 
 	#adding all slave nodes to known host of master
-	j=0
-	for ip in "${ips[@]}"
+	for hostname in "${hostnames[@]}"
 	do
-        	j=`expr $j + 1`
-	        if [ $j -eq 1  ]
-        	then
-                	echo "MASTER IP IS $MASTER_IP "
-	                ssh hduser@$MASTER_IP "ssh -o StrictHostKeyChecking=no hduser@hadoopMaster "exit""
-        	        sleep 1
-	        else
-        	        slave_no=`expr $j - 1`
-                	ssh hduser@$MASTER_IP "ssh -o StrictHostKeyChecking=no hduser@hadoopSlave$slave_no "exit""
-	                sleep 1
-       		fi
+
+	        addhostname="ssh-keyscan ${hostname} >> ~/.ssh/known_hosts"
+       		ssh hduser@$MASTER_IP $addhostname
+	        sleep 1
 
 	#below line is to solve warning - "Hadoop “Unable to load native-hadoop library for your platform” warning" on every node
 	#ssh hduser@$ip "export HADOOP_OPTS="$HADOOP_OPTS -Djava.library.path=/usr/local/hadoop/lib/native""

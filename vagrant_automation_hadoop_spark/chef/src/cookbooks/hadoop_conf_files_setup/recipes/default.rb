@@ -46,7 +46,7 @@ end
 #add export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_65 to line no 25
 execute "add line no 25" do
   user "root"
-  command "sed -i '25iexport JAVA_HOME=\/usr\/lib\/jvm\/jdk1.8.0_65' /usr/local/hadoop/etc/hadoop/hadoop-env.sh"
+  command "sed -i '25iexport JAVA_HOME=\/usr\/lib\/jvm\/default-java' /usr/local/hadoop/etc/hadoop/hadoop-env.sh"
 end
 
 

@@ -106,6 +106,20 @@ public class HHSparkContext extends JavaSparkContext {
   }
 
   /**
+   * Returns an instance of broadcast {@link DataDescription}.
+   *
+   * @param hhFilePath        Path to the HungryHippo file
+   * @return Broadcast DataDescription instance
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+   */
+  public DataDescription getFieldDataDescription(String hhFilePath)
+          throws JAXBException, IOException {
+    return getHHRDDInfo(hhFilePath).getFieldDataDesc();
+  }
+
+  /**
    * Returns array of column indexes on which sharding has been performed.
    *
    * @param hhFilePath      Path to the HungryHippo file

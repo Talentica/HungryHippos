@@ -132,10 +132,7 @@ class HHRDDHelper {
         FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
         ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
         List<SerializedNode> nodes = getNodes(clusterConfig.getNode());
-        int[] shardingIndexes = new int[context.getShardingDimensions().length];
-        for (int i = 0; i < shardingIndexes.length; i++) {
-            shardingIndexes[i]= i;
-        }
+        int[] shardingIndexes = context.getShardingIndexes();
         
         String bucketToNodeNumberMapFilePath =
                 shardingFolderPath + File.separatorChar + bucketToNodeNumberMapFile;

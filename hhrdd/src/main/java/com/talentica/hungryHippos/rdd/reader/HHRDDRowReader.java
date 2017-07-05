@@ -98,7 +98,7 @@ public class HHRDDRowReader {
       case DOUBLE:
         return source.getDouble(locator.getOffset());
       case STRING:
-        return readValueString(index);
+        return readValueString(index).toString();
     }
     return null;
   }

@@ -106,23 +106,27 @@ public final class BucketsCalculator {
    * @param value
    * @return
    */
-  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key,final String value, int idx) {
-    Bucket<KeyValueFrequency> bucket = null;
-    if (keyToValueToBucketMap != null) {
-      Map<String, List<Bucket<KeyValueFrequency>>> valueToBucketMap = keyToValueToBucketMap.get(key);
-      if (valueToBucketMap != null) {
-        Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value).get(idx);
-        if (valueBucket != null) {
-          bucket = valueBucket;
-        } else {
-          bucket = calculateBucketNumberForNewValue(key, value);
-        }
+  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key, final String value, int idx) {
+      Bucket<KeyValueFrequency> bucket = null;
+      if (keyToValueToBucketMap != null) {
+          Map<String, List<Bucket<KeyValueFrequency>>> valueToBucketMap = keyToValueToBucketMap.get(key);
+          Bucket<KeyValueFrequency> valueBucket = null;
+          if (valueToBucketMap != null) {
+              List<Bucket<KeyValueFrequency>> valueBucketList = valueToBucketMap.get(value);
+              if (valueBucketList != null) {
+                  valueBucket = valueBucketList.get(idx);
+              }
+              if (valueBucket != null) {
+                  bucket = valueBucket;
+              } else {
+                  bucket = calculateBucketNumberForNewValue(key, value);
+              }
+          }
       }
-    }
-    if (bucket == null) {
-      bucket = new Bucket<>(0);
-    }
-    return bucket;
+      if (bucket == null) {
+          bucket = new Bucket<>(0);
+      }
+      return bucket;
   }
 
   private Bucket<KeyValueFrequency> calculateBucketNumberForNewValue(String key, Object value) {

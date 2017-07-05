@@ -18,6 +18,7 @@ package com.talentica.hungryHippos.rdd;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.spark.Dependency;
@@ -86,6 +87,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     int jobPrimaryDimensionIdx = 0;
     int maxBucketSize = 0;
     int jobDimensionIdx = 0;
+    int keyOrderIdx = 0;
     if(jobDimensions!=null && jobDimensions.length>0) {
       for (int i = 0; i < shardingIndexes.length; i++) {
         for (int j = 0; j < jobDimensions.length; j++) {
@@ -95,6 +97,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
             jobShardingDimensions.add(shardingIndexes[i]);
             jobShardingDimensionsKey.add(keyOrder[i]);
             if (bucketSize > maxBucketSize) {
+              keyOrderIdx=i;
               primaryDimensionKey = dimensionKey;
               jobPrimaryDimensionIdx = jobDimensionIdx;
             }
@@ -114,7 +117,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     int noOfExecutors = sc.defaultParallelism();
     if (requiresShuffle) {
       this.partitions = hhrddInfo.getOptimizedPartitions(id, noOfExecutors, jobShardingDimensions,
-          jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
+          jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey+keyOrderIdx);
     } else {
       this.partitions = hhrddInfo.getPartitions(id, noOfExecutors, jobShardingDimensions,
           jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);

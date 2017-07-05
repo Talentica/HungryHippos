@@ -602,7 +602,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
   private void initializeKeyToBucketToFileList() {
     for (int dim = 0; dim < keyOrder.length; dim++) {
       Map<Integer, List<String>> bucketToFileList = new HashMap<>();
-      keyToBucketToFileList.put(keyOrder[dim], bucketToFileList);
+      keyToBucketToFileList.put(keyOrder[dim]+dim, bucketToFileList);
       for (Bucket<KeyValueFrequency> bucket : bucketToNodeNumberMap.get(keyOrder[dim]).keySet()) {
         List<String> fileList = new ArrayList<>();
         bucketToFileList.put(bucket.getId(), fileList);
@@ -623,7 +623,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       hhFileSize += fileNameToSizeWholeMap.get(fileName);
       String[] buckets = fileName.split("_");
       for (int i = 0; i < noOfDimensions; i++) {
-        keyToBucketToFileList.get(keyOrder[i]).get(Integer.parseInt(buckets[i])).add(fileName);
+        keyToBucketToFileList.get(keyOrder[i]+i).get(Integer.parseInt(buckets[i])).add(fileName);
       }
       return;
     }

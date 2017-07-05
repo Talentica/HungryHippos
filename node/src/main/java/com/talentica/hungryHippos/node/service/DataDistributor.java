@@ -34,6 +34,7 @@ import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.StoreType;
 import com.talentica.hungryHippos.utility.Counter;
+import com.talentica.hungryhippos.config.sharding.DataParserConfig;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,10 +91,12 @@ public class DataDistributor {
 
     File srcFile = new File(srcDataPath);
 
+    DataParserConfig dataParserConfig = context.getShardingClientConfig().getInput().getDataParserConfig();
     String dataParserClassName =
-        context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
+        dataParserConfig.getClassName();
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-        .getConstructor(DataDescription.class).newInstance(context.getConfiguredDataDescription());
+        .getConstructor(DataDescription.class,char.class).newInstance(context.getConfiguredDataDescription(),
+                    dataParserConfig.getDelimiter().charAt(0));
 
 
     LOGGER.info("\n\tDISTRIBUTION OF DATA ACROSS THE NODES STARTED... for {}", hhFilePath);

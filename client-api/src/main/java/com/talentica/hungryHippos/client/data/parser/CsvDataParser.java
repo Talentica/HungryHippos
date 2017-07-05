@@ -46,6 +46,8 @@ public class CsvDataParser extends LineByLineDataParser {
 
   private int numfields;
 
+  private char delimiter;
+
   private InvalidRowException invalidRow = new InvalidRowException("Invalid Row");
 
   boolean[] columnsStatusForInvalidRow = null;
@@ -66,6 +68,14 @@ public class CsvDataParser extends LineByLineDataParser {
 
   public CsvDataParser(DataDescription dataDescription) {
     super(dataDescription);
+    this.delimiter = SpecialCharacter.COMMA.getRepresentation();
+    initializeMutableArrayStringBuffer(dataDescription);
+    pContext = new Context(buffer);
+  }
+
+  public CsvDataParser(DataDescription dataDescription, char delimiter) {
+    super(dataDescription);
+    this.delimiter = delimiter;
     initializeMutableArrayStringBuffer(dataDescription);
     pContext = new Context(buffer);
   }
@@ -154,7 +164,7 @@ public class CsvDataParser extends LineByLineDataParser {
         || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
       pContext.pushToken();
       pState = ParseState.END;
-    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+    } else if ((this.delimiter == character)) {
       pContext.pushToken();
       fieldIndex++;
       pState = ParseState.START;
@@ -180,7 +190,7 @@ public class CsvDataParser extends LineByLineDataParser {
     } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
         || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
       pState = ParseState.END;
-    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+    } else if ((this.delimiter == character)) {
       pContext.pushToken();
       fieldIndex++;
       pState = ParseState.START;
@@ -213,15 +223,11 @@ public class CsvDataParser extends LineByLineDataParser {
    */
   private void unquotedToken(char character) throws CSVParseException {
     columnPosition++;
-    if ((SpecialCharacter.SPACE.getRepresentation() == character)
-        || (SpecialCharacter.TAB.getRepresentation() == character)) {
-      pContext.pushSpace(character);
-      pState = ParseState.UNQUOTED_TOKEN;
-    } else if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
+    if ((SpecialCharacter.LINE_FEED.getRepresentation() == character)
         || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
       pContext.pushToken();
       pState = ParseState.END;
-    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+    } else if ((this.delimiter == character)) {
       pContext.pushToken();
       fieldIndex++;
       pState = ParseState.START;
@@ -230,7 +236,7 @@ public class CsvDataParser extends LineByLineDataParser {
       throw new CSVParseException("Unexpected quote in the middle of an unquoted token.", pLine,
           columnPosition, character);
     } else {
-      pContext.pushSpaceTrail();
+      //pContext.pushSpaceTrail();
       pContext.pushTokenChar(character);
       pState = ParseState.UNQUOTED_TOKEN;
     }
@@ -266,7 +272,7 @@ public class CsvDataParser extends LineByLineDataParser {
         || (SpecialCharacter.CARRIAGE_RETURN.getRepresentation() == character)) {
       pContext.pushToken();
       pState = ParseState.END;
-    } else if ((SpecialCharacter.COMMA.getRepresentation() == character)) {
+    } else if ((this.delimiter == character)) {
       pContext.pushToken();
       fieldIndex++;
       pState = ParseState.START;

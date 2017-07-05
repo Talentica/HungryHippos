@@ -28,6 +28,13 @@
 	<complexType name="data-parser-config">
 		<sequence>
 			<element type="string" name="class-name" />
+			<element name="delimiter" >
+				<simpleType>
+					<restriction base="string">
+						<length fixed="true" value="1"></length>
+					</restriction>
+				</simpleType>
+			</element>
 		</sequence>
 	</complexType>
 

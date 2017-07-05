@@ -168,12 +168,13 @@ class HHRDD extends RDD<byte[]> implements Serializable {
    *
    * @return the file
    */
-  public static File createTempDir() {
+  public static synchronized File createTempDir() {
     File baseDir = new File(System.getProperty("java.io.tmpdir"));
     String baseName = System.currentTimeMillis() + "-";
 
     for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
       File tempDir = new File(baseDir, baseName + counter);
+      tempDir.deleteOnExit();
       if (tempDir.mkdir()) {
         return tempDir;
       }

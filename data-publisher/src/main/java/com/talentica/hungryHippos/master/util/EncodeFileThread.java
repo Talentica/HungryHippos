@@ -83,9 +83,11 @@ public class EncodeFileThread implements Runnable{
       DynamicMarshal dynamicMarshal = new DynamicMarshal(dataDescription);
       String dataParserClassName =
           context.getShardingClientConfig().getInput().getDataParserConfig().getClassName();
+      String delimiter =
+              context.getShardingClientConfig().getInput().getDataParserConfig().getDelimiter();
       DataParser dataParser =
-          (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class)
-              .newInstance(context.getConfiguredDataDescription());
+              (DataParser) Class.forName(dataParserClassName).getConstructor(DataDescription.class,char.class)
+                      .newInstance(context.getConfiguredDataDescription(),delimiter.charAt(0));
       Reader input = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(
           splitFileName, dataParser);
       
@@ -94,6 +96,7 @@ public class EncodeFileThread implements Runnable{
         try {
           parts = input.read();
         } catch (InvalidRowException e) {
+          e.printStackTrace();
           continue;
         }
         if (parts == null) {
@@ -101,8 +104,7 @@ public class EncodeFileThread implements Runnable{
           break;
         }
         for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
-          Object value = parts[i].clone();
-          dynamicMarshal.writeValue(i, value, byteBuffer);
+          dynamicMarshal.writeValue(i, parts[i], byteBuffer);
         }
         outputFile.write(buf);
       }

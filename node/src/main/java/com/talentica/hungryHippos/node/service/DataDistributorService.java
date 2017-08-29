@@ -63,6 +63,7 @@ public class DataDistributorService implements Runnable {
 
       int idealBufSize = socket.getReceiveBufferSize();
       byte[] buffer;
+      System.gc();
       if (MemoryStatus.getUsableMemory() > idealBufSize) {
         buffer = new byte[socket.getReceiveBufferSize()];
       } else {

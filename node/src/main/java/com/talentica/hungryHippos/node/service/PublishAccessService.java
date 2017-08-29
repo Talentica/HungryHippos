@@ -16,7 +16,6 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.DataDistributorStarter;
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

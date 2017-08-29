@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
 import com.talentica.hungryHippos.node.datareceiver.MetaDataSynchronizer;
 import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
+import com.talentica.hungryHippos.node.joiners.FirstStageNodeFileJoinerCaller;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -55,7 +56,8 @@ public class MetaDataSynchronizerService implements Runnable {
         try {
             hhFilePath = dataInputStream.readUTF();
             logger.info("Checking publish status of {}",hhFilePath);
-            boolean status = FileJoinCaller.INSTANCE.checkStatus(hhFilePath);
+            boolean status = FileJoinCaller.INSTANCE.checkStatus(hhFilePath)
+                    && FirstStageNodeFileJoinerCaller.INSTANCE.checkStatus(hhFilePath);
             if (status) {
                 logger.info("Publish successful for {}",hhFilePath);
                 String baseFolderPath = FileSystemContext.getRootDirectory() + hhFilePath;
@@ -91,6 +93,7 @@ public class MetaDataSynchronizerService implements Runnable {
                     e.printStackTrace();
                 }
             }
+            System.gc();
         }
     }
 

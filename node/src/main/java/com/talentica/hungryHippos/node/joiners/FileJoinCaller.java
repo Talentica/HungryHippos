@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 public enum FileJoinCaller {
     INSTANCE;
 
-    private ExecutorService executorService = DataDistributorStarter.dataAppenderServices;
+    private ExecutorService executorService = DataDistributorStarter.fileJoinerServices;
     private Map<String, Queue<String>> hhFileToQueueMap = new HashMap<>();
     private Map<String, List<Future<Boolean>>> hhFileToCallableStatusMap = new HashMap<>();
 

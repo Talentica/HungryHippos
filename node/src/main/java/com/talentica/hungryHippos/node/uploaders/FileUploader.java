@@ -15,14 +15,17 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.uploaders;
 
-import com.talentica.hungryHippos.node.uploaders.AbstractFileUploader;
+import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
+import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
+import com.talentica.hungryHippos.node.joiners.UnTarStrategy;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.config.cluster.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +55,11 @@ public class FileUploader extends AbstractFileUploader {
   @Override
   public void writeAppenderType(DataOutputStream dos) throws IOException {
     dos.writeInt(HungryHippoServicesConstants.TAR_DATA_APPENDER);
+  }
+
+  @Override
+  protected void sendTarFileLocal(String absolutePath){
+    FileJoinCaller.INSTANCE.addSrcFile(getHhFilePath(),absolutePath, (x, y)->new TarFileJoiner(x,y, UnTarStrategy.UNTAR_ON_CONTINUOUS_STREAMS));
   }
 
 }

@@ -8,6 +8,7 @@
 				<element type="string" name="maximum-shard-file-size-in-bytes"></element>
 				<element type="string" name="maximum-no-of-shard-buckets-size"></element>
 				<element type="string" name="max-skew"></element>
+				<element type="float" name="cut-off-percent"></element>
 			</sequence>
 		</complexType>
 	</element>

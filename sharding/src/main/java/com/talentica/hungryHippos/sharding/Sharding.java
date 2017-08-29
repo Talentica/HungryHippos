@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * {@code Sharding} , used for doing sharding of an input file.
@@ -65,6 +66,7 @@ public class Sharding {
 
   private BucketsCalculator bucketsCalculator;
   private String[] keys;
+  private float cutOffPercent;
 
 
 
@@ -79,6 +81,8 @@ public class Sharding {
     this.context = context;
     bucketsCalculator = new BucketsCalculator(context);
     keys = context.getShardingDimensions();
+      cutOffPercent = Math.abs(context.getShardingServerConfig().getCutOffPercent());
+      cutOffPercent = cutOffPercent>100?100:cutOffPercent;
     List<com.talentica.hungryhippos.config.cluster.Node> clusterNodes = clusterConfig.getNode();
     for (com.talentica.hungryhippos.config.cluster.Node clusterNode : clusterNodes) {
       Node node = new Node(300000, clusterNode.getIdentifier(), bucketCountWeight);
@@ -166,6 +170,7 @@ public class Sharding {
     FileWriter fileWriter =
         new FileWriter(context.getShardingClientConfig().getBadRecordsFileOut() + "_sharding.err");
     fileWriter.openFile();
+    long noOfRowsCount = 0;
     while (true) {
       DataTypes[] parts = null;
       try {
@@ -194,19 +199,50 @@ public class Sharding {
         }
         frequencyPerValue.put(stringVal, frequency + 1);
       }
+        noOfRowsCount++;
     }
+
+
 
     logger.info("Populating frequency map from data finished");
 
     fileWriter.close();
-    
+    removeSparseValues(noOfRowsCount);
     splitKey();
 
     return keyValueFrequencyMap;
   }
+
+  private void removeSparseValues(final long noOfRowsCount){
+      logger.info("Removing sparse keys");
+      int maxBuckets = Integer.valueOf(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
+      for (int i = 0; i < keys.length; i++) {
+          HashMap<String, Long> frequencyPerValue = keyValueFrequencyMap.get(keys[i]);
+          Set<String> valueList =  frequencyPerValue.keySet();
+          if(valueList.size()!=noOfRowsCount){
+              valueList = frequencyPerValue.entrySet().stream()
+                      .filter(x->((x.getValue()*100.0f)/noOfRowsCount)<cutOffPercent).map(x->x.getKey()).collect(Collectors.toSet());
+
+          }
+          Set<String> bkpList = new HashSet<>();
+          Iterator<String> iterator = valueList.iterator();
+          for (int j = 0; j < maxBuckets&&iterator.hasNext(); j++) {
+              bkpList.add(iterator.next());
+          }
+          frequencyPerValue.keySet().removeAll(valueList);
+          if(frequencyPerValue.size()<maxBuckets){
+              iterator = bkpList.iterator();
+              while(iterator.hasNext()) {
+                  frequencyPerValue.put(iterator.next(),maxBuckets+1l);
+              }
+          }
+      }
+      logger.info("Removed sparse keys");
+  }
   
   private void splitKey() throws ClassNotFoundException, KeeperException, InterruptedException, IOException, JAXBException{
-    HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
+      logger.info("Splitting keys");
+      HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
             getSortedKeyToListOfKeyValueFrequenciesMap();
     int totalNoOfBuckets = bucketsCalculator.calculateNumberOfBucketsNeeded();
     
@@ -229,6 +265,7 @@ public class Sharding {
         }
         splittedKeyValueMap.put(key, valueSplitMap);
     }
+      logger.info("Finished splitting keys");
   }
   
   private double calculateAvgFrequency(String key){

@@ -32,7 +32,6 @@ public class MemoryStatus {
   private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
 
   public synchronized static long getUsableMemory() {
-    System.gc();
     long availablePrimaryMemory = Runtime.getRuntime().freeMemory();
     return availablePrimaryMemory - sparedMemory;
   }

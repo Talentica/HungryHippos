@@ -1,12 +1,9 @@
 package com.talentica.hungryHippos.node.service;
 
-import com.talentica.hungryHippos.node.DataDistributorStarter;
-import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
-import com.talentica.hungryHippos.node.joiners.CallableGenerator;
-import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
-import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
+import com.talentica.hungryHippos.node.datareceiver.CallerStrategy;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +20,13 @@ public class DataAppenderService implements Runnable {
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private Socket socket;
-    private CallableGenerator callableGenerator;
+    private CallerStrategy callerStrategy;
 
-    public DataAppenderService(Socket socket, CallableGenerator callableGenerator) throws IOException {
+    public DataAppenderService(Socket socket, CallerStrategy callerStrategy) throws IOException {
         this.socket = socket;
         this.dataInputStream = new DataInputStream(socket.getInputStream());
         this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
-        this.callableGenerator = callableGenerator;
+        this.callerStrategy = callerStrategy;
     }
 
     @Override
@@ -47,10 +44,10 @@ public class DataAppenderService implements Runnable {
             File srcTarFile = new File(srcTarFilePath);
             String destFolderPath = dataInputStream.readUTF();
             long fileSize = dataInputStream.readLong();
-            int bufferSize = 2048;
+            int bufferSize = socket.getReceiveBufferSize();
             byte[] buffer = new byte[bufferSize];
             FileOutputStream fos= new FileOutputStream(srcTarFile);
-            BufferedOutputStream bos = new BufferedOutputStream(fos, 10 * bufferSize);
+            BufferedOutputStream bos = new BufferedOutputStream(fos, bufferSize);
             int len;
             while (fileSize > 0) {
                 len = dataInputStream.read(buffer);
@@ -62,7 +59,7 @@ public class DataAppenderService implements Runnable {
             bos.close();
             fos.close();
             logger.info("[{}] marking {} for {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
-            FileJoinCaller.INSTANCE.addSrcFile(hhFilePath,srcTarFilePath, callableGenerator);
+            callerStrategy.addFileToCaller(hhFilePath, srcTarFilePath);
             dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             logger.info("[{}] Successfully marked {} for {}", Thread.currentThread().getName(), srcFolderPath, destFolderPath);
             dataOutputStream.flush();
@@ -70,8 +67,8 @@ public class DataAppenderService implements Runnable {
             try {
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.FAILURE);
                 dataOutputStream.flush();
-                if (hhFilePath != null) {
-                    HHFileStatusCoordinator.updateFailure(hhFilePath, e.getMessage());
+                if(srcFolder!=null){
+                    FileUtils.deleteQuietly(srcFolder);
                 }
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -83,8 +80,8 @@ public class DataAppenderService implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            DataDistributorStarter.cacheClearServices.execute(new CacheClearService());
         }
 
     }
+
 }

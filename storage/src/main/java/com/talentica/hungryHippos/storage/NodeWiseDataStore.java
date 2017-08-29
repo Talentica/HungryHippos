@@ -42,14 +42,13 @@ public class NodeWiseDataStore implements DataStore {
     private boolean usingBufferStream;
 
 
-    public NodeWiseDataStore(Map<Integer, String> fileNames, Map<String, int[]> fileToNodeMap, int maxBucketSize, int numDimensions,
+    public NodeWiseDataStore(Map<Integer, String> fileNames, Map<String, int[]> fileToNodeMap, int maxFiles, int numDimensions,
                              String hungryHippoFilePath, String fileName, int noOfNodes) throws IOException {
         this.nodeIdFileOutputStreamMap = new HashMap<>();
         this.nodeIdBufferOutputStreamMap = new HashMap<>();
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
-        int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
         File file = new File(dataFilePrefix);
         if (!file.exists()) {
             boolean flag = file.mkdirs();

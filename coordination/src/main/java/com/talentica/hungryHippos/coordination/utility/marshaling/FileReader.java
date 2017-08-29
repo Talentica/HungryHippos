@@ -48,6 +48,7 @@ public class FileReader implements Reader {
       throws RuntimeException, FileNotFoundException {
     this.dataParser = parser;
     this.filepath = filePath;
+    System.gc();
     if(MemoryStatus.getUsableMemory()>10485760){
       dataInputStream = new BufferedInputStream(new FileInputStream(filePath),10485760);
     }else if(MemoryStatus.getUsableMemory()>10240){

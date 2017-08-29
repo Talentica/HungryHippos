@@ -15,10 +15,13 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.uploaders;
 
+import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
+import com.talentica.hungryHippos.node.joiners.FirstStageNodeFileJoiner;
+import com.talentica.hungryHippos.node.joiners.FirstStageNodeFileJoinerCaller;
+import com.talentica.hungryHippos.node.joiners.NodeFileJoiner;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -40,12 +43,25 @@ public class NodeWiseFileUploader extends AbstractFileUploader {
     }
 
     @Override
+    protected void sendTarFileLocal(String absolutePath){
+        if(ShardingResourceCache.INSTANCE.getMaxFiles(getHhFilePath())>10000) {
+            FirstStageNodeFileJoinerCaller.INSTANCE.addSrcFile(getHhFilePath(), absolutePath, (x, y) -> new FirstStageNodeFileJoiner(x, y));
+        }else{
+            FileJoinCaller.INSTANCE.addSrcFile(getHhFilePath(), absolutePath, (x, y) -> new NodeFileJoiner(x, y));
+        }
+    }
+
+    @Override
     protected void createTar(String tarFilename) throws IOException {
 
     }
 
     @Override
     public void writeAppenderType(DataOutputStream dos) throws IOException {
-        dos.writeInt(HungryHippoServicesConstants.NODE_DATA_APPENDER);
+        if(ShardingResourceCache.INSTANCE.getMaxFiles(getHhFilePath())>10000) {
+            dos.writeInt(HungryHippoServicesConstants.DUAL_STAGE_NODE_DATA_APPENDER);
+        }else{
+            dos.writeInt(HungryHippoServicesConstants.NODE_DATA_APPENDER);
+        }
     }
 }

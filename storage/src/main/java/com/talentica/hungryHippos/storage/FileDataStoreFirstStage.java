@@ -1,61 +1,58 @@
-/*******************************************************************************
- * Copyright 2017 Talentica Software Pvt. Ltd.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
+/*
+ * *****************************************************************************
+ *   Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *  *****************************************************************************
+ */
 package com.talentica.hungryHippos.storage;
 
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by debasishc on 31/8/15.
  */
-public class FileDataStore implements DataStore {
+public class FileDataStoreFirstStage implements DataStore {
     /**
      *
      */
-    private static final Logger logger = LoggerFactory.getLogger(FileDataStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileDataStoreFirstStage.class);
     private Map<String, FileOutputStream> fileNameToOutputStreamMap;
     private Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap;
     private OutputStream[] outputStreams;
     private String hungryHippoFilePath;
     private String dataFilePrefix;
     private boolean usingBufferStream;
-    private Map<Integer, String> fileNames;
+    private Map<Integer, String> firstStageFileNames;
+    private int reduceFactor;
 
-    public FileDataStore(Map<Integer, String> fileNames, int maxFiles,
-                         String hungryHippoFilePath, String fileName) throws IOException, InterruptedException, ClassNotFoundException,
-            KeeperException, JAXBException {
-        this(fileNames, maxFiles, hungryHippoFilePath, false, fileName);
-    }
 
-    public FileDataStore(Map<Integer, String> fileNames, int maxFiles,
-                         String hungryHippoFilePath, boolean append,
-                         String fileName) throws IOException {
+    public FileDataStoreFirstStage(Map<Integer, String> fileNames, String hungryHippoFilePath, boolean append,
+                                   String fileName, int maxFiles , int reduceFactor) throws IOException {
 
         fileNameToOutputStreamMap = new HashMap<>();
         fileNameToBufferedOutputStreamMap = new HashMap<>();
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
+        this.reduceFactor = reduceFactor;
         this.outputStreams = new OutputStream[maxFiles];
         File file = new File(dataFilePrefix);
         if (!file.exists()) {
@@ -65,9 +62,9 @@ public class FileDataStore implements DataStore {
             }
         }
         dataFilePrefix = dataFilePrefix + "/";
-        this.fileNames = fileNames;
-        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
-                this.dataFilePrefix, this.fileNameToOutputStreamMap,this.fileNameToBufferedOutputStreamMap, append, false, null);
+        this.firstStageFileNames = fileNames.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x->x.getKey()/reduceFactor+""));
+        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(firstStageFileNames, this.outputStreams,
+                this.dataFilePrefix, this.fileNameToOutputStreamMap,this.fileNameToBufferedOutputStreamMap, append, false, null, reduceFactor);
     }
 
     @Override
@@ -144,8 +141,8 @@ public class FileDataStore implements DataStore {
     }
 
     public void upgradeStreams() throws FileNotFoundException {
-        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
-                this.dataFilePrefix, this.fileNameToOutputStreamMap, this.fileNameToBufferedOutputStreamMap,true, true, this);
+        usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(firstStageFileNames, this.outputStreams,
+                this.dataFilePrefix, this.fileNameToOutputStreamMap, this.fileNameToBufferedOutputStreamMap,true, true, this, reduceFactor);
         if(usingBufferStream){
             logger.info("Upgraded to BufferedStreams for {}",dataFilePrefix);
         }

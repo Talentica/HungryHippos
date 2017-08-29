@@ -18,6 +18,7 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.storage.util.Counter;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by rajkishoreh on 6/2/17.
@@ -41,7 +41,7 @@ public enum MetaDataSynchronizer {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaDataSynchronizer.class);
 
-    private Map<String, AtomicInteger> lockMap;
+    private Map<String, Counter> lockMap;
 
     private List<Node> nodes;
 
@@ -55,7 +55,7 @@ public enum MetaDataSynchronizer {
 
     public void synchronize(String dataFolderPath, String[] fileNames, String lockString, String metadataFilePath, String hhFilePath) throws IOException, InterruptedException {
         LOGGER.info("Updating meta data of {}", dataFolderPath);
-        AtomicInteger lock = getLock(lockString);
+        Counter lock = getLock(lockString);
         synchronized (lock) {
             File srcFolder = new File(dataFolderPath);
             if (srcFolder.exists()) {
@@ -71,21 +71,21 @@ public enum MetaDataSynchronizer {
         LOGGER.info("Completed updating data of {}", dataFolderPath);
     }
 
-    private AtomicInteger getLock(String lockString){
+    private Counter getLock(String lockString){
         return processLock(lockString,false);
     }
 
-    private synchronized AtomicInteger processLock(String lockString, boolean releaseFlag) {
-        AtomicInteger lock = lockMap.get(lockString);
+    private synchronized Counter processLock(String lockString, boolean releaseFlag) {
+        Counter lock = lockMap.get(lockString);
         if (releaseFlag) {
             if (lock!=null && lock.decrementAndGet() <= 0) {
                 lockMap.remove(lockString);
             }
         } else if (lock == null) {
-            lock = new AtomicInteger(0);
+            lock = new Counter(0);
             lockMap.put(lockString, lock);
         }
-        lock.getAndIncrement();
+        lock.incrementAndGet();
         return lock;
     }
 
@@ -101,6 +101,7 @@ public enum MetaDataSynchronizer {
             fileNameToSizeMap.put(fileNames[i], file.length());
         }
         LOGGER.info("Writing metadata for {}", dataFolderPath);
+        metadataFile.delete();
         FileOutputStream fos = new FileOutputStream(metadataFilePath, false);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(fileNameToSizeMap);

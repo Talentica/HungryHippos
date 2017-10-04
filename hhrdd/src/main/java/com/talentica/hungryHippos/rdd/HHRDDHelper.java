@@ -42,7 +42,7 @@ import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 /**
  * The Class HHRDDHelper.
  */
-class HHRDDHelper {
+public class HHRDDHelper {
 
     /** The Constant bucketCombinationToNodeNumbersMapFile. */
     public final static String bucketCombinationToNodeNumbersMapFile =

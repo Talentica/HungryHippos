@@ -91,9 +91,8 @@ public class MedianJob {
 
       @Override
       public Tuple2<String, Double> call(byte[] buf) throws Exception {
-        HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue());
         ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-        readerVar.setByteBuffer(byteBuffer);
+        HHRDDRowReader readerVar = new HHRDDRowReader(dataDes.getValue(),byteBuffer);
 
         StringBuilder key = new StringBuilder();
         for (int index = 0; index < broadcastJob.value().getDimensions().length; index++) {

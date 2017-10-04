@@ -69,7 +69,7 @@ public class HHSparkContext extends JavaSparkContext {
   public JavaRDD<byte[]> binaryRecords(Integer[] jobDimensions, String hhFilePath, boolean requiresShuffle)
           throws JAXBException, IOException {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
-    return new HHRDD(this, hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
+    return new HHRDD(this.sc(), hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
   }
 
   /**

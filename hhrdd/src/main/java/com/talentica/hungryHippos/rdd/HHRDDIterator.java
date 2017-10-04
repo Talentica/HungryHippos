@@ -102,7 +102,6 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     for(Tuple2<String,int[]> tuple2: files){
       File file = new File(this.filePath+tuple2._1);
       if (!file.exists()) {
-      logger.info("Downloading file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
       boolean isFileDownloaded = false;
       for (int hostIndex = 0; hostIndex < tuple2._2.length; hostIndex++) {
         int index = tuple2._2[hostIndex];
@@ -121,9 +120,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
           isFileDownloaded = downloadFile(this.tmpDownloadPath + tuple2._1,this.filePath+tuple2._1, ip, port);
         }
         if (isFileDownloaded) {
-          logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
           break;
         } else {
+          logger.info("Downloading failed for file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
           logger.info(" Node {} is dead", ip);
           createAndAddBlackListIPFile(tmpDir, ip);
         }
@@ -163,7 +162,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void iterateOnFiles() throws IOException {
-    if(fileIterator.hasNext()){
+    while(fileIterator.hasNext()){
       Tuple2<String,int[]> tuple2 = fileIterator.next();
       currentFile = tuple2._1;
       if(remoteFiles.contains(currentFile)){
@@ -173,11 +172,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       }
       File currentFileObj = new File(currentFilePath);
       this.currentDataFileSize = currentFileObj.length();
-      if(currentDataFileSize==0){
-        iterateOnFiles();
-        return;
-      }
+      if(currentDataFileSize==0) continue;
       this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
+      return;
     }
   }
 

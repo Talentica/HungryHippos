@@ -55,9 +55,8 @@ public class UniqueCountJob {
         Broadcast<DataDescription> dataDescriptionBroadcast = hhSparkContext.broadcastFieldDataDescription(hhFilePath);
         JavaPairRDD<String,Long> javaPairRDD = javaRDD.mapToPair(x->{
 
-            HHRDDRowReader hhrddRowReader = new HHRDDRowReader(dataDescriptionBroadcast.getValue());
             ByteBuffer byteBuffer = ByteBuffer.wrap(x);
-            hhrddRowReader.setByteBuffer(byteBuffer);
+            HHRDDRowReader hhrddRowReader = new HHRDDRowReader(dataDescriptionBroadcast.getValue(),byteBuffer);
             //using column 1 and column 5 values for creating Pair RDD
             String key = hhrddRowReader.readAtColumn(0).toString();
             Integer value = (Integer) hhrddRowReader.readAtColumn(4);

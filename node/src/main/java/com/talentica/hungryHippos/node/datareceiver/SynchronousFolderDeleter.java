@@ -21,19 +21,34 @@ package com.talentica.hungryHippos.node.datareceiver;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rajkishoreh on 20/7/17.
  */
 public enum SynchronousFolderDeleter {
     INSTANCE;
-    public synchronized void deleteEmptyFolder(File emptyFolder){
+    private List<Object> objLocks;
+    private int noOfLocks = 100;
 
-        if(emptyFolder.exists()) {
-            String[] children = emptyFolder.list();
-            if (children == null||children.length==0) {
-                FileUtils.deleteQuietly(emptyFolder);
+    SynchronousFolderDeleter() {
+        objLocks = new ArrayList<>();
+        for (int i = 0; i < noOfLocks; i++) {
+            objLocks.add(noOfLocks);
+        }
+    }
+
+    public void deleteEmptyFolder(File emptyFolder) {
+        Object lock = objLocks.get((emptyFolder.getAbsolutePath().hashCode() % noOfLocks + noOfLocks) % noOfLocks);
+        synchronized (lock) {
+            if (emptyFolder.exists()) {
+                String[] children = emptyFolder.list();
+                if (children == null || children.length == 0) {
+                    FileUtils.deleteQuietly(emptyFolder);
+                }
             }
         }
+
     }
 }

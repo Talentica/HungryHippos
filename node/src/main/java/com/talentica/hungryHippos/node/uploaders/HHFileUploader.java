@@ -80,7 +80,7 @@ public enum HHFileUploader {
             uploadForFileDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders, countDownLatch, fileUploadService);
         }else if(dataStore instanceof InMemoryDataStore){
             uploadForInMemoryDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders,(InMemoryDataStore) dataStore, countDownLatch, fileUploadService);
-        }else if(dataStore instanceof NodeWiseDataStore){
+        }else if(dataStore instanceof NodeWiseFirstDimensionDataStore){
             uploadForNodeWiseDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders, countDownLatch, fileUploadService);
         }else{
             uploadForHybridDataStore(srcFolderPath, destinationPath, nodeToFileMap, hhFilePath, idx, dataInputStreamMap, socketMap, fileUploaders,(HybridDataStore) dataStore, countDownLatch, fileUploadService);
@@ -176,12 +176,17 @@ public enum HHFileUploader {
 
     private boolean checkFilesUploadRequestStatuses(String srcFolderPath, Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, boolean success) throws IOException {
         for (Map.Entry<Integer, Socket> entry : socketMap.entrySet()) {
-            LOGGER.info("Waiting for status from {} for {}", entry.getValue().getInetAddress(), srcFolderPath);
-            String status = dataInputStreamMap.get(entry.getKey()).readUTF();
-            LOGGER.info("Success Status from {} for {} is {}", entry.getValue().getInetAddress(), srcFolderPath, status);
-            entry.getValue().close();
-            if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
-                success = false;
+            try {
+                LOGGER.info("Waiting for status from {} for {}", entry.getValue().getInetAddress(), srcFolderPath);
+                String status = dataInputStreamMap.get(entry.getKey()).readUTF();
+                LOGGER.info("Success Status from {} for {} is {}", entry.getValue().getInetAddress(), srcFolderPath, status);
+                entry.getValue().close();
+                if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
+                    success = false;
+                }
+            } catch (IOException e) {
+                LOGGER.error("Failed from {} for {} is {}", entry.getValue().getInetAddress(), srcFolderPath);
+                throw e;
             }
         }
         return success;

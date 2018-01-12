@@ -115,7 +115,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     this.directoryLocation = directoryLocation;
     this.hhFileSize = 0;
     initializeKeyToBucketToFileList();
-    calculateBucketToFileMap("", 0);
+    calculateBucketToFileMap();
   }
 
   /**
@@ -167,207 +167,6 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     return fieldDataDesc;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.talentica.hungryHippos.rdd.HHRDDInfo#getPartitions(int, int, java.util.List, int,
-   * java.util.List, java.lang.String)
-   */
-  @Override
-  public Partition[] getPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,
-      int jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey,
-      String primaryDimensionKey) {
-    int noOfShardingDimensions = keyOrder.length;
-    int noOfEstimatedPartitions = 1;
-    int[] jobShardingDimensionsArray = new int[jobShardingDimensions.size()];
-    int i = 0;
-    noOfEstimatedPartitions = getNoOfEstimatedPartitions(jobShardingDimensions,
-        jobShardingDimensionsKey, noOfEstimatedPartitions, jobShardingDimensionsArray, i);
-    System.out.println();
-    int[][] combinationArray = new int[noOfEstimatedPartitions][];
-    populateCombination(combinationArray, null, 0, jobShardingDimensionsArray, 0);
-    Partition[] partitions = null;
-    if (noOfEstimatedPartitions <= noOfExecutors) {
-      partitions = getPartitionsWhenEstimatedPartitionsIsLess(id, jobPrimaryDimensionIdx,
-          primaryDimensionKey, noOfShardingDimensions, noOfEstimatedPartitions,
-          jobShardingDimensionsArray, combinationArray);
-    } else {
-      partitions = getPartitionsWhenEstimatedPartitionsIsMore(id, noOfShardingDimensions,
-          noOfEstimatedPartitions, jobShardingDimensionsArray, combinationArray);
-    }
-    return partitions;
-  }
-
-  /**
-   * Gets the no of estimated partitions.
-   *
-   * @param jobShardingDimensions the job sharding dimensions
-   * @param jobShardingDimensionsKey the job sharding dimensions key
-   * @param noOfEstimatedPartitions the no of estimated partitions
-   * @param jobShardingDimensionsArray the job sharding dimensions array
-   * @param i the i
-   * @return the no of estimated partitions
-   */
-  private int getNoOfEstimatedPartitions(List<Integer> jobShardingDimensions,
-      List<String> jobShardingDimensionsKey, int noOfEstimatedPartitions,
-      int[] jobShardingDimensionsArray, int i) {
-    for (String shardingDimensionKey : jobShardingDimensionsKey) {
-      int bucketSize = bucketToNodeNumberMap.get(shardingDimensionKey).size();
-      noOfEstimatedPartitions = noOfEstimatedPartitions * bucketSize;
-      jobShardingDimensionsArray[i] = jobShardingDimensions.get(i);
-      System.out.print(jobShardingDimensionsArray[i]);
-      i++;
-
-    }
-    return noOfEstimatedPartitions;
-  }
-
-  /**
-   * Populate combination.
-   *
-   * @param combinationArray the combination array
-   * @param combination the combination
-   * @param index the index
-   * @param jobShardingDimensions the job sharding dimensions
-   * @param i the i
-   * @return the int
-   */
-  private int populateCombination(int[][] combinationArray, String combination, int index,
-      int[] jobShardingDimensions, int i) {
-    if (i == jobShardingDimensions.length) {
-      String[] strings = combination.split("-");
-      int[] intCombination = new int[strings.length];
-      for (int j = 0; j < strings.length; j++) {
-        intCombination[j] = Integer.parseInt(strings[j]);
-      }
-      combinationArray[index] = intCombination;
-      index++;
-      return index;
-    }
-    for (int j = 0; j < bucketToNodeNumberMap.get(keyOrder[jobShardingDimensions[i]]).size(); j++) {
-      String newCombination;
-      if (i != 0) {
-        newCombination = combination + "-" + j;
-      } else {
-        newCombination = j + "";
-      }
-      index = populateCombination(combinationArray, newCombination, index, jobShardingDimensions,
-          i + 1);
-    }
-    return index;
-  }
-
-  /**
-   * Gets the partitions when estimated partitions is less.
-   *
-   * @param id the id
-   * @param jobPrimaryDimensionIdx the job primary dimension idx
-   * @param primaryDimensionKey the primary dimension key
-   * @param noOfShardingDimensions the no of sharding dimensions
-   * @param noOfEstimatedPartitions the no of estimated partitions
-   * @param jobShardingDimensionsArray the job sharding dimensions array
-   * @param combinationArray the combination array
-   * @return the partitions when estimated partitions is less
-   */
-  private Partition[] getPartitionsWhenEstimatedPartitionsIsLess(int id, int jobPrimaryDimensionIdx,
-      String primaryDimensionKey, int noOfShardingDimensions, int noOfEstimatedPartitions,
-      int[] jobShardingDimensionsArray, int[][] combinationArray) {
-    Partition[] partitions;
-
-    List<Partition> partitionList = new ArrayList<>();
-    for (int index = 0; index < noOfEstimatedPartitions; index++) {
-      List<Tuple2<String, int[]>> files = new ArrayList<>();
-      listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray,
-          combinationArray[index]);
-      if(files.isEmpty()) continue;
-      int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey)
-          .get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
-      List<String> preferredHosts = new ArrayList<>();
-      preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
-      partitionList.add(new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-          this.fieldDataDesc, preferredHosts, files, nodIdToIp));
-    }
-    partitions = new HHRDDPartition[partitionList.size()];
-    for (int i = 0; i <partitions.length ; i++) {
-      partitions[i] = partitionList.get(i);
-    }
-    return partitions;
-  }
-
-  /**
-   * Gets the partitions when estimated partitions is more.
-   *
-   * @param id the id
-   * @param noOfShardingDimensions the no of sharding dimensions
-   * @param noOfEstimatedPartitions the no of estimated partitions
-   * @param jobShardingDimensionsArray the job sharding dimensions array
-   * @param combinationArray the combination array
-   * @return the partitions when estimated partitions is more
-   */
-  private Partition[] getPartitionsWhenEstimatedPartitionsIsMore(int id, int noOfShardingDimensions,
-      int noOfEstimatedPartitions, int[] jobShardingDimensionsArray, int[][] combinationArray) {
-    Partition[] partitions;
-    long idealPartitionFileSize = 128 * 1024 * 1024;
-    PriorityQueue<PartitionBucket> partitionBuckets = new PriorityQueue<>();
-    preparePartitionBuckets(noOfShardingDimensions, noOfEstimatedPartitions,
-            jobShardingDimensionsArray, combinationArray, idealPartitionFileSize, partitionBuckets);
-    int partitionIdx = 0;
-    Iterator<PartitionBucket> partitionBucketIterator = partitionBuckets.iterator();
-    List<Partition> listOfPartitions = new ArrayList<>();
-    while (partitionBucketIterator.hasNext()) {
-      partitionIdx = addPartitionToListAndGetPartitionIdx(id, partitionIdx, partitionBucketIterator,
-          listOfPartitions);
-    }
-    System.out.println("PartitionSize : " + listOfPartitions.size());
-    partitions = new Partition[listOfPartitions.size()];
-    for (int j = 0; j < partitions.length; j++) {
-      partitions[j] = listOfPartitions.get(j);
-    }
-    return partitions;
-  }
-
-  /**
-   * Prepare partition buckets and get file count.
-   *
-   * @param noOfShardingDimensions the no of sharding dimensions
-   * @param noOfEstimatedPartitions the no of estimated partitions
-   * @param jobShardingDimensionsArray the job sharding dimensions array
-   * @param combinationArray the combination array
-   * @param idealPartitionFileSize the ideal partition file size
-   * @param partitionBuckets the partition buckets
-   */
-  private void preparePartitionBuckets(int noOfShardingDimensions,
-                                      int noOfEstimatedPartitions, int[] jobShardingDimensionsArray, int[][] combinationArray,
-                                      long idealPartitionFileSize, PriorityQueue<PartitionBucket> partitionBuckets) {
-    PartitionBucket partitionBucket = new PartitionBucket(0);
-    partitionBuckets.offer(partitionBucket);
-    int fileCount = 0;
-    for (int index = 0; index < noOfEstimatedPartitions; index++) {
-      partitionBucket = partitionBuckets.poll();
-      List<Tuple2<String, int[]>> files = new ArrayList<>();
-      listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray,
-          combinationArray[index]);
-      long listFileSize = 0;
-      for (int j = 0; j < files.size(); j++) {
-        listFileSize += fileNameToSizeWholeMap.get(files.get(j)._1);
-      }
-      if (partitionBucket.getSize() + listFileSize > idealPartitionFileSize
-          && partitionBucket.getSize() != 0) {
-        partitionBuckets.offer(partitionBucket);
-        partitionBucket = new PartitionBucket(0);
-      }
-      for (int j = 0; j < files.size(); j++) {
-        String fileName = files.get(j)._1;
-        long fileSize = fileNameToSizeWholeMap.get(fileName);
-        if(fileSize>0) {
-          partitionBucket.addFile(fileToNodeId.get(fileName), fileSize);
-        }
-        fileCount++;
-      }
-      partitionBuckets.offer(partitionBucket);
-    }
-    System.out.println("file count : " + fileCount);
-  }
 
   /**
    * Adds the partition to list and get partition idx.
@@ -624,13 +423,26 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     }
   }
 
+
+  /**
+   * Calculate bucket to file map.
+   *
+   */
+  private void calculateBucketToFileMap() {
+    Map<String,Integer> duplicateShard = new HashMap<>();
+    for (Bucket<KeyValueFrequency> bucket : bucketToNodeNumberMap.get(keyOrder[0]).keySet()) {
+      duplicateShard.put(keyOrder[0],bucket.getId());
+      calculateBucketToFileMapUtil(duplicateShard,bucket.getId() + "", 1);
+    }
+  }
+
   /**
    * Calculate bucket to file map.
    *
    * @param fileName the file name
    * @param dim the dim
    */
-  private void calculateBucketToFileMap(String fileName, int dim) {
+  private void calculateBucketToFileMapUtil(Map<String,Integer> duplicateShard,String fileName, int dim) {
     if (dim == noOfDimensions) {
       Tuple2<String, int[]> tuple2 = new Tuple2<>(fileName, getFileLocationNodeIds(fileName));
       fileToNodeId.put(fileName, tuple2);
@@ -641,13 +453,16 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       }
       return;
     }
-    for (Bucket<KeyValueFrequency> bucket : bucketToNodeNumberMap.get(keyOrder[dim]).keySet()) {
-      if (dim == 0) {
-        calculateBucketToFileMap(bucket.getId() + fileName, dim + 1);
-      } else {
-        calculateBucketToFileMap(fileName + "_" + bucket.getId(), dim + 1);
+    Integer bucketId = duplicateShard.get(keyOrder[dim]);
+    if(bucketId!=null){
+      calculateBucketToFileMapUtil(duplicateShard,fileName + "_" + bucketId, dim + 1);
+    }else{
+      for (Bucket<KeyValueFrequency> bucket : bucketToNodeNumberMap.get(keyOrder[dim]).keySet()) {
+        duplicateShard.put(keyOrder[dim],bucket.getId());
+        calculateBucketToFileMapUtil(duplicateShard,fileName + "_" + bucket.getId(), dim + 1);
       }
     }
+
   }
 
   /**

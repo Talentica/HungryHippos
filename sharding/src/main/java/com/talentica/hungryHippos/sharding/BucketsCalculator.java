@@ -83,7 +83,12 @@ public final class BucketsCalculator {
       FileNotFoundException, KeeperException, InterruptedException, IOException, JAXBException {
     double MAX_NO_OF_FILE_SIZE = Double.valueOf(
         context.getShardingServerConfig().getMaximumShardFileSizeInBytes());
-    int noOfKeys = context.getShardingDimensions().length;
+    String[] keyOrders = context.getShardingDimensions();
+    Set<String> uniqueKeys = new HashSet<>();
+      for (int idx = 0; idx < keyOrders.length; idx++) {
+          uniqueKeys.add(keyOrders[idx]);
+      }
+    int noOfKeys = uniqueKeys.size();
     long approximateMemoryPerBucketStoredInShardTable =
         (NO_OF_BYTES_PER_KEY * noOfKeys) + NO_OF_BYTES_STORING_A_BUCKET_OBJECT_IN_SHARD_TABLE_TAKES;
     Double noOfBucketsNeeded = Math

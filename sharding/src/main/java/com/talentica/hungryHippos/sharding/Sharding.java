@@ -289,6 +289,7 @@ public class Sharding {
     HashMap<String, List<KeyValueFrequency>> keyToListOfKeyValueFrequency =
         getSortedKeyToListOfKeyValueFrequenciesMap();
     for (int i = 0; i < keys.length; i++) {
+        if(keyToValueToBucketMap.get(keys[i])!=null) continue;
       HashMap<Object, List<Bucket<KeyValueFrequency>>> valueToBucketMap = new HashMap<>();
       keyToValueToBucketMap.put(keys[i], valueToBucketMap);
       long frequencyOfAlreadyAddedValues = 0;

@@ -16,8 +16,10 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryHippos.utility.scp.TarAndGzip;
+import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import com.talentica.hungryhippos.filesystem.util.FileSystemUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ public class AcceptFileService implements Runnable {
       dis = new DataInputStream(this.socket.getInputStream());
       dos = new DataOutputStream(this.socket.getOutputStream());
       String destinationPath = dis.readUTF();
+      String hhFilePath = dis.readUTF();
       long size = dis.readLong();
       int fileType = dis.readInt();
       logger.debug("file size to accept is {}", size);
@@ -79,6 +82,7 @@ public class AcceptFileService implements Runnable {
         String shardingTableFolderPath = destinationPath.substring(0, destinationPath.lastIndexOf(File.separatorChar))
             + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
         updateFilesIfRequired(shardingTableFolderPath);
+        createFolders(FileSystemContext.getRootDirectory()+hhFilePath+File.separator);
       }
     } catch (IOException e) {
       logger.error(e.getMessage());
@@ -104,6 +108,13 @@ public class AcceptFileService implements Runnable {
         }
       }
     }
+  }
+
+  private void createFolders(String filePath) {
+    new File(filePath+ FileSystemConstants.BLOCK_STATISTICS_FOLDER_NAME).mkdir();
+    new File(filePath+ FileSystemConstants.FILE_STATISTICS_FOLDER_NAME).mkdir();
+    new File(filePath+ FileSystemConstants.META_DATA_FOLDER_NAME).mkdir();
+    new File(filePath+ FileSystemContext.getDataFilePrefix()).mkdir();
   }
 
   /**

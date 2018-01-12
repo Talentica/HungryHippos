@@ -25,45 +25,47 @@ import java.net.Socket;
 
 public class FileProviderService implements Runnable {
 
-  private Socket socket;
+    private Socket socket;
 
-  public FileProviderService(Socket socket) throws IOException {
-    this.socket = socket;
-  }
-
-  @Override
-  public void run() {
-    DataInputStream dis = null;
-    DataOutputStream dos = null;
-    try {
-      dis = new DataInputStream(socket.getInputStream());
-      dos = new DataOutputStream(socket.getOutputStream());
-      int bufferSize = 2048;
-      String filePath = dis.readUTF();
-      File requestedFile = new File(filePath);
-      long fileSize = requestedFile.length();
-      dos.writeLong(fileSize);
-      BufferedInputStream bis =
-          new BufferedInputStream(new FileInputStream(requestedFile), bufferSize*10);
-      byte[] buffer = new byte[bufferSize];
-      int len;
-      while ((len = bis.read(buffer)) > -1) {
-        dos.write(buffer, 0, len);
-      }
-      bis.close();
-      dos.flush();
-    } catch (Exception e) {     
-        e.printStackTrace();      
-    }
-    finally {
-      try {
-        this.socket.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    public FileProviderService(Socket socket) throws IOException {
+        this.socket = socket;
     }
 
-  }
+    @Override
+    public void run() {
+        DataInputStream dis = null;
+        DataOutputStream dos = null;
+        try {
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
+            int bufferSize = 2048;
+            byte[] buffer = new byte[bufferSize];
+            while (dis.readBoolean()) {
+                String filePath = dis.readUTF();
+                File requestedFile = new File(filePath);
+                long fileSize = requestedFile.length();
+                dos.writeLong(fileSize);
+                try (FileInputStream fis = new FileInputStream(requestedFile);
+                     BufferedInputStream bis =
+                             new BufferedInputStream(fis, bufferSize * 10);) {
+                    int len;
+                    while ((len = bis.read(buffer)) > -1) {
+                        dos.write(buffer, 0, len);
+                    }
+                }
+                dos.flush();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                this.socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 
 
 }

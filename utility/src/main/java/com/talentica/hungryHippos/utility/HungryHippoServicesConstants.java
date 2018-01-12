@@ -28,6 +28,9 @@ public interface HungryHippoServicesConstants {
   int ACCEPT_FILE = 7;
   int SHARDING_TABLE = 8;
   int DUAL_STAGE_NODE_DATA_APPENDER = 9;
+  int INCREMENTAL_DATA_APPENDER = 10;
+  int DATA_UPDATER = 11;
+  int TAR_DATA_UPDATER = 12;
   
   String SUCCESS = "SUCCESS";
   String FAILURE = "FAILURE";

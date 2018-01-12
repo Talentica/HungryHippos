@@ -19,6 +19,7 @@ import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.storage.util.Counter;
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public enum MetaDataSynchronizer {
         this.lockMap = new ConcurrentHashMap<>();
     }
 
-    public void synchronize(String dataFolderPath, String[] fileNames, String lockString, String metadataFilePath, String hhFilePath) throws IOException, InterruptedException {
+    public void synchronize(String dataFolderPath, String[] fileNames, String lockString, String metadataFilePath, String hhFilePath, String fileStatisticsPath, String blockStatisticsFolderPath) throws IOException, InterruptedException {
         LOGGER.info("Updating meta data of {}", dataFolderPath);
         Counter lock = getLock(lockString);
         synchronized (lock) {
@@ -62,7 +63,7 @@ public enum MetaDataSynchronizer {
                 if (metadataFilePath != null) {
                     writeMetaDataIntoFile(dataFolderPath, fileNames, metadataFilePath);
                     MetaDataUploader[] metaDataUploaders = new MetaDataUploader[nodes.size() - 1];
-                    uploadMetaDataToOtherNodes(dataFolderPath, metadataFilePath, hhFilePath, metaDataUploaders);
+                    uploadMetaDataToOtherNodes(dataFolderPath, metadataFilePath, fileStatisticsPath, blockStatisticsFolderPath,hhFilePath, metaDataUploaders);
                     checkMetaDataUploadStatus(metaDataUploaders);
                 }
             }
@@ -92,13 +93,9 @@ public enum MetaDataSynchronizer {
     private void writeMetaDataIntoFile(String dataFolderPath, String[] fileNames, String metadataFilePath) throws IOException {
         Map<String, Long> fileNameToSizeMap = new HashMap<>();
         File metadataFile = new File(metadataFilePath);
-        if (!metadataFile.getParentFile().exists()) {
-            LOGGER.info("Creating metadata folder for {}", dataFolderPath);
-            metadataFile.getParentFile().mkdirs();
-        }
         for (int i = 0; i < fileNames.length; i++) {
             File file = new File(dataFolderPath + File.separator + fileNames[i]);
-            fileNameToSizeMap.put(fileNames[i], file.length());
+            fileNameToSizeMap.put(fileNames[i].replaceAll(FileSystemConstants.ZIP_EXTENSION,""), file.length());
         }
         LOGGER.info("Writing metadata for {}", dataFolderPath);
         metadataFile.delete();
@@ -112,13 +109,13 @@ public enum MetaDataSynchronizer {
         LOGGER.info("Completed writing metadata for {}", dataFolderPath);
     }
 
-    private void uploadMetaDataToOtherNodes(String dataFolderPath, String metadataFilePath, String hhFilePath, MetaDataUploader[] metaDataUploaders) throws InterruptedException {
+    private void uploadMetaDataToOtherNodes(String dataFolderPath, String metadataFilePath,String fileStatisticsPath,String blockStatisticsFolderPath, String hhFilePath, MetaDataUploader[] metaDataUploaders) throws InterruptedException {
         LOGGER.info("Uploading metadata for {}", dataFolderPath);
         CountDownLatch countDownLatch = new CountDownLatch(metaDataUploaders.length);
         int idx = 0;
         for (Node node : nodes) {
             if (node.getIdentifier() != NodeInfo.INSTANCE.getIdentifier()) {
-                MetaDataUploader metaDataUploader = new MetaDataUploader(countDownLatch, node, metadataFilePath, hhFilePath);
+                MetaDataUploader metaDataUploader = new MetaDataUploader(countDownLatch, node, metadataFilePath, fileStatisticsPath, blockStatisticsFolderPath,hhFilePath);
                 metaDataUploaders[idx] = metaDataUploader;
                 metadataUploaderService.execute(metaDataUploader);
                 idx++;

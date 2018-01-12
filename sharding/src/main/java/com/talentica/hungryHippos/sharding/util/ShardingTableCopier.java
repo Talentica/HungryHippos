@@ -70,7 +70,7 @@ public class ShardingTableCopier {
 
       for (int i = 0; i < nodes.size(); i++) {
         shardingFileUploader[i] =
-            new ShardingFileUploader(nodes.get(i), zipFilePath, destinationDirectory);
+            new ShardingFileUploader(nodes.get(i), zipFilePath,distributedFilePath, destinationDirectory);
         executorService.execute(shardingFileUploader[i]);
       }
 

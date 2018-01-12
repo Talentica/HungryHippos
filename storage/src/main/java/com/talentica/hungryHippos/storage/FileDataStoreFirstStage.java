@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Created by debasishc on 31/8/15.
+ * Created by rajkishoreh.
  */
 public class FileDataStoreFirstStage implements DataStore {
     /**
@@ -140,7 +140,7 @@ public class FileDataStoreFirstStage implements DataStore {
         return usingBufferStream;
     }
 
-    public void upgradeStreams() throws FileNotFoundException {
+    public void upgradeStreams() throws IOException {
         usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(firstStageFileNames, this.outputStreams,
                 this.dataFilePrefix, this.fileNameToOutputStreamMap, this.fileNameToBufferedOutputStreamMap,true, true, this, reduceFactor);
         if(usingBufferStream){

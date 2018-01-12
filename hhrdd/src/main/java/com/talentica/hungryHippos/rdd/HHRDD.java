@@ -19,11 +19,13 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
 import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
+import org.apache.spark.executor.InputMetrics;
 import org.apache.spark.rdd.RDD;
 
 import scala.collection.Iterator;
@@ -114,14 +116,9 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
     }
 
     int noOfExecutors = sc.defaultParallelism();
-    if (requiresShuffle) {
       this.partitions = hhrddInfo.getOptimizedPartitions(id, noOfExecutors, jobShardingDimensions,
           jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey+keyOrderIdx);
-    } else {
-      this.partitions = hhrddInfo.getPartitions(id, noOfExecutors, jobShardingDimensions,
-          jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
 
-    }
 
   }
 
@@ -132,9 +129,10 @@ public class HHRDD extends RDD<byte[]> implements Serializable {
   public Iterator<byte[]> compute(Partition partition, TaskContext taskContext) {
     HHRDDPartition hhRDDPartion = (HHRDDPartition) partition;
     HHRDDIterator iterator = null;
+    InputMetrics inputMetrics = taskContext.taskMetrics().inputMetrics();
     try {
       iterator = new HHRDDIterator(hhRDDPartion.getFilePath(), hhRDDPartion.getRowSize(),
-          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp(),tempDir);
+          hhRDDPartion.getFiles(), hhRDDPartion.getNodIdToIp(),tempDir,inputMetrics);
     } catch (Exception e) {
       e.printStackTrace();
     }

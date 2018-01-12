@@ -47,25 +47,60 @@ public class MetaDataUpdaterService implements Runnable {
             hhFilePath = dataInputStream.readUTF();
             String metadataFilePath = dataInputStream.readUTF();
             long metadatatFileSize = dataInputStream.readLong();
+            String fileStatisticsPath = dataInputStream.readUTF();
+            long fileStatisticsSize = dataInputStream.readLong();
+            String blockStatisticsPath = dataInputStream.readUTF();
+            long blockStatisticsSize = dataInputStream.readLong();
             File metadataFile = new File(metadataFilePath);
-            if (!metadataFile.getParentFile().exists()) {
-                metadataFile.getParentFile().mkdirs();
-            }
+
+            File fileStatisticsFile = new File(fileStatisticsPath);
+            File blockStatisticsFile = new File(blockStatisticsPath);
+
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
-            FileOutputStream fos = new FileOutputStream(metadataFile, false);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            int len;
-            long remainingDataSize = metadatatFileSize;
-            while (remainingDataSize > 0) {
-                len = dataInputStream.read(buffer);
-                bos.write(buffer, 0, len);
-                remainingDataSize -= len;
+            try(FileOutputStream fos = new FileOutputStream(metadataFile, false);
+            BufferedOutputStream bos = new BufferedOutputStream(fos)){
+                int len;
+                long remainingDataSize = metadatatFileSize;
+                while (remainingDataSize > 0) {
+                    len = dataInputStream.read(buffer);
+                    bos.write(buffer, 0, len);
+                    remainingDataSize -= len;
+                }
+                bos.flush();
+                fos.flush();
             }
-            bos.flush();
-            fos.flush();
-            bos.close();
-            fos.close();
+
+            this.dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+            this.dataOutputStream.flush();
+            try(FileOutputStream fos = new FileOutputStream(fileStatisticsFile, false);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);){
+                long remainingDataSize = fileStatisticsSize;
+                int len;
+                while (remainingDataSize > 0) {
+                    len = dataInputStream.read(buffer);
+                    bos.write(buffer, 0, len);
+                    remainingDataSize -= len;
+                }
+                bos.flush();
+                fos.flush();
+            }
+
+            this.dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
+            this.dataOutputStream.flush();
+            try(FileOutputStream fos = new FileOutputStream(blockStatisticsFile, false);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);){
+                long remainingDataSize = blockStatisticsSize;
+                int len;
+                while (remainingDataSize > 0) {
+                    len = dataInputStream.read(buffer);
+                    bos.write(buffer, 0, len);
+                    remainingDataSize -= len;
+                }
+                bos.flush();
+                fos.flush();
+            }
+
             this.dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             this.dataOutputStream.flush();
             logger.info("Metadata update completed from {}", this.socket.getInetAddress());

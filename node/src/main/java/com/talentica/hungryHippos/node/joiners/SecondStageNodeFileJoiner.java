@@ -19,11 +19,12 @@
 package com.talentica.hungryHippos.node.joiners;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
-import com.talentica.hungryHippos.storage.FileDataStore;
+import com.talentica.hungryHippos.storage.SecondStageZipFileDataStore;
 import com.talentica.hungryHippos.storage.ResourceAllocator;
+import com.talentica.hungryhippos.filesystem.FileStatistics;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class SecondStageNodeFileJoiner implements Callable<Boolean> {
 
     private String hhFilePath;
 
-    private static final int INT_OFFSET = 4;
+    private static final int INT_OFFSET = Integer.BYTES;
 
     public SecondStageNodeFileJoiner(Queue<String> fileSrcQueue, String hhFilePath, int fileId) {
         this.fileSrcQueue = fileSrcQueue;
@@ -67,15 +68,21 @@ public class SecondStageNodeFileJoiner implements Callable<Boolean> {
             FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
             int dataSize = dataDescription.getSize();
             String uniqueFolderName = FileSystemContext.getDataFilePrefix();
-            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getFileNames(hhFilePath, fileId);
-            FileDataStore fileDataStore = new FileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
-                    hhFilePath, true, uniqueFolderName);
+            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesMap(hhFilePath, fileId);
+            FileStatistics[] fileStatisticsArr = ShardingResourceCache.INSTANCE.getFileStatisticsMap(hhFilePath);
+            SecondStageZipFileDataStore fileDataStore = new SecondStageZipFileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
+                    hhFilePath, uniqueFolderName,fileStatisticsArr);
             byte[] buf = new byte[INT_OFFSET + dataSize];
             ByteBuffer indexBuffer = ByteBuffer.wrap(buf);
+            ByteBuffer dataBuffer = ByteBuffer.wrap(buf,INT_OFFSET,dataSize);
+            HHRowReader hhRowReader = new HHRowReader(dataDescription,dataBuffer,INT_OFFSET);
+
+            int cols = dataDescription.getNumberOfDataFields();
             int index;
             String srcFileName;
             while ((srcFileName = fileSrcQueue.poll()) != null) {
                 File srcFile = new File(srcFileName);
+
                 if (!fileDataStore.isUsingBufferStream()) {
                     if (ResourceAllocator.INSTANCE.isMemoryAvailableForBuffer(fileNames.size())) {
                         LOGGER.info("Upgrading store for {}", srcFileName);
@@ -87,6 +94,10 @@ public class SecondStageNodeFileJoiner implements Callable<Boolean> {
                     BufferedInputStream bis = new BufferedInputStream(fis);
                     while (bis.read(buf) != -1) {
                         index = indexBuffer.getInt(0);
+                        FileStatistics fileStatistics = fileStatisticsArr[index];
+                        for (int i = 0; i < cols; i++) {
+                            fileStatistics.updateColumnStatistics(i,hhRowReader.readAtColumn(i));
+                        }
                         fileDataStore.storeRow(index, buf, INT_OFFSET, dataSize);
                     }
                     bis.close();

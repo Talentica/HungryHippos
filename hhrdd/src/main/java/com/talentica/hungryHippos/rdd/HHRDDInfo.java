@@ -60,20 +60,7 @@ public interface HHRDDInfo extends Serializable {
       int jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey,
       String primaryDimensionKey);
 
-  /**
-   * Gets the partitions.
-   *
-   * @param id the id
-   * @param noOfExecutors the no of executors
-   * @param jobShardingDimensions the job sharding dimensions
-   * @param jobPrimaryDimensionIdx the job primary dimension idx
-   * @param jobShardingDimensionsKey the job sharding dimensions key
-   * @param primaryDimensionKey the primary dimension key
-   * @return the partitions
-   */
-  Partition[] getPartitions(int id, int noOfExecutors, List<Integer> jobShardingDimensions,
-      int jobPrimaryDimensionIdx, List<String> jobShardingDimensionsKey,
-      String primaryDimensionKey);
+
 
   /**
    * Gets the bucket to node number map.

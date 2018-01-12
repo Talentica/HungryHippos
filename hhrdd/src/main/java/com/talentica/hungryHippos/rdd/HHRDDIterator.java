@@ -19,6 +19,7 @@
 package com.talentica.hungryHippos.rdd;
 
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import org.apache.spark.executor.InputMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
@@ -76,6 +77,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
 
   private String tmpDownloadPath;
 
+  private InputMetrics inputMetrics;
+
   /**
    * Instantiates a new HHRDD iterator.
    *
@@ -86,7 +89,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
    * @param tmpDir the tmp dir
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, SerializedNode> nodeInfo,File tmpDir) throws IOException {
+  public HHRDDIterator(String filePath, int rowSize, List<Tuple2<String,int[]>> files, Map<Integer, SerializedNode> nodeInfo,File tmpDir, InputMetrics inputMetrics) throws IOException {
+    this.inputMetrics = inputMetrics;
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
     blackListedIps = new HashSet<>();
@@ -261,6 +265,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
   public byte[] next() {
     try {
       dataInputStream.read(byteBufferBytes);
+      inputMetrics.incBytesRead(recordLength);
+      inputMetrics.incRecordsRead(1);
       currentDataFileSize = currentDataFileSize - recordLength;
     } catch (IOException e) {
       this.deleteAllDownloadedFiles();

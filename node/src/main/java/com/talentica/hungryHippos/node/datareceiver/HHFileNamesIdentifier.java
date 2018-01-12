@@ -44,6 +44,7 @@ public class HHFileNamesIdentifier {
     private Map<Integer, Set<String>> nodeToFileMap;
 
     private Map<String, int[]> fileToNodeMap;
+    private Map<Integer, Integer> multiplicationFactor;
 
     public HHFileNamesIdentifier(String[] keyOrder, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int maxBucketSize) {
         this.nodeSelector = new NodeSelector();
@@ -53,44 +54,58 @@ public class HHFileNamesIdentifier {
         this.fileNames = new HashMap<>();
         this.nodeToFileMap = new HashMap<>();
         this.fileToNodeMap = new HashMap<>();
-        addFileNameToList(fileNames, 0, "", 0, null);
+        this.multiplicationFactor = new HashMap<>();
+        this.multiplicationFactor.put(1, maxBucketSize);
+        for (int dim = 2; dim < keyOrder.length; dim++) {
+            this.multiplicationFactor.put(dim, (int) Math.pow(maxBucketSize, dim));
+        }
+        addFileNameToList();
     }
 
-    private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
+    private void addFileNameToList() {
+        String key = keyOrder[0];
+        Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
+        for (Map.Entry<Bucket<KeyValueFrequency>, Node> bucketNodeEntry : bucketNodeMap.entrySet()) {
+            Map<String, Bucket<KeyValueFrequency>> keyBucket = new HashMap<>();
+            keyBucket.put(key, bucketNodeEntry.getKey());
+            int bucketId = bucketNodeEntry.getKey().getId();
+            int newIndex = bucketId;
+            addFileNameToListUtil(newIndex, bucketId + "", 1, keyBucket);
+        }
+    }
+
+    private void addFileNameToListUtil(int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         if (dimension == keyOrder.length) {
-            addFileName(fileNames, index, fileName, keyBucket);
+            addFileName(index, fileName, keyBucket);
             return;
         }
         String key = keyOrder[dimension];
-        Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
-        for (Map.Entry<Bucket<KeyValueFrequency>, Node> bucketNodeEntry : bucketNodeMap.entrySet()) {
-
-            if (dimension != 0) {
+        if (keyBucket.get(key) != null) {
+            int bucketId = keyBucket.get(key).getId();
+            int newIndex = index;
+            addFileNameToListUtil(newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
+        } else {
+            Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
+            for (Map.Entry<Bucket<KeyValueFrequency>, Node> bucketNodeEntry : bucketNodeMap.entrySet()) {
                 keyBucket.put(key, bucketNodeEntry.getKey());
                 int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
-            } else {
-                keyBucket = new HashMap<>();
-                keyBucket.put(key, bucketNodeEntry.getKey());
-                int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, bucketId + fileName, dimension + 1, keyBucket);
+                int newIndex = index + bucketId * multiplicationFactor.get(dimension);
+                addFileNameToListUtil(newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
             }
-
+            keyBucket.remove(key);
         }
     }
 
-    private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
+    private void addFileName(int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
         BucketCombination bucketCombination = new BucketCombination(keyBucket);
         int[] nodeIdsArr = new int[keyOrder.length];
-        fileToNodeMap.put(fileName,nodeIdsArr);
+        fileToNodeMap.put(fileName, nodeIdsArr);
         Set<Integer> nodeIds = nodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
         Iterator<Integer> nodeIterator = nodeIds.iterator();
-        int i =0;
+        int i = 0;
         while (nodeIterator.hasNext()) {
             int nodeId = nodeIterator.next();
-            nodeIdsArr[i++]=nodeId;
+            nodeIdsArr[i++] = nodeId;
             Set<String> fileNameSet = nodeToFileMap.get(nodeId);
             if (fileNameSet == null) {
                 fileNameSet = new HashSet<>();

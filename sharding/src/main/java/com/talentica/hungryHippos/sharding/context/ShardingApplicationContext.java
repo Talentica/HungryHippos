@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import com.talentica.hungryhippos.filesystem.SerializableComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,6 +186,16 @@ public class ShardingApplicationContext {
 
     return dataDescription;
 
+  }
+
+  public SerializableComparator[] getSerializableComparators(){
+    ShardingClientConfig shardingClientConfig = getShardingClientConfig();
+    List<Column> columns = shardingClientConfig.getInput().getDataDescription().getColumn();
+    SerializableComparator[] serializableComparators = new SerializableComparator[columns.size()];
+    for (int i = 0; i < columns.size(); i++) {
+      serializableComparators[i] = ComparatorStore.INSTANCE.getSerializableComparator(columns.get(i).getDataType());
+    }
+    return serializableComparators;
   }
 
   /**

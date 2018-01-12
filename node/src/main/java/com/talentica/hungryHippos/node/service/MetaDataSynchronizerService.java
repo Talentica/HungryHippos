@@ -16,8 +16,7 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.datareceiver.HHFileStatusCoordinator;
-import com.talentica.hungryHippos.node.datareceiver.MetaDataSynchronizer;
+import com.talentica.hungryHippos.node.datareceiver.*;
 import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
 import com.talentica.hungryHippos.node.joiners.FirstStageNodeFileJoinerCaller;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
@@ -31,6 +30,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Map;
 
 /**
  * Created by rajkishoreh on 6/2/17.
@@ -55,18 +55,28 @@ public class MetaDataSynchronizerService implements Runnable {
         String hhFilePath = null;
         try {
             hhFilePath = dataInputStream.readUTF();
+
+
             logger.info("Checking publish status of {}",hhFilePath);
             boolean status = FileJoinCaller.INSTANCE.checkStatus(hhFilePath)
-                    && FirstStageNodeFileJoinerCaller.INSTANCE.checkStatus(hhFilePath);
+                    && FirstStageNodeFileJoinerCaller.INSTANCE.checkStatus(hhFilePath) && IncrementalDataHandler.INSTANCE.checkStatus(hhFilePath);
             if (status) {
                 logger.info("Publish successful for {}",hhFilePath);
                 String baseFolderPath = FileSystemContext.getRootDirectory() + hhFilePath;
-                String dataFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix();
+                String dataFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix()+File.separator;
                 String metadataFilePath = baseFolderPath + File.separator + FileSystemConstants.META_DATA_FOLDER_NAME
                         + File.separator + NodeInfo.INSTANCE.getId();
-                File dataFolder = new File(dataFolderPath);
-                String[] files = dataFolder.list();
-                MetaDataSynchronizer.INSTANCE.synchronize(dataFolderPath, files, dataFolderPath, metadataFilePath, hhFilePath);
+                String fileStatisticsPath = baseFolderPath + File.separator + FileSystemConstants.FILE_STATISTICS_FOLDER_NAME
+                        + File.separator + NodeInfo.INSTANCE.getId();
+                String blockStatisticsFolderPath = baseFolderPath + File.separator + FileSystemConstants.BLOCK_STATISTICS_FOLDER_NAME
+                        + File.separator + NodeInfo.INSTANCE.getId();
+                ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+                try{
+                    Map<Integer, String> indexToFileNamesV2 = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
+                    DataSynchronizer.INSTANCE.synchronize(dataFolderPath, indexToFileNamesV2.values(), metadataFilePath, hhFilePath, fileStatisticsPath, blockStatisticsFolderPath);
+                }finally {
+                    ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+                }
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             } else {
                 logger.info("Publish failed for {}",hhFilePath);

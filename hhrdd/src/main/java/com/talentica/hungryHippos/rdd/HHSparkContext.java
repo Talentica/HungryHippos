@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
@@ -53,6 +54,12 @@ public class HHSparkContext extends JavaSparkContext {
     HHRDDHelper.initialize(clientConfigurationFilePath);
   }
 
+  public HHSparkContext(SparkContext sc, String clientConfigurationFilePath)
+          throws FileNotFoundException, JAXBException {
+    super(sc);
+    HHRDDHelper.initialize(clientConfigurationFilePath);
+  }
+
   /**
    * Returns a {@link JavaRDD} of byte array from HungryHippo file system.
    *
@@ -71,6 +78,25 @@ public class HHSparkContext extends JavaSparkContext {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
     return new HHRDD(this.sc(), hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
   }
+
+  /**
+   * Returns a {@link JavaRDD} of byte array from HungryHippo file system.
+   *
+   * @param jobDimensions        - An Integer array of indexes of the columns on which group by will be performed.
+   *        Default dimension will be the first column.
+   * @param hhFilePath        - Path to the HungryHippo file
+   * @param requiresShuffle        - A value true will create optimal partitions of nearly 128MB each if possible.
+   *        A value false will create optimal partitions according to the job dimensions.
+   * @return JavaRDD  byte[] instance
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+   */
+ /* public JavaRDD<HHRDDRowReader> rowReaderRecords(Integer[] jobDimensions, String hhFilePath, boolean requiresShuffle)
+          throws JAXBException, IOException {
+    HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
+    return new HHRDDOpt(this.sc(), hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
+  }*/
 
   /**
    * Returns an instance of {@link HHRDDInfo} type.

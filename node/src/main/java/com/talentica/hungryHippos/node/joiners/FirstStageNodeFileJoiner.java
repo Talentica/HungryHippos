@@ -64,7 +64,7 @@ public class FirstStageNodeFileJoiner implements Callable<Boolean> {
             FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
             int dataSize = dataDescription.getSize();
             String uniqueFolderName = UUID.randomUUID().toString();
-            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getFileNames(hhFilePath);
+            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesMap(hhFilePath);
             FileDataStoreFirstStage fileDataStoreFirstStage = new FileDataStoreFirstStage(fileNames, hhFilePath, true, uniqueFolderName,
                     ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath), ShardingResourceCache.INSTANCE.getReduceFactor(hhFilePath));
             int index;

@@ -59,12 +59,23 @@ public class ServiceDelegator implements Runnable {
           DataDistributorStarter.metadataUpdaterServices
               .execute(new MetaDataUpdaterService(socket));
           break;
+        case HungryHippoServicesConstants.DATA_UPDATER:
+          DataDistributorStarter.metadataUpdaterServices
+                  .execute(new DataUpdaterService(socket));
+          break;
+        case HungryHippoServicesConstants.TAR_DATA_UPDATER:
+          DataDistributorStarter.metadataUpdaterServices
+                  .execute(new TarDataUpdaterService(socket));
+          break;
         case HungryHippoServicesConstants.METADATA_SYNCHRONIZER:
           DataDistributorStarter.metadataSynchronizerServices
               .execute(new MetaDataSynchronizerService(socket));
           break;
         case HungryHippoServicesConstants.ACCEPT_FILE:
           DataDistributorStarter.fileService.execute(new AcceptFileService(socket));
+          break;
+        case HungryHippoServicesConstants.INCREMENTAL_DATA_APPENDER:
+          DataDistributorStarter.fileService.execute(new IncrementalDataReceiver(socket));
           break;
         default:
           socket.close();

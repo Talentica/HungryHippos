@@ -141,10 +141,10 @@ public abstract class AbstractFileUploader implements Runnable{
                 bis.close();
                 socketMap.put(idx, socket);
                 break;
-            }catch(IOException | InterruptedException e){
+            }catch(Exception e){
                 noOfRemainingAttempts--;
-                logger.error("[{}] Retrying Sending tar for {}",
-                        Thread.currentThread().getName(), srcFolderPath);
+                logger.error("[{}] Retrying Sending tar for {} to {}",
+                        Thread.currentThread().getName(), srcFolderPath, node.getIp());
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e1) {

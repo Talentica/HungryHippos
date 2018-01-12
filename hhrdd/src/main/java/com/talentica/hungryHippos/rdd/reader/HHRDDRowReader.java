@@ -16,10 +16,15 @@
 package com.talentica.hungryHippos.rdd.reader;
 
 import java.nio.ByteBuffer;
+import java.sql.Date;
+import java.sql.Timestamp;
 
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.client.domain.DataLocator;
 import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
+import org.apache.spark.sql.catalyst.util.DateTimeUtils;
+import org.apache.spark.sql.catalyst.util.DateTimeUtils$;
+import org.apache.spark.unsafe.types.UTF8String;
 
 /**
  * {@code HHRDDRowReader} is used to convert data from binary form to Object form.
@@ -77,8 +82,6 @@ public class HHRDDRowReader {
     switch (locator.getDataType()) {
       case BYTE:
         return source.get(locator.getOffset());
-      case CHAR:
-        return source.getChar(locator.getOffset());
       case SHORT:
         return source.getShort(locator.getOffset());
       case INT:
@@ -91,31 +94,23 @@ public class HHRDDRowReader {
         return source.getDouble(locator.getOffset());
       case STRING:
         return readValueString(locator.getOffset(),locator.getSize());
+      case DATE:
+        return new Date(source.getLong(locator.getOffset()));
+      case TIMESTAMP:
+        return new Timestamp(source.getLong(locator.getOffset()));
     }
     return null;
   }
 
-  /**
-   * Reads MutableCharArrayString value from {@link ByteBuffer}.
-   *
-   * @param index the index
-   * @return {@link MutableCharArrayString}
-   */
-  private MutableCharArrayString readValueString(int index) {
-    DataLocator locator = dataDescription.locateField(index);
-    int offset = locator.getOffset();
-    int size = locator.getSize();
-    MutableCharArrayString charArrayString = new MutableCharArrayString(size);
-    for (int i = offset; i < offset + size; i++) {
-      byte ch = source.get(i);
-      if (ch == 0) {
-        break;
-      }
-      charArrayString.addByte(ch);
-    }
-    return charArrayString;
-  }
 
+
+  /**
+   * Reads String value from {@link ByteBuffer}.
+   *
+   * @param offset
+   * @param size
+   * @return {@link String}
+   */
   private String readValueString(int offset,int size) {
     int count = 0;
     char[] charArr = new char[size];

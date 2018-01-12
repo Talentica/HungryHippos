@@ -35,14 +35,18 @@ public class MetaDataUploader implements Runnable {
 
     private Node node ;
     private String metadatFilerPath;
+    private String fileStatisticsPath;
+    private String blockStatisticsPath;
     private boolean success;
     private CountDownLatch countDownLatch;
     private String hhFilePath;
 
 
-    public MetaDataUploader(CountDownLatch countDownLatch, Node node, String metadatFilerPath , String hhFilePath) {
+    public MetaDataUploader(CountDownLatch countDownLatch, Node node, String metadatFilerPath , String fileStatisticsPath, String blockStatisticsPath,String hhFilePath) {
         this.node = node;
         this.metadatFilerPath = metadatFilerPath;
+        this.fileStatisticsPath = fileStatisticsPath;
+        this.blockStatisticsPath = blockStatisticsPath;
         this.success = false;
         this.countDownLatch = countDownLatch;
         this.hhFilePath = hhFilePath;
@@ -55,12 +59,20 @@ public class MetaDataUploader implements Runnable {
             socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
             File metadataFile = new File(metadatFilerPath);
             long metadatFileSize = metadataFile.length();
+            File fileStatisticsFile = new File(fileStatisticsPath);
+            long fileStatisticsSize = fileStatisticsFile.length();
+            File blockStatisticsFile = new File(blockStatisticsPath);
+            long blockStatisticsSize = blockStatisticsFile.length();
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             dos.writeInt(HungryHippoServicesConstants.METADATA_UPDATER);
             dos.writeUTF(hhFilePath);
             dos.writeUTF(metadatFilerPath);
             dos.writeLong(metadatFileSize);
+            dos.writeUTF(fileStatisticsPath);
+            dos.writeLong(fileStatisticsSize);
+            dos.writeUTF(blockStatisticsPath);
+            dos.writeLong(blockStatisticsSize);
             int bufferSize = 2048;
             byte[] buffer = new byte[bufferSize];
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(metadataFile),bufferSize*10);
@@ -74,8 +86,31 @@ public class MetaDataUploader implements Runnable {
             if(!HungryHippoServicesConstants.SUCCESS.equals(response)){
                 success = false;
             }else{
-                success = true;
+                bis = new BufferedInputStream(new FileInputStream(fileStatisticsFile),bufferSize*10);
+                while((len=bis.read(buffer))>-1){
+                    dos.write(buffer,0,len);
+                }
+                dos.flush();
+                bis.close();
+                response = dis.readUTF();
+                if(!HungryHippoServicesConstants.SUCCESS.equals(response)){
+                    success = false;
+                }else{
+                    bis = new BufferedInputStream(new FileInputStream(blockStatisticsFile),bufferSize*10);
+                    while((len=bis.read(buffer))>-1){
+                        dos.write(buffer,0,len);
+                    }
+                    dos.flush();
+                    bis.close();
+                    response = dis.readUTF();
+                    if(!HungryHippoServicesConstants.SUCCESS.equals(response)){
+                        success = false;
+                    }else{
+                        success = true;
+                    }
+                }
             }
+
         } catch (IOException |InterruptedException e) {
             logger.error("Failed to upload metadata to {} for {} Reason: ",node.getIp(),metadatFilerPath,e.getMessage() );
             e.printStackTrace();

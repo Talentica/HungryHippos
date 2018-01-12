@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,26 @@ public class DataDistributor {
       String key;
       int keyIndex;
       DataTypes[] parts;
+      Map<Integer,Integer> multiplicationFactor = new HashMap<>();
+      multiplicationFactor.put(0,1);
+      multiplicationFactor.put(1,maxBucketSize);
+      for (int i = 2; i < keyOrder.length; i++) {
+        multiplicationFactor.put(i,(int) Math.pow(maxBucketSize,i));
+      }
+      int[] bucketsMap = new int[keyOrder.length];
+      int[] disjoint = new int[keyOrder.length];
+      for (int i = 0; i < keyOrder.length; i++) {
+        for (int j = 0; j < keyOrder.length; j++) {
+          if(i==j){
+            disjoint[i]=i;
+            break;
+          }else if(keyOrder[i].equals(keyOrder[j])){
+            disjoint[i]=j;
+            break;
+          }
+        }
+
+      }
       while (true) {
         try {
           parts = input.read();
@@ -127,23 +148,38 @@ public class DataDistributor {
           break;
         }
 
+        Arrays.fill(bucketsMap,-1);
         for (int i = 0; i < keyOrder.length; i++) {
           key = keyOrder[i];
-          keyIndex = context.assignShardingIndexByName(key);
-          DataTypes value = parts[keyIndex];
-          String valueStr = value.toString();
-          Counter counter = splitKeyValueCounter.get(key).get(valueStr);
-          if( counter != null){
-            buckets[i] = bucketsCalculator.getBucketNumberForValue(key, valueStr,counter.getNextCount());
-          }else{
-            buckets[i] = bucketsCalculator.calculateBucketNumberForNewValue(key, valueStr);
+          int disjointIdx = disjoint[i];
+          if(bucketsMap[disjointIdx]==-1){
+            keyIndex = context.assignShardingIndexByName(key);
+            DataTypes value = parts[keyIndex];
+            String valueStr = value.toString();
+            Counter counter = splitKeyValueCounter.get(key).get(valueStr);
+            if( counter != null){
+              buckets[i] = bucketsCalculator.getBucketNumberForValue(key, valueStr,counter.getNextCount());
+            }else{
+              buckets[i] = bucketsCalculator.calculateBucketNumberForNewValue(key, valueStr);
+            }
+            bucketsMap[disjointIdx] = buckets[i];
+          }   else{
+            buckets[i] = bucketsMap[disjointIdx];
           }
         }
 
         for (int i = 0; i < dataDescription.getNumberOfDataFields(); i++) {
           dynamicMarshal.writeValue(i, parts[i], byteBuffer);
         }
-        storageStrategy.store(buf,hhFileMapper, buckets, maxBucketSize);
+
+        int index = 0;
+        for (int i = 0; i < buckets.length; i++) {
+          if(disjoint[i]==i){
+            index = index + buckets[i] * multiplicationFactor.get(i);
+          }
+        }
+        hhFileMapper.storeRow(index, buf);
+
       }
       srcFile.delete();
       hhFileMapper.sync();

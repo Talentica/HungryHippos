@@ -29,7 +29,7 @@ public class MemoryStatus {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MemoryStatus.class);
 
-  private static final long sparedMemory = 200 * 1024 * 1024;//Memory spared for other activities.
+  private static final long sparedMemory = 1024 * 1024 * 1024;//Memory spared for other activities.
 
   public synchronized static long getUsableMemory() {
     long availablePrimaryMemory = Runtime.getRuntime().freeMemory();

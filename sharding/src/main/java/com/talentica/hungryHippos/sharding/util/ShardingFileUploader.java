@@ -37,14 +37,16 @@ public class ShardingFileUploader implements Runnable {
   private Node node;
   private boolean success;
   private String destinationPath;
+  private String distributedFilePath;
   private String sourceFile;
   private int idealSizeOfBuffer = 8192;
   private long end;
   private long start;
 
-  public ShardingFileUploader(Node node, String sourceFile, String destinationPath) {
+  public ShardingFileUploader(Node node, String sourceFile, String distributedFilePath, String destinationPath) {
     this.node = node;
     this.sourceFile = sourceFile;
+    this.distributedFilePath = distributedFilePath;
     this.destinationPath = destinationPath;
   }
 
@@ -88,6 +90,7 @@ public class ShardingFileUploader implements Runnable {
       long size = Files.size(Paths.get(sourceFile));
       dos.writeInt(HungryHippoServicesConstants.ACCEPT_FILE);
       dos.writeUTF(destinationPath);
+      dos.writeUTF(distributedFilePath);
       dos.writeLong(size);
       dos.writeInt(HungryHippoServicesConstants.SHARDING_TABLE);
 

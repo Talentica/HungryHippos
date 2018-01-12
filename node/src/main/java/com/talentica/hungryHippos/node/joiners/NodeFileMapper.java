@@ -37,7 +37,7 @@ class NodeFileMapper {
 
     public NodeFileMapper(String hhFilePath) throws InterruptedException, ClassNotFoundException,
             JAXBException, KeeperException, IOException {
-        fileNames = ShardingResourceCache.INSTANCE.getFileNames(hhFilePath);
+        fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
         this.uniqueFolderName = FileSystemContext.getDataFilePrefix();
         this.fileDataStore = new FileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
                 hhFilePath, true, uniqueFolderName);

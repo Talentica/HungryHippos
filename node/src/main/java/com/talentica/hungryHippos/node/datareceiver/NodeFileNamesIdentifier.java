@@ -41,12 +41,18 @@ public class NodeFileNamesIdentifier {
 
     private Map<Integer, String> fileNames;
 
+    private Map<Integer,Integer> multiplicationFactor;
+
     public NodeFileNamesIdentifier(String[] keyOrder, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, int maxBucketSize) {
         this.nodeSelector = new NodeSelector();
         this.keyOrder = keyOrder;
         this.bucketToNodeNumberMap = bucketToNodeNumberMap;
         this.maxBucketSize = maxBucketSize;
         this.fileNames = new HashMap<>();
+        this.multiplicationFactor = new HashMap<>();
+        for (int dim = 0; dim < keyOrder.length; dim++) {
+            multiplicationFactor.put(dim,(int) Math.pow(maxBucketSize, dim));
+        }
         addFileNameToList(fileNames, 0, "", 0, null);
     }
 
@@ -62,13 +68,13 @@ public class NodeFileNamesIdentifier {
             if (dimension != 0) {
                 keyBucket.put(key, bucketNodeEntry.getKey());
                 int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
+                int newIndex = index + bucketId * multiplicationFactor.get(dimension);
                 addFileNameToList(fileNames, newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
             } else {
                 keyBucket = new HashMap<>();
                 keyBucket.put(key, bucketNodeEntry.getKey());
                 int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
+                int newIndex = index + bucketId * multiplicationFactor.get(dimension);
                 addFileNameToList(fileNames, newIndex, bucketId + fileName, dimension + 1, keyBucket);
             }
         }

@@ -29,8 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CacheClearService implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(CacheClearService.class);
-    private static final String CLEAR_UNIX_CACHE = "clear_unix_cache";
-    private static final long MIN_FREE_RAM = 1024*1024*1024;
+    private static final String CLEAR_UNIX_CACHE = "free_up_mem.sh";
     private static AtomicInteger clearSignal = new AtomicInteger(1);
 
     @Override
@@ -39,7 +38,8 @@ public class CacheClearService implements Runnable {
         if(clearSignalVal==0) {
             try {
                 logger.info("[{}] Clearing unix cache", Thread.currentThread().getName());
-                Process clearCacheProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir") + File.separator + CLEAR_UNIX_CACHE + " " + MIN_FREE_RAM);
+                Process clearCacheProcess = Runtime.getRuntime().exec(System.getProperty("hh.bin.dir") + File.separator + CLEAR_UNIX_CACHE );
+
                 int clearCacheProcessStatus = clearCacheProcess.waitFor();
                 if (clearCacheProcessStatus != 0) {
                     printReasonForAbnormalStatus(clearCacheProcess);
@@ -66,6 +66,6 @@ public class CacheClearService implements Runnable {
             sb.append(line);
         }
         br.close();
-        logger.error("[{}] Error while clearing cache for {}:  {}", Thread.currentThread().getName(), sb.toString());
+        logger.error("[{}] Error while clearing cache :  {}", Thread.currentThread().getName(), sb.toString());
     }
 }

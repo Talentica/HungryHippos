@@ -26,6 +26,8 @@ ruby_block "add hhuser to sudoers" do
   block do
     file = Chef::Util::FileEdit.new("/etc/sudoers")
     file.insert_line_if_no_match("hhuser    ALL=(ALL:ALL) ALL", "hhuser    ALL=(ALL:ALL) ALL")
+    file.insert_line_if_no_match("hhuser     ALL = NOPASSWD: /bin/sync", "hhuser     ALL = NOPASSWD: /bin/sync")
+    file.insert_line_if_no_match("hhuser     ALL = NOPASSWD: /sbin/sysctl vm.drop_caches=3", "hhuser     ALL = NOPASSWD: /sbin/sysctl vm.drop_caches=3")
     file.write_file
   end
 end

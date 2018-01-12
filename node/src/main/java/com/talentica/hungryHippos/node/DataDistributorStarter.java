@@ -17,6 +17,7 @@ package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
+import com.talentica.hungryHippos.node.service.CacheClearService;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
 import org.slf4j.Logger;
@@ -71,13 +72,19 @@ public class DataDistributorStarter {
     fileService = commonServicePoolCache;
     cacheClearServices = commonServicePoolCache;
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
-    hungryHippoCurator.createEphemeralNode(CoordinationConfigUtil.getHostsPath()
-        + HungryHippoCurator.ZK_PATH_SEPERATOR + NodeInfo.INSTANCE.getIp());
+
+    String ephemeralNode = CoordinationConfigUtil.getHostsPath()
+              + HungryHippoCurator.ZK_PATH_SEPERATOR + NodeInfo.INSTANCE.getIp();
+    hungryHippoCurator.deletePersistentNodeIfExits(ephemeralNode);
+
+    hungryHippoCurator.createEphemeralNode(ephemeralNode);
     logger.info("DataDistributor Application started");
+    DataDistributorStarter.cacheClearServices.execute(new CacheClearService());
     while (true) {
       Socket socket = serverSocket.accept();
       serviceDelegator.execute(new ServiceDelegator(socket));
     }
+
   }
 
   private static void validateArguments(String[] args) {

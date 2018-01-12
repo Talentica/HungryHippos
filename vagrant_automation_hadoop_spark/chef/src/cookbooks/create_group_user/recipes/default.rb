@@ -9,13 +9,13 @@
 group 'hadoop' do
   action :create
   group_name 'hadoop'
-  gid '901'
+  gid '902'
   append true
 end
 user 'hduser' do
   supports :manage_home => true
-  uid '1234'
-  gid '901'
+  uid '1235'
+  gid 902
   home '/home/hduser'
   shell '/bin/bash'
   password 'hduser'

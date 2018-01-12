@@ -16,7 +16,7 @@ end
 
 
 execute 'ssh-keygen' do
-  command 'ssh-keygen -t rsa -N ""  -f /home/hduser/.ssh/id_rsa'
+  command 'rm -rf /home/hduser/.ssh/id_rsa && ssh-keygen -t rsa -N ""  -f /home/hduser/.ssh/id_rsa'
   user 'hduser'
   group 'hadoop'
 end

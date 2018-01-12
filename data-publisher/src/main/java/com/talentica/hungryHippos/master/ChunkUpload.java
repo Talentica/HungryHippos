@@ -33,22 +33,14 @@ import com.talentica.hungryhippos.config.cluster.Node;
 public class ChunkUpload implements Runnable {
 
   private static Logger logger = LoggerFactory.getLogger(ChunkUpload.class);
-  Map<Integer, DataInputStream> dataInputStreamMap;
-  Map<Integer, Socket> socketMap;
   boolean success;
   private String destinationPath;
   private String remotePath;
   private Queue<Node> nodes;
 
-
-
-  public ChunkUpload(String destinationPath, String remotePath,
-      Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap,
-      Queue<Node> nodes) {
+  public ChunkUpload(String destinationPath, String remotePath, Queue<Node> nodes) {
     this.destinationPath = destinationPath;
     this.remotePath = remotePath;
-    this.dataInputStreamMap = dataInputStreamMap;
-    this.socketMap = socketMap;
     this.success = false;
     this.nodes = nodes;
   }
@@ -61,8 +53,7 @@ public class ChunkUpload implements Runnable {
       logger.info("[{}] Uploading chunk ", Thread.currentThread().getName());
       while (!DataPublisherStarter.queue.isEmpty()) {
 
-        DataPublisherStarter.uploadChunk(destinationPath, nodes, remotePath, dataInputStreamMap,
-            socketMap);
+        DataPublisherStarter.uploadChunk(destinationPath, nodes, remotePath);
       }
       success = true;
 

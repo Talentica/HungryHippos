@@ -86,8 +86,6 @@ public class DataPublisherStarter {
       updateZookeeperNodes(destinationPath);
       String remotePath = FileSystemContext.getRootDirectory() + destinationPath + File.separator;
       long startTime = System.currentTimeMillis();
-      Map<Integer, DataInputStream> dataInputStreamMap = new ConcurrentHashMap<>();
-      Map<Integer, Socket> socketMap = new ConcurrentHashMap<>();
       List<Chunk> chunks = null;
 
 
@@ -120,8 +118,7 @@ public class DataPublisherStarter {
 
       for (int i = 0; i < noOfParallelThreads; i++) {
         if (!listOfNodesAssignedToThread.get(i).isEmpty()) {
-          chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, dataInputStreamMap,
-              socketMap, listOfNodesAssignedToThread.get(i));
+          chunkUpload[i] = new ChunkUpload(destinationPath, remotePath, listOfNodesAssignedToThread.get(i));
           executorService.execute(chunkUpload[i]);
         }
       }
@@ -142,16 +139,8 @@ public class DataPublisherStarter {
       }
 
 
-      success = true;
-      for (int i = 0; i < noOfChunks; i++) {
-        LOGGER.info("Waiting for status of chunk : {}", i + 1);
-        String status = dataInputStreamMap.get(i).readUTF();
-        LOGGER.info("status of chunk {}/{} is {} ", i + 1, noOfChunks, status);
-        if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
-          success = false;
-        }
-        socketMap.get(i).close();
-      }
+      success = UploadedFileStatusCheckerHandler.INSTANCE.isSuccess();
+
       if (!success) {
         throw new RuntimeException("File Publish Failed for " + destinationPath);
       }
@@ -216,8 +205,7 @@ public class DataPublisherStarter {
     }
   }
 
-  public static void updateMetaData(String hhFilePath, List<Node> nodes)
-          throws IOException, InterruptedException, ExecutionException {
+  public static void updateMetaData(String hhFilePath, List<Node> nodes) {
     ExecutorService metadataUpdaterService = Executors.newFixedThreadPool(nodes.size());
     Future<Boolean>[] futures = new Future[nodes.size()];
     for (int i = 0; i < nodes.size(); i++) {
@@ -226,7 +214,12 @@ public class DataPublisherStarter {
     }
 
     for (int i = 0; i < nodes.size(); i++) {
-      futures[i].get();
+      try {
+        futures[i].get();
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+        LOGGER.error(e.getMessage());
+      }
     }
     metadataUpdaterService.shutdown();
   }
@@ -246,8 +239,7 @@ public class DataPublisherStarter {
     LOGGER.info("Completed updating metadata in {}",node.getIp());
   }
 
-  public static void uploadChunk(String destinationPath, Queue<Node> nodes, String remotePath,
-      Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap)
+  public static void uploadChunk(String destinationPath, Queue<Node> nodes, String remotePath)
       throws IOException, InterruptedException {
 
     boolean successfulUpload = false;
@@ -255,7 +247,7 @@ public class DataPublisherStarter {
     while (!successfulUpload) {
       Node node = nodes.poll();
       successfulUpload =
-          requestDataDistribution(destinationPath, remotePath, dataInputStreamMap, socketMap, node);
+          requestDataDistribution(destinationPath, remotePath, node);
       while (!nodes.offer(node));
       if(peekNode==nodes.peek()){
         Thread.sleep(10000);
@@ -264,8 +256,8 @@ public class DataPublisherStarter {
 
   }
 
-  private static boolean requestDataDistribution(String destinationPath, String remotePath,
-      Map<Integer, DataInputStream> dataInputStreamMap, Map<Integer, Socket> socketMap, Node node)
+  private static boolean requestDataDistribution(String destinationPath,
+                                                 String remotePath, Node node)
       throws IOException, InterruptedException {
     Chunk chunk = null;
     String uuid;
@@ -297,7 +289,6 @@ public class DataPublisherStarter {
     LOGGER.info("[{}] DataDistributor Available in {} : {}", Thread.currentThread().getName(),
         node.getIp(), dataDistributorAvailable);
     if (dataDistributorAvailable) {
-      dataInputStreamMap.put(chunk.getId(), dis);
       dos.writeUTF(destinationPath);
       dos.writeUTF(remotePath + uuid + File.separator + chunk.getFileName());
       dos.writeLong(chunk.getActualSizeOfChunk());
@@ -317,18 +308,17 @@ public class DataPublisherStarter {
       LOGGER.info("Finished transferring chunk {} , it took {} seconds", chunk.getId(),
           stopWatch.elapsedTime());
 
-      if (dataInputStreamMap.get(chunk.getId()).readUTF()
+      if (dis.readUTF()
           .equals(HungryHippoServicesConstants.SUCCESS)) {
         LOGGER.info("chunk with {} id reached the node {} id successfully ", chunk.getId(),
             node.getIdentifier());
       } else {
         throw new RuntimeException("Chunk was not successfully uploaded");
       }
-      socketMap.put(chunk.getId(), socket);
+      UploadedFileStatusCheckerHandler.INSTANCE.receiveStatus(new UploadedFileStatusStreamDetail(dis,socket,chunk.getId()));
     } else {
       while (!queue.offer(chunk));
       socket.close();
-
     }
     return dataDistributorAvailable;
 

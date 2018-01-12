@@ -45,7 +45,7 @@ public enum ComparatorStore {
 
     private SerializableComparator<Comparable> objectSerializableComparator = (o1,o2)-> o1.compareTo(o2);
 
-    public SerializableComparator getSerializableComparator(String dataType) {
+    public SerializableComparator<? extends Comparable> getSerializableComparator(String dataType) {
         switch (dataType){
             case "STRING":
                 return stringSerializableComparator;

@@ -19,7 +19,7 @@
 package com.talentica.hungryHippos.node.joiners;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.SecondStageZipFileDataStore;
@@ -64,13 +64,13 @@ public class SecondStageNodeFileJoiner implements Callable<Boolean> {
             return true;
         }
         try {
-            ShardingApplicationContext context = ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+            ShardingApplicationContext context = ApplicationCache.INSTANCE.getContext(hhFilePath);
             FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
             int dataSize = dataDescription.getSize();
             String uniqueFolderName = FileSystemContext.getDataFilePrefix();
-            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesMap(hhFilePath, fileId);
-            FileStatistics[] fileStatisticsArr = ShardingResourceCache.INSTANCE.getFileStatisticsMap(hhFilePath);
-            SecondStageZipFileDataStore fileDataStore = new SecondStageZipFileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
+            Map<Integer, String> fileNames = ApplicationCache.INSTANCE.getIndexToFileNamesMap(hhFilePath, fileId);
+            FileStatistics[] fileStatisticsArr = ApplicationCache.INSTANCE.getFileStatisticsMap(hhFilePath);
+            SecondStageZipFileDataStore fileDataStore = new SecondStageZipFileDataStore(fileNames, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath),
                     hhFilePath, uniqueFolderName,fileStatisticsArr);
             byte[] buf = new byte[INT_OFFSET + dataSize];
             ByteBuffer indexBuffer = ByteBuffer.wrap(buf);
@@ -115,7 +115,7 @@ public class SecondStageNodeFileJoiner implements Callable<Boolean> {
             e.printStackTrace();
             throw e;
         } finally {
-            ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+            ApplicationCache.INSTANCE.releaseContext(hhFilePath);
         }
         return true;
     }

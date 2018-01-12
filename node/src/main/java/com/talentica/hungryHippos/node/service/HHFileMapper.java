@@ -16,7 +16,7 @@
 package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.datareceiver.HHFileNamesIdentifierForFirstDimension;
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.node.uploaders.HHFileUploader;
 import com.talentica.hungryHippos.sharding.util.NodeSelector;
@@ -44,14 +44,14 @@ public class HHFileMapper {
 
     public HHFileMapper(String hhFilePath, int byteArraySize, int numDimensions, StoreType storeType) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
-        HHFileNamesIdentifierForFirstDimension hhFileNamesIdentifier = ShardingResourceCache.INSTANCE.getHHFileNamesCalculatorForFirstDimension(hhFilePath);
+        HHFileNamesIdentifierForFirstDimension hhFileNamesIdentifier = ApplicationCache.INSTANCE.getHHFileNamesCalculatorForFirstDimension(hhFilePath);
         Map<Integer, String> fileNames = hhFileNamesIdentifier.getFileNames();
         nodeToFileMap = hhFileNamesIdentifier.getNodeToFileMap();
         fileToNodeMap = hhFileNamesIdentifier.getFileToNodeMap();
         this.uniqueFolderName = UUID.randomUUID().toString();
         switch (storeType){
             case FILEDATASTORE:
-                dataStore = new FileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
+                dataStore = new FileDataStore(fileNames, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath),
                         hhFilePath, uniqueFolderName);
                 break;
             case INMEMORYDATASTORE:
@@ -62,7 +62,7 @@ public class HHFileMapper {
                 break;
             case NODEWISEDATASTORE:
                 NodeSelector nodeSelector = new NodeSelector();
-                dataStore =  new NodeWiseFirstDimensionDataStore(fileNames,fileToNodeMap, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath), hhFilePath, uniqueFolderName,nodeSelector.noOfNodes());
+                dataStore =  new NodeWiseFirstDimensionDataStore(fileNames,fileToNodeMap, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath), hhFilePath, uniqueFolderName,nodeSelector.noOfNodes());
                 break;
         }
     }

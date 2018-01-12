@@ -70,12 +70,12 @@ public class MetaDataSynchronizerService implements Runnable {
                         + File.separator + NodeInfo.INSTANCE.getId();
                 String blockStatisticsFolderPath = baseFolderPath + File.separator + FileSystemConstants.BLOCK_STATISTICS_FOLDER_NAME
                         + File.separator + NodeInfo.INSTANCE.getId();
-                ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+                ApplicationCache.INSTANCE.getContext(hhFilePath);
                 try{
-                    Map<Integer, String> indexToFileNamesV2 = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
+                    Map<Integer, String> indexToFileNamesV2 = ApplicationCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
                     DataSynchronizer.INSTANCE.synchronize(dataFolderPath, indexToFileNamesV2.values(), metadataFilePath, hhFilePath, fileStatisticsPath, blockStatisticsFolderPath);
                 }finally {
-                    ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+                    ApplicationCache.INSTANCE.releaseContext(hhFilePath);
                 }
                 dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
             } else {

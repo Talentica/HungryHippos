@@ -18,7 +18,7 @@
 package com.talentica.hungryHippos.node.joiners;
 
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.FileDataStoreFirstStage;
 import com.talentica.hungryHippos.storage.ResourceAllocator;
@@ -60,13 +60,13 @@ public class FirstStageNodeFileJoiner implements Callable<Boolean> {
             return true;
         }
         try {
-            ShardingApplicationContext context = ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+            ShardingApplicationContext context = ApplicationCache.INSTANCE.getContext(hhFilePath);
             FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
             int dataSize = dataDescription.getSize();
             String uniqueFolderName = UUID.randomUUID().toString();
-            Map<Integer, String> fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesMap(hhFilePath);
+            Map<Integer, String> fileNames = ApplicationCache.INSTANCE.getIndexToFileNamesMap(hhFilePath);
             FileDataStoreFirstStage fileDataStoreFirstStage = new FileDataStoreFirstStage(fileNames, hhFilePath, true, uniqueFolderName,
-                    ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath), ShardingResourceCache.INSTANCE.getReduceFactor(hhFilePath));
+                    ApplicationCache.INSTANCE.getMaxFiles(hhFilePath), ApplicationCache.INSTANCE.getReduceFactor(hhFilePath));
             int index;
             String srcFileName;
             int bufLen = INT_OFFSET + dataSize;
@@ -107,7 +107,7 @@ public class FirstStageNodeFileJoiner implements Callable<Boolean> {
             File[] files = firstStageOutputFolder.listFiles();
             SecondStageNodeFileJoinerCaller.INSTANCE.addFiles(firstStageOutputPath, hhFilePath, files);
         } finally {
-            ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+            ApplicationCache.INSTANCE.releaseContext(hhFilePath);
         }
 
         return true;

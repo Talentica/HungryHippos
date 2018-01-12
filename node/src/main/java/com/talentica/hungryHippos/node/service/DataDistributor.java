@@ -23,7 +23,7 @@ import com.talentica.hungryHippos.client.domain.InvalidRowException;
 import com.talentica.hungryHippos.coordination.utility.marshaling.DynamicMarshal;
 import com.talentica.hungryHippos.coordination.utility.marshaling.FileWriter;
 import com.talentica.hungryHippos.coordination.utility.marshaling.Reader;
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.node.storage.strategy.StorageStrategy;
 import com.talentica.hungryHippos.node.storage.strategy.StorageStrategyFunctionPool;
 import com.talentica.hungryHippos.sharding.Bucket;
@@ -53,7 +53,7 @@ public class DataDistributor {
   public static void distribute(String hhFilePath, String srcDataPath) throws Exception {
     try{
     String BAD_RECORDS_FILE = srcDataPath + "_distributor.err";
-    ShardingApplicationContext context = ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+    ShardingApplicationContext context = ApplicationCache.INSTANCE.getContext(hhFilePath);
     FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
     byte[] buf = new byte[dataDescription.getSize()];
     ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
@@ -63,10 +63,10 @@ public class DataDistributor {
     String[] keyOrder = context.getShardingDimensions();
 
     HashMap<String, HashMap<String, List<Bucket<KeyValueFrequency>>>> keyToValueToBucketMap =
-        ShardingResourceCache.INSTANCE.getKeyToValueToBucketMap(hhFilePath);
+        ApplicationCache.INSTANCE.getKeyToValueToBucketMap(hhFilePath);
 
     HashMap<String, HashMap<String, Integer>> splittedKeyValueMap =
-        ShardingResourceCache.INSTANCE.getSplittedKeyValueMap(hhFilePath);
+        ApplicationCache.INSTANCE.getSplittedKeyValueMap(hhFilePath);
 
     HashMap<String, HashMap<String, Counter>> splitKeyValueCounter = new HashMap<>();
     for(Map.Entry<String, HashMap<String, List<Bucket<KeyValueFrequency>>>> keyToValueToBucketEntry : keyToValueToBucketMap.entrySet()){
@@ -186,7 +186,7 @@ public class DataDistributor {
       fileWriter.close();
     }
     }finally {
-      ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+      ApplicationCache.INSTANCE.releaseContext(hhFilePath);
     }
   }
 

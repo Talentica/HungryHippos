@@ -45,9 +45,9 @@ import java.util.*;
 /**
  * Created by rajkishoreh on 11/7/17.
  */
-public enum ResourceCache {
+public enum ApplicationCache {
     INSTANCE;
-    private static Logger logger = LoggerFactory.getLogger(ResourceCache.class);
+    private static Logger logger = LoggerFactory.getLogger(ApplicationCache.class);
     private Map<String, ShardingApplicationContext> contextMap = new HashMap<>();
     private Map<String, Counter> counterMap = new HashMap<>();
     private Map<String, HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>>> keyToBucketToNodeMapCache = new HashMap<>();

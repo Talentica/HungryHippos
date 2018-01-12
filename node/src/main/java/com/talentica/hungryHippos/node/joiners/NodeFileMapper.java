@@ -15,7 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.joiners;
 
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.storage.FileDataStore;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
 import org.apache.zookeeper.KeeperException;
@@ -37,9 +37,9 @@ class NodeFileMapper {
 
     public NodeFileMapper(String hhFilePath) throws InterruptedException, ClassNotFoundException,
             JAXBException, KeeperException, IOException {
-        fileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
+        fileNames = ApplicationCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
         this.uniqueFolderName = FileSystemContext.getDataFilePrefix();
-        this.fileDataStore = new FileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
+        this.fileDataStore = new FileDataStore(fileNames, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath),
                 hhFilePath, true, uniqueFolderName);
     }
 

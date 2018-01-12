@@ -19,7 +19,7 @@ import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.node.datareceiver.IncrementalDataHandler;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.filesystem.FileStatistics;
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.storage.ResourceAllocator;
@@ -57,11 +57,11 @@ public class NodeFileJoiner implements Callable<Boolean> {
             return true;
         }
         try {
-            ShardingApplicationContext context = ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+            ShardingApplicationContext context = ApplicationCache.INSTANCE.getContext(hhFilePath);
             FieldTypeArrayDataDescription dataDescription = context.getConfiguredDataDescription();
             int offset = Integer.BYTES;
             int dataSize = dataDescription.getSize();
-            Map<Integer, String> indexToFileNamesV2 = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
+            Map<Integer, String> indexToFileNamesV2 = ApplicationCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
             FirstDimensionNodeFileMapper nodeFileMapper = new FirstDimensionNodeFileMapper(hhFilePath,indexToFileNamesV2);
             int index;
 
@@ -69,7 +69,7 @@ public class NodeFileJoiner implements Callable<Boolean> {
             ByteBuffer indexBuffer = ByteBuffer.wrap(buf,0,offset);
             ByteBuffer dataBuffer = ByteBuffer.wrap(buf,offset,dataSize);
             HHRowReader hhRowReader = new HHRowReader(dataDescription,dataBuffer,offset);
-            FileStatistics[] fileStatisticsArr = ShardingResourceCache.INSTANCE.getFileStatisticsMap(hhFilePath);
+            FileStatistics[] fileStatisticsArr = ApplicationCache.INSTANCE.getFileStatisticsMap(hhFilePath);
             while (srcFileName != null) {
                 int cols = dataDescription.getNumberOfDataFields();
                 File srcFile = new File(srcFileName);
@@ -114,7 +114,7 @@ public class NodeFileJoiner implements Callable<Boolean> {
                     + File.separator + nodeFileMapper.getUniqueFolderName()+File.separator;
             String destFolderPath = FileSystemContext.getRootDirectory() + hhFilePath
                     + File.separator + FileSystemContext.getDataFilePrefix()+File.separator;
-            Map<String, int[]>  fileToNodeMap = ShardingResourceCache.INSTANCE.getHHFileNamesCalculator(hhFilePath).getFileToNodeMap();
+            Map<String, int[]>  fileToNodeMap = ApplicationCache.INSTANCE.getHHFileNamesCalculator(hhFilePath).getFileToNodeMap();
             IncrementalDataHandler.INSTANCE.initialize(hhFilePath, destFolderPath, indexToFileNamesV2.values(),fileToNodeMap);
             try{
                 for(String fileName:indexToFileNamesV2.values()){
@@ -132,7 +132,7 @@ public class NodeFileJoiner implements Callable<Boolean> {
             SynchronousFolderDeleter.INSTANCE.deleteEmptyFolder(new File(srcFolderPath));
 
         } finally {
-            ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+            ApplicationCache.INSTANCE.releaseContext(hhFilePath);
         }
         return true;
     }

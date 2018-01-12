@@ -18,7 +18,7 @@
 
 package com.talentica.hungryHippos.node.joiners;
 
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.storage.FirstDimensionFileDataStore;
 import org.apache.zookeeper.KeeperException;
 
@@ -37,8 +37,8 @@ public class FirstDimensionNodeFileMapper {
             JAXBException, KeeperException, IOException {
         this.fileNames = fileNames;
         this.uniqueFolderName = UUID.randomUUID().toString();
-        this.fileDataStore = new FirstDimensionFileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
-                hhFilePath, false, uniqueFolderName,ShardingResourceCache.INSTANCE.getFileStatisticsMap(hhFilePath));
+        this.fileDataStore = new FirstDimensionFileDataStore(fileNames, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath),
+                hhFilePath, false, uniqueFolderName, ApplicationCache.INSTANCE.getFileStatisticsMap(hhFilePath));
     }
 
     public void storeRow(int index, byte[] raw, int off, int len) {

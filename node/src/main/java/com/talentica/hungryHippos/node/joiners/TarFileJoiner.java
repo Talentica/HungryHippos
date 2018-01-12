@@ -15,7 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.joiners;
 
-import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
 import com.talentica.hungryHippos.storage.ResourceAllocator;
 import com.talentica.hungryHippos.utility.scp.TarAndUntar;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
@@ -83,7 +83,7 @@ public class TarFileJoiner implements Callable<Boolean> {
 
     private void untarOnContinuousStreams() throws JAXBException, InterruptedException, ClassNotFoundException, KeeperException, IOException {
         try {
-            ShardingResourceCache.INSTANCE.getContext(hhFilePath);
+            ApplicationCache.INSTANCE.getContext(hhFilePath);
             NodeFileMapper nodeFileMapper = new NodeFileMapper(hhFilePath);
             String srcFileName;
             while ((srcFileName = fileSrcQueue.poll()) != null) {
@@ -114,7 +114,7 @@ public class TarFileJoiner implements Callable<Boolean> {
             }
             nodeFileMapper.sync();
         } finally {
-            ShardingResourceCache.INSTANCE.releaseContext(hhFilePath);
+            ApplicationCache.INSTANCE.releaseContext(hhFilePath);
         }
     }
 }

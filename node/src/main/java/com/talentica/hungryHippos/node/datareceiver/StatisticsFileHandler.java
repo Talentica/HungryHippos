@@ -82,7 +82,7 @@ public enum StatisticsFileHandler {
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             fileStatisticsMap = (Map<String, FileStatistics>) ois.readObject();
         }
-        Map<Integer, String> indexToFileNames = ShardingResourceCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
+        Map<Integer, String> indexToFileNames = ApplicationCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
         String ownedBlockStatisticsFolderPath = blockStatisticsFolderLocation + File.separator + NodeInfo.INSTANCE.getId()+File.separator;
         Map<String,Future<List<BlockStatistics>>> futures = new HashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(2*Runtime.getRuntime().availableProcessors());

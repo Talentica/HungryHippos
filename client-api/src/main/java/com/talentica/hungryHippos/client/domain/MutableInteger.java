@@ -32,8 +32,6 @@ public class MutableInteger implements DataTypes {
 
   /**
    * creates a new MutableInteger.
-   * 
-   * @param length
    */
   public MutableInteger() {
     array = new byte[length];
@@ -44,12 +42,6 @@ public class MutableInteger implements DataTypes {
     return length;
   }
 
-  @Override
-  public byte byteAt(int index) {
-    return array[index];
-  }
-
-  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
@@ -62,7 +54,6 @@ public class MutableInteger implements DataTypes {
 
   @Override
   public void reset() {
-    index = 0;
   }
 
   @Override
@@ -157,12 +148,5 @@ public class MutableInteger implements DataTypes {
         | (0xff & array[3]) << 0);
   }
 
-  private int index = 0;
-
-  @Override
-  public DataTypes addByte(byte ch) {
-    array[index++] = ch;
-    return this;
-  }
 
 }

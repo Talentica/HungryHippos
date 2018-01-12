@@ -56,6 +56,10 @@
 						<enumeration value="FLOAT"></enumeration>
 						<enumeration value="DOUBLE"></enumeration>
 						<enumeration value="LONG"></enumeration>
+						<enumeration value="DATE"></enumeration>
+						<enumeration value="TIMESTAMP"></enumeration>
+						<enumeration value="SHORT"></enumeration>
+						<enumeration value="BYTE"></enumeration>
 					</restriction>
 				</simpleType>
 			</element>

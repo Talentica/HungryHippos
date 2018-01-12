@@ -31,7 +31,7 @@ public class DataLocator implements Serializable {
   private static final long serialVersionUID = -3265231048634949676L;
 
   public static enum DataType {
-    BYTE, SHORT, INT, LONG, CHAR, FLOAT, DOUBLE, STRING;
+    BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, DATE, TIMESTAMP;
 
   }
 

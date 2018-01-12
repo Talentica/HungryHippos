@@ -43,16 +43,9 @@ public class MutableDouble implements DataTypes {
     return length;
   }
 
-  @Override
-  public byte byteAt(int index) {
-    return array[index];
-  }
-
-  @Override
   public byte[] getUnderlyingArray() {
     return array;
   }
-
 
   @Override
   public String toString() {
@@ -61,7 +54,6 @@ public class MutableDouble implements DataTypes {
 
   @Override
   public void reset() {
-    index = 0;
   }
 
   @Override
@@ -150,14 +142,6 @@ public class MutableDouble implements DataTypes {
         | (long) (0xff & array[2]) << 40 | (long) (0xff & array[3]) << 32
         | (long) (0xff & array[4]) << 24 | (long) (0xff & array[5]) << 16
         | (long) (0xff & array[6]) << 8 | (long) (0xff & array[7]) << 0);
-  }
-
-  private int index = 0;
-
-  @Override
-  public MutableDouble addByte(byte ch) {
-    array[index++] = ch;
-    return this;
   }
   
   public double parseDouble(String value){

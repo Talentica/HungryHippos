@@ -193,14 +193,7 @@ public class MutableCharArrayString implements CharSequence, DataTypes {
     return 0;
   }
 
-
-  @Override
-  public byte byteAt(int index) {
-    return (byte) array[index];
-  }
-
-
-  @Override
+  
   public DataTypes addByte(byte ch) {
     array[stringLength] = (char) ch;
     stringLength++;

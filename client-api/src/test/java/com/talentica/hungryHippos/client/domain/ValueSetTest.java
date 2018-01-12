@@ -88,15 +88,15 @@ public class ValueSetTest {
 	@Test
 	public void testCompareToOfValueSetsOfSameSize() throws InvalidRowException {
 		MutableCharArrayString country1 = new MutableCharArrayString(3);
-		country1.addByte((byte)'I').addByte((byte)'n').addByte((byte)'d');
+		country1.addValue("Ind");
 		MutableCharArrayString device1 = new MutableCharArrayString(3);
-		device1.addByte((byte)'S').addByte((byte)'a').addByte((byte)'m');
+		device1.addValue("Sam");
 		ValueSet valueSet1 = new ValueSet(new int[] { 0, 1 }, new MutableCharArrayString[] { country1, device1 });
 
 		MutableCharArrayString country2 = new MutableCharArrayString(3);
-		country2.addByte((byte)'I').addByte((byte)'n').addByte((byte)'d');
+		country2.addValue("Ind");
 		MutableCharArrayString device2 = new MutableCharArrayString(3);
-		device2.addByte((byte)'S').addByte((byte)'o').addByte((byte)'n');
+		device2.addValue("Son");
 		ValueSet valueSet2 = new ValueSet(new int[] { 0, 1 }, new MutableCharArrayString[] { country2, device2 });
 
 		Assert.assertTrue(valueSet1.compareTo(valueSet2) < 0);

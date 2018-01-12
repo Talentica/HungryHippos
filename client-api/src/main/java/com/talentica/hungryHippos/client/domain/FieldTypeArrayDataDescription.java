@@ -89,25 +89,28 @@ public final class FieldTypeArrayDataDescription
 
     switch (dataType) {
       case BYTE:
-        size = 1;
+        size = Byte.BYTES;
         break;
       case SHORT:
-        size = 2;
+        size = Short.BYTES;
         break;
       case INT:
-        size = 4;
+        size = Integer.BYTES;
         break;
       case LONG:
-        size = 8;
+        size = Long.BYTES;
         break;
-      case CHAR:
-        size = 2;
+      case DATE:
+        size = Long.BYTES;
+        break;
+      case TIMESTAMP:
+        size = Long.BYTES;
         break;
       case FLOAT:
-        size = 4;
+        size = Float.BYTES;
         break;
       case DOUBLE:
-        size = 8;
+        size = Double.BYTES;
         break;
     }
     DataLocator locator = new DataLocator(dataType, nextOffset, size);
@@ -149,14 +152,17 @@ public final class FieldTypeArrayDataDescription
         case "FLOAT":
           dataDescription.addFieldType(DataLocator.DataType.FLOAT, size);
           break;
-        case "CHAR":
-          dataDescription.addFieldType(DataLocator.DataType.CHAR, size);
+        case "TIMESTAMP":
+          dataDescription.addFieldType(DataLocator.DataType.TIMESTAMP, size);
           break;
         case "LONG":
           dataDescription.addFieldType(DataLocator.DataType.LONG, size);
           break;
         case "INT":
           dataDescription.addFieldType(DataLocator.DataType.INT, size);
+          break;
+        case "DATE":
+          dataDescription.addFieldType(DataLocator.DataType.DATE, size);
           break;
         case "SHORT":
           dataDescription.addFieldType(DataLocator.DataType.SHORT, size);

@@ -17,6 +17,7 @@ package com.talentica.hungryHippos.client.domain;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * {@code MutableLong} is used for memory optimization. Because of this class system will 
@@ -27,64 +28,35 @@ import java.util.Arrays;
 public class MutableLong implements DataTypes {
 
   private static final long serialVersionUID = -6085804645390531875L;
-  private byte[] array;
-  private int stringLength = Long.BYTES;
+  private long longValue;
 
   /**
    * creates a new MutableLong with specified length. The length specified is the limit
    * of the underlying array.
-   * 
-   * @param length
    */
-  public MutableLong(int length) {
-    array = new byte[length];
+  public MutableLong() {
   }
   
   @Override
   public int getLength() {
-    return stringLength;
-  }
-
-  @Override
-  public byte byteAt(int index) {
-    return array[index];
-  }
-
-  @Override
-  public byte[] getUnderlyingArray() {
-    return array;
-  }
-
-
-  private void copyCharacters(int start, int end, MutableLong newArray) {
-    for (int i = start, j = 0; i < end; i++, j++) {
-      newArray.array[j] = array[i];
-    }
+    return Long.BYTES;
   }
 
   @Override
   public String toString() {
-    return new String(Arrays.copyOf(array, stringLength));
-  }
-
-  @Override
-  public MutableLong addByte(byte ch) {
-    array[stringLength] = ch;
-    stringLength++;
-    return this;
+    return longValue+"";
   }
 
   @Override
   public void reset() {
-    stringLength = 0;
+
   }
 
   @Override
   public MutableLong clone() {
-    MutableLong newArray = new MutableLong(stringLength);
-    copyCharacters(0, stringLength, newArray);
-    newArray.stringLength = stringLength;
-    return newArray;
+    MutableLong mutableLong = new MutableLong();
+    mutableLong.longValue = this.longValue;
+    return mutableLong;
   }
 
   @Override
@@ -95,42 +67,12 @@ public class MutableLong implements DataTypes {
       return false;
     }
     MutableLong that = (MutableLong) o;
-    if (stringLength == that.stringLength) {
-      for (int i = 0; i < stringLength; i++) {
-        if (array[i] != that.array[i]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
+    return this.longValue == that.longValue;
   }
 
   @Override
   public int hashCode() {
-    int h = 0;
-    int off = 0;
-    byte val[] = array;
-    int len = stringLength;
-    for (int i = 0; i < len; i++) {
-      h = 31 * h + val[off++];
-    }
-    return h;
-  }
-
-  /**
-   * create a new MutableLong from the value provided.
-   * 
-   * @param value
-   * @return
-   * @throws InvalidRowException
-   */
-  public static MutableLong from(String value) throws InvalidRowException {
-    MutableLong mutableLongByteArray = new MutableLong(value.length());
-    for (byte character : value.getBytes(StandardCharsets.UTF_8)) {
-      mutableLongByteArray.addByte(character);
-    }
-    return mutableLongByteArray;
+    return Long.hashCode(this.longValue);
   }
 
   @Override
@@ -141,27 +83,16 @@ public class MutableLong implements DataTypes {
     } else {
       return -1;
     }
-    if (equals(otherMutableLongByteArray)) {
-      return 0;
-    }
-    if (stringLength != otherMutableLongByteArray.stringLength) {
-      return Integer.valueOf(stringLength).compareTo(otherMutableLongByteArray.stringLength);
-    }
-    for (int i = 0; i < stringLength; i++) {
-      if (array[i] == otherMutableLongByteArray.array[i]) {
-        continue;
-      }
-      return array[i] - otherMutableLongByteArray.array[i];
-    }
-    return 0;
+    return Long.compare(this.longValue,otherMutableLongByteArray.longValue);
   }
 
   @Override
   public DataTypes addValue(String value) {
-    // TODO Auto-generated method stub
-    return null;
+    longValue = Long.valueOf(value);
+    return this;
   }
 
-
-
+  public long getLongValue() {
+    return longValue;
+  }
 }

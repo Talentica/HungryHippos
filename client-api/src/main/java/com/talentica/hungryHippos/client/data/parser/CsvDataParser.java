@@ -19,16 +19,8 @@ import com.talentica.hungryHippos.client.data.parser.context.CSVParseException;
 import com.talentica.hungryHippos.client.data.parser.context.Context;
 import com.talentica.hungryHippos.client.data.parser.context.ParseState;
 import com.talentica.hungryHippos.client.data.parser.context.SpecialCharacter;
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.DataLocator;
+import com.talentica.hungryHippos.client.domain.*;
 import com.talentica.hungryHippos.client.domain.DataLocator.DataType;
-import com.talentica.hungryHippos.client.domain.DataTypes;
-import com.talentica.hungryHippos.client.domain.InvalidRowException;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import com.talentica.hungryHippos.client.domain.MutableDouble;
-import com.talentica.hungryHippos.client.domain.MutableFloat;
-import com.talentica.hungryHippos.client.domain.MutableInteger;
-import com.talentica.hungryHippos.client.domain.MutableLong;
 
 /**
  * 
@@ -319,19 +311,29 @@ public class CsvDataParser extends LineByLineDataParser {
    */
   private void createBuffer(DataType type, int i, int size) {
     switch (type) {
+      case BYTE:
+        buffer[i] = new MutableByte();
+        break;
       case DOUBLE:
         buffer[i] = new MutableDouble();
         break;
       case FLOAT:
-        size = 25;
-        buffer[i] = new MutableFloat(size);
+        buffer[i] = new MutableFloat();
         break;
       case INT:
         buffer[i] = new MutableInteger();
         break;
       case LONG:
-        size = 19;
-        buffer[i] = new MutableLong(size);
+        buffer[i] = new MutableLong();
+        break;
+      case SHORT:
+        buffer[i] = new MutableShort();
+        break;
+      case DATE:
+        buffer[i] = new MutableDate();
+        break;
+      case TIMESTAMP:
+        buffer[i] = new MutableTimeStamp();
         break;
       default:
         buffer[i] = new MutableCharArrayString(size);

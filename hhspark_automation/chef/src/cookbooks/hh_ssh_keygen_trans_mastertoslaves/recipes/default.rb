@@ -32,7 +32,7 @@ end
 
 
 execute 'ssh-keygen' do
-  command 'ssh-keygen -t rsa -N ""  -f /home/hhuser/.ssh/id_rsa'
+  command 'rm -rf /home/hhuser/.ssh/id_rsa && ssh-keygen -t rsa -N ""  -f /home/hhuser/.ssh/id_rsa'
   user 'hhuser'
   group 'hungryhippos'
 end

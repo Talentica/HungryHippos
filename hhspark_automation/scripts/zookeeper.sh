@@ -24,8 +24,8 @@ download_zookeeper()
         #remove zookeeper previously downloaded.
         rm -f zookeeper-3.5.1-alpha.tar.gz
 
-        #Download zookeeper     
-        wget  "http://www-us.apache.org/dist/zookeeper/zookeeper-3.5.1-alpha/zookeeper-3.5.1-alpha.tar.gz"
+        #Download zookeeper
+        wget "https://archive.apache.org/dist/zookeeper/zookeeper-3.5.1-alpha/zookeeper-3.5.1-alpha.tar.gz"
 
         #move zookeeper to required position
         mv zookeeper-3.5.1-alpha.tar.gz ../chef/src/cookbooks/download_zookeeper/files/default/

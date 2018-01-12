@@ -22,6 +22,7 @@ source spark.sh
 source run-hh-scripts-on-cluster.sh
 source ../start-vagrant.sh
 
+
 flag=$(check_file_exists "vagrant.properties")
 
 if [ $flag != "true" ];
@@ -46,8 +47,8 @@ add_ssh_key #(utility.sh)
 ssh_key_path=$PRIVATE_KEY_PATH
 ssh_key_dir=${ssh_key_path%/*}'/'
 cat $PRIVATE_KEY_PATH > ../chef/src/cookbooks/hh_ssh_keygen_master/templates/default/id_rsa
-cat $ssh_key_dir'id_rsa.pub' > ../chef/src/cookbooks/hh_ssh_keygen_master/templates/default/id_rsa.pub
-cat $ssh_key_dir'id_rsa.pub' > ../chef/src/cookbooks/hh_ssh_keycopy_slave/templates/default/authorized_keys.txt
+cat $PUBLIC_KEY_PATH > ../chef/src/cookbooks/hh_ssh_keygen_master/templates/default/id_rsa.pub
+cat $PUBLIC_KEY_PATH > ../chef/src/cookbooks/hh_ssh_keycopy_slave/templates/default/authorized_keys.txt
 
 #download zookeeper to chef cookbook download_zookeeper (zookeeper.sh)
 zookeeper_file_loc="../chef/src/cookbooks/download_zookeeper/files/default/zookeeper-3.5.1-alpha.tar.gz"
@@ -57,7 +58,7 @@ if [ $flag != "true" ];
 then
 	download_zookeeper
 fi
-spark_file_loc="../chef/src/cookbooks/download_spark/files/default/spark-2.0.2-bin-hadoop2.7.tgz"
+spark_file_loc="../chef/src/cookbooks/download_spark/files/default/spark-2.2.0-bin-hadoop2.7.tgz"
 # download spark. (spark.sh)
 
 flag=$(check_file_exists $spark_file_loc)
@@ -68,6 +69,30 @@ then
 fi
 
 start_vagrantfile #(start-vagrant.sh)
+
+fetch_ip_address(){
+    k=1
+val=""
+    while [ $k -le $NODENUM ]
+    do
+    node_name="$NAME-$k"
+    ip_address="$(vagrant ssh $node_name -c 'ifconfig eth0 | grep -oP "inet addr:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | grep -oP "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | head -n 1'| tr -d '\r')"
+    val+="$ip_address:$node_name"
+    if [ $k -le $ZOOKEEPERNUM ]
+    then
+       val+=' (Zookeeper)\n'
+    else
+       val+='\n'
+    fi
+    k=`expr $k + 1`
+    done
+echo -e $val >> ip_file_hh_tmp.txt
+}
+
+fetch_ip_address
+sed '$d' ip_file_hh_tmp.txt > ip_file.txt
+rm ip_file_hh_tmp.txt
+
 
 #get all IP
 file_processing_to_get_ip #(utility.sh)
@@ -83,7 +108,7 @@ zookeeper_ips=($(awk -F ':' '{print $1}' ip_file_zookeeper.txt))
 echo ${zookeeper_ips[@]}
 
 #copy server_scripts to distr_original/bin folder
-rm -f ../distr_original/bin
+rm -rf ../distr_original/bin
 mkdir ../distr_original/bin
 cp  server_scripts/* ../distr_original/bin
 mkdir -p ../distr

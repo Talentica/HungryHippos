@@ -11,21 +11,21 @@
   #package_name 'hadoop-2.7.2'
 #end
 
-cookbook_file "/home/hhuser/spark-2.0.2-bin-hadoop2.7.tgz" do
-source "spark-2.0.2-bin-hadoop2.7.tgz"
+cookbook_file "/home/hhuser/spark-2.2.0-bin-hadoop2.7.tgz" do
+source "spark-2.2.0-bin-hadoop2.7.tgz"
 mode "777"
 end
 
 execute "extract spark source" do
-  command "tar -xzvf /home/hhuser/spark-2.0.2-bin-hadoop2.7.tgz"
+  command "tar -xzf /home/hhuser/spark-2.2.0-bin-hadoop2.7.tgz"
 end
 
-execute "copy extracted file from / to /home/hhuser/spark-2.0.2-bin-hadoop2.7" do
-  command "mv  /spark-2.0.2-bin-hadoop2.7 /home/hhuser/spark-2.0.2-bin-hadoop2.7"
+execute "copy extracted file from / to /home/hhuser/spark-2.2.0-bin-hadoop2.7" do
+  command "mv  /spark-2.2.0-bin-hadoop2.7 /home/hhuser/spark-2.2.0-bin-hadoop2.7"
 end
 
 execute "change ownership of hungryhippo folder to hhuser" do
-  command "chown hhuser:hungryhippos -R /home/hhuser/spark-2.0.2-bin-hadoop2.7"
+  command "chown hhuser:hungryhippos -R /home/hhuser/spark-2.2.0-bin-hadoop2.7"
 end
 
 #execute "installing git" do 

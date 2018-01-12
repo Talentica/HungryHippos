@@ -17,7 +17,7 @@ mode "777"
 end
 
 execute "extract zookeeper source" do
-  command "tar -xzvf /home/hhuser/zookeeper-3.5.1-alpha.tar.gz"
+  command "tar -xzf /home/hhuser/zookeeper-3.5.1-alpha.tar.gz"
 end
 
 execute "copy extracted file from / to /home/hhuser/zookeeper-3.5.1-alpha" do

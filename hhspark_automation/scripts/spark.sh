@@ -23,13 +23,13 @@ download_spark()
         mkdir -p ../chef/src/cookbooks/download_spark/files/default/
 
         #remove if spark is already downloaded
-        rm -f spark-2.0.2-bin-hadoop2.7.tgz
+        rm -f spark-2.2.0-bin-hadoop2.7.tgz
 
         #Download spark
-        wget http://d3kbcqa49mib13.cloudfront.net/spark-2.0.2-bin-hadoop2.7.tgz
+        wget http://www-eu.apache.org/dist/spark/spark-2.2.0/spark-2.2.0-bin-hadoop2.7.tgz
 
         #move zookeeper to required position
-        mv  spark-2.0.2-bin-hadoop2.7.tgz ../chef/src/cookbooks/download_spark/files/default/
+        mv  spark-2.2.0-bin-hadoop2.7.tgz ../chef/src/cookbooks/download_spark/files/default/
 
 }
 
@@ -51,11 +51,11 @@ add_spark_ip_port_on_spark_env()
                 j=`expr $j + 1`
 
                 chmod 777 ip.txt
-                ssh hhuser@$i "rm -f  /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/slaves"
-                ssh hhuser@$i "rm -f  /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                ssh hhuser@$i "rm -f  /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/slaves"
+                ssh hhuser@$i "rm -f  /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
                 #copy ip file to every node
-                cat ip.txt | ssh hhuser@$i "cat >>/home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/slaves"
+                cat ip.txt | ssh hhuser@$i "cat >>/home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/slaves"
                 sleep 1
                 #scp ip_file.txt  root@$i:/etc/ip_file.txt
                 #vagrant ssh hadoop-$j -c '/etc/ip_file.txt >> /etc/hosts'
@@ -63,13 +63,13 @@ add_spark_ip_port_on_spark_env()
                 if [ $j -eq 1  ]
                 then
                         SPARK_MASTER_HOST=$i
-                        ssh hhuser@$i "echo "SPARK_MASTER_HOST="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_MASTER_HOST="$i >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
-                        ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
-                        ssh hhuser@$i "echo "SPARK_WORKER_PORT="$SPARK_WORKER_PORT >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_WORKER_PORT="$SPARK_WORKER_PORT >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
-                        ssh hhuser@$i "echo "SPARK_MASTER_PORT="$SPARK_MASTER_PORT >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_MASTER_PORT="$SPARK_MASTER_PORT >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
 
                         echo  $i > spark-master-ip.txt
@@ -78,8 +78,8 @@ add_spark_ip_port_on_spark_env()
                 
                        
                 else
-                        ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
-                        ssh hhuser@$i "echo "SPARK_WORKER_PORT="$SPARK_WORKER_PORT >> /home/hhuser/spark-2.0.2-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_LOCAL_IP="$i >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
+                        ssh hhuser@$i "echo "SPARK_WORKER_PORT="$SPARK_WORKER_PORT >> /home/hhuser/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh"
 
                 fi
        done
@@ -90,5 +90,5 @@ add_spark_ip_port_on_spark_env()
 start_spark_all()
 {
         ips=("${!1}")
-        ssh hhuser@${ips[0]} "sh /home/hhuser/spark-2.0.2-bin-hadoop2.7/sbin/start-all.sh"
+        ssh hhuser@${ips[0]} "sh /home/hhuser/spark-2.2.0-bin-hadoop2.7/sbin/start-all.sh"
 }

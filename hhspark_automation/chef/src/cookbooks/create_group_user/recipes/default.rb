@@ -15,7 +15,7 @@ end
 user 'hhuser' do
   supports :manage_home => true
   uid '1234'
-  gid '901'
+  gid 901
   home '/home/hhuser'
   shell '/bin/bash'
   password '$1$rBLgRlwH$Bn2unBx6vv8LRSzz9Hiun1'

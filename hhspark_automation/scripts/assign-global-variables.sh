@@ -22,6 +22,7 @@ export ZOOKEEPERNUM
 export PROVIDER
 export NAME
 export PRIVATE_KEY_PATH
+export PUBLIC_KEY_PATH
 export TOKEN
 export IMAGE
 export REGION
@@ -40,6 +41,8 @@ NAME=$(get_vagrant_values_associated_with_key $file NAME)
 #echo $NAME
 PRIVATE_KEY_PATH=$(get_vagrant_values_associated_with_key $file PRIVATE_KEY_PATH)
 #echo $PRIVATE_KEY_PATH
+PUBLIC_KEY_PATH=$(get_vagrant_values_associated_with_key $file PUBLIC_KEY_PATH)
+#echo $PUBLIC_KEY_PATH
 TOKEN=$(get_vagrant_values_associated_with_key $file TOKEN)
 #echo $TOKEN
 IMAGE=$(get_vagrant_values_associated_with_key $file IMAGE)

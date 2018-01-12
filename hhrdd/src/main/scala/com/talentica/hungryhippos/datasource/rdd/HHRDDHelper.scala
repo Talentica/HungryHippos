@@ -79,7 +79,7 @@ object HHRDDHelper {
     val fileNameToSizeWholeMap = new util.HashMap[String, java.lang.Long]
     val metadataFolder = new File(metadataLocation)
     if (metadataFolder.listFiles != null) for (file <- metadataFolder.listFiles) {
-      var objectInputStream = null
+      var objectInputStream:ObjectInputStream = null
       try {
         objectInputStream = new ObjectInputStream(new FileInputStream(file))
         val fileNametoSizeMap = objectInputStream.readObject.asInstanceOf[util.Map[String, java.lang.Long]]
@@ -112,7 +112,7 @@ object HHRDDHelper {
     val nodeFileStatisticsMap = new util.HashMap[Integer, util.Map[String, FileStatistics]]
     val fileStatisticsFolder = new File(fileStatisticsLocation)
     if (fileStatisticsFolder.listFiles != null) for (file <- fileStatisticsFolder.listFiles) {
-      var objectInputStream = null
+      var objectInputStream:ObjectInputStream = null
       try {
         objectInputStream = new ObjectInputStream(new FileInputStream(file))
         val fileNametoSizeMap = objectInputStream.readObject.asInstanceOf[util.Map[String, FileStatistics]]

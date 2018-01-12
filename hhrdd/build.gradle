@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'scala'
 sourceCompatibility = 1.8
 
 repositories {
@@ -27,5 +28,7 @@ publishing {
 dependencies {
 	compile project(":client-api")
 	compile project (':sharding')
-	compile 'org.apache.spark:spark-core_2.11:2.0.2'
+	compile 'org.apache.spark:spark-core_2.11:2.2.0'
+	compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.1.2'
+	compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.8'
 }

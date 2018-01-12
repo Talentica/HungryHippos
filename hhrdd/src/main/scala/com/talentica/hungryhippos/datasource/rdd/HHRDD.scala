@@ -50,7 +50,7 @@ class HHRDD(@transient private val sc: SparkContext, @transient private val hhrd
 
   private val prefixBlackListDir = "blacklist_"+System.currentTimeMillis + "-"
 
-  private var blackListDir = null
+  private var blackListDir:File = null
 
   private val serializableComparators = hhrddInfo.getSerializableComparators
 
@@ -101,7 +101,7 @@ class HHRDD(@transient private val sc: SparkContext, @transient private val hhrd
   override def compute(split: Partition, context: TaskContext) = {
     val tempDir = createTempDir
     val hhRDDPartition = split.asInstanceOf[HHRDDPartition]
-    var iterator = null
+    var iterator:HHRDDIterator = null
     try
       iterator = new HHRDDIterator(fieldDataDesc, directoryLocation, fieldDataDesc.getSize, hhRDDPartition.getFiles, nodeIdToIp, tempDir, filters, maxRecordsPerBlock, colMap,blockStatisticsFolderPath,serializableComparators, columnNameToIdxMap)
     catch {

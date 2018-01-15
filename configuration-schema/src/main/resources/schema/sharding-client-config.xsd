@@ -8,6 +8,7 @@
 				<element type="tns:input" name="input" />
 				<element type="string" name="sharding-dimensions" />
 				<element type="int" name="maximum-size-of-single-block-data" />
+				<element type="int" name="max-records-per-block" minOccurs="1" default="10000" />
 				<element type="string" name="bad-records-file-out" />
 			</sequence>
 		</complexType>

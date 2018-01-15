@@ -15,14 +15,19 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.storage;
 
+import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.MemoryStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.talentica.hungryhippos.filesystem.BlockStatistics;
+import com.talentica.hungryhippos.filesystem.FileStatistics;
 
 import java.io.*;
+import java.net.URI;
+import java.nio.channels.Channels;
+import java.nio.file.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by rajkishoreh on 18/5/17.
@@ -31,6 +36,7 @@ public enum ResourceAllocator {
     INSTANCE;
 
     private Object lockObj = new Object();
+
 
     public boolean allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams,
                                                   String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap,Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap,
@@ -66,8 +72,61 @@ public enum ResourceAllocator {
     }
 
     public boolean allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams,
+                                     String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap, Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap,
+                                     boolean append, boolean reqForUpgrade, FirstDimensionFileDataStore fileDataStore, FileStatistics[] fileStatistics) throws IOException, ClassNotFoundException {
+
+        boolean usingBufferStream = true;
+        System.gc();
+
+        long memoryRequiredForBufferedStream = fileNames.size() * 16384;
+        synchronized (lockObj) {
+            long usableMemory = MemoryStatus.getUsableMemory();
+
+            if (usableMemory > memoryRequiredForBufferedStream) {
+                if(reqForUpgrade) {
+                    fileDataStore.sync();
+                }
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+
+                    if(!reqForUpgrade){
+                        String zipPath = dataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION;
+                        if(new File(zipPath).exists()) {
+                            try(FileSystem zipFS = ZipFileSystemHandler.INSTANCE.get(zipPath);){
+                                readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
+                            }
+
+                        }
+                    }
+                    FileOutputStream fos = new FileOutputStream(dataFilePrefix + entry.getValue(), append);
+                    BufferedOutputStream bos = new BufferedOutputStream(fos);
+                    outputStreams[entry.getKey()] = bos;
+                    fileNameToOutputStreamMap.put(entry.getValue(), fos);
+                    fileNameToBufferedOutputStreamMap.put(entry.getValue(), bos);
+                }
+            } else {
+                usingBufferStream = false;
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                    if(!reqForUpgrade){
+                        String zipPath = dataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION;
+                        if(new File(zipPath).exists()) {
+                            try(FileSystem zipFS = ZipFileSystemHandler.INSTANCE.get(zipPath);){
+                                readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
+                            }
+
+                        }
+                    }
+                    FileOutputStream fos = new FileOutputStream(dataFilePrefix + entry.getValue(), append);
+                    outputStreams[entry.getKey()] = fos;
+                    fileNameToOutputStreamMap.put(entry.getValue(), fos);
+                }
+            }
+        }
+        return usingBufferStream;
+    }
+
+    public boolean allocateResources(Map<Integer, String> fileNames, OutputStream[] outputStreams,
                                                   String dataFilePrefix, Map<String, FileOutputStream> fileNameToOutputStreamMap, Map<String, BufferedOutputStream> fileNameToBufferedOutputStreamMap,
-                                                  boolean append, boolean reqForUpgrade, FileDataStoreFirstStage fileDataStore, int reducefactor) throws FileNotFoundException {
+                                                  boolean append, boolean reqForUpgrade, FileDataStoreFirstStage fileDataStore, int reducefactor) throws IOException {
 
         boolean usingBufferStream = true;
         System.gc();
@@ -104,6 +163,93 @@ public enum ResourceAllocator {
         }
         return usingBufferStream;
     }
+
+    public boolean allocateZipResources(Map<Integer, String> fileNames, OutputStream[] outputStreams,
+                                        String dataFilePrefix, Map<String, OutputStream> fileNameToOutputStreamMap, Map<String, FileSystem> zipFileSystemMap,
+                                        boolean reqForUpgrade, SecondStageZipFileDataStore secondStageZipFileDataStore, FileStatistics[] fileStatistics) throws IOException, ClassNotFoundException {
+        Map<String, Object> zipFileSystemEnv = new HashMap<>();
+        zipFileSystemEnv.put("create", "true");
+        zipFileSystemEnv.put("useTempFile", Boolean.TRUE);
+        boolean usingBufferStream = true;
+        System.gc();
+        String uriDataFilePrefix = "jar:file:" + dataFilePrefix;
+
+        long memoryRequiredForBufferedStream = fileNames.size() * 10240;
+        synchronized (lockObj) {
+            long usableMemory = MemoryStatus.getUsableMemory();
+
+            if (usableMemory > memoryRequiredForBufferedStream) {
+                if (reqForUpgrade) {
+                    secondStageZipFileDataStore.sync();
+                }
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                    URI uri = URI.create(uriDataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION);
+                    FileSystem zipFS = null;
+                    try {
+                        zipFS = FileSystems.newFileSystem(uri, zipFileSystemEnv);
+                    } catch (FileSystemAlreadyExistsException e) {
+                        zipFS = FileSystems.getFileSystem(uri);
+                    }
+                    if(!reqForUpgrade){
+                        readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
+                    }
+                    OutputStream os = Files.newOutputStream(zipFS.getPath(FileSystemConstants.ZIP_DATA_FILENAME), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    outputStreams[entry.getKey()] = os;
+                    fileNameToOutputStreamMap.put(entry.getValue(), os);
+                    zipFileSystemMap.put(entry.getValue(), zipFS);
+                }
+
+            } else {
+                zipFileSystemEnv.put("useTempFile", Boolean.TRUE);
+                usingBufferStream = false;
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                    URI uri = URI.create(uriDataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION);
+                    FileSystem zipFS = null;
+                    try {
+                        zipFS = FileSystems.newFileSystem(uri, zipFileSystemEnv);
+                    } catch (FileSystemAlreadyExistsException e) {
+                        zipFS = FileSystems.getFileSystem(uri);
+                    }
+                    if(!reqForUpgrade){
+                        readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
+                    }
+                    OutputStream os = Files.newOutputStream(zipFS.getPath(FileSystemConstants.ZIP_DATA_FILENAME), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    outputStreams[entry.getKey()] = os;
+                    fileNameToOutputStreamMap.put(entry.getValue(), os);
+                    zipFileSystemMap.put(entry.getValue(), zipFS);
+                }
+            }
+        }
+        return usingBufferStream;
+    }
+
+    private void readZipBlockStats(FileStatistics fileStatistic, FileSystem zipFS) throws IOException, ClassNotFoundException {
+        long newPos = fileStatistic.getDataSize();
+        if (newPos > 0) {
+            try (InputStream is = Files.newInputStream(zipFS.getPath(FileSystemConstants.ZIP_METADATA_FILENAME));
+                 ObjectInputStream ois = new ObjectInputStream(is)) {
+                fileStatistic.setBlockStatisticsList((List<BlockStatistics>) ois.readObject());
+            }
+        } else {
+            fileStatistic.setBlockStatisticsList(new LinkedList<>());
+        }
+    }
+
+    private void readBlockStatistics(boolean reqForUpgrade, FileStatistics[] fileStatistics, Map.Entry<Integer, String> entry, File file, long newPos) throws IOException, ClassNotFoundException {
+        if(!reqForUpgrade) {
+            if (newPos > 0) {
+                try (FileInputStream fis = new FileInputStream(file);) {
+                    fis.skip(newPos);
+                    try (ObjectInputStream ois = new ObjectInputStream(fis)) {
+                        fileStatistics[entry.getKey()].setBlockStatisticsList((List<BlockStatistics>) ois.readObject());
+                    }
+                }
+            } else {
+                fileStatistics[entry.getKey()].setBlockStatisticsList(new LinkedList<>());
+            }
+        }
+    }
+
 
 
     public boolean allocateResources(Map<Integer, String> fileNames, Map<String, int[]> fileToNodeMap,
@@ -150,9 +296,50 @@ public enum ResourceAllocator {
         return usingBufferStream;
     }
 
+    public boolean allocateResourcesForFirstDimension(Map<Integer, String> fileNames, Map<String, Integer> fileToNodeMap,
+                                                      Map<Integer, FileOutputStream> nodeIdFileOutputStreamMap, Map<Integer, BufferedOutputStream> nodeIdBufferOutputStreamMap,
+                                                      FileOutputStream[] fileOutputStreams, BufferedOutputStream[] bufferedOutputStreams, String dataFilePrefix, int noOfNodes)
+            throws FileNotFoundException {
+        boolean usingBufferStream = true;
+        System.gc();
+        long memoryRequiredForBufferedStream = noOfNodes * 10240;
+        synchronized (lockObj) {
+            long usableMemory = MemoryStatus.getUsableMemory();
+
+            if (usableMemory > memoryRequiredForBufferedStream) {
+                //if(true){
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                    int nodeId = fileToNodeMap.get(entry.getValue());
+                    BufferedOutputStream bos = nodeIdBufferOutputStreamMap.get(nodeId);
+                    if (bos == null) {
+                        FileOutputStream fos = new FileOutputStream(dataFilePrefix + nodeId);
+                        bos = new BufferedOutputStream(fos);
+                        nodeIdFileOutputStreamMap.put(nodeId, fos);
+                        nodeIdBufferOutputStreamMap.put(nodeId, bos);
+                    }
+                    bufferedOutputStreams[entry.getKey()] = bos;
+
+                }
+            } else {
+                usingBufferStream = false;
+                for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
+                    int nodeId = fileToNodeMap.get(entry.getValue());
+
+                    FileOutputStream fos = nodeIdFileOutputStreamMap.get(nodeId);
+                    if (fos == null) {
+                        fos = new FileOutputStream(dataFilePrefix + nodeId);
+                        nodeIdFileOutputStreamMap.put(nodeId, fos);
+                    }
+                    fileOutputStreams[entry.getKey()] = fos;
+                }
+            }
+        }
+        return usingBufferStream;
+    }
+
     public boolean isMemoryAvailableForBuffer(int noOfFiles) {
         long usableMemory = MemoryStatus.getUsableMemory();
-        long memoryRequiredForBufferedStream = noOfFiles * 8192;
+        long memoryRequiredForBufferedStream = noOfFiles * 10240;
         return usableMemory > memoryRequiredForBufferedStream;
     }
 }

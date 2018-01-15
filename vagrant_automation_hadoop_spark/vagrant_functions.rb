@@ -41,15 +41,6 @@ class Vagrant_functions
                                 	chef.add_recipe 'hadoop_ssh_keycopy_slave'
                        		end
 
-
-                     		node.trigger.after :up do
-                                	puts "running trigger after node up"
-	                                ipAddr = `vagrant ssh #{node_name} -c 'ifconfig | grep -oP "inet addr:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | grep -oP "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | tail -n 2 | head -n 1'`
-        	                        sleep 5
-                	                ipAddr=ipAddr.strip
-                	                ip_file.puts "#{ipAddr}\t#{node_name}"
-                        	end
-
 	               	 end
         	end
 

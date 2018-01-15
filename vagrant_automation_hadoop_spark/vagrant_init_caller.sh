@@ -53,6 +53,30 @@ cat $PUBLIC_KEY_PATH > chef/src/cookbooks/hadoop_ssh_keycopy_slave/templates/def
 
 start_vagrantfile $no_of_nodes $provider
 
+fetch_ip_address(){
+    k=1
+    val=""
+    node_name="HadoopMaster"
+    ip_address="$(vagrant ssh $node_name -c 'ifconfig eth0 | grep -oP "inet addr:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | grep -oP "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | head -n 1'| tr -d '\r')"
+    val+="$ip_address\t$node_name"
+
+    val+='\n'
+    while [ $k -lt $NODENUM ]
+    do
+    node_name="HadoopSlave$k"
+    ip_address="$(vagrant ssh $node_name -c 'ifconfig eth0 | grep -oP "inet addr:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | grep -oP "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}" | head -n 1'| tr -d '\r')"
+    val+="$ip_address\t$node_name"
+
+    val+='\n'
+
+    k=`expr $k + 1`
+    done
+echo -e $val > ip_file_hadoop_tmp.txt
+}
+
+fetch_ip_address
+sed '$d' ip_file_hadoop_tmp.txt > ip_file.txt
+
 file_processing_to_getIP
 
 #retrieve all Ips 

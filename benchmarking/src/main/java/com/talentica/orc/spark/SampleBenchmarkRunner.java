@@ -18,10 +18,6 @@
 
 package com.talentica.orc.spark;
 
-import com.talentica.tpch.TPCHQuery;
-import com.talentica.tpch.TPCHSchema;
-import com.talentica.tpch.TPCHSchemaFactory;
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -32,7 +28,6 @@ import org.slf4j.LoggerFactory;
 public class SampleBenchmarkRunner {
     private static JavaSparkContext context;
     private static SparkSession sparkSession;
-    protected static Logger LOGGER = LoggerFactory.getLogger(com.talentica.tpch.hdfs.TPCHBenchmarkRunner.class);
 
     public static void main(String[] args) {
         String appName = args[0];

@@ -19,9 +19,6 @@
 package com.talentica.orc.spark;
 
 import com.talentica.hungryhippos.datasource.HHSchemaReader;
-import com.talentica.tpch.TPCHSchema;
-import com.talentica.tpch.TPCHSchemaFactory;
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -35,7 +32,6 @@ import java.util.Date;
 public class SampleDataPublish {
     private static JavaSparkContext context;
     private static SparkSession sparkSession;
-    protected static Logger LOGGER = LoggerFactory.getLogger(SampleDataPublish.class);
 
     public static void main(String[] args) {
 

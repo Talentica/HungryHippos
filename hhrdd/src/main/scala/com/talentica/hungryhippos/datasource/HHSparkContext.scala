@@ -24,7 +24,7 @@ import javax.xml.bind.JAXBException
 
 import com.talentica.hungryHippos.client.domain.DataDescription
 import com.talentica.hungryhippos.datasource.rdd.{HHRDDHelper, HHRDDInfo}
-import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
 import org.apache.spark.api.java.JavaSparkContext
 import org.apache.spark.broadcast.Broadcast
 
@@ -34,8 +34,8 @@ import org.apache.spark.broadcast.Broadcast
   * {@code HHSparkContext} extends {@link JavaSparkContext} and provides additional support to
   * interact with HungryHippo file system.
   */
-class HHSparkContext(config: SparkConf, clientConfigurationFilePath: String)
-  extends JavaSparkContext(config) {
+class HHSparkContext(context: SparkContext, clientConfigurationFilePath: String)
+  extends JavaSparkContext(context) {
   HHRDDHelper.initialize(clientConfigurationFilePath)
   /** The hhrdd info cache. */
   private val hhrddInfoCache = new util.HashMap[String, HHRDDInfo]

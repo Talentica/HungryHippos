@@ -16,7 +16,7 @@
 #*******************************************************************************
 
 set_env(){
-HUNGRYHIPPOS_HOME="/home/hhuser/distr";
+HUNGRYHIPPOS_HOME="/home/hhuser/HungryHippos-0.7.0";
 HUNGRYHIPPOS_CONFIG_DIR="$HUNGRYHIPPOS_HOME/config"
 HUNGRYHIPPOS_LOG_DIR="$HUNGRYHIPPOS_HOME/logs"
 }

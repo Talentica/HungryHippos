@@ -20,7 +20,7 @@
 # the second one is where to save the result.
 
 source assign-global-variables.sh
-source utility.sh
+source ../distr_original/sbin/utility.sh
 
 #getting hungryhippos file system base folder path.
 get_hh_base_folder

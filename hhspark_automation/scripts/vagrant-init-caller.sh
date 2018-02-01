@@ -16,10 +16,10 @@
 #*******************************************************************************
 
 source assign-global-variables.sh
-source utility.sh
+source ../distr_original/sbin/utility.sh
 source zookeeper.sh
 source spark.sh
-source run-hh-scripts-on-cluster.sh
+source ../distr_original/sbin/run-hh-scripts-on-cluster.sh
 source ../start-vagrant.sh
 
 

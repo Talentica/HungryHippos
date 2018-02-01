@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source utility.sh
+source ../distr_original/sbin/utility.sh
 
 /home/sudarshans/Downloads/zookeeper-3.5.1-alpha/bin/zkCli.sh -server 67.205.129.112:2181 ls -s /hungryhippo/hosts | sed -e '1,28d;30,40d' | tr -d '[]' | tr ',' '\n' | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | sort  > running-server.txt
 

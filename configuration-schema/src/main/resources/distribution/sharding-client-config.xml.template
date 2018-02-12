@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ /******************************************************************************
+  ~   Copyright 2017 Talentica Software Pvt. Ltd.
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~  ******************************************************************************/
+  -->
+<tns:sharding-client-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/sharding"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/sharding sharding-client-config.xsd ">
+	<tns:input>
+		<!--
+		<tns:sample-file-path>/home/user1/sampledata.txt</tns:sample-file-path>
+		<tns:distributed-file-path>/inputDir/inputFile</tns:distributed-file-path>
+		<tns:data-description>
+			<tns:column>
+				<tns:name>col1</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>2</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col2</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>2</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col3</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>2</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col4</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>3</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col5</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>3</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col6</tns:name>
+				<tns:data-type>INT</tns:data-type>
+				<tns:size>0</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col7</tns:name>
+				<tns:data-type>INT</tns:data-type>
+				<tns:size>0</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col8</tns:name>
+				<tns:data-type>DOUBLE</tns:data-type>
+				<tns:size>0</tns:size>
+			</tns:column>
+			<tns:column>
+				<tns:name>col9</tns:name>
+				<tns:data-type>STRING</tns:data-type>
+				<tns:size>5</tns:size>
+			</tns:column>
+		</tns:data-description>
+		<tns:data-parser-config>
+			<tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
+			<tns:delimiter>,</tns:delimiter>
+		</tns:data-parser-config>
+	</tns:input>
+	<tns:sharding-dimensions>col1,col2,col1</tns:sharding-dimensions>
+	<tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
+	<tns:max-records-per-block>10000</tns:max-records-per-block>
+	<tns:bad-records-file-out>/home/user1/bad_rec</tns:bad-records-file-out>
+	-->
+	<tns:sample-file-path>/home/rajkishoreh/sampledata.txt</tns:sample-file-path>
+	<tns:distributed-file-path>/abcd/input</tns:distributed-file-path>
+	<tns:data-description>
+		<tns:column>
+			<tns:name>{column_name}</tns:name>
+			<tns:data-type>{data_type}</tns:data-type>
+			<tns:size>{size}</tns:size>
+		</tns:column>
+	</tns:data-description>
+	<tns:data-parser-config>
+		<tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
+		<tns:delimiter>{delimiter}</tns:delimiter>
+	</tns:data-parser-config>
+</tns:input>
+<tns:sharding-dimensions>{column_name,...}</tns:sharding-dimensions>
+<tns:maximum-size-of-single-block-data>200</tns:maximum-size-of-single-block-data>
+<tns:max-records-per-block>10000</tns:max-records-per-block>
+<tns:bad-records-file-out>{bad_records_directory}</tns:bad-records-file-out>
+</tns:sharding-client-config>

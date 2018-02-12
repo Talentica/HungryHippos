@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ /******************************************************************************
+  ~   Copyright 2017 Talentica Software Pvt. Ltd.
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~  ******************************************************************************/
+  -->
+<tns:cluster-config
+	xmlns:tns="http://www.talentica.com/hungryhippos/config/cluster"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.talentica.com/hungryhippos/config/cluster cluster-config.xsd ">
+
+	<!--
+	<tns:node>
+		<tns:identifier>0</tns:identifier>
+		<tns:name>node0</tns:name>
+		<tns:ip>192.168.0.2</tns:ip>
+		<tns:port>2434</tns:port>
+	</tns:node>
+	<tns:node>
+    		<tns:identifier>1</tns:identifier>
+    		<tns:name>node1</tns:name>
+    		<tns:ip>192.168.0.3</tns:ip>
+    		<tns:port>2434</tns:port>
+    </tns:node>
+    <tns:node>
+        	<tns:identifier>2</tns:identifier>
+        	<tns:name>node2</tns:name>
+        	<tns:ip>192.168.0.4</tns:ip>
+        	<tns:port>2434</tns:port>
+    </tns:node>
+    <tns:node>
+            <tns:identifier>3</tns:identifier>
+            <tns:name>node3</tns:name>
+            <tns:ip>192.168.0.5</tns:ip>
+            <tns:port>2434</tns:port>
+    </tns:node>
+    <tns:node>
+            <tns:identifier>4</tns:identifier>
+            <tns:name>node4</tns:name>
+            <tns:ip>192.168.0.6</tns:ip>
+            <tns:port>2434</tns:port>
+    </tns:node>
+    ....
+	-->
+	<tns:node>
+    		<tns:identifier>{node_unique_id}</tns:identifier>
+    		<tns:name>{node_unique_name}</tns:name>
+    		<tns:ip>{node_ip}</tns:ip>
+    		<tns:port>{node_port}</tns:port>
+    </tns:node>
+</tns:cluster-config>

@@ -20,7 +20,7 @@ package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.NodeInfo;
-import com.talentica.hungryHippos.node.joiners.ZipFileAppender;
+import com.talentica.hungryHippos.node.joiners.SnappyFileAppender;
 import com.talentica.hungryHippos.storage.IncrementalDataEntity;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
@@ -97,7 +97,7 @@ public enum IncrementalDataHandler {
                     dataFileToSemaphore.get(hhfile).put(nodeId,new HashMap<>());
                 }
                 for(String fileName : fileNames){
-                    String destPath = destFolderPath+fileName+ FileSystemConstants.ZIP_EXTENSION;
+                    String destPath = destFolderPath+fileName+ FileSystemConstants.SNAPPY_EXTENSION;
                     dataFileMap.put(destPath, new ConcurrentLinkedQueue<>());
                     for(Integer nodeId:fileToNodeMap.get(fileName)){
                         dataFileToSemaphore.get(hhfile).get(nodeId).put(destPath, new Semaphore(1));
@@ -121,7 +121,7 @@ public enum IncrementalDataHandler {
         incrementalDataEntities.offer(dataEntity);
         for (Integer nodeId : nodeIds) {
             if (selfNodeId == nodeId) {
-                hhfileToFutures.get(hhfile).offer(workers.get(hhfile).submit(new ZipFileAppender(incrementalDataEntities, dataFileToSemaphore.get(hhfile).get(nodeId).get(destPath))));
+                hhfileToFutures.get(hhfile).offer(workers.get(hhfile).submit(new SnappyFileAppender(incrementalDataEntities, dataFileToSemaphore.get(hhfile).get(nodeId).get(destPath))));
             } else {
                 Node node = nodeMap.get(nodeId);
                 Queue<IncrementalDataEntity> dataEntities = uploaderQueue.get(nodeId);

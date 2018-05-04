@@ -121,7 +121,7 @@ public class NodeFileJoiner implements Callable<Boolean> {
                     String srcPath = srcFolderPath+fileName;
                     File srcFile = new File(srcPath);
                     if(srcFile.length()>0){
-                        IncrementalDataHandler.INSTANCE.register(hhFilePath,srcPath,destFolderPath+fileName+ FileSystemConstants.ZIP_EXTENSION,fileToNodeMap.get(fileName));
+                        IncrementalDataHandler.INSTANCE.register(hhFilePath,srcPath,destFolderPath+fileName+ FileSystemConstants.SNAPPY_EXTENSION,fileToNodeMap.get(fileName));
                     }else{
                         srcFile.delete();
                     }

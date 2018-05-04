@@ -17,16 +17,13 @@
  */
 package com.talentica.hungryHippos.node.service;
 
-import com.talentica.hungryHippos.storage.ZipFileSystemHandler;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xerial.snappy.SnappyOutputStream;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
 
@@ -49,8 +46,8 @@ public class IncrementalDataReceiver implements Runnable {
             byte[] bytes = new byte[8192];
             while (dis.readBoolean()) {
                 String destinationPath = dis.readUTF();
-                try (FileSystem zipFS = ZipFileSystemHandler.INSTANCE.get(destinationPath);
-                     OutputStream os = Files.newOutputStream(zipFS.getPath(FileSystemConstants.ZIP_DATA_FILENAME), StandardOpenOption.CREATE, StandardOpenOption.APPEND);) {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(destinationPath,true);
+                     SnappyOutputStream os = new SnappyOutputStream(fileOutputStream,FileSystemConstants.SNAPPY_BLOCK_SIZE)) {
                     int len;
                     do {
                         long size = dis.readLong();

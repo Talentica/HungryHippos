@@ -38,4 +38,6 @@ public interface FileSystemConstants {
 	String ZIP_DATA_FILENAME = "DATA";
 	String ZIP_METADATA_FILENAME = "METADATA";
 	String ZIP_EXTENSION = ".zip";
+	String SNAPPY_EXTENSION = ".snappy";
+	int SNAPPY_BLOCK_SIZE = 2 * 1024 * 1024;
 }

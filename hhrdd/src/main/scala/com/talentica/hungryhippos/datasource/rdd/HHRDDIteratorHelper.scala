@@ -114,8 +114,8 @@ object HHRDDIteratorHelper {
         val nodeFile = scalaItr.next()
         if (fileToBeDownloaded.containsKey(nodeFile.name)) {
           dos.writeBoolean(true)
-          dos.writeUTF(folderPath + nodeFile.name + FileSystemConstants.ZIP_EXTENSION)
-          val file = new File(downloadFolderPath + nodeFile.name + FileSystemConstants.ZIP_EXTENSION)
+          dos.writeUTF(folderPath + nodeFile.name + FileSystemConstants.SNAPPY_EXTENSION)
+          val file = new File(downloadFolderPath + nodeFile.name + FileSystemConstants.SNAPPY_EXTENSION)
           file.createNewFile()
           val fos = new FileOutputStream(file)
           val bos = new BufferedOutputStream(fos, bufferSize * 10)
@@ -156,7 +156,7 @@ object HHRDDIteratorHelper {
   def deleteAllDownloadedFiles(remoteFilesToNodeIdMap: util.HashSet[String], tmpDownloadPath: String, tmpDownloadDir: File): Unit = {
     import scala.collection.JavaConversions._
     for (remoteFileName <- remoteFilesToNodeIdMap) {
-      val remoteFile = new File(tmpDownloadPath + remoteFileName + FileSystemConstants.ZIP_EXTENSION)
+      val remoteFile = new File(tmpDownloadPath + remoteFileName + FileSystemConstants.SNAPPY_EXTENSION)
       remoteFile.delete
     }
     FileUtils.deleteQuietly(tmpDownloadDir)

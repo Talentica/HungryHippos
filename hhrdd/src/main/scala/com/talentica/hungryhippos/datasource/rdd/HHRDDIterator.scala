@@ -22,7 +22,6 @@ import java.io._
 import java.nio.ByteBuffer
 import java.util
 import java.util.Collections
-import java.util.zip.ZipInputStream
 
 import com.talentica.hungryHippos.client.domain.DataDescription
 import com.talentica.hungryHippos.rdd.SerializedNode
@@ -33,6 +32,7 @@ import com.talentica.hungryhippos.filesystem.{BlockStatistics, SerializableCompa
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.sources.Filter
 import org.slf4j.LoggerFactory
+import org.xerial.snappy.SnappyInputStream
 
 import scala.collection.AbstractIterator
 import scala.util.control.Breaks._
@@ -70,7 +70,7 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
     }
     var filesItr = asScalaIterator(files.iterator())
     filesItr.filter(x => {
-      !ownedFilesSet.contains(x.name + FileSystemConstants.ZIP_EXTENSION)
+      !ownedFilesSet.contains(x.name + FileSystemConstants.SNAPPY_EXTENSION)
     }).foreach(x => {
       fileToBeDownloaded.put(x.name, x)
       remoteFilesSet.add(x.name)
@@ -128,7 +128,7 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
   }
 
   private def download(fileDetail: FileDetail) = {
-    val file = new File(this.filePath + fileDetail.name + FileSystemConstants.ZIP_EXTENSION)
+    val file = new File(this.filePath + fileDetail.name + FileSystemConstants.SNAPPY_EXTENSION)
     var isFileDownloaded = false
     breakable {
       for (hostIndex <- fileDetail.nodeIds.indices) {
@@ -144,7 +144,7 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
           val port = nodeInfo.get(index).getPort
           var maxRetry = 5
           while (!isFileDownloaded && maxRetry > 0) {
-            isFileDownloaded = HHRDDIteratorHelper.downloadFile(this.tmpDownloadPath + fileDetail.name + FileSystemConstants.ZIP_EXTENSION, this.filePath + fileDetail.name + FileSystemConstants.ZIP_EXTENSION, ip, port)
+            isFileDownloaded = HHRDDIteratorHelper.downloadFile(this.tmpDownloadPath + fileDetail.name + FileSystemConstants.SNAPPY_EXTENSION, this.filePath + fileDetail.name + FileSystemConstants.ZIP_EXTENSION, ip, port)
             maxRetry -= 1
           }
           if (isFileDownloaded) {
@@ -163,7 +163,7 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
   private var blockItr: Iterator[BlockStatistics] = _
   private var currBlockStatistics: BlockStatistics = _
   private var currentDataFileSize: Long = _
-  private var zipInputStream: ZipInputStream = _
+  private var snappyInputStream: SnappyInputStream = _
   private var dataInputStream: BufferedInputStream = _
   private var fileInputStream: FileInputStream = _
   private var currentFile: String = _
@@ -196,10 +196,10 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
       val fileDetail = fileIterator.next
       currentFile = fileDetail.name
       if (remoteFilesSet.contains(currentFile)) {
-        currentFilePath = this.tmpDownloadPath + currentFile + FileSystemConstants.ZIP_EXTENSION
+        currentFilePath = this.tmpDownloadPath + currentFile + FileSystemConstants.SNAPPY_EXTENSION
       }
       else {
-        currentFilePath = this.filePath + currentFile + FileSystemConstants.ZIP_EXTENSION
+        currentFilePath = this.filePath + currentFile + FileSystemConstants.SNAPPY_EXTENSION
       }
       blockStatisticsList = HHRDDIteratorHelper.readBlockStatisticsList(blockStatisticsFolderPath + fileDetail.blockStatisticsLocation + File.separator + currentFile)
       blockItr = HHBlockFilterUtility.getFilteredBlocks(filters, blockStatisticsList,serializableComparators,columnNameToIdxMap)
@@ -221,17 +221,10 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
 
   def setDataInputStream: Unit = {
     fileInputStream = new FileInputStream(currentFilePath)
-    zipInputStream = new ZipInputStream(fileInputStream)
-    dataInputStream = new BufferedInputStream(zipInputStream, currentDataFileSize.asInstanceOf[Int])
+    snappyInputStream = new SnappyInputStream(fileInputStream)
+    dataInputStream = new BufferedInputStream(snappyInputStream, currentDataFileSize.asInstanceOf[Int])
     readLen = currBlockStatistics.getStartPos
-    var zipEntry = zipInputStream.getNextEntry
-    while (zipEntry != null) {
-      if (zipEntry.getName.equals(FileSystemConstants.ZIP_DATA_FILENAME)) {
-        dataInputStream.skip(currBlockStatistics.getStartPos)
-        return
-      }
-      zipEntry = zipInputStream.getNextEntry
-    }
+    dataInputStream.skip(currBlockStatistics.getStartPos)
   }
 
   override def hasNext: Boolean = {
@@ -287,9 +280,9 @@ class HHRDDIterator(dataDescription: DataDescription, filePath: String, recordLe
 
   @throws[IOException]
   private def closeDataInputStream: Unit = {
-    if (zipInputStream != null) {
+    if (snappyInputStream != null) {
       dataInputStream.close()
-      zipInputStream.close()
+      snappyInputStream.close()
       fileInputStream.close()
     }
   }

@@ -108,7 +108,7 @@ public enum DataSynchronizer {
         Map<String, Long> fileNameToSizeMap = new HashMap<>();
         File metadataFile = new File(metadataFilePath);
         for (String fileName : fileNames) {
-            File file = new File(dataFolderPath + fileName + FileSystemConstants.ZIP_EXTENSION);
+            File file = new File(dataFolderPath + fileName + FileSystemConstants.SNAPPY_EXTENSION);
             fileNameToSizeMap.put(fileName, file.length());
         }
         LOGGER.info("Writing metadata for {}", dataFolderPath);

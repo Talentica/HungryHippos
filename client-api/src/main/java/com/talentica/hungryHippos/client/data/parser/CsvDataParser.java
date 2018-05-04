@@ -160,8 +160,6 @@ public class CsvDataParser extends LineByLineDataParser {
       pContext.pushToken();
       fieldIndex++;
       pState = ParseState.START;
-      pContext.pushTokenChar(SpecialCharacter.QUOTE.getRepresentation());
-      pState = ParseState.QUOTED_TOKEN;
     } else {
       pState = ParseState.START;
       throw new CSVParseException("Unexpected character after end quote.", pLine, columnPosition,

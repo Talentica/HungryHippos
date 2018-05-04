@@ -15,11 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.utility;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -87,7 +83,6 @@ public class FileSplitter {
   }
 
 
-
   private List<Chunk> splitFileByte() throws IOException {
     int counter = 0;
     List<Chunk> chunks = new ArrayList<>();
@@ -98,54 +93,56 @@ public class FileSplitter {
       return chunks;
     }
 
-    int idealBufferSize = 8192;
+    int idealBufferSize = 100;
 
-    InputStream inputStream = new FileInputStream(file);
-    BufferedInputStream bis = new BufferedInputStream(inputStream);
+
     byte[] buffer = new byte[idealBufferSize];
     int read = 0;
-    long bytesRead = 0;
-    int carrier = 0;
+    long endPos = 0;
+    int extraRead = 0;
+    int prevRem = 0;
+    long startPos =0;
+    boolean flag = true;
+    logger.info("fileSizeInbytes : {}",fileSizeInbytes);
+    while (flag) {
 
-    while (counter < numberOfChunks) {
-
-      long startPos = bytesRead;
-      long remainingBytesToRead = sizeOfChunk;
-      long bytesToSkip = remainingBytesToRead - idealBufferSize;
-
-      if (counter == numberOfChunks - 1) {
-
-        bytesRead = fileSizeInbytes;
-
-      } else {
-
-        inputStream.skip(bytesToSkip);
-
-        read = bis.read(buffer);
-
-        int j = 0;
-
-        for (int i = read - 1;; i--) {
-
-          if (buffer[i] == eof[0]) {
-
-            break;
+      if (sizeOfChunk>=fileSizeInbytes-startPos-prevRem) {
+        endPos = fileSizeInbytes;
+        flag = false;
+      }else{
+        FileInputStream inputStream = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(inputStream);
+        bis.skip(startPos+sizeOfChunk);
+        boolean prevCharCR = false;
+        boolean foundLineSeparator = false;
+        extraRead=0;
+        while((read=bis.read(buffer))>-1&&!foundLineSeparator){
+          for (int i = read - 1;i>=0; i--) {
+            if (buffer[i] == '\n') {
+              extraRead += (i+1);
+              endPos = startPos+prevRem+sizeOfChunk+extraRead;
+              foundLineSeparator = true;
+              break;
+            }
+            if (prevCharCR) { //CR + notLF, we are at notLF
+              extraRead += (i+1);
+              endPos = startPos+prevRem+sizeOfChunk+extraRead;
+              foundLineSeparator = true;
+              break;
+            }
+            prevCharCR = (buffer[i] == '\r');
           }
-          j++;
+          extraRead+=read;
         }
-
-        bytesRead = bytesRead + sizeOfChunk - j;
-        bytesRead += carrier;
-        carrier = j;
+        bis.close();
+        inputStream.close();
       }
       Chunk chunk =
-          new Chunk(filePath, file.getName(), counter++, startPos, bytesRead, sizeOfChunk);
+          new Chunk(filePath, file.getName(), counter++, startPos, endPos, sizeOfChunk);
       chunks.add(chunk);
       reset(buffer);
-
+      startPos = endPos;
     }
-
-    bis.close();
 
     return Collections.unmodifiableList(chunks);
 

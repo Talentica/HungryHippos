@@ -68,7 +68,7 @@ public class RecordFilterTest {
 		data = new com.talentica.hungryHippos.coordination.utility.marshaling.FileReader(sampleBadRecordFile,
 				dataParser);
 		int actualBadRecords = 0;
-		int expectedBadRows = 2;
+		int expectedBadRows = 1;
 		int lineNo = 0;
 		FileWriter fileWriter = new FileWriter(badRecordsFile);
 		fileWriter.openFile();

@@ -87,16 +87,6 @@ public enum ResourceAllocator {
                     fileDataStore.sync();
                 }
                 for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-
-                    if(!reqForUpgrade){
-                        String zipPath = dataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION;
-                        if(new File(zipPath).exists()) {
-                            try(FileSystem zipFS = ZipFileSystemHandler.INSTANCE.get(zipPath);){
-                                readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
-                            }
-
-                        }
-                    }
                     FileOutputStream fos = new FileOutputStream(dataFilePrefix + entry.getValue(), append);
                     BufferedOutputStream bos = new BufferedOutputStream(fos);
                     outputStreams[entry.getKey()] = bos;
@@ -106,15 +96,6 @@ public enum ResourceAllocator {
             } else {
                 usingBufferStream = false;
                 for (Map.Entry<Integer, String> entry : fileNames.entrySet()) {
-                    if(!reqForUpgrade){
-                        String zipPath = dataFilePrefix + entry.getValue() + FileSystemConstants.ZIP_EXTENSION;
-                        if(new File(zipPath).exists()) {
-                            try(FileSystem zipFS = ZipFileSystemHandler.INSTANCE.get(zipPath);){
-                                readZipBlockStats(fileStatistics[entry.getKey()], zipFS);
-                            }
-
-                        }
-                    }
                     FileOutputStream fos = new FileOutputStream(dataFilePrefix + entry.getValue(), append);
                     outputStreams[entry.getKey()] = fos;
                     fileNameToOutputStreamMap.put(entry.getValue(), fos);
@@ -232,21 +213,6 @@ public enum ResourceAllocator {
             }
         } else {
             fileStatistic.setBlockStatisticsList(new LinkedList<>());
-        }
-    }
-
-    private void readBlockStatistics(boolean reqForUpgrade, FileStatistics[] fileStatistics, Map.Entry<Integer, String> entry, File file, long newPos) throws IOException, ClassNotFoundException {
-        if(!reqForUpgrade) {
-            if (newPos > 0) {
-                try (FileInputStream fis = new FileInputStream(file);) {
-                    fis.skip(newPos);
-                    try (ObjectInputStream ois = new ObjectInputStream(fis)) {
-                        fileStatistics[entry.getKey()].setBlockStatisticsList((List<BlockStatistics>) ois.readObject());
-                    }
-                }
-            } else {
-                fileStatistics[entry.getKey()].setBlockStatisticsList(new LinkedList<>());
-            }
         }
     }
 

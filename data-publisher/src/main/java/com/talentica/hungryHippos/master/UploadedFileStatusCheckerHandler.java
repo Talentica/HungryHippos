@@ -34,7 +34,7 @@ public enum UploadedFileStatusCheckerHandler {
         success = true;
         uploadedFileStatusStreamDetails = new ConcurrentLinkedQueue<>();
         statuses = new ConcurrentLinkedQueue<>();
-        executorService = Executors.newFixedThreadPool(1);
+        executorService = Executors.newWorkStealingPool();
     }
 
     public synchronized void receiveStatus(UploadedFileStatusStreamDetail uploadedFileStatusStreamDetail){

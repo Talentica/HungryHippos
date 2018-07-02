@@ -31,6 +31,7 @@ public interface HungryHippoServicesConstants {
   int INCREMENTAL_DATA_APPENDER = 10;
   int DATA_UPDATER = 11;
   int TAR_DATA_UPDATER = 12;
+  int ORC_INCREMENTAL_DATA_APPENDER = 13;
   
   String SUCCESS = "SUCCESS";
   String FAILURE = "FAILURE";

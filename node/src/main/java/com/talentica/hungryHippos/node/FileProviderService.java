@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node;
 
+import com.talentica.hungryhippos.filesystem.CustomByteArrayPool;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -33,25 +35,25 @@ public class FileProviderService implements Runnable {
 
     @Override
     public void run() {
-        DataInputStream dis = null;
-        DataOutputStream dos = null;
-        try {
-            dis = new DataInputStream(socket.getInputStream());
-            dos = new DataOutputStream(socket.getOutputStream());
-            int bufferSize = 2048;
-            byte[] buffer = new byte[bufferSize];
+        try (DataInputStream dis = new DataInputStream(socket.getInputStream());
+             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());){
+
+
             while (dis.readBoolean()) {
                 String filePath = dis.readUTF();
                 File requestedFile = new File(filePath);
                 long fileSize = requestedFile.length();
                 dos.writeLong(fileSize);
+                int bufferSize = (int)Math.min(8192L,fileSize);
                 try (FileInputStream fis = new FileInputStream(requestedFile);
                      BufferedInputStream bis =
-                             new BufferedInputStream(fis, bufferSize * 10);) {
+                             new BufferedInputStream(fis,bufferSize)) {
                     int len;
+                    byte[] buffer = CustomByteArrayPool.INSTANCE.acquireByteArray(bufferSize);
                     while ((len = bis.read(buffer)) > -1) {
                         dos.write(buffer, 0, len);
                     }
+                    CustomByteArrayPool.INSTANCE.releaseByteArray(buffer);
                 }
                 dos.flush();
             }
@@ -60,6 +62,7 @@ public class FileProviderService implements Runnable {
         } finally {
             try {
                 this.socket.close();
+                System.gc();
             } catch (IOException e) {
                 e.printStackTrace();
             }

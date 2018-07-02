@@ -78,8 +78,11 @@ public class HungryHippoCurator {
 
   public static final String ZK_PATH_SEPERATOR = "/";
 
+  private String connectString;
+
 
   private HungryHippoCurator(String connectString) {
+    this.connectString = connectString;
     connectToZookeeper(connectString);
   }
 
@@ -1252,5 +1255,9 @@ public class HungryHippoCurator {
     if (checkExists(path)) {
       deleteRecursive(path);
     }
+  }
+
+  public String getConnectString() {
+    return connectString;
   }
 }

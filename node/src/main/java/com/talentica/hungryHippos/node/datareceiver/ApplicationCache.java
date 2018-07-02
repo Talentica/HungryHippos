@@ -21,6 +21,7 @@ package com.talentica.hungryHippos.node.datareceiver;
 import com.talentica.hungryHippos.client.domain.FieldTypeArrayDataDescription;
 import com.talentica.hungryHippos.node.DataDistributorStarter;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.node.joiners.orc.OrcSchemaCreator;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.sharding.Column;
 import com.talentica.hungryhippos.config.sharding.ShardingClientConfig;
@@ -35,6 +36,7 @@ import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.storage.util.Counter;
 import com.talentica.hungryhippos.filesystem.SerializableComparator;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
+import org.apache.orc.TypeDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +57,15 @@ public enum ApplicationCache {
     private Map<String, HashMap<String, HashMap<String, Integer>>> splittedKeyValueMapCache = new HashMap<>();
     private Map<String, Map<Integer, String>> indexToFileNamesCache = new HashMap<>();
     private Map<String, Map<Integer, String>> indexToFileNamesCacheForFirstDimension = new HashMap<>();
-    private Map<String, HHFileNamesIdentifier> hhfileNamesCalculatorCache = new HashMap<>();
+    private Map<String, Map<String,int[]>> hhfileToFileToNodeIdCache = new HashMap<>();
     private Map<String, HHFileNamesIdentifierForFirstDimension> hhfileNamesCalculatorCacheForFirstDimension = new HashMap<>();
     private Map<String, Map<Integer, Map<Integer, String>>> interMediateFileNamesCache = new HashMap<>();
     private Map<String, Integer> reduceFactorCache = new HashMap<>();
     private Map<String, Integer> maxFilesCache = new HashMap<>();
     private Map<String, Map<String,FileStatistics>> fileStatisticsMapCache = new HashMap<>();
     private Map<String, FileStatistics[]> fileStatisticsArrCache = new HashMap<>();
+    private Map<String, TypeDescription> schemaCache = new HashMap<>();
+    private Map<String, String[]> columnNamesCache = new HashMap<>();
 
     public synchronized ShardingApplicationContext getContext(String hhFilePath) throws JAXBException, FileNotFoundException {
         ShardingApplicationContext context = contextMap.get(hhFilePath);
@@ -131,11 +135,13 @@ public enum ApplicationCache {
                 interMediateFileNamesCache.remove(hhFilePath);
                 maxFilesCache.remove(hhFilePath);
                 reduceFactorCache.remove(hhFilePath);
-                hhfileNamesCalculatorCache.remove(hhFilePath);
+                hhfileToFileToNodeIdCache.remove(hhFilePath);
                 hhfileNamesCalculatorCacheForFirstDimension.remove(hhFilePath);
                 StatisticsFileHandler.INSTANCE.writeFileStatisticsMap(hhFilePath,fileStatisticsMapCache);
                 fileStatisticsMapCache.remove(hhFilePath);
                 fileStatisticsArrCache.remove(hhFilePath);
+                columnNamesCache.remove(hhFilePath);
+                schemaCache.remove(hhFilePath);
                 DataDistributorStarter.cacheClearServices.execute(new CacheClearService());
             }
         }
@@ -161,12 +167,36 @@ public enum ApplicationCache {
         return splittedKeyValueMapCache.get(hhFilePath);
     }
 
-    public HHFileNamesIdentifier getHHFileNamesCalculator(String hhFilePath) {
-        HHFileNamesIdentifier hhFileNamesIdentifier = hhfileNamesCalculatorCache.get(hhFilePath);
-        if (hhFileNamesIdentifier == null) {
-            return generateHHFileNamesCalculator(hhFilePath);
+    public TypeDescription getSchema(String hhFilePath){
+        TypeDescription schema = schemaCache.get(hhFilePath);
+        if(schema==null){
+            String[] colNames = getColumnNames(hhFilePath);
+            schema = OrcSchemaCreator.createPrimitiveSchema(contextMap.get(hhFilePath).getConfiguredDataDescription(),colNames);
+            schemaCache.put(hhFilePath,schema);
         }
-        return hhFileNamesIdentifier;
+        return schema;
+    }
+
+    public String[] getColumnNames(String hhFilePath){
+        String[] columnNames = columnNamesCache.get(hhFilePath);
+        if(columnNames==null){
+            List<Column> columns = contextMap.get(hhFilePath).getShardingClientConfig().getInput().getDataDescription().getColumn();
+            int numOfColumns = columns.size();
+            columnNames = new String[numOfColumns];
+            for (int i = 0; i < numOfColumns; i++) {
+                columnNames[i] = columns.get(i).getName();
+            }
+            columnNamesCache.put(hhFilePath,columnNames);
+        }
+        return columnNames;
+    }
+
+    public Map<String,int[]> getFiletoNodeMap(String hhFilePath) {
+        Map<String,int[]> filetoNodeMap = hhfileToFileToNodeIdCache.get(hhFilePath);
+        if (filetoNodeMap == null) {
+            return readLocationMetaData(hhFilePath);
+        }
+        return filetoNodeMap;
     }
 
     public HHFileNamesIdentifierForFirstDimension getHHFileNamesCalculatorForFirstDimension(String hhFilePath) {
@@ -224,15 +254,30 @@ public enum ApplicationCache {
         fileStatisticsMapCache.put(hhFilePath,fileStatisticsMap);
     }
 
-    private synchronized HHFileNamesIdentifier generateHHFileNamesCalculator(String hhFilePath) {
-        HHFileNamesIdentifier hhFileNamesIdentifier = hhfileNamesCalculatorCache.get(hhFilePath);
-        if (hhFileNamesIdentifier == null) {
+    private synchronized Map<String,int[]> generateHHFileNamesCalculator(String hhFilePath) {
+        Map<String,int[]> filetoNodeMap = hhfileToFileToNodeIdCache.get(hhFilePath);
+        if (filetoNodeMap == null) {
             ShardingApplicationContext context = contextMap.get(hhFilePath);
-            hhFileNamesIdentifier = new HHFileNamesIdentifier(context.getShardingDimensions(),
-                    keyToBucketToNodeMapCache.get(hhFilePath), Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize()));
-            hhfileNamesCalculatorCache.put(hhFilePath, hhFileNamesIdentifier);
+            filetoNodeMap = new HHFileNamesIdentifier(context.getShardingDimensions(),
+                    keyToBucketToNodeMapCache.get(hhFilePath), Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize())).getFileToNodeMap();
+            hhfileToFileToNodeIdCache.put(hhFilePath, filetoNodeMap);
         }
-        return hhFileNamesIdentifier;
+        return filetoNodeMap;
+    }
+
+    public synchronized Map<String,int[]> readLocationMetaData(String hhFilePath) {
+        Map<String,int[]> fileNameToNodeId = null;
+        if (fileNameToNodeId == null) {
+            try (FileInputStream fileInputStream = new FileInputStream(FileSystemContext.getRootDirectory() + hhFilePath + File.separator + FileSystemConstants.FILE_LOCATION_INFO);
+                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
+                fileNameToNodeId = (Map<String, int[]>) objectInputStream.readObject();
+                hhfileToFileToNodeIdCache.put(hhFilePath, fileNameToNodeId);
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+        return fileNameToNodeId;
     }
 
     private synchronized HHFileNamesIdentifierForFirstDimension generateHHFileNamesCalculatorForFirstDimension(String hhFilePath) {

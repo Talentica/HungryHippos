@@ -53,10 +53,11 @@ object HHRDDHelper {
     */
   @throws[JAXBException]
   @throws[FileNotFoundException]
-  def initialize(clientConfigPath: String): Unit = {
+  def initialize(clientConfigPath: String): String = {
     val clientConfig = JaxbUtil.unmarshalFromFile(clientConfigPath, classOf[ClientConfig])
     val servers = clientConfig.getCoordinationServers.getServers
     HungryHippoCurator.getInstance(servers)
+    servers
   }
 
   /**

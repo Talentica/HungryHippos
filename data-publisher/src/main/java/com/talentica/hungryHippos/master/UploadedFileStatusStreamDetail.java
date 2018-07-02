@@ -19,6 +19,7 @@
 package com.talentica.hungryHippos.master;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 /**
@@ -26,17 +27,23 @@ import java.net.Socket;
  */
 public class UploadedFileStatusStreamDetail {
     private DataInputStream dataInputStream;
+    private DataOutputStream dataOutputStream;
     private Socket socket;
     private int chunkId;
 
-    public UploadedFileStatusStreamDetail(DataInputStream dataInputStream, Socket socket, int chunkId) {
+    public UploadedFileStatusStreamDetail(DataInputStream dataInputStream, DataOutputStream dataOutputStream, Socket socket, int chunkId) {
         this.dataInputStream = dataInputStream;
+        this.dataOutputStream = dataOutputStream;
         this.socket = socket;
         this.chunkId = chunkId;
     }
 
     public DataInputStream getDataInputStream() {
         return dataInputStream;
+    }
+
+    public DataOutputStream getDataOutputStream() {
+        return dataOutputStream;
     }
 
     public Socket getSocket() {

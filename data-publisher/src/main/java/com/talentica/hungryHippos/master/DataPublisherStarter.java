@@ -69,7 +69,8 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
-    long sizeOfChunk = 128 * 1024 * 1024;// 128MB
+    int noOfProcessors = Runtime.getRuntime().availableProcessors();
+    long sizeOfChunk = (4 * 128 * 1024 * 1024 )/ noOfProcessors;
     if (args.length > 3) {
       sizeOfChunk = Long.parseLong(args[3]);
     }
@@ -293,7 +294,7 @@ public class DataPublisherStarter {
       dos.writeUTF(remotePath + uuid + File.separator + chunk.getFileName());
       dos.writeLong(chunk.getActualSizeOfChunk());
       dos.flush();
-      int size = socket.getSendBufferSize();
+      int size = 4096;
       byte[] buffer = new byte[size];
       HHFStream hhfsStream = chunk.getHHFStream();
       int read = 0;
@@ -315,7 +316,7 @@ public class DataPublisherStarter {
       } else {
         throw new RuntimeException("Chunk was not successfully uploaded");
       }
-      UploadedFileStatusCheckerHandler.INSTANCE.receiveStatus(new UploadedFileStatusStreamDetail(dis,socket,chunk.getId()));
+      UploadedFileStatusCheckerHandler.INSTANCE.receiveStatus(new UploadedFileStatusStreamDetail(dis,dos,socket,chunk.getId()));
     } else {
       while (!queue.offer(chunk));
       socket.close();

@@ -20,13 +20,16 @@ package com.talentica.hungryHippos.node.datareceiver;
 
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.node.NodeInfo;
+import com.talentica.hungryHippos.node.datareceiver.orc.IncrementalOrcDataUploader;
 import com.talentica.hungryHippos.node.joiners.SnappyFileAppender;
+import com.talentica.hungryHippos.node.joiners.orc.OrcFileAppender;
 import com.talentica.hungryHippos.storage.IncrementalDataEntity;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,6 +50,7 @@ public enum IncrementalDataHandler {
     private Map<String, IncrementalDataStatusChecker> statusCheckers;
     private Map<Integer, Queue<IncrementalDataEntity>> uploaderQueue;
     private Map<Integer, Node> nodeMap;
+    private Map<String,List<String>> pathMap;
     private int selfNodeId;
     private int workloadLimit = 10*Runtime.getRuntime().availableProcessors();
 
@@ -58,6 +62,7 @@ public enum IncrementalDataHandler {
         dataFileToSemaphore = new HashMap<>();
         hhfileToCounter = new HashMap<>();
         lockObjects = new ArrayList<>();
+        pathMap = new HashMap<>();
         for (int i = 0; i < noOfLocks; i++) {
             lockObjects.add(new Object());
         }
@@ -84,11 +89,12 @@ public enum IncrementalDataHandler {
     }
 
 
-    public void initialize(String hhfile, String destFolderPath, Collection<String> fileNames, Map<String, int[]>  fileToNodeMap){
+    public void initialize(String hhfile, String sourceFolder, String destFolderPath, Collection<String> fileNames, Map<String, int[]>  fileToNodeMap){
         Object lockObj = lockObjects.get((hhfile.hashCode() % noOfLocks + noOfLocks) % noOfLocks);
         synchronized (lockObj) {
             Map<String, Queue<IncrementalDataEntity>> dataFileMap = hhFileToDataFileQueue.get(hhfile);
             if (dataFileMap == null) {
+                pathMap.put(hhfile,new LinkedList<>());
                 dataFileMap = new HashMap<>();
                 hhFileToDataFileQueue.put(hhfile, dataFileMap);
                 hhfileToFutures.put(hhfile, new ConcurrentLinkedQueue<>());
@@ -97,7 +103,7 @@ public enum IncrementalDataHandler {
                     dataFileToSemaphore.get(hhfile).put(nodeId,new HashMap<>());
                 }
                 for(String fileName : fileNames){
-                    String destPath = destFolderPath+fileName+ FileSystemConstants.SNAPPY_EXTENSION;
+                    String destPath = destFolderPath+fileName+ "/";
                     dataFileMap.put(destPath, new ConcurrentLinkedQueue<>());
                     for(Integer nodeId:fileToNodeMap.get(fileName)){
                         dataFileToSemaphore.get(hhfile).get(nodeId).put(destPath, new Semaphore(1));
@@ -110,7 +116,7 @@ public enum IncrementalDataHandler {
                 workers.put(hhfile, Executors.newFixedThreadPool(2 * noOfProcessors));
                 statusCheckers.get(hhfile).start();
             }
-
+            pathMap.get(hhfile).add(sourceFolder);
             hhfileToCounter.get(hhfile).incrementAndGet();
         }
     }
@@ -121,12 +127,16 @@ public enum IncrementalDataHandler {
         incrementalDataEntities.offer(dataEntity);
         for (Integer nodeId : nodeIds) {
             if (selfNodeId == nodeId) {
-                hhfileToFutures.get(hhfile).offer(workers.get(hhfile).submit(new SnappyFileAppender(incrementalDataEntities, dataFileToSemaphore.get(hhfile).get(nodeId).get(destPath))));
+                Queue<Future<Boolean>> futures = hhfileToFutures.get(hhfile);
+                ExecutorService worker = workers.get(hhfile);
+                Future<Boolean> future = worker.submit(new OrcFileAppender(worker,futures,incrementalDataEntities, dataFileToSemaphore.get(hhfile).get(nodeId).get(destPath)));
+                while (!futures.offer(future));
             } else {
                 Node node = nodeMap.get(nodeId);
                 Queue<IncrementalDataEntity> dataEntities = uploaderQueue.get(nodeId);
                 dataEntities.offer(dataEntity);
-                hhfileToFutures.get(hhfile).offer(workers.get(hhfile).submit(new IncrementalDataUploader(dataEntities, node.getIp(), node.getPort(), dataFileToSemaphore.get(hhfile).get(nodeId))));
+                Future<Boolean> future = workers.get(hhfile).submit(new IncrementalOrcDataUploader(dataEntities, node.getIp(), node.getPort(), dataFileToSemaphore.get(hhfile).get(nodeId)));
+                while (!hhfileToFutures.get(hhfile).offer(future));
             }
         }
 
@@ -171,7 +181,18 @@ public enum IncrementalDataHandler {
                 }
             }
 
+
             workers.get(hhfile).shutdown();
+            pathMap.get(hhfile).stream().forEach(path->{
+                File file = new File(path);
+                if(file.exists()){
+                    String[] children = file.list();
+                    if (children == null || children.length == 0) {
+                        file.delete();
+                    }
+                }
+                file.delete();
+            });
             clear(hhfile);
             logger.info("Release lock on {}", hhfile);
             return status;
@@ -186,5 +207,6 @@ public enum IncrementalDataHandler {
         hhfileToCounter.remove(hhfile);
         workers.remove(hhfile);
         statusCheckers.remove(hhfile);
+        pathMap.remove(hhfile);
     }
 }

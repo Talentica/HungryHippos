@@ -221,7 +221,9 @@ class HHRDDInfoImpl(/** The bucket to node number map. */
     //val sb = new StringBuilder()
     while (!nodeBuckets.isEmpty && remNoOfPreferredNodes > 0) {
       nodeBucket = nodeBuckets.poll
-      preferredIpList.add(nodIdToIp.get(nodeBucket.getId).getIp)
+      if(nodeBucket.size>=0.3*partitionBucket1.size){
+        preferredIpList.add(nodIdToIp.get(nodeBucket.getId).getIp)
+      }
       remNoOfPreferredNodes -= 1
       //sb.append(nodeBucket.toString).append(" ")
     }
@@ -294,7 +296,7 @@ class HHRDDInfoImpl(/** The bucket to node number map. */
     for (entry <- keyToBucketToFileList.get(primaryDimensionKey).entrySet) {
       import scala.collection.JavaConversions._
       for (fileName <- entry.getValue) {
-        val fileSize = fileStatisticsMap.get(fileName).getDataSize
+        val fileSize = fileNameToSizeWholeMap.get(fileName)
         if (fileSize > 0 && filteredFiles.contains(fileName)) {
           partitionBucket = partitionBuckets.poll
           if (partitionBucket.getSize + fileSize > idealPartitionFileSize && partitionBucket.getSize != 0) {
@@ -322,6 +324,8 @@ class HHRDDInfoImpl(/** The bucket to node number map. */
   private def preparePartitionsV2(primaryDimensionKey: String, idealPartitionFileSize: Long, fileNamesSet: util.Set[String], partitionBuckets: PriorityQueue[HHRDDInfoImpl.PartitionBucket], filteredFiles: util.Set[String]): Unit = {
     var currPartitionBucket:HHRDDInfoImpl.PartitionBucket = null
     var fileCount: Int = 0
+    var diskOccupiedSpace = 0L
+    var uncompressedSize = 0L
     import scala.collection.JavaConversions._
     for (entry <- keyToBucketToFileList.get(primaryDimensionKey).entrySet) {
       currPartitionBucket = new HHRDDInfoImpl.PartitionBucket(0)
@@ -333,6 +337,8 @@ class HHRDDInfoImpl(/** The bucket to node number map. */
             partitionBuckets.offer(currPartitionBucket)
             currPartitionBucket = new HHRDDInfoImpl.PartitionBucket(0)
           }
+          diskOccupiedSpace+=fileNameToSizeWholeMap.get(fileName)
+          uncompressedSize+=fileSize
           currPartitionBucket.addFile(fileToNodeId.get(fileName), fileSize)
           fileNamesSet.add(fileName)
           fileCount += 1
@@ -344,6 +350,8 @@ class HHRDDInfoImpl(/** The bucket to node number map. */
     }
 
     System.out.println("file count : " + fileCount)
+    System.out.println("Disk Occupied Space : " + diskOccupiedSpace)
+    System.out.println("Uncompressed Size : " + uncompressedSize)
   }
 
 

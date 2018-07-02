@@ -16,7 +16,9 @@
 package com.talentica.hungryHippos.node;
 
 import com.talentica.hungryHippos.node.joiners.*;
+import com.talentica.hungryHippos.node.joiners.orc.NodeFileJoinerORC;
 import com.talentica.hungryHippos.node.service.*;
+import com.talentica.hungryHippos.node.service.orc.IncrementalOrcDataReceiver;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
 import java.io.DataInputStream;
@@ -49,7 +51,7 @@ public class ServiceDelegator implements Runnable {
           break;
         case HungryHippoServicesConstants.NODE_DATA_APPENDER:
           DataDistributorStarter.dataAppenderServices.
-                  execute(new DataAppenderService(socket,(a,b)-> FileJoinCaller.INSTANCE.addSrcFile(a,b,(x,y)->new NodeFileJoiner(x,y))));
+                  execute(new DataAppenderService(socket,(a,b)-> FileJoinCaller.INSTANCE.addSrcFile(a,b,(x,y)->new NodeFileJoinerORC(x,y))));
           break;
         case HungryHippoServicesConstants.DUAL_STAGE_NODE_DATA_APPENDER:
           DataDistributorStarter.dataAppenderServices.
@@ -76,6 +78,9 @@ public class ServiceDelegator implements Runnable {
           break;
         case HungryHippoServicesConstants.INCREMENTAL_DATA_APPENDER:
           DataDistributorStarter.fileService.execute(new IncrementalDataReceiver(socket));
+          break;
+        case HungryHippoServicesConstants.ORC_INCREMENTAL_DATA_APPENDER:
+          DataDistributorStarter.fileService.execute(new IncrementalOrcDataReceiver(socket));
           break;
         default:
           socket.close();

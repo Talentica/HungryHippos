@@ -17,6 +17,7 @@ package com.talentica.hungryHippos.node.uploaders;
 
 import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
 import com.talentica.hungryHippos.node.joiners.NodeFileJoiner;
+import com.talentica.hungryHippos.node.joiners.orc.NodeFileJoinerORC;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import com.talentica.hungryhippos.config.cluster.Node;
 
@@ -41,7 +42,7 @@ public class NodeWiseFileUploader extends AbstractFileUploader {
 
     @Override
     protected void sendTarFileLocal(String absolutePath){
-        FileJoinCaller.INSTANCE.addSrcFile(getHhFilePath(), absolutePath, (x, y) -> new NodeFileJoiner(x, y));
+        FileJoinCaller.INSTANCE.addSrcFile(getHhFilePath(), absolutePath, (x, y) -> new NodeFileJoinerORC(x, y));
     }
 
     @Override

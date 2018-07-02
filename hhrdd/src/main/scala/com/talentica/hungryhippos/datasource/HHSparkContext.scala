@@ -36,7 +36,7 @@ import org.apache.spark.broadcast.Broadcast
   */
 class HHSparkContext(context: SparkContext, clientConfigurationFilePath: String)
   extends JavaSparkContext(context) {
-  HHRDDHelper.initialize(clientConfigurationFilePath)
+  val connectString = HHRDDHelper.initialize(clientConfigurationFilePath)
   /** The hhrdd info cache. */
   private val hhrddInfoCache = new util.HashMap[String, HHRDDInfo]
 

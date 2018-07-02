@@ -15,16 +15,12 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.rdd.reader;
 
+import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.client.domain.DataLocator;
+
 import java.nio.ByteBuffer;
 import java.sql.Date;
 import java.sql.Timestamp;
-
-import com.talentica.hungryHippos.client.domain.DataDescription;
-import com.talentica.hungryHippos.client.domain.DataLocator;
-import com.talentica.hungryHippos.client.domain.MutableCharArrayString;
-import org.apache.spark.sql.catalyst.util.DateTimeUtils;
-import org.apache.spark.sql.catalyst.util.DateTimeUtils$;
-import org.apache.spark.unsafe.types.UTF8String;
 
 /**
  * {@code HHRDDRowReader} is used to convert data from binary form to Object form.

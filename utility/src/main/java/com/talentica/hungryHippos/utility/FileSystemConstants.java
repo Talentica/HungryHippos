@@ -39,5 +39,8 @@ public interface FileSystemConstants {
 	String ZIP_METADATA_FILENAME = "METADATA";
 	String ZIP_EXTENSION = ".zip";
 	String SNAPPY_EXTENSION = ".snappy";
+	String ORC_MAIN_FILE_NAME = "MAIN.snappy.orc";
+	String ORC_DELTA_FILE_NAME = "DELTA.snappy.orc";
 	int SNAPPY_BLOCK_SIZE = 2 * 1024 * 1024;
+	String FILE_LOCATION_INFO = "FILE_LOCATION.info";
 }

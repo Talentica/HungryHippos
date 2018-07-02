@@ -45,6 +45,7 @@ public class DataDistributorService implements Runnable {
   private DataInputStream dataInputStream;
   private DataOutputStream dataOutputStream;
   private Socket socket;
+  private boolean flag = true;
 
   public DataDistributorService(Socket socket) throws IOException {
     this.socket = socket;
@@ -61,14 +62,14 @@ public class DataDistributorService implements Runnable {
       hhFilePath = dataInputStream.readUTF();
       srcDataPath = dataInputStream.readUTF();
 
-      int idealBufSize = socket.getReceiveBufferSize();
-      byte[] buffer;
+      int idealBufSize = 4096;
+      byte[] buffer = new byte[idealBufSize];
       System.gc();
-      if (MemoryStatus.getUsableMemory() > idealBufSize) {
+      /*if (MemoryStatus.getUsableMemory() > idealBufSize) {
         buffer = new byte[socket.getReceiveBufferSize()];
       } else {
         buffer = new byte[2048];
-      }
+      }*/
 
       int read = 0;
       File file = new File(srcDataPath);
@@ -97,6 +98,9 @@ public class DataDistributorService implements Runnable {
         DataDistributor.distribute(hhFilePath, srcDataPath);
       }
       logger.info("Data distributed successfully for {}",srcDataPath);
+      DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
+      flag = false;
+      dataInputStream.readBoolean();
       dataOutputStream.writeUTF(HungryHippoServicesConstants.SUCCESS);
       dataOutputStream.flush();
 
@@ -112,7 +116,9 @@ public class DataDistributorService implements Runnable {
       }
       e.printStackTrace();
     } finally {
-      DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
+      if(flag){
+        DataDistributorStarter.noOfAvailableDataDistributors.incrementAndGet();
+      }
       if (srcDataPath != null) {
         try {
           FileUtils.deleteDirectory((new File(srcDataPath)).getParentFile());

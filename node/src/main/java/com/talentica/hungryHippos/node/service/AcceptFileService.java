@@ -15,6 +15,13 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.service;
 
+import com.talentica.hungryHippos.node.datareceiver.ApplicationCache;
+import com.talentica.hungryHippos.node.datareceiver.HHFileNamesIdentifier;
+import com.talentica.hungryHippos.sharding.Bucket;
+import com.talentica.hungryHippos.sharding.KeyValueFrequency;
+import com.talentica.hungryHippos.sharding.Node;
+import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
+import com.talentica.hungryHippos.sharding.util.ShardingFileUtil;
 import com.talentica.hungryHippos.sharding.util.ShardingTableCopier;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
@@ -25,11 +32,14 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AcceptFileService implements Runnable {
 
@@ -83,8 +93,20 @@ public class AcceptFileService implements Runnable {
             + File.separatorChar + ShardingTableCopier.SHARDING_ZIP_FILE_NAME;
         updateFilesIfRequired(shardingTableFolderPath);
         createFolders(FileSystemContext.getRootDirectory()+hhFilePath+File.separator);
+        ShardingApplicationContext context = new ShardingApplicationContext(shardingTableFolderPath);
+        HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> keyToBucketToNodeMap =
+                ShardingFileUtil.readFromFileBucketToNodeNumber(context.getBuckettoNodeNumberMapFilePath());
+        Map<String,int[]> fileToNodeIdMap = new HHFileNamesIdentifier(context.getShardingDimensions(),
+                keyToBucketToNodeMap, Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize())).getFileToNodeMap();
+        try(FileOutputStream fileOutputStream = new FileOutputStream(FileSystemContext.getRootDirectory()+hhFilePath+File.separator+FileSystemConstants.FILE_LOCATION_INFO);
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(bufferedOutputStream)){
+          objectOutputStream.writeObject(fileToNodeIdMap);
+          objectOutputStream.flush();
+          bufferedOutputStream.flush();
+        }
       }
-    } catch (IOException e) {
+    } catch (IOException | JAXBException e) {
       logger.error(e.getMessage());
       try {
         if(parentDir!=null) {

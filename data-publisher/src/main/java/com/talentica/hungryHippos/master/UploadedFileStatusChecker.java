@@ -22,6 +22,7 @@ import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataOutputStream;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 
@@ -34,7 +35,9 @@ public class UploadedFileStatusChecker implements Callable<Boolean> {
 
     private Queue<UploadedFileStatusStreamDetail> uploadedFileStatusStreamDetails;
 
-    private static int streamSeq = 0;
+    private volatile static int streamSeq = 0;
+
+    private static Object lock = new Object();
 
     public UploadedFileStatusChecker(Queue<UploadedFileStatusStreamDetail> uploadedFileStatusStreamDetails) {
         this.uploadedFileStatusStreamDetails = uploadedFileStatusStreamDetails;
@@ -47,18 +50,29 @@ public class UploadedFileStatusChecker implements Callable<Boolean> {
         }
         boolean success = true;
         while (!uploadedFileStatusStreamDetails.isEmpty()) {
-            UploadedFileStatusStreamDetail uploadedFileStatusStreamDetail = uploadedFileStatusStreamDetails.poll();
-            LOGGER.info("Waiting for status of chunk id: {} Number of chunks successfully processed: {}", uploadedFileStatusStreamDetail.getChunkId(), streamSeq);
-            String status = uploadedFileStatusStreamDetail.getDataInputStream().readUTF();
-            if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
-                LOGGER.error("Failed uploaded chunk id: {} Number of chunks successfully processed: {} ip:{}",
-                        uploadedFileStatusStreamDetail.getChunkId(), streamSeq,uploadedFileStatusStreamDetail.getSocket().getInetAddress().getHostAddress());
-                success =  false;
-            }else{
-                streamSeq++;
+            UploadedFileStatusStreamDetail uploadedFileStatusStreamDetail;
+
+            synchronized (lock){
+                uploadedFileStatusStreamDetail = uploadedFileStatusStreamDetails.poll();
             }
-            uploadedFileStatusStreamDetail.getSocket().close();
-            LOGGER.info("Successfully uploaded chunk: {} Number of chunks successfully processed: {}", uploadedFileStatusStreamDetail.getChunkId(), streamSeq);
+
+            if(uploadedFileStatusStreamDetail!=null){
+                LOGGER.info("Waiting for status of chunk id: {} Number of chunks successfully processed: {}", uploadedFileStatusStreamDetail.getChunkId(), streamSeq);
+                DataOutputStream dataOutputStream = uploadedFileStatusStreamDetail.getDataOutputStream();
+                dataOutputStream.writeBoolean(true);
+                dataOutputStream.flush();
+                String status = uploadedFileStatusStreamDetail.getDataInputStream().readUTF();
+                if (!HungryHippoServicesConstants.SUCCESS.equals(status)) {
+                    LOGGER.error("Failed uploaded chunk id: {} Number of chunks successfully processed: {} ip:{}",
+                            uploadedFileStatusStreamDetail.getChunkId(), streamSeq,uploadedFileStatusStreamDetail.getSocket().getInetAddress().getHostAddress());
+                    success =  false;
+                }else{
+                    streamSeq++;
+                }
+                uploadedFileStatusStreamDetail.getSocket().close();
+                LOGGER.info("Successfully uploaded chunk: {} Number of chunks successfully processed: {}", uploadedFileStatusStreamDetail.getChunkId(), streamSeq);
+            }
+
         }
         return success;
     }

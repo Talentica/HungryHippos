@@ -17,6 +17,7 @@ package com.talentica.hungryHippos.node.service;
 
 import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryHippos.node.datareceiver.*;
+import com.talentica.hungryHippos.node.datareceiver.orc.OrcMetaDataSynchronizer;
 import com.talentica.hungryHippos.node.joiners.FileJoinCaller;
 import com.talentica.hungryHippos.node.joiners.FirstStageNodeFileJoinerCaller;
 import com.talentica.hungryHippos.utility.FileSystemConstants;
@@ -66,14 +67,10 @@ public class MetaDataSynchronizerService implements Runnable {
                 String dataFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix()+File.separator;
                 String metadataFilePath = baseFolderPath + File.separator + FileSystemConstants.META_DATA_FOLDER_NAME
                         + File.separator + NodeInfo.INSTANCE.getId();
-                String fileStatisticsPath = baseFolderPath + File.separator + FileSystemConstants.FILE_STATISTICS_FOLDER_NAME
-                        + File.separator + NodeInfo.INSTANCE.getId();
-                String blockStatisticsFolderPath = baseFolderPath + File.separator + FileSystemConstants.BLOCK_STATISTICS_FOLDER_NAME
-                        + File.separator + NodeInfo.INSTANCE.getId();
                 ApplicationCache.INSTANCE.getContext(hhFilePath);
                 try{
                     Map<Integer, String> indexToFileNamesV2 = ApplicationCache.INSTANCE.getIndexToFileNamesForFirstDimension(hhFilePath);
-                    DataSynchronizer.INSTANCE.synchronize(dataFolderPath, indexToFileNamesV2.values(), metadataFilePath, hhFilePath, fileStatisticsPath, blockStatisticsFolderPath);
+                    OrcMetaDataSynchronizer.INSTANCE.synchronize(dataFolderPath, indexToFileNamesV2.values(), metadataFilePath, hhFilePath);
                 }finally {
                     ApplicationCache.INSTANCE.releaseContext(hhFilePath);
                 }

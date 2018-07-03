@@ -76,7 +76,9 @@ public class IncrementalOrcDataReceiver implements Runnable {
                     e.printStackTrace();
                     throw e;
                 }
-                semaphore.acquire();
+                while(!semaphore.tryAcquire()){
+                    Thread.sleep(1000);
+                }
                 try {
                     appendFileData(destinationPath, tmpPath);
                 }finally {

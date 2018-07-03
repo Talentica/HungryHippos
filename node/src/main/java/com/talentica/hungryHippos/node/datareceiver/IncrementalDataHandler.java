@@ -125,18 +125,18 @@ public enum IncrementalDataHandler {
         Queue<IncrementalDataEntity> incrementalDataEntities = hhFileToDataFileQueue.get(hhfile).get(destPath);
         IncrementalDataEntity dataEntity = new IncrementalDataEntity(srcPath, destPath, new AtomicInteger(nodeIds.length));
         incrementalDataEntities.offer(dataEntity);
+        ExecutorService worker = workers.get(hhfile);
+        Queue<Future<Boolean>> futures = hhfileToFutures.get(hhfile);
         for (Integer nodeId : nodeIds) {
             if (selfNodeId == nodeId) {
-                Queue<Future<Boolean>> futures = hhfileToFutures.get(hhfile);
-                ExecutorService worker = workers.get(hhfile);
                 Future<Boolean> future = worker.submit(new OrcFileAppender(worker,futures,incrementalDataEntities, dataFileToSemaphore.get(hhfile).get(nodeId).get(destPath)));
                 while (!futures.offer(future));
             } else {
                 Node node = nodeMap.get(nodeId);
                 Queue<IncrementalDataEntity> dataEntities = uploaderQueue.get(nodeId);
                 dataEntities.offer(dataEntity);
-                Future<Boolean> future = workers.get(hhfile).submit(new IncrementalOrcDataUploader(dataEntities, node.getIp(), node.getPort(), dataFileToSemaphore.get(hhfile).get(nodeId)));
-                while (!hhfileToFutures.get(hhfile).offer(future));
+                Future<Boolean> future = worker.submit(new IncrementalOrcDataUploader(dataEntities, node.getIp(), node.getPort(), dataFileToSemaphore.get(hhfile).get(nodeId)));
+                while (!futures.offer(future));
             }
         }
 

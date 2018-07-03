@@ -77,9 +77,7 @@ public class OrcDataStore {
                 orcWriters[index] = new OrcWriter(schema, columnNames, new Path(dataFilePrefix + fileNames.get(index)), batchSize);
                 fileCount++;
             }
-            for (int i = 0; i < 20; i++) {
-                orcWriters[index].write(objects);
-            }
+            orcWriters[index].write(objects);
             this.lastUpdated[index] = tick;
             if(fileCount> MAX_OPEN_FILES){
                 closeOldWriters();

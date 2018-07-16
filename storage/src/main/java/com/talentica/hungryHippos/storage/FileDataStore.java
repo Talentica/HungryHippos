@@ -41,13 +41,13 @@ public class FileDataStore implements DataStore {
     private boolean usingBufferStream;
     private Map<Integer, String> fileNames;
 
-    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
+    public FileDataStore(Map<Integer, String> fileNames, int maxFiles,
                          String hungryHippoFilePath, String fileName) throws IOException, InterruptedException, ClassNotFoundException,
             KeeperException, JAXBException {
-        this(fileNames, maxBucketSize, numDimensions, hungryHippoFilePath, false, fileName);
+        this(fileNames, maxFiles, hungryHippoFilePath, false, fileName);
     }
 
-    public FileDataStore(Map<Integer, String> fileNames, int maxBucketSize, int numDimensions,
+    public FileDataStore(Map<Integer, String> fileNames, int maxFiles,
                          String hungryHippoFilePath, boolean append,
                          String fileName) throws IOException {
 
@@ -56,15 +56,11 @@ public class FileDataStore implements DataStore {
         this.hungryHippoFilePath = hungryHippoFilePath;
         this.dataFilePrefix = FileSystemContext.getRootDirectory() + hungryHippoFilePath
                 + File.separator + fileName;
-
-        int maxFiles = (int) Math.pow(maxBucketSize, numDimensions);
         this.outputStreams = new OutputStream[maxFiles];
         File file = new File(dataFilePrefix);
         if (!file.exists()) {
             boolean flag = file.mkdirs();
-            if (flag) {
-                logger.info("created data folder");
-            } else {
+            if (!flag) {
                 logger.info("Not able to create dataFolder");
             }
         }
@@ -72,9 +68,6 @@ public class FileDataStore implements DataStore {
         this.fileNames = fileNames;
         usingBufferStream = ResourceAllocator.INSTANCE.allocateResources(fileNames, this.outputStreams,
                 this.dataFilePrefix, this.fileNameToOutputStreamMap,this.fileNameToBufferedOutputStreamMap, append, false, null);
-        if(usingBufferStream) {
-            logger.info("Using BufferedStreams for {}", dataFilePrefix);
-        }
     }
 
     @Override

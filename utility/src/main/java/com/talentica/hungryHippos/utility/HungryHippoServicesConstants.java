@@ -27,6 +27,7 @@ public interface HungryHippoServicesConstants {
   int METADATA_SYNCHRONIZER = 6;
   int ACCEPT_FILE = 7;
   int SHARDING_TABLE = 8;
+  int DUAL_STAGE_NODE_DATA_APPENDER = 9;
   
   String SUCCESS = "SUCCESS";
   String FAILURE = "FAILURE";

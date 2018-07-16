@@ -69,7 +69,7 @@ public class HHSparkContext extends JavaSparkContext {
   public JavaRDD<byte[]> binaryRecords(Integer[] jobDimensions, String hhFilePath, boolean requiresShuffle)
           throws JAXBException, IOException {
     HHRDDInfo hhrddInfo = getHHRDDInfo(hhFilePath);
-    return new HHRDD(this, hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
+    return new HHRDD(this.sc(), hhrddInfo, jobDimensions, requiresShuffle).toJavaRDD();
   }
 
   /**
@@ -103,6 +103,20 @@ public class HHSparkContext extends JavaSparkContext {
   public Broadcast<DataDescription> broadcastFieldDataDescription(String hhFilePath)
           throws JAXBException, IOException {
     return broadcast(getHHRDDInfo(hhFilePath).getFieldDataDesc());
+  }
+
+  /**
+   * Returns an instance of broadcast {@link DataDescription}.
+   *
+   * @param hhFilePath        Path to the HungryHippo file
+   * @return Broadcast DataDescription instance
+   * @throws JAXBException when the sharding-table configuration is not properly set
+   * for the HungryHippo file
+   * @throws IOException Any of the usual Input/Output related exceptions.
+   */
+  public DataDescription getFieldDataDescription(String hhFilePath)
+          throws JAXBException, IOException {
+    return getHHRDDInfo(hhFilePath).getFieldDataDesc();
   }
 
   /**

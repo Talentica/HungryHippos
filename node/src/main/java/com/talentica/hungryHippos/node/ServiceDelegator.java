@@ -15,9 +15,7 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node;
 
-import com.talentica.hungryHippos.node.joiners.NodeFileJoiner;
-import com.talentica.hungryHippos.node.joiners.TarFileJoiner;
-import com.talentica.hungryHippos.node.joiners.UnTarStrategy;
+import com.talentica.hungryHippos.node.joiners.*;
 import com.talentica.hungryHippos.node.service.*;
 import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
 
@@ -40,18 +38,22 @@ public class ServiceDelegator implements Runnable {
       int serviceId = dis.readInt();
       switch (serviceId) {
         case HungryHippoServicesConstants.DATA_DISTRIBUTOR:
-          DataDistributorStarter.dataDistributorService.execute(new PublishAccessService(socket));
+          DataDistributorStarter.publishAccessServices.execute(new PublishAccessService(socket));
           break;
         case HungryHippoServicesConstants.FILE_PROVIDER:
           DataDistributorStarter.fileProviderService.execute(new FileProviderService(socket));
           break;
         case HungryHippoServicesConstants.TAR_DATA_APPENDER:
           DataDistributorStarter.commonServicePoolCache
-                  .execute(new DataAppenderService(socket,(x,y)->new TarFileJoiner(x,y,UnTarStrategy.UNTAR_ON_CONTINUOUS_STREAMS)));
+                  .execute(new DataAppenderService(socket,(a,b)-> FileJoinCaller.INSTANCE.addSrcFile(a,b,(x,y)->new TarFileJoiner(x,y,UnTarStrategy.UNTAR_ON_CONTINUOUS_STREAMS))));
           break;
         case HungryHippoServicesConstants.NODE_DATA_APPENDER:
-          DataDistributorStarter.commonServicePoolCache.
-                  execute(new DataAppenderService(socket,(x,y)-> new NodeFileJoiner(x,y)));
+          DataDistributorStarter.dataAppenderServices.
+                  execute(new DataAppenderService(socket,(a,b)-> FileJoinCaller.INSTANCE.addSrcFile(a,b,(x,y)->new NodeFileJoiner(x,y))));
+          break;
+        case HungryHippoServicesConstants.DUAL_STAGE_NODE_DATA_APPENDER:
+          DataDistributorStarter.dataAppenderServices.
+                  execute(new DataAppenderService(socket,(a,b)->FirstStageNodeFileJoinerCaller.INSTANCE.addSrcFile(a,b,(x,y)-> new FirstStageNodeFileJoiner(x,y))));
           break;
         case HungryHippoServicesConstants.METADATA_UPDATER:
           DataDistributorStarter.metadataUpdaterServices

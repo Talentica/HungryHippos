@@ -33,16 +33,7 @@ public class HHRDDRowReader {
   private DataDescription dataDescription;
 
   /** The source. */
-  private ByteBuffer source = null;
-
-  /**
-   * Sets the buffer for the object.
-   *
-   * @param source        A byte buffer object
-   */
-  public void setByteBuffer(ByteBuffer source) {
-    this.source = source;
-  }
+  private ByteBuffer source;
 
   /**
    * Gets the byte buffer.
@@ -58,8 +49,9 @@ public class HHRDDRowReader {
    *
    * @param dataDescription        The {@link DataDescription} object for reading a particular type of record
    */
-  public HHRDDRowReader(DataDescription dataDescription) {
+  public HHRDDRowReader(DataDescription dataDescription, ByteBuffer source) {
     this.dataDescription = dataDescription;
+    this.source = source;
   }
 
   /**
@@ -98,7 +90,7 @@ public class HHRDDRowReader {
       case DOUBLE:
         return source.getDouble(locator.getOffset());
       case STRING:
-        return readValueString(index);
+        return readValueString(locator.getOffset(),locator.getSize());
     }
     return null;
   }
@@ -122,6 +114,19 @@ public class HHRDDRowReader {
       charArrayString.addByte(ch);
     }
     return charArrayString;
+  }
+
+  private String readValueString(int offset,int size) {
+    int count = 0;
+    char[] charArr = new char[size];
+    int end = offset+size;
+    for (int i = offset; i < end; i++, count++) {
+      charArr[count] = (char) source.get(i);
+      if (charArr[count] == 0) {
+        break;
+      }
+    }
+    return new String(charArr,0,count);
   }
 
 }

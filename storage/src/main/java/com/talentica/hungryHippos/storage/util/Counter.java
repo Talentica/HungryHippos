@@ -26,7 +26,20 @@ public class Counter {
         this.count+=number;
     }
 
+    public void decrement(int number){
+        this.count+=number;
+    }
+
+    public int incrementAndGet(){
+        return ++this.count;
+    }
+
+    public int decrementAndGet(){
+        return --this.count;
+    }
+
     public String toString(){
         return count+"";
     }
+
 }

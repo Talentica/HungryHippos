@@ -18,30 +18,17 @@
  */
 package com.talentica.hungryHippos.rdd;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scala.Tuple2;
+import scala.collection.AbstractIterator;
+
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.talentica.hungryHippos.utility.HungryHippoServicesConstants;
-
-import scala.Tuple2;
-import scala.collection.AbstractIterator;
+import java.util.*;
 
 /**
  * The Class HHRDDIterator.
@@ -85,6 +72,10 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
   /** The black listed ips. */
   private Set<String> blackListedIps;
 
+  private File tmpDownloadDir;
+
+  private String tmpDownloadPath;
+
   /**
    * Instantiates a new HHRDD iterator.
    *
@@ -99,6 +90,8 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
     this.filePath = filePath+File.separator;
     remoteFiles = new HashSet<>();
     blackListedIps = new HashSet<>();
+    tmpDownloadDir = HHRDD.createTempDir();
+    tmpDownloadPath = tmpDownloadDir.getAbsolutePath()+File.separator;
       if(tmpDir.exists()){
         File[] tempIpfiles = tmpDir.listFiles();
         String[] ip = new String[tempIpfiles.length];
@@ -106,11 +99,9 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
           blackListedIps.add(tempIpfiles[index].getName());
         }
       }
-
     for(Tuple2<String,int[]> tuple2: files){
       File file = new File(this.filePath+tuple2._1);
       if (!file.exists()) {
-      logger.info("Downloading file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
       boolean isFileDownloaded = false;
       for (int hostIndex = 0; hostIndex < tuple2._2.length; hostIndex++) {
         int index = tuple2._2[hostIndex];
@@ -126,12 +117,12 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
         int port = nodeInfo.get(index).getPort();
         int maxRetry = 5;
         while (!isFileDownloaded && (maxRetry--) > 0) {
-          isFileDownloaded = downloadFile(this.filePath + tuple2._1, ip, port);
+          isFileDownloaded = downloadFile(this.tmpDownloadPath + tuple2._1,this.filePath+tuple2._1, ip, port);
         }
         if (isFileDownloaded) {
-          logger.info("File downloaded success status {} from ip {}", isFileDownloaded, ip);
           break;
         } else {
+          logger.info("Downloading failed for file {}/{} from nodes {} ", filePath, tuple2._1, tuple2._2);
           logger.info(" Node {} is dead", ip);
           createAndAddBlackListIPFile(tmpDir, ip);
         }
@@ -171,28 +162,36 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void iterateOnFiles() throws IOException {
-    if(fileIterator.hasNext()){
+    while(fileIterator.hasNext()){
       Tuple2<String,int[]> tuple2 = fileIterator.next();
       currentFile = tuple2._1;
-      currentFilePath = this.filePath+currentFile;
+      if(remoteFiles.contains(currentFile)){
+        currentFilePath = this.tmpDownloadPath+currentFile;
+      }else {
+        currentFilePath = this.filePath + currentFile;
+      }
       File currentFileObj = new File(currentFilePath);
-      this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
       this.currentDataFileSize = currentFileObj.length();
+      if(currentDataFileSize==0) continue;
+      this.dataInputStream = new BufferedInputStream(new FileInputStream(currentFilePath), 2097152);
+      return;
     }
   }
 
   /**
    * Download file.
    *
+   * @param downloadFilePath the download file path
    * @param filePath the file path
    * @param ip the ip
    * @param port the port
    * @return true, if successful
    */
-  private boolean downloadFile(String filePath, String ip,int port) {
+  private boolean downloadFile(String downloadFilePath,String filePath, String ip,int port) {
     Socket socket = null;
     try {
-      File file = new File(filePath);
+      File file = new File(downloadFilePath);
+      file.createNewFile();
       int bufferSize = 2048;
       SocketAddress socketAddress = new InetSocketAddress(ip, port);
       socket = new Socket();
@@ -244,9 +243,14 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
         iterateOnFiles();
       }
     } catch (IOException exception) {
+      this.deleteAllDownloadedFiles();
       throw new RuntimeException(exception);
     }
-    return currentDataFileSize > 0;
+    boolean hasData = currentDataFileSize > 0;
+    if(!hasData){
+      this.deleteAllDownloadedFiles();
+    }
+    return hasData;
 
   }
 
@@ -259,6 +263,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       dataInputStream.read(byteBufferBytes);
       currentDataFileSize = currentDataFileSize - recordLength;
     } catch (IOException e) {
+      this.deleteAllDownloadedFiles();
       e.printStackTrace();
     }
     return byteBufferBytes;
@@ -275,6 +280,7 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
       if(remoteFiles.contains(currentFile)){
         new File(currentFilePath).delete();
       }
+      remoteFiles.remove(currentFile);
     }
   }
 
@@ -283,9 +289,11 @@ public class HHRDDIterator extends AbstractIterator<byte[]> {
      */
     private void deleteAllDownloadedFiles(){
         for(String remoteFileName:remoteFiles){
-            File remoteFile = new File(filePath+remoteFileName);
+            File remoteFile = new File(this.tmpDownloadPath+remoteFileName);
             remoteFile.delete();
         }
+
+      tmpDownloadDir.delete();
     }
 
 }

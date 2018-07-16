@@ -155,9 +155,11 @@ public class ShardingStarter {
     String sampleFilePath = shardingClientConfig.getInput().getSampleFilePath();
     String dataParserClassName =
         shardingClientConfig.getInput().getDataParserConfig().getClassName();
+    String delimiter =
+            shardingClientConfig.getInput().getDataParserConfig().getDelimiter();
     DataDescription dataDescription = context.getConfiguredDataDescription();
     DataParser dataParser = (DataParser) Class.forName(dataParserClassName)
-        .getConstructor(DataDescription.class).newInstance(dataDescription);
+        .getConstructor(DataDescription.class,char.class).newInstance(dataDescription, delimiter.charAt(0));
 
     ClusterConfig clusterConfig = CoordinationConfigUtil.getZkClusterConfigCache();
     Reader inputReaderForSharding = getInputReaderForSharding(sampleFilePath, dataParser);

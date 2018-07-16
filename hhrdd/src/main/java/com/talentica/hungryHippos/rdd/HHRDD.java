@@ -22,8 +22,8 @@ import java.util.List;
 
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
+import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
 
 import scala.collection.Iterator;
@@ -37,7 +37,7 @@ import scala.reflect.ClassTag;
  *
  * @author pooshans
  */
-class HHRDD extends RDD<byte[]> implements Serializable {
+public class HHRDD extends RDD<byte[]> implements Serializable {
   
   /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 4074885953480955556L;
@@ -69,12 +69,12 @@ class HHRDD extends RDD<byte[]> implements Serializable {
    * @param jobDimensions the job dimensions
    * @param requiresShuffle the requires shuffle
    */
-  public HHRDD(JavaSparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
-      boolean requiresShuffle) {
-    super(sc.sc(), new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
+  public HHRDD(SparkContext sc, HHRDDInfo hhrddInfo, Integer[] jobDimensions,
+               boolean requiresShuffle) {
+    super(sc, new ArrayBuffer<Dependency<?>>(), HHRD_READER__TAG);
 
     this.hhrddInfo = hhrddInfo;
-    this.id = sc.sc().newRddId();
+    this.id = sc.newRddId();
 
     String[] keyOrder = hhrddInfo.getKeyOrder();
     int[] shardingIndexes = hhrddInfo.getShardingIndexes();
@@ -86,6 +86,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     int jobPrimaryDimensionIdx = 0;
     int maxBucketSize = 0;
     int jobDimensionIdx = 0;
+    int keyOrderIdx = 0;
     if(jobDimensions!=null && jobDimensions.length>0) {
       for (int i = 0; i < shardingIndexes.length; i++) {
         for (int j = 0; j < jobDimensions.length; j++) {
@@ -95,6 +96,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
             jobShardingDimensions.add(shardingIndexes[i]);
             jobShardingDimensionsKey.add(keyOrder[i]);
             if (bucketSize > maxBucketSize) {
+              keyOrderIdx=i;
               primaryDimensionKey = dimensionKey;
               jobPrimaryDimensionIdx = jobDimensionIdx;
             }
@@ -114,7 +116,7 @@ class HHRDD extends RDD<byte[]> implements Serializable {
     int noOfExecutors = sc.defaultParallelism();
     if (requiresShuffle) {
       this.partitions = hhrddInfo.getOptimizedPartitions(id, noOfExecutors, jobShardingDimensions,
-          jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
+          jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey+keyOrderIdx);
     } else {
       this.partitions = hhrddInfo.getPartitions(id, noOfExecutors, jobShardingDimensions,
           jobPrimaryDimensionIdx, jobShardingDimensionsKey, primaryDimensionKey);
@@ -165,12 +167,13 @@ class HHRDD extends RDD<byte[]> implements Serializable {
    *
    * @return the file
    */
-  public static File createTempDir() {
+  public static synchronized File createTempDir() {
     File baseDir = new File(System.getProperty("java.io.tmpdir"));
     String baseName = System.currentTimeMillis() + "-";
 
     for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
       File tempDir = new File(baseDir, baseName + counter);
+      tempDir.deleteOnExit();
       if (tempDir.mkdir()) {
         return tempDir;
       }

@@ -19,6 +19,8 @@ import com.talentica.hungryHippos.coordination.HungryHippoCurator;
 import com.talentica.hungryHippos.coordination.context.CoordinationConfigUtil;
 import com.talentica.hungryHippos.utility.jaxb.JaxbUtil;
 import com.talentica.hungryhippos.config.client.ClientConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DataDistributorStarter {
 
+  private static final Logger logger = LoggerFactory.getLogger(DataDistributorStarter.class);
   public static ExecutorService dataDistributorService;
   public static ExecutorService fileProviderService;
   public static ExecutorService dataAppenderServices;
@@ -40,6 +43,7 @@ public class DataDistributorStarter {
   public static ExecutorService cacheClearServices;
   public static ExecutorService fileService;
   public static ExecutorService commonServicePoolCache;
+  public static ExecutorService fileJoinerServices;
   public static AtomicInteger noOfAvailableDataDistributors;
   public static int noOfDataDistributors;
   public static ClientConfig clientConfig;
@@ -53,20 +57,23 @@ public class DataDistributorStarter {
     int sessionTimeOut = Integer.valueOf(clientConfig.getSessionTimout());
     HungryHippoCurator hungryHippoCurator= HungryHippoCurator.getInstance(connectString, sessionTimeOut);
     ServerSocket serverSocket = new ServerSocket(NodeInfo.INSTANCE.getPort());
-    commonServicePoolCache = Executors.newCachedThreadPool();
-    ExecutorService serviceDelegator = commonServicePoolCache;
+
     noOfDataDistributors = 4;
+    commonServicePoolCache = Executors.newCachedThreadPool();
+    fileJoinerServices = Executors.newFixedThreadPool(1);
+    ExecutorService serviceDelegator = commonServicePoolCache;
     dataDistributorService = commonServicePoolCache;
     fileProviderService = commonServicePoolCache;
-    dataAppenderServices = Executors.newFixedThreadPool(1);
-    publishAccessServices = Executors.newFixedThreadPool(1);
+    publishAccessServices = commonServicePoolCache;
+    dataAppenderServices = commonServicePoolCache;
     metadataUpdaterServices = commonServicePoolCache;
-    metadataSynchronizerServices = commonServicePoolCache;
+    metadataSynchronizerServices = Executors.newWorkStealingPool(1);
     fileService = commonServicePoolCache;
     cacheClearServices = commonServicePoolCache;
     noOfAvailableDataDistributors = new AtomicInteger(noOfDataDistributors);
     hungryHippoCurator.createEphemeralNode(CoordinationConfigUtil.getHostsPath()
         + HungryHippoCurator.ZK_PATH_SEPERATOR + NodeInfo.INSTANCE.getIp());
+    logger.info("DataDistributor Application started");
     while (true) {
       Socket socket = serverSocket.accept();
       serviceDelegator.execute(new ServiceDelegator(socket));

@@ -273,18 +273,23 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       String primaryDimensionKey, int noOfShardingDimensions, int noOfEstimatedPartitions,
       int[] jobShardingDimensionsArray, int[][] combinationArray) {
     Partition[] partitions;
-    partitions = new HHRDDPartition[noOfEstimatedPartitions];
+
+    List<Partition> partitionList = new ArrayList<>();
     for (int index = 0; index < noOfEstimatedPartitions; index++) {
       List<Tuple2<String, int[]>> files = new ArrayList<>();
       listFile(files, "", 0, noOfShardingDimensions, jobShardingDimensionsArray,
           combinationArray[index]);
-      System.out.println();
+      if(files.isEmpty()) continue;
       int preferredNodeId = bucketToNodeNumberMap.get(primaryDimensionKey)
           .get(new Bucket<>(combinationArray[index][jobPrimaryDimensionIdx])).getNodeId();
       List<String> preferredHosts = new ArrayList<>();
       preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
-      partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-          this.fieldDataDesc, preferredHosts, files, nodIdToIp);
+      partitionList.add(new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
+          this.fieldDataDesc, preferredHosts, files, nodIdToIp));
+    }
+    partitions = new HHRDDPartition[partitionList.size()];
+    for (int i = 0; i <partitions.length ; i++) {
+      partitions[i] = partitionList.get(i);
     }
     return partitions;
   }
@@ -304,8 +309,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
     Partition[] partitions;
     long idealPartitionFileSize = 128 * 1024 * 1024;
     PriorityQueue<PartitionBucket> partitionBuckets = new PriorityQueue<>();
-    int fileCount =
-        preparePartitionBucketsAndGetFileCount(noOfShardingDimensions, noOfEstimatedPartitions,
+    preparePartitionBuckets(noOfShardingDimensions, noOfEstimatedPartitions,
             jobShardingDimensionsArray, combinationArray, idealPartitionFileSize, partitionBuckets);
     int partitionIdx = 0;
     Iterator<PartitionBucket> partitionBucketIterator = partitionBuckets.iterator();
@@ -314,7 +318,6 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       partitionIdx = addPartitionToListAndGetPartitionIdx(id, partitionIdx, partitionBucketIterator,
           listOfPartitions);
     }
-    System.out.println("file count : " + fileCount);
     System.out.println("PartitionSize : " + listOfPartitions.size());
     partitions = new Partition[listOfPartitions.size()];
     for (int j = 0; j < partitions.length; j++) {
@@ -332,11 +335,10 @@ public class HHRDDInfoImpl implements HHRDDInfo {
    * @param combinationArray the combination array
    * @param idealPartitionFileSize the ideal partition file size
    * @param partitionBuckets the partition buckets
-   * @return the int
    */
-  private int preparePartitionBucketsAndGetFileCount(int noOfShardingDimensions,
-      int noOfEstimatedPartitions, int[] jobShardingDimensionsArray, int[][] combinationArray,
-      long idealPartitionFileSize, PriorityQueue<PartitionBucket> partitionBuckets) {
+  private void preparePartitionBuckets(int noOfShardingDimensions,
+                                      int noOfEstimatedPartitions, int[] jobShardingDimensionsArray, int[][] combinationArray,
+                                      long idealPartitionFileSize, PriorityQueue<PartitionBucket> partitionBuckets) {
     PartitionBucket partitionBucket = new PartitionBucket(0);
     partitionBuckets.offer(partitionBucket);
     int fileCount = 0;
@@ -356,12 +358,15 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       }
       for (int j = 0; j < files.size(); j++) {
         String fileName = files.get(j)._1;
-        partitionBucket.addFile(fileToNodeId.get(fileName), fileNameToSizeWholeMap.get(fileName));
+        long fileSize = fileNameToSizeWholeMap.get(fileName);
+        if(fileSize>0) {
+          partitionBucket.addFile(fileToNodeId.get(fileName), fileSize);
+        }
         fileCount++;
       }
       partitionBuckets.offer(partitionBucket);
     }
-    return fileCount;
+    System.out.println("file count : " + fileCount);
   }
 
   /**
@@ -411,6 +416,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
   public Partition[] getOptimizedPartitions(int id, int noOfExecutors,
       List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx,
       List<String> jobShardingDimensionsKey, String primaryDimensionKey) {
+    System.out.println("Called getOptimizedPartitions");
     int totalCombination = fileNameToSizeWholeMap.size();
     System.out.println("jobShardingDimensions " + jobShardingDimensions);
     System.out.println("jobShardingDimensionsKey " + jobShardingDimensionsKey);
@@ -433,24 +439,23 @@ public class HHRDDInfoImpl implements HHRDDInfo {
    */
   private Partition[] getOptimizedPartitionsWhenTotalCombinationIsMore(int id,
       String primaryDimensionKey) {
-    Partition[] partitions;
+    System.out.println("Called getOptimizedPartitionsWhenTotalCombinationIsMore");
     long idealPartitionFileSize = 128 * 1024 * 1024;// 128MB partition size
     List<Partition> listOfPartitions = new ArrayList<>();
     int partitionIdx = 0;
-    int fileCount = 0;
     Set<String> fileNamesSet = new HashSet<>();
     PriorityQueue<PartitionBucket> partitionBuckets = new PriorityQueue<>();
-    fileCount = preparePartitionsAndGetFileCount(primaryDimensionKey, idealPartitionFileSize,
-        fileCount, fileNamesSet, partitionBuckets);
+    preparePartitions(primaryDimensionKey, idealPartitionFileSize,
+        fileNamesSet, partitionBuckets);
     System.out.println("No of unique files : " + fileNamesSet.size());
     Iterator<PartitionBucket> partitionBucketIterator = partitionBuckets.iterator();
     while (partitionBucketIterator.hasNext()) {
       partitionIdx = addPartitionToListAndGetPartitionIdx(id, partitionIdx, partitionBucketIterator,
           listOfPartitions);
     }
-    System.out.println("file count : " + fileCount);
     System.out.println("PartitionSize : " + listOfPartitions.size());
-    partitions = new Partition[listOfPartitions.size()];
+    System.out.println("Max partitionIdx "+partitionIdx);
+    Partition[]  partitions = new Partition[listOfPartitions.size()];
     for (int j = 0; j < partitions.length; j++) {
       partitions[j] = listOfPartitions.get(j);
     }
@@ -462,33 +467,34 @@ public class HHRDDInfoImpl implements HHRDDInfo {
    *
    * @param primaryDimensionKey the primary dimension key
    * @param idealPartitionFileSize the ideal partition file size
-   * @param fileCount the file count
    * @param fileNamesSet the file names set
    * @param partitionBuckets the partition buckets
-   * @return the int
    */
-  private int preparePartitionsAndGetFileCount(String primaryDimensionKey,
-      long idealPartitionFileSize, int fileCount, Set<String> fileNamesSet,
-      PriorityQueue<PartitionBucket> partitionBuckets) {
+  private void preparePartitions(String primaryDimensionKey,
+                                long idealPartitionFileSize, Set<String> fileNamesSet,
+                                PriorityQueue<PartitionBucket> partitionBuckets) {
     PartitionBucket partitionBucket = new PartitionBucket(0);
     partitionBuckets.offer(partitionBucket);
+    int fileCount = 0;
     for (Map.Entry<Integer, List<String>> entry : keyToBucketToFileList.get(primaryDimensionKey)
         .entrySet()) {
       for (String fileName : entry.getValue()) {
         long fileSize = fileNameToSizeWholeMap.get(fileName);
-        partitionBucket = partitionBuckets.poll();
-        if (partitionBucket.getSize() + fileSize > idealPartitionFileSize
-            && partitionBucket.getSize() != 0) {
+        if(fileSize>0) {
+          partitionBucket = partitionBuckets.poll();
+          if (partitionBucket.getSize() + fileSize > idealPartitionFileSize
+                  && partitionBucket.getSize() != 0) {
+            partitionBuckets.offer(partitionBucket);
+            partitionBucket = new PartitionBucket(0);
+          }
+          partitionBucket.addFile(fileToNodeId.get(fileName), fileSize);
           partitionBuckets.offer(partitionBucket);
-          partitionBucket = new PartitionBucket(0);
+          fileNamesSet.add(fileName);
+          fileCount++;
         }
-        partitionBucket.addFile(fileToNodeId.get(fileName), fileSize);
-        partitionBuckets.offer(partitionBucket);
-        fileNamesSet.add(fileName);
-        fileCount++;
       }
     }
-    return fileCount;
+    System.out.println("file count : " + fileCount);
   }
 
   /**
@@ -502,19 +508,25 @@ public class HHRDDInfoImpl implements HHRDDInfo {
    */
   private Partition[] getOptimizedPartitionsWhenTotalCombinationIsLess(int id,
       List<Integer> jobShardingDimensions, int jobPrimaryDimensionIdx, int totalCombination) {
-    Partition[] partitions;
-    partitions = new Partition[totalCombination];
+    System.out.println("Called getOptimizedPartitionsWhenTotalCombinationIsLess");
+    List<Partition> partitionList = new ArrayList<>();
     int index = 0;
     for (Map.Entry<String, Tuple2<String, int[]>> fileEntry : fileToNodeId.entrySet()) {
+      if(fileNameToSizeWholeMap.get(fileEntry.getKey())<=0)
+        continue;
       List<Tuple2<String, int[]>> files = new ArrayList<>();
       files.add(fileEntry.getValue());
       int preferredNodeId =
           fileEntry.getValue()._2[jobShardingDimensions.get(jobPrimaryDimensionIdx)];
       List<String> preferredHosts = new ArrayList<>();
       preferredHosts.add(nodIdToIp.get(preferredNodeId).getIp());
-      partitions[index] = new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
-          this.fieldDataDesc, preferredHosts, files, nodIdToIp);
+      partitionList.add(new HHRDDPartition(id, index, new File(this.directoryLocation).getPath(),
+          this.fieldDataDesc, preferredHosts, files, nodIdToIp));
       index++;
+    }
+    Partition[] partitions = new Partition[partitionList.size()];
+    for (int i = 0; i < partitions.length; i++) {
+      partitions[i] = partitionList.get(i);
     }
     return partitions;
   }
@@ -532,8 +544,10 @@ public class HHRDDInfoImpl implements HHRDDInfo {
   private void listFile(List<Tuple2<String, int[]>> files, String fileName, int dim,
       int noOfShardingDimensions, int[] jobShardingDimensionsArray, int[] jobDimensionValues) {
     if (dim == noOfShardingDimensions) {
-      Tuple2<String, int[]> tuple2 = fileToNodeId.get(fileName);
-      files.add(tuple2);
+      if(fileNameToSizeWholeMap.get(fileName)!=null&&fileNameToSizeWholeMap.get(fileName)>0) {
+        Tuple2<String, int[]> tuple2 = fileToNodeId.get(fileName);
+        files.add(tuple2);
+      }
       return;
     }
     boolean isJobShardingDimension = false;
@@ -602,7 +616,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
   private void initializeKeyToBucketToFileList() {
     for (int dim = 0; dim < keyOrder.length; dim++) {
       Map<Integer, List<String>> bucketToFileList = new HashMap<>();
-      keyToBucketToFileList.put(keyOrder[dim], bucketToFileList);
+      keyToBucketToFileList.put(keyOrder[dim]+dim, bucketToFileList);
       for (Bucket<KeyValueFrequency> bucket : bucketToNodeNumberMap.get(keyOrder[dim]).keySet()) {
         List<String> fileList = new ArrayList<>();
         bucketToFileList.put(bucket.getId(), fileList);
@@ -623,7 +637,7 @@ public class HHRDDInfoImpl implements HHRDDInfo {
       hhFileSize += fileNameToSizeWholeMap.get(fileName);
       String[] buckets = fileName.split("_");
       for (int i = 0; i < noOfDimensions; i++) {
-        keyToBucketToFileList.get(keyOrder[i]).get(Integer.parseInt(buckets[i])).add(fileName);
+        keyToBucketToFileList.get(keyOrder[i]+i).get(Integer.parseInt(buckets[i])).add(fileName);
       }
       return;
     }

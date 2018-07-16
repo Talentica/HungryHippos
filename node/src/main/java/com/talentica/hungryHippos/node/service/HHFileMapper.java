@@ -15,116 +15,58 @@
  *******************************************************************************/
 package com.talentica.hungryHippos.node.service;
 
-import com.talentica.hungryHippos.client.domain.DataDescription;
+import com.talentica.hungryHippos.node.datareceiver.HHFileNamesIdentifier;
+import com.talentica.hungryHippos.node.datareceiver.ShardingResourceCache;
+import com.talentica.hungryHippos.node.datareceiver.SynchronousFolderDeleter;
 import com.talentica.hungryHippos.node.uploaders.HHFileUploader;
-import com.talentica.hungryHippos.sharding.Bucket;
-import com.talentica.hungryHippos.sharding.BucketCombination;
-import com.talentica.hungryHippos.sharding.KeyValueFrequency;
-import com.talentica.hungryHippos.sharding.Node;
-import com.talentica.hungryHippos.sharding.context.ShardingApplicationContext;
 import com.talentica.hungryHippos.sharding.util.NodeSelector;
 import com.talentica.hungryHippos.storage.*;
 import com.talentica.hungryhippos.filesystem.context.FileSystemContext;
-import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.KeeperException;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created by rajkishoreh on 6/2/17.
  */
 public class HHFileMapper {
 
-    private String[] keyOrder;
-    private HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap;
-    private int maxBucketSize;
     private Map<Integer, Set<String>> nodeToFileMap;
     private Map<String, int[]> fileToNodeMap;
     private DataStore dataStore;
     private String hhFilePath;
     private String uniqueFolderName;
-    private NodeSelector nodeSelector;
 
-    public HHFileMapper(String hhFilePath, ShardingApplicationContext context, DataDescription dataDescription
-            , HashMap<String, HashMap<Bucket<KeyValueFrequency>, Node>> bucketToNodeNumberMap, String[] keyOrder, StoreType storeType) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
+    public HHFileMapper(String hhFilePath, int byteArraySize, int numDimensions, StoreType storeType) throws InterruptedException, ClassNotFoundException, JAXBException, KeeperException, IOException {
         this.hhFilePath = hhFilePath;
-        this.bucketToNodeNumberMap = bucketToNodeNumberMap;
-        maxBucketSize = Integer.parseInt(context.getShardingServerConfig().getMaximumNoOfShardBucketsSize());
-        Map<Integer, String> fileNames = new HashMap<>();
-        nodeToFileMap = new HashMap<>();
-        fileToNodeMap = new HashMap<>();
-        this.keyOrder = keyOrder;
-        nodeSelector = new NodeSelector();
-        addFileNameToList(fileNames, 0, "", 0, null);
+        HHFileNamesIdentifier hhFileNamesIdentifier = ShardingResourceCache.INSTANCE.getHHFileNamesCalculator(hhFilePath);
+        Map<Integer, String> fileNames = hhFileNamesIdentifier.getFileNames();
+        nodeToFileMap = hhFileNamesIdentifier.getNodeToFileMap();
+        fileToNodeMap = hhFileNamesIdentifier.getFileToNodeMap();
         this.uniqueFolderName = UUID.randomUUID().toString();
         switch (storeType){
             case FILEDATASTORE:
-                dataStore = new FileDataStore(fileNames, maxBucketSize, keyOrder.length,
+                dataStore = new FileDataStore(fileNames, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath),
                         hhFilePath, uniqueFolderName);
                 break;
             case INMEMORYDATASTORE:
-                dataStore = new InMemoryDataStore(hhFilePath,dataDescription.getSize(),fileNames.size());
+                dataStore = new InMemoryDataStore(hhFilePath,byteArraySize,fileNames.size());
                 break;
             case HYBRIDDATASTORE:
-                dataStore = new HybridDataStore(hhFilePath,dataDescription.getSize(),fileNames.size(),uniqueFolderName);
+                dataStore = new HybridDataStore(hhFilePath,byteArraySize,fileNames.size(),uniqueFolderName);
                 break;
             case NODEWISEDATASTORE:
-                dataStore =  new NodeWiseDataStore(fileNames,fileToNodeMap, maxBucketSize, keyOrder.length,
+                NodeSelector nodeSelector = new NodeSelector();
+                dataStore =  new NodeWiseDataStore(fileNames,fileToNodeMap, ShardingResourceCache.INSTANCE.getMaxFiles(hhFilePath), numDimensions,
                         hhFilePath, uniqueFolderName,nodeSelector.noOfNodes());
                 break;
         }
     }
-
-    private void addFileNameToList(Map<Integer, String> fileNames, int index, String fileName, int dimension, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
-        if (dimension == keyOrder.length) {
-            addFileName(fileNames, index, fileName, keyBucket);
-            return;
-        }
-        String key = keyOrder[dimension];
-        Map<Bucket<KeyValueFrequency>, Node> bucketNodeMap = bucketToNodeNumberMap.get(key);
-        for (Map.Entry<Bucket<KeyValueFrequency>, Node> bucketNodeEntry : bucketNodeMap.entrySet()) {
-
-            if (dimension != 0) {
-                keyBucket.put(key, bucketNodeEntry.getKey());
-                int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, fileName + "_" + bucketId, dimension + 1, keyBucket);
-            } else {
-                keyBucket = new HashMap<>();
-                keyBucket.put(key, bucketNodeEntry.getKey());
-                int bucketId = bucketNodeEntry.getKey().getId();
-                int newIndex = index + bucketId * (int) Math.pow(maxBucketSize, dimension);
-                addFileNameToList(fileNames, newIndex, bucketId + fileName, dimension + 1, keyBucket);
-            }
-
-        }
-    }
-
-    private void addFileName(Map<Integer, String> fileNames, int index, String fileName, Map<String, Bucket<KeyValueFrequency>> keyBucket) {
-        BucketCombination bucketCombination = new BucketCombination(keyBucket);
-        int[] nodeIdsArr = new int[keyOrder.length];
-        fileToNodeMap.put(fileName,nodeIdsArr);
-        Set<Integer> nodeIds = nodeSelector.selectNodeIds(bucketCombination, bucketToNodeNumberMap, keyOrder);
-        Iterator<Integer> nodeIterator = nodeIds.iterator();
-        int i =0;
-        while (nodeIterator.hasNext()) {
-            int nodeId = nodeIterator.next();
-            nodeIdsArr[i++]=nodeId;
-            Set<String> fileNameSet = nodeToFileMap.get(nodeId);
-            if (fileNameSet == null) {
-                fileNameSet = new HashSet<>();
-                nodeToFileMap.put(nodeId, fileNameSet);
-            }
-            fileNameSet.add(fileName);
-        }
-        fileNames.put(index, fileName);
-    }
-
-
-
 
     public void storeRow(int index, byte[] raw) {
         dataStore.storeRow(index,raw);
@@ -141,7 +83,7 @@ public class HHFileMapper {
         String destFolderPath = baseFolderPath + File.separator + FileSystemContext.getDataFilePrefix();
         HHFileUploader.INSTANCE.uploadFile(srcFolderPath, destFolderPath, nodeToFileMap, hhFilePath,dataStore);
         dataStore.reset();
-        FileUtils.deleteDirectory(new File(srcFolderPath));
+        SynchronousFolderDeleter.INSTANCE.deleteEmptyFolder(new File(srcFolderPath));
     }
 
 }

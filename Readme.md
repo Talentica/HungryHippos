@@ -238,6 +238,7 @@ the distributed path of input file in HungryHippo file system.
         </tns:data-description>
         <tns:data-parser-config>
           <tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
+	  <tns:delimiter>,</tns:delimiter>
         </tns:data-parser-config>
       </tns:input>
       <tns:sharding-dimensions>key1</tns:sharding-dimensions>
@@ -259,6 +260,7 @@ the distributed path of input file in HungryHippo file system.
   | tns:size | 0 | size of data-type. max number of characters for String and 0 for other datatypes|
   | tns:data-parser-config | - | By default HungryHippos CsvDataParser provided|
   | tns:class-name | com.talentica.hungryHippos.client.data.parser.CsvDataParser | HungryHippos provides it's own data parser |
+  | tns:delimiter | , | Delimiter to be used while parsing the input data |
   | tns:sharding-dimensions | Mobile,Number | comma separeted column names which user has identified as dimensions |
   | tns:maximum-size-of-single-block-data | 80 | Max size of a single record in text format |
   | tns:bad-records-file-out | `<local-file-path>` | file path for storing records which does not fulfil the data-description given above |

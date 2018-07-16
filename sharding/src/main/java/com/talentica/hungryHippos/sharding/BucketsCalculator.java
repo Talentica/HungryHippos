@@ -46,7 +46,7 @@ public final class BucketsCalculator {
   * @param context
   */
   public BucketsCalculator(ShardingApplicationContext context) {
- this.context = context;
+      this.context = context;
   }
 
   /**
@@ -106,43 +106,14 @@ public final class BucketsCalculator {
    * @param value
    * @return
    */
-  public Bucket<KeyValueFrequency> getBucketNumberForValue(String key,final String value, int idx) {
-    Bucket<KeyValueFrequency> bucket = null;
-    if (keyToValueToBucketMap != null) {
-      Map<String, List<Bucket<KeyValueFrequency>>> valueToBucketMap = keyToValueToBucketMap.get(key);
-      if (valueToBucketMap != null) {
-        Bucket<KeyValueFrequency> valueBucket = valueToBucketMap.get(value).get(idx);
-        if (valueBucket != null) {
-          bucket = valueBucket;
-        } else {
-          bucket = calculateBucketNumberForNewValue(key, value);
-        }
-      }
-    }
-    if (bucket == null) {
-      bucket = new Bucket<>(0);
-    }
-    return bucket;
+  public Integer getBucketNumberForValue(String key,final String value, int idx) {
+      return keyToValueToBucketMap.get(key).get(value).get(idx).getId();
   }
 
-  private Bucket<KeyValueFrequency> calculateBucketNumberForNewValue(String key, Object value) {
-    Bucket<KeyValueFrequency> bucket = null;
-    if (keyToBucketNumbersCollectionMap != null
-        && keyToBucketNumbersCollectionMap.get(key) != null) {
-      List<Bucket<KeyValueFrequency>> bucketsForKey = keyToBucketNumbersCollectionMap.get(key);
-      int totalNumberOfBuckets = bucketsForKey.size();
-      if (totalNumberOfBuckets > 1) {
-        int hashCode = calculateHashCode(value);
-        int bucketNumber = hashCode % totalNumberOfBuckets + 1;
-        Bucket<KeyValueFrequency> bucketToBeAllotted = new Bucket<KeyValueFrequency>(bucketNumber);
-        if (bucketsForKey.contains(bucketToBeAllotted)) {
-          bucket = bucketsForKey.get(bucketsForKey.indexOf(bucketToBeAllotted));
-        }
-      } else if (totalNumberOfBuckets == 1) {
-        bucket = bucketsForKey.iterator().next();
-      }
-    }
-    return bucket;
+  public Integer calculateBucketNumberForNewValue(String key, Object value) {
+      int totalNumberOfBuckets = keyToBucketNumbersCollectionMap.get(key).size();
+      int hashCode = calculateHashCode(value);
+      return hashCode % totalNumberOfBuckets;
   }
 
   private static int calculateHashCode(Object value) {

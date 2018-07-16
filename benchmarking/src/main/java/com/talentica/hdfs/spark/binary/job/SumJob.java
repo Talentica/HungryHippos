@@ -18,6 +18,7 @@ package com.talentica.hdfs.spark.binary.job;
 import com.talentica.hungryHippos.client.domain.DataDescription;
 import com.talentica.hungryHippos.rdd.main.job.Job;
 import com.talentica.hungryHippos.rdd.main.job.JobMatrix;
+import com.talentica.hungryHippos.rdd.utility.HHRDDFileUtils;
 import com.talentica.spark.job.executor.SumJobExecutorWithShuffle;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.FileNotFoundException;
 
 public class SumJob {
@@ -51,7 +53,7 @@ public class SumJob {
     for (Job job : getSumJobMatrix().getJobs()) {
       Broadcast<Job> broadcastJob = context.broadcast(job);
         JavaPairRDD<String, Long> pairRDD = SumJobExecutorWithShuffle.process(rdd, dataDes, broadcastJob);
-        pairRDD.saveAsTextFile(outputDir + broadcastJob.value().getJobId());
+        HHRDDFileUtils.saveAsText(pairRDD,outputDir+ File.separator + broadcastJob.value().getJobId());
         LOGGER.info("Output files are in directory {}", outputDir + broadcastJob.value().getJobId());
     }
     context.stop();

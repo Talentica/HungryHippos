@@ -1,6 +1,22 @@
+/*******************************************************************************
+ * Copyright 2017 Talentica Software Pvt. Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.talentica.hungryHippos.node.uploaders;
 
 import com.talentica.hungryHippos.coordination.server.ServerUtils;
+import com.talentica.hungryHippos.node.NodeInfo;
 import com.talentica.hungryhippos.config.cluster.Node;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,30 +66,28 @@ public abstract class AbstractFileUploader implements Runnable{
     @Override
     public void run() {
         File srcFile = new File(srcFolderPath + File.separator + tarFileName);
+        boolean isNotLocal = false;
         try {
             logger.info("[{}] File Upload started for {} to {}", Thread.currentThread().getName(),
                     srcFolderPath, node.getIp());
             generateTarFile(srcFile);
             logger.info("[{}] Tar file generated for {}", Thread.currentThread().getName(), srcFolderPath);
-            sendTarFile(srcFile);
+            isNotLocal = !node.getIp().equals(NodeInfo.INSTANCE.getIp());
+            if(isNotLocal) {
+                sendTarFile(srcFile);
+            }else{
+                sendTarFileLocal(srcFile.getAbsolutePath());
+            }
             success = true;
             this.countDownLatch.countDown();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            success = false;
-            this.countDownLatch.countDown();
-            if (!(new File(srcFolderPath)).exists()) {
-                logger.error("[{}] Source folder {} does not exist", Thread.currentThread().getName(),
-                        srcFolderPath);
-            }
-            throw new RuntimeException(
-                    "File transfer failed for " + srcFolderPath + " to " + node.getIp());
-        } finally {
-            if (srcFile.exists()) {
+        }  finally {
+            if (srcFile.exists()&&isNotLocal) {
                 srcFile.delete();
             }
         }
     }
+
+    protected abstract void sendTarFileLocal(String absolutePath);
 
     protected void generateTarFile(File srcFile) {
         String fileNamesArg = StringUtils.join(fileNames, " ");
@@ -102,32 +116,60 @@ public abstract class AbstractFileUploader implements Runnable{
     protected abstract void createTar(String tarFilename) throws IOException;
 
 
-    private void sendTarFile(File srcFile) throws IOException, InterruptedException {
-        Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
-        dataInputStreamMap.put(idx, new DataInputStream(socket.getInputStream()));
-        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-        writeAppenderType(dos);
-        dos.writeUTF(hhFilePath);
-        dos.writeUTF(tarFileName);
-        dos.writeUTF(destinationPath);
-        dos.writeLong(srcFile.length());
-        dos.flush();
-        int bufferSize = 2048;
-        byte[] buffer = new byte[bufferSize];
-        BufferedInputStream bis =
-                new BufferedInputStream(new FileInputStream(srcFile), 10 * bufferSize);
-        int len;
-        while ((len = bis.read(buffer)) > -1) {
-            dos.write(buffer, 0, len);
+    private void sendTarFile(File srcFile) {
+        int noOfRemainingAttempts = 25;
+        while(noOfRemainingAttempts > 0) {
+            try {
+                Socket socket = ServerUtils.connectToServer(node.getIp() + ":" + node.getPort(), 50);
+                dataInputStreamMap.put(idx, new DataInputStream(socket.getInputStream()));
+                DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                writeAppenderType(dos);
+                dos.writeUTF(hhFilePath);
+                dos.writeUTF(tarFileName);
+                dos.writeUTF(destinationPath);
+                dos.writeLong(srcFile.length());
+                dos.flush();
+                int bufferSize = 2048;
+                byte[] buffer = new byte[bufferSize];
+                BufferedInputStream bis =
+                        new BufferedInputStream(new FileInputStream(srcFile), 10 * bufferSize);
+                int len;
+                while ((len = bis.read(buffer)) > -1) {
+                    dos.write(buffer, 0, len);
+                }
+                dos.flush();
+                bis.close();
+                socketMap.put(idx, socket);
+                break;
+            }catch(IOException | InterruptedException e){
+                noOfRemainingAttempts--;
+                logger.error("[{}] Retrying Sending tar for {}",
+                        Thread.currentThread().getName(), srcFolderPath);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                e.printStackTrace();
+            }
         }
-        dos.flush();
-        bis.close();
-        socketMap.put(idx, socket);
+        if(noOfRemainingAttempts == 0 ){
+            logger.error("[{}] Files failed for transfer : {}", Thread.currentThread().getName(),
+                    srcFile.getAbsolutePath());
+            success = false;
+            this.countDownLatch.countDown();
+            throw new RuntimeException(
+                    "File transfer failed for " + srcFolderPath + " to " + node.getIp());
+        }
     }
 
     abstract public void writeAppenderType(DataOutputStream dos) throws IOException ;
 
     public boolean isSuccess() {
         return success;
+    }
+
+    public String getHhFilePath() {
+        return hhFilePath;
     }
 }

@@ -20,6 +20,7 @@
     </tns:data-description>
     <tns:data-parser-config>
       <tns:class-name>com.talentica.hungryHippos.client.data.parser.CsvDataParser</tns:class-name>
+      <tns:delimiter>,</tns:delimiter>
     </tns:data-parser-config>
   </tns:input>
   <tns:sharding-dimensions>key1</tns:sharding-dimensions>

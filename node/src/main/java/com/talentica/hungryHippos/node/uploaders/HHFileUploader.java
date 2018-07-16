@@ -45,7 +45,9 @@ public enum HHFileUploader {
     private int noOfParallelThreads;
 
     HHFileUploader() {
-        this.nodes = CoordinationConfigUtil.getZkClusterConfigCache().getNode();
+        this.nodes = new ArrayList<>();
+        this.nodes.addAll(CoordinationConfigUtil.getZkClusterConfigCache().getNode());
+        Collections.shuffle(this.nodes);
         noOfParallelThreads = nodes.size()/ DataDistributorStarter.noOfDataDistributors;
         if(noOfParallelThreads<1){
             noOfParallelThreads = 1;
@@ -184,6 +186,7 @@ public enum HHFileUploader {
         }
         return success;
     }
+
 
 
 

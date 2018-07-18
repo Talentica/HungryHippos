@@ -31,7 +31,7 @@ class OrcNodeFileMapper {
     private OrcDataStore orcDataStore;
     private String uniqueFolderName;
 
-    public OrcNodeFileMapper(String hhFilePath, Map<Integer, String> fileNames) throws IOException, ClassNotFoundException {
+    public OrcNodeFileMapper(String hhFilePath, Map<Integer, String> fileNames) {
         this.uniqueFolderName = UUID.randomUUID().toString();
         this.orcDataStore = new OrcDataStore(fileNames, ApplicationCache.INSTANCE.getMaxFiles(hhFilePath),
                 hhFilePath, uniqueFolderName,ApplicationCache.INSTANCE.getSchema(hhFilePath),ApplicationCache.INSTANCE.getColumnNames(hhFilePath));

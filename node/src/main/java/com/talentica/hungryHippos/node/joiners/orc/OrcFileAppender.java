@@ -82,17 +82,17 @@ public class OrcFileAppender implements Callable<Boolean> {
         List<Path> pathList = new LinkedList<>();
         pathList.add(srcPath);
         if (new File(dataEntity.getSrcPath()).length() > OrcFileMerger.REWRITE_THRESHOLD) {
-            OrcFileMerger.mergeFiles(finalFilePath, pathList,false);
+            OrcFileMerger.mergeFiles(finalFilePath, pathList,false, true);
         } else {
-            OrcFileMerger.mergeFiles(deltaFilePath, pathList,false);
+            OrcFileMerger.mergeFiles(deltaFilePath, pathList,false, true);
             if (new File(deltaFilePath.toString()).length() > OrcFileMerger.REWRITE_THRESHOLD) {
                 List<Path> deltaList = new LinkedList<>();
                 deltaList.add(deltaFilePath);
                 Path intermediatePath = new Path(deltaFilePath.getParent().toString()+File.separator+UUID.randomUUID().toString());
-                OrcFileMerger.rewriteData(intermediatePath,deltaList,true);
+                OrcFileMerger.rewriteData(intermediatePath,deltaList,true, true);
                 List<Path> intermediateList = new LinkedList<>();
                 intermediateList.add(intermediatePath);
-                OrcFileMerger.mergeFiles(finalFilePath, intermediateList,true);
+                OrcFileMerger.mergeFiles(finalFilePath, intermediateList,true, true);
             }
         }
         dataEntity.updateComplete();

@@ -69,8 +69,7 @@ public class DataPublisherStarter {
     String clientConfigFilePath = args[0];
     String sourcePath = args[1];
     String destinationPath = args[2];
-    int noOfProcessors = Runtime.getRuntime().availableProcessors();
-    long sizeOfChunk = (4 * 128 * 1024 * 1024 )/ noOfProcessors;
+    long sizeOfChunk = 128 * 1024 * 1024;
     if (args.length > 3) {
       sizeOfChunk = Long.parseLong(args[3]);
     }

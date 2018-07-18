@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by rajkishoreh on 7/5/18.
@@ -38,12 +39,13 @@ import java.util.UUID;
 
 public class OrcFileMerger {
 
-    public static int REWRITE_THRESHOLD = 10 * 1024 * 1024;
+    public static int REWRITE_THRESHOLD =  4 * 1024 * 1024;
     private static Logger logger = LoggerFactory.getLogger(OrcFileMerger.class);
+    private static Semaphore rewriteSemaphore = new Semaphore(50);
+    private static Semaphore mergeSemaphore = new Semaphore(50);
 
 
-    public static void rewriteData(Path destinationPath, List<Path> pathList, boolean deleteMergedPathsFlag) throws IOException {
-
+    public static void rewriteData(Path destinationPath, List<Path> pathList, boolean deleteMergedPathsFlag, boolean needPermission) throws IOException {
         File destinationFile = new File(destinationPath.toString());
         if (destinationFile.exists()) pathList.add(destinationPath);
 
@@ -51,21 +53,37 @@ public class OrcFileMerger {
         Path intermediatePath = new Path(destinationPath.getParent().toString() + File.separator + fileName);
         List<Path> mergedPaths = new LinkedList<>();
         OrcWriter orcWriter = null;
-        for (Path path : pathList) {
-            try (OrcReader orcReader = new OrcReader(new Configuration(), path, null)) {
-                if (orcWriter == null) {
-                    orcWriter = new OrcWriter(orcReader.getSchema(), orcReader.getColumnNames(), intermediatePath);
+        if(needPermission){
+            while(!rewriteSemaphore.tryAcquire()){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    logger.error(e.getMessage());
                 }
-                while (orcReader.hasNext()) {
-                    orcWriter.write(orcReader.nextCompleteRow());
-                }
-                mergedPaths.add(path);
             }
         }
-        orcWriter.flush();
-        orcWriter.close();
 
-        logger.info(mergedPaths + " merged");
+        try {
+            for (Path path : pathList) {
+                try (OrcReader orcReader = new OrcReader(new Configuration(), path, null)) {
+                    if (orcWriter == null) {
+                        orcWriter = new OrcWriter(orcReader.getSchema(), orcReader.getColumnNames(), intermediatePath);
+                    }
+                    while (orcReader.hasNext()) {
+                        orcWriter.write(orcReader.nextCompleteRow());
+                    }
+                    mergedPaths.add(path);
+                }
+            }
+            orcWriter.flush();
+            orcWriter.close();
+        }finally {
+            if(needPermission){
+                rewriteSemaphore.release();
+            }
+        }
+
+        logger.info("Rewriting data of:"+pathList+ " Merged Paths:" + mergedPaths);
         if (deleteMergedPathsFlag) {
             deleteMergedPaths(destinationPath, pathList);
         }
@@ -82,15 +100,30 @@ public class OrcFileMerger {
         }
     }
 
-    public static void mergeFiles(Path destinationPath, List<Path> pathList, boolean deleteMergedPathsFlag) throws IOException {
-
+    public static void mergeFiles(Path destinationPath, List<Path> pathList, boolean deleteMergedPathsFlag, boolean needPermission) throws IOException {
         File destinationFile = new File(destinationPath.toString());
         if(destinationFile.exists()) pathList.add(destinationPath);
         String fileName = UUID.randomUUID().toString();
         Path intermediatePath = new Path(destinationPath.getParent().toString() + File.separator + fileName);
         OrcFile.WriterOptions writerOptions = OrcFile.writerOptions(new Configuration());
-        List<Path> mergedPaths = OrcFile.mergeFiles(intermediatePath, writerOptions, pathList);
-        logger.info(mergedPaths + " merged");
+        if(needPermission){
+            while(!mergeSemaphore.tryAcquire()){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    logger.error(e.getMessage());
+                }
+            }
+        }
+
+        try {
+            List<Path> mergedPaths = OrcFile.mergeFiles(intermediatePath, writerOptions, pathList);
+            logger.info("Merging data of:"+pathList+ " Merged:" + mergedPaths);
+        }finally {
+            if(needPermission){
+                mergeSemaphore.release();
+            }
+        }
         if (deleteMergedPathsFlag) {
             deleteMergedPaths(destinationPath, pathList);
         }

@@ -31,13 +31,11 @@ import java.nio.file.FileSystemNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
 public class IncrementalOrcDataReceiver implements Runnable {
 
     private static Logger logger = LoggerFactory.getLogger(IncrementalOrcDataReceiver.class);
     private Socket socket;
-    private static Semaphore semaphore = new Semaphore(200);
 
     public IncrementalOrcDataReceiver(Socket socket) {
         this.socket = socket;
@@ -76,20 +74,13 @@ public class IncrementalOrcDataReceiver implements Runnable {
                     e.printStackTrace();
                     throw e;
                 }
-                while(!semaphore.tryAcquire()){
-                    Thread.sleep(1000);
-                }
-                try {
-                    appendFileData(destinationPath, tmpPath);
-                }finally {
-                    semaphore.release();
-                }
+                appendFileData(destinationPath, tmpPath);
                 dos.writeBoolean(true);
                 dos.flush();
             }
             dos.writeUTF(HungryHippoServicesConstants.SUCCESS);
             dos.flush();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             logger.error(e.toString());
             try {
                 if (dos != null) {
@@ -117,17 +108,17 @@ public class IncrementalOrcDataReceiver implements Runnable {
         List<Path> tmpList = new LinkedList<>();
         tmpList.add(new Path(tmpPath));
         if (new File(tmpPath).length() > OrcFileMerger.REWRITE_THRESHOLD) {
-            OrcFileMerger.mergeFiles(finalFilePath, tmpList, true);
+            OrcFileMerger.mergeFiles(finalFilePath, tmpList, true,true);
         } else {
-            OrcFileMerger.mergeFiles(deltaFilePath, tmpList, true);
+            OrcFileMerger.mergeFiles(deltaFilePath, tmpList, true, true);
             if (new File(deltaFilePath.toString()).length() > OrcFileMerger.REWRITE_THRESHOLD) {
                 List<Path> deltaList = new LinkedList<>();
                 deltaList.add(deltaFilePath);
                 Path intermediatePath = new Path(deltaFilePath.getParent().toString() + File.separator + UUID.randomUUID().toString());
-                OrcFileMerger.rewriteData(intermediatePath, deltaList, true);
+                OrcFileMerger.rewriteData(intermediatePath, deltaList, true, true);
                 List<Path> intermediateList = new LinkedList<>();
                 intermediateList.add(intermediatePath);
-                OrcFileMerger.mergeFiles(finalFilePath, intermediateList, true);
+                OrcFileMerger.mergeFiles(finalFilePath, intermediateList, true, true);
             }
         }
     }

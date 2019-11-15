@@ -36,7 +36,7 @@ GEM
     coderay (1.1.1)
     diff-lcs (1.2.5)
     erubis (2.7.0)
-    ffi (1.9.10)
+    ffi (1.11.2)
     ffi-yajl (2.2.3)
       libyajl2 (~> 1.2)
     hashie (3.4.3)
@@ -120,7 +120,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  chef (~> 12.3, < 12.4)
+  chef
 
 BUNDLED WITH
    1.11.2
